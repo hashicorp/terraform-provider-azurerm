@@ -21,17 +21,17 @@ type ContactsClient struct {
 }
 
 // NewContactsClient creates an instance of the ContactsClient client.
-func NewContactsClient(subscriptionID string, ascLocation string) ContactsClient {
-	return NewContactsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewContactsClient(subscriptionID string) ContactsClient {
+	return NewContactsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewContactsClientWithBaseURI creates an instance of the ContactsClient client using a custom endpoint.  Use this
 // when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewContactsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) ContactsClient {
-	return ContactsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewContactsClientWithBaseURI(baseURI string, subscriptionID string) ContactsClient {
+	return ContactsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Create security contact configurations for the subscription
+// Create create security contact configurations for the subscription
 // Parameters:
 // securityContactName - name of the security contact object
 // securityContact - security contact object
@@ -48,10 +48,7 @@ func (client ContactsClient) Create(ctx context.Context, securityContactName str
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
-		{TargetValue: securityContact,
-			Constraints: []validation.Constraint{{Target: "securityContact.ContactProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "securityContact.ContactProperties.Email", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("security.ContactsClient", "Create", err.Error())
 	}
 
@@ -84,7 +81,7 @@ func (client ContactsClient) CreatePreparer(ctx context.Context, securityContact
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -110,14 +107,14 @@ func (client ContactsClient) CreateSender(req *http.Request) (*http.Response, er
 func (client ContactsClient) CreateResponder(resp *http.Response) (result Contact, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// Delete security contact configurations for the subscription
+// Delete delete security contact configurations for the subscription
 // Parameters:
 // securityContactName - name of the security contact object
 func (client ContactsClient) Delete(ctx context.Context, securityContactName string) (result autorest.Response, err error) {
@@ -166,7 +163,7 @@ func (client ContactsClient) DeletePreparer(ctx context.Context, securityContact
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -196,7 +193,7 @@ func (client ContactsClient) DeleteResponder(resp *http.Response) (result autore
 	return
 }
 
-// Get security contact configurations for the subscription
+// Get get Default Security contact configurations for the subscription
 // Parameters:
 // securityContactName - name of the security contact object
 func (client ContactsClient) Get(ctx context.Context, securityContactName string) (result Contact, err error) {
@@ -245,7 +242,7 @@ func (client ContactsClient) GetPreparer(ctx context.Context, securityContactNam
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -276,7 +273,7 @@ func (client ContactsClient) GetResponder(resp *http.Response) (result Contact, 
 	return
 }
 
-// List security contact configurations for the subscription
+// List list all security contact configurations for the subscription
 func (client ContactsClient) List(ctx context.Context) (result ContactListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ContactsClient.List")
@@ -327,7 +324,7 @@ func (client ContactsClient) ListPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -392,88 +389,5 @@ func (client ContactsClient) ListComplete(ctx context.Context) (result ContactLi
 		}()
 	}
 	result.page, err = client.List(ctx)
-	return
-}
-
-// Update security contact configurations for the subscription
-// Parameters:
-// securityContactName - name of the security contact object
-// securityContact - security contact object
-func (client ContactsClient) Update(ctx context.Context, securityContactName string, securityContact Contact) (result Contact, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ContactsClient.Update")
-		defer func() {
-			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.ContactsClient", "Update", err.Error())
-	}
-
-	req, err := client.UpdatePreparer(ctx, securityContactName, securityContact)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.ContactsClient", "Update", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.UpdateSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "security.ContactsClient", "Update", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.UpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.ContactsClient", "Update", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// UpdatePreparer prepares the Update request.
-func (client ContactsClient) UpdatePreparer(ctx context.Context, securityContactName string, securityContact Contact) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"securityContactName": autorest.Encode("path", securityContactName),
-		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2017-08-01-preview"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPatch(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/securityContacts/{securityContactName}", pathParameters),
-		autorest.WithJSON(securityContact),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// UpdateSender sends the Update request. The method will close the
-// http.Response Body if it receives an error.
-func (client ContactsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// UpdateResponder handles the response to the Update request. The method always
-// closes the http.Response Body.
-func (client ContactsClient) UpdateResponder(resp *http.Response) (result Contact, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
 	return
 }

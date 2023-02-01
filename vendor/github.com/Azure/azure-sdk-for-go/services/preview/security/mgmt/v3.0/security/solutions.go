@@ -21,22 +21,24 @@ type SolutionsClient struct {
 }
 
 // NewSolutionsClient creates an instance of the SolutionsClient client.
-func NewSolutionsClient(subscriptionID string, ascLocation string) SolutionsClient {
-	return NewSolutionsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewSolutionsClient(subscriptionID string) SolutionsClient {
+	return NewSolutionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewSolutionsClientWithBaseURI creates an instance of the SolutionsClient client using a custom endpoint.  Use this
 // when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewSolutionsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) SolutionsClient {
-	return SolutionsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewSolutionsClientWithBaseURI(baseURI string, subscriptionID string) SolutionsClient {
+	return SolutionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get gets a specific Security Solution.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // securitySolutionName - name of security solution.
-func (client SolutionsClient) Get(ctx context.Context, resourceGroupName string, securitySolutionName string) (result Solution, err error) {
+func (client SolutionsClient) Get(ctx context.Context, resourceGroupName string, ascLocation string, securitySolutionName string) (result Solution, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SolutionsClient.Get")
 		defer func() {
@@ -57,7 +59,7 @@ func (client SolutionsClient) Get(ctx context.Context, resourceGroupName string,
 		return result, validation.NewError("security.SolutionsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, securitySolutionName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, ascLocation, securitySolutionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SolutionsClient", "Get", nil, "Failure preparing request")
 		return
@@ -80,9 +82,9 @@ func (client SolutionsClient) Get(ctx context.Context, resourceGroupName string,
 }
 
 // GetPreparer prepares the Get request.
-func (client SolutionsClient) GetPreparer(ctx context.Context, resourceGroupName string, securitySolutionName string) (*http.Request, error) {
+func (client SolutionsClient) GetPreparer(ctx context.Context, resourceGroupName string, ascLocation string, securitySolutionName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":          autorest.Encode("path", client.AscLocation),
+		"ascLocation":          autorest.Encode("path", ascLocation),
 		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
 		"securitySolutionName": autorest.Encode("path", securitySolutionName),
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),

@@ -5,6 +5,9 @@
 // Package period provides functionality for periods of time using ISO-8601 conventions.
 // This deals with years, months, weeks/days, hours, minutes and seconds.
 //
+// *** Warning: this package is the subject of many issues, so a replacement is under
+// development. Please see https://github.com/rickb777/period.
+//
 // Because of the vagaries of calendar systems, the meaning of year lengths, month lengths
 // and even day lengths depends on context. So a period is not necessarily a fixed duration
 // of time in terms of seconds.
@@ -40,5 +43,4 @@
 // * "P2.5Y" is 2.5 years.
 //
 // * "PT12M7.5S" is 12 minutes and 7.5 seconds.
-//
 package period

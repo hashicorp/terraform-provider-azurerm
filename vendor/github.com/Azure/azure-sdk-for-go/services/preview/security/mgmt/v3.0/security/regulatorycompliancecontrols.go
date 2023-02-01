@@ -21,15 +21,15 @@ type RegulatoryComplianceControlsClient struct {
 }
 
 // NewRegulatoryComplianceControlsClient creates an instance of the RegulatoryComplianceControlsClient client.
-func NewRegulatoryComplianceControlsClient(subscriptionID string, ascLocation string) RegulatoryComplianceControlsClient {
-	return NewRegulatoryComplianceControlsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewRegulatoryComplianceControlsClient(subscriptionID string) RegulatoryComplianceControlsClient {
+	return NewRegulatoryComplianceControlsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewRegulatoryComplianceControlsClientWithBaseURI creates an instance of the RegulatoryComplianceControlsClient
 // client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
 // (sovereign clouds, Azure stack).
-func NewRegulatoryComplianceControlsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) RegulatoryComplianceControlsClient {
-	return RegulatoryComplianceControlsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewRegulatoryComplianceControlsClientWithBaseURI(baseURI string, subscriptionID string) RegulatoryComplianceControlsClient {
+	return RegulatoryComplianceControlsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get selected regulatory compliance control details and state

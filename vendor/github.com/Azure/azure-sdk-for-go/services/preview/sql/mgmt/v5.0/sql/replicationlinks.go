@@ -33,20 +33,19 @@ func NewReplicationLinksClientWithBaseURI(baseURI string, subscriptionID string)
 	return ReplicationLinksClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Delete deletes a database replication link. Cannot be done during failover.
+// Delete deletes the replication link.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
-// databaseName - the name of the database that has the replication link to be dropped.
-// linkID - the ID of the replication link to be deleted.
-func (client ReplicationLinksClient) Delete(ctx context.Context, resourceGroupName string, serverName string, databaseName string, linkID string) (result autorest.Response, err error) {
+// databaseName - the name of the database.
+func (client ReplicationLinksClient) Delete(ctx context.Context, resourceGroupName string, serverName string, databaseName string, linkID string) (result ReplicationLinksDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationLinksClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -57,16 +56,9 @@ func (client ReplicationLinksClient) Delete(ctx context.Context, resourceGroupNa
 		return
 	}
 
-	resp, err := client.DeleteSender(req)
+	result, err = client.DeleteSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Delete", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -83,7 +75,7 @@ func (client ReplicationLinksClient) DeletePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2014-04-01"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -98,8 +90,18 @@ func (client ReplicationLinksClient) DeletePreparer(ctx context.Context, resourc
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client ReplicationLinksClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client ReplicationLinksClient) DeleteSender(req *http.Request) (future ReplicationLinksDeleteFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -107,19 +109,19 @@ func (client ReplicationLinksClient) DeleteSender(req *http.Request) (*http.Resp
 func (client ReplicationLinksClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
 	return
 }
 
-// Failover sets which replica database is primary by failing over from the current primary replica database.
+// Failover fails over from the current primary server to this server.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
-// databaseName - the name of the database that has the replication link to be failed over.
-// linkID - the ID of the replication link to be failed over.
+// databaseName - the name of the database.
+// linkID - the name of the replication link.
 func (client ReplicationLinksClient) Failover(ctx context.Context, resourceGroupName string, serverName string, databaseName string, linkID string) (result ReplicationLinksFailoverFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationLinksClient.Failover")
@@ -156,7 +158,7 @@ func (client ReplicationLinksClient) FailoverPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2014-04-01"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -187,23 +189,23 @@ func (client ReplicationLinksClient) FailoverSender(req *http.Request) (future R
 
 // FailoverResponder handles the response to the Failover request. The method always
 // closes the http.Response Body.
-func (client ReplicationLinksClient) FailoverResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client ReplicationLinksClient) FailoverResponder(resp *http.Response) (result ReplicationLink, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = resp
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// FailoverAllowDataLoss sets which replica database is primary by failing over from the current primary replica
-// database. This operation might result in data loss.
+// FailoverAllowDataLoss fails over from the current primary server to this server allowing data loss.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
-// databaseName - the name of the database that has the replication link to be failed over.
-// linkID - the ID of the replication link to be failed over.
+// databaseName - the name of the database.
+// linkID - the name of the replication link.
 func (client ReplicationLinksClient) FailoverAllowDataLoss(ctx context.Context, resourceGroupName string, serverName string, databaseName string, linkID string) (result ReplicationLinksFailoverAllowDataLossFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationLinksClient.FailoverAllowDataLoss")
@@ -240,7 +242,7 @@ func (client ReplicationLinksClient) FailoverAllowDataLossPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2014-04-01"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -271,12 +273,13 @@ func (client ReplicationLinksClient) FailoverAllowDataLossSender(req *http.Reque
 
 // FailoverAllowDataLossResponder handles the response to the FailoverAllowDataLoss request. The method always
 // closes the http.Response Body.
-func (client ReplicationLinksClient) FailoverAllowDataLossResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client ReplicationLinksClient) FailoverAllowDataLossResponder(resp *http.Response) (result ReplicationLink, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = resp
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -330,7 +333,7 @@ func (client ReplicationLinksClient) GetPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-02-01-preview"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -414,7 +417,7 @@ func (client ReplicationLinksClient) ListByDatabasePreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-02-01-preview"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -533,7 +536,7 @@ func (client ReplicationLinksClient) ListByServerPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-02-01-preview"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -598,91 +601,5 @@ func (client ReplicationLinksClient) ListByServerComplete(ctx context.Context, r
 		}()
 	}
 	result.page, err = client.ListByServer(ctx, resourceGroupName, serverName)
-	return
-}
-
-// Unlink deletes a database replication link in forced or friendly way.
-// Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
-// serverName - the name of the server.
-// databaseName - the name of the database that has the replication link to be failed over.
-// linkID - the ID of the replication link to be failed over.
-// parameters - the required parameters for unlinking replication link.
-func (client ReplicationLinksClient) Unlink(ctx context.Context, resourceGroupName string, serverName string, databaseName string, linkID string, parameters UnlinkParameters) (result ReplicationLinksUnlinkFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationLinksClient.Unlink")
-		defer func() {
-			sc := -1
-			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
-				sc = result.FutureAPI.Response().StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	req, err := client.UnlinkPreparer(ctx, resourceGroupName, serverName, databaseName, linkID, parameters)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Unlink", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.UnlinkSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Unlink", result.Response(), "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// UnlinkPreparer prepares the Unlink request.
-func (client ReplicationLinksClient) UnlinkPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, linkID string, parameters UnlinkParameters) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"databaseName":      autorest.Encode("path", databaseName),
-		"linkId":            autorest.Encode("path", linkID),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"serverName":        autorest.Encode("path", serverName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2014-04-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/replicationLinks/{linkId}/unlink", pathParameters),
-		autorest.WithJSON(parameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// UnlinkSender sends the Unlink request. The method will close the
-// http.Response Body if it receives an error.
-func (client ReplicationLinksClient) UnlinkSender(req *http.Request) (future ReplicationLinksUnlinkFuture, err error) {
-	var resp *http.Response
-	future.FutureAPI = &azure.Future{}
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	var azf azure.Future
-	azf, err = azure.NewFutureFromResponse(resp)
-	future.FutureAPI = &azf
-	future.Result = future.result
-	return
-}
-
-// UnlinkResponder handles the response to the Unlink request. The method always
-// closes the http.Response Body.
-func (client ReplicationLinksClient) UnlinkResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByClosing())
-	result.Response = resp
 	return
 }

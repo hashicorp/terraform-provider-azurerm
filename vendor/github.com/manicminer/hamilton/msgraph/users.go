@@ -62,8 +62,16 @@ func (c *UsersClient) Create(ctx context.Context, user User) (*User, int, error)
 		return nil, status, fmt.Errorf("json.Marshal(): %v", err)
 	}
 
+	consistencyFunc := func(resp *http.Response, o *odata.OData) bool {
+		if resp != nil && resp.StatusCode == http.StatusBadRequest && o != nil && o.Error != nil {
+			return o.Error.Match(odata.ErrorPropertyValuesAreInvalid)
+		}
+		return false
+	}
+
 	resp, status, _, err := c.BaseClient.Post(ctx, PostHttpRequestInput{
-		Body: body,
+		Body:                   body,
+		ConsistencyFailureFunc: consistencyFunc,
 		OData: odata.Query{
 			Metadata: odata.MetadataFull,
 		},
@@ -208,7 +216,7 @@ func (c *UsersClient) Update(ctx context.Context, user User) (int, error) {
 		ConsistencyFailureFunc: RetryOn404ConsistencyFailureFunc,
 		ValidStatusCodes:       []int{http.StatusNoContent},
 		Uri: Uri{
-			Entity:      fmt.Sprintf("/users/%s", *user.ID),
+			Entity:      fmt.Sprintf("/users/%s", *user.ID()),
 			HasTenantId: true,
 		},
 	})

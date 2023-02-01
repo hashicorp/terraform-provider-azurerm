@@ -34,6 +34,186 @@ func NewManagedDatabasesClientWithBaseURI(baseURI string, subscriptionID string)
 	return ManagedDatabasesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// CancelMove cancels a managed database move operation.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// managedInstanceName - the name of the managed instance.
+// databaseName - the name of the database.
+// parameters - parameters of the cancel managed database move operation.
+func (client ManagedDatabasesClient) CancelMove(ctx context.Context, resourceGroupName string, managedInstanceName string, databaseName string, parameters ManagedDatabaseMoveDefinition) (result ManagedDatabasesCancelMoveFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedDatabasesClient.CancelMove")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.DestinationManagedDatabaseID", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("sql.ManagedDatabasesClient", "CancelMove", err.Error())
+	}
+
+	req, err := client.CancelMovePreparer(ctx, resourceGroupName, managedInstanceName, databaseName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "CancelMove", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.CancelMoveSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "CancelMove", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// CancelMovePreparer prepares the CancelMove request.
+func (client ManagedDatabasesClient) CancelMovePreparer(ctx context.Context, resourceGroupName string, managedInstanceName string, databaseName string, parameters ManagedDatabaseMoveDefinition) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"databaseName":        autorest.Encode("path", databaseName),
+		"managedInstanceName": autorest.Encode("path", managedInstanceName),
+		"resourceGroupName":   autorest.Encode("path", resourceGroupName),
+		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2022-02-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/managedInstances/{managedInstanceName}/databases/{databaseName}/cancelMove", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CancelMoveSender sends the CancelMove request. The method will close the
+// http.Response Body if it receives an error.
+func (client ManagedDatabasesClient) CancelMoveSender(req *http.Request) (future ManagedDatabasesCancelMoveFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// CancelMoveResponder handles the response to the CancelMove request. The method always
+// closes the http.Response Body.
+func (client ManagedDatabasesClient) CancelMoveResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// CompleteMove completes a managed database move operation.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// managedInstanceName - the name of the managed instance.
+// databaseName - the name of the database.
+// parameters - parameters of the complete managed database move operation.
+func (client ManagedDatabasesClient) CompleteMove(ctx context.Context, resourceGroupName string, managedInstanceName string, databaseName string, parameters ManagedDatabaseMoveDefinition) (result ManagedDatabasesCompleteMoveFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedDatabasesClient.CompleteMove")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.DestinationManagedDatabaseID", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("sql.ManagedDatabasesClient", "CompleteMove", err.Error())
+	}
+
+	req, err := client.CompleteMovePreparer(ctx, resourceGroupName, managedInstanceName, databaseName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "CompleteMove", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.CompleteMoveSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "CompleteMove", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// CompleteMovePreparer prepares the CompleteMove request.
+func (client ManagedDatabasesClient) CompleteMovePreparer(ctx context.Context, resourceGroupName string, managedInstanceName string, databaseName string, parameters ManagedDatabaseMoveDefinition) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"databaseName":        autorest.Encode("path", databaseName),
+		"managedInstanceName": autorest.Encode("path", managedInstanceName),
+		"resourceGroupName":   autorest.Encode("path", resourceGroupName),
+		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2022-02-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/managedInstances/{managedInstanceName}/databases/{databaseName}/completeMove", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CompleteMoveSender sends the CompleteMove request. The method will close the
+// http.Response Body if it receives an error.
+func (client ManagedDatabasesClient) CompleteMoveSender(req *http.Request) (future ManagedDatabasesCompleteMoveFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// CompleteMoveResponder handles the response to the CompleteMove request. The method always
+// closes the http.Response Body.
+func (client ManagedDatabasesClient) CompleteMoveResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // CompleteRestore completes the restore operation on a managed database.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
@@ -82,7 +262,7 @@ func (client ManagedDatabasesClient) CompleteRestorePreparer(ctx context.Context
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -166,7 +346,7 @@ func (client ManagedDatabasesClient) CreateOrUpdatePreparer(ctx context.Context,
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -250,7 +430,7 @@ func (client ManagedDatabasesClient) DeletePreparer(ctx context.Context, resourc
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -338,7 +518,7 @@ func (client ManagedDatabasesClient) GetPreparer(ctx context.Context, resourceGr
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -420,7 +600,7 @@ func (client ManagedDatabasesClient) ListByInstancePreparer(ctx context.Context,
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -539,7 +719,7 @@ func (client ManagedDatabasesClient) ListInaccessibleByInstancePreparer(ctx cont
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -607,6 +787,96 @@ func (client ManagedDatabasesClient) ListInaccessibleByInstanceComplete(ctx cont
 	return
 }
 
+// StartMove starts a managed database move operation.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// managedInstanceName - the name of the managed instance.
+// databaseName - the name of the database.
+// parameters - parameters of the start managed database move operation.
+func (client ManagedDatabasesClient) StartMove(ctx context.Context, resourceGroupName string, managedInstanceName string, databaseName string, parameters ManagedDatabaseStartMoveDefinition) (result ManagedDatabasesStartMoveFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedDatabasesClient.StartMove")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.DestinationManagedDatabaseID", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("sql.ManagedDatabasesClient", "StartMove", err.Error())
+	}
+
+	req, err := client.StartMovePreparer(ctx, resourceGroupName, managedInstanceName, databaseName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "StartMove", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.StartMoveSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "StartMove", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// StartMovePreparer prepares the StartMove request.
+func (client ManagedDatabasesClient) StartMovePreparer(ctx context.Context, resourceGroupName string, managedInstanceName string, databaseName string, parameters ManagedDatabaseStartMoveDefinition) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"databaseName":        autorest.Encode("path", databaseName),
+		"managedInstanceName": autorest.Encode("path", managedInstanceName),
+		"resourceGroupName":   autorest.Encode("path", resourceGroupName),
+		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2022-02-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/managedInstances/{managedInstanceName}/databases/{databaseName}/startMove", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// StartMoveSender sends the StartMove request. The method will close the
+// http.Response Body if it receives an error.
+func (client ManagedDatabasesClient) StartMoveSender(req *http.Request) (future ManagedDatabasesStartMoveFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// StartMoveResponder handles the response to the StartMove request. The method always
+// closes the http.Response Body.
+func (client ManagedDatabasesClient) StartMoveResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // Update updates an existing database.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
@@ -649,7 +919,7 @@ func (client ManagedDatabasesClient) UpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

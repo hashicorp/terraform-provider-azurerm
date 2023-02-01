@@ -33,14 +33,14 @@ func NewTransparentDataEncryptionsClientWithBaseURI(baseURI string, subscription
 	return TransparentDataEncryptionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate creates or updates a database's transparent data encryption configuration.
+// CreateOrUpdate updates a logical database's transparent data encryption configuration.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
-// databaseName - the name of the database for which setting the transparent data encryption applies.
-// parameters - the required parameters for creating or updating transparent data encryption.
-func (client TransparentDataEncryptionsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters TransparentDataEncryption) (result TransparentDataEncryption, err error) {
+// databaseName - the name of the logical database for which the security alert policy is defined.
+// parameters - the database transparent data encryption.
+func (client TransparentDataEncryptionsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters LogicalDatabaseTransparentDataEncryption) (result LogicalDatabaseTransparentDataEncryption, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TransparentDataEncryptionsClient.CreateOrUpdate")
 		defer func() {
@@ -74,26 +74,25 @@ func (client TransparentDataEncryptionsClient) CreateOrUpdate(ctx context.Contex
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client TransparentDataEncryptionsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters TransparentDataEncryption) (*http.Request, error) {
+func (client TransparentDataEncryptionsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters LogicalDatabaseTransparentDataEncryption) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"databaseName":                  autorest.Encode("path", databaseName),
-		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
-		"serverName":                    autorest.Encode("path", serverName),
-		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
-		"transparentDataEncryptionName": autorest.Encode("path", "current"),
+		"databaseName":      autorest.Encode("path", databaseName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"tdeName":           autorest.Encode("path", "current"),
 	}
 
-	const APIVersion = "2014-04-01"
+	const APIVersion = "2021-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
-	parameters.Location = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/transparentDataEncryption/{transparentDataEncryptionName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/transparentDataEncryption/{tdeName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -107,23 +106,23 @@ func (client TransparentDataEncryptionsClient) CreateOrUpdateSender(req *http.Re
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client TransparentDataEncryptionsClient) CreateOrUpdateResponder(resp *http.Response) (result TransparentDataEncryption, err error) {
+func (client TransparentDataEncryptionsClient) CreateOrUpdateResponder(resp *http.Response) (result LogicalDatabaseTransparentDataEncryption, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// Get gets a database's transparent data encryption configuration.
+// Get gets a logical database's transparent data encryption.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
-// databaseName - the name of the database for which the transparent data encryption applies.
-func (client TransparentDataEncryptionsClient) Get(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result TransparentDataEncryption, err error) {
+// databaseName - the name of the logical database for which the transparent data encryption is defined.
+func (client TransparentDataEncryptionsClient) Get(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result LogicalDatabaseTransparentDataEncryption, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TransparentDataEncryptionsClient.Get")
 		defer func() {
@@ -159,14 +158,14 @@ func (client TransparentDataEncryptionsClient) Get(ctx context.Context, resource
 // GetPreparer prepares the Get request.
 func (client TransparentDataEncryptionsClient) GetPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"databaseName":                  autorest.Encode("path", databaseName),
-		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
-		"serverName":                    autorest.Encode("path", serverName),
-		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
-		"transparentDataEncryptionName": autorest.Encode("path", "current"),
+		"databaseName":      autorest.Encode("path", databaseName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"tdeName":           autorest.Encode("path", "current"),
 	}
 
-	const APIVersion = "2014-04-01"
+	const APIVersion = "2021-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -174,7 +173,7 @@ func (client TransparentDataEncryptionsClient) GetPreparer(ctx context.Context, 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/transparentDataEncryption/{transparentDataEncryptionName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/transparentDataEncryption/{tdeName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -187,12 +186,133 @@ func (client TransparentDataEncryptionsClient) GetSender(req *http.Request) (*ht
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client TransparentDataEncryptionsClient) GetResponder(resp *http.Response) (result TransparentDataEncryption, err error) {
+func (client TransparentDataEncryptionsClient) GetResponder(resp *http.Response) (result LogicalDatabaseTransparentDataEncryption, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListByDatabase gets a list of the logical database's transparent data encryption.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+// databaseName - the name of the logical database for which the transparent data encryption is defined.
+func (client TransparentDataEncryptionsClient) ListByDatabase(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result LogicalDatabaseTransparentDataEncryptionListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TransparentDataEncryptionsClient.ListByDatabase")
+		defer func() {
+			sc := -1
+			if result.ldtdelr.Response.Response != nil {
+				sc = result.ldtdelr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listByDatabaseNextResults
+	req, err := client.ListByDatabasePreparer(ctx, resourceGroupName, serverName, databaseName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.TransparentDataEncryptionsClient", "ListByDatabase", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListByDatabaseSender(req)
+	if err != nil {
+		result.ldtdelr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "sql.TransparentDataEncryptionsClient", "ListByDatabase", resp, "Failure sending request")
+		return
+	}
+
+	result.ldtdelr, err = client.ListByDatabaseResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.TransparentDataEncryptionsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
+	}
+	if result.ldtdelr.hasNextLink() && result.ldtdelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// ListByDatabasePreparer prepares the ListByDatabase request.
+func (client TransparentDataEncryptionsClient) ListByDatabasePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"databaseName":      autorest.Encode("path", databaseName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-02-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/transparentDataEncryption", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListByDatabaseSender sends the ListByDatabase request. The method will close the
+// http.Response Body if it receives an error.
+func (client TransparentDataEncryptionsClient) ListByDatabaseSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListByDatabaseResponder handles the response to the ListByDatabase request. The method always
+// closes the http.Response Body.
+func (client TransparentDataEncryptionsClient) ListByDatabaseResponder(resp *http.Response) (result LogicalDatabaseTransparentDataEncryptionListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listByDatabaseNextResults retrieves the next set of results, if any.
+func (client TransparentDataEncryptionsClient) listByDatabaseNextResults(ctx context.Context, lastResults LogicalDatabaseTransparentDataEncryptionListResult) (result LogicalDatabaseTransparentDataEncryptionListResult, err error) {
+	req, err := lastResults.logicalDatabaseTransparentDataEncryptionListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "sql.TransparentDataEncryptionsClient", "listByDatabaseNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListByDatabaseSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "sql.TransparentDataEncryptionsClient", "listByDatabaseNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListByDatabaseResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.TransparentDataEncryptionsClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListByDatabaseComplete enumerates all values, automatically crossing page boundaries as required.
+func (client TransparentDataEncryptionsClient) ListByDatabaseComplete(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result LogicalDatabaseTransparentDataEncryptionListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TransparentDataEncryptionsClient.ListByDatabase")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListByDatabase(ctx, resourceGroupName, serverName, databaseName)
 	return
 }

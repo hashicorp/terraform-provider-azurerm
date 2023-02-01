@@ -80,7 +80,7 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) CreateOrUpdatePreparer(
 		"databaseName":            autorest.Encode("path", databaseName),
 		"managedInstanceName":     autorest.Encode("path", managedInstanceName),
 		"resourceGroupName":       autorest.Encode("path", resourceGroupName),
-		"securityAlertPolicyName": autorest.Encode("path", "default"),
+		"securityAlertPolicyName": autorest.Encode("path", "Default"),
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -162,7 +162,7 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) GetPreparer(ctx context
 		"databaseName":            autorest.Encode("path", databaseName),
 		"managedInstanceName":     autorest.Encode("path", managedInstanceName),
 		"resourceGroupName":       autorest.Encode("path", resourceGroupName),
-		"securityAlertPolicyName": autorest.Encode("path", "default"),
+		"securityAlertPolicyName": autorest.Encode("path", "Default"),
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 

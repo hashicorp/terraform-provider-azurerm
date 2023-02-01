@@ -71,7 +71,7 @@ func (client VirtualClustersClient) DeletePreparer(ctx context.Context, resource
 		"virtualClusterName": autorest.Encode("path", virtualClusterName),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -157,7 +157,7 @@ func (client VirtualClustersClient) GetPreparer(ctx context.Context, resourceGro
 		"virtualClusterName": autorest.Encode("path", virtualClusterName),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -233,7 +233,7 @@ func (client VirtualClustersClient) ListPreparer(ctx context.Context) (*http.Req
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -350,7 +350,7 @@ func (client VirtualClustersClient) ListByResourceGroupPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -418,7 +418,7 @@ func (client VirtualClustersClient) ListByResourceGroupComplete(ctx context.Cont
 	return
 }
 
-// Update updates a virtual cluster.
+// Update updates an existing virtual cluster.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
@@ -458,7 +458,7 @@ func (client VirtualClustersClient) UpdatePreparer(ctx context.Context, resource
 		"virtualClusterName": autorest.Encode("path", virtualClusterName),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -507,13 +507,13 @@ func (client VirtualClustersClient) UpdateResponder(resp *http.Response) (result
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // virtualClusterName - the name of the virtual cluster.
-func (client VirtualClustersClient) UpdateDNSServers(ctx context.Context, resourceGroupName string, virtualClusterName string) (result UpdateManagedInstanceDNSServersOperation, err error) {
+func (client VirtualClustersClient) UpdateDNSServers(ctx context.Context, resourceGroupName string, virtualClusterName string) (result VirtualClustersUpdateDNSServersFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualClustersClient.UpdateDNSServers")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -524,16 +524,9 @@ func (client VirtualClustersClient) UpdateDNSServers(ctx context.Context, resour
 		return
 	}
 
-	resp, err := client.UpdateDNSServersSender(req)
+	result, err = client.UpdateDNSServersSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "UpdateDNSServers", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.UpdateDNSServersResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "UpdateDNSServers", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "sql.VirtualClustersClient", "UpdateDNSServers", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -548,7 +541,7 @@ func (client VirtualClustersClient) UpdateDNSServersPreparer(ctx context.Context
 		"virtualClusterName": autorest.Encode("path", virtualClusterName),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -563,16 +556,26 @@ func (client VirtualClustersClient) UpdateDNSServersPreparer(ctx context.Context
 
 // UpdateDNSServersSender sends the UpdateDNSServers request. The method will close the
 // http.Response Body if it receives an error.
-func (client VirtualClustersClient) UpdateDNSServersSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client VirtualClustersClient) UpdateDNSServersSender(req *http.Request) (future VirtualClustersUpdateDNSServersFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
 }
 
 // UpdateDNSServersResponder handles the response to the UpdateDNSServers request. The method always
 // closes the http.Response Body.
-func (client VirtualClustersClient) UpdateDNSServersResponder(resp *http.Response) (result UpdateManagedInstanceDNSServersOperation, err error) {
+func (client VirtualClustersClient) UpdateDNSServersResponder(resp *http.Response) (result UpdateVirtualClusterDNSServersOperation, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

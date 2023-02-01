@@ -87,75 +87,17 @@ func PossibleAdditionalWorkspaceTypeValues() []AdditionalWorkspaceType {
 	return []AdditionalWorkspaceType{Sentinel}
 }
 
-// AlertIntent enumerates the values for alert intent.
-type AlertIntent string
-
-const (
-	// Collection ...
-	Collection AlertIntent = "Collection"
-	// CommandAndControl ...
-	CommandAndControl AlertIntent = "CommandAndControl"
-	// CredentialAccess ...
-	CredentialAccess AlertIntent = "CredentialAccess"
-	// DefenseEvasion ...
-	DefenseEvasion AlertIntent = "DefenseEvasion"
-	// Discovery ...
-	Discovery AlertIntent = "Discovery"
-	// Execution ...
-	Execution AlertIntent = "Execution"
-	// Exfiltration ...
-	Exfiltration AlertIntent = "Exfiltration"
-	// Exploitation ...
-	Exploitation AlertIntent = "Exploitation"
-	// Impact ...
-	Impact AlertIntent = "Impact"
-	// InitialAccess ...
-	InitialAccess AlertIntent = "InitialAccess"
-	// LateralMovement ...
-	LateralMovement AlertIntent = "LateralMovement"
-	// Persistence ...
-	Persistence AlertIntent = "Persistence"
-	// PreAttack ...
-	PreAttack AlertIntent = "PreAttack"
-	// PrivilegeEscalation ...
-	PrivilegeEscalation AlertIntent = "PrivilegeEscalation"
-	// Probing ...
-	Probing AlertIntent = "Probing"
-	// Unknown ...
-	Unknown AlertIntent = "Unknown"
-)
-
-// PossibleAlertIntentValues returns an array of possible values for the AlertIntent const type.
-func PossibleAlertIntentValues() []AlertIntent {
-	return []AlertIntent{Collection, CommandAndControl, CredentialAccess, DefenseEvasion, Discovery, Execution, Exfiltration, Exploitation, Impact, InitialAccess, LateralMovement, Persistence, PreAttack, PrivilegeEscalation, Probing, Unknown}
-}
-
-// AlertNotifications enumerates the values for alert notifications.
-type AlertNotifications string
-
-const (
-	// Off Don't get notifications on new alerts
-	Off AlertNotifications = "Off"
-	// On Get notifications on new alerts
-	On AlertNotifications = "On"
-)
-
-// PossibleAlertNotificationsValues returns an array of possible values for the AlertNotifications const type.
-func PossibleAlertNotificationsValues() []AlertNotifications {
-	return []AlertNotifications{Off, On}
-}
-
 // AlertSeverity enumerates the values for alert severity.
 type AlertSeverity string
 
 const (
-	// High ...
+	// High High
 	High AlertSeverity = "High"
-	// Informational ...
+	// Informational Informational
 	Informational AlertSeverity = "Informational"
-	// Low ...
+	// Low Low
 	Low AlertSeverity = "Low"
-	// Medium ...
+	// Medium Medium
 	Medium AlertSeverity = "Medium"
 )
 
@@ -172,28 +114,31 @@ const (
 	Active AlertStatus = "Active"
 	// Dismissed Alert dismissed as false positive
 	Dismissed AlertStatus = "Dismissed"
+	// InProgress An alert which is in handling state
+	InProgress AlertStatus = "InProgress"
 	// Resolved Alert closed after handling
 	Resolved AlertStatus = "Resolved"
 )
 
 // PossibleAlertStatusValues returns an array of possible values for the AlertStatus const type.
 func PossibleAlertStatusValues() []AlertStatus {
-	return []AlertStatus{Active, Dismissed, Resolved}
+	return []AlertStatus{Active, Dismissed, InProgress, Resolved}
 }
 
-// AlertsToAdmins enumerates the values for alerts to admins.
-type AlertsToAdmins string
+// ApplicationConditionOperator enumerates the values for application condition operator.
+type ApplicationConditionOperator string
 
 const (
-	// AlertsToAdminsOff Don't send notification on new alerts to the subscription's admins
-	AlertsToAdminsOff AlertsToAdmins = "Off"
-	// AlertsToAdminsOn Send notification on new alerts to the subscription's admins
-	AlertsToAdminsOn AlertsToAdmins = "On"
+	// Equals Checks that the string value of the data defined in Property equals any of the given values
+	// (exact fit)
+	Equals ApplicationConditionOperator = "Equals"
+	// In Checks that the string value of the data defined in Property contains the given value
+	In ApplicationConditionOperator = "In"
 )
 
-// PossibleAlertsToAdminsValues returns an array of possible values for the AlertsToAdmins const type.
-func PossibleAlertsToAdminsValues() []AlertsToAdmins {
-	return []AlertsToAdmins{AlertsToAdminsOff, AlertsToAdminsOn}
+// PossibleApplicationConditionOperatorValues returns an array of possible values for the ApplicationConditionOperator const type.
+func PossibleApplicationConditionOperatorValues() []ApplicationConditionOperator {
+	return []ApplicationConditionOperator{Equals, In}
 }
 
 // AssessedResourceType enumerates the values for assessed resource type.
@@ -236,13 +181,13 @@ func PossibleAssessmentStatusCodeValues() []AssessmentStatusCode {
 type AssessmentType string
 
 const (
-	// BuiltIn Azure Security Center managed assessments
+	// BuiltIn Microsoft Defender for Cloud managed assessments
 	BuiltIn AssessmentType = "BuiltIn"
-	// CustomerManaged User assessments pushed directly by the user or other third party to Azure Security
-	// Center
+	// CustomerManaged User assessments pushed directly by the user or other third party to Microsoft Defender
+	// for Cloud
 	CustomerManaged AssessmentType = "CustomerManaged"
-	// CustomPolicy User defined policies that are automatically ingested from Azure Policy to Azure Security
-	// Center
+	// CustomPolicy User defined policies that are automatically ingested from Azure Policy to Microsoft
+	// Defender for Cloud
 	CustomPolicy AssessmentType = "CustomPolicy"
 	// VerifiedPartner An assessment that was created by a verified 3rd party if the user connected it to ASC
 	VerifiedPartner AssessmentType = "VerifiedPartner"
@@ -291,34 +236,19 @@ func PossibleAuthenticationTypeValues() []AuthenticationType {
 	return []AuthenticationType{AuthenticationTypeAuthenticationDetailsProperties, AuthenticationTypeAwsAssumeRole, AuthenticationTypeAwsCreds, AuthenticationTypeGcpCredentials}
 }
 
-// AuthorizationState enumerates the values for authorization state.
-type AuthorizationState string
-
-const (
-	// Authorized ...
-	Authorized AuthorizationState = "Authorized"
-	// Unauthorized ...
-	Unauthorized AuthorizationState = "Unauthorized"
-)
-
-// PossibleAuthorizationStateValues returns an array of possible values for the AuthorizationState const type.
-func PossibleAuthorizationStateValues() []AuthorizationState {
-	return []AuthorizationState{Authorized, Unauthorized}
-}
-
 // AutoProvision enumerates the values for auto provision.
 type AutoProvision string
 
 const (
-	// AutoProvisionOff Do not install security agent on the VMs automatically
-	AutoProvisionOff AutoProvision = "Off"
-	// AutoProvisionOn Install missing security agent on VMs automatically
-	AutoProvisionOn AutoProvision = "On"
+	// Off Do not install security agent on the VMs automatically
+	Off AutoProvision = "Off"
+	// On Install missing security agent on VMs automatically
+	On AutoProvision = "On"
 )
 
 // PossibleAutoProvisionValues returns an array of possible values for the AutoProvision const type.
 func PossibleAutoProvisionValues() []AutoProvision {
-	return []AutoProvision{AutoProvisionOff, AutoProvisionOn}
+	return []AutoProvision{Off, On}
 }
 
 // BundleType enumerates the values for bundle type.
@@ -327,6 +257,8 @@ type BundleType string
 const (
 	// AppServices ...
 	AppServices BundleType = "AppServices"
+	// CosmosDbs ...
+	CosmosDbs BundleType = "CosmosDbs"
 	// DNS ...
 	DNS BundleType = "DNS"
 	// KeyVaults ...
@@ -345,7 +277,7 @@ const (
 
 // PossibleBundleTypeValues returns an array of possible values for the BundleType const type.
 func PossibleBundleTypeValues() []BundleType {
-	return []BundleType{AppServices, DNS, KeyVaults, KubernetesService, ResourceManager, SQLServers, StorageAccounts, VirtualMachines}
+	return []BundleType{AppServices, CosmosDbs, DNS, KeyVaults, KubernetesService, ResourceManager, SQLServers, StorageAccounts, VirtualMachines}
 }
 
 // Categories enumerates the values for categories.
@@ -369,25 +301,46 @@ func PossibleCategoriesValues() []Categories {
 	return []Categories{Compute, Data, IdentityAndAccess, IoT, Networking}
 }
 
+// CloudName enumerates the values for cloud name.
+type CloudName string
+
+const (
+	// AWS ...
+	AWS CloudName = "AWS"
+	// Azure ...
+	Azure CloudName = "Azure"
+	// AzureDevOps ...
+	AzureDevOps CloudName = "AzureDevOps"
+	// GCP ...
+	GCP CloudName = "GCP"
+	// Github ...
+	Github CloudName = "Github"
+)
+
+// PossibleCloudNameValues returns an array of possible values for the CloudName const type.
+func PossibleCloudNameValues() []CloudName {
+	return []CloudName{AWS, Azure, AzureDevOps, GCP, Github}
+}
+
 // ConfigurationStatus enumerates the values for configuration status.
 type ConfigurationStatus string
 
 const (
-	// Configured ...
-	Configured ConfigurationStatus = "Configured"
-	// Failed ...
-	Failed ConfigurationStatus = "Failed"
-	// InProgress ...
-	InProgress ConfigurationStatus = "InProgress"
-	// NoStatus ...
-	NoStatus ConfigurationStatus = "NoStatus"
-	// NotConfigured ...
-	NotConfigured ConfigurationStatus = "NotConfigured"
+	// ConfigurationStatusConfigured ...
+	ConfigurationStatusConfigured ConfigurationStatus = "Configured"
+	// ConfigurationStatusFailed ...
+	ConfigurationStatusFailed ConfigurationStatus = "Failed"
+	// ConfigurationStatusInProgress ...
+	ConfigurationStatusInProgress ConfigurationStatus = "InProgress"
+	// ConfigurationStatusNoStatus ...
+	ConfigurationStatusNoStatus ConfigurationStatus = "NoStatus"
+	// ConfigurationStatusNotConfigured ...
+	ConfigurationStatusNotConfigured ConfigurationStatus = "NotConfigured"
 )
 
 // PossibleConfigurationStatusValues returns an array of possible values for the ConfigurationStatus const type.
 func PossibleConfigurationStatusValues() []ConfigurationStatus {
-	return []ConfigurationStatus{Configured, Failed, InProgress, NoStatus, NotConfigured}
+	return []ConfigurationStatus{ConfigurationStatusConfigured, ConfigurationStatusFailed, ConfigurationStatusInProgress, ConfigurationStatusNoStatus, ConfigurationStatusNotConfigured}
 }
 
 // ConfigurationStatus1 enumerates the values for configuration status 1.
@@ -451,9 +404,9 @@ func PossibleConnectionTypeValues() []ConnectionType {
 type ControlType string
 
 const (
-	// ControlTypeBuiltIn Azure Security Center managed assessments
+	// ControlTypeBuiltIn Microsoft Defender for Cloud managed assessments
 	ControlTypeBuiltIn ControlType = "BuiltIn"
-	// ControlTypeCustom Non Azure Security Center managed assessments
+	// ControlTypeCustom Non Microsoft Defender for Cloud managed assessments
 	ControlTypeCustom ControlType = "Custom"
 )
 
@@ -466,19 +419,19 @@ func PossibleControlTypeValues() []ControlType {
 type CreatedByType string
 
 const (
-	// Application ...
-	Application CreatedByType = "Application"
-	// Key ...
-	Key CreatedByType = "Key"
-	// ManagedIdentity ...
-	ManagedIdentity CreatedByType = "ManagedIdentity"
-	// User ...
-	User CreatedByType = "User"
+	// CreatedByTypeApplication ...
+	CreatedByTypeApplication CreatedByType = "Application"
+	// CreatedByTypeKey ...
+	CreatedByTypeKey CreatedByType = "Key"
+	// CreatedByTypeManagedIdentity ...
+	CreatedByTypeManagedIdentity CreatedByType = "ManagedIdentity"
+	// CreatedByTypeUser ...
+	CreatedByTypeUser CreatedByType = "User"
 )
 
 // PossibleCreatedByTypeValues returns an array of possible values for the CreatedByType const type.
 func PossibleCreatedByTypeValues() []CreatedByType {
-	return []CreatedByType{Application, Key, ManagedIdentity, User}
+	return []CreatedByType{CreatedByTypeApplication, CreatedByTypeKey, CreatedByTypeManagedIdentity, CreatedByTypeUser}
 }
 
 // DataSource enumerates the values for data source.
@@ -492,36 +445,6 @@ const (
 // PossibleDataSourceValues returns an array of possible values for the DataSource const type.
 func PossibleDataSourceValues() []DataSource {
 	return []DataSource{TwinData}
-}
-
-// DeviceCriticality enumerates the values for device criticality.
-type DeviceCriticality string
-
-const (
-	// Important ...
-	Important DeviceCriticality = "Important"
-	// Standard ...
-	Standard DeviceCriticality = "Standard"
-)
-
-// PossibleDeviceCriticalityValues returns an array of possible values for the DeviceCriticality const type.
-func PossibleDeviceCriticalityValues() []DeviceCriticality {
-	return []DeviceCriticality{Important, Standard}
-}
-
-// DeviceStatus enumerates the values for device status.
-type DeviceStatus string
-
-const (
-	// DeviceStatusActive ...
-	DeviceStatusActive DeviceStatus = "Active"
-	// DeviceStatusRemoved ...
-	DeviceStatusRemoved DeviceStatus = "Removed"
-)
-
-// PossibleDeviceStatusValues returns an array of possible values for the DeviceStatus const type.
-func PossibleDeviceStatusValues() []DeviceStatus {
-	return []DeviceStatus{DeviceStatusActive, DeviceStatusRemoved}
 }
 
 // Direction enumerates the values for direction.
@@ -581,17 +504,38 @@ func PossibleEnforcementModeValues() []EnforcementMode {
 type EnforcementSupport string
 
 const (
-	// EnforcementSupportNotSupported ...
-	EnforcementSupportNotSupported EnforcementSupport = "NotSupported"
-	// EnforcementSupportSupported ...
-	EnforcementSupportSupported EnforcementSupport = "Supported"
-	// EnforcementSupportUnknown ...
-	EnforcementSupportUnknown EnforcementSupport = "Unknown"
+	// NotSupported ...
+	NotSupported EnforcementSupport = "NotSupported"
+	// Supported ...
+	Supported EnforcementSupport = "Supported"
+	// Unknown ...
+	Unknown EnforcementSupport = "Unknown"
 )
 
 // PossibleEnforcementSupportValues returns an array of possible values for the EnforcementSupport const type.
 func PossibleEnforcementSupportValues() []EnforcementSupport {
-	return []EnforcementSupport{EnforcementSupportNotSupported, EnforcementSupportSupported, EnforcementSupportUnknown}
+	return []EnforcementSupport{NotSupported, Supported, Unknown}
+}
+
+// EnvironmentType enumerates the values for environment type.
+type EnvironmentType string
+
+const (
+	// EnvironmentTypeAwsAccount ...
+	EnvironmentTypeAwsAccount EnvironmentType = "AwsAccount"
+	// EnvironmentTypeAzureDevOpsScope ...
+	EnvironmentTypeAzureDevOpsScope EnvironmentType = "AzureDevOpsScope"
+	// EnvironmentTypeEnvironmentData ...
+	EnvironmentTypeEnvironmentData EnvironmentType = "EnvironmentData"
+	// EnvironmentTypeGcpProject ...
+	EnvironmentTypeGcpProject EnvironmentType = "GcpProject"
+	// EnvironmentTypeGithubScope ...
+	EnvironmentTypeGithubScope EnvironmentType = "GithubScope"
+)
+
+// PossibleEnvironmentTypeValues returns an array of possible values for the EnvironmentType const type.
+func PossibleEnvironmentTypeValues() []EnvironmentType {
+	return []EnvironmentType{EnvironmentTypeAwsAccount, EnvironmentTypeAzureDevOpsScope, EnvironmentTypeEnvironmentData, EnvironmentTypeGcpProject, EnvironmentTypeGithubScope}
 }
 
 // EventSource enumerates the values for event source.
@@ -602,6 +546,8 @@ const (
 	EventSourceAlerts EventSource = "Alerts"
 	// EventSourceAssessments ...
 	EventSourceAssessments EventSource = "Assessments"
+	// EventSourceAssessmentsSnapshot ...
+	EventSourceAssessmentsSnapshot EventSource = "AssessmentsSnapshot"
 	// EventSourceRegulatoryComplianceAssessment ...
 	EventSourceRegulatoryComplianceAssessment EventSource = "RegulatoryComplianceAssessment"
 	// EventSourceRegulatoryComplianceAssessmentSnapshot ...
@@ -616,11 +562,13 @@ const (
 	EventSourceSecureScoresSnapshot EventSource = "SecureScoresSnapshot"
 	// EventSourceSubAssessments ...
 	EventSourceSubAssessments EventSource = "SubAssessments"
+	// EventSourceSubAssessmentsSnapshot ...
+	EventSourceSubAssessmentsSnapshot EventSource = "SubAssessmentsSnapshot"
 )
 
 // PossibleEventSourceValues returns an array of possible values for the EventSource const type.
 func PossibleEventSourceValues() []EventSource {
-	return []EventSource{EventSourceAlerts, EventSourceAssessments, EventSourceRegulatoryComplianceAssessment, EventSourceRegulatoryComplianceAssessmentSnapshot, EventSourceSecureScoreControls, EventSourceSecureScoreControlsSnapshot, EventSourceSecureScores, EventSourceSecureScoresSnapshot, EventSourceSubAssessments}
+	return []EventSource{EventSourceAlerts, EventSourceAssessments, EventSourceAssessmentsSnapshot, EventSourceRegulatoryComplianceAssessment, EventSourceRegulatoryComplianceAssessmentSnapshot, EventSourceSecureScoreControls, EventSourceSecureScoreControlsSnapshot, EventSourceSecureScores, EventSourceSecureScoresSnapshot, EventSourceSubAssessments, EventSourceSubAssessmentsSnapshot}
 }
 
 // Exe enumerates the values for exe.
@@ -757,6 +705,53 @@ func PossibleFileTypeValues() []FileType {
 	return []FileType{FileTypeDll, FileTypeExe, FileTypeExecutable, FileTypeMsi, FileTypeScript, FileTypeUnknown}
 }
 
+// GovernanceRuleConditionOperator enumerates the values for governance rule condition operator.
+type GovernanceRuleConditionOperator string
+
+const (
+	// GovernanceRuleConditionOperatorEquals Checks that the string value of the data defined in Property
+	// equals the given value - exact fit
+	GovernanceRuleConditionOperatorEquals GovernanceRuleConditionOperator = "Equals"
+	// GovernanceRuleConditionOperatorIn Checks that the string value of the data defined in Property equals
+	// any of the given values (exact fit)
+	GovernanceRuleConditionOperatorIn GovernanceRuleConditionOperator = "In"
+)
+
+// PossibleGovernanceRuleConditionOperatorValues returns an array of possible values for the GovernanceRuleConditionOperator const type.
+func PossibleGovernanceRuleConditionOperatorValues() []GovernanceRuleConditionOperator {
+	return []GovernanceRuleConditionOperator{GovernanceRuleConditionOperatorEquals, GovernanceRuleConditionOperatorIn}
+}
+
+// GovernanceRuleOwnerSourceType enumerates the values for governance rule owner source type.
+type GovernanceRuleOwnerSourceType string
+
+const (
+	// ByTag The rule source type defined using resource tag
+	ByTag GovernanceRuleOwnerSourceType = "ByTag"
+	// Manually The rule source type defined manually
+	Manually GovernanceRuleOwnerSourceType = "Manually"
+)
+
+// PossibleGovernanceRuleOwnerSourceTypeValues returns an array of possible values for the GovernanceRuleOwnerSourceType const type.
+func PossibleGovernanceRuleOwnerSourceTypeValues() []GovernanceRuleOwnerSourceType {
+	return []GovernanceRuleOwnerSourceType{ByTag, Manually}
+}
+
+// GovernanceRuleType enumerates the values for governance rule type.
+type GovernanceRuleType string
+
+const (
+	// Integrated The source of the rule type definition is integrated
+	Integrated GovernanceRuleType = "Integrated"
+	// ServiceNow The source of the rule type definition is ServiceNow
+	ServiceNow GovernanceRuleType = "ServiceNow"
+)
+
+// PossibleGovernanceRuleTypeValues returns an array of possible values for the GovernanceRuleType const type.
+func PossibleGovernanceRuleTypeValues() []GovernanceRuleType {
+	return []GovernanceRuleType{Integrated, ServiceNow}
+}
+
 // HybridComputeProvisioningState enumerates the values for hybrid compute provisioning state.
 type HybridComputeProvisioningState string
 
@@ -789,6 +784,21 @@ const (
 // PossibleImplementationEffortValues returns an array of possible values for the ImplementationEffort const type.
 func PossibleImplementationEffortValues() []ImplementationEffort {
 	return []ImplementationEffort{ImplementationEffortHigh, ImplementationEffortLow, ImplementationEffortModerate}
+}
+
+// InformationProtectionPolicyName enumerates the values for information protection policy name.
+type InformationProtectionPolicyName string
+
+const (
+	// Custom ...
+	Custom InformationProtectionPolicyName = "custom"
+	// Effective ...
+	Effective InformationProtectionPolicyName = "effective"
+)
+
+// PossibleInformationProtectionPolicyNameValues returns an array of possible values for the InformationProtectionPolicyName const type.
+func PossibleInformationProtectionPolicyNameValues() []InformationProtectionPolicyName {
+	return []InformationProtectionPolicyName{Custom, Effective}
 }
 
 // Intent enumerates the values for intent.
@@ -929,34 +939,21 @@ func PossibleKindEnum2Values() []KindEnum2 {
 	return []KindEnum2{KindAlertSyncSettings, KindDataExportSettings, KindSetting}
 }
 
-// MacSignificance enumerates the values for mac significance.
-type MacSignificance string
+// MinimalSeverity enumerates the values for minimal severity.
+type MinimalSeverity string
 
 const (
-	// Primary ...
-	Primary MacSignificance = "Primary"
-	// Secondary ...
-	Secondary MacSignificance = "Secondary"
+	// MinimalSeverityHigh Get notifications on new alerts with High severity
+	MinimalSeverityHigh MinimalSeverity = "High"
+	// MinimalSeverityLow Don't get notifications on new alerts with low, medium or high severity
+	MinimalSeverityLow MinimalSeverity = "Low"
+	// MinimalSeverityMedium Get notifications on new alerts with medium or high severity
+	MinimalSeverityMedium MinimalSeverity = "Medium"
 )
 
-// PossibleMacSignificanceValues returns an array of possible values for the MacSignificance const type.
-func PossibleMacSignificanceValues() []MacSignificance {
-	return []MacSignificance{Primary, Secondary}
-}
-
-// ManagementState enumerates the values for management state.
-type ManagementState string
-
-const (
-	// Managed ...
-	Managed ManagementState = "Managed"
-	// Unmanaged ...
-	Unmanaged ManagementState = "Unmanaged"
-)
-
-// PossibleManagementStateValues returns an array of possible values for the ManagementState const type.
-func PossibleManagementStateValues() []ManagementState {
-	return []ManagementState{Managed, Unmanaged}
+// PossibleMinimalSeverityValues returns an array of possible values for the MinimalSeverity const type.
+func PossibleMinimalSeverityValues() []MinimalSeverity {
+	return []MinimalSeverity{MinimalSeverityHigh, MinimalSeverityLow, MinimalSeverityMedium}
 }
 
 // Msi enumerates the values for msi.
@@ -976,52 +973,111 @@ func PossibleMsiValues() []Msi {
 	return []Msi{MsiAudit, MsiEnforce, MsiNone}
 }
 
-// OnboardingKind enumerates the values for onboarding kind.
-type OnboardingKind string
+// OfferingType enumerates the values for offering type.
+type OfferingType string
 
 const (
-	// Default ...
-	Default OnboardingKind = "Default"
-	// Evaluation ...
-	Evaluation OnboardingKind = "Evaluation"
-	// MigratedToAzure ...
-	MigratedToAzure OnboardingKind = "MigratedToAzure"
-	// Purchased ...
-	Purchased OnboardingKind = "Purchased"
+	// OfferingTypeCloudOffering ...
+	OfferingTypeCloudOffering OfferingType = "cloudOffering"
+	// OfferingTypeCspmMonitorAws ...
+	OfferingTypeCspmMonitorAws OfferingType = "CspmMonitorAws"
+	// OfferingTypeCspmMonitorAzureDevOps ...
+	OfferingTypeCspmMonitorAzureDevOps OfferingType = "CspmMonitorAzureDevOps"
+	// OfferingTypeCspmMonitorGcp ...
+	OfferingTypeCspmMonitorGcp OfferingType = "CspmMonitorGcp"
+	// OfferingTypeCspmMonitorGithub ...
+	OfferingTypeCspmMonitorGithub OfferingType = "CspmMonitorGithub"
+	// OfferingTypeDefenderCspmAws ...
+	OfferingTypeDefenderCspmAws OfferingType = "DefenderCspmAws"
+	// OfferingTypeDefenderCspmGcp ...
+	OfferingTypeDefenderCspmGcp OfferingType = "DefenderCspmGcp"
+	// OfferingTypeDefenderForContainersAws ...
+	OfferingTypeDefenderForContainersAws OfferingType = "DefenderForContainersAws"
+	// OfferingTypeDefenderForContainersGcp ...
+	OfferingTypeDefenderForContainersGcp OfferingType = "DefenderForContainersGcp"
+	// OfferingTypeDefenderForDatabasesAws ...
+	OfferingTypeDefenderForDatabasesAws OfferingType = "DefenderForDatabasesAws"
+	// OfferingTypeDefenderForDatabasesGcp ...
+	OfferingTypeDefenderForDatabasesGcp OfferingType = "DefenderForDatabasesGcp"
+	// OfferingTypeDefenderForDevOpsAzureDevOps ...
+	OfferingTypeDefenderForDevOpsAzureDevOps OfferingType = "DefenderForDevOpsAzureDevOps"
+	// OfferingTypeDefenderForDevOpsGithub ...
+	OfferingTypeDefenderForDevOpsGithub OfferingType = "DefenderForDevOpsGithub"
+	// OfferingTypeDefenderForServersAws ...
+	OfferingTypeDefenderForServersAws OfferingType = "DefenderForServersAws"
+	// OfferingTypeDefenderForServersGcp ...
+	OfferingTypeDefenderForServersGcp OfferingType = "DefenderForServersGcp"
+	// OfferingTypeInformationProtectionAws ...
+	OfferingTypeInformationProtectionAws OfferingType = "InformationProtectionAws"
 )
 
-// PossibleOnboardingKindValues returns an array of possible values for the OnboardingKind const type.
-func PossibleOnboardingKindValues() []OnboardingKind {
-	return []OnboardingKind{Default, Evaluation, MigratedToAzure, Purchased}
+// PossibleOfferingTypeValues returns an array of possible values for the OfferingType const type.
+func PossibleOfferingTypeValues() []OfferingType {
+	return []OfferingType{OfferingTypeCloudOffering, OfferingTypeCspmMonitorAws, OfferingTypeCspmMonitorAzureDevOps, OfferingTypeCspmMonitorGcp, OfferingTypeCspmMonitorGithub, OfferingTypeDefenderCspmAws, OfferingTypeDefenderCspmGcp, OfferingTypeDefenderForContainersAws, OfferingTypeDefenderForContainersGcp, OfferingTypeDefenderForDatabasesAws, OfferingTypeDefenderForDatabasesGcp, OfferingTypeDefenderForDevOpsAzureDevOps, OfferingTypeDefenderForDevOpsGithub, OfferingTypeDefenderForServersAws, OfferingTypeDefenderForServersGcp, OfferingTypeInformationProtectionAws}
 }
 
 // Operator enumerates the values for operator.
 type Operator string
 
 const (
-	// Contains Applies only for non-decimal operands
-	Contains Operator = "Contains"
-	// EndsWith Applies only for non-decimal operands
-	EndsWith Operator = "EndsWith"
-	// Equals Applies for decimal and non-decimal operands
-	Equals Operator = "Equals"
-	// GreaterThan Applies only for decimal operands
-	GreaterThan Operator = "GreaterThan"
-	// GreaterThanOrEqualTo Applies only for decimal operands
-	GreaterThanOrEqualTo Operator = "GreaterThanOrEqualTo"
-	// LesserThan Applies only for decimal operands
-	LesserThan Operator = "LesserThan"
-	// LesserThanOrEqualTo Applies only for decimal operands
-	LesserThanOrEqualTo Operator = "LesserThanOrEqualTo"
-	// NotEquals Applies  for decimal and non-decimal operands
-	NotEquals Operator = "NotEquals"
-	// StartsWith Applies only for non-decimal operands
-	StartsWith Operator = "StartsWith"
+	// OperatorContains Applies only for non-decimal operands
+	OperatorContains Operator = "Contains"
+	// OperatorEndsWith Applies only for non-decimal operands
+	OperatorEndsWith Operator = "EndsWith"
+	// OperatorEquals Applies for decimal and non-decimal operands
+	OperatorEquals Operator = "Equals"
+	// OperatorGreaterThan Applies only for decimal operands
+	OperatorGreaterThan Operator = "GreaterThan"
+	// OperatorGreaterThanOrEqualTo Applies only for decimal operands
+	OperatorGreaterThanOrEqualTo Operator = "GreaterThanOrEqualTo"
+	// OperatorLesserThan Applies only for decimal operands
+	OperatorLesserThan Operator = "LesserThan"
+	// OperatorLesserThanOrEqualTo Applies only for decimal operands
+	OperatorLesserThanOrEqualTo Operator = "LesserThanOrEqualTo"
+	// OperatorNotEquals Applies  for decimal and non-decimal operands
+	OperatorNotEquals Operator = "NotEquals"
+	// OperatorStartsWith Applies only for non-decimal operands
+	OperatorStartsWith Operator = "StartsWith"
 )
 
 // PossibleOperatorValues returns an array of possible values for the Operator const type.
 func PossibleOperatorValues() []Operator {
-	return []Operator{Contains, EndsWith, Equals, GreaterThan, GreaterThanOrEqualTo, LesserThan, LesserThanOrEqualTo, NotEquals, StartsWith}
+	return []Operator{OperatorContains, OperatorEndsWith, OperatorEquals, OperatorGreaterThan, OperatorGreaterThanOrEqualTo, OperatorLesserThan, OperatorLesserThanOrEqualTo, OperatorNotEquals, OperatorStartsWith}
+}
+
+// OrganizationMembershipType enumerates the values for organization membership type.
+type OrganizationMembershipType string
+
+const (
+	// OrganizationMembershipTypeAwsOrganizationalData ...
+	OrganizationMembershipTypeAwsOrganizationalData OrganizationMembershipType = "AwsOrganizationalData"
+	// OrganizationMembershipTypeMember ...
+	OrganizationMembershipTypeMember OrganizationMembershipType = "Member"
+	// OrganizationMembershipTypeOrganization ...
+	OrganizationMembershipTypeOrganization OrganizationMembershipType = "Organization"
+)
+
+// PossibleOrganizationMembershipTypeValues returns an array of possible values for the OrganizationMembershipType const type.
+func PossibleOrganizationMembershipTypeValues() []OrganizationMembershipType {
+	return []OrganizationMembershipType{OrganizationMembershipTypeAwsOrganizationalData, OrganizationMembershipTypeMember, OrganizationMembershipTypeOrganization}
+}
+
+// OrganizationMembershipTypeBasicGcpOrganizationalData enumerates the values for organization membership type
+// basic gcp organizational data.
+type OrganizationMembershipTypeBasicGcpOrganizationalData string
+
+const (
+	// OrganizationMembershipTypeBasicGcpOrganizationalDataOrganizationMembershipTypeGcpOrganizationalData ...
+	OrganizationMembershipTypeBasicGcpOrganizationalDataOrganizationMembershipTypeGcpOrganizationalData OrganizationMembershipTypeBasicGcpOrganizationalData = "GcpOrganizationalData"
+	// OrganizationMembershipTypeBasicGcpOrganizationalDataOrganizationMembershipTypeMember ...
+	OrganizationMembershipTypeBasicGcpOrganizationalDataOrganizationMembershipTypeMember OrganizationMembershipTypeBasicGcpOrganizationalData = "Member"
+	// OrganizationMembershipTypeBasicGcpOrganizationalDataOrganizationMembershipTypeOrganization ...
+	OrganizationMembershipTypeBasicGcpOrganizationalDataOrganizationMembershipTypeOrganization OrganizationMembershipTypeBasicGcpOrganizationalData = "Organization"
+)
+
+// PossibleOrganizationMembershipTypeBasicGcpOrganizationalDataValues returns an array of possible values for the OrganizationMembershipTypeBasicGcpOrganizationalData const type.
+func PossibleOrganizationMembershipTypeBasicGcpOrganizationalDataValues() []OrganizationMembershipTypeBasicGcpOrganizationalData {
+	return []OrganizationMembershipTypeBasicGcpOrganizationalData{OrganizationMembershipTypeBasicGcpOrganizationalDataOrganizationMembershipTypeGcpOrganizationalData, OrganizationMembershipTypeBasicGcpOrganizationalDataOrganizationMembershipTypeMember, OrganizationMembershipTypeBasicGcpOrganizationalDataOrganizationMembershipTypeOrganization}
 }
 
 // PermissionProperty enumerates the values for permission property.
@@ -1048,30 +1104,15 @@ func PossiblePermissionPropertyValues() []PermissionProperty {
 type PricingTier string
 
 const (
-	// PricingTierFree Get free Azure security center experience with basic security features
-	PricingTierFree PricingTier = "Free"
-	// PricingTierStandard Get the standard Azure security center experience with advanced security features
-	PricingTierStandard PricingTier = "Standard"
+	// Free Get free Microsoft Defender for Cloud experience with basic security features
+	Free PricingTier = "Free"
+	// Standard Get the standard Microsoft Defender for Cloud experience with advanced security features
+	Standard PricingTier = "Standard"
 )
 
 // PossiblePricingTierValues returns an array of possible values for the PricingTier const type.
 func PossiblePricingTierValues() []PricingTier {
-	return []PricingTier{PricingTierFree, PricingTierStandard}
-}
-
-// ProgrammingState enumerates the values for programming state.
-type ProgrammingState string
-
-const (
-	// NotProgrammingDevice ...
-	NotProgrammingDevice ProgrammingState = "NotProgrammingDevice"
-	// ProgrammingDevice ...
-	ProgrammingDevice ProgrammingState = "ProgrammingDevice"
-)
-
-// PossibleProgrammingStateValues returns an array of possible values for the ProgrammingState const type.
-func PossibleProgrammingStateValues() []ProgrammingState {
-	return []ProgrammingState{NotProgrammingDevice, ProgrammingDevice}
+	return []PricingTier{Free, Standard}
 }
 
 // PropertyType enumerates the values for property type.
@@ -1114,17 +1155,17 @@ func PossibleProtocolValues() []Protocol {
 type ProvisioningState string
 
 const (
-	// ProvisioningStateFailed ...
-	ProvisioningStateFailed ProvisioningState = "Failed"
-	// ProvisioningStateSucceeded ...
-	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
-	// ProvisioningStateUpdating ...
-	ProvisioningStateUpdating ProvisioningState = "Updating"
+	// Failed ...
+	Failed ProvisioningState = "Failed"
+	// Succeeded ...
+	Succeeded ProvisioningState = "Succeeded"
+	// Updating ...
+	Updating ProvisioningState = "Updating"
 )
 
 // PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
 func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{ProvisioningStateFailed, ProvisioningStateSucceeded, ProvisioningStateUpdating}
+	return []ProvisioningState{Failed, Succeeded, Updating}
 }
 
 // ProvisioningState1 enumerates the values for provisioning state 1.
@@ -1146,23 +1187,6 @@ const (
 // PossibleProvisioningState1Values returns an array of possible values for the ProvisioningState1 const type.
 func PossibleProvisioningState1Values() []ProvisioningState1 {
 	return []ProvisioningState1{ProvisioningState1Canceled, ProvisioningState1Deprovisioning, ProvisioningState1Failed, ProvisioningState1Provisioning, ProvisioningState1Succeeded}
-}
-
-// PurdueLevel enumerates the values for purdue level.
-type PurdueLevel string
-
-const (
-	// Enterprise ...
-	Enterprise PurdueLevel = "Enterprise"
-	// ProcessControl ...
-	ProcessControl PurdueLevel = "ProcessControl"
-	// Supervisory ...
-	Supervisory PurdueLevel = "Supervisory"
-)
-
-// PossiblePurdueLevelValues returns an array of possible values for the PurdueLevel const type.
-func PossiblePurdueLevelValues() []PurdueLevel {
-	return []PurdueLevel{Enterprise, ProcessControl, Supervisory}
 }
 
 // Rank enumerates the values for rank.
@@ -1233,31 +1257,6 @@ const (
 // PossibleRecommendationConfigStatusValues returns an array of possible values for the RecommendationConfigStatus const type.
 func PossibleRecommendationConfigStatusValues() []RecommendationConfigStatus {
 	return []RecommendationConfigStatus{Disabled, Enabled}
-}
-
-// RecommendationSeverity enumerates the values for recommendation severity.
-type RecommendationSeverity string
-
-const (
-	// RecommendationSeverityHealthy ...
-	RecommendationSeverityHealthy RecommendationSeverity = "Healthy"
-	// RecommendationSeverityHigh ...
-	RecommendationSeverityHigh RecommendationSeverity = "High"
-	// RecommendationSeverityLow ...
-	RecommendationSeverityLow RecommendationSeverity = "Low"
-	// RecommendationSeverityMedium ...
-	RecommendationSeverityMedium RecommendationSeverity = "Medium"
-	// RecommendationSeverityNotApplicable ...
-	RecommendationSeverityNotApplicable RecommendationSeverity = "NotApplicable"
-	// RecommendationSeverityOffByPolicy ...
-	RecommendationSeverityOffByPolicy RecommendationSeverity = "OffByPolicy"
-	// RecommendationSeverityUnknown ...
-	RecommendationSeverityUnknown RecommendationSeverity = "Unknown"
-)
-
-// PossibleRecommendationSeverityValues returns an array of possible values for the RecommendationSeverity const type.
-func PossibleRecommendationSeverityValues() []RecommendationSeverity {
-	return []RecommendationSeverity{RecommendationSeverityHealthy, RecommendationSeverityHigh, RecommendationSeverityLow, RecommendationSeverityMedium, RecommendationSeverityNotApplicable, RecommendationSeverityOffByPolicy, RecommendationSeverityUnknown}
 }
 
 // RecommendationStatus enumerates the values for recommendation status.
@@ -1334,21 +1333,6 @@ func PossibleRecommendationTypeValues() []RecommendationType {
 	return []RecommendationType{IoTACRAuthentication, IoTAgentSendsUnutilizedMessages, IoTBaseline, IoTEdgeHubMemOptimize, IoTEdgeLoggingOptions, IoTInconsistentModuleSettings, IoTInstallAgent, IoTIPFilterDenyAll, IoTIPFilterPermissiveRule, IoTOpenPorts, IoTPermissiveFirewallPolicy, IoTPermissiveInputFirewallRules, IoTPermissiveOutputFirewallRules, IoTPrivilegedDockerOptions, IoTSharedCredentials, IoTVulnerableTLSCipherSuite}
 }
 
-// RelationToIPStatus enumerates the values for relation to ip status.
-type RelationToIPStatus string
-
-const (
-	// Certain ...
-	Certain RelationToIPStatus = "Certain"
-	// Guess ...
-	Guess RelationToIPStatus = "Guess"
-)
-
-// PossibleRelationToIPStatusValues returns an array of possible values for the RelationToIPStatus const type.
-func PossibleRelationToIPStatusValues() []RelationToIPStatus {
-	return []RelationToIPStatus{Certain, Guess}
-}
-
 // ReportedSeverity enumerates the values for reported severity.
 type ReportedSeverity string
 
@@ -1385,6 +1369,25 @@ const (
 // PossibleResourceStatusValues returns an array of possible values for the ResourceStatus const type.
 func PossibleResourceStatusValues() []ResourceStatus {
 	return []ResourceStatus{ResourceStatusHealthy, ResourceStatusNotApplicable, ResourceStatusNotHealthy, ResourceStatusOffByPolicy}
+}
+
+// Roles enumerates the values for roles.
+type Roles string
+
+const (
+	// AccountAdmin If enabled, send notification on new alerts to the account admins
+	AccountAdmin Roles = "AccountAdmin"
+	// Contributor If enabled, send notification on new alerts to the subscription contributors
+	Contributor Roles = "Contributor"
+	// Owner If enabled, send notification on new alerts to the subscription owners
+	Owner Roles = "Owner"
+	// ServiceAdmin If enabled, send notification on new alerts to the service admins
+	ServiceAdmin Roles = "ServiceAdmin"
+)
+
+// PossibleRolesValues returns an array of possible values for the Roles const type.
+func PossibleRolesValues() []Roles {
+	return []Roles{AccountAdmin, Contributor, Owner, ServiceAdmin}
 }
 
 // RuleSeverity enumerates the values for rule severity.
@@ -1524,19 +1527,17 @@ func PossibleRuleTypeBasicCustomAlertRuleValues() []RuleTypeBasicCustomAlertRule
 	return []RuleTypeBasicCustomAlertRule{RuleTypeActiveConnectionsNotInAllowedRange, RuleTypeAllowlistCustomAlertRule, RuleTypeAmqpC2DMessagesNotInAllowedRange, RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange, RuleTypeAmqpD2CMessagesNotInAllowedRange, RuleTypeConnectionFromIPNotAllowed, RuleTypeConnectionToIPNotAllowed, RuleTypeCustomAlertRule, RuleTypeDenylistCustomAlertRule, RuleTypeDirectMethodInvokesNotInAllowedRange, RuleTypeFailedLocalLoginsNotInAllowedRange, RuleTypeFileUploadsNotInAllowedRange, RuleTypeHTTPC2DMessagesNotInAllowedRange, RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange, RuleTypeHTTPD2CMessagesNotInAllowedRange, RuleTypeListCustomAlertRule, RuleTypeLocalUserNotAllowed, RuleTypeMqttC2DMessagesNotInAllowedRange, RuleTypeMqttC2DRejectedMessagesNotInAllowedRange, RuleTypeMqttD2CMessagesNotInAllowedRange, RuleTypeProcessNotAllowed, RuleTypeQueuePurgesNotInAllowedRange, RuleTypeThresholdCustomAlertRule, RuleTypeTimeWindowCustomAlertRule, RuleTypeTwinUpdatesNotInAllowedRange, RuleTypeUnauthorizedOperationsNotInAllowedRange}
 }
 
-// ScanningFunctionality enumerates the values for scanning functionality.
-type ScanningFunctionality string
+// ScanningMode enumerates the values for scanning mode.
+type ScanningMode string
 
 const (
-	// NotScannerDevice ...
-	NotScannerDevice ScanningFunctionality = "NotScannerDevice"
-	// ScannerDevice ...
-	ScannerDevice ScanningFunctionality = "ScannerDevice"
+	// Default ...
+	Default ScanningMode = "Default"
 )
 
-// PossibleScanningFunctionalityValues returns an array of possible values for the ScanningFunctionality const type.
-func PossibleScanningFunctionalityValues() []ScanningFunctionality {
-	return []ScanningFunctionality{NotScannerDevice, ScannerDevice}
+// PossibleScanningModeValues returns an array of possible values for the ScanningMode const type.
+func PossibleScanningModeValues() []ScanningMode {
+	return []ScanningMode{Default}
 }
 
 // ScanState enumerates the values for scan state.
@@ -1590,36 +1591,67 @@ func PossibleScriptValues() []Script {
 	return []Script{ScriptAudit, ScriptEnforce, ScriptNone}
 }
 
-// SensorStatus enumerates the values for sensor status.
-type SensorStatus string
+// SettingName2 enumerates the values for setting name 2.
+type SettingName2 string
 
 const (
-	// Disconnected ...
-	Disconnected SensorStatus = "Disconnected"
-	// Ok ...
-	Ok SensorStatus = "Ok"
-	// Unavailable ...
-	Unavailable SensorStatus = "Unavailable"
+	// SettingName2MCAS ...
+	SettingName2MCAS SettingName2 = "MCAS"
+	// SettingName2Sentinel ...
+	SettingName2Sentinel SettingName2 = "Sentinel"
+	// SettingName2WDATP ...
+	SettingName2WDATP SettingName2 = "WDATP"
+	// SettingName2WDATPEXCLUDELINUXPUBLICPREVIEW ...
+	SettingName2WDATPEXCLUDELINUXPUBLICPREVIEW SettingName2 = "WDATP_EXCLUDE_LINUX_PUBLIC_PREVIEW"
+	// SettingName2WDATPUNIFIEDSOLUTION ...
+	SettingName2WDATPUNIFIEDSOLUTION SettingName2 = "WDATP_UNIFIED_SOLUTION"
 )
 
-// PossibleSensorStatusValues returns an array of possible values for the SensorStatus const type.
-func PossibleSensorStatusValues() []SensorStatus {
-	return []SensorStatus{Disconnected, Ok, Unavailable}
+// PossibleSettingName2Values returns an array of possible values for the SettingName2 const type.
+func PossibleSettingName2Values() []SettingName2 {
+	return []SettingName2{SettingName2MCAS, SettingName2Sentinel, SettingName2WDATP, SettingName2WDATPEXCLUDELINUXPUBLICPREVIEW, SettingName2WDATPUNIFIEDSOLUTION}
 }
 
-// SensorType enumerates the values for sensor type.
-type SensorType string
+// SettingName4 enumerates the values for setting name 4.
+type SettingName4 string
 
 const (
-	// SensorTypeEnterprise ...
-	SensorTypeEnterprise SensorType = "Enterprise"
-	// SensorTypeOt ...
-	SensorTypeOt SensorType = "Ot"
+	// SettingName4MCAS ...
+	SettingName4MCAS SettingName4 = "MCAS"
+	// SettingName4Sentinel ...
+	SettingName4Sentinel SettingName4 = "Sentinel"
+	// SettingName4WDATP ...
+	SettingName4WDATP SettingName4 = "WDATP"
+	// SettingName4WDATPEXCLUDELINUXPUBLICPREVIEW ...
+	SettingName4WDATPEXCLUDELINUXPUBLICPREVIEW SettingName4 = "WDATP_EXCLUDE_LINUX_PUBLIC_PREVIEW"
+	// SettingName4WDATPUNIFIEDSOLUTION ...
+	SettingName4WDATPUNIFIEDSOLUTION SettingName4 = "WDATP_UNIFIED_SOLUTION"
 )
 
-// PossibleSensorTypeValues returns an array of possible values for the SensorType const type.
-func PossibleSensorTypeValues() []SensorType {
-	return []SensorType{SensorTypeEnterprise, SensorTypeOt}
+// PossibleSettingName4Values returns an array of possible values for the SettingName4 const type.
+func PossibleSettingName4Values() []SettingName4 {
+	return []SettingName4{SettingName4MCAS, SettingName4Sentinel, SettingName4WDATP, SettingName4WDATPEXCLUDELINUXPUBLICPREVIEW, SettingName4WDATPUNIFIEDSOLUTION}
+}
+
+// SettingName5 enumerates the values for setting name 5.
+type SettingName5 string
+
+const (
+	// SettingName5MCAS ...
+	SettingName5MCAS SettingName5 = "MCAS"
+	// SettingName5Sentinel ...
+	SettingName5Sentinel SettingName5 = "Sentinel"
+	// SettingName5WDATP ...
+	SettingName5WDATP SettingName5 = "WDATP"
+	// SettingName5WDATPEXCLUDELINUXPUBLICPREVIEW ...
+	SettingName5WDATPEXCLUDELINUXPUBLICPREVIEW SettingName5 = "WDATP_EXCLUDE_LINUX_PUBLIC_PREVIEW"
+	// SettingName5WDATPUNIFIEDSOLUTION ...
+	SettingName5WDATPUNIFIEDSOLUTION SettingName5 = "WDATP_UNIFIED_SOLUTION"
+)
+
+// PossibleSettingName5Values returns an array of possible values for the SettingName5 const type.
+func PossibleSettingName5Values() []SettingName5 {
+	return []SettingName5{SettingName5MCAS, SettingName5Sentinel, SettingName5WDATP, SettingName5WDATPEXCLUDELINUXPUBLICPREVIEW, SettingName5WDATPUNIFIEDSOLUTION}
 }
 
 // Severity enumerates the values for severity.
@@ -1637,6 +1669,23 @@ const (
 // PossibleSeverityValues returns an array of possible values for the Severity const type.
 func PossibleSeverityValues() []Severity {
 	return []Severity{SeverityHigh, SeverityLow, SeverityMedium}
+}
+
+// SeverityEnum enumerates the values for severity enum.
+type SeverityEnum string
+
+const (
+	// SeverityEnumHigh ...
+	SeverityEnumHigh SeverityEnum = "High"
+	// SeverityEnumLow ...
+	SeverityEnumLow SeverityEnum = "Low"
+	// SeverityEnumMedium ...
+	SeverityEnumMedium SeverityEnum = "Medium"
+)
+
+// PossibleSeverityEnumValues returns an array of possible values for the SeverityEnum const type.
+func PossibleSeverityEnumValues() []SeverityEnum {
+	return []SeverityEnum{SeverityEnumHigh, SeverityEnumLow, SeverityEnumMedium}
 }
 
 // SolutionStatus enumerates the values for solution status.
@@ -1714,6 +1763,36 @@ func PossibleStateValues() []State {
 	return []State{StateFailed, StatePassed, StateSkipped, StateUnsupported}
 }
 
+// StateForAlertNotifications enumerates the values for state for alert notifications.
+type StateForAlertNotifications string
+
+const (
+	// StateForAlertNotificationsOff Don't get notifications on new alerts
+	StateForAlertNotificationsOff StateForAlertNotifications = "Off"
+	// StateForAlertNotificationsOn Get notifications on new alerts
+	StateForAlertNotificationsOn StateForAlertNotifications = "On"
+)
+
+// PossibleStateForAlertNotificationsValues returns an array of possible values for the StateForAlertNotifications const type.
+func PossibleStateForAlertNotificationsValues() []StateForAlertNotifications {
+	return []StateForAlertNotifications{StateForAlertNotificationsOff, StateForAlertNotificationsOn}
+}
+
+// StateForNotificationsByRole enumerates the values for state for notifications by role.
+type StateForNotificationsByRole string
+
+const (
+	// StateForNotificationsByRoleOff Don't send notification on new alerts to the subscription's admins
+	StateForNotificationsByRoleOff StateForNotificationsByRole = "Off"
+	// StateForNotificationsByRoleOn Send notification on new alerts to the subscription's admins
+	StateForNotificationsByRoleOn StateForNotificationsByRole = "On"
+)
+
+// PossibleStateForNotificationsByRoleValues returns an array of possible values for the StateForNotificationsByRole const type.
+func PossibleStateForNotificationsByRoleValues() []StateForNotificationsByRole {
+	return []StateForNotificationsByRole{StateForNotificationsByRoleOff, StateForNotificationsByRoleOn}
+}
+
 // Status enumerates the values for status.
 type Status string
 
@@ -1763,6 +1842,315 @@ func PossibleSubAssessmentStatusCodeValues() []SubAssessmentStatusCode {
 	return []SubAssessmentStatusCode{SubAssessmentStatusCodeHealthy, SubAssessmentStatusCodeNotApplicable, SubAssessmentStatusCodeUnhealthy}
 }
 
+// SubPlan enumerates the values for sub plan.
+type SubPlan string
+
+const (
+	// P1 ...
+	P1 SubPlan = "P1"
+	// P2 ...
+	P2 SubPlan = "P2"
+)
+
+// PossibleSubPlanValues returns an array of possible values for the SubPlan const type.
+func PossibleSubPlanValues() []SubPlan {
+	return []SubPlan{P1, P2}
+}
+
+// SupportedCloudEnum enumerates the values for supported cloud enum.
+type SupportedCloudEnum string
+
+const (
+	// SupportedCloudEnumAWS ...
+	SupportedCloudEnumAWS SupportedCloudEnum = "AWS"
+	// SupportedCloudEnumGCP ...
+	SupportedCloudEnumGCP SupportedCloudEnum = "GCP"
+)
+
+// PossibleSupportedCloudEnumValues returns an array of possible values for the SupportedCloudEnum const type.
+func PossibleSupportedCloudEnumValues() []SupportedCloudEnum {
+	return []SupportedCloudEnum{SupportedCloudEnumAWS, SupportedCloudEnumGCP}
+}
+
+// Tactics enumerates the values for tactics.
+type Tactics string
+
+const (
+	// Collection ...
+	Collection Tactics = "Collection"
+	// CommandandControl ...
+	CommandandControl Tactics = "Command and Control"
+	// CredentialAccess ...
+	CredentialAccess Tactics = "Credential Access"
+	// DefenseEvasion ...
+	DefenseEvasion Tactics = "Defense Evasion"
+	// Discovery ...
+	Discovery Tactics = "Discovery"
+	// Execution ...
+	Execution Tactics = "Execution"
+	// Exfiltration ...
+	Exfiltration Tactics = "Exfiltration"
+	// Impact ...
+	Impact Tactics = "Impact"
+	// InitialAccess ...
+	InitialAccess Tactics = "Initial Access"
+	// LateralMovement ...
+	LateralMovement Tactics = "Lateral Movement"
+	// Persistence ...
+	Persistence Tactics = "Persistence"
+	// PrivilegeEscalation ...
+	PrivilegeEscalation Tactics = "Privilege Escalation"
+	// Reconnaissance ...
+	Reconnaissance Tactics = "Reconnaissance"
+	// ResourceDevelopment ...
+	ResourceDevelopment Tactics = "Resource Development"
+)
+
+// PossibleTacticsValues returns an array of possible values for the Tactics const type.
+func PossibleTacticsValues() []Tactics {
+	return []Tactics{Collection, CommandandControl, CredentialAccess, DefenseEvasion, Discovery, Execution, Exfiltration, Impact, InitialAccess, LateralMovement, Persistence, PrivilegeEscalation, Reconnaissance, ResourceDevelopment}
+}
+
+// TaskUpdateActionType enumerates the values for task update action type.
+type TaskUpdateActionType string
+
+const (
+	// Activate ...
+	Activate TaskUpdateActionType = "Activate"
+	// Close ...
+	Close TaskUpdateActionType = "Close"
+	// Dismiss ...
+	Dismiss TaskUpdateActionType = "Dismiss"
+	// Resolve ...
+	Resolve TaskUpdateActionType = "Resolve"
+	// Start ...
+	Start TaskUpdateActionType = "Start"
+)
+
+// PossibleTaskUpdateActionTypeValues returns an array of possible values for the TaskUpdateActionType const type.
+func PossibleTaskUpdateActionTypeValues() []TaskUpdateActionType {
+	return []TaskUpdateActionType{Activate, Close, Dismiss, Resolve, Start}
+}
+
+// Techniques enumerates the values for techniques.
+type Techniques string
+
+const (
+	// AbuseElevationControlMechanism ...
+	AbuseElevationControlMechanism Techniques = "Abuse Elevation Control Mechanism"
+	// AccessTokenManipulation ...
+	AccessTokenManipulation Techniques = "Access Token Manipulation"
+	// AccountDiscovery ...
+	AccountDiscovery Techniques = "Account Discovery"
+	// AccountManipulation ...
+	AccountManipulation Techniques = "Account Manipulation"
+	// ActiveScanning ...
+	ActiveScanning Techniques = "Active Scanning"
+	// ApplicationLayerProtocol ...
+	ApplicationLayerProtocol Techniques = "Application Layer Protocol"
+	// AudioCapture ...
+	AudioCapture Techniques = "Audio Capture"
+	// BootorLogonAutostartExecution ...
+	BootorLogonAutostartExecution Techniques = "Boot or Logon Autostart Execution"
+	// BootorLogonInitializationScripts ...
+	BootorLogonInitializationScripts Techniques = "Boot or Logon Initialization Scripts"
+	// BruteForce ...
+	BruteForce Techniques = "Brute Force"
+	// CloudInfrastructureDiscovery ...
+	CloudInfrastructureDiscovery Techniques = "Cloud Infrastructure Discovery"
+	// CloudServiceDashboard ...
+	CloudServiceDashboard Techniques = "Cloud Service Dashboard"
+	// CloudServiceDiscovery ...
+	CloudServiceDiscovery Techniques = "Cloud Service Discovery"
+	// CommandandScriptingInterpreter ...
+	CommandandScriptingInterpreter Techniques = "Command and Scripting Interpreter"
+	// CompromiseClientSoftwareBinary ...
+	CompromiseClientSoftwareBinary Techniques = "Compromise Client Software Binary"
+	// CompromiseInfrastructure ...
+	CompromiseInfrastructure Techniques = "Compromise Infrastructure"
+	// ContainerandResourceDiscovery ...
+	ContainerandResourceDiscovery Techniques = "Container and Resource Discovery"
+	// CreateAccount ...
+	CreateAccount Techniques = "Create Account"
+	// CreateorModifySystemProcess ...
+	CreateorModifySystemProcess Techniques = "Create or Modify System Process"
+	// CredentialsfromPasswordStores ...
+	CredentialsfromPasswordStores Techniques = "Credentials from Password Stores"
+	// DataDestruction ...
+	DataDestruction Techniques = "Data Destruction"
+	// DataEncryptedforImpact ...
+	DataEncryptedforImpact Techniques = "Data Encrypted for Impact"
+	// DatafromCloudStorageObject ...
+	DatafromCloudStorageObject Techniques = "Data from Cloud Storage Object"
+	// DatafromConfigurationRepository ...
+	DatafromConfigurationRepository Techniques = "Data from Configuration Repository"
+	// DatafromInformationRepositories ...
+	DatafromInformationRepositories Techniques = "Data from Information Repositories"
+	// DatafromLocalSystem ...
+	DatafromLocalSystem Techniques = "Data from Local System"
+	// DataManipulation ...
+	DataManipulation Techniques = "Data Manipulation"
+	// DataStaged ...
+	DataStaged Techniques = "Data Staged"
+	// Defacement ...
+	Defacement Techniques = "Defacement"
+	// DeobfuscateDecodeFilesorInformation ...
+	DeobfuscateDecodeFilesorInformation Techniques = "Deobfuscate/Decode Files or Information"
+	// DiskWipe ...
+	DiskWipe Techniques = "Disk Wipe"
+	// DomainTrustDiscovery ...
+	DomainTrustDiscovery Techniques = "Domain Trust Discovery"
+	// DriveByCompromise ...
+	DriveByCompromise Techniques = "Drive-by Compromise"
+	// DynamicResolution ...
+	DynamicResolution Techniques = "Dynamic Resolution"
+	// EndpointDenialofService ...
+	EndpointDenialofService Techniques = "Endpoint Denial of Service"
+	// EventTriggeredExecution ...
+	EventTriggeredExecution Techniques = "Event Triggered Execution"
+	// ExfiltrationOverAlternativeProtocol ...
+	ExfiltrationOverAlternativeProtocol Techniques = "Exfiltration Over Alternative Protocol"
+	// ExploitationforClientExecution ...
+	ExploitationforClientExecution Techniques = "Exploitation for Client Execution"
+	// ExploitationforCredentialAccess ...
+	ExploitationforCredentialAccess Techniques = "Exploitation for Credential Access"
+	// ExploitationforDefenseEvasion ...
+	ExploitationforDefenseEvasion Techniques = "Exploitation for Defense Evasion"
+	// ExploitationforPrivilegeEscalation ...
+	ExploitationforPrivilegeEscalation Techniques = "Exploitation for Privilege Escalation"
+	// ExploitationofRemoteServices ...
+	ExploitationofRemoteServices Techniques = "Exploitation of Remote Services"
+	// ExploitPublicFacingApplication ...
+	ExploitPublicFacingApplication Techniques = "Exploit Public-Facing Application"
+	// ExternalRemoteServices ...
+	ExternalRemoteServices Techniques = "External Remote Services"
+	// FallbackChannels ...
+	FallbackChannels Techniques = "Fallback Channels"
+	// FileandDirectoryDiscovery ...
+	FileandDirectoryDiscovery Techniques = "File and Directory Discovery"
+	// FileandDirectoryPermissionsModification ...
+	FileandDirectoryPermissionsModification Techniques = "File and Directory Permissions Modification"
+	// GatherVictimNetworkInformation ...
+	GatherVictimNetworkInformation Techniques = "Gather Victim Network Information"
+	// HideArtifacts ...
+	HideArtifacts Techniques = "Hide Artifacts"
+	// HijackExecutionFlow ...
+	HijackExecutionFlow Techniques = "Hijack Execution Flow"
+	// ImpairDefenses ...
+	ImpairDefenses Techniques = "Impair Defenses"
+	// ImplantContainerImage ...
+	ImplantContainerImage Techniques = "Implant Container Image"
+	// IndicatorRemovalonHost ...
+	IndicatorRemovalonHost Techniques = "Indicator Removal on Host"
+	// IndirectCommandExecution ...
+	IndirectCommandExecution Techniques = "Indirect Command Execution"
+	// IngressToolTransfer ...
+	IngressToolTransfer Techniques = "Ingress Tool Transfer"
+	// InputCapture ...
+	InputCapture Techniques = "Input Capture"
+	// InterProcessCommunication ...
+	InterProcessCommunication Techniques = "Inter-Process Communication"
+	// LateralToolTransfer ...
+	LateralToolTransfer Techniques = "Lateral Tool Transfer"
+	// ManInTheMiddle ...
+	ManInTheMiddle Techniques = "Man-in-the-Middle"
+	// Masquerading ...
+	Masquerading Techniques = "Masquerading"
+	// ModifyAuthenticationProcess ...
+	ModifyAuthenticationProcess Techniques = "Modify Authentication Process"
+	// ModifyRegistry ...
+	ModifyRegistry Techniques = "Modify Registry"
+	// NetworkDenialofService ...
+	NetworkDenialofService Techniques = "Network Denial of Service"
+	// NetworkServiceScanning ...
+	NetworkServiceScanning Techniques = "Network Service Scanning"
+	// NetworkSniffing ...
+	NetworkSniffing Techniques = "Network Sniffing"
+	// NonApplicationLayerProtocol ...
+	NonApplicationLayerProtocol Techniques = "Non-Application Layer Protocol"
+	// NonStandardPort ...
+	NonStandardPort Techniques = "Non-Standard Port"
+	// ObfuscatedFilesorInformation ...
+	ObfuscatedFilesorInformation Techniques = "Obfuscated Files or Information"
+	// ObtainCapabilities ...
+	ObtainCapabilities Techniques = "Obtain Capabilities"
+	// OfficeApplicationStartup ...
+	OfficeApplicationStartup Techniques = "Office Application Startup"
+	// OSCredentialDumping ...
+	OSCredentialDumping Techniques = "OS Credential Dumping"
+	// PermissionGroupsDiscovery ...
+	PermissionGroupsDiscovery Techniques = "Permission Groups Discovery"
+	// Phishing ...
+	Phishing Techniques = "Phishing"
+	// PreOSBoot ...
+	PreOSBoot Techniques = "Pre-OS Boot"
+	// ProcessDiscovery ...
+	ProcessDiscovery Techniques = "Process Discovery"
+	// ProcessInjection ...
+	ProcessInjection Techniques = "Process Injection"
+	// ProtocolTunneling ...
+	ProtocolTunneling Techniques = "Protocol Tunneling"
+	// Proxy ...
+	Proxy Techniques = "Proxy"
+	// QueryRegistry ...
+	QueryRegistry Techniques = "Query Registry"
+	// RemoteAccessSoftware ...
+	RemoteAccessSoftware Techniques = "Remote Access Software"
+	// RemoteServices ...
+	RemoteServices Techniques = "Remote Services"
+	// RemoteServiceSessionHijacking ...
+	RemoteServiceSessionHijacking Techniques = "Remote Service Session Hijacking"
+	// RemoteSystemDiscovery ...
+	RemoteSystemDiscovery Techniques = "Remote System Discovery"
+	// ResourceHijacking ...
+	ResourceHijacking Techniques = "Resource Hijacking"
+	// ScheduledTaskJob ...
+	ScheduledTaskJob Techniques = "Scheduled Task/Job"
+	// ScreenCapture ...
+	ScreenCapture Techniques = "Screen Capture"
+	// SearchVictimOwnedWebsites ...
+	SearchVictimOwnedWebsites Techniques = "Search Victim-Owned Websites"
+	// ServerSoftwareComponent ...
+	ServerSoftwareComponent Techniques = "Server Software Component"
+	// ServiceStop ...
+	ServiceStop Techniques = "Service Stop"
+	// SignedBinaryProxyExecution ...
+	SignedBinaryProxyExecution Techniques = "Signed Binary Proxy Execution"
+	// SoftwareDeploymentTools ...
+	SoftwareDeploymentTools Techniques = "Software Deployment Tools"
+	// SQLStoredProcedures ...
+	SQLStoredProcedures Techniques = "SQL Stored Procedures"
+	// StealorForgeKerberosTickets ...
+	StealorForgeKerberosTickets Techniques = "Steal or Forge Kerberos Tickets"
+	// SubvertTrustControls ...
+	SubvertTrustControls Techniques = "Subvert Trust Controls"
+	// SupplyChainCompromise ...
+	SupplyChainCompromise Techniques = "Supply Chain Compromise"
+	// SystemInformationDiscovery ...
+	SystemInformationDiscovery Techniques = "System Information Discovery"
+	// TaintSharedContent ...
+	TaintSharedContent Techniques = "Taint Shared Content"
+	// TrafficSignaling ...
+	TrafficSignaling Techniques = "Traffic Signaling"
+	// TransferDatatoCloudAccount ...
+	TransferDatatoCloudAccount Techniques = "Transfer Data to Cloud Account"
+	// TrustedRelationship ...
+	TrustedRelationship Techniques = "Trusted Relationship"
+	// UnsecuredCredentials ...
+	UnsecuredCredentials Techniques = "Unsecured Credentials"
+	// UserExecution ...
+	UserExecution Techniques = "User Execution"
+	// ValidAccounts ...
+	ValidAccounts Techniques = "Valid Accounts"
+	// WindowsManagementInstrumentation ...
+	WindowsManagementInstrumentation Techniques = "Windows Management Instrumentation"
+)
+
+// PossibleTechniquesValues returns an array of possible values for the Techniques const type.
+func PossibleTechniquesValues() []Techniques {
+	return []Techniques{AbuseElevationControlMechanism, AccessTokenManipulation, AccountDiscovery, AccountManipulation, ActiveScanning, ApplicationLayerProtocol, AudioCapture, BootorLogonAutostartExecution, BootorLogonInitializationScripts, BruteForce, CloudInfrastructureDiscovery, CloudServiceDashboard, CloudServiceDiscovery, CommandandScriptingInterpreter, CompromiseClientSoftwareBinary, CompromiseInfrastructure, ContainerandResourceDiscovery, CreateAccount, CreateorModifySystemProcess, CredentialsfromPasswordStores, DataDestruction, DataEncryptedforImpact, DatafromCloudStorageObject, DatafromConfigurationRepository, DatafromInformationRepositories, DatafromLocalSystem, DataManipulation, DataStaged, Defacement, DeobfuscateDecodeFilesorInformation, DiskWipe, DomainTrustDiscovery, DriveByCompromise, DynamicResolution, EndpointDenialofService, EventTriggeredExecution, ExfiltrationOverAlternativeProtocol, ExploitationforClientExecution, ExploitationforCredentialAccess, ExploitationforDefenseEvasion, ExploitationforPrivilegeEscalation, ExploitationofRemoteServices, ExploitPublicFacingApplication, ExternalRemoteServices, FallbackChannels, FileandDirectoryDiscovery, FileandDirectoryPermissionsModification, GatherVictimNetworkInformation, HideArtifacts, HijackExecutionFlow, ImpairDefenses, ImplantContainerImage, IndicatorRemovalonHost, IndirectCommandExecution, IngressToolTransfer, InputCapture, InterProcessCommunication, LateralToolTransfer, ManInTheMiddle, Masquerading, ModifyAuthenticationProcess, ModifyRegistry, NetworkDenialofService, NetworkServiceScanning, NetworkSniffing, NonApplicationLayerProtocol, NonStandardPort, ObfuscatedFilesorInformation, ObtainCapabilities, OfficeApplicationStartup, OSCredentialDumping, PermissionGroupsDiscovery, Phishing, PreOSBoot, ProcessDiscovery, ProcessInjection, ProtocolTunneling, Proxy, QueryRegistry, RemoteAccessSoftware, RemoteServices, RemoteServiceSessionHijacking, RemoteSystemDiscovery, ResourceHijacking, ScheduledTaskJob, ScreenCapture, SearchVictimOwnedWebsites, ServerSoftwareComponent, ServiceStop, SignedBinaryProxyExecution, SoftwareDeploymentTools, SQLStoredProcedures, StealorForgeKerberosTickets, SubvertTrustControls, SupplyChainCompromise, SystemInformationDiscovery, TaintSharedContent, TrafficSignaling, TransferDatatoCloudAccount, TrustedRelationship, UnsecuredCredentials, UserExecution, ValidAccounts, WindowsManagementInstrumentation}
+}
+
 // Threats enumerates the values for threats.
 type Threats string
 
@@ -1790,25 +2178,6 @@ func PossibleThreatsValues() []Threats {
 	return []Threats{AccountBreach, DataExfiltration, DataSpillage, DenialOfService, ElevationOfPrivilege, MaliciousInsider, MissingCoverage, ThreatResistance}
 }
 
-// TiStatus enumerates the values for ti status.
-type TiStatus string
-
-const (
-	// TiStatusFailed ...
-	TiStatusFailed TiStatus = "Failed"
-	// TiStatusInProgress ...
-	TiStatusInProgress TiStatus = "InProgress"
-	// TiStatusOk ...
-	TiStatusOk TiStatus = "Ok"
-	// TiStatusUpdateAvailable ...
-	TiStatusUpdateAvailable TiStatus = "UpdateAvailable"
-)
-
-// PossibleTiStatusValues returns an array of possible values for the TiStatus const type.
-func PossibleTiStatusValues() []TiStatus {
-	return []TiStatus{TiStatusFailed, TiStatusInProgress, TiStatusOk, TiStatusUpdateAvailable}
-}
-
 // TransportProtocol enumerates the values for transport protocol.
 type TransportProtocol string
 
@@ -1828,23 +2197,38 @@ func PossibleTransportProtocolValues() []TransportProtocol {
 type Type string
 
 const (
-	// BinarySignature ...
-	BinarySignature Type = "BinarySignature"
-	// File ...
-	File Type = "File"
-	// FileHash ...
-	FileHash Type = "FileHash"
-	// ProductSignature ...
-	ProductSignature Type = "ProductSignature"
-	// PublisherSignature ...
-	PublisherSignature Type = "PublisherSignature"
-	// VersionAndAboveSignature ...
-	VersionAndAboveSignature Type = "VersionAndAboveSignature"
+	// Qualys ...
+	Qualys Type = "Qualys"
+	// TVM ...
+	TVM Type = "TVM"
 )
 
 // PossibleTypeValues returns an array of possible values for the Type const type.
 func PossibleTypeValues() []Type {
-	return []Type{BinarySignature, File, FileHash, ProductSignature, PublisherSignature, VersionAndAboveSignature}
+	return []Type{Qualys, TVM}
+}
+
+// Type1 enumerates the values for type 1.
+type Type1 string
+
+const (
+	// BinarySignature ...
+	BinarySignature Type1 = "BinarySignature"
+	// File ...
+	File Type1 = "File"
+	// FileHash ...
+	FileHash Type1 = "FileHash"
+	// ProductSignature ...
+	ProductSignature Type1 = "ProductSignature"
+	// PublisherSignature ...
+	PublisherSignature Type1 = "PublisherSignature"
+	// VersionAndAboveSignature ...
+	VersionAndAboveSignature Type1 = "VersionAndAboveSignature"
+)
+
+// PossibleType1Values returns an array of possible values for the Type1 const type.
+func PossibleType1Values() []Type1 {
+	return []Type1{BinarySignature, File, FileHash, ProductSignature, PublisherSignature, VersionAndAboveSignature}
 }
 
 // TypeBasicResourceIdentifier enumerates the values for type basic resource identifier.
@@ -1909,21 +2293,4 @@ const (
 // PossibleValueTypeValues returns an array of possible values for the ValueType const type.
 func PossibleValueTypeValues() []ValueType {
 	return []ValueType{ValueTypeIPCidr, ValueTypeString}
-}
-
-// VersionKind enumerates the values for version kind.
-type VersionKind string
-
-const (
-	// Latest ...
-	Latest VersionKind = "Latest"
-	// Preview ...
-	Preview VersionKind = "Preview"
-	// Previous ...
-	Previous VersionKind = "Previous"
-)
-
-// PossibleVersionKindValues returns an array of possible values for the VersionKind const type.
-func PossibleVersionKindValues() []VersionKind {
-	return []VersionKind{Latest, Preview, Previous}
 }

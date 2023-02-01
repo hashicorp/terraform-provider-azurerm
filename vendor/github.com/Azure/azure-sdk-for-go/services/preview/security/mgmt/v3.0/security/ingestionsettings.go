@@ -21,15 +21,15 @@ type IngestionSettingsClient struct {
 }
 
 // NewIngestionSettingsClient creates an instance of the IngestionSettingsClient client.
-func NewIngestionSettingsClient(subscriptionID string, ascLocation string) IngestionSettingsClient {
-	return NewIngestionSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewIngestionSettingsClient(subscriptionID string) IngestionSettingsClient {
+	return NewIngestionSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewIngestionSettingsClientWithBaseURI creates an instance of the IngestionSettingsClient client using a custom
 // endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
 // stack).
-func NewIngestionSettingsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) IngestionSettingsClient {
-	return IngestionSettingsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewIngestionSettingsClientWithBaseURI(baseURI string, subscriptionID string) IngestionSettingsClient {
+	return IngestionSettingsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Create create setting for ingesting security data and logs to correlate with resources associated with the

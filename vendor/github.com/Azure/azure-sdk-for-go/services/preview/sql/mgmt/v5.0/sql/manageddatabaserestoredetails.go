@@ -82,7 +82,7 @@ func (client ManagedDatabaseRestoreDetailsClient) GetPreparer(ctx context.Contex
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2022-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
