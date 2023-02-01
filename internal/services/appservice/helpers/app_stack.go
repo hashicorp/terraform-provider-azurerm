@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -12,6 +13,11 @@ const (
 	PhpVersionSevenPointOne            string = "7.1"
 	PhpVersionSevenPointFour           string = "7.4"
 	PhpVersionOff                      string = "Off"
+	DotNetCoreVersionThreePointOne     string = "v3.1"
+	AspDotNetVersionThreePointFive     string = "v3.5"
+	AspDotNetVersionFourPointEight     string = "v4.8"
+	DotNetCLRVersionTwoPointOh         string = "v2.0"
+	DotNetCLRVersionFourPointOh        string = "v4.0"
 
 	CurrentStackDotNet     string = "dotnet"
 	CurrentStackDotNetCore string = "dotnetcore"
@@ -36,6 +42,7 @@ type ApplicationStackWindows struct {
 	JavaVersion             string `tfschema:"java_version"`
 	NetFrameworkVersion     string `tfschema:"dotnet_version"`
 	NetCoreVersion          string `tfschema:"dotnet_core_version"`
+	AspDotNetVersion        string `tfschema:"asp_dotnet_version"`
 	NodeVersion             string `tfschema:"node_version"`
 	PhpVersion              string `tfschema:"php_version"`
 	PythonVersion           string `tfschema:"python_version"`
@@ -44,7 +51,7 @@ type ApplicationStackWindows struct {
 }
 
 func windowsApplicationStackSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
@@ -55,17 +62,26 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{ // Note: DotNet versions are abstracted between API and Portal displayed values, so do not match 1:1. A table of the converted values is provided in the resource doc.
-						"v2.0",
-						"v3.0",
-						"v4.0",
-						"v5.0",
-						"v6.0",
-						"v7.0"}, false),
+					ValidateFunc: func() pluginsdk.SchemaValidateFunc { // Note: DotNet versions are abstracted between API and Portal displayed values, so do not match 1:1. A table of the converted values is provided in the resource doc.
+						if !features.FourPointOhBeta() {
+							return validation.StringInSlice([]string{
+								"v2.0",
+								"v3.0",
+								"v4.0",
+								"v5.0",
+								"v6.0",
+								"v7.0"}, false)
+						}
+						return validation.StringInSlice([]string{
+							"v6.0",
+							"v7.0",
+						}, false)
+					}(),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
+						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -74,23 +90,25 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					},
 				},
 
-				"dotnet_core_version": {
+				"asp_dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"v4.0",
+						"v3.5",
+						"v4.8",
 					}, false),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
+						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
 						"site_config.0.application_stack.0.python",
 						"site_config.0.application_stack.0.python_version",
 					},
-					Description: "The version of DotNetCore to use.",
+					Description: "The version of ASP DotNet to use.",
 				},
 
 				"php_version": {
@@ -106,6 +124,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
+						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -123,6 +142,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
+						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -142,6 +162,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
+						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -166,6 +187,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
+						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -182,6 +204,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
+						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -249,6 +272,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
+						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -291,10 +315,33 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+	// dotnet core is retired https://github.com/azure-deprecation/dashboard/issues/216
+	if !features.FourPointOhBeta() {
+		s.Elem.(*pluginsdk.Resource).Schema["dotnet_core_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"v3.1",
+			}, false),
+			AtLeastOneOf: []string{
+				"site_config.0.application_stack.0.docker_container_name",
+				"site_config.0.application_stack.0.dotnet_version",
+				"site_config.0.application_stack.0.dotnet_core_version",
+				"site_config.0.application_stack.0.asp_dotnet_version",
+				"site_config.0.application_stack.0.java_version",
+				"site_config.0.application_stack.0.node_version",
+				"site_config.0.application_stack.0.php_version",
+				"site_config.0.application_stack.0.python",
+				"site_config.0.application_stack.0.python_version",
+			},
+			Description: "The version of DotNetCore to use.",
+		}
+	}
+	return s
 }
 
 func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -304,7 +351,7 @@ func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"dotnet_core_version": {
+				"asp_dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -376,6 +423,13 @@ func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.FourPointOhBeta() {
+		s.Elem.(*pluginsdk.Resource).Schema["dotnet_core_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		}
+	}
+	return s
 }
 
 type ApplicationStackLinux struct {

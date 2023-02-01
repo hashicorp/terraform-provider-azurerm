@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -1287,12 +1288,20 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Default:  "v4.0",
-					ValidateFunc: validation.StringInSlice([]string{
-						"v3.0",
-						"v4.0",
-						"v6.0",
-						"v7.0",
-					}, false),
+					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+						if !features.FourPointOhBeta() {
+							return validation.StringInSlice([]string{
+								"v3.0",
+								"v4.0",
+								"v6.0",
+								"v7.0",
+							}, false)
+						}
+						return validation.StringInSlice([]string{
+							"v6.0",
+							"v7.0",
+						}, false)
+					}(),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",

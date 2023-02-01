@@ -385,6 +385,8 @@ An `application_stack` block supports the following:
 
 * `dotnet_version` - (Optional) The version of .Net. Possible values are `v3.0`, `v4.0`, `v6.0` and `v7.0`. Defaults to `v4.0`.
 
+~> **NOTE:** Supported Dotnet version for windows function app slot `v3.0`, `v4.0` will be removed from 4.0 provider since they are not supported by API.
+
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
 * `java_version` - (Optional) The version of Java to use. Possible values are `1.8`, `11` and `17` (In-Preview).

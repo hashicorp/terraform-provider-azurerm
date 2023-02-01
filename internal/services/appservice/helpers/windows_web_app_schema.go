@@ -6,11 +6,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteConfigWindows struct {
@@ -495,12 +497,26 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 					currentStack = CurrentStackDotNet
 				}
 			}
-			if winAppStack.NetCoreVersion != "" {
-				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetCoreVersion)
+			if winAppStack.AspDotNetVersion != "" {
+				clrVersion := "v4.0"
+				if winAppStack.AspDotNetVersion == "v3.5" {
+					clrVersion = "v2.0"
+				}
+				expanded.NetFrameworkVersion = utils.String(clrVersion)
 				if currentStack == "" {
-					currentStack = CurrentStackDotNetCore
+					currentStack = CurrentStackDotNet
 				}
 			}
+
+			if !features.FourPointOhBeta() {
+				if winAppStack.NetCoreVersion != "" {
+					expanded.NetFrameworkVersion = utils.String(DotNetCLRVersionFourPointOh)
+					if currentStack == "" {
+						currentStack = CurrentStackDotNetCore
+					}
+				}
+			}
+
 			if winAppStack.NodeVersion != "" {
 				// Note: node version is now exclusively controlled via app_setting.WEBSITE_NODE_DEFAULT_VERSION
 				if currentStack == "" {
@@ -654,7 +670,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	return expanded, &currentStack, nil
 }
 
-func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int) ([]SiteConfigWindows, error) {
+func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int, metadata sdk.ResourceMetaData) ([]SiteConfigWindows, error) {
 	if appSiteConfig == nil {
 		return nil, nil
 	}
@@ -710,12 +726,35 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	}
 
 	var winAppStack ApplicationStackWindows
-	if currentStack == CurrentStackDotNetCore {
-		winAppStack.NetCoreVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
+	if appSiteConfig.NetFrameworkVersion != nil {
+		switch *appSiteConfig.NetFrameworkVersion {
+		case DotNetCLRVersionTwoPointOh:
+			{
+				if v, _ := metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_version").(string); v != "" && !features.FourPointOhBeta() {
+					winAppStack.NetFrameworkVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
+				} else {
+					winAppStack.AspDotNetVersion = AspDotNetVersionThreePointFive
+				}
+			}
+		case DotNetCLRVersionFourPointOh:
+			{
+				if !features.FourPointOhBeta() {
+					if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_core_version").(string) != "" {
+						winAppStack.NetCoreVersion = DotNetCoreVersionThreePointOne
+					} else if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_version").(string) != "" {
+						winAppStack.NetFrameworkVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
+					} else {
+						winAppStack.AspDotNetVersion = AspDotNetVersionFourPointEight
+					}
+				} else {
+					winAppStack.AspDotNetVersion = AspDotNetVersionFourPointEight
+				}
+			}
+		default:
+			winAppStack.NetFrameworkVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
+		}
 	}
-	if currentStack == CurrentStackDotNet {
-		winAppStack.NetFrameworkVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
-	}
+
 	winAppStack.PhpVersion = pointer.From(appSiteConfig.PhpVersion)
 	if winAppStack.PhpVersion == "" {
 		winAppStack.PhpVersion = PhpVersionOff

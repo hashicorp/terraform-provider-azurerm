@@ -152,7 +152,13 @@ An `application_stack` block supports the following:
 
 * `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`,`v3.0`, `v4.0`, `v5.0`, `v6.0` and `v7.0`.
 
+~> **NOTE:** Supported Dotnet version `v2.0`,`v3.0`, `v4.0`, `v5.0` will be removed in 4.0 Terraform provider. Please use `asp_dotnet_version` to set the ASP.NET app stack.
+
+* `asp_dotnet_version` - (Optional) The version of ASP.NET to use when `current_stack` is set to `dotnet`. Possible values include `v3.5` and `v4.8`.
+
 * `dotnet_core_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnetcore`. Possible values include `v4.0`.
+
+~> **NOTE:** Dotnet Core 3.1 is end of support in App Service since December 3rd 2022, thus, terraform support for Dotnet Core app stack will also end in 4.0 provider.
 
 * `tomcat_version` - (Optional) The version of Tomcat the Java App should use.
 
