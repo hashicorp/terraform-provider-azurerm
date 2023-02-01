@@ -576,7 +576,11 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				currentStack = *currentStackPtr
 			}
 
-			state.SiteConfig, err = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+			corsUserSetting := true
+			if metadata.ResourceData.Get("site_config.0.cors") == nil || len(metadata.ResourceData.Get("site_config.0.cors").([]interface{})) == 0 {
+				corsUserSetting = false
+			}
+			state.SiteConfig, err = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount, corsUserSetting)
 			if err != nil {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}

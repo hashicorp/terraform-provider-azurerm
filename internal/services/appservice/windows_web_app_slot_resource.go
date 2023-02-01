@@ -550,8 +550,11 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			if ok {
 				currentStack = *currentStackPtr
 			}
-
-			state.SiteConfig = helpers.FlattenSiteConfigWindowsAppSlot(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+			corsUserSetting := true
+			if metadata.ResourceData.Get("site_config.0.cors") == nil || len(metadata.ResourceData.Get("site_config.0.cors").([]interface{})) == 0 {
+				corsUserSetting = false
+			}
+			state.SiteConfig = helpers.FlattenSiteConfigWindowsAppSlot(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount, corsUserSetting)
 
 			if nodeVer, ok := state.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"]; ok {
 				if nodeVer != "6.9.1" {

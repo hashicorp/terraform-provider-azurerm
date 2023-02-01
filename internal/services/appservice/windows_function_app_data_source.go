@@ -333,7 +333,8 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
 			}
 
-			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.SiteConfig)
+			corsUserSetting := false
+			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.SiteConfig, corsUserSetting)
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}

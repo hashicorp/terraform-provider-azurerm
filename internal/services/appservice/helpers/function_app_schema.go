@@ -1951,7 +1951,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*SiteConfigLinuxFunctionApp, error) {
+func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig, corsUserSetting bool) (*SiteConfigLinuxFunctionApp, error) {
 	if functionAppSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -2015,7 +2015,7 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 		if corsSettings.AllowedOrigins != nil {
 			if len(*corsSettings.AllowedOrigins) > 0 {
 				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
+			} else if !cors.SupportCredentials && !corsUserSetting {
 				corsEmpty = true
 			}
 		}
@@ -2037,7 +2037,7 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 	return result, nil
 }
 
-func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) (*SiteConfigWindowsFunctionApp, error) {
+func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig, corsUserSetting bool) (*SiteConfigWindowsFunctionApp, error) {
 	if functionAppSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
@@ -2099,7 +2099,7 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) 
 		if corsSettings.AllowedOrigins != nil {
 			if len(*corsSettings.AllowedOrigins) > 0 {
 				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
+			} else if !cors.SupportCredentials && !corsUserSetting {
 				corsEmpty = true
 			}
 		}

@@ -547,7 +547,11 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 
 			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			state.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount)
+			corsUserSetting := true
+			if metadata.ResourceData.Get("site_config.0.cors") == nil || len(metadata.ResourceData.Get("site_config.0.cors").([]interface{})) == 0 {
+				corsUserSetting = false
+			}
+			state.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount, corsUserSetting)
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 

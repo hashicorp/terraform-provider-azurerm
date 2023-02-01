@@ -654,7 +654,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	return expanded, &currentStack, nil
 }
 
-func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int) ([]SiteConfigWindows, error) {
+func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int, corsUserSetting bool) ([]SiteConfigWindows, error) {
 	if appSiteConfig == nil {
 		return nil, nil
 	}
@@ -760,7 +760,7 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		if corsSettings.AllowedOrigins != nil {
 			if len(*corsSettings.AllowedOrigins) > 0 {
 				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
+			} else if !cors.SupportCredentials && !corsUserSetting {
 				corsEmpty = true
 			}
 		}

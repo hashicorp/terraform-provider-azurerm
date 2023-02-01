@@ -649,7 +649,11 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
 			}
 
-			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.SiteConfig)
+			corsUserSetting := true
+			if metadata.ResourceData.Get("site_config.0.cors") == nil || len(metadata.ResourceData.Get("site_config.0.cors").([]interface{})) == 0 {
+				corsUserSetting = false
+			}
+			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.SiteConfig, corsUserSetting)
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}

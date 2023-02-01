@@ -898,7 +898,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinux {
+func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int, corsUserSetting bool) []SiteConfigLinux {
 	if appSiteConfig == nil {
 		return nil
 	}
@@ -963,7 +963,7 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 		if corsSettings.AllowedOrigins != nil {
 			if len(*corsSettings.AllowedOrigins) > 0 {
 				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
+			} else if !cors.SupportCredentials && !corsUserSetting {
 				corsEmpty = true
 			}
 		}

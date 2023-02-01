@@ -715,7 +715,7 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinuxWebAppSlot {
+func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthCheckCount *int, corsUserSetting bool) []SiteConfigLinuxWebAppSlot {
 	if appSiteSlotConfig == nil {
 		return nil
 	}
@@ -781,7 +781,7 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 		if corsSettings.AllowedOrigins != nil {
 			if len(*corsSettings.AllowedOrigins) > 0 {
 				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
+			} else if !cors.SupportCredentials && !corsUserSetting {
 				corsEmpty = true
 			}
 		}
@@ -1021,7 +1021,7 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 	return expanded, &currentStack, nil
 }
 
-func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindowsWebAppSlot {
+func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentStack string, healthCheckCount *int, corsUserSetting bool) []SiteConfigWindowsWebAppSlot {
 	if appSiteSlotConfig == nil {
 		return nil
 	}
@@ -1123,7 +1123,7 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 		if corsSettings.AllowedOrigins != nil {
 			if len(*corsSettings.AllowedOrigins) > 0 {
 				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
+			} else if !cors.SupportCredentials && !corsUserSetting {
 				corsEmpty = true
 			}
 		}
