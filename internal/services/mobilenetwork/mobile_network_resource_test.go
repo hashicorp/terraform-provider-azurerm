@@ -56,7 +56,7 @@ func TestAccMobileNetwork_complete(t *testing.T) {
 
 	// Limited regional availability for Mobile Network
 	data.Locations.Primary = "eastus"
-	
+
 	r := MobileNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -71,6 +71,9 @@ func TestAccMobileNetwork_complete(t *testing.T) {
 
 func TestAccMobileNetwork_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network", "test")
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
