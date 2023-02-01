@@ -1104,12 +1104,11 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 		case DotNetCLRVersionFourPointOh:
 			{
 				if !features.FourPointOhBeta() {
+					winAppStack.AspDotNetVersion = AspDotNetVersionFourPointEight
 					if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_core_version").(string) != "" {
 						winAppStack.NetCoreVersion = DotNetCoreVersionThreePointOne
 					} else if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_version").(string) != "" {
 						winAppStack.NetFrameworkVersion = pointer.From(appSiteSlotConfig.NetFrameworkVersion)
-					} else {
-						winAppStack.AspDotNetVersion = AspDotNetVersionFourPointEight
 					}
 				} else {
 					winAppStack.AspDotNetVersion = AspDotNetVersionFourPointEight

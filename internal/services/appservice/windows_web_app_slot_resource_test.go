@@ -561,7 +561,7 @@ func TestAccWindowsWebAppSlot_withDotNetCore(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_config.0.application_stack.0.dotnet_core_version"),
 	})
 }
 
