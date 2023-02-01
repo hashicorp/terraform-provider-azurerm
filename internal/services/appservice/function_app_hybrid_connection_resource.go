@@ -231,12 +231,7 @@ func (r FunctionAppHybridConnectionResource) Read() sdk.ResourceFunc {
 				}
 
 				hybridConnectionsClient := metadata.Client.Relay.HybridConnectionsClient
-				hybridConnectionID, err := hybridconnections.ParseHybridConnectionIDInsensitively(appHybridConn.RelayId)
-				if err != nil {
-					return err
-				}
-
-				ruleID := hybridconnections.NewHybridConnectionAuthorizationRuleID(id.SubscriptionId, hybridConnectionID.ResourceGroupName, appHybridConn.ServiceBusNamespace, *existing.Name, appHybridConn.SendKeyName)
+				ruleID := hybridconnections.NewHybridConnectionAuthorizationRuleID(id.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, *existing.Name, appHybridConn.SendKeyName)
 				keys, err := hybridConnectionsClient.ListKeys(ctx, ruleID)
 				if err != nil && keys.Model != nil {
 					appHybridConn.SendKeyValue = utils.NormalizeNilableString(keys.Model.PrimaryKey)
