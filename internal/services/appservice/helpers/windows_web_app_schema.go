@@ -742,8 +742,10 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 					winAppStack.AspDotNetVersion = AspDotNetVersionFourPointEight
 					if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_core_version").(string) != "" {
 						winAppStack.NetCoreVersion = DotNetCoreVersionThreePointOne
+						winAppStack.AspDotNetVersion = ""
 					} else if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_version").(string) != "" {
 						winAppStack.NetFrameworkVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
+						winAppStack.AspDotNetVersion = ""
 					}
 				} else {
 					winAppStack.AspDotNetVersion = AspDotNetVersionFourPointEight

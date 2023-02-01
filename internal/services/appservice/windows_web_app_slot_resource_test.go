@@ -562,6 +562,7 @@ func TestAccWindowsWebAppSlot_withDotNetCore(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_config.0.application_stack.0.dotnet_core_version"),
+		data.ImportStep("site_config.0.application_stack.0.asp_dotnet_version"),
 	})
 }
 
