@@ -15,7 +15,7 @@ Manages a Mobile Network.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West Europe"
+  location = "east us"
 }
 
 resource "azurerm_mobile_network" "example" {
