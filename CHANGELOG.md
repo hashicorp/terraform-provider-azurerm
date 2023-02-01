@@ -7,9 +7,11 @@ FEATURES
 
 ENHANCEMENTS:
 
-* `servicefabric`: refactoring to use github.com/hashicorp/go-azure-sdk [GH-20202]
+* dependencies: updating to `v0.20230130.1140358 ` of `github.com/hashicorp/go-azure-sdk` [GH-20293]
 * `databasemigration`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20214]
+* `servicefabric`: refactoring to use github.com/hashicorp/go-azure-sdk [GH-20202]
 * `azurerm_lb_backend_address_pool` - support for the `virtual_network_id` property [GH-20205]
+* `azurerm_postgresql_flexible_server`: add default value for `authentication.active_directory_auth_enabled` and `authentication.password_auth_enabled` [GH-20054]
 * `azurerm_site_recovery_protection_container_mapping` - support for the `automatic_update` block [GH-19710]
 * `azurerm_site_recovery_replicated_vm` - support for the `unmanaged_disk`, `target_proximity_placement_group_id`, `target_boot_diag_storage_account_id`,  `target_capacity_reservation_group_id`, `target_virtual_machine_scale_set_id`, `multi_vm_group_name`, `target_edge_zone`, and `test_network_id` properties [GH-19939]
 
