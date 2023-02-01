@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `allow_nested_items_to_be_public` - (Optional) Allow or disallow nested items within this Account to opt into being public. Defaults to `true`.
 
--> **NOTE:** At this time `allow_nested_items_to_be_public` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
+-> **NOTE:** At this time `allow_nested_items_to_be_public` is only supported in the Public Cloud, China Cloud, and US Government Cloud. It replaced the `allow_blob_public_access parameter` after azurerm version 3.0.1.
 
 * `shared_access_key_enabled` - (Optional) Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). The default value is `true`.
 
