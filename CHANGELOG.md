@@ -10,6 +10,8 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230130.1140358 ` of `github.com/hashicorp/go-azure-sdk` [GH-20293]
 * `databasemigration`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20214]
 * `servicefabric`: refactoring to use github.com/hashicorp/go-azure-sdk [GH-20202]
+* `azurerm_kubernetes_cluster` - add support for the `confidential_computing` add-on [GH-20194]
+* `azurerm_kubernetes_cluster` - export the identity for the `aci_connector_linux` add-on [GH-20194]
 * `azurerm_lb_backend_address_pool` - support for the `virtual_network_id` property [GH-20205]
 * `azurerm_postgresql_flexible_server`: add default value for `authentication.active_directory_auth_enabled` and `authentication.password_auth_enabled` [GH-20054]
 * `azurerm_site_recovery_protection_container_mapping` - support for the `automatic_update` block [GH-19710]
