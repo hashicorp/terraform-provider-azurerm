@@ -61,7 +61,6 @@ func (KustoDatabasePrincipalAssignmentResource) Exists(ctx context.Context, clie
 	} else {
 		return nil, fmt.Errorf("response model is empty")
 	}
-
 }
 
 func (KustoDatabasePrincipalAssignmentResource) basic(data acceptance.TestData) string {

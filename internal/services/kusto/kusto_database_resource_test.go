@@ -352,5 +352,4 @@ func (KustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client
 	} else {
 		return nil, fmt.Errorf("response model is empty")
 	}
-
 }

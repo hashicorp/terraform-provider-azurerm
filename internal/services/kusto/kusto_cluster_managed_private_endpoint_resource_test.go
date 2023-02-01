@@ -27,7 +27,8 @@ func TestAccKustoClusterManagedPrivateEndpoint_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("group_id").HasValue("blob"),
 			),
 		},
-		data.ImportStep()},
+		data.ImportStep(),
+	},
 	)
 }
 
@@ -44,7 +45,8 @@ func TestAccKustoClusterManagedPrivateEndpoint_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("request_message").HasValue("Please Approve"),
 			),
 		},
-		data.ImportStep()},
+		data.ImportStep(),
+	},
 	)
 }
 

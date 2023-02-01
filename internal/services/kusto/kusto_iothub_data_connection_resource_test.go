@@ -67,7 +67,6 @@ func (KustoIotHubDataConnectionResource) Exists(ctx context.Context, clients *cl
 	} else {
 		return nil, fmt.Errorf("response model is empty")
 	}
-
 }
 
 func (r KustoIotHubDataConnectionResource) basic(data acceptance.TestData) string {

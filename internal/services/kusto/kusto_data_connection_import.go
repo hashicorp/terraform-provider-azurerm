@@ -18,7 +18,6 @@ func importDataConnection(kind string) pluginsdk.ImporterFunc {
 
 		client := meta.(*clients.Client).Kusto.DataConnectionsClient
 		dataConnection, err := client.Get(ctx, *id)
-
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Kusto Data Connection %q (Resource Group %q): %+v", id.DataConnectionName, id.ResourceGroupName, err)
 		}

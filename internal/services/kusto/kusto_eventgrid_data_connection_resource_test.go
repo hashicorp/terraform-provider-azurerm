@@ -156,7 +156,6 @@ func (KustoEventGridDataConnectionResource) Exists(ctx context.Context, clients 
 	} else {
 		return nil, fmt.Errorf("response model is empty")
 	}
-
 }
 
 func (r KustoEventGridDataConnectionResource) basic(data acceptance.TestData) string {
