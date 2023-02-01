@@ -189,7 +189,7 @@ resource "azurerm_network_manager_security_admin_configuration" "test" {
   name                                          = "acctest-nmsac-%d"
   network_manager_id                            = azurerm_network_manager.test.id
   description                                   = "update"
-  apply_on_network_intent_policy_based_services = ["None"]
+  apply_on_network_intent_policy_based_services = ["AllowRulesOnly"]
 }
 `, template, data.RandomInteger)
 }
