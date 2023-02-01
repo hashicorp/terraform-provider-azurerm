@@ -18,6 +18,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_federated_identity_credential` - prevent a perpetual diff [GH-20219]
+* `azurerm_linux_function_app` - fix `linuxFxVersion` for docker `registry_url` processing [GH-18194]
 * `azurerm_monitor_aad_diagnostic_setting` - the field `log_analytics_workspace_id` is now parsed case-insensitively from the API Response [GH-20206]
 
 ## 3.41.0 (January 26, 2023)
