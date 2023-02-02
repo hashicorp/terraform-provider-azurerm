@@ -263,7 +263,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 					state.LatestRevisionName = pointer.From(props.LatestRevisionName)
 					state.LatestRevisionFqdn = pointer.From(props.LatestRevisionFqdn)
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
-					state.OutboundIpAddresses = *props.OutboundIPAddresses
+					state.OutboundIpAddresses = pointer.From(props.OutboundIPAddresses)
 				}
 			}
 
