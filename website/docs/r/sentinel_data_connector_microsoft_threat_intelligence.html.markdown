@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `microsoft_emerging_threat_feed` - (Required) A `microsoft_emerging_threat_feed` block as defined below. Changing this forces a new sentinel to be created.
 
+->**NOTE:** At least one `enabled` of `bing_safety_phishing_url` and `microsoft_emerging_threat_feed` must be set to `true`.
+
 ---
 
 * `tenant_id` - (Optional) The ID of the tenant that this Microsoft Threat Intelligence Data Connector connects to. Changing this forces a new Microsoft Threat Intelligence Data Connector to be created.

@@ -60,6 +60,7 @@ func (s DataConnectorMicrosoftThreatIntelligence) Arguments() map[string]*schema
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"enabled": {
@@ -68,10 +69,11 @@ func (s DataConnectorMicrosoftThreatIntelligence) Arguments() map[string]*schema
 						Default:  true,
 					},
 					"lookback_date": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Default:      "1970-01-01T00:00:00Z",
-						ValidateFunc: validation.IsRFC3339Time,
+						Type:          pluginsdk.TypeString,
+						Optional:      true,
+						Default:       "1970-01-01T00:00:00Z",
+						ValidateFunc:  validation.IsRFC3339Time,
+						ConflictsWith: []string{"bing_safety_phishing_url.0.enabled"},
 					},
 				},
 			},
@@ -81,6 +83,7 @@ func (s DataConnectorMicrosoftThreatIntelligence) Arguments() map[string]*schema
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"enabled": {
@@ -89,10 +92,11 @@ func (s DataConnectorMicrosoftThreatIntelligence) Arguments() map[string]*schema
 						Default:  true,
 					},
 					"lookback_date": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Default:      "1970-01-01T00:00:00Z",
-						ValidateFunc: validation.IsRFC3339Time,
+						Type:          pluginsdk.TypeString,
+						Optional:      true,
+						ConflictsWith: []string{"microsoft_emerging_threat_feed.0.enabled"},
+						Default:       "1970-01-01T00:00:00Z",
+						ValidateFunc:  validation.IsRFC3339Time,
 					},
 				},
 			},
@@ -128,6 +132,15 @@ func (s DataConnectorMicrosoftThreatIntelligence) Create() sdk.ResourceFunc {
 			}
 
 			id := parse.NewDataConnectorID(workSpaceId.SubscriptionId, workSpaceId.ResourceGroupName, workSpaceId.WorkspaceName, metaModel.Name)
+			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			}
 
 			tenantId := metaModel.TenantId
 			if tenantId == "" {
@@ -144,6 +157,12 @@ func (s DataConnectorMicrosoftThreatIntelligence) Create() sdk.ResourceFunc {
 					},
 					TenantID: &tenantId,
 				},
+			}
+
+			// if both data types are disabled, the service will not create the data connector.
+			if dataConnector.MSTIDataConnectorProperties.DataTypes.BingSafetyPhishingURL.State == securityinsight.DataTypeStateDisabled &&
+				dataConnector.MSTIDataConnectorProperties.DataTypes.MicrosoftEmergingThreatFeed.State == securityinsight.DataTypeStateDisabled {
+				return fmt.Errorf("at least one data type should be enabled")
 			}
 
 			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, dataConnector)
@@ -244,9 +263,11 @@ func expandSentinelDataConnectorMicrosoftThreatIntelligenceBingSafetyPhishingUrl
 	}
 
 	output := securityinsight.MSTIDataConnectorDataTypesBingSafetyPhishingURL{
-		LookbackPeriod: utils.String(input[0].LookbackDate),
+		LookbackPeriod: utils.String(""),
 	}
+
 	if input[0].Enabled {
+		output.LookbackPeriod = utils.String(input[0].LookbackDate)
 		output.State = securityinsight.DataTypeStateEnabled
 	} else {
 		output.State = securityinsight.DataTypeStateDisabled
@@ -260,14 +281,16 @@ func flattenSentinelDataConnectorMicrosoftThreatIntelligenceBingSafetyPhishingUr
 		return []DataConnectorMicrosoftThreatIntelligenceDataType{}, nil
 	}
 
-	t, err := flattenSentinelDataConnectorMicrosoftThreatIntelligenceTime(*input.LookbackPeriod)
-	if err != nil {
-		return []DataConnectorMicrosoftThreatIntelligenceDataType{}, err
+	output := DataConnectorMicrosoftThreatIntelligenceDataType{
+		Enabled: strings.EqualFold(string(input.State), string(securityinsight.DataTypeStateEnabled)),
 	}
 
-	output := DataConnectorMicrosoftThreatIntelligenceDataType{
-		Enabled:      strings.EqualFold(string(input.State), string(securityinsight.DataTypeStateEnabled)),
-		LookbackDate: t,
+	if output.Enabled { // if disabled, the time will be returned as "".
+		t, err := flattenSentinelDataConnectorMicrosoftThreatIntelligenceTime(*input.LookbackPeriod)
+		if err != nil {
+			return []DataConnectorMicrosoftThreatIntelligenceDataType{}, err
+		}
+		output.LookbackDate = t
 	}
 
 	return []DataConnectorMicrosoftThreatIntelligenceDataType{output}, nil
@@ -279,10 +302,11 @@ func expandSentinelDataConnectorMicrosoftThreatIntelligenceMicrosoftEmergingThre
 	}
 
 	output := securityinsight.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed{
-		LookbackPeriod: utils.String(input[0].LookbackDate),
+		LookbackPeriod: utils.String(""),
 	}
 	if input[0].Enabled {
 		output.State = securityinsight.DataTypeStateEnabled
+		output.LookbackPeriod = utils.String(input[0].LookbackDate)
 	} else {
 		output.State = securityinsight.DataTypeStateDisabled
 	}
@@ -295,14 +319,16 @@ func flattenSentinelDataConnectorMicrosoftThreatIntelligenceMicrosoftEmergingThr
 		return []DataConnectorMicrosoftThreatIntelligenceDataType{}, nil
 	}
 
-	t, err := flattenSentinelDataConnectorMicrosoftThreatIntelligenceTime(*input.LookbackPeriod)
-	if err != nil {
-		return []DataConnectorMicrosoftThreatIntelligenceDataType{}, err
+	output := DataConnectorMicrosoftThreatIntelligenceDataType{
+		Enabled: strings.EqualFold(string(input.State), string(securityinsight.DataTypeStateEnabled)),
 	}
 
-	output := DataConnectorMicrosoftThreatIntelligenceDataType{
-		Enabled:      strings.EqualFold(string(input.State), string(securityinsight.DataTypeStateEnabled)),
-		LookbackDate: t,
+	if output.Enabled { // if disabled, the time will be returned as "".
+		t, err := flattenSentinelDataConnectorMicrosoftThreatIntelligenceTime(*input.LookbackPeriod)
+		if err != nil {
+			return []DataConnectorMicrosoftThreatIntelligenceDataType{}, err
+		}
+		output.LookbackDate = t
 	}
 
 	return []DataConnectorMicrosoftThreatIntelligenceDataType{output}, nil

@@ -54,11 +54,10 @@ resource "azurerm_sentinel_data_connector_microsoft_threat_intelligence" "test" 
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
   bing_safety_phishing_url {
-    enabled       = false
     lookback_date = "1970-01-01T00:00:00Z"
   }
+
   microsoft_emerging_threat_feed {
-    enabled       = false
     lookback_date = "1970-01-01T00:00:00Z"
   }
 
@@ -79,12 +78,12 @@ resource "azurerm_sentinel_data_connector_microsoft_threat_intelligence" "test" 
   name                       = "acctest-DC-MTI-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   tenant_id                  = data.azurerm_client_config.test.tenant_id
+
   bing_safety_phishing_url {
-    enabled       = true
-    lookback_date = "1970-01-01T00:00:00Z"
+    enabled = false
   }
+
   microsoft_emerging_threat_feed {
-    enabled       = true
     lookback_date = "1970-01-01T00:00:00Z"
   }
 
