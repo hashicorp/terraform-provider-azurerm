@@ -50,16 +50,9 @@ func (r SentinelDataConnectorMicrosoftThreatIntelligence) basic(data acceptance.
 %s
 
 resource "azurerm_sentinel_data_connector_microsoft_threat_intelligence" "test" {
-  name                       = "acctest-DC-MTI-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-
-  bing_safety_phishing_url {
-    lookback_date = "1970-01-01T00:00:00Z"
-  }
-
-  microsoft_emerging_threat_feed {
-    lookback_date = "1970-01-01T00:00:00Z"
-  }
+  name                                         = "acctest-DC-MTI-%d"
+  log_analytics_workspace_id                   = azurerm_log_analytics_workspace.test.id
+  microsoft_emerging_threat_feed_lookback_date = "1970-01-01T00:00:00Z"
 
   depends_on = [
     azurerm_sentinel_log_analytics_workspace_onboarding.test
@@ -75,17 +68,11 @@ func (r SentinelDataConnectorMicrosoftThreatIntelligence) complete(data acceptan
 data "azurerm_client_config" "test" {}
 
 resource "azurerm_sentinel_data_connector_microsoft_threat_intelligence" "test" {
-  name                       = "acctest-DC-MTI-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  tenant_id                  = data.azurerm_client_config.test.tenant_id
-
-  bing_safety_phishing_url {
-    enabled = false
-  }
-
-  microsoft_emerging_threat_feed {
-    lookback_date = "1970-01-01T00:00:00Z"
-  }
+  name                                         = "acctest-DC-MTI-%d"
+  log_analytics_workspace_id                   = azurerm_log_analytics_workspace.test.id
+  tenant_id                                    = data.azurerm_client_config.test.tenant_id
+  microsoft_emerging_threat_feed_lookback_date = "1970-01-01T00:00:00Z"
+  bing_safety_phishing_url_lookback_date       = "1970-01-01T00:00:00Z"
 
   depends_on = [
     azurerm_sentinel_log_analytics_workspace_onboarding.test

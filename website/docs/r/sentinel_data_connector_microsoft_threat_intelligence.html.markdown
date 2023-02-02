@@ -35,17 +35,10 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
 }
 
 resource "azurerm_sentinel_data_connector_microsoft_threat_intelligence" "example" {
- name                       = "example-dc-msti"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
-
-  bing_safety_phishing_url {
-    enabled       = true
-    lookback_date = "1970-01-01T00:00:00Z"
-  }
-  microsoft_emerging_threat_feed {
-    enabled       = true
-    lookback_date = "1970-01-01T00:00:00Z"
-  }
+  name                                         = "example-dc-msti"
+  log_analytics_workspace_id                   = azurerm_log_analytics_workspace.example.id
+  bing_safety_phishing_url_lookback_date       = "1970-01-01T00:00:00Z"
+  microsoft_emerging_threat_feed_lookback_date = "1970-01-01T00:00:00Z"
 
   depends_on = [
     azurerm_sentinel_log_analytics_workspace_onboarding.test
@@ -61,11 +54,11 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace. Changing this forces a new Data Connector to be created.
 
-* `bing_safety_phishing_url` - (Required) A `bing_safety_phishing_url` block as defined below. Changing this forces a new sentinel to be created.
+* `bing_safety_phishing_url_lookback_date` - (Optional) The lookback date for the Bing Safety Phishing Url in RFC3339. Changing this forces a new Data Connector to be created.
 
-* `microsoft_emerging_threat_feed` - (Required) A `microsoft_emerging_threat_feed` block as defined below. Changing this forces a new sentinel to be created.
+* `microsoft_emerging_threat_feed_lookback_date` - (Optional) The lookback date for the Microsoft Emerging Threat Feed in RFC3339. Changing this forces a new Data Connector to be created.
 
-->**NOTE:** At least one `enabled` of `bing_safety_phishing_url` and `microsoft_emerging_threat_feed` must be set to `true`.
+-> **NOTE:** At least one of `bing_safety_phishing_url_lookback_date` and `microsoft_emerging_threat_feed_lookback_date` must be specified.
 
 ---
 
@@ -73,21 +66,6 @@ The following arguments are supported:
 
 -> **NOTE** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
 
----
-
-A `bing_safety_phishing_url` block supports the following:
-
-* `enabled` - (Optional) Should Bing Safety Phishing Url data type be enabled. Defaults to `true`
-
-* `lookback_date` - (Optional) The lookback date for the Bing Safety Phishing Url in RFC3339. Defaults to `1970-01-01T00:00:00Z`.
-
----
-
-A `microsoft_emerging_threat_feed` block supports the following:
-
-* `enabled` - (Optional) Should Microsoft Emerging Threat Feed  data type be enabled. Defaults to `true`
-
-* `lookback_date` - (Optional) The lookback date for the Microsoft Emerging Threat Feed in RFC3339. Defaults to `1970-01-01T00:00:00Z`.
 
 ## Attributes Reference
 
