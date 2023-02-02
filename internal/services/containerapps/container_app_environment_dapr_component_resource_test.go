@@ -259,10 +259,6 @@ resource "azurerm_container_app_environment_dapr_component" "test" {
 
   scopes = ["testapp", "updatedapp"]
 }
-
-
-
-
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
 

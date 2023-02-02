@@ -179,26 +179,27 @@ func (r ContainerAppEnvironmentDaprComponentResource) Read() sdk.ResourceFunc {
 			}
 
 			daprComponentResp, err := client.Get(ctx, *id)
-			if err != nil || daprComponentResp.Model == nil {
+			if err != nil {
 				if response.WasNotFound(daprComponentResp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := daprComponentResp.Model
-
 			var state ContainerAppEnvironmentDaprComponentModel
 
 			state.Name = id.DaprComponentName
 			state.ManagedEnvironmentId = daprcomponents.NewManagedEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.ManagedEnvironmentName).ID()
-			if props := model.Properties; props != nil {
-				state.Version = pointer.From(props.Version)
-				state.ComponentType = pointer.From(props.ComponentType)
-				state.Scopes = pointer.From(props.Scopes)
-				state.InitTimeout = pointer.From(props.InitTimeout)
-				state.IgnoreErrors = pointer.From(props.IgnoreErrors)
-				state.Metadata = flattenDaprComponentPropertiesMetadata(props.Metadata)
+
+			if model := daprComponentResp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.Version = pointer.From(props.Version)
+					state.ComponentType = pointer.From(props.ComponentType)
+					state.Scopes = pointer.From(props.Scopes)
+					state.InitTimeout = pointer.From(props.InitTimeout)
+					state.IgnoreErrors = pointer.From(props.IgnoreErrors)
+					state.Metadata = flattenDaprComponentPropertiesMetadata(props.Metadata)
+				}
 			}
 
 			secretsResp, err := client.ListSecrets(ctx, *id)
@@ -318,7 +319,7 @@ func expandDaprComponentPropertiesMetadata(input []helpers.DaprMetadata) *[]dapr
 
 func flattenDaprComponentPropertiesMetadata(input *[]daprcomponents.DaprMetadata) []helpers.DaprMetadata {
 	if input == nil {
-		return nil
+		return []helpers.DaprMetadata{}
 	}
 
 	result := make([]helpers.DaprMetadata, 0)

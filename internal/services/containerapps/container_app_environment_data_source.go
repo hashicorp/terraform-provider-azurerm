@@ -31,8 +31,8 @@ type ContainerAppEnvironmentDataSourceModel struct {
 	DefaultDomain         string `tfschema:"default_domain"`
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
 	PlatformReservedCidr  string `tfschema:"platform_reserved_cidr"`
-	PlatformReservedDnsIP string `tfschema:"platform_reserved_dns_ip"`
-	StaticIP              string `tfschema:"static_ip"`
+	PlatformReservedDnsIP string `tfschema:"platform_reserved_dns_ip_address"`
+	StaticIP              string `tfschema:"static_ip_address"`
 }
 
 var _ sdk.DataSource = ContainerAppEnvironmentDataSource{}
@@ -100,16 +100,16 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 			Description: "The IP range, in CIDR notation, that is reserved for environment infrastructure IP addresses.",
 		},
 
-		"platform_reserved_dns_ip": {
+		"platform_reserved_dns_ip_address": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Description: "The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.",
 		},
 
-		"static_ip": {
+		"static_ip_address": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Static IP of the Environment.",
+			Description: "The Static IP Address of the Environment.",
 		},
 	}
 }

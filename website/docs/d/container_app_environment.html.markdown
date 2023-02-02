@@ -54,7 +54,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ~> **NOTE:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
 
-* `platform_reserved_dns_ip` - The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.
+* `platform_reserved_dns_ip_address` - The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.
 
 ~> **NOTE:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
 

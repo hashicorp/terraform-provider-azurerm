@@ -27,7 +27,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_container_app_environment" "example" {
-  name                       = "myEnvironment"
+  name                       = "my-environment"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
@@ -76,11 +76,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ~> **NOTE:** This property only has a value when `infrastructure_subnet_id` is configured and will be a range within the CIDR of the Subnet.
 
-* `platform_reserved_dns_ip` - The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.
+* `platform_reserved_dns_ip_address` - The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.
 
 ~> **NOTE:** This property only has a value when `infrastructure_subnet_id` is configured and will be a value within the CIDR of the Subnet.
 
-* `static_ip` - The Static IP of the Environment.
+* `static_ip_address` - The Static IP of the Environment.
 
 ~> **NOTE:** This will be a Public IP unless `internal_load_balancer_enabled` is set to `true`, in which case an IP in the Internal Subnet will be reserved. 
 

@@ -32,8 +32,8 @@ type ContainerAppEnvironmentModel struct {
 	DefaultDomain         string `tfschema:"default_domain"`
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
 	PlatformReservedCidr  string `tfschema:"platform_reserved_cidr"`
-	PlatformReservedDnsIP string `tfschema:"platform_reserved_dns_ip"`
-	StaticIP              string `tfschema:"static_ip"`
+	PlatformReservedDnsIP string `tfschema:"platform_reserved_dns_ip_address"`
+	StaticIP              string `tfschema:"static_ip_address"`
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentResource{}
@@ -75,7 +75,6 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 		"infrastructure_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: networkValidate.SubnetID,
 			Description:  "The existing Subnet to use for the Container Apps Control Plane. **NOTE:** The Subnet must have a `/21` or larger address space.",
@@ -113,16 +112,16 @@ func (r ContainerAppEnvironmentResource) Attributes() map[string]*pluginsdk.Sche
 			Description: "The IP range, in CIDR notation, that is reserved for environment infrastructure IP addresses.",
 		},
 
-		"platform_reserved_dns_ip": {
+		"platform_reserved_dns_ip_address": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Description: "The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.",
 		},
 
-		"static_ip": {
+		"static_ip_address": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The Static IP of the Environment.",
+			Description: "The Static IP Address of the Environment.",
 		},
 	}
 }
@@ -165,10 +164,11 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			if workspace.Model == nil || workspace.Model.Properties == nil {
-				if workspace.Model.Properties.CustomerId == nil {
-					return fmt.Errorf("reading customer ID from %s, `customer_id` is nil", logAnalyticsId)
-				}
 				return fmt.Errorf("reading customer ID from %s", logAnalyticsId)
+			}
+
+			if workspace.Model.Properties.CustomerId == nil {
+				return fmt.Errorf("reading customer ID from %s, `customer_id` is nil", logAnalyticsId)
 			}
 
 			keys, err := logAnalyticsClient.SharedKeysGetSharedKeys(ctx, *logAnalyticsId)

@@ -219,7 +219,7 @@ func ContainerAppIngressCustomDomainSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The hostname of the Certificate.  Must be the CN or a named SAN in the certificate.",
+					Description:  "The hostname of the Certificate. Must be the CN or a named SAN in the certificate.",
 				},
 			},
 		},
@@ -248,7 +248,7 @@ func expandContainerAppIngressCustomDomain(input []CustomDomain) *[]containerapp
 
 func flattenContainerAppIngressCustomDomain(input *[]containerapps.CustomDomain) []CustomDomain {
 	if input == nil {
-		return nil
+		return []CustomDomain{}
 	}
 
 	result := make([]CustomDomain, 0)
@@ -697,7 +697,6 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 				"volume_mounts": ContainerVolumeMountSchema(),
 			},
 		},
-		// MaxItems: 1, // Only 1 container per app supported atm?
 	}
 }
 
@@ -1597,10 +1596,9 @@ type Secret struct {
 
 func SecretsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:         pluginsdk.TypeSet,
-		Optional:     true,
-		Sensitive:    true,
-		ValidateFunc: nil,
+		Type:      pluginsdk.TypeSet,
+		Optional:  true,
+		Sensitive: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {

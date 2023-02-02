@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -93,8 +92,7 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(containerapps.ActiveRevisionsModeSingle),
 				string(containerapps.ActiveRevisionsModeMultiple),
-			}, true),
-			DiffSuppressFunc: suppress.CaseDifference,
+			}, false),
 		},
 
 		"ingress": helpers.ContainerAppIngressSchema(),
@@ -139,7 +137,7 @@ func (r ContainerAppResource) Attributes() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Sensitive:   true,
-			Description: "The Custom Domain Verification ID for the Container App.",
+			Description: "The ID of the Custom Domain Verification for this Container App.",
 		},
 	}
 }
@@ -181,7 +179,6 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 			}
 
 			containerApp := containerapps.ContainerApp{
-				Name:     pointer.To(app.Name),
 				Location: location.Normalize(env.Model.Location),
 				Properties: &containerapps.ContainerAppProperties{
 					Configuration: &containerapps.Configuration{
@@ -202,8 +199,7 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 			}
 			containerApp.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
 
-			revisionMode := containerapps.ActiveRevisionsMode(app.RevisionMode)
-			containerApp.Properties.Configuration.ActiveRevisionsMode = &revisionMode
+			containerApp.Properties.Configuration.ActiveRevisionsMode = pointer.To(containerapps.ActiveRevisionsMode(app.RevisionMode))
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, containerApp); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
