@@ -3,43 +3,21 @@ package redhatopenshift_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2022-09-04/openshiftclusters"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/redhatopenshift/mgmt/2022-04-01/redhatopenshift"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type OpenShiftClusterResource struct{}
 
-func (t OpenShiftClusterResource) Exists(
-	ctx context.Context,
-	clients *clients.Client,
-	state *pluginsdk.InstanceState,
-) (*bool, error) {
-	id, err := parse.ClusterID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := clients.RedHatOpenshift.OpenShiftClustersClient.Get(
-		ctx,
-		id.ResourceGroup,
-		id.ManagedClusterName,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("reading Red Hat Openshift Cluster (%s): %+v", id.String(), err)
-	}
-
-	return utils.Bool(resp.ID != nil), nil
-}
-
 func TestAccOpenShiftCluster_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redhatopenshift_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := OpenShiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -47,27 +25,19 @@ func TestAccOpenShiftCluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).
-					Key("main_profile.0.vm_size").
-					HasValue("Standard_D8s_v3"),
-				check.That(data.ResourceName).
-					Key("worker_profile.0.vm_size").
-					HasValue("Standard_D4s_v3"),
+				check.That(data.ResourceName).Key("main_profile.0.vm_size").HasValue("Standard_D8s_v3"),
+				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
 				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
 				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).
-					Key("api_server_profile.0.visibility").
-					HasValue(string(redhatopenshift.VisibilityPublic)),
-				check.That(data.ResourceName).
-					Key("ingress_profile.0.visibility").
-					HasValue(string(redhatopenshift.VisibilityPublic)),
+				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
 			),
 		},
 	})
 }
 
 func TestAccOpenShiftCluster_private(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redhatopenshift_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := OpenShiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -75,27 +45,19 @@ func TestAccOpenShiftCluster_private(t *testing.T) {
 			Config: r.private(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).
-					Key("main_profile.0.vm_size").
-					HasValue("Standard_D8s_v3"),
-				check.That(data.ResourceName).
-					Key("worker_profile.0.vm_size").
-					HasValue("Standard_D4s_v3"),
+				check.That(data.ResourceName).Key("main_profile.0.vm_size").HasValue("Standard_D8s_v3"),
+				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
 				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
 				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).
-					Key("api_server_profile.0.visibility").
-					HasValue(string(redhatopenshift.VisibilityPrivate)),
-				check.That(data.ResourceName).
-					Key("ingress_profile.0.visibility").
-					HasValue(string(redhatopenshift.VisibilityPrivate)),
+				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPrivate)),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPrivate)),
 			),
 		},
 	})
 }
 
 func TestAccOpenShiftCluster_customDomain(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redhatopenshift_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := OpenShiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -103,30 +65,20 @@ func TestAccOpenShiftCluster_customDomain(t *testing.T) {
 			Config: r.customDomain(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).
-					Key("main_profile.0.vm_size").
-					HasValue("Standard_D8s_v3"),
-				check.That(data.ResourceName).
-					Key("worker_profile.0.vm_size").
-					HasValue("Standard_D4s_v3"),
+				check.That(data.ResourceName).Key("main_profile.0.vm_size").HasValue("Standard_D8s_v3"),
+				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
 				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
 				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).
-					Key("api_server_profile.0.visibility").
-					HasValue(string(redhatopenshift.VisibilityPublic)),
-				check.That(data.ResourceName).
-					Key("ingress_profile.0.visibility").
-					HasValue(string(redhatopenshift.VisibilityPublic)),
-				check.That(data.ResourceName).
-					Key("cluster_profile.0.domain").
-					HasValue("foo.example.com"),
+				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
+				check.That(data.ResourceName).Key("cluster_profile.0.domain").HasValue("foo.example.com"),
 			),
 		},
 	})
 }
 
 func TestAccOpenShiftCluster_encryptionAtHost(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redhatopenshift_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := OpenShiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -134,25 +86,17 @@ func TestAccOpenShiftCluster_encryptionAtHost(t *testing.T) {
 			Config: r.encryptionAtHost(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).
-					Key("main_profile.0.encryption_at_host_enabled").
-					HasValue("true"),
-				check.That(data.ResourceName).
-					Key("main_profile.0.disk_encryption_set_id").
-					IsSet(),
-				check.That(data.ResourceName).
-					Key("worker_profile.0.encryption_at_host_enabled").
-					HasValue("true"),
-				check.That(data.ResourceName).
-					Key("worker_profile.0.disk_encryption_set_id").
-					IsSet(),
+				check.That(data.ResourceName).Key("main_profile.0.encryption_at_host_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("main_profile.0.disk_encryption_set_id").IsSet(),
+				check.That(data.ResourceName).Key("worker_profile.0.encryption_at_host_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("worker_profile.0.disk_encryption_set_id").IsSet(),
 			),
 		},
 	})
 }
 
 func TestAccOpenShiftCluster_basicWithFipsEnabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redhatopenshift_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := OpenShiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -160,26 +104,30 @@ func TestAccOpenShiftCluster_basicWithFipsEnabled(t *testing.T) {
 			Config: r.basicWithFipsEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).
-					Key("cluster_profile.0.fips_enabled").
-					HasValue("true"),
-				check.That(data.ResourceName).
-					Key("main_profile.0.vm_size").
-					HasValue("Standard_D8s_v3"),
-				check.That(data.ResourceName).
-					Key("worker_profile.0.vm_size").
-					HasValue("Standard_D4s_v3"),
+				check.That(data.ResourceName).Key("cluster_profile.0.fips_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("main_profile.0.vm_size").HasValue("Standard_D8s_v3"),
+				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
 				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
 				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).
-					Key("api_server_profile.0.visibility").
-					HasValue(string(redhatopenshift.VisibilityPublic)),
-				check.That(data.ResourceName).
-					Key("ingress_profile.0.visibility").
-					HasValue(string(redhatopenshift.VisibilityPublic)),
+				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
 			),
 		},
 	})
+}
+
+func (t OpenShiftClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := openshiftclusters.ParseProviderOpenShiftClusterID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.RedHatOpenshift.OpenShiftClustersClient.Get(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("reading Red Hat Openshift Cluster (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (OpenShiftClusterResource) basic(data acceptance.TestData) string {
@@ -234,7 +182,7 @@ resource "azurerm_subnet" "worker_subnet" {
   service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
 }
 
-resource "azurerm_redhatopenshift_cluster" "test" {
+resource "azurerm_redhat_openshift_cluster" "test" {
   name                = "acctestaro%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -311,7 +259,7 @@ resource "azurerm_subnet" "worker_subnet" {
   service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
 }
 
-resource "azurerm_redhatopenshift_cluster" "test" {
+resource "azurerm_redhat_openshift_cluster" "test" {
   name                = "acctestaro%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -396,7 +344,7 @@ resource "azurerm_subnet" "worker_subnet" {
   service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
 }
 
-resource "azurerm_redhatopenshift_cluster" "test" {
+resource "azurerm_redhat_openshift_cluster" "test" {
   name                = "acctestaro%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -477,7 +425,7 @@ resource "azurerm_subnet" "worker_subnet" {
   service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
 }
 
-resource "azurerm_redhatopenshift_cluster" "test" {
+resource "azurerm_redhat_openshift_cluster" "test" {
   name                = "acctestaro%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -632,7 +580,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   ]
 }
 
-resource "azurerm_redhatopenshift_cluster" "test" {
+resource "azurerm_redhat_openshift_cluster" "test" {
   name                = "acctestaro%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
