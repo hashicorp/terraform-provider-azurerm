@@ -219,7 +219,7 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
       include_deleted       = true
       include_snapshots     = true
       prefix_match          = ["*/test"]
-	  exclude_prefixes      = ["syslog.log"]
+      exclude_prefixes      = ["syslog.log"]
     }
   }
 }
@@ -255,7 +255,7 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
       include_blob_versions = true
       include_deleted       = true
       include_snapshots     = true
-      prefix_match          = ["*/test"]	  
+      prefix_match          = ["*/test"]
     }
   }
 
