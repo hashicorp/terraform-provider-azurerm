@@ -659,13 +659,9 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 				},
 
 				"ephemeral_storage": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "1Gi",
-					ValidateFunc: validation.StringInSlice([]string{
-						"1Gi",
-					}, false),
-					Description: "The amount of ephemeral storage available to the Container App. Possible Values include `1Gi`. Defaults to `1Gi`",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The amount of ephemeral storage available to the Container App.",
 				},
 
 				"env": ContainerEnvVarSchema(),
@@ -741,6 +737,8 @@ func flattenContainerAppContainers(input *[]containerapps.Container) []Container
 		container := Container{
 			Name:         pointer.From(v.Name),
 			Image:        pointer.From(v.Image),
+			Args:         pointer.From(v.Args),
+			Command:      pointer.From(v.Command),
 			Env:          flattenContainerEnvVar(v.Env),
 			VolumeMounts: flattenContainerVolumeMounts(v.VolumeMounts),
 		}
@@ -755,14 +753,6 @@ func flattenContainerAppContainers(input *[]containerapps.Container) []Container
 					container.StartupProbe = flattenContainerAppStartupProbe(p)
 				}
 			}
-		}
-
-		if args := v.Args; args != nil && len(*args) != 0 {
-			container.Args = *args
-		}
-
-		if command := v.Command; command != nil && len(*command) != 0 {
-			container.Command = *command
 		}
 
 		if resources := v.Resources; resources != nil {

@@ -123,7 +123,9 @@ A `container` block supports the following:
 
 * `env` - (Optional) An `env` block as detailed below.
 
-* `ephemeral_storage` - (Optional) The amount of ephemeral storage available to the Container App.
+* `ephemeral_storage` - The amount of ephemeral storage available to the Container App. 
+
+~> **NOTE:** `ephemeral_storage` is currently in preview and not configurable at this time.
 
 * `image` - (Required) The image to use to create the container.
 

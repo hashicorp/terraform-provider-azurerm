@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -254,7 +253,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 					state.Template = helpers.FlattenContainerAppTemplate(props.Template)
 					if config := props.Configuration; config != nil {
 						if config.ActiveRevisionsMode != nil {
-							state.RevisionMode = strings.ToLower(string(*config.ActiveRevisionsMode))
+							state.RevisionMode = string(pointer.From(config.ActiveRevisionsMode))
 						}
 						state.Ingress = helpers.FlattenContainerAppIngress(config.Ingress, id.ContainerAppName)
 						state.Registries = helpers.FlattenContainerAppRegistries(config.Registries)
@@ -340,8 +339,7 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			model.Properties.Configuration.Secrets = helpers.UnpackContainerSecretsCollection(secretsResp.Model)
 
 			if metadata.ResourceData.HasChange("revision_mode") {
-				revisionMode := containerapps.ActiveRevisionsMode(state.RevisionMode)
-				model.Properties.Configuration.ActiveRevisionsMode = &revisionMode
+				model.Properties.Configuration.ActiveRevisionsMode = pointer.To(containerapps.ActiveRevisionsMode(state.RevisionMode))
 			}
 
 			if metadata.ResourceData.HasChange("ingress") {
