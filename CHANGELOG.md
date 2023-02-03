@@ -19,6 +19,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `data.azurerm_monitor_data_collection_rule` - raises an error when the specified data collection rule can't be found [GH-20282]
 * `azurerm_federated_identity_credential` - prevent a perpetual diff [GH-20219]
 * `azurerm_linux_function_app` - fix `linuxFxVersion` for docker `registry_url` processing [GH-18194]
 * `azurerm_monitor_aad_diagnostic_setting` - the field `log_analytics_workspace_id` is now parsed case-insensitively from the API Response [GH-20206]
