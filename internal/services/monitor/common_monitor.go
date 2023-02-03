@@ -26,7 +26,7 @@ func expandMonitorScheduledQueryRulesCommonSource(d *pluginsdk.ResourceData) *in
 	source := insights.Source{
 		AuthorizedResources: utils.ExpandStringSlice(authorizedResourceIDs),
 		DataSourceID:        utils.String(dataSourceID),
-		QueryType:           insights.QueryTypeResultCount,
+		QueryType:           insights.QueryType(d.Get("query_type").(string)),
 	}
 	if ok {
 		source.Query = utils.String(query.(string))
