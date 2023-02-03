@@ -157,6 +157,12 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_resource_group" "test1" {
+  name     = "acctestRG-aro-%d-2"
+  location = "%s"
+}
+
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/22"]
@@ -184,8 +190,8 @@ resource "azurerm_subnet" "worker_subnet" {
 
 resource "azurerm_redhat_openshift_cluster" "test" {
   name                = "acctestaro%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test1.location
+  resource_group_name = azurerm_resource_group.test1.name
 
   main_profile {
     vm_size   = "Standard_D8s_v3"
@@ -204,7 +210,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 }
-  `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+  `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (OpenShiftClusterResource) private(data acceptance.TestData) string {
