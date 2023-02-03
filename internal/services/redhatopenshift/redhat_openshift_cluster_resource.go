@@ -3,6 +3,7 @@ package redhatopenshift
 import (
 	"fmt"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"log"
 	"time"
 
@@ -286,15 +287,13 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	// clusterProfile := expandOpenshiftClusterProfile(d.Get("cluster_profile").([]interface{}), resourceParse.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName).ID())
+	clusterProfile := expandOpenshiftClusterProfile(d.Get("cluster_profile").([]interface{}), resourceParse.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName).ID())
 	servicePrincipalProfile := expandOpenshiftServicePrincipalProfile(d.Get("service_principal").([]interface{}))
 	networkProfile := expandOpenshiftNetworkProfile(d.Get("network_profile").([]interface{}))
 	mainProfile := expandOpenshiftMasterProfile(d.Get("main_profile").([]interface{}))
 	workerProfiles := expandOpenshiftWorkerProfiles(d.Get("worker_profile").([]interface{}))
 	// apiServerProfile := expandOpenshiftApiServerProfile(d.Get("api_server_profile").([]interface{}))
-
-	// ingressProfilesRaw := d.Get("ingress_profile").([]interface{})
-	// ingressProfiles := expandOpenshiftIngressProfiles(ingressProfilesRaw)
+	// ingressProfiles := expandOpenshiftIngressProfiles(d.Get("ingress_profile").([]interface{}))
 
 	t := d.Get("tags").(map[string]interface{})
 
@@ -302,7 +301,7 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 		Name:     &id.OpenShiftClusterName,
 		Location: location,
 		Properties: &openshiftclusters.OpenShiftClusterProperties{
-			// ClusterProfile:          clusterProfile,
+			ClusterProfile:          clusterProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
 			NetworkProfile:          networkProfile,
 			MasterProfile:           mainProfile,
@@ -343,12 +342,11 @@ func resourceOpenShiftClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving existing %s: `model` was nil", id.ID())
 	}
 
-	/*
-		if d.HasChange("cluster_profile") {
-			clusterProfileRaw := d.Get("cluster_profile").([]interface{})
-			clusterProfile := expandOpenshiftClusterProfile(clusterProfileRaw, resourceGroupId)
-			existing.Model.Properties.ClusterProfile = clusterProfile
-		}*/
+	if d.HasChange("cluster_profile") {
+		clusterProfileRaw := d.Get("cluster_profile").([]interface{})
+		clusterProfile := expandOpenshiftClusterProfile(clusterProfileRaw, resourceParse.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName).ID())
+		existing.Model.Properties.ClusterProfile = clusterProfile
+	}
 
 	if d.HasChange("main_profile") {
 		mainProfileRaw := d.Get("main_profile").([]interface{})
@@ -659,13 +657,14 @@ func flattenOpenShiftIngressProfiles(profiles *[]openshiftclusters.IngressProfil
 	return results
 }
 
-/*
 func expandOpenshiftClusterProfile(input []interface{}, resourceGroupId string) *openshiftclusters.ClusterProfile {
+	fipsValidatedModules := openshiftclusters.FipsValidatedModulesDisabled
+
 	if len(input) == 0 {
 		return &openshiftclusters.ClusterProfile{
 			ResourceGroupId:      utils.String(resourceGroupId),
 			Domain:               utils.String(randomDomainName),
-			FipsValidatedModules: openshiftclusters.FipsValidatedModulesDisabled,
+			FipsValidatedModules: &fipsValidatedModules,
 		}
 	}
 
@@ -678,9 +677,7 @@ func expandOpenshiftClusterProfile(input []interface{}, resourceGroupId string) 
 		domain = randomDomainName
 	}
 
-	fipsValidatedModules := openshiftclusters.FipsValidatedModulesDisabled
-	fipsEnabled := config["fips_enabled"].(bool)
-	if fipsEnabled {
+	if config["fips_enabled"].(bool) {
 		fipsValidatedModules = openshiftclusters.FipsValidatedModulesEnabled
 	}
 
@@ -688,9 +685,9 @@ func expandOpenshiftClusterProfile(input []interface{}, resourceGroupId string) 
 		ResourceGroupId:      utils.String(resourceGroupId),
 		Domain:               utils.String(domain),
 		PullSecret:           utils.String(pullSecret),
-		FipsValidatedModules: fipsValidatedModules,
+		FipsValidatedModules: &fipsValidatedModules,
 	}
-}*/
+}
 
 func expandOpenshiftServicePrincipalProfile(input []interface{}) *openshiftclusters.ServicePrincipalProfile {
 	if len(input) == 0 {
