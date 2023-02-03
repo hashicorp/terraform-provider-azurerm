@@ -1,11 +1,14 @@
 package compute
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -182,6 +185,31 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 		extension.VirtualMachineExtensionProperties.ProtectedSettings = &protectedSettings
 	}
 
+	instanceView, err := vmClient.InstanceView(ctx, virtualMachineId.ResourceGroup, virtualMachineId.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving InstanceView for %q: %+v", virtualMachineId, err)
+	}
+
+	locks.ByID(virtualMachineId.ID())
+	isPowerStateChanged, err := ensureVirtualMachineStarted(ctx, vmClient, *virtualMachineId, instanceView)
+	if err != nil {
+		locks.UnlockByID(virtualMachineId.ID())
+		if isPowerStateChanged {
+			if innerError := restoreVirtualMachinePowerState(ctx, vmClient, *virtualMachineId, instanceView); innerError != nil {
+				return fmt.Errorf("restoring to original power state after starting %q is failed: %+v, starting err: %+v", *virtualMachineId, innerError, err)
+			}
+		}
+		return fmt.Errorf("starting %q to create/update extension: %+v", *virtualMachineId, err)
+	}
+
+	// unlock the Virtual Machine ID immediately if power state is not changed, which indicates it is in running state at the first place, so that multiple extensions could be operated at the same time
+	// if Virtual Machine is stopped or deallocated, release the lock at the end, and multiple extensions are operated one at a time
+	if isPowerStateChanged {
+		defer locks.UnlockByID(virtualMachineId.ID())
+	} else {
+		locks.UnlockByID(virtualMachineId.ID())
+	}
+
 	future, err := vmExtensionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, extension)
 	if err != nil {
 		return err
@@ -189,6 +217,13 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 
 	if err = future.WaitForCompletionRef(ctx, vmExtensionClient.Client); err != nil {
 		return err
+	}
+
+	if isPowerStateChanged {
+		err = restoreVirtualMachinePowerState(ctx, vmClient, *virtualMachineId, instanceView)
+		if err != nil {
+			return fmt.Errorf("restoring %q to original state after extension is created/updated: %+v", *virtualMachineId, err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -258,6 +293,7 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 
 func resourceVirtualMachineExtensionsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMExtensionClient
+	vmClient := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -266,10 +302,146 @@ func resourceVirtualMachineExtensionsDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
+	virtualMachineId := parse.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
+	instanceView, err := vmClient.InstanceView(ctx, virtualMachineId.ResourceGroup, virtualMachineId.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving InstanceView for %q: %+v", virtualMachineId, err)
+	}
+
+	locks.ByID(virtualMachineId.ID())
+	isPowerStateChanged, err := ensureVirtualMachineStarted(ctx, vmClient, virtualMachineId, instanceView)
+	if err != nil {
+		locks.UnlockByID(virtualMachineId.ID())
+		if isPowerStateChanged {
+			if innerError := restoreVirtualMachinePowerState(ctx, vmClient, virtualMachineId, instanceView); innerError != nil {
+				return fmt.Errorf("restoring to original power state after starting %q is failed: %+v, starting err: %+v", virtualMachineId, innerError, err)
+			}
+		}
+		return fmt.Errorf("starting %q to delete extension: %+v", virtualMachineId, err)
+	}
+
+	if isPowerStateChanged {
+		defer locks.UnlockByID(virtualMachineId.ID())
+	} else {
+		locks.UnlockByID(virtualMachineId.ID())
+	}
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName)
 	if err != nil {
 		return err
 	}
 
-	return future.WaitForCompletionRef(ctx, client.Client)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return err
+	}
+
+	if isPowerStateChanged {
+		err = restoreVirtualMachinePowerState(ctx, vmClient, virtualMachineId, instanceView)
+		if err != nil {
+			return fmt.Errorf("restoring %q to original state after extension is deleted: %+v", virtualMachineId, err)
+		}
+	}
+
+	return nil
+}
+
+// ensureVirtualMachineStarted starts the Virtual Machine if it's not in running state
+// it returns a boolean value which indicates whether the Virtual Machine has changed its power state
+func ensureVirtualMachineStarted(ctx context.Context, client *compute.VirtualMachinesClient, id parse.VirtualMachineId, instanceView compute.VirtualMachineInstanceView) (bool, error) {
+	if instanceView.Statuses != nil {
+		for _, status := range *instanceView.Statuses {
+			if status.Code == nil {
+				continue
+			}
+
+			statusCode := strings.ToLower(*status.Code)
+			if !strings.HasPrefix(statusCode, "powerstate/") {
+				continue
+			}
+
+			state := strings.TrimPrefix(statusCode, "powerstate/")
+			state = strings.ToLower(state)
+			// Send a duplicate command if Virtual Machine is in transitioning state to ensure it is in final state so that further command can work
+			switch state {
+			case "starting":
+				future, err := client.Start(ctx, id.ResourceGroup, id.Name)
+				if err != nil {
+					return false, nil
+				}
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return false, nil
+				}
+				return false, nil
+			case "stopping":
+				future, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
+				if err != nil {
+					return false, err
+				}
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return false, err
+				}
+			case "deallocating":
+				future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
+				if err != nil {
+					return false, err
+				}
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return false, err
+				}
+			}
+
+			switch state {
+			case "stopping", "stopped", "deallocating", "deallocated":
+				future, err := client.Start(ctx, id.ResourceGroup, id.Name)
+				if err != nil {
+					return true, err
+				}
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return true, err
+				}
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
+}
+
+// restoreVirtualMachinePowerState changes the Virtual Machine to its original power state before operating the extension
+func restoreVirtualMachinePowerState(ctx context.Context, client *compute.VirtualMachinesClient, id parse.VirtualMachineId, instanceView compute.VirtualMachineInstanceView) error {
+	if instanceView.Statuses != nil {
+		for _, status := range *instanceView.Statuses {
+			if status.Code == nil {
+				continue
+			}
+
+			statusCode := strings.ToLower(*status.Code)
+			if !strings.HasPrefix(statusCode, "powerstate/") {
+				continue
+			}
+
+			state := strings.TrimPrefix(statusCode, "powerstate/")
+			state = strings.ToLower(state)
+			switch state {
+			case "stopped", "stopping":
+				future, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
+				if err != nil {
+					return err
+				}
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return err
+				}
+			case "deallocated", "deallocating":
+				future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
+				if err != nil {
+					return err
+				}
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
 }

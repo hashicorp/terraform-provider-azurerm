@@ -134,6 +134,28 @@ func TestAccVirtualMachineExtension_protectedSettingsFromKeyVault(t *testing.T) 
 	})
 }
 
+func TestAccVirtualMachineExtension_autoStart(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
+	r := VirtualMachineExtensionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(r.deallocateVirtualMachine, "azurerm_virtual_machine.test"),
+			),
+		},
+		data.ImportStep("protected_settings"),
+		{
+			Config: r.basicUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("protected_settings"),
+	})
+}
+
 func (t VirtualMachineExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualMachineExtensionID(state.ID)
 	if err != nil {
@@ -810,4 +832,22 @@ resource "azurerm_virtual_machine_extension" "test" {
   }
 }
 `, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomString, index)
+}
+
+func (VirtualMachineExtensionResource) deallocateVirtualMachine(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	id, err := parse.VirtualMachineID(state.ID)
+	if err != nil {
+		return err
+	}
+
+	future, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
+	if err != nil {
+		return fmt.Errorf("deallocating Virtual Machine: %+v", err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
+		return fmt.Errorf("waiting for deallocation of Virtual Machine: %+v", err)
+	}
+
+	return nil
 }
