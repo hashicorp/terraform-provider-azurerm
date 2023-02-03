@@ -839,6 +839,17 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 					shouldShutDown = false
 				case "stopped":
 					shouldShutDown = false
+				case "starting":
+					// send a duplicate start command to ensure Virtual Machine is not in transitioning state which doesn't accept further command
+					log.Printf("[DEBUG] Starting %q", virtualMachine)
+					future, err := vmClient.Start(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
+					if err != nil {
+						return fmt.Errorf("sending Start to %q: %+v", virtualMachine, err)
+					}
+
+					if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+						return fmt.Errorf("waiting for Start of %q: %+v", virtualMachine, err)
+					}
 				}
 			}
 		}

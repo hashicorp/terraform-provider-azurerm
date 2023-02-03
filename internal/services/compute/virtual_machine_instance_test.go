@@ -41,6 +41,11 @@ func TestVirtualMachineShouldBeStarted(t *testing.T) {
 			Expected: true,
 		},
 		{
+			Name:     "Starting",
+			Input:    buildInstanceViewStatus("ProvisioningStatus/succeeded", "PowerState/starting"),
+			Expected: true,
+		},
+		{
 			Name:     "Deallocated",
 			Input:    buildInstanceViewStatus("ProvisioningStatus/succeeded", "PowerState/deallocated"),
 			Expected: false,

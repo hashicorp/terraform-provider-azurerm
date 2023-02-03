@@ -26,6 +26,8 @@ func virtualMachineShouldBeStarted(instanceView compute.VirtualMachineInstanceVi
 			state = strings.TrimPrefix(state, "powerstate/")
 			if strings.EqualFold(state, "running") {
 				return true
+			} else if strings.EqualFold(state, "starting") {
+				return true
 			}
 		}
 	}

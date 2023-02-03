@@ -1396,6 +1396,17 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			case "stopped":
 				// VM already stopped, no shutdown needed anymore
 				shouldShutDown = false
+			case "starting":
+				// send a duplicate start command to ensure Virtual Machine is not in transitioning state which doesn't accept further command
+				log.Printf("[DEBUG] Starting %q", id)
+				future, err := client.Start(ctx, id.ResourceGroup, id.Name)
+				if err != nil {
+					return fmt.Errorf("sending Start to %q: %+v", id, err)
+				}
+
+				if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting for Start of %q: %+v", id, err)
+				}
 			}
 		}
 	}
