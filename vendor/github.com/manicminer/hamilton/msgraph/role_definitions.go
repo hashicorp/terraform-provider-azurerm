@@ -129,7 +129,7 @@ func (c *RoleDefinitionsClient) Update(ctx context.Context, roleDefinition Unifi
 		ConsistencyFailureFunc: RetryOn404ConsistencyFailureFunc,
 		ValidStatusCodes:       []int{http.StatusNoContent},
 		Uri: Uri{
-			Entity:      fmt.Sprintf("/roleManagement/directory/roleDefinitions/%s", *roleDefinition.ID),
+			Entity:      fmt.Sprintf("/roleManagement/directory/roleDefinitions/%s", *roleDefinition.ID()),
 			HasTenantId: true,
 		},
 	})

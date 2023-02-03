@@ -62,16 +62,16 @@ func (c *GroupsClient) Create(ctx context.Context, group Group) (*Group, int, er
 		return nil, status, fmt.Errorf("json.Marshal(): %v", err)
 	}
 
-	ownersNotReplicated := func(resp *http.Response, o *odata.OData) bool {
+	consistencyFunc := func(resp *http.Response, o *odata.OData) bool {
 		if resp != nil && resp.StatusCode == http.StatusBadRequest && o != nil && o.Error != nil {
-			return o.Error.Match(odata.ErrorResourceDoesNotExist)
+			return o.Error.Match(odata.ErrorPropertyValuesAreInvalid) || o.Error.Match(odata.ErrorResourceDoesNotExist)
 		}
 		return false
 	}
 
 	resp, status, _, err := c.BaseClient.Post(ctx, PostHttpRequestInput{
 		Body:                   body,
-		ConsistencyFailureFunc: ownersNotReplicated,
+		ConsistencyFailureFunc: consistencyFunc,
 		OData: odata.Query{
 			Metadata: odata.MetadataFull,
 		},
@@ -206,12 +206,13 @@ func (c *GroupsClient) GetDeleted(ctx context.Context, id string, query odata.Qu
 func (c *GroupsClient) Update(ctx context.Context, group Group) (int, error) {
 	var status int
 
-	if group.ID == nil {
+	if group.ID() == nil {
 		return status, fmt.Errorf("cannot update group with nil ID")
 	}
 
-	groupId := *group.ID
-	group.ID = nil
+	groupId := *group.ID()
+	group.Id = nil
+	group.ObjectId = nil
 
 	body, err := json.Marshal(group)
 	if err != nil {
@@ -368,6 +369,48 @@ func (c *GroupsClient) ListMembers(ctx context.Context, id string) (*[]string, i
 	return &ret, status, nil
 }
 
+// ListTransitiveMembers retrieves a flat list of all nested members of the specified Group.
+// id is the object ID of the group.
+func (c *GroupsClient) ListTransitiveMembers(ctx context.Context, id string) (*[]string, int, error) {
+	resp, status, _, err := c.BaseClient.Get(ctx, GetHttpRequestInput{
+		ConsistencyFailureFunc: RetryOn404ConsistencyFailureFunc,
+		OData: odata.Query{
+			Select: []string{"id"},
+		},
+		ValidStatusCodes: []int{http.StatusOK},
+		Uri: Uri{
+			Entity:      fmt.Sprintf("/groups/%s/transitiveMembers", id),
+			HasTenantId: true,
+		},
+	})
+	if err != nil {
+		return nil, status, fmt.Errorf("GroupsClient.BaseClient.Get(): %v", err)
+	}
+
+	defer resp.Body.Close()
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, status, fmt.Errorf("io.ReadAll(): %v", err)
+	}
+
+	var data struct {
+		Members []struct {
+			Type string `json:"@odata.type"`
+			Id   string `json:"id"`
+		} `json:"value"`
+	}
+	if err := json.Unmarshal(respBody, &data); err != nil {
+		return nil, status, fmt.Errorf("json.Unmarshal(): %v", err)
+	}
+
+	ret := make([]string, len(data.Members))
+	for i, v := range data.Members {
+		ret[i] = v.Id
+	}
+
+	return &ret, status, nil
+}
+
 // GetMember retrieves a single member of the specified Group.
 // groupId is the object ID of the group.
 // memberId is the object ID of the member object.
@@ -435,7 +478,7 @@ func (c *GroupsClient) AddMembers(ctx context.Context, group *Group) (int, error
 			ValidStatusCodes:       []int{http.StatusNoContent},
 			ValidStatusFunc:        checkMemberAlreadyExists,
 			Uri: Uri{
-				Entity:      fmt.Sprintf("/groups/%s/members/$ref", *group.ID),
+				Entity:      fmt.Sprintf("/groups/%s/members/$ref", *group.ID()),
 				HasTenantId: true,
 			},
 		})
@@ -601,7 +644,7 @@ func (c *GroupsClient) AddOwners(ctx context.Context, group *Group) (int, error)
 			ValidStatusCodes:       []int{http.StatusNoContent},
 			ValidStatusFunc:        checkOwnerAlreadyExists,
 			Uri: Uri{
-				Entity:      fmt.Sprintf("/groups/%s/owners/$ref", *group.ID),
+				Entity:      fmt.Sprintf("/groups/%s/owners/$ref", *group.ID()),
 				HasTenantId: true,
 			},
 		})
