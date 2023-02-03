@@ -221,7 +221,7 @@ func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta int
 	d.Set("eventhub_name", resp.EventHubName)
 	eventhubAuthorizationRuleId := ""
 	if resp.EventHubAuthorizationRuleID != nil && *resp.EventHubAuthorizationRuleID != "" {
-		parsedId, err := authRuleParse.ParseAuthorizationRuleID(*resp.EventHubAuthorizationRuleID)
+		parsedId, err := authRuleParse.ParseAuthorizationRuleIDInsensitively(*resp.EventHubAuthorizationRuleID)
 		if err != nil {
 			return err
 		}
