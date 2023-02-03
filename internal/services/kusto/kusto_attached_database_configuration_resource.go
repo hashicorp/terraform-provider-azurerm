@@ -2,6 +2,7 @@ package kusto
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -239,6 +240,10 @@ func resourceKustoAttachedDatabaseConfigurationDelete(d *pluginsdk.ResourceData,
 	if err != nil {
 		return err
 	}
+
+	// DELETE operation for attached configuration does not support running concurrently at cluster level
+	locks.ByName(id.ClusterName, "azurerm_kusto_cluster")
+	defer locks.UnlockByName(id.ClusterName, "azurerm_kusto_cluster")
 
 	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
