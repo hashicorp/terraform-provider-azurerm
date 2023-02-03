@@ -764,15 +764,15 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                = "12"
   sku_name               = "B_Standard_B1ms"
   zone                   = "1"
-  
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-  
+
   customer_managed_key {
-    key_vault_key_id                    = azurerm_key_vault_key.test.id
-    primary_user_assigned_identity_id   = azurerm_user_assigned_identity.test.id
+    key_vault_key_id                  = azurerm_key_vault_key.test.id
+    primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 }
 `, r.cmkTemplate(data), data.RandomInteger)
