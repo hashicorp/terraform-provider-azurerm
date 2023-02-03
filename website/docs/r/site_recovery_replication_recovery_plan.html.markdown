@@ -141,5 +141,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Site Recovery Fabric can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_site_recovery_fabric.myfabric-id=/subscriptions/00000000-0000-0000-0000-00000000000/resourceGroups/groupName/providers/Microsoft.RecoveryServices/vaults/vaultName/replicationRecoveryPlans/planName
+terraform import  azurerm_site_recovery_replication_recovery_plan.example /subscriptions/00000000-0000-0000-0000-00000000000/resourceGroups/groupName/providers/Microsoft.RecoveryServices/vaults/vaultName/replicationRecoveryPlans/planName
 ```
