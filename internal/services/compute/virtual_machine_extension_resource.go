@@ -3,6 +3,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -364,6 +365,7 @@ func ensureVirtualMachineStarted(ctx context.Context, client *compute.VirtualMac
 			// Send a duplicate command if Virtual Machine is in transitioning state to ensure it is in final state so that further command can work
 			switch state {
 			case "starting":
+				log.Printf("[DEBUG] Starting %q", id)
 				future, err := client.Start(ctx, id.ResourceGroup, id.Name)
 				if err != nil {
 					return false, nil
@@ -373,6 +375,7 @@ func ensureVirtualMachineStarted(ctx context.Context, client *compute.VirtualMac
 				}
 				return false, nil
 			case "stopping":
+				log.Printf("[DEBUG] Powering off %q", id)
 				future, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 				if err != nil {
 					return false, err
@@ -381,6 +384,7 @@ func ensureVirtualMachineStarted(ctx context.Context, client *compute.VirtualMac
 					return false, err
 				}
 			case "deallocating":
+				log.Printf("[DEBUG] Deallocating %q", id)
 				future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 				if err != nil {
 					return false, err
@@ -392,6 +396,7 @@ func ensureVirtualMachineStarted(ctx context.Context, client *compute.VirtualMac
 
 			switch state {
 			case "stopping", "stopped", "deallocating", "deallocated":
+				log.Printf("[DEBUG] Starting %q", id)
 				future, err := client.Start(ctx, id.ResourceGroup, id.Name)
 				if err != nil {
 					return true, err
@@ -424,6 +429,7 @@ func restoreVirtualMachinePowerState(ctx context.Context, client *compute.Virtua
 			state = strings.ToLower(state)
 			switch state {
 			case "stopped", "stopping":
+				log.Printf("[DEBUG] Powering off %q", id)
 				future, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 				if err != nil {
 					return err
@@ -432,6 +438,7 @@ func restoreVirtualMachinePowerState(ctx context.Context, client *compute.Virtua
 					return err
 				}
 			case "deallocated", "deallocating":
+				log.Printf("[DEBUG] Deallocating %q", id)
 				future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
 				if err != nil {
 					return err
