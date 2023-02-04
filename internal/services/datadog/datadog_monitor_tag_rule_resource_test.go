@@ -6,10 +6,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -67,21 +68,17 @@ func TestAccDatadogMonitorTagRules_update(t *testing.T) {
 }
 
 func (r TagRulesDatadogMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DatadogTagRulesID(state.ID)
+	id, err := rules.ParseTagRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Datadog.TagRulesClient.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
+	resp, err := client.Datadog.Rules.TagRulesGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if (!*resp.Properties.LogRules.SendResourceLogs && !*resp.Properties.LogRules.SendSubscriptionLogs) || *resp.Properties.MetricRules.FilteringTags == nil {
-		return utils.Bool(false), nil
-	}
-
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r TagRulesDatadogMonitorResource) template(data acceptance.TestData) string {
