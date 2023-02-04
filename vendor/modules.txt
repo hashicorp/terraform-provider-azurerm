@@ -9,7 +9,6 @@ github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch
 github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn
-github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice
 github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb
 github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge
 github.com/Azure/azure-sdk-for-go/services/datadog/mgmt/2021-03-01/datadog
@@ -206,6 +205,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets
 github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/fleetmembers
