@@ -15,15 +15,26 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type TagRulesDatadogMonitorResource struct{}
+type TagRulesDatadogMonitorResource struct {
+	datadogApiKey         string
+	datadogApplicationKey string
+}
+
+func (r *TagRulesDatadogMonitorResource) populateFromEnvironment(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY is not specified")
+	}
+	if os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_DATADOG_APPLICATION_KEY is not specified")
+	}
+	r.datadogApiKey = os.Getenv("ARM_TEST_DATADOG_API_KEY")
+	r.datadogApplicationKey = os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY")
+}
 
 func TestAccDatadogMonitorTagRules_basic(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" || os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
-		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY and/or ARM_TEST_DATADOG_APPLICATION_KEY are not specified")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
 	r := TagRulesDatadogMonitorResource{}
+	r.populateFromEnvironment(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,13 +46,25 @@ func TestAccDatadogMonitorTagRules_basic(t *testing.T) {
 	})
 }
 
-func TestAccDatadogMonitorTagRules_update(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" || os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
-		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY and/or ARM_TEST_DATADOG_APPLICATION_KEY are not specified")
-		return
-	}
+func TestAccDatadogMonitorTagRules_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
 	r := TagRulesDatadogMonitorResource{}
+	r.populateFromEnvironment(t)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccDatadogMonitorTagRules_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
+	r := TagRulesDatadogMonitorResource{}
+	r.populateFromEnvironment(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -86,18 +109,19 @@ func (r TagRulesDatadogMonitorResource) template(data acceptance.TestData) strin
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-datadog-%d"
-  location = "%s"
+  name     = "acctest-datadogrg-%[1]d"
+  location = %[2]q
 }
 
 resource "azurerm_datadog_monitor" "test" {
-  name                = "acctest-datadog-%d"
+  name                = "acctest-datadog-%[3]s"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "WEST US 2"
+  location            = azurerm_resource_group.test.location
   datadog_organization {
-    api_key         = %q
-    application_key = %q
+    api_key         = %[4]q
+    application_key = %[5]q
   }
   user {
     name  = "Test Datadog"
@@ -108,16 +132,18 @@ resource "azurerm_datadog_monitor" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger%100, os.Getenv("ARM_TEST_DATADOG_API_KEY"), os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY"))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, r.datadogApiKey, r.datadogApplicationKey)
 }
 
 func (r TagRulesDatadogMonitorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
+%s
 
-	%s
-
-resource "azurerm_datadog_monitor_tag_rule" "testbasic" {
+resource "azurerm_datadog_monitor_tag_rule" "test" {
   datadog_monitor_id = azurerm_datadog_monitor.test.id
   log {
     subscription_log_enabled = true
@@ -133,11 +159,36 @@ resource "azurerm_datadog_monitor_tag_rule" "testbasic" {
 `, r.template(data))
 }
 
+func (r TagRulesDatadogMonitorResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_datadog_monitor_tag_rule" "import" {
+	datadog_monitor_id = azurerm_datadog_monitor_tag_rule.test.datadog_monitor_id
+	name 			   = azurerm_datadog_monitor_tag_rule.test.name
+	log {
+		subscription_log_enabled = true
+	}
+	metric {
+		filter {
+			name   = "Test"
+			value  = "Testing-Logs"
+			action = "Include"
+		}
+	}
+}
+`, r.basic(data))
+}
+
 func (r TagRulesDatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
+provider "azurerm" {
+  features {}
+}
 
-resource "azurerm_datadog_monitor_tag_rule" "testupdate" {
+%s
+
+resource "azurerm_datadog_monitor_tag_rule" "test" {
   datadog_monitor_id = azurerm_datadog_monitor.test.id
   log {
     subscription_log_enabled = false
