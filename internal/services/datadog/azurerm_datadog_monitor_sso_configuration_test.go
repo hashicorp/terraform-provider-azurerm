@@ -15,19 +15,32 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SSODatadogMonitorResource struct{}
+type SSODatadogMonitorResource struct {
+	datadogApiKey         string
+	datadogApplicationKey string
+	enterpriseAppId       string
+}
 
-func TestAccDatadogMonitorSSO_basic(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" || os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
-		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY and/or ARM_TEST_DATADOG_APPLICATION_KEY are not specified")
-		return
+func (r *SSODatadogMonitorResource) populateValuesFromEnvironment(t *testing.T) {
+	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY is not specified")
+	}
+	if os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_DATADOG_APPLICATION_KEY is not specified")
 	}
 	if os.Getenv("ARM_TEST_ENTERPRISE_APP_ID") == "" {
-		t.Skip("Skipping as Enterprise App Id for SAML is not specified")
-		return
+		t.Skip("Skipping as ARM_TEST_ENTERPRISE_APP_ID is not specified")
 	}
+
+	r.datadogApiKey = os.Getenv("ARM_TEST_DATADOG_API_KEY")
+	r.datadogApplicationKey = os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY")
+	r.enterpriseAppId = os.Getenv("ARM_TEST_ENTERPRISE_APP_ID")
+}
+
+func TestAccDatadogMonitorSSO_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
+	r.populateValuesFromEnvironment(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -40,17 +53,26 @@ func TestAccDatadogMonitorSSO_basic(t *testing.T) {
 	})
 }
 
-func TestAccDatadogMonitorSSO_update(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" || os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
-		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY and/or ARM_TEST_DATADOG_APPLICATION_KEY are not specified")
-		return
-	}
-	if os.Getenv("ARM_TEST_ENTERPRISE_APP_ID") == "" {
-		t.Skip("Skipping as Enterprise App Id for SAML is not specified")
-		return
-	}
+func TestAccDatadogMonitorSSO_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
+	r.populateValuesFromEnvironment(t)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on_enabled").HasValue("Enable"),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccDatadogMonitorSSO_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
+	r := SSODatadogMonitorResource{}
+	r.populateValuesFromEnvironment(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -95,21 +117,18 @@ func (r SSODatadogMonitorResource) Exists(ctx context.Context, client *clients.C
 
 func (r SSODatadogMonitorResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-datadog-%d"
-  location = "%s"
+  name     = "acctest-datadogrg-%[1]d"
+  location = %[2]q
 }
 
 resource "azurerm_datadog_monitor" "test" {
-  name                = "acctest-datadog-%d"
+  name                = "acctest-datadog-%[3]s"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "WEST US 2"
+  location            = azurerm_resource_group.test.location
   datadog_organization {
-    api_key         = %q
-    application_key = %q
+    api_key         = %[4]q
+    application_key = %[5]q
   }
   user {
     name  = "Test Datadog"
@@ -120,29 +139,49 @@ resource "azurerm_datadog_monitor" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger%100, os.Getenv("ARM_TEST_DATADOG_API_KEY"), os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY"))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, r.datadogApiKey, r.datadogApplicationKey)
 }
 
 func (r SSODatadogMonitorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.test.id
   single_sign_on_enabled    = "Enable"
   enterprise_application_id = %q
 }
-`, r.template(data), os.Getenv("ARM_TEST_ENTERPRISE_APP_ID"))
+`, r.template(data), r.enterpriseAppId)
+}
+
+func (r SSODatadogMonitorResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_datadog_monitor_sso_configuration" "import" {
+  datadog_monitor_id        = azurerm_datadog_monitor_sso_configuration.test.datadog_monitor_id
+  single_sign_on_enabled    = azurerm_datadog_monitor_sso_configuration.test.single_sign_on_enabled
+  enterprise_application_id = azurerm_datadog_monitor_sso_configuration.test.enterprise_application_id
+}
+`, r.basic(data))
 }
 
 func (r SSODatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.test.id
   single_sign_on_enabled    = "Disable"
   enterprise_application_id = %q
 }
-`, r.template(data), os.Getenv("ARM_TEST_ENTERPRISE_APP_ID"))
+`, r.template(data), r.enterpriseAppId)
 }
