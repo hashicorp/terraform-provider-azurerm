@@ -6,10 +6,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesignon"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -79,21 +80,17 @@ func TestAccDatadogMonitorSSO_update(t *testing.T) {
 }
 
 func (r SSODatadogMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DatadogSingleSignOnConfigurationsID(state.ID)
+	id, err := singlesignon.ParseSingleSignOnConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Datadog.SingleSignOnConfigurationsClient.Get(ctx, id.ResourceGroup, id.MonitorName, id.SingleSignOnConfigurationName)
+	resp, err := client.Datadog.SingleSignOn.ConfigurationsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if *resp.Properties.EnterpriseAppID == "" {
-		return utils.Bool(false), nil
-	}
-
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r SSODatadogMonitorResource) template(data acceptance.TestData) string {
