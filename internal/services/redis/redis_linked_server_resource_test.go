@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -45,17 +45,17 @@ func TestAccRedisLinkedServer_requiresImport(t *testing.T) {
 }
 
 func (t RedisLinkedServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LinkedServerID(state.ID)
+	id, err := redis.ParseLinkedServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Redis.LinkedServerClient.Get(ctx, id.ResourceGroup, id.RediName, id.Name)
+	resp, err := clients.Redis.Redis.LinkedServerGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Redis Linked Server (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.LinkedServerProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (RedisLinkedServerResource) basic(data acceptance.TestData) string {
