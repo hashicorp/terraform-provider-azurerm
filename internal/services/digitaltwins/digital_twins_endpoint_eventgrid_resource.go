@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -91,12 +90,12 @@ func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	digitalTwinsId, err := parse.DigitalTwinsInstanceID(d.Get("digital_twins_id").(string))
+	digitalTwinsId, err := digitaltwinsinstance.ParseDigitalTwinsInstanceID(d.Get("digital_twins_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := endpoints.NewEndpointID(subscriptionId, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, d.Get("name").(string))
+	id := endpoints.NewEndpointID(subscriptionId, digitalTwinsId.ResourceGroupName, digitalTwinsId.DigitalTwinsInstanceName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.DigitalTwinsEndpointGet(ctx, id)
 		if err != nil {
@@ -148,7 +147,7 @@ func resourceDigitalTwinsEndpointEventGridRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	d.Set("name", id.EndpointName)
-	d.Set("digital_twins_id", parse.NewDigitalTwinsInstanceID(subscriptionId, id.ResourceGroupName, id.DigitalTwinsInstanceName).ID())
+	d.Set("digital_twins_id", digitaltwinsinstance.NewDigitalTwinsInstanceID(subscriptionId, id.ResourceGroupName, id.DigitalTwinsInstanceName).ID())
 
 	if model := resp.Model; model != nil {
 		props, ok := model.Properties.(endpoints.EventGrid)

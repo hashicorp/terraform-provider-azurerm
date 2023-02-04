@@ -54,7 +54,7 @@ func resourceDigitalTwinsEndpointEventHub() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DigitalTwinsInstanceID,
+				ValidateFunc: digitaltwinsinstance.ValidateDigitalTwinsInstanceID,
 			},
 
 			"eventhub_primary_connection_string": {
