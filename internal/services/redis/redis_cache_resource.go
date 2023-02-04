@@ -985,7 +985,7 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 	if v := input.AofBackupEnabled; v != nil {
 		b, err := strconv.ParseBool(*v)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `aof-backup-enabled` %q: %+v", v, err)
+			return nil, fmt.Errorf("parsing `aof-backup-enabled` %q: %+v", *v, err)
 		}
 		outputs["aof_backup_enabled"] = b
 	}
