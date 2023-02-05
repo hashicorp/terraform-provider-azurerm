@@ -4,7 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.11.28` of `github.com/Azure/go-autorest/autorest` [GH-20272]
 * dependencies: updating to `v0.50.0` of `github.com/hashicorp/go-azure-helpers` [GH-20272]
-* dependencies: updating to `v0.20230202.1112019` of `github.com/hashicorp/go-azure-sdk` [GH-20272]
+* dependencies: updating to `v0.20230204.1161343` of `github.com/hashicorp/go-azure-sdk` [GH-20312]
 * dependencies: updating to `v0.55.0` of `github.com/manicminer/hamilton` [GH-20272]
 
 ## 3.42.0 (February 02, 2023)
