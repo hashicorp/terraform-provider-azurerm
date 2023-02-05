@@ -7,7 +7,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/hashicorp/go-azure-helpers/authentication"
+	"github.com/hashicorp/go-azure-sdk/sdk/auth"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -267,13 +268,22 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_MSI", false),
-				Description: "Allowed Managed Service Identity be used for Authentication.",
+				Description: "Allow Managed Service Identity to be used for Authentication.",
 			},
 			"msi_endpoint": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
 				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically. ",
+			},
+
+			// Azure CLI specific fields
+			"use_cli": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_CLI", true),
+				Description: "Allow Azure CLI to be used for Authentication.",
 			},
 
 			// Managed Tracking GUID for User-agent
@@ -336,64 +346,72 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		if len(auxTenants) > 3 {
-			return nil, diag.Errorf("The provider only supports 3 auxiliary tenant IDs")
+			return nil, diag.Errorf("the provider only supports 3 auxiliary tenant IDs")
 		}
 
-		metadataHost := d.Get("metadata_host").(string)
+		var (
+			env *environments.Environment
+			err error
 
-		builder := &authentication.Builder{
-			SubscriptionID:      d.Get("subscription_id").(string),
-			ClientID:            d.Get("client_id").(string),
-			ClientSecret:        d.Get("client_secret").(string),
-			TenantID:            d.Get("tenant_id").(string),
-			AuxiliaryTenantIDs:  auxTenants,
-			Environment:         d.Get("environment").(string),
-			MetadataHost:        metadataHost,
-			MsiEndpoint:         d.Get("msi_endpoint").(string),
-			ClientCertPassword:  d.Get("client_certificate_password").(string),
-			ClientCertPath:      d.Get("client_certificate_path").(string),
-			IDTokenRequestToken: d.Get("oidc_request_token").(string),
-			IDTokenRequestURL:   d.Get("oidc_request_url").(string),
-			IDToken:             d.Get("oidc_token").(string),
-			IDTokenFilePath:     d.Get("oidc_token_file_path").(string),
+			envName      = d.Get("environment").(string)
+			metadataHost = d.Get("metadata_host").(string)
+		)
 
-			// Feature Toggles
-			SupportsClientCertAuth:         true,
-			SupportsClientSecretAuth:       true,
-			SupportsOIDCAuth:               d.Get("use_oidc").(bool),
-			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
-			SupportsAzureCliToken:          true,
-			SupportsAuxiliaryTenants:       len(auxTenants) > 0,
-
-			// Doc Links
-			ClientSecretDocsLink: "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret",
-
-			// Use MSAL
-			UseMicrosoftGraph: true,
+		if metadataHost != "" {
+			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost), envName); err != nil {
+				return nil, diag.FromErr(err)
+			}
+		} else if env, err = environments.FromName(envName); err != nil {
+			return nil, diag.FromErr(err)
 		}
 
-		config, err := builder.Build()
-		if err != nil {
-			return nil, diag.Errorf("building AzureRM Client: %s", err)
-		}
+		var (
+			enableAzureCli        = d.Get("use_cli").(bool)
+			enableManagedIdentity = d.Get("use_msi").(bool)
+			enableOidc            = d.Get("use_oidc").(bool)
+		)
 
-		terraformVersion := p.TerraformVersion
-		if terraformVersion == "" {
-			// Terraform 0.12 introduced this field to the protocol
-			// We can therefore assume that if it's missing it's 0.10 or 0.11
-			terraformVersion = "0.11+compatible"
+		var clientCertificateData []byte
+		// TODO: add `client_certificate` provider prop and base64 decode the value
+
+		authConfig := auth.Credentials{
+			Environment:        *env,
+			ClientID:           d.Get("client_id").(string),
+			TenantID:           d.Get("tenant_id").(string),
+			AuxiliaryTenantIDs: auxTenants,
+
+			ClientCertificateData:     clientCertificateData,
+			ClientCertificatePath:     d.Get("client_certificate_path").(string),
+			ClientCertificatePassword: d.Get("client_certificate_password").(string),
+			ClientSecret:              d.Get("client_secret").(string),
+
+			OIDCAssertionToken:          d.Get("oidc_token").(string),
+			GitHubOIDCTokenRequestURL:   d.Get("oidc_request_url").(string),
+			GitHubOIDCTokenRequestToken: d.Get("oidc_request_token").(string),
+
+			CustomManagedIdentityEndpoint: d.Get("msi_endpoint").(string),
+
+			EnableAuthenticatingUsingClientCertificate: true,
+			EnableAuthenticatingUsingClientSecret:      true,
+			EnableAuthenticatingUsingAzureCLI:          enableAzureCli,
+			EnableAuthenticatingUsingManagedIdentity:   enableManagedIdentity,
+			EnableAuthenticationUsingOIDC:              enableOidc,
+			EnableAuthenticationUsingGitHubOIDC:        enableOidc,
 		}
 
 		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
+
 		clientBuilder := clients.ClientBuilder{
-			AuthConfig:                  config,
-			SkipProviderRegistration:    skipProviderRegistration,
-			TerraformVersion:            terraformVersion,
-			PartnerId:                   d.Get("partner_id").(string),
+			AuthConfig:                  &authConfig,
 			DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
 			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
 			Features:                    expandFeatures(d.Get("features").([]interface{})),
+			MetadataHost:                metadataHost,
+			PartnerID:                   d.Get("partner_id").(string),
+			SkipProviderRegistration:    skipProviderRegistration,
 			StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
+			SubscriptionID:              d.Get("subscription_id").(string),
+			TerraformVersion:            p.TerraformVersion,
 
 			// this field is intentionally not exposed in the provider block, since it's only used for
 			// platform level tracing

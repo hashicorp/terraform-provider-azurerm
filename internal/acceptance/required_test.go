@@ -22,7 +22,7 @@ func TestAccEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	builder := clients.ClientBuilder{
 		AuthConfig:                  config,
 		TerraformVersion:            "0.0.0",
-		PartnerId:                   "",
+		PartnerID:                   "",
 		DisableCorrelationRequestID: true,
 		DisableTerraformPartnerID:   false,
 		// this test intentionally checks all the RP's are registered - so this is intentional
