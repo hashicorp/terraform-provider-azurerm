@@ -7,6 +7,11 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230204.1161343` of `github.com/hashicorp/go-azure-sdk` [GH-20312]
 * dependencies: updating to `v0.55.0` of `github.com/manicminer/hamilton` [GH-20272]
 
+BUG FIXES:
+
+* `azurerm_custom_provider` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` [GH-20315]
+* `azurerm_redis_enterprise_cluster` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` [GH-20314]
+
 ## 3.42.0 (February 02, 2023)
 
 FEATURES
