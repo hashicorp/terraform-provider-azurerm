@@ -60,6 +60,12 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 				),
 			},
 
+			"key_vault_uri": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"key_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -117,24 +123,32 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	var keyVaultBaseURL *string
-	vaultId := d.Get("key_vault_id").(string)
-	resourceId, err := azure.ParseAzureResourceID(vaultId)
 
-	if err != nil {
-		return err
+	keyVaultUriParam := d.Get("key_vault_uri").(string)
+	if keyVaultUriParam != "" {
+		keyVaultBaseURL = &keyVaultUriParam
 	}
 
-	_, err = resourceId.PopSegment("managedHSMs")
-	isManagedHsm := err == nil
+	if keyVaultBaseURL == nil {
+		vaultId := d.Get("key_vault_id").(string)
+		resourceId, err := azure.ParseAzureResourceID(vaultId)
 
-	if isManagedHsm {
-		keyVaultBaseURL, err = getHsmKeyVaultBaseUrl(vaultId, ctx, meta)
-	} else {
-		keyVaultBaseURL, err = getKeyVaultBaseUrl(vaultId, ctx, meta)
-	}
+		if err != nil {
+			return err
+		}
 
-	if err != nil {
-		return err
+		_, err = resourceId.PopSegment("managedHSMs")
+		isManagedHsm := err == nil
+
+		if isManagedHsm {
+			keyVaultBaseURL, err = getHsmKeyVaultBaseUrl(vaultId, ctx, meta)
+		} else {
+			keyVaultBaseURL, err = getKeyVaultBaseUrl(vaultId, ctx, meta)
+		}
+
+		if err != nil {
+			return err
+		}
 	}
 
 	keyName := d.Get("key_name").(string)
