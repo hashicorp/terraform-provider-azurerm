@@ -14,7 +14,6 @@ github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxed
 github.com/Azure/azure-sdk-for-go/services/datadog/mgmt/2021-03-01/datadog
 github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory
 github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare
-github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-12-01/digitaltwins
 github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid
 github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor
 github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
@@ -260,6 +259,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/policie
 github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/schedules
 github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines
 github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualnetworks
+github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/digitaltwinsinstance
+github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/endpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2022-10-31/timeseriesdatabaseconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01
 github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/dns
