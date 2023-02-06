@@ -1,11 +1,25 @@
 ## 3.43.0 (Unreleased)
 
+FEATURES
+
+* **New Resource:** `azurerm_machine_learning_datastore_fileshare` [GH-19934]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.11.28` of `github.com/Azure/go-autorest/autorest` [GH-20272]
 * dependencies: updating to `v0.50.0` of `github.com/hashicorp/go-azure-helpers` [GH-20272]
-* dependencies: updating to `v0.20230202.1112019` of `github.com/hashicorp/go-azure-sdk` [GH-20272]
+* dependencies: updating to `v0.20230204.1161343` of `github.com/hashicorp/go-azure-sdk` [GH-20312]
 * dependencies: updating to `v0.55.0` of `github.com/manicminer/hamilton` [GH-20272]
+* `azurestackhci`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
+* `digitaltwins`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
+* `redis`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20313]
+
+BUG FIXES:
+
+* `azurerm_custom_provider` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` [GH-20315]
+* `azurerm_function_app_function` - fix bug for multiple file blocks resulting in last file being used for all entries [GH-20198]
+* `azurerm_monitor_diagnostic_setting` - changing the `storage_account_id`, `eventhub_authorization_rule_id`, and `eventhub_name` properties no longer creates a new resource [GH-20307]
+* `azurerm_redis_enterprise_cluster` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` [GH-20314]
 
 ## 3.42.0 (February 02, 2023)
 
