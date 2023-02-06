@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `end_time` - (Optional) The end time of the Streaming Locator. Changing this forces a new Streaming Locator to be created.
 
-* `filter_names` - (Optional) A list of names of asset or account filters which apply to this Streaming Locator.
+* `filter_names` - (Optional) A list of names of asset or account filters which apply to this Streaming Locator. Changing this forces a new Streaming Locator to be created.
 
 * `start_time` - (Optional) The start time of the Streaming Locator. Changing this forces a new Streaming Locator to be created.
 
