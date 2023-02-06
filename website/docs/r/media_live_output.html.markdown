@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `output_snap_time_in_seconds` - (Optional) The initial timestamp that the live output will start at, any content before this value will not be archived. Changing this forces a new Live Output to be created.
 
-* `rewind_windown_duration` - (Optional) `ISO 8601` time between 1 minute to the duration of archiveWindowLength to control seek-able window length during Live. The service won't use this property once LiveOutput stops. The archived VOD will have full content with original ArchiveWindowLength. For example, use `PT1H30M` to indicate 1 hour and 30 minutes of rewind window length. Service will use implicit default value 30m only if Live Event enables LL.
+* `rewind_windown_duration` - (Optional) `ISO 8601` time between 1 minute to the duration of `archive_window_duration` to control seek-able window length during Live. The service won't use this property once LiveOutput stops. The archived VOD will have full content with original ArchiveWindowLength. For example, use `PT1H30M` to indicate 1 hour and 30 minutes of rewind window length. Service will use implicit default value 30m only if Live Event enables LL. Changing this forces a new Live Output to be created.
 
 ## Attributes Reference
 
