@@ -86,6 +86,10 @@ The following arguments are supported:
 
 * `entity_mapping` - (Optional) A list of `entity_mapping` blocks as defined below.
 
+* `sentinel_entity_mapping` - (Optional) A list of `sentinel_entity_mapping` blocks as defined below.
+
+-> **NOTE:** `entity_mapping` and `sentinel_entity_mapping` together can't exceed 5.
+
 * `incident` - (Optional) A `incident` block as defined below.
 
 * `suppression_duration` - (Optional) If `suppression_enabled` is `true`, this is ISO 8601 timespan duration, which specifies the amount of time the query should stop running after alert is generated. Defaults to `PT5H`.
@@ -125,6 +129,12 @@ An `entity_mapping` block supports the following:
 * `entity_type` - (Required) The type of the entity. Possible values are `Account`, `AzureResource`, `CloudApplication`, `DNS`, `File`, `FileHash`, `Host`, `IP`, `Mailbox`, `MailCluster`, `MailMessage`, `Malware`, `Process`, `RegistryKey`, `RegistryValue`, `SecurityGroup`, `SubmissionMail`, `URL`.
 
 * `field_mapping` - (Required) A list of `field_mapping` blocks as defined below.
+
+---
+
+A `sentinel_entity_mapping` block supports the following:
+
+* `column_name` - (Required) The column name to be mapped to the identifier.
 
 ---
 
