@@ -1,5 +1,9 @@
 ## 3.43.0 (Unreleased)
 
+FEATURES
+
+* **New Resource:** `azurerm_machine_learning_datastore_fileshare` [GH-19934]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.11.28` of `github.com/Azure/go-autorest/autorest` [GH-20272]
