@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * `redis`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20313]
 * `azurerm_media_streaming_locator` - support for the `filter_names` property [GH-20274]
 * `azurerm_media_live_event_output` - support for the `rewind_window_duration` property [GH-20271]
+* `azurerm_media_streaming_live_event` - support for the `stream_options` property [GH-20254]
 * `azurerm_storage_blob_inventory_policy` - support for the `exclude_prefixes` property [GH-20281]
 * `azurerm_sentinel_alert_rule_nrt` - support for the `dynamic_property` block [GH-20212]
 * `azurerm_sentinel_alert_rule_nrt` - support for the `sentinel_entity_mapping` block [GH-20230]
