@@ -2722,6 +2722,9 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 	}
 
 	if len(loadBalancerProfileRaw) > 0 {
+		if outboundType != "loadBalancer" {
+			return nil, fmt.Errorf("only outbound type of 'loadBalancer' supports load balancer profiles. Provided outbound type: %s", outboundType)
+		}
 		if !strings.EqualFold(loadBalancerSku, "standard") {
 			return nil, fmt.Errorf("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerSku)
 		}
