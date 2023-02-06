@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230204.1161343` of `github.com/hashicorp/go-azure-sdk` [GH-20312]
 * dependencies: updating to `v0.55.0` of `github.com/manicminer/hamilton` [GH-20272]
 * `azurestackhci`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
+* `databricks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20309]
 * `datadog`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20311]
 * `digitaltwins`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
 * `redis`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20313]
