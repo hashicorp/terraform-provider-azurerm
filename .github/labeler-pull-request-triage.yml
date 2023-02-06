@@ -198,6 +198,9 @@ service/media:
 service/mixed-reality:
   - internal/services/mixedreality/**/*
 
+service/mobile-network:
+  - internal/services/mobilenetwork/**/*
+
 service/monitor:
   - internal/services/monitor/**/*
 

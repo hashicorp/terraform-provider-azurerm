@@ -73,6 +73,7 @@ var services = mapOf(
         "media" to "Media",
         "mssql" to "Microsoft SQL Server / Azure SQL",
         "mixedreality" to "Mixed Reality",
+        "mobilenetwork" to "Mobile Network",
         "monitor" to "Monitor",
         "mysql" to "MySQL",
         "netapp" to "NetApp",

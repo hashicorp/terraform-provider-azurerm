@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -59,13 +59,10 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"domain_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[0-9a-zA-Z][0-9a-zA-Z-]{1,13}[0-9a-zA-Z](.[0-9a-zA-Z-]+)+$"),
-					"domain_name must be a valid FQDN and the first element must be 15 or fewer characters",
-				),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.DomainServiceName,
 			},
 
 			"initial_replica_set": {

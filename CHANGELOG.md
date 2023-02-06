@@ -1,24 +1,60 @@
-## 3.42.0 (Unreleased)
+## 3.43.0 (Unreleased)
 
 FEATURES
 
-* **New Resource:** `azurerm_ip_group_cidr` [GH-20225]
-* **New Resource:** `azurerm_network_manager_connectivity_configuration` [GH-20133]
+* **New Data Source:** `azurerm_mobile_network` [GH-20128]
+* **New Resource:** `azurerm_machine_learning_datastore_fileshare` [GH-19934]
+* **New Resource:** `azurerm_machine_learning_datastore_datalake_gen2` [GH-20045]
+* **New Resource:** `azurerm_mobile_network` [GH-20128]
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230130.1140358 ` of `github.com/hashicorp/go-azure-sdk` [GH-20293]
-* `databasemigration`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20214]
-* `servicefabric`: refactoring to use github.com/hashicorp/go-azure-sdk [GH-20202]
-* `azurerm_lb_backend_address_pool` - support for the `virtual_network_id` property [GH-20205]
-* `azurerm_postgresql_flexible_server`: add default value for `authentication.active_directory_auth_enabled` and `authentication.password_auth_enabled` [GH-20054]
-* `azurerm_site_recovery_protection_container_mapping` - support for the `automatic_update` block [GH-19710]
-* `azurerm_site_recovery_replicated_vm` - support for the `unmanaged_disk`, `target_proximity_placement_group_id`, `target_boot_diag_storage_account_id`,  `target_capacity_reservation_group_id`, `target_virtual_machine_scale_set_id`, `multi_vm_group_name`, `target_edge_zone`, and `test_network_id` properties [GH-19939]
+* dependencies: updating to `v0.11.28` of `github.com/Azure/go-autorest/autorest` [GH-20272]
+* dependencies: updating to `v0.50.0` of `github.com/hashicorp/go-azure-helpers` [GH-20272]
+* dependencies: updating to `v0.20230204.1161343` of `github.com/hashicorp/go-azure-sdk` [GH-20312]
+* dependencies: updating to `v0.55.0` of `github.com/manicminer/hamilton` [GH-20272]
+* `azurestackhci`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
+* `databricks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20309]
+* `datadog`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20311]
+* `digitaltwins`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
+* `redis`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20313]
+* `azurerm_sentinel_alert_rule_nrt` - support for the `dynamic_property` block [GH-20212]
+* `azurerm_sentinel_alert_rule_nrt` - support for the `sentinel_entity_mapping` block [GH-20230]
+* `azurerm_sentinel_alert_rule_scheduled` - support for the `dynamic_property` block [GH-20212]
+* `azurerm_sentinel_alert_rule_scheduled` - support for the `sentinel_entity_mapping` block [GH-20230]
 
 BUG FIXES:
 
-* `azurerm_federated_identity_credential` - prevent a perpetual diff [GH-20219]
-* `azurerm_monitor_aad_diagnostic_setting` - the field `log_analytics_workspace_id` is now parsed case-insensitively from the API Response [GH-20206]
+* `azurerm_custom_provider` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` [GH-20315]
+* `azurerm_function_app_function` - fix bug for multiple file blocks resulting in last file being used for all entries [GH-20198]
+* `azurerm_monitor_diagnostic_setting` - changing the `storage_account_id`, `eventhub_authorization_rule_id`, and `eventhub_name` properties no longer creates a new resource [GH-20307]
+* `azurerm_redis_enterprise_cluster` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` [GH-20314]
+
+## 3.42.0 (February 02, 2023)
+
+FEATURES
+
+* **New Resource:** `azurerm_ip_group_cidr` ([#20225](https://github.com/hashicorp/terraform-provider-azurerm/issues/20225))
+* **New Resource:** `azurerm_network_manager_connectivity_configuration` ([#20133](https://github.com/hashicorp/terraform-provider-azurerm/issues/20133))
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20230130.1140358 ` of `github.com/hashicorp/go-azure-sdk` ([#20293](https://github.com/hashicorp/terraform-provider-azurerm/issues/20293))
+* `databasemigration`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20214](https://github.com/hashicorp/terraform-provider-azurerm/issues/20214))
+* `servicefabric`: refactoring to use github.com/hashicorp/go-azure-sdk ([#20202](https://github.com/hashicorp/terraform-provider-azurerm/issues/20202))
+* `azurerm_kubernetes_cluster` - add support for the `confidential_computing` add-on ([#20194](https://github.com/hashicorp/terraform-provider-azurerm/issues/20194))
+* `azurerm_kubernetes_cluster` - export the identity for the `aci_connector_linux` add-on ([#20194](https://github.com/hashicorp/terraform-provider-azurerm/issues/20194))
+* `azurerm_lb_backend_address_pool` - support for the `virtual_network_id` property ([#20205](https://github.com/hashicorp/terraform-provider-azurerm/issues/20205))
+* `azurerm_postgresql_flexible_server`: add default value for `authentication.active_directory_auth_enabled` and `authentication.password_auth_enabled` ([#20054](https://github.com/hashicorp/terraform-provider-azurerm/issues/20054))
+* `azurerm_site_recovery_protection_container_mapping` - support for the `automatic_update` block ([#19710](https://github.com/hashicorp/terraform-provider-azurerm/issues/19710))
+* `azurerm_site_recovery_replicated_vm` - support for the `unmanaged_disk`, `target_proximity_placement_group_id`, `target_boot_diag_storage_account_id`,  `target_capacity_reservation_group_id`, `target_virtual_machine_scale_set_id`, `multi_vm_group_name`, `target_edge_zone`, and `test_network_id` properties ([#19939](https://github.com/hashicorp/terraform-provider-azurerm/issues/19939))
+
+BUG FIXES:
+
+* `data.azurerm_monitor_data_collection_rule` - raises an error when the specified data collection rule can't be found ([#20282](https://github.com/hashicorp/terraform-provider-azurerm/issues/20282))
+* `azurerm_federated_identity_credential` - prevent a perpetual diff ([#20219](https://github.com/hashicorp/terraform-provider-azurerm/issues/20219))
+* `azurerm_linux_function_app` - fix `linuxFxVersion` for docker `registry_url` processing ([#18194](https://github.com/hashicorp/terraform-provider-azurerm/issues/18194))
+* `azurerm_monitor_aad_diagnostic_setting` - the field `log_analytics_workspace_id` is now parsed case-insensitively from the API Response ([#20206](https://github.com/hashicorp/terraform-provider-azurerm/issues/20206))
 
 ## 3.41.0 (January 26, 2023)
 

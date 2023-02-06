@@ -176,6 +176,10 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
     display_name_format  = "Suspicious activity was made by {{ComputerIP}}"
     severity_column_name = "Computer"
     tactics_column_name  = "Computer"
+    dynamic_property {
+      name  = "AlertLink"
+      value = "dcount_ResourceId"
+    }
   }
   entity_mapping {
     entity_type = "Host"
@@ -183,6 +187,9 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
       identifier  = "FullName"
       column_name = "Computer"
     }
+  }
+  sentinel_entity_mapping {
+    column_name = "Category"
   }
   entity_mapping {
     entity_type = "IP"

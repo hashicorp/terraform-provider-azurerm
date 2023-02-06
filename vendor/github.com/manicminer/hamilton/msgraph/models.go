@@ -90,7 +90,7 @@ type AccessPackageResource struct {
 	AccessPackageResourceEnvironment *AccessPackageResourceEnvironment `json:"accessPackageResourceEnvironment,omitempty"`
 	AddedBy                          *string                           `json:"addedBy,omitempty"`
 	AddedOn                          *time.Time                        `json:"addedOn,omitempty"`
-	Description                      *bool                             `json:"description,omitempty"`
+	Description                      *string                           `json:"description,omitempty"`
 	DisplayName                      *string                           `json:"displayName,omitempty"`
 	ID                               *string                           `json:"id,omitempty"`
 	IsPendingOnboarding              *bool                             `json:"isPendingOnboarding,omitempty"`
@@ -202,6 +202,7 @@ type Application struct {
 	CreatedDateTime               *time.Time                `json:"createdDateTime,omitempty"`
 	DefaultRedirectUri            *string                   `json:"defaultRedirectUri,omitempty"`
 	DeletedDateTime               *time.Time                `json:"deletedDateTime,omitempty"`
+	Description                   *StringNullWhenEmpty      `json:"description,omitempty"`
 	DisabledByMicrosoftStatus     interface{}               `json:"disabledByMicrosoftStatus,omitempty"`
 	DisplayName                   *string                   `json:"displayName,omitempty"`
 	GroupMembershipClaims         *[]GroupMembershipClaim   `json:"-"` // see Application.MarshalJSON / Application.UnmarshalJSON
@@ -667,6 +668,18 @@ type CredentialUserRegistrationDetails struct {
 	UserPrincipalName *string                   `json:"UserPrincipalName,omitempty"`
 }
 
+// In Azure AD entitlement management, a connected organization is a reference to a
+// directory or domain of another organization whose users can request access.
+type ConnectedOrganization struct {
+	ID               *string                     `json:"id,omitempty"`
+	Description      *string                     `json:"description,omitempty"`
+	DisplayName      *string                     `json:"displayName,omitempty"`
+	IdentitySources  *[]IdentitySource           `json:"identitySources,omitempty"`
+	State            *ConnectedOrganizationState `json:"state,omitempty"`
+	CreatedDateTime  *time.Time                  `json:"createdDateTime,omitempty"`
+	ModifiedDateTime *time.Time                  `json:"modifiedDateTime,omitempty"`
+}
+
 type DelegatedPermissionGrant struct {
 	Id          *string                              `json:"id,omitempty"`
 	ClientId    *string                              `json:"clientId,omitempty"`
@@ -749,16 +762,38 @@ type DirectoryAudit struct {
 type DirectoryObject struct {
 	ODataId        *odata.Id              `json:"@odata.id,omitempty"`
 	ODataType      *odata.Type            `json:"@odata.type,omitempty"`
-	ID             *string                `json:"id,omitempty"`
+	Id             *string                `json:"id,omitempty"`
+	ObjectId       *string                `json:"objectId,omitempty"`
 	DisplayName    *string                `json:"displayName,omitempty"`
 	AdditionalData map[string]interface{} `json:"-"`
 }
 
+func (o *DirectoryObject) ID() (id *string) {
+	if o.Id != nil {
+		id = o.Id
+	} else if o.ObjectId != nil {
+		id = o.ObjectId
+	}
+	return
+}
+
+func (o *DirectoryObject) UnmarshalJSONWithAdditionalData(data []byte) error {
+	type directoryObject DirectoryObject
+	obj := (*directoryObject)(o)
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return err
+	}
+	if err := json.Unmarshal(data, &obj.AdditionalData); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (o *DirectoryObject) Uri(endpoint environments.ApiEndpoint, apiVersion ApiVersion) string {
-	if o.ID == nil {
+	if o.Id == nil {
 		return ""
 	}
-	return fmt.Sprintf("%s/%s/directoryObjects/%s", endpoint, apiVersion, *o.ID)
+	return fmt.Sprintf("%s/%s/directoryObjects/%s", endpoint, apiVersion, *o.Id)
 }
 
 type DirectoryRole struct {
@@ -871,6 +906,7 @@ type Group struct {
 	HasMembersWithLicenseErrors   *bool                               `json:"hasMembersWithLicenseErrors,omitempty"`
 	HideFromAddressLists          *bool                               `json:"hideFromAddressLists,omitempty"`
 	HideFromOutlookClients        *bool                               `json:"hideFromOutlookClients,omitempty"`
+	IsAssignableToRole            *bool                               `json:"isAssignableToRole,omitempty"`
 	IsSubscribedByMail            *bool                               `json:"isSubscribedByMail,omitempty"`
 	LicenseProcessingState        *string                             `json:"licenseProcessingState,omitempty"`
 	Mail                          *string                             `json:"mail,omitempty"`
@@ -896,7 +932,7 @@ type Group struct {
 	Theme                         *GroupTheme                         `json:"theme,omitempty"`
 	UnseenCount                   *int                                `json:"unseenCount,omitempty"`
 	Visibility                    *GroupVisibility                    `json:"visibility,omitempty"`
-	IsAssignableToRole            *bool                               `json:"isAssignableToRole,omitempty"`
+	WritebackConfiguration        *GroupWritebackConfiguration        `json:"writebackConfiguration,omitempty"`
 }
 
 func (g Group) MarshalJSON() ([]byte, error) {
@@ -977,6 +1013,11 @@ type GroupOnPremisesProvisioningError struct {
 	Value                *string   `json:"value,omitempty"`
 }
 
+type GroupWritebackConfiguration struct {
+	IsEnabled           *bool                `json:"isEnabled"`
+	OnPremisesGroupType *OnPremisesGroupType `json:"onPremisesGroupType"`
+}
+
 type Identity struct {
 	DisplayName *string `json:"displayName,omitempty"`
 	Id          *string `json:"id,omitempty"`
@@ -990,6 +1031,15 @@ type IdentityProvider struct {
 	ClientSecret *string     `json:"clientSecret,omitempty"`
 	Type         *string     `json:"identityProviderType,omitempty"`
 	Name         *string     `json:"displayName,omitempty"`
+}
+
+// Used in the identity sources of a ConnectedOrganization.
+type IdentitySource struct {
+	ODataType   *odata.Type `json:"@odata.type,omitempty"`
+	DisplayName *string     `json:"displayName,omitempty"`
+	TenantId    *string     `json:"tenantId,omitempty"`
+	DomainName  *string     `json:"domainName,omitempty"`
+	IssuerUri   *string     `json:"issuerUri,omitempty"`
 }
 
 type ImplicitGrantSettings struct {
@@ -1208,6 +1258,10 @@ type PublicClient struct {
 
 type Recipient struct {
 	EmailAddress *EmailAddress `json:"emailAddress,omitempty"`
+}
+
+type Ref struct {
+	ObjectUri *string `json:"@odata.id,omitempty"`
 }
 
 type RequestorSettings struct {

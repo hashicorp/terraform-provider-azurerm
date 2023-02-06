@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -22,7 +22,7 @@ func FromResponse(resp *http.Response) (*OData, error) {
 	contentType := strings.ToLower(resp.Header.Get("Content-Type"))
 	if strings.HasPrefix(contentType, "application/json") {
 		// Read the response body and close it
-		respBody, err := ioutil.ReadAll(resp.Body)
+		respBody, err := io.ReadAll(resp.Body)
 		resp.Body.Close()
 		if err != nil {
 			return nil, fmt.Errorf("could not read response body: %s", err)
@@ -34,7 +34,7 @@ func FromResponse(resp *http.Response) (*OData, error) {
 		}
 
 		// Reassign the response body
-		resp.Body = ioutil.NopCloser(bytes.NewBuffer(respBody))
+		resp.Body = io.NopCloser(bytes.NewBuffer(respBody))
 
 		return &o, nil
 	}

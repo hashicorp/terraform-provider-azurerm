@@ -74,6 +74,8 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
+~> **Note:** The `zone_name` should be the name of resource `azurerm_dns_zone` instead of `azurerm_private_dns_zone`.
+
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `records` - (Optional) List of IPv4 Addresses. Conflicts with `target_resource_id`.

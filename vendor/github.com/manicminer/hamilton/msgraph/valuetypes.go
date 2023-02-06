@@ -319,6 +319,14 @@ const (
 	ConditionalAccessRiskLevelUnknownFutureValue ConditionalAccessRiskLevel = "unknownFutureValue"
 )
 
+type ConnectedOrganizationState = string
+
+const (
+	ConnectedOrganizationStateProposed           ConnectedOrganizationState = "proposed"
+	ConnectedOrganizationStateConfigured         ConnectedOrganizationState = "configured"
+	ConnectedOrganizationStateUnknownFutureValue ConnectedOrganizationState = "unknownFutureValue"
+)
+
 type DelegatedPermissionGrantConsentType = string
 
 const (
@@ -438,6 +446,14 @@ type KeyCredentialUsage = string
 const (
 	KeyCredentialUsageSign   KeyCredentialUsage = "Sign"
 	KeyCredentialUsageVerify KeyCredentialUsage = "Verify"
+)
+
+type OnPremisesGroupType = string
+
+const (
+	UniversalDistributionGroup        OnPremisesGroupType = "UniversalDistributionGroup"
+	UniversalMailEnabledSecurityGroup OnPremisesGroupType = "UniversalMailEnabledSecurityGroup"
+	UniversalSecurityGroup            OnPremisesGroupType = "UniversalSecurityGroup"
 )
 
 type Members []DirectoryObject

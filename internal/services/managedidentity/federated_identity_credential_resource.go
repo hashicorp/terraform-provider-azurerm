@@ -60,9 +60,11 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"parent_id": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
+			// TODO: this wants renaming to `user_assigned_identity_id` (and `resource_group_name` removing in 4.0)
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			Required:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 		"subject": {
 			ForceNew: true,
@@ -94,7 +96,7 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 			locks.ByID(parentId.ID())
 			defer locks.UnlockByID(parentId.ID())
 
-			id := managedidentities.NewFederatedIdentityCredentialID(subscriptionId, config.ResourceGroupName, parentId.ResourceName, config.Name)
+			id := managedidentities.NewFederatedIdentityCredentialID(subscriptionId, config.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
 
 			existing, err := client.FederatedIdentityCredentialsGet(ctx, id)
 			if err != nil {
