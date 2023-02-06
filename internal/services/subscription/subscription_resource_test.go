@@ -113,23 +113,25 @@ func (SubscriptionResource) Exists(ctx context.Context, client *clients.Client, 
 // TODO - Need Env vars in CI for Billing Account and Enrollment Account - Testing disabled for now
 func (SubscriptionResource) basicEnrollmentAccount(data acceptance.TestData) string {
 	billingAccount := os.Getenv("ARM_BILLING_ACCOUNT")
-	enrollmentAccount := os.Getenv("ARM_BILLING_ENROLLMENT_ACCOUNT")
+	billingProfile := os.Getenv("ARM_BILLING_PROFILE")
+	invoiceSection := os.Getenv("ARM_INVOICE_SECTION")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_billing_enrollment_account_scope" "test" {
-  billing_account    = "%s"
-  enrollment_account = "%s"
+data "azurerm_billing_mca_account_scope" "test" {
+  billing_account_name = "%[1]s"
+  billing_profile_name = "%[2]s"
+  invoice_section_name = "%[3]s"
 }
 
 resource "azurerm_subscription" "test" {
-  alias             = "testAcc-%[3]d"
-  subscription_name = "testAccSubscription %[3]d"
-  billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
+  alias             = "testAcc-%[4]d"
+  subscription_name = "testAccSubscription %[4]d"
+  billing_scope_id  = data.azurerm_billing_mca_account_scope.test.id
 }
-`, billingAccount, enrollmentAccount, data.RandomInteger)
+`, billingAccount, billingProfile, invoiceSection, data.RandomInteger)
 }
 
 func (SubscriptionResource) basicEnrollmentAccountUpdate(data acceptance.TestData) string {
