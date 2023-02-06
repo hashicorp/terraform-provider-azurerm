@@ -13,6 +13,7 @@ BUG FIXES:
 
 * `azurerm_custom_provider` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` [GH-20315]
 * `azurerm_function_app_function` - fix bug for multiple file blocks resulting in last file being used for all entries [GH-20198]
+* `azurerm_monitor_diagnostic_setting` - changing the `storage_account_id`, `eventhub_authorization_rule_id`, and `eventhub_name` properties no longer creates a new resource [GH-20307]
 * `azurerm_redis_enterprise_cluster` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` [GH-20314]
 
 ## 3.42.0 (February 02, 2023)
