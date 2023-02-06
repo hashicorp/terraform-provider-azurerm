@@ -346,7 +346,7 @@ func (t *Time) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	// This is the format that the service returns at this moment, which is not the expected format (RFC3339).
-	t.Time, err = time.Parse(`"1/2/2006 15:04:05 PM -07:00"`, string(data))
+	t.Time, err = time.Parse(`"01/02/2006 15:04:05"`, string(data))
 	return err
 }
 
