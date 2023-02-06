@@ -677,8 +677,8 @@ func expandSharedImageFeatures(d *pluginsdk.ResourceData) *[]compute.GalleryImag
 
 	if cvmEnabled := d.Get("confidential_vm_enabled").(bool); cvmEnabled {
 		features = append(features, compute.GalleryImageFeature{
-			Name:  utils.String("ConfidentialVM"),
-			Value: utils.String("Enabled"),
+			Name:  utils.String("SecurityType"),
+			Value: utils.String("ConfidentialVM"),
 		})
 	}
 
