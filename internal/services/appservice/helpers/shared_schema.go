@@ -13,6 +13,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+const (
+	ipRestrictionLowestPriority        int32  = 2147483647
+	ipRestrictionAllowAllName          string = "Allow all"
+	ipRestrictionDenyAllName           string = "Deny all"
+	ipRestrictionAllowAllAction        string = "Allow"
+	ipRestrictionDenyAllAction         string = "Deny"
+	ipRestrictionDefaultIpAddressRange string = "Any"
+)
+
 type IpRestriction struct {
 	IpAddress    string                 `tfschema:"ip_address"`
 	ServiceTag   string                 `tfschema:"service_tag"`
@@ -50,7 +59,6 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:       pluginsdk.TypeList,
 		Optional:   true,
-		Computed:   true,
 		ConfigMode: pluginsdk.SchemaConfigModeAttr,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1098,6 +1106,12 @@ func GithubAuthSettingsSchemaComputed() *pluginsdk.Schema {
 func ExpandIpRestrictions(restrictions []IpRestriction) (*[]web.IPSecurityRestriction, error) {
 	var expanded []web.IPSecurityRestriction
 	if len(restrictions) == 0 {
+		expanded = append(expanded, web.IPSecurityRestriction{
+			Name:      utils.String(ipRestrictionAllowAllName),
+			Priority:  utils.Int32(ipRestrictionLowestPriority),
+			IPAddress: utils.String(ipRestrictionDefaultIpAddressRange),
+			Action:    utils.String(ipRestrictionAllowAllAction),
+		})
 		return &expanded, nil
 	}
 
@@ -1454,13 +1468,17 @@ func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []Ip
 
 		if v.Name != nil {
 			ipRestriction.Name = *v.Name
+			if *v.Name == ipRestrictionAllowAllName && *v.IPAddress == ipRestrictionDefaultIpAddressRange &&
+				*v.Priority == ipRestrictionLowestPriority && *v.Action == ipRestrictionAllowAllName {
+				continue
+			}
+			if *v.Name == ipRestrictionDenyAllName && *v.IPAddress == ipRestrictionDefaultIpAddressRange &&
+				*v.Priority == ipRestrictionLowestPriority && *v.Action == ipRestrictionDenyAllName {
+				continue
+			}
 		}
 
 		if v.IPAddress != nil {
-			if *v.IPAddress == "Any" {
-				continue
-			}
-
 			if v.Tag == web.IPFilterTagServiceTag {
 				ipRestriction.ServiceTag = *v.IPAddress
 			} else {

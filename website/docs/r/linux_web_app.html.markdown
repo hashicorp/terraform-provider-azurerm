@@ -355,6 +355,8 @@ An `ip_restriction` block supports the following:
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
+~> **NOTE:** The default value set for `ip_restriction` that allowing all ip addresses will be added with the lowest priority 2147483647 if the block isn't specified by users.
+
 ---
 
 A `logs` block supports the following:
