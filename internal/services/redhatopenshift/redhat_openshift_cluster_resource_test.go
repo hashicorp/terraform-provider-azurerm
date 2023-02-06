@@ -147,7 +147,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_role_assignment.contributor"]
+  depends_on = ["azurerm_role_assignment.redhatopenshift"]
 }
   `, r.template(data), data.RandomInteger)
 }
@@ -190,7 +190,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_role_assignment.contributor"]
+  depends_on = ["azurerm_role_assignment.redhatopenshift"]
 }
   `, r.template(data), data.RandomInteger)
 }
@@ -234,7 +234,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_role_assignment.contributor"]
+  depends_on = ["azurerm_role_assignment.redhatopenshift"]
 }
   `, r.template(data), data.RandomInteger)
 }
@@ -349,7 +349,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = ["azurerm_key_vault_access_policy.disk-encryption", "azurerm_role_assignment.contributor"]
+  depends_on = ["azurerm_key_vault_access_policy.disk-encryption", "azurerm_role_assignment.redhatopenshift"]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
