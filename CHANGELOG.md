@@ -2,8 +2,10 @@
 
 FEATURES
 
+* **New Data Source:** `azurerm_mobile_network` [GH-20128]
 * **New Resource:** `azurerm_machine_learning_datastore_fileshare` [GH-19934]
 * **New Resource:** `azurerm_machine_learning_datastore_datalake_gen2` [GH-20045]
+* **New Resource:** `azurerm_mobile_network` [GH-20128]
 
 ENHANCEMENTS:
 
