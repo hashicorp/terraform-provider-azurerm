@@ -2,18 +2,18 @@ package redhatopenshift
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/redhatopenshift/mgmt/2022-04-01/redhatopenshift"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2022-09-04/openshiftclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	openShiftValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/validate"
@@ -30,7 +30,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceOpenShiftClusterCreate,
 		Read:   resourceOpenShiftClusterRead,
-		Update: resourceOpenShiftClusterUpdate,
 		Delete: resourceOpenShiftClusterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -48,41 +47,43 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
+				ForceNew:     true,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// todo swap this
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			// todo swap this
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			// todo check that this needs to computed
 			"cluster_profile": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				MaxItems: 1,
+				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"pull_secret": {
+						"domain": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						// todo check that this is forcenew
-						"domain": {
+						"fips_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  false,
+						},
+						"pull_secret": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						// todo default really false?
-						"fips_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
+						"resource_group_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -91,26 +92,27 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 			"service_principal": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: openShiftValidate.ClientID,
 						},
-						// todo see if this is returned
 						"client_secret": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							Sensitive:    true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
 			},
 
-			// todo is this computed? maybe we can just pull each attribute out
 			"network_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -119,7 +121,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						// todo check default
 						"pod_cidr": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -127,7 +128,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							Default:      "10.128.0.0/14",
 							ValidateFunc: validate.CIDR,
 						},
-						// todo check default
 						"service_cidr": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -139,113 +139,133 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				},
 			},
 
-			// todo check required
 			"main_profile": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
-						// todo  validate list of available sizes?
 						"vm_size": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.StringIsNotEmpty,
 						},
-						// todo check default
 						"encryption_at_host_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							ForceNew: true,
 							Default:  false,
 						},
 						"disk_encryption_set_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
 			},
 
-			// todo check required
 			"worker_profile": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						// todo validate sizes?
 						"vm_size": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
+							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.StringIsNotEmpty,
 						},
 						"disk_size_gb": {
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: openShiftValidate.DiskSizeGB,
 						},
 						"node_count": {
 							Type:     pluginsdk.TypeInt,
 							Required: true,
+							ForceNew: true,
 						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
-						// todo check default
 						"encryption_at_host_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							ForceNew: true,
 							Default:  false,
 						},
 						"disk_encryption_set_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
 			},
 
-			// todo pull out attribute
 			"api_server_profile": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				MaxItems: 1,
+				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"visibility": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(redhatopenshift.VisibilityPublic),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(openshiftclusters.PossibleValuesForVisibility(), false),
+						},
+						"ip_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"url": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
 			},
 
-			// todo pull out attribute
 			"ingress_profile": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"visibility": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(redhatopenshift.VisibilityPublic),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(openshiftclusters.PossibleValuesForVisibility(), false),
+						},
+						"ip_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -261,7 +281,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": commonschema.Tags(),
+			"tags": commonschema.TagsForceNew(),
 		},
 	}
 }
@@ -281,35 +301,25 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %s", id.ID(), err)
 		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_redhat_openshift_cluster", id.ID())
-		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	clusterProfile := expandOpenshiftClusterProfile(d.Get("cluster_profile").([]interface{}), resourceParse.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName).ID())
-	servicePrincipalProfile := expandOpenshiftServicePrincipalProfile(d.Get("service_principal").([]interface{}))
-	networkProfile := expandOpenshiftNetworkProfile(d.Get("network_profile").([]interface{}))
-	mainProfile := expandOpenshiftMasterProfile(d.Get("main_profile").([]interface{}))
-	workerProfiles := expandOpenshiftWorkerProfiles(d.Get("worker_profile").([]interface{}))
-	// apiServerProfile := expandOpenshiftApiServerProfile(d.Get("api_server_profile").([]interface{}))
-	// ingressProfiles := expandOpenshiftIngressProfiles(d.Get("ingress_profile").([]interface{}))
-
-	t := d.Get("tags").(map[string]interface{})
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_redhat_openshift_cluster", id.ID())
+	}
 
 	parameters := openshiftclusters.OpenShiftCluster{
 		Name:     &id.OpenShiftClusterName,
-		Location: location,
+		Location: azure.NormalizeLocation(d.Get("location").(string)),
 		Properties: &openshiftclusters.OpenShiftClusterProperties{
-			ClusterProfile:          clusterProfile,
-			ServicePrincipalProfile: servicePrincipalProfile,
-			NetworkProfile:          networkProfile,
-			MasterProfile:           mainProfile,
-			WorkerProfiles:          workerProfiles,
-			// ApiserverProfile:        apiServerProfile,
-			// IngressProfiles: ingressProfiles,
+			ClusterProfile:          expandOpenshiftClusterProfile(d.Get("cluster_profile").([]interface{}), id.SubscriptionId),
+			ServicePrincipalProfile: expandOpenshiftServicePrincipalProfile(d.Get("service_principal").([]interface{})),
+			NetworkProfile:          expandOpenshiftNetworkProfile(d.Get("network_profile").([]interface{})),
+			MasterProfile:           expandOpenshiftMasterProfile(d.Get("main_profile").([]interface{})),
+			WorkerProfiles:          expandOpenshiftWorkerProfiles(d.Get("worker_profile").([]interface{})),
+			ApiserverProfile:        expandOpenshiftApiServerProfile(d.Get("api_server_profile").([]interface{})),
+			IngressProfiles:         expandOpenshiftIngressProfiles(d.Get("ingress_profile").([]interface{})),
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -317,52 +327,6 @@ func resourceOpenShiftClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
-
-	return resourceOpenShiftClusterRead(d, meta)
-}
-
-func resourceOpenShiftClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RedHatOpenshift.OpenShiftClustersClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Red Hat OpenShift Cluster update.")
-
-	id, err := openshiftclusters.ParseProviderOpenShiftClusterID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	existing, err := client.Get(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("retrieving existing %s: %+v", id.ID(), err)
-	}
-
-	if existing.Model == nil || existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving existing %s: `model` was nil", id.ID())
-	}
-
-	if d.HasChange("cluster_profile") {
-		clusterProfileRaw := d.Get("cluster_profile").([]interface{})
-		clusterProfile := expandOpenshiftClusterProfile(clusterProfileRaw, resourceParse.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName).ID())
-		existing.Model.Properties.ClusterProfile = clusterProfile
-	}
-
-	if d.HasChange("main_profile") {
-		mainProfileRaw := d.Get("main_profile").([]interface{})
-		mainProfile := expandOpenshiftMasterProfile(mainProfileRaw)
-		existing.Model.Properties.MasterProfile = mainProfile
-	}
-
-	if d.HasChange("worker_profile") {
-		workerProfilesRaw := d.Get("worker_profile").([]interface{})
-		workerProfiles := expandOpenshiftWorkerProfiles(workerProfilesRaw)
-		existing.Model.Properties.WorkerProfiles = workerProfiles
-	}
-
-	if err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
-		return fmt.Errorf("updating %s: %+v", id.ID(), err)
-	}
 
 	return resourceOpenShiftClusterRead(d, meta)
 }
@@ -462,14 +426,19 @@ func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile) [
 		return []interface{}{}
 	}
 
-	pullSecret := ""
-	if profile.PullSecret != nil {
-		pullSecret = *profile.PullSecret
+	resourceGroupId := ""
+	if profile.ResourceGroupId != nil {
+		resourceGroupId = *profile.ResourceGroupId
 	}
 
 	clusterDomain := ""
 	if profile.Domain != nil {
 		clusterDomain = *profile.Domain
+	}
+
+	pullSecret := ""
+	if profile.PullSecret != nil {
+		pullSecret = *profile.PullSecret
 	}
 
 	fipsEnabled := false
@@ -479,9 +448,10 @@ func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile) [
 
 	return []interface{}{
 		map[string]interface{}{
-			"pull_secret":  pullSecret,
-			"domain":       clusterDomain,
-			"fips_enabled": fipsEnabled,
+			"pull_secret":       pullSecret,
+			"domain":            clusterDomain,
+			"fips_enabled":      fipsEnabled,
+			"resource_group_id": resourceGroupId,
 		},
 	}
 }
@@ -561,7 +531,6 @@ func flattenOpenShiftMasterProfile(profile *openshiftclusters.MasterProfile) []i
 	}
 
 	diskEncryptionSetId := ""
-
 	if profile.DiskEncryptionSetId != nil {
 		diskEncryptionSetId = *profile.DiskEncryptionSetId
 	}
@@ -577,7 +546,7 @@ func flattenOpenShiftMasterProfile(profile *openshiftclusters.MasterProfile) []i
 }
 
 func flattenOpenShiftWorkerProfiles(profiles *[]openshiftclusters.WorkerProfile) []interface{} {
-	if profiles == nil {
+	if profiles == nil || len(*profiles) == 0 {
 		return []interface{}{}
 	}
 
@@ -586,36 +555,51 @@ func flattenOpenShiftWorkerProfiles(profiles *[]openshiftclusters.WorkerProfile)
 	result := make(map[string]interface{})
 	result["node_count"] = int32(len(*profiles))
 
-	// todo what is going on here? Shouldn't we have only one worker?
-	for _, profile := range *profiles {
-		if result["disk_size_gb"] == nil && profile.DiskSizeGB != nil {
-			result["disk_size_gb"] = profile.DiskSizeGB
-		}
+	rawProfiles := *profiles
+	profile := rawProfiles[0]
 
-		if result["vm_size"] == nil && profile.VMSize != nil {
-			result["vm_size"] = profile.VMSize
-		}
+	nodeCount := int64(0)
+	if profile.Count != nil {
+		nodeCount = *profile.Count
+	}
 
-		if result["subnet_id"] == nil && profile.SubnetId != nil {
-			result["subnet_id"] = profile.SubnetId
-		}
+	diskSizeGB := int64(0)
+	if profile.DiskSizeGB != nil {
+		diskSizeGB = *profile.DiskSizeGB
+	}
 
-		if result["encryption_at_host_enabled"] == nil {
-			encryptionAtHostEnabled := false
-			if profile.EncryptionAtHost != nil {
-				encryptionAtHostEnabled = *profile.EncryptionAtHost == openshiftclusters.EncryptionAtHostEnabled
-			}
-			result["encryption_at_host_enabled"] = encryptionAtHostEnabled
-		}
+	vmSize := ""
+	if profile.VMSize != nil {
+		vmSize = *profile.VMSize
+	}
 
-		if result["disk_encryption_set_id"] == nil && profile.DiskEncryptionSetId != nil {
-			result["disk_encryption_set_id"] = profile.DiskEncryptionSetId
-		}
+	subnetId := ""
+	if profile.SubnetId != nil {
+		subnetId = *profile.SubnetId
+	}
+
+	encryptionAtHostEnabled := false
+	if profile.EncryptionAtHost != nil {
+		encryptionAtHostEnabled = *profile.EncryptionAtHost == openshiftclusters.EncryptionAtHostEnabled
+	}
+
+	diskEncryptionSetId := ""
+	if profile.DiskEncryptionSetId != nil {
+		diskEncryptionSetId = *profile.DiskEncryptionSetId
 	}
 
 	results = append(results, result)
 
-	return results
+	return []interface{}{
+		map[string]interface{}{
+			"node_count":                 nodeCount,
+			"vm_size":                    vmSize,
+			"disk_size_gb":               diskSizeGB,
+			"subnet_id":                  subnetId,
+			"encryption_at_host_enabled": encryptionAtHostEnabled,
+			"disk_encryption_set_id":     diskEncryptionSetId,
+		},
+	}
 }
 
 func flattenOpenShiftAPIServerProfile(profile *openshiftclusters.APIServerProfile) []interface{} {
@@ -628,9 +612,21 @@ func flattenOpenShiftAPIServerProfile(profile *openshiftclusters.APIServerProfil
 		visibility = string(*profile.Visibility)
 	}
 
+	url := ""
+	if profile.Url != nil {
+		url = *profile.Url
+	}
+
+	ipAddress := ""
+	if profile.IP != nil {
+		ipAddress = *profile.IP
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"visibility": visibility,
+			"url":        url,
+			"ip_address": ipAddress,
 		},
 	}
 }
@@ -648,8 +644,20 @@ func flattenOpenShiftIngressProfiles(profiles *[]openshiftclusters.IngressProfil
 			visibility = string(*profile.Visibility)
 		}
 
+		name := ""
+		if profile.Name != nil {
+			name = *profile.Name
+		}
+
+		ipAddress := ""
+		if profile.IP != nil {
+			ipAddress = *profile.IP
+		}
+
 		result := make(map[string]interface{})
 		result["visibility"] = visibility
+		result["name"] = name
+		result["ip_address"] = ipAddress
 
 		results = append(results, result)
 	}
@@ -657,34 +665,20 @@ func flattenOpenShiftIngressProfiles(profiles *[]openshiftclusters.IngressProfil
 	return results
 }
 
-func expandOpenshiftClusterProfile(input []interface{}, resourceGroupId string) *openshiftclusters.ClusterProfile {
-	fipsValidatedModules := openshiftclusters.FipsValidatedModulesDisabled
-
-	if len(input) == 0 {
-		return &openshiftclusters.ClusterProfile{
-			ResourceGroupId:      utils.String(resourceGroupId),
-			Domain:               utils.String(randomDomainName),
-			FipsValidatedModules: &fipsValidatedModules,
-		}
-	}
-
+func expandOpenshiftClusterProfile(input []interface{}, subscriptionId string) *openshiftclusters.ClusterProfile {
 	config := input[0].(map[string]interface{})
 
-	pullSecret := config["pull_secret"].(string)
-
-	domain := config["domain"].(string)
-	if domain == "" {
-		domain = randomDomainName
-	}
-
+	fipsValidatedModules := openshiftclusters.FipsValidatedModulesDisabled
 	if config["fips_enabled"].(bool) {
 		fipsValidatedModules = openshiftclusters.FipsValidatedModulesEnabled
 	}
 
 	return &openshiftclusters.ClusterProfile{
-		ResourceGroupId:      utils.String(resourceGroupId),
-		Domain:               utils.String(domain),
-		PullSecret:           utils.String(pullSecret),
+		// the api needs a ResourceGroupId value and the portal doesn't allow you to set it but the portal returns the
+		// resource id being `aro-{domain}` so we'll follow that here.
+		ResourceGroupId:      utils.String(commonids.NewResourceGroupID(subscriptionId, fmt.Sprintf("aro-%s", config["domain"].(string))).ID()),
+		Domain:               utils.String(config["domain"].(string)),
+		PullSecret:           utils.String(config["pull_secret"].(string)),
 		FipsValidatedModules: &fipsValidatedModules,
 	}
 }
@@ -704,7 +698,6 @@ func expandOpenshiftServicePrincipalProfile(input []interface{}) *openshiftclust
 func expandOpenshiftNetworkProfile(input []interface{}) *openshiftclusters.NetworkProfile {
 	if len(input) == 0 {
 		return &openshiftclusters.NetworkProfile{
-			// todo see if we need this
 			PodCidr:     utils.String("10.128.0.0/14"),
 			ServiceCidr: utils.String("172.30.0.0/16"),
 		}
@@ -770,37 +763,26 @@ func expandOpenshiftWorkerProfiles(inputs []interface{}) *[]openshiftclusters.Wo
 	return &profiles
 }
 
-/* todo figure this out and add more attributes
 func expandOpenshiftApiServerProfile(input []interface{}) *openshiftclusters.APIServerProfile {
-	if len(input) == 0 {
-		return &openshiftclusters.APIServerProfile{
-			Visibility: redhatopenshift.VisibilityPublic,
-		}
-	}
-
 	config := input[0].(map[string]interface{})
 
-	visibility := config["visibility"].(string)
+	visibility := openshiftclusters.Visibility(config["visibility"].(string))
 
 	return &openshiftclusters.APIServerProfile{
-		Visibility: redhatopenshift.Visibility(visibility),
+		Visibility: &visibility,
 	}
-}*/
+}
 
-func expandOpenshiftIngressProfiles(inputs []interface{}) *[]redhatopenshift.IngressProfile {
-	profiles := make([]redhatopenshift.IngressProfile, 0)
+func expandOpenshiftIngressProfiles(input []interface{}) *[]openshiftclusters.IngressProfile {
+	config := input[0].(map[string]interface{})
 
-	name := "default"
-	visibility := string(redhatopenshift.VisibilityPublic)
+	profiles := make([]openshiftclusters.IngressProfile, 0)
 
-	if len(inputs) > 0 {
-		input := inputs[0].(map[string]interface{})
-		visibility = input["visibility"].(string)
-	}
+	visibility := openshiftclusters.Visibility(config["visibility"].(string))
 
-	profile := redhatopenshift.IngressProfile{
-		Name:       utils.String(name),
-		Visibility: redhatopenshift.Visibility(visibility),
+	profile := openshiftclusters.IngressProfile{
+		Name:       utils.String("default"),
+		Visibility: &visibility,
 	}
 
 	profiles = append(profiles, profile)

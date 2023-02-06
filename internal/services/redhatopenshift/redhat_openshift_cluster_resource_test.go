@@ -56,27 +56,6 @@ func TestAccOpenShiftCluster_private(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_customDomain(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
-	r := OpenShiftClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.customDomain(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("main_profile.0.vm_size").HasValue("Standard_D8s_v3"),
-				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
-				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
-				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
-				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
-				check.That(data.ResourceName).Key("cluster_profile.0.domain").HasValue("foo.example.com"),
-			),
-		},
-	})
-}
-
 func TestAccOpenShiftCluster_encryptionAtHost(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := OpenShiftClusterResource{}
@@ -130,72 +109,30 @@ func (t OpenShiftClusterResource) Exists(ctx context.Context, clients *clients.C
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (OpenShiftClusterResource) basic(data acceptance.TestData) string {
+func (r OpenShiftClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-provider "azuread" {}
-
-data "azuread_client_config" "test" {}
-
-resource "azuread_application" "test" {
-  display_name = "acctest-aro-%d"
-}
-
-resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
-}
-
-resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.object_id
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aro-%d"
-  location = "%s"
-}
-
-resource "azurerm_resource_group" "test1" {
-  name     = "acctestRG-aro-%d-2"
-  location = "%s"
-}
-
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/22"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "main_subnet" {
-  name                                           = "main-subnet-%d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.0.0.0/23"]
-  service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
-  enforce_private_link_service_network_policies  = true
-  enforce_private_link_endpoint_network_policies = true
-}
-
-resource "azurerm_subnet" "worker_subnet" {
-  name                 = "worker-subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/23"]
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
-}
+%[1]s
 
 resource "azurerm_redhat_openshift_cluster" "test" {
-  name                = "acctestaro%d"
-  location            = azurerm_resource_group.test1.location
-  resource_group_name = azurerm_resource_group.test1.name
+  name                = "acctestaro%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cluster_profile {
+    domain = "foo.example.com"
+  }
 
   main_profile {
     vm_size   = "Standard_D8s_v3"
     subnet_id = azurerm_subnet.main_subnet.id
+  }
+
+  api_server_profile {
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    visibility = "Public"
   }
 
   worker_profile {
@@ -209,66 +146,24 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_id     = azuread_application.test.application_id
     client_secret = azuread_service_principal_password.test.value
   }
+
+  depends_on = ["azurerm_role_assignment.contributor"]
 }
-  `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+  `, r.template(data), data.RandomInteger)
 }
 
-func (OpenShiftClusterResource) private(data acceptance.TestData) string {
+func (r OpenShiftClusterResource) private(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-provider "azuread" {}
-
-data "azuread_client_config" "test" {}
-
-resource "azuread_application" "test" {
-  display_name = "acctest-aro-%d"
-}
-
-resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
-}
-
-resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.object_id
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aro-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/22"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "main_subnet" {
-  name                                           = "main-subnet-%d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.0.0.0/23"]
-  service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
-  enforce_private_link_service_network_policies  = true
-  enforce_private_link_endpoint_network_policies = true
-}
-
-resource "azurerm_subnet" "worker_subnet" {
-  name                 = "worker-subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/23"]
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
-}
+%[1]s
 
 resource "azurerm_redhat_openshift_cluster" "test" {
-  name                = "acctestaro%d"
+  name                = "acctestaro%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  cluster_profile {
+    domain = "foo.example.com"
+  }
 
   main_profile {
     vm_size   = "Standard_D8s_v3"
@@ -294,152 +189,34 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_id     = azuread_application.test.application_id
     client_secret = azuread_service_principal_password.test.value
   }
+
+  depends_on = ["azurerm_role_assignment.contributor"]
 }
-  `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+  `, r.template(data), data.RandomInteger)
 }
 
-func (OpenShiftClusterResource) customDomain(data acceptance.TestData) string {
+func (r OpenShiftClusterResource) basicWithFipsEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-provider "azuread" {}
-
-data "azuread_client_config" "test" {}
-
-resource "azuread_application" "test" {
-  display_name = "acctest-aro-%d"
-}
-
-resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
-}
-
-resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.object_id
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aro-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/22"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "main_subnet" {
-  name                                           = "main-subnet-%d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.0.0.0/23"]
-  service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
-  enforce_private_link_service_network_policies  = true
-  enforce_private_link_endpoint_network_policies = true
-}
-
-resource "azurerm_subnet" "worker_subnet" {
-  name                 = "worker-subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/23"]
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
-}
+%[1]s
 
 resource "azurerm_redhat_openshift_cluster" "test" {
-  name                = "acctestaro%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  main_profile {
-    vm_size   = "Standard_D8s_v3"
-    subnet_id = azurerm_subnet.main_subnet.id
-  }
-
-  worker_profile {
-    vm_size      = "Standard_D4s_v3"
-    disk_size_gb = 128
-    node_count   = 3
-    subnet_id    = azurerm_subnet.worker_subnet.id
-  }
-
-  cluster_profile {
-    domain = "foo.example.com"
-  }
-
-  service_principal {
-    client_id     = azuread_application.test.application_id
-    client_secret = azuread_service_principal_password.test.value
-  }
-}
-  `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (OpenShiftClusterResource) basicWithFipsEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-provider "azuread" {}
-
-data "azuread_client_config" "test" {}
-
-resource "azuread_application" "test" {
-  display_name = "acctest-aro-%d"
-}
-
-resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
-}
-
-resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.object_id
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aro-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/22"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "main_subnet" {
-  name                                           = "main-subnet-%d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.0.0.0/23"]
-  service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
-  enforce_private_link_service_network_policies  = true
-  enforce_private_link_endpoint_network_policies = true
-}
-
-resource "azurerm_subnet" "worker_subnet" {
-  name                 = "worker-subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/23"]
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
-}
-
-resource "azurerm_redhat_openshift_cluster" "test" {
-  name                = "acctestaro%d"
+  name                = "acctestaro%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
+    domain       = "foo.example.com"
     fips_enabled = true
   }
 
+  api_server_profile {
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    visibility = "Public"
+  }
+
   main_profile {
     vm_size   = "Standard_D8s_v3"
     subnet_id = azurerm_subnet.main_subnet.id
@@ -456,70 +233,18 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_id     = azuread_application.test.application_id
     client_secret = azuread_service_principal_password.test.value
   }
+
+  depends_on = ["azurerm_role_assignment.contributor"]
 }
-  `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+  `, r.template(data), data.RandomInteger)
 }
 
-func (OpenShiftClusterResource) encryptionAtHost(data acceptance.TestData) string {
+func (r OpenShiftClusterResource) encryptionAtHost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    key_vault {
-      recover_soft_deleted_key_vaults    = false
-      purge_soft_delete_on_destroy       = false
-      purge_soft_deleted_keys_on_destroy = false
-    }
-  }
-}
-
-provider "azuread" {}
-
-data "azuread_client_config" "test" {}
-
-resource "azuread_application" "test" {
-  display_name = "acctest-aro-%d"
-}
-
-resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
-}
-
-resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.object_id
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aro-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/22"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "main_subnet" {
-  name                                           = "main-subnet-%d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.0.0.0/23"]
-  service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
-  enforce_private_link_service_network_policies  = true
-  enforce_private_link_endpoint_network_policies = true
-}
-
-resource "azurerm_subnet" "worker_subnet" {
-  name                 = "worker-subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/23"]
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
-}
+%[1]s
 
 resource "azurerm_key_vault" "test" {
-  name                        = "acctestKV-%4s"
+  name                        = "acctestKV-%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
@@ -544,7 +269,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkvkey%s"
+  name         = "acctestkvkey%[3]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -564,7 +289,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_disk_encryption_set" "test" {
-  name                = "acctestdes-%d"
+  name                = "acctestdes-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   key_vault_key_id    = azurerm_key_vault_key.test.id
@@ -587,9 +312,21 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
 }
 
 resource "azurerm_redhat_openshift_cluster" "test" {
-  name                = "acctestaro%d"
+  name                = "acctestaro%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  cluster_profile {
+    domain = "foo.example.com"
+  }
+
+  api_server_profile {
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    visibility = "Public"
+  }
 
   main_profile {
     vm_size                    = "Standard_D8s_v3"
@@ -612,9 +349,85 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     client_secret = azuread_service_principal_password.test.value
   }
 
-  depends_on = [
-    azurerm_key_vault_access_policy.disk-encryption
-  ]
+  depends_on = ["azurerm_key_vault_access_policy.disk-encryption", "azurerm_role_assignment.contributor"]
 }
-  `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
+  `, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (OpenShiftClusterResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults    = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+provider "azuread" {}
+
+data "azuread_client_config" "test" {}
+
+resource "azuread_application" "test" {
+  display_name = "acctest-aro-%[1]d"
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+
+resource "azuread_service_principal_password" "test" {
+  service_principal_id = azuread_service_principal.test.object_id
+}
+
+resource "azuread_service_principal" "redhatopenshift" {
+  // This is the RedHatOpenShift service principal id
+  application_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
+  use_existing   = true
+}
+
+resource "azurerm_role_assignment" "redhatopenshift" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azuread_service_principal.redhatopenshift.id
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aro-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_resource_group" "test1" {
+  name     = "acctestRG-aro-%[1]d-2"
+  location = "%[2]s"
+}
+
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/22"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "main_subnet" {
+  name                                           = "main-subnet-%[1]d"
+  resource_group_name                            = azurerm_resource_group.test.name
+  virtual_network_name                           = azurerm_virtual_network.test.name
+  address_prefixes                               = ["10.0.0.0/23"]
+  service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  enforce_private_link_service_network_policies  = true
+  enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_subnet" "worker_subnet" {
+  name                 = "worker-subnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/23"]
+  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+}
+ `, data.RandomInteger, data.Locations.Primary)
 }
