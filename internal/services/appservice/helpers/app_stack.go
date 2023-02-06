@@ -14,9 +14,6 @@ const (
 	PhpVersionSevenPointFour           string = "7.4"
 	PhpVersionOff                      string = "Off"
 	DotNetCoreVersionThreePointOne     string = "v3.1"
-	AspDotNetVersionThreePointFive     string = "v3.5"
-	AspDotNetVersionFourPointEight     string = "v4.8"
-	DotNetCLRVersionTwoPointOh         string = "v2.0"
 	DotNetCLRVersionFourPointOh        string = "v4.0"
 
 	CurrentStackDotNet     string = "dotnet"
