@@ -70,10 +70,9 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 		"label": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.AppConfigurationLabel,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
 		},
 		"locked": {
 			Type:     pluginsdk.TypeBool,
@@ -174,10 +173,9 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			appCfgFeatureResourceID := parse.AppConfigurationFeatureId{
-				ConfigurationStoreId: model.ConfigurationStoreId,
-				Name:                 model.Name,
-				Label:                model.Label,
+			nestedItemId, err := parse.NewNestedItemID(client.Endpoint, model.Name, model.Label)
+			if err != nil {
+				return err
 			}
 
 			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, model.Name)
@@ -191,19 +189,15 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
 				}
 			} else if kv.Response.StatusCode == 200 {
-				return tf.ImportAsExistsError(k.ResourceType(), appCfgFeatureResourceID.ID())
+				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 
 			err = createOrUpdateFeature(ctx, client, model)
 			if err != nil {
 				return fmt.Errorf("while creating feature: %+v", err)
 			}
-			if appCfgFeatureResourceID.Label == "" {
-				// We set an empty label as %00 in the resource ID
-				// Otherwise it breaks the ID parsing logic
-				appCfgFeatureResourceID.Label = "%00"
-			}
-			metadata.SetID(appCfgFeatureResourceID)
+
+			metadata.SetID(nestedItemId)
 			return nil
 		},
 		Timeout: 30 * time.Minute,
@@ -213,32 +207,26 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 func (k FeatureResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			resourceID, err := parse.FeatureId(metadata.ResourceData.Id())
+			nestedItemId, err := parse.ParseNestedItemID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
-			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, resourceID.Name)
+			featureKey := nestedItemId.Key
 
-			// We set an empty label as %00 in the ID to make the ID validator happy
-			// but in reality the label is just an empty string
-			if resourceID.Label == "%00" {
-				resourceID.Label = ""
-			}
-
-			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(ctx, nestedItemId.ConfigurationStoreEndpoint)
 			if client == nil {
 				// if the AppConfiguration is gone then all the data inside it is too
-				return metadata.MarkAsGone(resourceID)
+				return metadata.MarkAsGone(nestedItemId)
 			}
 			if err != nil {
 				return err
 			}
 
-			kv, err := client.GetKeyValue(ctx, featureKey, resourceID.Label, "", "", "", []string{})
+			kv, err := client.GetKeyValue(ctx, featureKey, nestedItemId.Label, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return metadata.MarkAsGone(resourceID)
+						return metadata.MarkAsGone(nestedItemId)
 					}
 				} else {
 					return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
@@ -253,7 +241,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			}
 
 			model := FeatureResourceModel{
-				ConfigurationStoreId: resourceID.ConfigurationStoreId,
+				ConfigurationStoreId: metadata.ResourceData.Get("configuration_store_id").(string),
 				Description:          fv.Description,
 				Enabled:              fv.Enabled,
 				Name:                 fv.ID,
@@ -291,15 +279,12 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 func (k FeatureResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			resourceID, err := parse.FeatureId(metadata.ResourceData.Id())
-			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
-			}
-			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, resourceID.Name)
+			nestedItemId, err := parse.ParseNestedItemID(metadata.ResourceData.Id())
+			featureKey := nestedItemId.Key
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(ctx, nestedItemId.ConfigurationStoreEndpoint)
 			if client == nil {
-				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
+				return fmt.Errorf("app configuration %q was not found", nestedItemId.ConfigurationStoreEndpoint)
 			}
 			if err != nil {
 				return err
@@ -312,8 +297,8 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") || metadata.ResourceData.HasChange("enabled") || metadata.ResourceData.HasChange("locked") || metadata.ResourceData.HasChange("description") {
 				// Remove the lock, if any. We will put it back again if the model says so.
-				if _, err = client.DeleteLock(ctx, featureKey, resourceID.Label, "", ""); err != nil {
-					return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", resourceID.Name, resourceID.Label, err)
+				if _, err = client.DeleteLock(ctx, featureKey, nestedItemId.Label, "", ""); err != nil {
+					return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", nestedItemId.Key, nestedItemId.Label, err)
 				}
 				err = createOrUpdateFeature(ctx, client, model)
 				if err != nil {
@@ -330,37 +315,37 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 func (k FeatureResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			resourceID, err := parse.FeatureId(metadata.ResourceData.Id())
-			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, resourceID.Name)
+			nestedItemId, err := parse.ParseNestedItemID(metadata.ResourceData.Id())
+			featureKey := nestedItemId.Key
 
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(ctx, nestedItemId.ConfigurationStoreEndpoint)
 			if client == nil {
-				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
+				return fmt.Errorf("app configuration %q was not found", nestedItemId.ConfigurationStoreEndpoint)
 			}
 			if err != nil {
 				return err
 			}
 
-			kv, err := client.GetKeyValues(ctx, featureKey, resourceID.Label, "", "", []string{})
+			kv, err := client.GetKeyValues(ctx, featureKey, nestedItemId.Label, "", "", []string{})
 			if err != nil {
-				return fmt.Errorf("while checking for feature's %q existence: %+v", resourceID.Name, err)
+				return fmt.Errorf("while checking for feature's %q existence: %+v", nestedItemId.Key, err)
 			}
 			keysFound := kv.Values()
 			if len(keysFound) == 0 {
 				return nil
 			}
 
-			if _, err = client.DeleteLock(ctx, featureKey, resourceID.Label, "", ""); err != nil {
-				return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", resourceID.Name, resourceID.Label, err)
+			if _, err = client.DeleteLock(ctx, featureKey, nestedItemId.Label, "", ""); err != nil {
+				return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", nestedItemId.Key, nestedItemId.Label, err)
 			}
 
-			_, err = client.DeleteKeyValue(ctx, featureKey, resourceID.Label, "")
+			_, err = client.DeleteKeyValue(ctx, featureKey, nestedItemId.Label, "")
 			if err != nil {
-				return fmt.Errorf("while removing key %q from App Configuration Store %q: %+v", resourceID.Name, resourceID.ConfigurationStoreId, err)
+				return fmt.Errorf("while removing key %q from App Configuration Store %q: %+v", nestedItemId.Key, metadata.ResourceData.Get("configuration_store_id").(string), err)
 			}
 
 			return nil
