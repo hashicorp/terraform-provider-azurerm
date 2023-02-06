@@ -85,7 +85,9 @@ A `filter` block supports the following:
 
 ~> **NOTE**: The `rules.*.schema_fields` for this rule has to include `Snapshot` so that you can specify the `include_snapshots`.
 
-* `prefix_match` - (Optional) A set of strings for blob prefixes to be matched.
+* `prefix_match` - (Optional) A set of strings for blob prefixes to be matched. Maximum of 10 blob prefixes.
+
+* `exclude_prefixes` - (Optional) A set of strings for blob prefixes to be excluded. Maximum of 10 blob prefixes.
 
 ---
 
