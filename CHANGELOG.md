@@ -12,10 +12,12 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230204.1161343` of `github.com/hashicorp/go-azure-sdk` [GH-20312]
 * dependencies: updating to `v0.55.0` of `github.com/manicminer/hamilton` [GH-20272]
 * `azurestackhci`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
+* `datadog`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20311]
 * `digitaltwins`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
 * `redis`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20313]
 * `azurerm_sentinel_alert_rule_nrt` - support for the `dynamic_property` block [GH-20212]
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `dynamic_property` block [GH-20212]
+
 
 BUG FIXES:
 
