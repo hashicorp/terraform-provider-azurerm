@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `datadog`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20311]
 * `digitaltwins`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
 * `redis`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20313]
+* `azurerm_storage_blob_inventory_policy` - support for the `exclude_prefixes` property [GH-20281]
 * `azurerm_sentinel_alert_rule_nrt` - support for the `dynamic_property` block [GH-20212]
 * `azurerm_sentinel_alert_rule_nrt` - support for the `sentinel_entity_mapping` block [GH-20230]
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `dynamic_property` block [GH-20212]
