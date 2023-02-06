@@ -114,6 +114,8 @@ The following arguments are supported:
 
 When authenticating as a Service Principal using a Client Certificate, the following fields can be set:
 
+* `client_certificate` - (Optional) A base64-encoded PKCS#12 bundle to be used as the client certificate for authentication. This can also be sourced from the `ARM_CLIENT_CERTIFICATE` environment variable.
+
 * `client_certificate_password` - (Optional) The password associated with the Client Certificate. This can also be sourced from the `ARM_CLIENT_CERTIFICATE_PASSWORD` Environment Variable.
 
 * `client_certificate_path` - (Optional) The path to the Client Certificate associated with the Service Principal which should be used. This can also be sourced from the `ARM_CLIENT_CERTIFICATE_PATH` Environment Variable.
@@ -146,13 +148,19 @@ More information on [how to configure a Service Principal using OpenID Connect c
 
 ---
 
-When authenticating using Managed Service Identity, the following fields can be set:
+When authenticating using Managed Identity, the following fields can be set:
 
-* `msi_endpoint` - (Optional) The path to a custom endpoint for Managed Service Identity - in most circumstances, this should be detected automatically. This can also, be sourced from the `ARM_MSI_ENDPOINT` Environment Variable.
+* `msi_endpoint` - (Optional) The path to a custom endpoint for Managed Identity - in most circumstances, this should be detected automatically. This can also be sourced from the `ARM_MSI_ENDPOINT` Environment Variable.
 
-* `use_msi` - (Optional) Should Managed Service Identity be used for Authentication? This can also be sourced from the `ARM_USE_MSI` Environment Variable. Defaults to `false`.
+* `use_msi` - (Optional) Should Managed Identity be used for Authentication? This can also be sourced from the `ARM_USE_MSI` Environment Variable. Defaults to `false`.
 
-More information on [how to configure a Service Principal using Managed Service Identity can be found in this guide](guides/managed_service_identity.html).
+More information on [how to configure a Service Principal using Managed Identity can be found in this guide](guides/managed_service_identity.html).
+
+---
+
+For Azure CLI authentication, the following fields can be set:
+
+* `use_cli` - (Optional) Should Azure CLI be used for authentication? This can also be sourced from the `ARM_USE_CLI` environment variable. Defaults to `true`.
 
 ---
 

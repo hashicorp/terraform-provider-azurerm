@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
@@ -206,6 +207,13 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			},
 
 			// Client Certificate specific fields
+			"client_certificate": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE", ""),
+				Description: "Base64 encoded PKCS#12 certificate bundle to use when authenticating as a Service Principal using a Client Certificate",
+			},
+
 			"client_certificate_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -349,6 +357,15 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			return nil, diag.Errorf("the provider only supports 3 auxiliary tenant IDs")
 		}
 
+		var clientCertificateData []byte
+		if encodedCert := d.Get("client_certificate").(string); encodedCert != "" {
+			var err error
+			clientCertificateData, err = decodeCertificate(encodedCert)
+			if err != nil {
+				return nil, diag.FromErr(err)
+			}
+		}
+
 		var (
 			env *environments.Environment
 			err error
@@ -370,9 +387,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			enableManagedIdentity = d.Get("use_msi").(bool)
 			enableOidc            = d.Get("use_oidc").(bool)
 		)
-
-		var clientCertificateData []byte
-		// TODO: add `client_certificate` provider prop and base64 decode the value
 
 		authConfig := auth.Credentials{
 			Environment:        *env,
@@ -451,6 +465,19 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 		return client, nil
 	}
+}
+
+func decodeCertificate(clientCertificate string) ([]byte, error) {
+	var pfx []byte
+	if clientCertificate != "" {
+		out := make([]byte, base64.StdEncoding.DecodedLen(len(clientCertificate)))
+		n, err := base64.StdEncoding.Decode(out, []byte(clientCertificate))
+		if err != nil {
+			return pfx, fmt.Errorf("could not decode client certificate data: %v", err)
+		}
+		pfx = out[:n]
+	}
+	return pfx, nil
 }
 
 const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.
