@@ -68,7 +68,12 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf("unable to build authorizer for Storage API: %+v", err)
 	}
 
-	if builder.AuthConfig.Environment.Synapse != nil {
+	keyVaultAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.KeyVault)
+	if err != nil {
+		return nil, fmt.Errorf("unable to build authorizer for Key Vault API: %+v", err)
+	}
+
+	if _, ok := builder.AuthConfig.Environment.Synapse.ResourceIdentifier(); ok {
 		synapseAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Synapse)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build authorizer for Synapse API: %+v", err)
@@ -77,23 +82,20 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		log.Printf("[DEBUG] Skipping building the Synapse Authorizer since this is not supported in the current Azure Environment")
 	}
 
-	batchManagementAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Batch)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build authorizer for Batch Management API: %+v", err)
-	}
-
-	keyVaultAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.KeyVault)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build authorizer for Key Vault API: %+v", err)
+	if _, ok := builder.AuthConfig.Environment.Batch.ResourceIdentifier(); ok {
+		batchManagementAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Batch)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build authorizer for Batch Management API: %+v", err)
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping building the Batch Management Authorizer since this is not supported in the current Azure Environment")
 	}
 
 	// Helper for obtaining endpoint-specific tokens
-	authorizerFunc := common.EndpointAuthorizerFunc(func(endpoint string) (auth.Authorizer, error) {
-		api := environments.NewApiEndpoint("", endpoint, nil)
-
+	authorizerFunc := common.ApiAuthorizerFunc(func(api environments.Api) (auth.Authorizer, error) {
 		authorizer, err := auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, api)
 		if err != nil {
-			return nil, fmt.Errorf("building custom authorizer for endpoint %s: %+v", endpoint, err)
+			return nil, fmt.Errorf("building custom authorizer for API %q: %+v", api.Name(), err)
 		}
 
 		return authorizer, nil

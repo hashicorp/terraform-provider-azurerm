@@ -41,7 +41,7 @@ func NewResourceManagerAccount(ctx context.Context, authorizer auth.Authorizer, 
 	}
 
 	authenticatedAsServicePrincipal := true
-	if strings.Contains(claims.Scopes, "user_impersonation") {
+	if strings.Contains(strings.ToLower(claims.Scopes), "user_impersonation") {
 		authenticatedAsServicePrincipal = false
 	}
 

@@ -24,10 +24,10 @@ type Authorizers struct {
 	Synapse         auth.Authorizer
 
 	// Some data-plane APIs require a token scoped for a specific endpoint
-	AuthorizerFunc EndpointAuthorizerFunc
+	AuthorizerFunc ApiAuthorizerFunc
 }
 
-type EndpointAuthorizerFunc func(endpoint string) (auth.Authorizer, error)
+type ApiAuthorizerFunc func(api environments.Api) (auth.Authorizer, error)
 
 type ClientOptions struct {
 	Authorizers *Authorizers
