@@ -11,8 +11,8 @@ import (
 var _ resourceids.Id = ThreatIntelligenceIndicatorId{}
 
 func TestThreatIntelligenceIndicatorIDFormatter(t *testing.T) {
-	actual := NewThreatIntelligenceIndicatorID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "indicator1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/threatIntelligence/indicator1"
+	actual := NewThreatIntelligenceIndicatorID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "main", "indicator1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/threatIntelligence/main/indicators/indicator1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -80,19 +80,32 @@ func TestThreatIntelligenceIndicatorID(t *testing.T) {
 		},
 
 		{
+			// missing IndicatorName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/threatIntelligence/main/",
+			Error: true,
+		},
+
+		{
+			// missing value for IndicatorName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/threatIntelligence/main/indicators/",
+			Error: true,
+		},
+
+		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/threatIntelligence/indicator1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/threatIntelligence/main/indicators/indicator1",
 			Expected: &ThreatIntelligenceIndicatorId{
-				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resGroup1",
-				WorkspaceName:  "workspace1",
-				IndicatorName:  "indicator1",
+				SubscriptionId:         "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:          "resGroup1",
+				WorkspaceName:          "workspace1",
+				ThreatIntelligenceName: "main",
+				IndicatorName:          "indicator1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.OPERATIONALINSIGHTS/WORKSPACES/WORKSPACE1/PROVIDERS/MICROSOFT.SECURITYINSIGHTS/THREATINTELLIGENCE/INDICATOR1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.OPERATIONALINSIGHTS/WORKSPACES/WORKSPACE1/PROVIDERS/MICROSOFT.SECURITYINSIGHTS/THREATINTELLIGENCE/MAIN/INDICATORS/INDICATOR1",
 			Error: true,
 		},
 	}
@@ -121,8 +134,11 @@ func TestThreatIntelligenceIndicatorID(t *testing.T) {
 		if actual.WorkspaceName != v.Expected.WorkspaceName {
 			t.Fatalf("Expected %q but got %q for WorkspaceName", v.Expected.WorkspaceName, actual.WorkspaceName)
 		}
+		if actual.ThreatIntelligenceName != v.Expected.ThreatIntelligenceName {
+			t.Fatalf("Expected %q but got %q for ThreatIntelligenceName", v.Expected.ThreatIntelligenceName, actual.ThreatIntelligenceName)
+		}
 		if actual.IndicatorName != v.Expected.IndicatorName {
-			t.Fatalf("Expected %q but got %q for ThreatIntelligenceName", v.Expected.IndicatorName, actual.IndicatorName)
+			t.Fatalf("Expected %q but got %q for IndicatorName", v.Expected.IndicatorName, actual.IndicatorName)
 		}
 	}
 }

@@ -10,24 +10,27 @@ import (
 )
 
 type ThreatIntelligenceIndicatorId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	WorkspaceName  string
-	IndicatorName  string
+	SubscriptionId         string
+	ResourceGroup          string
+	WorkspaceName          string
+	ThreatIntelligenceName string
+	IndicatorName          string
 }
 
-func NewThreatIntelligenceIndicatorID(subscriptionId, resourceGroup, workspaceName, indicatorName string) ThreatIntelligenceIndicatorId {
+func NewThreatIntelligenceIndicatorID(subscriptionId, resourceGroup, workspaceName, threatIntelligenceName, indicatorName string) ThreatIntelligenceIndicatorId {
 	return ThreatIntelligenceIndicatorId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		WorkspaceName:  workspaceName,
-		IndicatorName:  indicatorName,
+		SubscriptionId:         subscriptionId,
+		ResourceGroup:          resourceGroup,
+		WorkspaceName:          workspaceName,
+		ThreatIntelligenceName: threatIntelligenceName,
+		IndicatorName:          indicatorName,
 	}
 }
 
 func (id ThreatIntelligenceIndicatorId) String() string {
 	segments := []string{
-		fmt.Sprintf("Threat Intelligence Name %q", id.IndicatorName),
+		fmt.Sprintf("Indicator Name %q", id.IndicatorName),
+		fmt.Sprintf("Threat Intelligence Name %q", id.ThreatIntelligenceName),
 		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
@@ -36,8 +39,8 @@ func (id ThreatIntelligenceIndicatorId) String() string {
 }
 
 func (id ThreatIntelligenceIndicatorId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/providers/Microsoft.SecurityInsights/threatIntelligence/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.IndicatorName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/providers/Microsoft.SecurityInsights/threatIntelligence/%s/indicators/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.ThreatIntelligenceName, id.IndicatorName)
 }
 
 // ThreatIntelligenceIndicatorID parses a ThreatIntelligenceIndicator ID into an ThreatIntelligenceIndicatorId struct
@@ -63,7 +66,10 @@ func ThreatIntelligenceIndicatorID(input string) (*ThreatIntelligenceIndicatorId
 	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
-	if resourceId.IndicatorName, err = id.PopSegment("threatIntelligence"); err != nil {
+	if resourceId.ThreatIntelligenceName, err = id.PopSegment("threatIntelligence"); err != nil {
+		return nil, err
+	}
+	if resourceId.IndicatorName, err = id.PopSegment("indicators"); err != nil {
 		return nil, err
 	}
 
