@@ -11,6 +11,7 @@ import (
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
+	redis_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -217,7 +218,7 @@ type Client struct {
 	PrivateDnsResolver    *dnsresolver.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
-	Redis                 *redis.Client
+	Redis                 *redis_v2021_06_01.Client
 	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
 	Resource              *resource.Client
