@@ -17,7 +17,7 @@ import (
 	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
-type DataConnectorMicrosoftThreatIntelligence struct{}
+type DataConnectorMicrosoftThreatIntelligenceResource struct{}
 
 type DataConnectorMicrosoftThreatIntelligenceModel struct {
 	Name                                    string `tfschema:"name"`
@@ -32,7 +32,7 @@ type DataConnectorMicrosoftThreatIntelligenceDataType struct {
 	LookbackDate string `tfschema:"lookback_date"`
 }
 
-func (s DataConnectorMicrosoftThreatIntelligence) Arguments() map[string]*schema.Schema {
+func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -60,33 +60,33 @@ func (s DataConnectorMicrosoftThreatIntelligence) Arguments() map[string]*schema
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Default:      "",
 			ValidateFunc: validation.IsRFC3339Time,
+			AtLeastOneOf: []string{"bing_safety_phishing_url_lookback_date", "microsoft_emerging_threat_feed_lookback_date"},
 		},
 
 		"microsoft_emerging_threat_feed_lookback_date": {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Optional:     true,
-			Default:      "",
 			ValidateFunc: validation.IsRFC3339Time,
+			AtLeastOneOf: []string{"bing_safety_phishing_url_lookback_date", "microsoft_emerging_threat_feed_lookback_date"},
 		},
 	}
 }
 
-func (s DataConnectorMicrosoftThreatIntelligence) Attributes() map[string]*schema.Schema {
+func (s DataConnectorMicrosoftThreatIntelligenceResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (s DataConnectorMicrosoftThreatIntelligence) ModelObject() interface{} {
+func (s DataConnectorMicrosoftThreatIntelligenceResource) ModelObject() interface{} {
 	return &DataConnectorMicrosoftThreatIntelligenceModel{}
 }
 
-func (s DataConnectorMicrosoftThreatIntelligence) ResourceType() string {
+func (s DataConnectorMicrosoftThreatIntelligenceResource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_microsoft_threat_intelligence"
 }
 
-func (s DataConnectorMicrosoftThreatIntelligence) Create() sdk.ResourceFunc {
+func (s DataConnectorMicrosoftThreatIntelligenceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -128,13 +128,6 @@ func (s DataConnectorMicrosoftThreatIntelligence) Create() sdk.ResourceFunc {
 					TenantID: &tenantId,
 				},
 			}
-
-			// if both data types are disabled, the service will not create the data connector.
-			if dataConnector.MSTIDataConnectorProperties.DataTypes.BingSafetyPhishingURL.State == securityinsight.DataTypeStateDisabled &&
-				dataConnector.MSTIDataConnectorProperties.DataTypes.MicrosoftEmergingThreatFeed.State == securityinsight.DataTypeStateDisabled {
-				return fmt.Errorf("at least one of `bing_safety_phishing_url_lookback_date` and `microsoft_emerging_threat_feed_lookback_date` must be specified")
-			}
-
 			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, dataConnector)
 			if err != nil {
 				return fmt.Errorf("creating %+v", err)
@@ -146,7 +139,7 @@ func (s DataConnectorMicrosoftThreatIntelligence) Create() sdk.ResourceFunc {
 	}
 }
 
-func (s DataConnectorMicrosoftThreatIntelligence) Read() sdk.ResourceFunc {
+func (s DataConnectorMicrosoftThreatIntelligenceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -205,7 +198,7 @@ func (s DataConnectorMicrosoftThreatIntelligence) Read() sdk.ResourceFunc {
 	}
 }
 
-func (s DataConnectorMicrosoftThreatIntelligence) Delete() sdk.ResourceFunc {
+func (s DataConnectorMicrosoftThreatIntelligenceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -225,7 +218,7 @@ func (s DataConnectorMicrosoftThreatIntelligence) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (s DataConnectorMicrosoftThreatIntelligence) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (s DataConnectorMicrosoftThreatIntelligenceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.DataConnectorID
 }
 
