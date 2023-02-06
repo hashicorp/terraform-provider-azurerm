@@ -12,7 +12,8 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.55.0` of `github.com/manicminer/hamilton` [GH-20272]
 * `azurestackhci`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
 * `digitaltwins`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
-* 
+* `redis`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20313]
+
 BUG FIXES:
 
 * `azurerm_custom_provider` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` [GH-20315]
