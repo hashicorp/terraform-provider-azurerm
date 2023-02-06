@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -518,17 +518,17 @@ func TestAccRedisCache_SkuDowngrade(t *testing.T) {
 }
 
 func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CacheID(state.ID)
+	id, err := redis.ParseRediID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Redis.Client.Get(ctx, id.ResourceGroup, id.RediName)
+	resp, err := clients.Redis.Redis.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Redis Cache (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (RedisCacheResource) basic(data acceptance.TestData, requireSSL bool) string {

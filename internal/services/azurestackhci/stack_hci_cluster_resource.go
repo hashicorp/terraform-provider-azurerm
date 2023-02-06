@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-09-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-12-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/validate"
@@ -71,7 +71,7 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 }
 
 func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
+	client := meta.(*clients.Client).AzureStackHCI.Clusters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -113,7 +113,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
+	client := meta.(*clients.Client).AzureStackHCI.Clusters
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -153,7 +153,7 @@ func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
+	client := meta.(*clients.Client).AzureStackHCI.Clusters
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -176,7 +176,7 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceArmStackHCIClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
+	client := meta.(*clients.Client).AzureStackHCI.Clusters
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

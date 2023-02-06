@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01/patchschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceRedisCache() *pluginsdk.Resource {
@@ -220,43 +221,61 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Redis.Client
+	client := meta.(*clients.Client).Redis.Redis
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedulesClient
+	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedules
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewCacheID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.RediName)
+	id := redis.NewRediID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	patchScheduleRedisId := patchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
+	schedule, err := patchSchedulesClient.Get(ctx, patchScheduleRedisId)
+	if err != nil {
+		return fmt.Errorf("obtaining patch schedules for %s: %+v", id, err)
+	}
+	var patchSchedule []interface{}
+	if model := schedule.Model; model != nil {
+		patchSchedule = flattenRedisPatchSchedules(*schedule.Model)
+	}
+
+	keys, err := client.ListKeys(ctx, id)
+	if err != nil {
+		return fmt.Errorf("listing keys for %s: %+v", id, err)
+	}
+
 	d.SetId(id.ID())
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("zones", zones.FlattenUntyped(resp.Zones))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
-	if sku := resp.Sku; sku != nil {
+		props := model.Properties
+		sku := props.Sku
 		d.Set("capacity", sku.Capacity)
 		d.Set("family", sku.Family)
 		d.Set("sku_name", sku.Name)
-	}
 
-	props := resp.Properties
-	if props != nil {
 		d.Set("ssl_port", props.SslPort)
 		d.Set("hostname", props.HostName)
-		d.Set("minimum_tls_version", string(props.MinimumTLSVersion))
+		minimumTlsVersion := string(redis.TlsVersionOnePointTwo)
+		if props.MinimumTlsVersion != nil {
+			minimumTlsVersion = string(*props.MinimumTlsVersion)
+		}
+		d.Set("minimum_tls_version", minimumTlsVersion)
 		d.Set("port", props.Port)
 		d.Set("enable_non_ssl_port", props.EnableNonSslPort)
 		shardCount := 0
@@ -266,8 +285,8 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("shard_count", shardCount)
 		d.Set("private_static_ip_address", props.StaticIP)
 		subnetId := ""
-		if props.SubnetID != nil {
-			parsed, err := networkParse.SubnetIDInsensitively(*props.SubnetID)
+		if props.SubnetId != nil {
+			parsed, err := networkParse.SubnetIDInsensitively(*props.SubnetId)
 			if err != nil {
 				return err
 			}
@@ -275,39 +294,32 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 			subnetId = parsed.ID()
 		}
 		d.Set("subnet_id", subnetId)
-	}
 
-	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)
-	if err != nil {
-		return fmt.Errorf("flattening `redis_configuration`: %+v", err)
-	}
-	if err := d.Set("redis_configuration", redisConfiguration); err != nil {
-		return fmt.Errorf("setting `redis_configuration`: %+v", err)
-	}
-
-	schedule, err := patchSchedulesClient.Get(ctx, id.ResourceGroup, id.RediName)
-	if err == nil {
-		patchSchedule := flattenRedisPatchSchedules(schedule)
-		if err = d.Set("patch_schedule", patchSchedule); err != nil {
-			return fmt.Errorf("setting `patch_schedule`: %+v", err)
+		redisConfiguration, err := flattenRedisConfiguration(props.RedisConfiguration)
+		if err != nil {
+			return fmt.Errorf("flattening `redis_configuration`: %+v", err)
 		}
-	} else {
-		d.Set("patch_schedule", []interface{}{})
-	}
+		if err := d.Set("redis_configuration", redisConfiguration); err != nil {
+			return fmt.Errorf("setting `redis_configuration`: %+v", err)
+		}
 
-	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.RediName)
-	if err != nil {
-		return err
-	}
-
-	d.Set("primary_access_key", keys.PrimaryKey)
-	d.Set("secondary_access_key", keys.SecondaryKey)
-
-	if props != nil {
 		enableSslPort := !*props.EnableNonSslPort
-		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keys.PrimaryKey, enableSslPort))
-		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keys.SecondaryKey, enableSslPort))
+		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keys.Model.PrimaryKey, enableSslPort))
+		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keys.Model.SecondaryKey, enableSslPort))
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	if err = d.Set("patch_schedule", patchSchedule); err != nil {
+		return fmt.Errorf("setting `patch_schedule`: %+v", err)
+	}
+
+	if model := keys.Model; model != nil {
+		d.Set("primary_access_key", model.PrimaryKey)
+		d.Set("secondary_access_key", model.SecondaryKey)
+	}
+
+	return nil
 }
