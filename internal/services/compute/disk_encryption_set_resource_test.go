@@ -171,6 +171,22 @@ func TestAccDiskEncryptionSet_withFederatedClientId(t *testing.T) {
 	})
 }
 
+func TestAccDiskEncryptionSet_disablePurgeProtection(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disablePurgeProtection(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("encryption_type").HasValue("EncryptionAtRestWithCustomerKey"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (DiskEncryptionSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := diskencryptionsets.ParseDiskEncryptionSetID(state.ID)
 	if err != nil {
@@ -190,7 +206,7 @@ func (DiskEncryptionSetResource) Exists(ctx context.Context, clients *clients.Cl
 	return utils.Bool(model.Id != nil), nil
 }
 
-func (DiskEncryptionSetResource) dependencies(data acceptance.TestData) string {
+func (DiskEncryptionSetResource) dependencies(data acceptance.TestData, purgeProtectionEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -215,7 +231,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
-  purge_protection_enabled    = true
+  purge_protection_enabled    = %t
   enabled_for_disk_encryption = true
 }
 
@@ -258,7 +274,7 @@ resource "azurerm_key_vault_key" "test" {
   depends_on = ["azurerm_key_vault_access_policy.service-principal"]
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, purgeProtectionEnabled)
 }
 
 func (r DiskEncryptionSetResource) systemAssignedDependencies(data acceptance.TestData) string {
@@ -276,7 +292,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
   object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
-}`, r.dependencies(data))
+}`, r.dependencies(data, true))
 }
 
 func (r DiskEncryptionSetResource) basic(data acceptance.TestData) string {
@@ -428,7 +444,7 @@ resource "azurerm_disk_encryption_set" "test" {
 
   depends_on = ["azurerm_key_vault_access_policy.user-assigned"]
 }
-	`, r.dependencies(data), data.RandomInteger)
+	`, r.dependencies(data, true), data.RandomInteger)
 }
 
 func (r DiskEncryptionSetResource) systemAssignedUserAssignedIdentity(data acceptance.TestData) string {
@@ -518,5 +534,35 @@ resource "azurerm_disk_encryption_set" "test" {
 
   depends_on = ["azurerm_key_vault_access_policy.user-assigned"]
 }
-	`, r.dependencies(data), data.RandomInteger, federatedClientId)
+	`, r.dependencies(data, true), data.RandomInteger, federatedClientId)
+}
+
+func (r DiskEncryptionSetResource) disablePurgeProtection(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_access_policy" "disk-encryption" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
+  ]
+
+  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+}
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                = "acctestDES-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.dependencies(data, false), data.RandomInteger)
 }
