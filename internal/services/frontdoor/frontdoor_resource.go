@@ -10,13 +10,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -487,8 +487,8 @@ func expandFrontDoorBackend(input []interface{}) *[]frontdoors.Backend {
 			Address:           utils.String(address),
 			BackendHostHeader: utils.String(hostHeader),
 			EnabledState:      &enabled,
-			HttpPort:          utils.Int64(httpPort),
-			HttpsPort:         utils.Int64(httpsPort),
+			HTTPPort:          utils.Int64(httpPort),
+			HTTPSPort:         utils.Int64(httpsPort),
 			Priority:          utils.Int64(priority),
 			Weight:            utils.Int64(weight),
 		}
@@ -695,9 +695,9 @@ func expandFrontDoorAcceptedProtocols(input []interface{}) *[]frontdoors.FrontDo
 	output := make([]frontdoors.FrontDoorProtocol, 0)
 
 	for _, ap := range input {
-		result := frontdoors.FrontDoorProtocolHttps
-		if ap.(string) == string(frontdoors.FrontDoorProtocolHttp) {
-			result = frontdoors.FrontDoorProtocolHttp
+		result := frontdoors.FrontDoorProtocolHTTPS
+		if ap.(string) == string(frontdoors.FrontDoorProtocolHTTP) {
+			result = frontdoors.FrontDoorProtocolHTTP
 		}
 		output = append(output, result)
 	}
@@ -1065,10 +1065,10 @@ func flattenFrontDoorBackend(input *[]frontdoors.Backend) []interface{} {
 		if v.EnabledState != nil {
 			result["enabled"] = *v.EnabledState == frontdoors.BackendEnabledStateEnabled
 		}
-		if httpPort := v.HttpPort; httpPort != nil {
+		if httpPort := v.HTTPPort; httpPort != nil {
 			result["http_port"] = int(*httpPort)
 		}
-		if httpsPort := v.HttpsPort; httpsPort != nil {
+		if httpsPort := v.HTTPSPort; httpsPort != nil {
 			result["https_port"] = int(*httpsPort)
 		}
 		if priority := v.Priority; priority != nil {
@@ -1778,8 +1778,8 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoors.FrontDoorProtocolHttp),
-								string(frontdoors.FrontDoorProtocolHttps),
+								string(frontdoors.FrontDoorProtocolHTTP),
+								string(frontdoors.FrontDoorProtocolHTTPS),
 							}, false),
 						},
 					},
@@ -1827,8 +1827,8 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										string(frontdoors.FrontDoorRedirectProtocolHttpOnly),
-										string(frontdoors.FrontDoorRedirectProtocolHttpsOnly),
+										string(frontdoors.FrontDoorRedirectProtocolHTTPOnly),
+										string(frontdoors.FrontDoorRedirectProtocolHTTPSOnly),
 										string(frontdoors.FrontDoorRedirectProtocolMatchRequest),
 									}, false),
 								},
@@ -1898,10 +1898,10 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 								"forwarding_protocol": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									Default:  string(frontdoors.FrontDoorForwardingProtocolHttpsOnly),
+									Default:  string(frontdoors.FrontDoorForwardingProtocolHTTPSOnly),
 									ValidateFunc: validation.StringInSlice([]string{
-										string(frontdoors.FrontDoorForwardingProtocolHttpOnly),
-										string(frontdoors.FrontDoorForwardingProtocolHttpsOnly),
+										string(frontdoors.FrontDoorForwardingProtocolHTTPOnly),
+										string(frontdoors.FrontDoorForwardingProtocolHTTPSOnly),
 										string(frontdoors.FrontDoorForwardingProtocolMatchRequest),
 									}, false),
 								},
@@ -1974,10 +1974,10 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"protocol": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Default:  string(frontdoors.FrontDoorProtocolHttp),
+						Default:  string(frontdoors.FrontDoorProtocolHTTP),
 						ValidateFunc: validation.StringInSlice([]string{
-							string(frontdoors.FrontDoorProtocolHttp),
-							string(frontdoors.FrontDoorProtocolHttps),
+							string(frontdoors.FrontDoorProtocolHTTP),
+							string(frontdoors.FrontDoorProtocolHTTPS),
 						}, false),
 					},
 					"probe_method": {

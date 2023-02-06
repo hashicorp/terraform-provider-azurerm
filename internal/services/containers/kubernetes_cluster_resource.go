@@ -1630,7 +1630,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("key_vault_secrets_provider") {
+	if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("confidential_computing") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("key_vault_secrets_provider") {
 		updateCluster = true
 		addOns := collectKubernetesAddons(d)
 		addonProfiles, err := expandKubernetesAddOns(d, addOns, env)
@@ -2141,6 +2141,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			addOns := flattenKubernetesAddOns(*props.AddonProfiles)
 			d.Set("aci_connector_linux", addOns["aci_connector_linux"])
 			d.Set("azure_policy_enabled", addOns["azure_policy_enabled"].(bool))
+			d.Set("confidential_computing", addOns["confidential_computing"])
 			d.Set("http_application_routing_enabled", addOns["http_application_routing_enabled"].(bool))
 			d.Set("http_application_routing_zone_name", addOns["http_application_routing_zone_name"])
 			d.Set("oms_agent", addOns["oms_agent"])

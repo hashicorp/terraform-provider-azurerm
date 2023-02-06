@@ -215,6 +215,16 @@ The following attributes are exported:
 
 * `id` - The ID of the Private Endpoint.
 
+* `network_interface` - A `network_interface` block as defined below.
+
+* `custom_dns_configs` - A `custom_dns_configs` block as defined below.
+
+* `private_dns_zone_configs` - A `private_dns_zone_configs` block as defined below.
+
+* `ip_configuration` - A `ip_configuration` block as defined below.
+
+* `private_dns_zone_configs` - A `private_dns_zone_configs` block as defined below.
+
 ---
 
 A `network_interface` block exports:
@@ -266,6 +276,12 @@ An `ip_configuration` block exports:
 * `private_ip_address` - (Required) The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
 
 * `subresource_name` - (Required) The subresource this IP address applies to, which corresponds to the `group_id`.
+
+---
+
+A `private_dns_zone_configs` block exports:
+
+* `record_sets` - A `record_sets` block as defined below.
 
 ---
 

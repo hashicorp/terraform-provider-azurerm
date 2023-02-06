@@ -26,9 +26,9 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_security_insights_sentinel_onboarding" "example" {
-  resource_group_name  = azurerm_resource_group.example.name
-  workspace_name       = azurerm_log_analytics_workspace.example.name
-  customer_managed_key = false
+  resource_group_name          = azurerm_resource_group.example.name
+  workspace_name               = azurerm_log_analytics_workspace.example.name
+  customer_managed_key_enabled = false
 }
 ```
 
@@ -38,9 +38,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Security Insights Sentinel Onboarding States should exist. Changing this forces the Log Analytics Workspace off the board and onboard again.
 
-* `workspace_name` - (Required) Specifies the Workspace Name. Changing this forces the Log Analytics Workspace off the board and onboard again.
+* `workspace_name` - (Required) Specifies the Workspace Name. Changing this forces the Log Analytics Workspace off the board and onboard again. Changing this forces a new resource to be created.
 
-* `customer_managed_key_enabled` - (Optional) Specifies if the Workspace is using Customer managed key. Defaults to `false`.
+* `customer_managed_key_enabled` - (Optional) Specifies if the Workspace is using Customer managed key. Defaults to `false`. Changing this forces a new resource to be created.
 
 -> **Note:** To set up Microsoft Sentinel customer-managed key it needs to enable CMK on the workspace and add access policy to your Azure Key Vault. Details could be found on [this document](https://learn.microsoft.com/en-us/azure/sentinel/customer-managed-keys)
 
@@ -67,5 +67,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Security Insights Sentinel Onboarding States can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_security_insights_sentinel_onboarding_state.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/onboardingStates/defaults
+terraform import azurerm_security_insights_sentinel_onboarding.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/onboardingStates/defaults
 ```

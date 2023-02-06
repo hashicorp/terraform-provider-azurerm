@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `backup_retention_days` - (Optional) The backup retention days for the PostgreSQL Flexible Server. Possible values are between `7` and `35` days.
 
-* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Changing this forces a new resource to be created.
 
 * `geo_redundant_backup_enabled` - (Optional) Is Geo-Redundant backup enabled on the PostgreSQL Flexible Server. Defaults to `false`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -136,9 +136,9 @@ The following arguments are supported:
 
 An `authentication` block supports the following:
 
-* `active_directory_auth_enabled` - (Optional) Whether or not Active Directory authentication is allowed to access the PostgreSQL Flexible Server.
+* `active_directory_auth_enabled` - (Optional) Whether or not Active Directory authentication is allowed to access the PostgreSQL Flexible Server. Defaults to `false`.
 
-* `password_auth_enabled` - (Optional) Whether or not password authentication is allowed to access the PostgreSQL Flexible Server.
+* `password_auth_enabled` - (Optional) Whether or not password authentication is allowed to access the PostgreSQL Flexible Server. Defaults to `true`.
 
 * `tenant_id` - (Optional) The Tenant ID of the Azure Active Directory which is used by the Active Directory authentication. `active_directory_auth_enabled` must be set to `true`.
 
@@ -150,9 +150,9 @@ An `authentication` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Required) The ID of the Key Vault Key.
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key.
 
-* `primary_user_assigned_identity_id` - (Required) Specifies the primary user managed identity id for a Customer Managed Key. Should be added with `identity_ids`.
+* `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id for a Customer Managed Key. Should be added with `identity_ids`.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
@@ -180,7 +180,7 @@ A `maintenance_window` block supports the following:
 
 A `high_availability` block supports the following:
 
-* `mode` - (Required) The high availability mode for the PostgreSQL Flexible Server. The only possible value is `ZoneRedundant`.
+* `mode` - (Required) The high availability mode for the PostgreSQL Flexible Server. Possible value are `SameZone` or `ZoneRedundant`.
 
 * `standby_availability_zone` - (Optional) Specifies the Availability Zone in which the standby Flexible Server should be located.
 

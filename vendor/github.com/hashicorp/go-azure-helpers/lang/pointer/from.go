@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package pointer
 
 // FromBool turns a boolean into a pointer to a boolean

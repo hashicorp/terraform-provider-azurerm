@@ -170,7 +170,7 @@ ASP.NET V4.8 | v4.0
 
 ~> **NOTE:** This property conflicts with `java_version`.
 
-* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values are `v7.1`, `v7.4` and `Off`.
+* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values are `7.1`, `7.4` and `Off`.
 
 ~> **NOTE:** The value `Off` is used to signify latest supported by the service.
 
@@ -228,7 +228,7 @@ A `azure_blob_storage` block supports the following:
 
 * `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
-* `retention_in_days` - (Optional) The time in days after which to remove blobs. A value of `0` means no retention.
+* `retention_in_days` - (Required) The time in days after which to remove blobs. A value of `0` means no retention.
 
 * `sas_url` - (Required) SAS url to an Azure blob container with read/write/list/delete permissions.
 
@@ -332,9 +332,17 @@ A `headers` block supports the following:
 
 A `http_logs` block supports the following:
 
-* `azure_blob_storage` - (Optional) A `azure_blob_storage` block as defined above.
+* `azure_blob_storage` - (Optional) A `azure_blob_storage_http` block as defined above.
 
 * `file_system` - (Optional) A `file_system` block as defined above.
+
+---
+
+An `azure_blob_storage_http` block supports the following:
+
+* `retention_in_days` - (Optional) The time in days after which to remove blobs. A value of `0` means no retention.
+
+* `sas_url` - (Required) SAS url to an Azure blob container with read/write/list/delete permissions.
 
 ---
 
@@ -441,6 +449,8 @@ A `site_config` block supports the following:
 * `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `true`.
 
 ~> **NOTE:** `always_on` must be explicitly set to `false` when using `Free`, `F1`, `D1`, or `Shared` Service Plans.
+
+* `api_definition_url` - (Optional) The URL to the API Definition for this Windows Web App.
 
 * `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot is associated with.
 

@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether to enabled public networks when data plane traffic coming from public networks while private endpoint is enabled. Defaults to `true`.
 
+* `tags` - (Optional) A mapping of tags to assign to the Healthcare DICOM Service.
+
 ---
 
 An `identity` block supports the following:
