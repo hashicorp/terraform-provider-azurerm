@@ -232,6 +232,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/customproviders/2018-09-01-pr
 github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2022-08-01/grafanaresource
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/accessconnector
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces
+github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/agreements
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/apikey
