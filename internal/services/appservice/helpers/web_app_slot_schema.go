@@ -845,16 +845,6 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 					currentStack = CurrentStackDotNet
 				}
 			}
-			if winAppStack.AspDotNetVersion != "" {
-				clrVersion := "v4.0"
-				if winAppStack.AspDotNetVersion == "v3.5" {
-					clrVersion = "v2.0"
-				}
-				expanded.NetFrameworkVersion = utils.String(clrVersion)
-				if currentStack == "" {
-					currentStack = CurrentStackDotNet
-				}
-			}
 
 			if !features.FourPointOhBeta() {
 				if winAppStack.NetCoreVersion != "" {
@@ -1092,32 +1082,12 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 	winAppStack := ApplicationStackWindows{}
 
 	if appSiteSlotConfig.NetFrameworkVersion != nil {
-		switch *appSiteSlotConfig.NetFrameworkVersion {
-		case DotNetCLRVersionTwoPointOh:
-			{
-				if v, _ := metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_version").(string); v != "" && !features.FourPointOhBeta() {
-					winAppStack.NetFrameworkVersion = pointer.From(appSiteSlotConfig.NetFrameworkVersion)
-				} else {
-					winAppStack.AspDotNetVersion = AspDotNetVersionThreePointFive
-				}
+		winAppStack.NetFrameworkVersion = pointer.From(appSiteSlotConfig.NetFrameworkVersion)
+		if *appSiteSlotConfig.NetFrameworkVersion == DotNetCLRVersionFourPointOh {
+			if !features.FourPointOhBeta() && metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_core_version").(string) != "" {
+				winAppStack.NetCoreVersion = DotNetCoreVersionThreePointOne
+				winAppStack.NetFrameworkVersion = ""
 			}
-		case DotNetCLRVersionFourPointOh:
-			{
-				if !features.FourPointOhBeta() {
-					winAppStack.AspDotNetVersion = AspDotNetVersionFourPointEight
-					if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_core_version").(string) != "" {
-						winAppStack.NetCoreVersion = DotNetCoreVersionThreePointOne
-						winAppStack.AspDotNetVersion = ""
-					} else if metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_version").(string) != "" {
-						winAppStack.NetFrameworkVersion = pointer.From(appSiteSlotConfig.NetFrameworkVersion)
-						winAppStack.AspDotNetVersion = ""
-					}
-				} else {
-					winAppStack.AspDotNetVersion = AspDotNetVersionFourPointEight
-				}
-			}
-		default:
-			winAppStack.NetFrameworkVersion = pointer.From(appSiteSlotConfig.NetFrameworkVersion)
 		}
 	}
 

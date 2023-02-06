@@ -561,38 +561,7 @@ func TestAccWindowsWebAppSlot_withDotNetCore(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("site_config.0.application_stack.0.dotnet_core_version"),
-		data.ImportStep("site_config.0.application_stack.0.asp_dotnet_version"),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withAspDotNet35(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.aspDotNet(data, "v3.5"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withAspDotNet48(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.aspDotNet(data, "v4.8"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
+		data.ImportStep("site_config.0.application_stack.0.dotnet_core_version", "site_config.0.application_stack.0.dotnet_version"),
 	})
 }
 
@@ -1678,35 +1647,13 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_web_app_slot" "test" {
-  name                = "acctestWA-%d"
+  name           = "acctestWA-%d"
   app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
     application_stack {
       dotnet_core_version = "%s"
       current_stack       = "dotnetcore"
-    }
-  }
-}
-`, r.baseTemplate(data), data.RandomInteger, dotNetVersion)
-}
-
-func (r WindowsWebAppSlotResource) aspDotNet(data acceptance.TestData, dotNetVersion string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_windows_web_app_slot" "test" {
-  name                = "acctestWA-%d"
-app_service_id = azurerm_windows_web_app.test.id
-
-
-  site_config {
-    application_stack {
-      asp_dotnet_version = "%s"
     }
   }
 }

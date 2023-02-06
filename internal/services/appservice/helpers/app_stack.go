@@ -42,7 +42,6 @@ type ApplicationStackWindows struct {
 	JavaVersion             string `tfschema:"java_version"`
 	NetFrameworkVersion     string `tfschema:"dotnet_version"`
 	NetCoreVersion          string `tfschema:"dotnet_core_version"`
-	AspDotNetVersion        string `tfschema:"asp_dotnet_version"`
 	NodeVersion             string `tfschema:"node_version"`
 	PhpVersion              string `tfschema:"php_version"`
 	PythonVersion           string `tfschema:"python_version"`
@@ -73,6 +72,9 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 								"v7.0"}, false)
 						}
 						return validation.StringInSlice([]string{
+							"v2.0",
+							"v4.0",
+							"v5.0",
 							"v6.0",
 							"v7.0",
 						}, false)
@@ -81,34 +83,12 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
-						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
 						"site_config.0.application_stack.0.python",
 						"site_config.0.application_stack.0.python_version",
 					},
-				},
-
-				"asp_dotnet_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"v3.5",
-						"v4.8",
-					}, false),
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.docker_container_name",
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.dotnet_core_version",
-						"site_config.0.application_stack.0.asp_dotnet_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python",
-						"site_config.0.application_stack.0.python_version",
-					},
-					Description: "The version of ASP DotNet to use.",
 				},
 
 				"php_version": {
@@ -124,7 +104,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
-						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -142,7 +121,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
-						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -162,7 +140,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
-						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -187,7 +164,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
-						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -204,7 +180,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
-						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -272,7 +247,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.dotnet_core_version",
-						"site_config.0.application_stack.0.asp_dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
@@ -327,7 +301,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"site_config.0.application_stack.0.docker_container_name",
 				"site_config.0.application_stack.0.dotnet_version",
 				"site_config.0.application_stack.0.dotnet_core_version",
-				"site_config.0.application_stack.0.asp_dotnet_version",
 				"site_config.0.application_stack.0.java_version",
 				"site_config.0.application_stack.0.node_version",
 				"site_config.0.application_stack.0.php_version",
@@ -347,11 +320,6 @@ func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"dotnet_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"asp_dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
