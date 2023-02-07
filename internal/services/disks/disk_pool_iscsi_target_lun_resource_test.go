@@ -8,12 +8,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/iscsitargets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -97,7 +98,7 @@ func TestAccDiskPoolIscsiTargetLun_destroy(t *testing.T) {
 }
 
 func (r DisksPoolIscsiTargetLunResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := iscsitargets.ParseIscsiTargetLunID(state.ID)
+	id, err := parse.IscsiTargetLunID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +127,7 @@ func (r DisksPoolIscsiTargetLunResource) Exists(ctx context.Context, clients *cl
 func (r DisksPoolIscsiTargetLunResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Minute)
 	defer cancel()
-	id, err := iscsitargets.ParseIscsiTargetLunID(state.ID)
+	id, err := parse.IscsiTargetLunID(state.ID)
 	if err != nil {
 		return nil, err
 	}

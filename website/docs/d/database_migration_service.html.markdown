@@ -10,7 +10,6 @@ description: |-
 
 Use this data source to access information about an existing Database Migration Service.
 
-
 ## Example Usage
 
 ```hcl
@@ -27,7 +26,6 @@ output "azurerm_dms_id" {
   value = data.azurerm_database_migration_service.example.id
 }
 ```
-
 
 ## Argument Reference
 

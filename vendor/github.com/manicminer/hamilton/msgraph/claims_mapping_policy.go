@@ -125,12 +125,13 @@ func (c *ClaimsMappingPolicyClient) Get(ctx context.Context, id string, query od
 func (c *ClaimsMappingPolicyClient) Update(ctx context.Context, claimsMappingPolicy ClaimsMappingPolicy) (int, error) {
 	var status int
 
-	if claimsMappingPolicy.ID == nil {
+	if claimsMappingPolicy.ID() == nil {
 		return status, fmt.Errorf("cannot update ClaimsMappingPolicy with nil ID")
 	}
 
-	claimsMappingPolicyId := *claimsMappingPolicy.ID
-	claimsMappingPolicy.ID = nil
+	claimsMappingPolicyId := *claimsMappingPolicy.ID()
+	claimsMappingPolicy.Id = nil
+	claimsMappingPolicy.ObjectId = nil
 
 	body, err := json.Marshal(claimsMappingPolicy)
 	if err != nil {

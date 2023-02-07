@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/contactprofile"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -43,9 +43,9 @@ func (r ContactProfileResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"links": ContactProfileLinkSchema(),
 
@@ -149,9 +149,10 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 				Tags:       &model.Tags,
 			}
 
-			if _, err := client.ContactProfilesCreateOrUpdate(ctx, id, contactProfile); err != nil {
+			if err := client.ContactProfilesCreateOrUpdateThenPoll(ctx, id, contactProfile); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -216,11 +217,10 @@ func (r ContactProfileResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.ContactProfilesDelete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if err := client.ContactProfilesDeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}
@@ -269,7 +269,8 @@ func (r ContactProfileResource) Update() sdk.ResourceFunc {
 					},
 					Tags: &state.Tags,
 				}
-				if _, err := client.ContactProfilesCreateOrUpdate(ctx, *id, contactProfile); err != nil {
+
+				if err := client.ContactProfilesCreateOrUpdateThenPoll(ctx, *id, contactProfile); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}

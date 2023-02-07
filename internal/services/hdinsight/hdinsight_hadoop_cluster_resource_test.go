@@ -366,6 +366,27 @@ func TestAccHDInsightHadoopCluster_diskEncryption(t *testing.T) {
 	})
 }
 
+func TestAccHDInsightHadoopCluster_computeIsolation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	r := HDInsightHadoopClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.computeIsolation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
 func TestAccHDInsightHadoopCluster_allMetastores(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	r := HDInsightHadoopClusterResource{}
@@ -2424,4 +2445,58 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   ]
 }
 `, hdInsightsecurityProfileCommonTemplate(data), data.RandomInteger)
+}
+
+func (r HDInsightHadoopClusterResource) computeIsolation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
+  name                = "acctesthdihadoop-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Premium"
+
+  component_version {
+    hadoop = "3.1"
+  }
+
+  compute_isolation {
+    compute_isolation_enabled = true
+  }
+
+  gateway {
+    username = "sshuser"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_F72s_V2"
+      username = "sshuser"
+      password = "TerrAform123!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_F72s_V2"
+      username              = "sshuser"
+      password              = "TerrAform123!"
+      target_instance_count = 1
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_F72s_V2"
+      username = "sshuser"
+      password = "TerrAform123!"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

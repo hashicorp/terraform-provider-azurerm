@@ -65,7 +65,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 			"certificate": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				ForceNew: true,
 				AtLeastOneOf: []string{
 					"certificate_policy",
 					"certificate",
@@ -76,14 +75,12 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 						"contents": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"password": {
 							Type:      pluginsdk.TypeString,
 							Optional:  true,
-							ForceNew:  true,
 							Sensitive: true,
 						},
 					},
@@ -512,8 +509,15 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
+	if resp.ID == nil {
+		return fmt.Errorf("cannot read KeyVault Certificate '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
+	}
 
-	d.SetId(*resp.ID)
+	certificateId, err := parse.ParseNestedItemID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(certificateId.ID())
 
 	return resourceKeyVaultCertificateRead(d, meta)
 }
@@ -553,13 +557,41 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	patch := keyvault.CertificateUpdateParameters{}
-	if t, ok := d.GetOk("tags"); ok {
-		patch.Tags = tags.Expand(t.(map[string]interface{}))
+
+	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	if err != nil {
+		return err
 	}
 
-	if _, err = client.UpdateCertificate(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, patch); err != nil {
-		return err
+	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseUrl)
+
+	if d.HasChange("certificate") {
+		if v, ok := d.GetOk("certificate"); ok {
+			// Import new version of certificate
+			certificate := expandKeyVaultCertificate(v)
+			importParameters := keyvault.CertificateImportParameters{
+				Base64EncodedCertificate: utils.String(certificate.CertificateData),
+				Password:                 utils.String(certificate.CertificatePassword),
+			}
+			resp, err := client.ImportCertificate(ctx, id.KeyVaultBaseUrl, id.Name, importParameters)
+			if err != nil {
+				return err
+			}
+			if resp.ID != nil {
+				d.SetId(id.ID())
+			}
+		}
+	}
+
+	if d.HasChange("tags") {
+		patch := keyvault.CertificateUpdateParameters{}
+		if t, ok := d.GetOk("tags"); ok {
+			patch.Tags = tags.Expand(t.(map[string]interface{}))
+		}
+
+		if _, err = client.UpdateCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "", patch); err != nil {
+			return err
+		}
 	}
 	return resourceKeyVaultCertificateRead(d, meta)
 }
@@ -709,17 +741,22 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	kv, err := keyVaultsClient.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
+		if utils.ResponseWasNotFound(kv.Response) {
+			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
-	}
-	if !ok {
-		log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
-		d.SetId("")
-		return nil
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedCertsOnDestroy
+	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
+		log.Printf("[DEBUG] cannot purge certificate %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+		shouldPurge = false
+	}
+
 	description := fmt.Sprintf("Certificate %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
 	deleter := deleteAndPurgeCertificate{
 		client:      client,

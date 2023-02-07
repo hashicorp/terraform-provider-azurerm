@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "usernameValue")
+id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "localUserValue")
 
 payload := localusers.LocalUser{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "usernameValue")
+id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "localUserValue")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "usernameValue")
+id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "localUserValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localusers.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := localusers.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
 
 read, err := client.List(ctx, id)
 if err != nil {
@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "usernameValue")
+id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "localUserValue")
 
 read, err := client.ListKeys(ctx, id)
 if err != nil {
@@ -109,7 +109,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "usernameValue")
+id := localusers.NewLocalUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "localUserValue")
 
 read, err := client.RegeneratePassword(ctx, id)
 if err != nil {

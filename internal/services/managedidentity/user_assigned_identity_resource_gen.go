@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2018-11-30/managedidentities"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2022-01-31-preview/managedidentities"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -131,7 +131,7 @@ func (r UserAssignedIdentityResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				schema.Name = id.ResourceName
+				schema.Name = id.UserAssignedIdentityName
 				schema.ResourceGroupName = id.ResourceGroupName
 				if err := r.mapIdentityToUserAssignedIdentityResourceSchema(*model, &schema); err != nil {
 					return fmt.Errorf("flattening model: %+v", err)

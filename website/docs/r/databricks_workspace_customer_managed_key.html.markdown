@@ -106,12 +106,12 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   ]
 }
 ```
+
 ## Example HCL Configurations
 
 * [Databricks Workspace with Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/dbfs)
 * [Databricks Workspace with Customer Managed Keys for Managed Services](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/managed-services)
 * [Databricks Workspace with Private Endpoint, Customer Managed Keys for Managed Services and Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks/managed-services)
-
 
 ## Argument Reference
 
@@ -121,13 +121,11 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Databricks Workspace.
-
 
 ## Timeouts
 

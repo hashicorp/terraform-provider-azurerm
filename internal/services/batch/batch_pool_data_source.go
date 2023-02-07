@@ -293,8 +293,9 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"password": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"elevation_level": {
 							Type:     pluginsdk.TypeString,
@@ -314,8 +315,9 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 										Computed: true,
 									},
 									"ssh_private_key": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Type:      pluginsdk.TypeString,
+										Computed:  true,
+										Sensitive: true,
 									},
 								},
 							},
@@ -433,8 +435,9 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 										Computed: true,
 									},
 									"password": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
+										Type:      pluginsdk.TypeString,
+										Computed:  true,
+										Sensitive: true,
 									},
 								},
 							},

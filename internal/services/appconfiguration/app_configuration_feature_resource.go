@@ -62,7 +62,7 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotWhiteSpace,
+			ValidateFunc: validate.AppConfigurationFeatureName,
 		},
 		"etag": {
 			Type:     pluginsdk.TypeString,

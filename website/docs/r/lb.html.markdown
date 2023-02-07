@@ -41,11 +41,11 @@ resource "azurerm_lb" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Load Balancer.
+* `name` - (Required) Specifies the name of the Load Balancer. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which to create the Load Balancer.
+* `resource_group_name` - (Required) The name of the Resource Group in which to create the Load Balancer. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure Region where the Load Balancer should be created.
+* `location` - (Required) Specifies the supported Azure Region where the Load Balancer should be created. Changing this forces a new resource to be created.
 
 ---
 
@@ -53,19 +53,20 @@ The following arguments are supported:
 
 * `frontend_ip_configuration` - (Optional) One or multiple `frontend_ip_configuration` blocks as documented below.
 
-* `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic`, `Standard` and `Gateway`. Defaults to `Basic`.
+* `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic`, `Standard` and `Gateway`. Defaults to `Basic`. Changing this forces a new resource to be created.
 
 -> **NOTE:** The `Microsoft.Network/AllowGatewayLoadBalancer` feature is required to be registered in order to use the `Gateway` SKU. The feature can only be registered by the Azure service team, please submit an [Azure support ticket](https://azure.microsoft.com/en-us/support/create-ticket/) for that.
 
 * `sku_tier` - (Optional) `sku_tier` - (Optional) The SKU tier of this Load Balancer. Possible values are `Global` and `Regional`. Defaults to `Regional`. Changing this forces a new resource to be created.
-* 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`frontend_ip_configuration` supports the following:
+---
+
+The `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) Specifies the name of the frontend IP configuration.
 
-* `zones` - (Optional) Specifies a list of Availability Zones in which the IP Address for this Load Balancer should be located. Changing this forces a new Load Balancer to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which the IP Address for this Load Balancer should be located.
 
 -> **NOTE:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/azure/availability-zones/az-overview) at this time.
 
@@ -73,7 +74,7 @@ The following arguments are supported:
 * `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway SKU Load Balancer.
 * `private_ip_address` - (Optional) Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned.
 * `private_ip_address_allocation` - (Optional) The allocation method for the Private IP Address used by this Load Balancer. Possible values as `Dynamic` and `Static`.
-* `private_ip_address_version` - The version of IP that the Private IP Address is. Possible values are `IPv4` or `IPv6`.
+* `private_ip_address_version` - (Optional) The version of IP that the Private IP Address is. Possible values are `IPv4` or `IPv6`.
 * `public_ip_address_id` - (Optional) The ID of a Public IP Address which should be associated with the Load Balancer.
 * `public_ip_prefix_id` - (Optional) The ID of a Public IP Prefix which should be associated with the Load Balancer. Public IP Prefix can only be used with outbound rules.
 
@@ -96,8 +97,8 @@ A `frontend_ip_configuration` block exports the following:
 * `load_balancer_rules` - The list of IDs of load balancing rules that use this frontend IP.
 * `outbound_rules` - The list of IDs outbound rules that use this frontend IP.
 * `private_ip_address` - Private IP Address to assign to the Load Balancer.
-* `private_ip_address_allocation` - The allocation method for the Private IP Address used by this Load Balancer.
-* `public_ip_address_id` - The ID of a  Public IP Address which is associated with this Load Balancer.
+* `private_ip_address_allocation` - The allocation method for the Private IP Address used by this Load Balancer. Possible values are `Dynamic` and `Static`.
+* `public_ip_address_id` - The ID of a Public IP Address which is associated with this Load Balancer.
 * `public_ip_prefix_id` - The ID of a Public IP Prefix which is associated with the Load Balancer.
 * `subnet_id` - The ID of the Subnet which is associated with the IP Configuration.
 

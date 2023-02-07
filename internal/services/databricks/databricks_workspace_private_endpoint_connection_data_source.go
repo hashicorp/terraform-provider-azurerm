@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -111,28 +111,37 @@ func flattenPrivateEndpointConnections(input *[]workspaces.PrivateEndpointConnec
 	}
 
 	for _, v := range *input {
-		result := make(map[string]interface{})
-
-		if name := v.Name; name != nil {
-			result["name"] = *name
+		name := ""
+		if v.Name != nil {
+			name = *v.Name
 		}
 
-		if id := v.Id; id != nil {
-			result["workspace_private_endpoint_id"] = *id
+		workspacePrivateEndpointId := ""
+		if v.Id != nil {
+			workspacePrivateEndpointId = *v.Id
 		}
 
 		connState := v.Properties.PrivateLinkServiceConnectionState
-		if description := connState.Description; description != nil {
-			result["description"] = *description
+		actionRequired := ""
+		if connState.ActionsRequired != nil {
+			actionRequired = *connState.ActionsRequired
 		}
-		if status := connState.Status; status != "" {
-			result["status"] = status
+		description := ""
+		if connState.Description != nil {
+			description = *connState.Description
 		}
-		if actionReq := connState.ActionRequired; actionReq != nil {
-			result["action_required"] = *actionReq
+		status := ""
+		if connState.Status != "" {
+			status = string(connState.Status)
 		}
 
-		results = append(results, result)
+		results = append(results, map[string]interface{}{
+			"action_required":               actionRequired,
+			"description":                   description,
+			"name":                          name,
+			"status":                        status,
+			"workspace_private_endpoint_id": workspacePrivateEndpointId,
+		})
 	}
 
 	return results

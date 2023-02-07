@@ -505,7 +505,7 @@ func (r LogAnalyticsQueryPackQueryResource) Read() sdk.ResourceFunc {
 			}
 
 			state := LogAnalyticsQueryPackQueryModel{
-				Name:        id.Id,
+				Name:        id.QueryName,
 				QueryPackId: querypackqueries.NewQueryPackID(id.SubscriptionId, id.ResourceGroupName, id.QueryPackName).ID(),
 				Body:        props.Body,
 				DisplayName: props.DisplayName,

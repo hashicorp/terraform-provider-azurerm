@@ -28,7 +28,7 @@ resource "azurerm_dns_zone" "example-public" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS Zone. Must be a valid domain name.
+* `name` - (Required) The name of the DNS Zone. Must be a valid domain name. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
@@ -42,7 +42,7 @@ The `soa_record` block supports:
 
 * `email` - (Required) The email contact for the SOA record.
 
-* `host_name` - (Required) The domain name of the authoritative name server for the SOA record. Defaults to `ns1-03.azure-dns.com.`.
+* `host_name` - (Required) The domain name of the authoritative name server for the SOA record.
 
 * `expire_time` - (Optional) The expire time for the SOA record. Defaults to `2419200`.
 
@@ -87,5 +87,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 DNS Zones can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_zone.zone1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1
+terraform import azurerm_dns_zone.zone1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1
 ```

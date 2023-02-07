@@ -114,11 +114,11 @@ resource "azurerm_express_route_circuit_peering" "example" {
 
 The following arguments are supported:
 
-* `peering_type` - (Required) The type of the ExpressRoute Circuit Peering. Acceptable values include `AzurePrivatePeering`, `AzurePublicPeering` and `MicrosoftPeering`. Changing this forces a new resource to be created.
+* `peering_type` - (Required) The type of the ExpressRoute Circuit Peering. Acceptable values include `AzurePrivatePeering`, `AzurePublicPeering` and `MicrosoftPeering`. 
 
 ~> **NOTE:** only one Peering of each Type can be created. Attempting to create multiple peerings of the same type will overwrite the original peering.
 
-* `express_route_circuit_name` - (Required) The name of the ExpressRoute Circuit in which to create the Peering.
+* `express_route_circuit_name` - (Required) The name of the ExpressRoute Circuit in which to create the Peering. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Express Route Circuit Peering. Changing this forces a new resource to be created.
 
@@ -146,9 +146,9 @@ A `microsoft_peering_config` block contains:
 
 * `advertised_public_prefixes` - (Required) A list of Advertised Public Prefixes.
 
-* `customer_asn` - (Optional) The CustomerASN of the peering.
+* `customer_asn` - (Optional) The CustomerASN of the peering. Defaults to `0`.
 
-* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered.  For example:  `ARIN`, `RIPE`, `AFRINIC` etc. 
+* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example: `ARIN`, `RIPE`, `AFRINIC` etc. Defaults to `NONE`.
 
 ---
 
@@ -157,10 +157,10 @@ A `ipv6` block contains:
 * `primary_peer_address_prefix` - (Required) A subnet for the primary link.
 
 * `secondary_peer_address_prefix` - (Required) A subnet for the secondary link.
- 
+
 * `enabled` - (Optional) A boolean value indicating whether the IPv6 peering is enabled. Defaults to `true`.
 
-* `microsoft_peering` - (Optional) A `microsoft_peering` block as defined below.  
+* `microsoft_peering` - (Optional) A `microsoft_peering` block as defined below. 
 
 * `route_filter_id` - (Optional) The ID of the Route Filter. Only available when `peering_type` is set to `MicrosoftPeering`.
 
@@ -170,13 +170,11 @@ A `ipv6` block contains:
 
 A `microsoft_peering` block contains:
 
-* `advertised_public_prefixes` - (Required) A list of Advertised Public Prefixes.
+* `advertised_public_prefixes` - (Optional) A list of Advertised Public Prefixes.
 
-* `customer_asn` - (Optional) The CustomerASN of the peering.
+* `customer_asn` - (Optional) The CustomerASN of the peering. Defaults to `0`.
 
-* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example:  `ARIN`, `RIPE`, `AFRINIC` etc.
-
-
+* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example: `ARIN`, `RIPE`, `AFRINIC` etc. Defaults to `NONE`.
 
 ## Attributes Reference
 
@@ -191,8 +189,6 @@ The following attributes are exported:
 * `secondary_azure_port` - The Secondary Port used by Azure for this Peering.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

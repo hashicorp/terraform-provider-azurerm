@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -19,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	servicebusValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 // TODO: outside of this pr make this private
@@ -71,6 +72,11 @@ func resourceIotHub() *pluginsdk.Resource {
 		Update: resourceIotHubCreateUpdate,
 		Delete: resourceIotHubDelete,
 
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.IoTHubV0ToV1{},
+		}),
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.IotHubID(id)
 			return err
@@ -91,9 +97,9 @@ func resourceIotHub() *pluginsdk.Resource {
 				ValidateFunc: iothubValidate.IoTHubName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
 				Type:     pluginsdk.TypeList,
@@ -368,12 +374,13 @@ func resourceIotHub() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"DeviceConnectionStateEvents",
-								"DeviceJobLifecycleEvents",
-								"DeviceLifecycleEvents",
-								"DeviceMessages",
-								"Invalid",
-								"TwinChangeEvents",
+								string(devices.RoutingSourceDeviceConnectionStateEvents),
+								string(devices.RoutingSourceDeviceJobLifecycleEvents),
+								string(devices.RoutingSourceDeviceLifecycleEvents),
+								string(devices.RoutingSourceDeviceMessages),
+								string(devices.RoutingSourceDigitalTwinChangeEvents),
+								string(devices.RoutingSourceInvalid),
+								string(devices.RoutingSourceTwinChangeEvents),
 							}, false),
 						},
 						"condition": {
@@ -447,6 +454,7 @@ func resourceIotHub() *pluginsdk.Resource {
 								string(devices.RoutingSourceDeviceJobLifecycleEvents),
 								string(devices.RoutingSourceDeviceLifecycleEvents),
 								string(devices.RoutingSourceDeviceMessages),
+								string(devices.RoutingSourceDigitalTwinChangeEvents),
 								string(devices.RoutingSourceInvalid),
 								string(devices.RoutingSourceTwinChangeEvents),
 							}, false),

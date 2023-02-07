@@ -10,6 +10,8 @@ description: |-
 
 Manages a Databox Edge Order.
 
+!> Creation of Databox Edge Order is not supported by the Azure API - as such the `azurerm_databox_edge_order` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.
+
 ## Example Usage
 
 ```hcl
@@ -55,9 +57,9 @@ The following arguments are supported:
 
 * `device_name` - (Required) The name of the Databox Edge Device this order is for. Changing this forces a new Databox Edge Order to be created.
 
-* `contact` - (Required)  A `contact` block as defined below.
+* `contact` - (Required) A `contact` block as defined below.
 
-* `shipment_address` - (Required)  A `shipment_address block as defined below.
+* `shipment_address` - (Required) A `shipment_address` block as defined below.
 
 ---
 
@@ -75,7 +77,7 @@ An `contact` block includes the following:
 
 An `shipment_address` block includes the following:
 
-* `address` - (Required) The list of upto 3 lines for address information. Changing this forces a new Databox Edge Order to be created.
+* `address` - (Required) The list of upto 3 lines for address information.
 
 * `city` - (Required) The city name. Changing this forces a new Databox Edge Order to be created.
 
@@ -87,7 +89,7 @@ An `shipment_address` block includes the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Databox Edge Order.
 
@@ -119,7 +121,7 @@ A `shipment_tracking` block exports the following:
 
 A `status` block exports the following:
 
- * `info` - The current status of the order. Possible values include `Untracked`, `AwaitingFulfilment`, `AwaitingPreparation`, `AwaitingShipment`, `Shipped`, `Arriving`, `Delivered`, `ReplacementRequested`, `LostDevice`, `Declined`, `ReturnInitiated`, `AwaitingReturnShipment`, `ShippedBack` or `CollectedAtMicrosoft`.
+* `info` - The current status of the order. Possible values include `Untracked`, `AwaitingFulfilment`, `AwaitingPreparation`, `AwaitingShipment`, `Shipped`, `Arriving`, `Delivered`, `ReplacementRequested`, `LostDevice`, `Declined`, `ReturnInitiated`, `AwaitingReturnShipment`, `ShippedBack` or `CollectedAtMicrosoft`.
 
 * `additional_details` - Dictionary to hold generic information which is not stored by the already existing properties.
 

@@ -31,7 +31,7 @@ resource "azurerm_logic_app_integration_account_session" "example" {
   integration_account_name = azurerm_logic_app_integration_account.example.name
 
   content = <<CONTENT
-	{
+ {
        "controlNumber": "1234"
     }
   CONTENT
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `integration_account_name` - (Required) The name of the Logic App Integration Account. Changing this forces a new Logic App Integration Account Session to be created.
 
-* `content` - (Optional) The content of the Logic App Integration Account Session.
+* `content` - (Required) The content of the Logic App Integration Account Session.
 
 ## Attributes Reference
 

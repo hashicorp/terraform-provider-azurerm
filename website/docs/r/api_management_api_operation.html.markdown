@@ -64,7 +64,6 @@ The following arguments are supported:
 
 * `template_parameter` - (Optional) One or more `template_parameter` blocks as defined below.
 
-
 ---
 
 An `example` block supports the following:
@@ -94,7 +93,7 @@ A `form_parameter` block supports the following:
 * `default_value` - (Optional) The default value for this Form Parameter.
 
 * `values` - (Optional) One or more acceptable values for this Form Parameter.
- 
+
 * `example` - (Optional) (Optional) One or more `example` blocks as defined above.
 
 * `schema_id` - (Optional) The name of the Schema.
@@ -122,6 +121,7 @@ A `header` block supports the following:
 * `schema_id` - (Optional) The name of the Schema.
 
 * `type_name` - (Optional) The type name defined by the Schema.
+
 ---
 
 A `query_parameter` block supports the following:
@@ -148,7 +148,7 @@ A `query_parameter` block supports the following:
 
 A `request` block supports the following:
 
-* `description` - (Required) A description of the HTTP Request, which may include HTML tags.
+* `description` - (Optional) A description of the HTTP Request, which may include HTML tags.
 
 * `header` - (Optional) One or more `header` blocks as defined above.
 
@@ -182,7 +182,7 @@ A `response` block supports the following:
 
 * `status_code` - (Required) The HTTP Status Code.
 
-* `description` - (Required) A description of the HTTP Response, which may include HTML tags.
+* `description` - (Optional) A description of the HTTP Response, which may include HTML tags.
 
 * `header` - (Optional) One or more `header` blocks as defined above.
 

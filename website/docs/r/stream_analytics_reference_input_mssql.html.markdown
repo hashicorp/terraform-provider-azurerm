@@ -86,7 +86,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Stream Analytics.
 
@@ -104,5 +104,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Stream Analytics can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_reference_input_mssql.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/inputs/input1
+terraform import azurerm_stream_analytics_reference_input_mssql.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1/inputs/input1
 ```

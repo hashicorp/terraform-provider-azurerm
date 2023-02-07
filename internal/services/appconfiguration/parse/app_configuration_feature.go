@@ -2,10 +2,14 @@ package parse
 
 import (
 	"fmt"
+	"net/url"
+	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
+
+var _ resourceids.Id = AppConfigurationFeatureId{}
 
 type AppConfigurationFeatureId struct {
 	ConfigurationStoreId string
@@ -13,12 +17,21 @@ type AppConfigurationFeatureId struct {
 	Label                string
 }
 
-func (k AppConfigurationFeatureId) ID() string {
-	return fmt.Sprintf("%s/AppConfigurationFeature/%s/Label/%s", k.ConfigurationStoreId, k.Name, k.Label)
+func (id AppConfigurationFeatureId) ID() string {
+	return fmt.Sprintf("%s/AppConfigurationFeature/%s/Label/%s", id.ConfigurationStoreId, id.Name, id.Label)
+}
+
+func (id AppConfigurationFeatureId) String() string {
+	components := []string{
+		fmt.Sprintf("Configuration Store Id %q", id.ConfigurationStoreId),
+		fmt.Sprintf("Label %q", id.Label),
+		fmt.Sprintf("Name %q", id.Name),
+	}
+	return fmt.Sprintf("Feature: %s", strings.Join(components, " / "))
 }
 
 func FeatureId(input string) (*AppConfigurationFeatureId, error) {
-	resourceID, err := azure.ParseAzureResourceID(input)
+	resourceID, err := parseAzureResourceID(handleSlashInIdForFeature(input))
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
 	}
@@ -41,4 +54,21 @@ func FeatureId(input string) (*AppConfigurationFeatureId, error) {
 	appcfgID.ConfigurationStoreId = strings.TrimSuffix(input, fmt.Sprintf("/AppConfigurationFeature/%s/Label/%s", appcfgID.Name, appcfgID.Label))
 
 	return &appcfgID, nil
+}
+
+// a workaround to support "/" in id
+func handleSlashInIdForFeature(input string) string {
+	oldNames := regexp.MustCompile(`AppConfigurationFeature\/(.+)\/Label`).FindStringSubmatch(input)
+	if len(oldNames) == 2 {
+		input = strings.Replace(input, oldNames[1], url.QueryEscape(oldNames[1]), 1)
+	}
+
+	oldNames = regexp.MustCompile(`AppConfigurationFeature\/.+\/Label\/(.+)`).FindStringSubmatch(input)
+
+	// Label will have a "%00" placeholder if we're dealing with an empty label,
+	if len(oldNames) == 2 && oldNames[1] != "%00" {
+		input = strings.Replace(input, oldNames[1], url.QueryEscape(oldNames[1]), 1)
+	}
+
+	return input
 }

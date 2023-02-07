@@ -41,7 +41,7 @@ resource "azurerm_api_management_tag" "example" {
 
 resource "azurerm_api_management_api_tag" "example" {
   api_id = azurerm_api_management_api.example.id
-  name   = "example-tag"
+  name   = azurerm_api_management_tag.example.name
 }
 ```
 
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the API Management API Tag.
 

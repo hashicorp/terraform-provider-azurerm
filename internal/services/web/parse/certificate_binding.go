@@ -3,9 +3,13 @@ package parse
 import (
 	"fmt"
 	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // This is a special case ID for a meta resource that links a web certificate to a Web App or Function App
+
+var _ resourceids.Id = CertificateBindingId{}
 
 type CertificateBindingId struct {
 	HostnameBindingId
@@ -22,6 +26,14 @@ func NewCertificateBindingId(hostnameBindingId HostnameBindingId, certificateId 
 func (id CertificateBindingId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/hostNameBindings/%s|/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/certificates/%s"
 	return fmt.Sprintf(fmtString, id.HostnameBindingId.SubscriptionId, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.SiteName, id.HostnameBindingId.Name, id.CertificateId.SubscriptionId, id.CertificateId.ResourceGroup, id.CertificateId.Name)
+}
+
+func (id CertificateBindingId) String() string {
+	components := []string{
+		fmt.Sprintf("Hostname Binding ID %q", id.HostnameBindingId.String()),
+		fmt.Sprintf("Certificate ID %q", id.CertificateId.String()),
+	}
+	return fmt.Sprintf("Certificate Binding %s", strings.Join(components, " / "))
 }
 
 func CertificateBindingID(input string) (*CertificateBindingId, error) {

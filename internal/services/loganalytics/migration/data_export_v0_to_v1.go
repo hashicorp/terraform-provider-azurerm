@@ -3,6 +3,7 @@ package migration
 import (
 	"context"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/dataexport"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
@@ -37,7 +38,7 @@ func (DataExportV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			ValidateFunc:     validate.LogAnalyticsDataExportName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"workspace_resource_id": {
 			Type:         pluginsdk.TypeString,

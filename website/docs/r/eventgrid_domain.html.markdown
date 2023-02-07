@@ -44,9 +44,9 @@ The following arguments are supported:
 
 * `input_schema` - (Optional) Specifies the schema in which incoming events will be published to this domain. Allowed values are `CloudEventSchemaV1_0`, `CustomEventSchema`, or `EventGridSchema`. Defaults to `eventgridschema`. Changing this forces a new resource to be created.
 
-* `input_mapping_fields` - (Optional) A `input_mapping_fields` block as defined below.
+* `input_mapping_fields` - (Optional) A `input_mapping_fields` block as defined below. Changing this forces a new resource to be created.
 
-* `input_mapping_default_values` - (Optional) A `input_mapping_default_values` block as defined below.
+* `input_mapping_default_values` - (Optional) A `input_mapping_default_values` block as defined below. Changing this forces a new resource to be created.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
@@ -74,7 +74,7 @@ A `identity` block supports the following:
 
 ---
 
-A `input_mapping_fields` supports the following:
+A `input_mapping_fields` block supports the following:
 
 * `id` - (Optional) Specifies the id of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 
@@ -90,7 +90,7 @@ A `input_mapping_fields` supports the following:
 
 ---
 
-A `input_mapping_default_values` supports the following:
+A `input_mapping_default_values` block supports the following:
 
 * `event_type` - (Optional) Specifies the default event type of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 

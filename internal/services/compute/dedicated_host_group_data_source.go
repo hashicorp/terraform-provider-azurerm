@@ -75,7 +75,7 @@ func dataSourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("zones", zones.Flatten(model.Zones))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		if props := model.Properties; props != nil {
 			d.Set("automatic_placement_enabled", props.SupportAutomaticPlacement)

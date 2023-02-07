@@ -49,9 +49,14 @@ func TestAccMsSqlElasticPool_standardDTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
-	maintenance_configuration_name := "SQL_Default"
-	if data.Locations.Primary == "westeurope" {
+	maintenance_configuration_name := ""
+	switch data.Locations.Primary {
+	case "westeurope":
 		maintenance_configuration_name = "SQL_WestEurope_DB_2"
+	case "francecentral":
+		maintenance_configuration_name = "SQL_FranceCentral_DB_1"
+	default:
+		maintenance_configuration_name = "SQL_Default"
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -321,6 +326,18 @@ func (r MsSqlElasticPoolResource) resizeVCore(data acceptance.TestData) string {
 }
 
 func (MsSqlElasticPoolResource) templateDTU(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, maxSizeGB float64, databaseSettingsMin int, databaseSettingsMax int, zoneRedundant bool) string {
+	configName := "SQL_Default"
+	if skuTier != "Basic" {
+		switch data.Locations.Primary {
+		case "westeurope":
+			configName = "SQL_WestEurope_DB_2"
+		case "francecentral":
+			configName = "SQL_FranceCentral_DB_1"
+		default:
+			configName = "SQL_Default"
+		}
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -348,7 +365,7 @@ resource "azurerm_mssql_elasticpool" "test" {
   max_size_gb         = %.7[6]f
   zone_redundant      = %[9]t
 
-  maintenance_configuration_name = "%[4]s" != "Basic" && azurerm_resource_group.test.location == "westeurope" ? "SQL_WestEurope_DB_2" : "SQL_Default"
+  maintenance_configuration_name = "%[10]s"
 
   sku {
     name     = "%[3]s"
@@ -361,7 +378,7 @@ resource "azurerm_mssql_elasticpool" "test" {
     max_capacity = %[8]d
   }
 }
-`, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax, zoneRedundant)
+`, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax, zoneRedundant, configName)
 }
 
 func (MsSqlElasticPoolResource) templateVCore(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64) string {

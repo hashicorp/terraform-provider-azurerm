@@ -10,7 +10,7 @@ description: |-
 
 Manages an App Service Source Control Token.
 
-~> **NOTE:** This resource can only manage the token for the user currently running Terraform. Managing tokens for another user is not supported by the service. 
+~> **NOTE:** This resource can only manage the token for the user currently running Terraform. Managing tokens for another user is not supported by the service.
 
 ## Example Usage
 
@@ -29,11 +29,13 @@ The following arguments are supported:
 
 * `token` - (Required) The Access Token.
 
+* `token_secret` - (Optional) The Access Token Secret.
+
 ~> **NOTE:** The token used for deploying App Service needs the following permissions: `repo` and `workflow`.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the App Service Source GitHub Token.
 

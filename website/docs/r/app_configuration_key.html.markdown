@@ -48,6 +48,7 @@ resource "azurerm_app_configuration_key" "test" {
 ```
 
 ## Example Usage of `vault` type
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -124,13 +125,13 @@ The following arguments are supported:
 
 * `content_type` - (Optional) The content type of the App Configuration Key. This should only be set when type is set to `kv`.
 
-* `label` - (Optional) The label of the App Configuration Key.  Changing this forces a new resource to be created.
+* `label` - (Optional) The label of the App Configuration Key. Changing this forces a new resource to be created.
 
 * `value` - (Optional) The value of the App Configuration Key. This should only be set when type is set to `kv`.
 
 * `locked` - (Optional) Should this App Configuration Key be Locked to prevent changes?
 
-* `type` - (Optional) The type of the App Configuration Key. It can either be `kv` (simple [key/value](https://docs.microsoft.com/azure/azure-app-configuration/concept-key-value)) or `vault` (where the value is a reference to a [Key Vault Secret](https://azure.microsoft.com/en-gb/services/key-vault/). 
+* `type` - (Optional) The type of the App Configuration Key. It can either be `kv` (simple [key/value](https://docs.microsoft.com/azure/azure-app-configuration/concept-key-value)) or `vault` (where the value is a reference to a [Key Vault Secret](https://azure.microsoft.com/en-gb/services/key-vault/).
 
 * `vault_key_reference` - (Optional) The ID of the vault secret this App Configuration Key refers to, when `type` is set to `vault`.
 
@@ -139,13 +140,14 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The App Configuration Key ID.
 
-* `etag` - The ETag of the key.
+* `etag` - (Optional) The ETag of the key.
 
 ## Timeouts
 
@@ -161,10 +163,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 App Configuration Keys can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_configuration_key.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/appConfKey1/Label/label1
+terraform import azurerm_app_configuration_key.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/appConfKey1/Label/label1
 ```
 
 If you wish to import a key with an empty label then sustitute the label's name with `%00`, like this:
+
 ```shell
-terraform import azurerm_app_configuration_key.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/appConfKey1/Label/%00
+terraform import azurerm_app_configuration_key.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/appConfKey1/Label/%00
 ```

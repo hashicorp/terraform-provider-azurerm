@@ -5,7 +5,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type Registration struct{}
+type Registration struct {
+	autoRegistration
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -14,9 +16,11 @@ func (r Registration) Name() string {
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
-	return []string{
+	categories := []string{
 		"Container",
 	}
+	categories = append(categories, r.autoRegistration.WebsiteCategories()...)
+	return categories
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
@@ -47,14 +51,18 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	dataSources := []sdk.DataSource{}
+	dataSources = append(dataSources, r.autoRegistration.DataSources()...)
+	return dataSources
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{
+	resources := []sdk.Resource{
 		ContainerRegistryTaskResource{},
 		ContainerRegistryTaskScheduleResource{},
 		ContainerRegistryTokenPasswordResource{},
 		ContainerConnectedRegistryResource{},
 	}
+	resources = append(resources, r.autoRegistration.Resources()...)
+	return resources
 }

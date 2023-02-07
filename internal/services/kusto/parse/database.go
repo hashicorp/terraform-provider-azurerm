@@ -36,7 +36,7 @@ func (id DatabaseId) String() string {
 }
 
 func (id DatabaseId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s/Databases/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/clusters/%s/databases/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.Name)
 }
 
@@ -60,10 +60,66 @@ func DatabaseID(input string) (*DatabaseId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.ClusterName, err = id.PopSegment("Clusters"); err != nil {
+	if resourceId.ClusterName, err = id.PopSegment("clusters"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("Databases"); err != nil {
+	if resourceId.Name, err = id.PopSegment("databases"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// DatabaseIDInsensitively parses an Database ID into an DatabaseId struct, insensitively
+// This should only be used to parse an ID for rewriting, the DatabaseID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func DatabaseIDInsensitively(input string) (*DatabaseId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := DatabaseId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'clusters' segment
+	clustersKey := "clusters"
+	for key := range id.Path {
+		if strings.EqualFold(key, clustersKey) {
+			clustersKey = key
+			break
+		}
+	}
+	if resourceId.ClusterName, err = id.PopSegment(clustersKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'databases' segment
+	databasesKey := "databases"
+	for key := range id.Path {
+		if strings.EqualFold(key, databasesKey) {
+			databasesKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(databasesKey); err != nil {
 		return nil, err
 	}
 

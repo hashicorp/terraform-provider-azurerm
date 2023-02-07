@@ -71,8 +71,7 @@ resource "azurerm_kusto_database_principal_assignment" "example" {
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
-* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data
-  factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
@@ -98,7 +97,7 @@ The following supported arguments are specific to Azure Kusto Linked Service:
 
 * `service_principal_key` - (Optional) The service principal key in which to authenticate against the Kusto Database.
 
-* `tenant` - (Required) The service principal tenant id or name in which to authenticate against the Kusto Database.
+* `tenant` - (Optional) The service principal tenant id or name in which to authenticate against the Kusto Database.
 
 ~> **NOTE** If `service_principal_id` is used, `service_principal_key` and `tenant` is also required.
 

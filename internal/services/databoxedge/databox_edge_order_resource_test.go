@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -18,6 +19,10 @@ type DataboxEdgeOrderResource struct{}
 func TestAccDataboxEdgeOrder_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_order", "test")
 	r := DataboxEdgeOrderResource{}
+
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_databox_edge_order` is deprecated and will be removed in 4.0")
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -34,6 +39,10 @@ func TestAccDataboxEdgeOrder_basic(t *testing.T) {
 func TestAccDataboxEdgeOrder_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_order", "test")
 	r := DataboxEdgeOrderResource{}
+
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_databox_edge_order` is deprecated and will be removed in 4.0")
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,6 +61,10 @@ func TestAccDataboxEdgeOrder_requiresImport(t *testing.T) {
 func TestAccDataboxEdgeOrder_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_order", "test")
 	r := DataboxEdgeOrderResource{}
+
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipping since `azurerm_databox_edge_order` is deprecated and will be removed in 4.0")
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

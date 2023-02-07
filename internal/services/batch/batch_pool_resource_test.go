@@ -620,7 +620,6 @@ func TestAccBatchPool_diskSettings(t *testing.T) {
 		},
 		data.ImportStep("stop_pending_resize_operation"),
 	})
-
 }
 
 func TestAccBatchPool_extensions(t *testing.T) {

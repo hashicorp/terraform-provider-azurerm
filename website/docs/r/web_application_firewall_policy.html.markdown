@@ -92,17 +92,23 @@ resource "azurerm_web_application_firewall_policy" "example" {
 
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
-        disabled_rules = [
-          "920300",
-          "920440"
-        ]
+        rule {
+          id      = "920300"
+          enabled = true
+          action  = "Log"
+        }
+
+        rule {
+          id      = "920440"
+          enabled = true
+          action  = "Block"
+        }
       }
     }
   }
-
 }
 ```
 
@@ -114,7 +120,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
-* `location` - (Optional) Resource location. Changing this forces a new resource to be created.
+* `location` - (Required) Resource location. Changing this forces a new resource to be created.
 
 * `custom_rules` - (Optional) One or more `custom_rules` blocks as defined below.
 
@@ -132,11 +138,11 @@ The `custom_rules` block supports the following:
 
 * `priority` - (Required) Describes priority of the rule. Rules with a lower value will be evaluated before rules with a higher value.
 
-* `rule_type` - (Required) Describes the type of rule.
+* `rule_type` - (Required) Describes the type of rule. Possible values are `MatchRule` and `Invalid`.
 
 * `match_conditions` - (Required) One or more `match_conditions` blocks as defined below.
 
-* `action` - (Required) Type of action.
+* `action` - (Required) Type of action. Possible values are `Allow`, `Block` and `Log`.
 
 ---
 
@@ -146,17 +152,17 @@ The `match_conditions` block supports the following:
 
 * `match_values` - (Required) A list of match values.
 
-* `operator` - (Required) Describes operator to be matched.
+* `operator` - (Required) Describes operator to be matched. Possible values are `IPMatch`, `GeoMatch`, `Equal`, `Contains`, `LessThan`, `GreaterThan`, `LessThanOrEqual`, `GreaterThanOrEqual`, `BeginsWith`, `EndsWith` and `Regex`.
 
 * `negation_condition` - (Optional) Describes if this is negate condition or not
 
-* `transforms` - (Optional) A list of transformations to do before the match is attempted.
+* `transforms` - (Optional) A list of transformations to do before the match is attempted. Possible values are `HtmlEntityDecode`, `Lowercase`, `RemoveNulls`, `Trim`, `UrlDecode` and `UrlEncode`.
 
 ---
 
 The `match_variables` block supports the following:
 
-* `variable_name` - (Required) The name of the Match Variable
+* `variable_name` - (Required) The name of the Match Variable. Possible values are `RemoteAddr`, `RequestMethod`, `QueryString`, `PostArgs`, `RequestUri`, `RequestHeaders`, `RequestBody` and `RequestCookies`.
 
 * `selector` - (Optional) Describes field of the matchVariable collection
 
@@ -172,7 +178,7 @@ The `policy_settings` block supports the following:
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled? Defaults to `true`.
 
-* `max_request_body_size_in_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `8` to `2000`. Defaults to `128`.
+* `max_request_body_size_in_kb` - (Optional) The Maximum Request Body Size in KB. Accepted values are in the range `8` to `2000`. Defaults to `128`.
 
 ---
 
@@ -188,7 +194,7 @@ The `exclusion` block supports the following:
 
 * `match_variable` - (Required) The name of the Match Variable. Possible values: `RequestArgKeys`, `RequestArgNames`, `RequestArgValues`, `RequestCookieKeys`, `RequestCookieNames`, `RequestCookieValues`, `RequestHeaderKeys`, `RequestHeaderNames`, `RequestHeaderValues`.
 
-* `selector` - (Optional) Describes field of the matchVariable collection.
+* `selector` - (Required) Describes field of the matchVariable collection.
 
 * `selector_match_operator` - (Required) Describes operator to be matched. Possible values: `Contains`, `EndsWith`, `Equals`, `EqualsAny`, `StartsWith`.
 
@@ -208,7 +214,7 @@ The `excluded_rule_set` block supports the following:
 
 The `rule_group` block supports the following:
 
-* `rule_group_name` - (Required) The name of rule group for exclusion.
+* `rule_group_name` - (Required) The name of rule group for exclusion. Possible values are `BadBots`, `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `General`, `GoodBots`, `Known-CVEs`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`, `REQUEST-944-APPLICATION-ATTACK-JAVA` and `UnknownBots`.
 
 * `excluded_rules` - (Optional) One or more Rule IDs for exclusion.
 
@@ -226,9 +232,19 @@ The `managed_rule_set` block supports the following:
 
 The `rule_group_override` block supports the following:
 
-* `rule_group_name` - (Required) The name of the Rule Group
+* `rule_group_name` - (Required) The name of the Rule Group. Possible values are `BadBots`, `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `General`, `GoodBots`, `Known-CVEs`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`, `REQUEST-944-APPLICATION-ATTACK-JAVA` and `UnknownBots`.
 
-* `disabled_rules` - (Optional) One or more Rule IDs
+* `rule` - (Optional) One or more `rule` block defined below.
+
+---
+
+The `rule` block supports the following:
+
+* `id` - (Required) Identifier for the managed rule.
+
+* `enabled` - (Optional) Describes if the managed rule is in enabled state or disabled state.
+
+* `action` - (Optional) Describes the override action to be applied when rule matches. Possible values are `Allow`, `AnomalyScoring`, `Block` and `Log`.
 
 ## Attributes Reference
 
@@ -254,5 +270,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Web Application Firewall Policy can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_web_application_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/example-wafpolicy
+terraform import azurerm_web_application_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/example-wafpolicy
 ```

@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "shareValue")
+id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "shareValue")
 
 payload := fileshares.FileShare{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "shareValue")
+id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "shareValue")
 
 read, err := client.Delete(ctx, id, fileshares.DefaultDeleteOperationOptions())
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "shareValue")
+id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "shareValue")
 
 read, err := client.Get(ctx, id, fileshares.DefaultGetOperationOptions())
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "shareValue")
+id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "shareValue")
 
 payload := fileshares.LeaseShareRequest{
 	// ...
@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := fileshares.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := fileshares.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
 
 // alternatively `client.List(ctx, id, fileshares.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, fileshares.DefaultListOperationOptions())
@@ -115,7 +115,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "shareValue")
+id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "shareValue")
 
 payload := fileshares.DeletedShare{
 	// ...
@@ -136,7 +136,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "shareValue")
+id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "shareValue")
 
 payload := fileshares.FileShare{
 	// ...

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -49,8 +49,10 @@ func (r ContainerRegistryTokenPasswordResource) Arguments() map[string]*pluginsd
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expiry": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// TODO: Remove the force new and add customize diff to SetNewComputed on the `value` once https://github.com/hashicorp/terraform-plugin-sdk/issues/459 is addressed.
+						ForceNew:         true,
 						ValidateFunc:     validation.IsRFC3339Time,
 						DiffSuppressFunc: suppress.RFC3339Time,
 					},
@@ -71,8 +73,10 @@ func (r ContainerRegistryTokenPasswordResource) Arguments() map[string]*pluginsd
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expiry": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// TODO: Remove the force new and add customize diff to SetNewComputed on the `value` once https://github.com/hashicorp/terraform-plugin-sdk/issues/459 is addressed.
+						ForceNew:         true,
 						ValidateFunc:     validation.IsRFC3339Time,
 						DiffSuppressFunc: suppress.RFC3339Time,
 					},

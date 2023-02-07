@@ -12,7 +12,8 @@ Manages a datadog Monitor.
 
 ## Example Usage
 
-###  Monitor creation with linking to Datadog organization
+### Monitor creation with linking to Datadog organization
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-datadog"
@@ -49,7 +50,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The name which should be used for this sku.
 
-* `identity` - (Required) A `identity` block as defined below.
+* `identity` - (Optional) A `identity` block as defined below.
 
 * `user` - (Required) A `user` block as defined below.
 
@@ -67,7 +68,7 @@ A `datadog_organization` block exports the following:
 
 * `application_key` - (Required) Application key associated to the Datadog organization. Changing this forces a new Datadog Monitor to be created.
 
-* `enterprise_app_id` - (Optional) The ID of the enterprise_app.
+* `enterprise_app_id` - (Optional) The ID of the enterprise_app. Changing this forces a new resource to be created.
 
 * `linking_auth_code` - (Optional) The auth code used to linking to an existing Datadog organization. Changing this forces a new Datadog Monitor to be created.
 
@@ -86,11 +87,11 @@ An `identity` block supports the following:
 
 An `user` block exports the following:
 
-* `name` - (Required) The name which should be used for this user_info.
+* `name` - (Required) The name which should be used for this user_info. Changing this forces a new resource to be created.
 
 * `email` - (Required) Email of the user used by Datadog for contacting them if needed. Changing this forces a new Datadog Monitor to be created.
 
-* `phone_number` - (Optional) Phone number of the user used by Datadog for contacting them if needed.
+* `phone_number` - (Optional) Phone number of the user used by Datadog for contacting them if needed. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -117,6 +118,7 @@ An `identity` block exports the following:
 To enable metrics flow, perform role assignment on the identity created above. `Monitoring reader(43d0d8ad-25c7-4714-9337-8ba259a9fe05)` role is required .
 
 ### Role assignment on the monitor created
+
 ```hcl
 data "azurerm_subscription" "primary" {}
 
@@ -130,6 +132,7 @@ resource "azurerm_role_assignment" "example" {
   principal_id       = azurerm_datadog_monitor.example.identity.0.principal_id
 }
 ```
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

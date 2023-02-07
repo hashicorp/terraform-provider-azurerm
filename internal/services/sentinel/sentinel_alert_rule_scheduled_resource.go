@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2022-01-01-preview/securityinsight"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/rickb777/date/period"
+	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
@@ -328,6 +329,35 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_property": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice(
+											[]string{
+												string(securityinsight.AlertPropertyAlertLink),
+												string(securityinsight.AlertPropertyConfidenceLevel),
+												string(securityinsight.AlertPropertyConfidenceScore),
+												string(securityinsight.AlertPropertyExtendedLinks),
+												string(securityinsight.AlertPropertyProductComponentName),
+												string(securityinsight.AlertPropertyProductName),
+												string(securityinsight.AlertPropertyProviderName),
+												string(securityinsight.AlertPropertyRemediationSteps),
+												string(securityinsight.AlertPropertyTechniques),
+											}, false),
+									},
+									"value": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -368,6 +398,20 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 									},
 								},
 							},
+						},
+					},
+				},
+			},
+			"sentinel_entity_mapping": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 5,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"column_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -459,8 +503,21 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 	if v, ok := d.GetOk("custom_details"); ok {
 		param.ScheduledAlertRuleProperties.CustomDetails = utils.ExpandMapStringPtrString(v.(map[string]interface{}))
 	}
+
+	entityMappingCount := 0
+	sentinelEntityMappingCount := 0
 	if v, ok := d.GetOk("entity_mapping"); ok {
 		param.ScheduledAlertRuleProperties.EntityMappings = expandAlertRuleEntityMapping(v.([]interface{}))
+		entityMappingCount = len(*param.ScheduledAlertRuleProperties.EntityMappings)
+	}
+	if v, ok := d.GetOk("sentinel_entity_mapping"); ok {
+		param.ScheduledAlertRuleProperties.SentinelEntitiesMappings = expandAlertRuleSentinelEntityMapping(v.([]interface{}))
+		sentinelEntityMappingCount = len(*param.ScheduledAlertRuleProperties.SentinelEntitiesMappings)
+	}
+
+	// the max number of `sentinel_entity_mapping` and `entity_mapping` together is 5
+	if entityMappingCount+sentinelEntityMappingCount > 5 {
+		return fmt.Errorf("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 5")
 	}
 
 	if !d.IsNewResource() {
@@ -555,6 +612,9 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 		}
 		if err := d.Set("entity_mapping", flattenAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
 			return fmt.Errorf("setting `entity_mapping`: %+v", err)
+		}
+		if err := d.Set("sentinel_entity_mapping", flattenAlertRuleSentinelEntityMapping(prop.SentinelEntitiesMappings)); err != nil {
+			return fmt.Errorf("setting `sentinel_entity_mapping`: %+v", err)
 		}
 	}
 

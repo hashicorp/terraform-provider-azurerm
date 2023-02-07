@@ -49,13 +49,13 @@ resource "azurerm_sql_server" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Microsoft SQL Server. This needs to be globally unique within Azure.
+* `name` - (Required) The name of the Microsoft SQL Server. This needs to be globally unique within Azure. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Microsoft SQL Server.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Microsoft SQL Server. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `version` - (Required) The version for the new server. Valid values are: 2.0 (for v11 server) and 12.0 (for v12 server).
+* `version` - (Required) The version for the new server. Valid values are: 2.0 (for v11 server) and 12.0 (for v12 server). Changing this forces a new resource to be created.
 
 * `administrator_login` - (Required) The administrator login name for the new server. Changing this forces a new resource to be created.
 
@@ -77,15 +77,17 @@ An `identity` block supports the following:
 
 ~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Microsoft SQL Server has been created. More details are available below.
 
-`threat_detection_policy` supports the following:
+---
 
-* `state` - (Required) The State of the Policy. Possible values are `Enabled` or `Disabled`.
+The `threat_detection_policy` block supports the following:
+
+* `state` - (Optional) The State of the Policy. Possible values are `Disabled`, `Enabled` and `New`.
 * `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Data_Exfiltration`, `Sql_Injection`, `Sql_Injection_Vulnerability` and `Unsafe_Action"`,.
 * `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
 * `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. Required if `state` is `Enabled`.
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs. Required if `state` is `Enabled`.
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all Threat Detection audit logs. Required if `state` is `Enabled`.
 
 ## Attributes Reference
 
@@ -96,7 +98,7 @@ The following attributes are exported:
 
 ---
 
-`identity` exports the following:
+An `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Server.
 

@@ -96,6 +96,7 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 					"FSv2-Type4",
 					"FXmds-Type1",
 					"LSv2-Type1",
+					"LSv3-Type1",
 					"MDMSv2MedMem-Type1",
 					"MDSv2MedMem-Type1",
 					"MMSv2MedMem-Type1",

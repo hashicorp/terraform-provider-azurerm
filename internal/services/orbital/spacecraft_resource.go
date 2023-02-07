@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/spacecraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -40,9 +40,9 @@ func (r SpacecraftResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"norad_id": {
 			Type:         pluginsdk.TypeString,
@@ -125,7 +125,7 @@ func (r SpacecraftResource) Create() sdk.ResourceFunc {
 				Properties: &spacecraftProperties,
 				Tags:       &model.Tags,
 			}
-			if _, err = client.CreateOrUpdate(ctx, id, spacecraft); err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, id, spacecraft); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)
@@ -191,11 +191,10 @@ func (r SpacecraftResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}
@@ -237,7 +236,8 @@ func (r SpacecraftResource) Update() sdk.ResourceFunc {
 					},
 					Tags: &state.Tags,
 				}
-				if _, err := client.CreateOrUpdate(ctx, *id, spacecraft); err != nil {
+
+				if err := client.CreateOrUpdateThenPoll(ctx, *id, spacecraft); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}

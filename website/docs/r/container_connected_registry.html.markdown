@@ -80,12 +80,11 @@ The following arguments are supported:
 
 * `notification` - (Optional) One or more `notification` blocks as defined below.
 
-
 * `parent_registry_id` - (Optional) The ID of the parent registry. This can be either a Container Registry ID or a Connected Registry ID. Changing this forces a new Container Connected Registry to be created.
 
 * `sync_message_ttl` - (Optional) The period of time (in form of ISO8601) for which a message is available to sync before it is expired. Allowed range is from `P1D` to `P90D`.
 
-* `sync_schedule` - (Optional) The cron expression indicating the schedule that the Connected Registry will sync with its parent.
+* `sync_schedule` - (Optional) The cron expression indicating the schedule that the Connected Registry will sync with its parent. Defaults to `* * * * *`.
 
 * `sync_window` - (Optional) The time window (in form of ISO8601) during which sync is enabled for each schedule occurrence. Allowed range is from `PT3H` to `P7D`.
 
@@ -105,7 +104,7 @@ A `notification` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container Connected Registry.
 

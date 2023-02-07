@@ -29,9 +29,9 @@ The following arguments are supported:
 
 * `route_server_id` - (Required) The ID of the Route Server within which this Bgp connection should be created. Changing this forces a new resource to be created.
 
-* `peer_asn` - (Optional) The peer autonomous system number for the Route Server Bgp Connection. Changing this forces a new resource to be created.
+* `peer_asn` - (Required) The peer autonomous system number for the Route Server Bgp Connection. Changing this forces a new resource to be created.
 
-* `peer_ip` - (Optional) The peer ip address for the Route Server Bgp Connection. Changing this forces a new resource to be created.
+* `peer_ip` - (Required) The peer ip address for the Route Server Bgp Connection. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

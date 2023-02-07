@@ -40,12 +40,24 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 // DataSources returns a list of Data Sources supported by this Service
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		PrivateDNSResolverDnsForwardingRulesetDataSource{},
+		PrivateDNSResolverDnsResolverDataSource{},
+		PrivateDNSResolverForwardingRuleDataSource{},
+		PrivateDNSResolverInboundEndpointDataSource{},
+		PrivateDNSResolverOutboundEndpointDataSource{},
+		PrivateDNSResolverVirtualNetworkLinkDataSource{},
+	}
 }
 
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		PrivateDNSResolverDnsForwardingRulesetResource{},
 		PrivateDNSResolverDnsResolverResource{},
+		PrivateDNSResolverForwardingRuleResource{},
+		PrivateDNSResolverInboundEndpointResource{},
+		PrivateDNSResolverOutboundEndpointResource{},
+		PrivateDNSResolverVirtualNetworkLinkResource{},
 	}
 }

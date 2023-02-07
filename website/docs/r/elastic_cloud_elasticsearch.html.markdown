@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Elasticsearch resource should exist. Changing this forces a new Elasticsearch to be created.
 
-* `name` - (Required) The name which should be used for this Elasticsearch resource. Changing this forces a new Elasticsearch to be created.
+* `name` - (Required) The name which should be used for this Elasticsearch resource. Changing this forces a new Elasticsearch to be created. 
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Elasticsearch resource should exist. Changing this forces a new Elasticsearch to be created.
 
@@ -93,10 +93,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Elasticsearch.
+* `create` - (Defaults to 60 minutes) Used when creating the Elasticsearch.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Elasticsearch.
-* `update` - (Defaults to 30 minutes) Used when updating the Elasticsearch.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Elasticsearch.
+* `update` - (Defaults to 60 minutes) Used when updating the Elasticsearch.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Elasticsearch.
 
 ## Import
 

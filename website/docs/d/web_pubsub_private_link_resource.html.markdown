@@ -1,5 +1,5 @@
 ---
-subcategory: "Web PubSub"
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub_private_link_resource"
 description: |-
@@ -49,10 +49,8 @@ A `shared_private_link_resource_types` block exports the following:
 
 * `description` - The description of the resource type that has been onboarded to private link service.
 
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Resource.
-

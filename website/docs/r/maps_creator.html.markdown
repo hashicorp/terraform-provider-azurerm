@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `maps_account_id` - (Required) The ID of the Azure Maps Creator. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region where the Azure Maps Creator should exist.
+* `location` - (Required) The Azure Region where the Azure Maps Creator should exist. Changing this forces a new resource to be created.
 
 * `storage_units` - (Required) The storage units to be allocated. Integer values from 1 to 100, inclusive.
 

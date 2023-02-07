@@ -58,7 +58,7 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceID,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"synapse_spark_pool_id": {
 				Type:         pluginsdk.TypeString,

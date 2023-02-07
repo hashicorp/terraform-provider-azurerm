@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "applicationValue")
+id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue", "applicationValue")
 
 payload := application.Application{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "applicationValue")
+id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue", "applicationValue")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "applicationValue")
+id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue", "applicationValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := application.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := application.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue")
 
 // alternatively `client.List(ctx, id, application.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, application.DefaultListOperationOptions())
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "applicationValue")
+id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue", "applicationValue")
 
 payload := application.Application{
 	// ...

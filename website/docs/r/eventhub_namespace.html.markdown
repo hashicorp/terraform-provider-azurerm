@@ -43,25 +43,25 @@ The following arguments are supported:
 
 * `sku` - (Required) Defines which tier to use. Valid options are `Basic`, `Standard`, and `Premium`. Please note that setting this field to `Premium` will force the creation of a new resource.
 
-* `capacity` - (Optional) Specifies the Capacity / Throughput Units for a `Standard` SKU namespace. Default capacity has a maximum of `2`, but can be increased in blocks of 2 on a committed purchase basis.
+* `capacity` - (Optional) Specifies the Capacity / Throughput Units for a `Standard` SKU namespace. Default capacity has a maximum of `2`, but can be increased in blocks of 2 on a committed purchase basis. Defaults to `1`.
 
 * `auto_inflate_enabled` - (Optional) Is Auto Inflate enabled for the EventHub Namespace?
 
 * `dedicated_cluster_id` - (Optional) Specifies the ID of the EventHub Dedicated Cluster where this Namespace should created. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below. 
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
 
 * `zone_redundant` - (Optional) Specifies if the EventHub Namespace should be Zone Redundant (created across Availability Zones). Changing this forces a new resource to be created. Defaults to `false`.
 
-~> **Note:** `zone_redundant` is computed by api based on the availability zone in each region. User's input will be overridden. It will turn into a computed property in 4.0 provider.
+~> **Note:** For eventhub premium namespace, `zone_redundant` is computed by api based on the availability zone feature in each region. User's input will be overridden. Please explicitly sets the property to `true` when creating the premium namespace in a region that supports availability zone since the default value is `false` in 3.0 provider.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `network_rulesets` - (Optional) A `network_rulesets` block as defined below.
 
-* `local_authentication_enabled` - (Optional) Is SAS authentication enabled for the EventHub Namespace?
+* `local_authentication_enabled` - (Optional) Is SAS authentication enabled for the EventHub Namespace? Defaults to `true`.
 
 * `public_network_access_enabled` - (Optional) Is public network access enabled for the EventHub Namespace? Defaults to `true`.
 
@@ -73,6 +73,10 @@ A `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Event Hub Namespace. Possible values are `SystemAssigned` or `UserAssigned`.
 
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this EventHub namespace.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
 ~> **Note:** Due to the limitation of the current Azure API, once an EventHub Namespace has been assigned an identity, it cannot be removed.
 
 ---
@@ -81,9 +85,9 @@ A `network_rulesets` block supports the following:
 
 * `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`.
 
-* `public_network_access_enabled` - (Optional)  Is public network access enabled for the EventHub Namespace? Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Is public network access enabled for the EventHub Namespace? Defaults to `true`.
 
-* ~> **Note:** The public network access setting at the network rule sets level should be the same as it's at the namespace level.
+~> **Note:** The public network access setting at the network rule sets level should be the same as it's at the namespace level.
 
 * `trusted_service_access_enabled` - (Optional) Whether Trusted Microsoft Services are allowed to bypass firewall.
 
@@ -97,7 +101,7 @@ A `virtual_network_rule` block supports the following:
 
 * `subnet_id` - (Required) The id of the subnet to match on.
 
-* `ignore_missing_virtual_network_service_endpoint` - (Optional) Are missing virtual network service endpoints ignored? Defaults to `false`.
+* `ignore_missing_virtual_network_service_endpoint` - (Optional) Are missing virtual network service endpoints ignored? 
 
 ---
 
@@ -118,19 +122,15 @@ The following attributes are exported:
 The following attributes are exported only if there is an authorization rule named
 `RootManageSharedAccessKey` which is created automatically by Azure.
 
-* `default_primary_connection_string` - The primary connection string for the authorization
-    rule `RootManageSharedAccessKey`.
+* `default_primary_connection_string` - The primary connection string for the authorization rule `RootManageSharedAccessKey`.
 
-* `default_primary_connection_string_alias` - The alias of the primary connection string for the authorization
-    rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.
+* `default_primary_connection_string_alias` - The alias of the primary connection string for the authorization rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.
 
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 
-* `default_secondary_connection_string` - The secondary connection string for the
-    authorization rule `RootManageSharedAccessKey`.
+* `default_secondary_connection_string` - The secondary connection string for the authorization rule `RootManageSharedAccessKey`.
 
-* `default_secondary_connection_string_alias` - The alias of the secondary connection string for the
-    authorization rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.
+* `default_secondary_connection_string_alias` - The alias of the secondary connection string for the authorization rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
 
@@ -143,8 +143,6 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

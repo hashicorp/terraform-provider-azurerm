@@ -164,5 +164,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Monitor Action Rule can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_monitor_action_rule_action_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AlertsManagement/actionRules/actionRule1
+terraform import azurerm_monitor_action_rule_action_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AlertsManagement/actionRules/actionRule1
 ```

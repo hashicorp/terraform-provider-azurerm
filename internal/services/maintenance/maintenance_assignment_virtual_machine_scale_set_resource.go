@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/configurationassignments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2021-05-01/maintenanceconfigurations"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -39,7 +39,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSet() *pluginsdk.Resourc
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"maintenance_configuration_id": {
 				Type:             pluginsdk.TypeString,
@@ -75,7 +75,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 		return err
 	}
 
-	configAssignmentId := configurationassignments.NewConfigurationAssignmentID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", virtualMachineScaleSetId.Name, maintenanceConfigurationID.ResourceName)
+	configAssignmentId := configurationassignments.NewConfigurationAssignmentID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", virtualMachineScaleSetId.Name, maintenanceConfigurationID.MaintenanceConfigurationName)
 
 	existingList, err := getMaintenanceAssignmentVirtualMachineScaleSet(ctx, client, virtualMachineScaleSetId)
 	if err != nil {
@@ -89,7 +89,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 	}
 
 	configurationAssignment := configurationassignments.ConfigurationAssignment{
-		Name:     utils.String(maintenanceConfigurationID.ResourceName),
+		Name:     utils.String(maintenanceConfigurationID.MaintenanceConfigurationName),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &configurationassignments.ConfigurationAssignmentProperties{
 			MaintenanceConfigurationId: utils.String(maintenanceConfigurationID.ID()),
@@ -169,7 +169,6 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetDelete(d *pluginsdk.R
 }
 
 func getMaintenanceAssignmentVirtualMachineScaleSet(ctx context.Context, client *configurationassignments.ConfigurationAssignmentsClient, vmScaleSetId *parseCompute.VirtualMachineScaleSetId) (result *[]configurationassignments.ConfigurationAssignment, err error) {
-
 	id := configurationassignments.NewProviderID(vmScaleSetId.SubscriptionId, vmScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", vmScaleSetId.Name)
 
 	resp, err := client.List(ctx, id)

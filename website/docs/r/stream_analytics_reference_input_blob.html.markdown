@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `storage_account_name` - (Required) The name of the Storage Account that has the blob container with reference data.
 
-* `storage_account_key` - (Required) The Access Key which should be used to connect to this Storage Account.
+* `storage_account_key` - (Optional) The Access Key which should be used to connect to this Storage Account. Required if `authentication_mode` is `ConnectionString`.
 
 * `storage_container_name` - (Required) The name of the Container within the Storage Account.
 
@@ -115,5 +115,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Stream Analytics Reference Input Blob's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_reference_input_blob.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/inputs/input1
+terraform import azurerm_stream_analytics_reference_input_blob.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1/inputs/input1
 ```

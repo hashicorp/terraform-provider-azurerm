@@ -30,6 +30,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_image":                     dataSourceImage(),
 		"azurerm_images":                    dataSourceImages(),
 		"azurerm_disk_access":               dataSourceDiskAccess(),
+		"azurerm_marketplace_agreement":     dataSourceMarketplaceAgreement(),
 		"azurerm_platform_image":            dataSourcePlatformImage(),
 		"azurerm_proximity_placement_group": dataSourceProximityPlacementGroup(),
 		"azurerm_shared_image_gallery":      dataSourceSharedImageGallery(),

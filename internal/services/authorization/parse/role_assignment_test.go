@@ -2,11 +2,7 @@ package parse
 
 import (
 	"testing"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
-
-var _ resourceid.Formatter = RoleAssignmentId{}
 
 func TestRoleAssignmentIDFormatter(t *testing.T) {
 	testData := []struct {

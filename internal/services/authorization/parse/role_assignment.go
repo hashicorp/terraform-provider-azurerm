@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
+// TODO: @tombuildsstuff: this wants refactoring and fixing into sub-ID parsers
+
 type RoleAssignmentId struct {
 	SubscriptionID      string
 	ResourceGroup       string

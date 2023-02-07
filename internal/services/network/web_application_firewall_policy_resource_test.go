@@ -80,12 +80,16 @@ func TestAccWebApplicationFirewallPolicy_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("managed_rules.0.exclusion.1.selector_match_operator").HasValue("EndsWith"),
 				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.#").HasValue("1"),
 				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.type").HasValue("OWASP"),
-				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.version").HasValue("3.1"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.version").HasValue("3.2"),
 				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.#").HasValue("1"),
 				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule_group_name").HasValue("REQUEST-920-PROTOCOL-ENFORCEMENT"),
-				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.#").HasValue("2"),
-				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.0").HasValue("920300"),
-				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.1").HasValue("920440"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.#").HasValue("2"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.0.id").HasValue("920300"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.0.action").HasValue("Log"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.1.id").HasValue("920440"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.1.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.1.action").HasValue("Block"),
 				check.That(data.ResourceName).Key("policy_settings.#").HasValue("1"),
 				check.That(data.ResourceName).Key("policy_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("policy_settings.0.mode").HasValue("Prevention"),
@@ -154,12 +158,16 @@ func TestAccWebApplicationFirewallPolicy_update(t *testing.T) {
 				check.That(data.ResourceName).Key("managed_rules.0.exclusion.1.selector_match_operator").HasValue("EndsWith"),
 				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.#").HasValue("1"),
 				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.type").HasValue("OWASP"),
-				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.version").HasValue("3.1"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.version").HasValue("3.2"),
 				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.#").HasValue("1"),
 				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule_group_name").HasValue("REQUEST-920-PROTOCOL-ENFORCEMENT"),
-				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.#").HasValue("2"),
-				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.0").HasValue("920300"),
-				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.1").HasValue("920440"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.#").HasValue("2"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.0.id").HasValue("920300"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.0.action").HasValue("Log"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.1.id").HasValue("920440"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.1.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("managed_rules.0.managed_rule_set.0.rule_group_override.0.rule.1.action").HasValue("Block"),
 				check.That(data.ResourceName).Key("policy_settings.#").HasValue("1"),
 				check.That(data.ResourceName).Key("policy_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("policy_settings.0.mode").HasValue("Prevention"),
@@ -172,7 +180,7 @@ func TestAccWebApplicationFirewallPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccWebApplicationFirewallPolicy_updateDisabledRules(t *testing.T) {
+func TestAccWebApplicationFirewallPolicy_updateOverrideRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
 	r := WebApplicationFirewallResource{}
 
@@ -185,7 +193,7 @@ func TestAccWebApplicationFirewallPolicy_updateDisabledRules(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateDisabledRules(data),
+			Config: r.updateOverrideRules(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -230,6 +238,28 @@ func TestAccWebApplicationFirewallPolicy_excludedRules(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updateExcludedRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebApplicationFirewallPolicy_updateDisabledRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disabledRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateDisabledRules(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -367,14 +397,21 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
 
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
-        disabled_rules = [
-          "920300",
-          "920440",
-        ]
+        rule {
+          id      = "920300"
+          enabled = true
+          action  = "Log"
+        }
+
+        rule {
+          id      = "920440"
+          enabled = true
+          action  = "Block"
+        }
       }
     }
   }
@@ -387,7 +424,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (WebApplicationFirewallResource) updateDisabledRules(data acceptance.TestData) string {
+func (WebApplicationFirewallResource) updateOverrideRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -470,10 +507,16 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
     managed_rule_set {
       type    = "OWASP"
-      version = "3.1"
+      version = "3.2"
 
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
+
+        rule {
+          id      = "920440"
+          enabled = true
+          action  = "Block"
+        }
       }
     }
   }
@@ -752,6 +795,160 @@ resource "azurerm_web_application_firewall_policy" "test" {
   policy_settings {
     enabled = true
     mode    = "Prevention"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallResource) disabledRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled                     = true
+    mode                        = "Prevention"
+    request_body_check          = true
+    file_upload_limit_in_mb     = 100
+    max_request_body_size_in_kb = 2000
+  }
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.2"
+
+      rule_group_override {
+        rule_group_name = "REQUEST-931-APPLICATION-ATTACK-RFI"
+        disabled_rules  = ["931130"]
+      }
+
+      rule_group_override {
+        rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
+        disabled_rules = [
+          "920320", # Missing User Agent Header
+          "920230"  # Multiple URL Encoding Detected
+        ]
+      }
+
+      rule_group_override {
+        rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
+        disabled_rules = [
+          "942450",
+          "942430",
+          "942440",
+          "942370",
+          "942340",
+          "942260",
+          "942200",
+          "942330",
+          "942120",
+          "942110",
+          "942150",
+          "942410",
+          "942130",
+          "942100"
+        ]
+      }
+
+      rule_group_override {
+        rule_group_name = "REQUEST-941-APPLICATION-ATTACK-XSS"
+        disabled_rules = [
+          "941340"
+        ]
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallResource) updateDisabledRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled                     = true
+    mode                        = "Prevention"
+    request_body_check          = true
+    file_upload_limit_in_mb     = 100
+    max_request_body_size_in_kb = 2000
+  }
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.2"
+
+      rule_group_override {
+        rule_group_name = "REQUEST-931-APPLICATION-ATTACK-RFI"
+        disabled_rules  = ["931130"]
+      }
+
+      rule_group_override {
+        rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
+        disabled_rules = [
+          "920320", # Missing User Agent Header
+          "920230"  # Multiple URL Encoding Detected
+        ]
+      }
+
+      #NEW BLOCK
+      rule_group_override {
+        rule_group_name = "REQUEST-932-APPLICATION-ATTACK-RCE"
+        disabled_rules  = ["932100"]
+      }
+
+      rule_group_override {
+        rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
+        disabled_rules = [
+          "942450",
+          "942430",
+          "942440",
+          "942370",
+          "942340",
+          "942260",
+          "942200",
+          "942330",
+          "942120",
+          "942110",
+          "942150",
+          "942410",
+          "942130",
+          "942100"
+        ]
+      }
+
+      rule_group_override {
+        rule_group_name = "REQUEST-941-APPLICATION-ATTACK-XSS"
+        disabled_rules = [
+          "941340"
+        ]
+      }
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

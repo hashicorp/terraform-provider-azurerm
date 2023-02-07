@@ -139,9 +139,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Container Registry. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. 
 
-* `sku` - (Required) The SKU name of the container registry. Possible values are  `Basic`, `Standard` and `Premium`.
+* `sku` - (Required) The SKU name of the container registry. Possible values are `Basic`, `Standard` and `Premium`.
 
 * `admin_enabled` - (Optional) Specifies whether the admin user is enabled. Defaults to `false`.
 
@@ -159,13 +159,13 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
 
-* `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled. Defaults to `false`.
+* `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled.
 
 * `retention_policy` - (Optional) A `retention_policy` block as documented below.
 
 * `trust_policy` - (Optional) A `trust_policy` block as documented below.
 
-* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`.
+* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`. 
 
 * `export_policy_enabled` - (Optional) Boolean value that indicates whether export policy is enabled. Defaults to `true`. In order to set it to `false`, make sure the `public_network_access_enabled` is also set to `false`.
 
@@ -175,19 +175,19 @@ The following arguments are supported:
 
 * `encryption` - (Optional) An `encryption` block as documented below.
 
-* `anonymous_pull_enabled` - (Optional) Whether allows anonymous (unauthenticated) pull access to this Container Registry? Defaults to `false`. This is only supported on resources with the `Standard` or `Premium` SKU.
+* `anonymous_pull_enabled` - (Optional) Whether allows anonymous (unauthenticated) pull access to this Container Registry? This is only supported on resources with the `Standard` or `Premium` SKU.
 
-* `data_endpoint_enabled` - (Optional) Whether to enable dedicated data endpoints for this Container Registry? Defaults to `false`. This is only supported on resources with the `Premium` SKU.
+* `data_endpoint_enabled` - (Optional) Whether to enable dedicated data endpoints for this Container Registry? This is only supported on resources with the `Premium` SKU.
 
 * `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
 
 ---
 
-`georeplications` supports the following:
+The `georeplications` block supports the following:
 
 * `location` - (Required) A location where the container registry should be geo-replicated.
 
-* `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry? Defaults to `false`.
+* `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry? 
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 
@@ -197,7 +197,7 @@ The following arguments are supported:
 
 ---
 
-`network_rule_set` supports the following:
+The `network_rule_set` block supports the following:
 
 * `default_action` - (Optional) The behaviour for requests matching no rules. Either `Allow` or `Deny`. Defaults to `Allow`
 
@@ -205,13 +205,13 @@ The following arguments are supported:
 
 * `virtual_network` - (Optional) One or more `virtual_network` blocks as defined below.
 
-~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time.
+~> **NOTE:** `network_rule_set` is only supported with the `Premium` SKU at this time.
 
 ~> **NOTE:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
 
 ---
 
-`ip_rule` supports the following:
+The `ip_rule` block supports the following:
 
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
@@ -219,7 +219,7 @@ The following arguments are supported:
 
 ---
 
-`virtual_network` supports the following:
+The `virtual_network` block supports the following:
 
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
@@ -227,13 +227,13 @@ The following arguments are supported:
 
 ---
 
-`trust_policy` supports the following:
+The `trust_policy` block supports the following:
 
 * `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
 
 ---
 
-`retention_policy` supports the following:
+The `retention_policy` block supports the following:
 
 * `days` - (Optional) The number of days to retain an untagged manifest after which it gets purged. Default is `7`.
 
@@ -251,17 +251,18 @@ An `identity` block supports the following:
 
 ---
 
-`encryption` supports the following:
+The `encryption` block supports the following:
 
 * `enabled` - (Optional) Boolean value that indicates whether encryption is enabled.
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key.
 
-* `identity_client_id`  - (Required) The client ID of the managed identity associated with the encryption key.
+* `identity_client_id` - (Required) The client ID of the managed identity associated with the encryption key.
 
 ~> **NOTE** The managed identity used in `encryption` also needs to be part of the `identity` block under `identity_ids`
 
 ---
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -302,5 +303,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Container Registries can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_container_registry.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1
+terraform import azurerm_container_registry.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1
 ```

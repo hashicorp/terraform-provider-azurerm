@@ -57,6 +57,12 @@ func dataSourceFunctionAppHostKeys() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"webpubsub_extension_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -114,6 +120,12 @@ func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface
 			durableTaskExtensionKey = *v
 		}
 		d.Set("durabletask_extension_key", durableTaskExtensionKey)
+
+		webPubSubExtensionKey := ""
+		if v, ok := res.SystemKeys["webpubsub_extension"]; ok {
+			webPubSubExtensionKey = *v
+		}
+		d.Set("webpubsub_extension_key", webPubSubExtensionKey)
 
 		return nil
 	})

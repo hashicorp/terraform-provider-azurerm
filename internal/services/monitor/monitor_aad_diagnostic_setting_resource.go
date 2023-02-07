@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad"
+	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -221,7 +221,7 @@ func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta int
 	d.Set("eventhub_name", resp.EventHubName)
 	eventhubAuthorizationRuleId := ""
 	if resp.EventHubAuthorizationRuleID != nil && *resp.EventHubAuthorizationRuleID != "" {
-		parsedId, err := authRuleParse.ParseAuthorizationRuleID(*resp.EventHubAuthorizationRuleID)
+		parsedId, err := authRuleParse.ParseAuthorizationRuleIDInsensitively(*resp.EventHubAuthorizationRuleID)
 		if err != nil {
 			return err
 		}
@@ -232,7 +232,7 @@ func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta int
 
 	workspaceId := ""
 	if resp.WorkspaceID != nil && *resp.WorkspaceID != "" {
-		parsedId, err := workspaces.ParseWorkspaceID(*resp.WorkspaceID)
+		parsedId, err := workspaces.ParseWorkspaceIDInsensitively(*resp.WorkspaceID)
 		if err != nil {
 			return err
 		}

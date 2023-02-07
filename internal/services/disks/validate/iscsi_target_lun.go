@@ -3,7 +3,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/iscsitargets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/parse"
 )
 
 func DiskPoolIscsiTargetLunId(input interface{}, key string) (warnings []string, errors []error) {
@@ -12,7 +12,7 @@ func DiskPoolIscsiTargetLunId(input interface{}, key string) (warnings []string,
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
-	if _, err := iscsitargets.ParseIscsiTargetLunID(v); err != nil {
+	if _, err := parse.IscsiTargetLunID(v); err != nil {
 		errors = append(errors, err)
 	}
 	return

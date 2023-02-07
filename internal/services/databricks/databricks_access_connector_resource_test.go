@@ -53,7 +53,7 @@ func (DatabricksAccessConnectorResource) Exists(ctx context.Context, clients *cl
 
 	resp, err := clients.DataBricks.AccessConnectorClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Databricks Access Connector %q (resource group: %q): %+v", id.ConnectorName, id.ResourceGroupName, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id.ID(), err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil

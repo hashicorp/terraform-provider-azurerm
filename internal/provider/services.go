@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement"
@@ -57,6 +58,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer"
@@ -72,6 +74,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql"
@@ -124,23 +127,32 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		automation.Registration{},
 		batch.Registration{},
 		bot.Registration{},
+		cognitive.Registration{},
 		compute.Registration{},
 		consumption.Registration{},
-		containers.Registration{},
 		cosmos.Registration{},
+		containerapps.Registration{},
 		costmanagement.Registration{},
 		dashboard.Registration{},
+		databoxedge.Registration{},
 		databricks.Registration{},
+		digitaltwins.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},
 		eventhub.Registration{},
 		fluidrelay.Registration{},
+		iothub.Registration{},
 		iotcentral.Registration{},
 		keyvault.Registration{},
+		labservice.Registration{},
 		loadbalancer.Registration{},
 		loganalytics.Registration{},
+		media.Registration{},
+		machinelearning.Registration{},
 		monitor.Registration{},
+		mobilenetwork.Registration{},
 		mssql.Registration{},
+		network.Registration{},
 		nginx.Registration{},
 		policy.Registration{},
 		privatednsresolver.Registration{},
@@ -149,9 +161,12 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		sentinel.Registration{},
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
+		storage.Registration{},
 		orbital.Registration{},
 		streamanalytics.Registration{},
 		search.Registration{},
+		springcloud.Registration{},
+		vmware.Registration{},
 		web.Registration{},
 	}
 	services = append(services, autoRegisteredTypedServices()...)

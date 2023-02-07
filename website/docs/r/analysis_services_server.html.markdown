@@ -62,6 +62,8 @@ The following arguments are supported:
 
 * `ipv4_firewall_rule` - (Optional) One or more `ipv4_firewall_rule` block(s) as defined below.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 A `ipv4_firewall_rule` block supports the following:
@@ -71,7 +73,6 @@ A `ipv4_firewall_rule` block supports the following:
 * `range_start` - (Required) Start of the firewall rule range as IPv4 address.
 
 * `range_end` - (Required) End of the firewall rule range as IPv4 address.
-
 
 ## Attributes Reference
 

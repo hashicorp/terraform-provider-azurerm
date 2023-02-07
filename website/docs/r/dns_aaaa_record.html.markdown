@@ -68,7 +68,7 @@ resource "azurerm_dns_aaaa_record" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS AAAA Record.
+* `name` - (Required) The name of the DNS AAAA Record. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
@@ -109,5 +109,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 AAAA records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_aaaa_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/AAAA/myrecord1
+terraform import azurerm_dns_aaaa_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/AAAA/myrecord1
 ```

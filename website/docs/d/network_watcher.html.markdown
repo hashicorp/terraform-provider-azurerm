@@ -28,7 +28,6 @@ output "network_watcher_id" {
 * `name` - Specifies the Name of the Network Watcher.
 * `resource_group_name` - Specifies the Name of the Resource Group within which the Network Watcher exists.
 
-
 ## Attributes Reference
 
 * `id` - The ID of the Network Watcher.

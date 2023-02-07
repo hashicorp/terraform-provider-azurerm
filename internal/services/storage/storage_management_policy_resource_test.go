@@ -384,6 +384,13 @@ func TestAccStorageManagementPolicy_baseblobAccessTimeBased(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.baseblobCreateBased(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.baseblobModificationBased(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -996,6 +1003,32 @@ resource "azurerm_storage_management_policy" "test" {
         tier_to_cool_after_days_since_modification_greater_than    = 10
         tier_to_archive_after_days_since_modification_greater_than = 50
         delete_after_days_since_modification_greater_than          = 100
+      }
+    }
+  }
+}
+`, r.templateLastAccessTimeEnabled(data))
+}
+
+func (r StorageManagementPolicyResource) baseblobCreateBased(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_management_policy" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+
+  rule {
+    name    = "rule-1"
+    enabled = true
+    filters {
+      prefix_match = ["container1/prefix1"]
+      blob_types   = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_creation_greater_than    = 10
+        tier_to_archive_after_days_since_creation_greater_than = 50
+        delete_after_days_since_creation_greater_than          = 100
       }
     }
   }

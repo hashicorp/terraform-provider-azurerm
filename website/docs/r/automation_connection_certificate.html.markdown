@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Connection is created. Changing this forces a new resource to be created.
 
-* `automation_certificate_name` - (Required) The name of the automation certificate. 
+* `automation_certificate_name` - (Required) The name of the automation certificate.
 
 * `subscription_id` - (Required) The id of subscription where the automation certificate exists.
 

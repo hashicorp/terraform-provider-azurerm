@@ -6,7 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -158,6 +159,13 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("subject_name", props.SubjectName)
 		d.Set("host_names", props.HostNames)
 		d.Set("issuer", props.Issuer)
+		if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
+			envId, err := parse.AppServiceEnvironmentID(*props.HostingEnvironmentProfile.ID)
+			if err != nil {
+				return fmt.Errorf("parsing hosting environment error: %+v", err)
+			}
+			d.Set("hosting_environment_profile_id", envId.ID())
+		}
 		issueDate := ""
 		if props.IssueDate != nil {
 			issueDate = props.IssueDate.Format(time.RFC3339)
@@ -205,9 +213,9 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"pfx_blob": {
 			Type:         pluginsdk.TypeString,
@@ -273,6 +281,11 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"thumbprint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"hosting_environment_profile_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},

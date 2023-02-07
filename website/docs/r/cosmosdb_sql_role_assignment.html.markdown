@@ -42,7 +42,7 @@ resource "azurerm_cosmosdb_sql_role_definition" "example" {
   resource_group_name = azurerm_resource_group.example.name
   account_name        = azurerm_cosmosdb_account.example.name
   type                = "CustomRole"
-  assignable_scopes   = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.example.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.example.name}"]
+  assignable_scopes   = [azurerm_cosmosdb_account.example.id]
 
   permissions {
     data_actions = ["Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/read"]
@@ -55,7 +55,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "example" {
   account_name        = azurerm_cosmosdb_account.example.name
   role_definition_id  = azurerm_cosmosdb_sql_role_definition.example.id
   principal_id        = data.azurerm_client_config.current.object_id
-  scope               = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.example.name}/providers/Microsoft.DocumentDB/databaseAccounts/${azurerm_cosmosdb_account.example.name}"
+  scope               = azurerm_cosmosdb_account.example.id
 }
 ```
 

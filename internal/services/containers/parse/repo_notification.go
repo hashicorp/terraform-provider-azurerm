@@ -57,7 +57,6 @@ func ParseRepositoryNotification(v string) (*RepositoryNotification, error) {
 		Artifact: *artifact,
 		Action:   action,
 	}, nil
-
 }
 
 func parseArtifact(v string) (*Artifact, error) {

@@ -77,5 +77,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Batch Applications can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_batch_application.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Batch/batchAccounts/exampleba/applications/example-batch-application
+terraform import azurerm_batch_application.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Batch/batchAccounts/exampleba/applications/example-batch-application
 ```

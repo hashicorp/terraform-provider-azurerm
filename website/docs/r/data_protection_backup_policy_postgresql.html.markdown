@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_data_protection_backup_policy_postgresql
 
-Manages a Backup Policy to back up PostgreSQL. 
+Manages a Backup Policy to back up PostgreSQL.
 
 ## Example Usage
 
@@ -113,7 +113,7 @@ A `criteria` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Backup Policy PostgreSQL.
 

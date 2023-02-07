@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `digital_twins_id` - (Required) The resource ID of the Digital Twins Instance. Changing this forces a new Digital Twins Event Hub Endpoint to be created.
 
-* `eventhub_primary_connection_string` - (Required) The primary connection string of the Event Hub Authorization Rule with a minimum of `send` permission. 
+* `eventhub_primary_connection_string` - (Required) The primary connection string of the Event Hub Authorization Rule with a minimum of `send` permission.
 
 * `eventhub_secondary_connection_string` - (Required) The secondary connection string of the Event Hub Authorization Rule with a minimum of `send` permission.
 
@@ -80,7 +80,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Digital Twins Event Hub Endpoint.
 

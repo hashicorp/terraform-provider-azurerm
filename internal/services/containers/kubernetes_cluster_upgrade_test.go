@@ -136,7 +136,7 @@ func TestAccKubernetesCluster_upgradeNodePoolBeforeControlPlaneFails(t *testing.
 		data.ImportStep(),
 		{
 			Config:      r.upgradeControlPlaneDefaultNodePoolConfig(data, olderKubernetesVersion, currentKubernetesVersion),
-			ExpectError: regexp.MustCompile("Node Pools cannot use a version of Kubernetes that is not supported on the Control Plane."),
+			ExpectError: regexp.MustCompile(fmt.Sprintf("Node pool version %s and control plane version %s are incompatible.", currentKubernetesVersion, olderKubernetesVersion)),
 		},
 	})
 }

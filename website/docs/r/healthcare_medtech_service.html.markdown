@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Healthcare Med Tech Service. Changing this forces a new Healthcare Med Tech Service to be created.
 
-* `workspace_id`  - (Required) Specifies the id of the Healthcare Workspace where the Healthcare Med Tech Service should exist. Changing this forces a new Healthcare Med Tech Service to be created.
+* `workspace_id` - (Required) Specifies the id of the Healthcare Workspace where the Healthcare Med Tech Service should exist. Changing this forces a new Healthcare Med Tech Service to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Healthcare Med Tech Service should be created. Changing this forces a new Healthcare Med Tech Service to be created.
 
@@ -71,6 +71,8 @@ The following arguments are supported:
 * `eventhub_consumer_group_name` - (Required) Specifies the Consumer Group of the Event Hub to connect to.
 
 * `device_mapping_json` - (Required) Specifies the Device Mappings of the Med Tech Service.
+
+* `tags` - (Optional) A mapping of tags to assign to the Healthcare Med Tech Service.
 
 ---
 A `identity` block supports the following:
@@ -88,24 +90,25 @@ The following arguments are supported:
 ---
 An `identity` block exports the following:
 
-* `type` - The type of identity used for the Healthcare Med Tech service.
+* `type` - (Required) The type of identity used for the Healthcare Med Tech service.
 
 * `principal_id` - The Principal ID associated with this System Assigned Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this System Assigned Managed Service Identity.
 
 ## Timeouts
+
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Healthcare Med Tech Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Healthcare Med Tech Service.
+* `create` - (Defaults to 90 minutes) Used when creating the Healthcare Med Tech Service.
+* `update` - (Defaults to 90 minutes) Used when updating the Healthcare Med Tech Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Med Tech Service.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare Med Tech Service.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Healthcare Med Tech Service.
 
 ## Import
 
 Healthcare Med Tech Service can be imported using the resource`id`, e.g.
 
 ```shell
-terraform import azurerm_healthcare_medtech_service.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotconnectors/iotconnector1
+terraform import azurerm_healthcare_medtech_service.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotConnectors/iotconnector1
 ```

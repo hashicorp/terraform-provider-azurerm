@@ -153,6 +153,9 @@ service/key-vault:
 service/kusto:
   - internal/services/kusto/**/*
 
+service/labservice:
+  - internal/services/labservice/**/*
+
 service/lighthouse:
   - internal/services/lighthouse/**/*
 
@@ -195,6 +198,9 @@ service/media:
 service/mixed-reality:
   - internal/services/mixedreality/**/*
 
+service/mobile-network:
+  - internal/services/mobilenetwork/**/*
+
 service/monitor:
   - internal/services/monitor/**/*
 
@@ -206,6 +212,9 @@ service/mysql:
 
 service/netapp:
   - internal/services/netapp/**/*
+
+service/network:
+  - internal/services/network/**/*
 
 service/nginx:
   - internal/services/nginx/**/*

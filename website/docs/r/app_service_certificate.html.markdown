@@ -15,7 +15,6 @@ Manages an App Service certificate.
 
 This example provisions an App Service Certificate from a Local File. Additional examples of how to use the `azurerm_app_service_certificate` resource can be found [in the `./examples/app-service-certificate` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service-certificate).
 
-
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -53,6 +52,8 @@ The following arguments are supported:
 
 -> **NOTE:** If using `key_vault_secret_id`, the WebApp Service Resource Principal ID `abfa0a7c-a6b6-4736-8310-5855508787cd` must have 'Secret -> get' and 'Certificate -> get' permissions on the Key Vault containing the certificate. (Source: [App Service Blog](https://azure.github.io/AppService/2016/05/24/Deploying-Azure-Web-App-Certificate-through-Key-Vault.html)) If you use Terraform to create the access policy you have to specify the Object ID of this Principal. This Object ID can be retrieved via following data reference, since it is different in every AAD Tenant:
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ```hcl
 data "azuread_service_principal" "MicrosoftWebApp" {
   application_id = "abfa0a7c-a6b6-4736-8310-5855508787cd"
@@ -79,7 +80,7 @@ The following attributes are exported:
 
 * `thumbprint` - The thumbprint for the certificate.
 
-* `hosting_environment_profile_id` - The ID of the the App Service Environment where the certificate is in use.
+* `hosting_environment_profile_id` - The ID of the App Service Environment where the certificate is in use.
 
 ## Timeouts
 

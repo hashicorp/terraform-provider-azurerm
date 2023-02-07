@@ -87,7 +87,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Either `billing_scope_id` or `subscription_id` has to be specified.
 
-* `workload` - (Optional) The workload type of the Subscription.  Possible values are `Production` (default) and `DevTest`. Changing this forces a new Subscription to be created.
+* `workload` - (Optional) The workload type of the Subscription. Possible values are `Production` (default) and `DevTest`. Changing this forces a new Subscription to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Subscription.
 

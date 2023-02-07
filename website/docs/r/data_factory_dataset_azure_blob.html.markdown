@@ -69,9 +69,9 @@ The following supported arguments are common across all Azure Data Factory Datas
 
 The following supported arguments are specific to Azure Blob Dataset:
 
-* `path` - (Required) The path of the Azure Blob.
+* `path` - (Optional) The path of the Azure Blob.
 
-* `filename` - (Required) The filename of the Azure Blob.
+* `filename` - (Optional) The filename of the Azure Blob.
 
 * `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
 
@@ -86,7 +86,6 @@ A `schema_column` block supports the following:
 * `type` - (Optional) Type of the column. Valid values are `Byte`, `Byte[]`, `Boolean`, `Date`, `DateTime`,`DateTimeOffset`, `Decimal`, `Double`, `Guid`, `Int16`, `Int32`, `Int64`, `Single`, `String`, `TimeSpan`. Please note these values are case sensitive.
 
 * `description` - (Optional) The description of the column.
-
 
 ## Attributes Reference
 

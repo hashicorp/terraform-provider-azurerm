@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/parse"
@@ -22,6 +22,8 @@ func resourceOrder() *pluginsdk.Resource {
 		Read:   resourceOrderRead,
 		Update: resourceOrderCreateUpdate,
 		Delete: resourceOrderDelete,
+
+		DeprecationMessage: `Creating DataBox Edge Orders are not supported via the Azure API - as such the 'azurerm_databox_edge_order' resource is deprecated and will be removed in v4.0 of the AzureRM Provider`,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -43,7 +45,7 @@ func resourceOrder() *pluginsdk.Resource {
 				ValidateFunc: validate.DataboxEdgeName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"contact": {
 				Type:     pluginsdk.TypeList,

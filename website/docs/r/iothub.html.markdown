@@ -184,7 +184,7 @@ An `endpoint` block supports the following:
 
 * `type` - (Required) The type of the endpoint. Possible values are `AzureIotHub.StorageContainer`, `AzureIotHub.ServiceBusQueue`, `AzureIotHub.ServiceBusTopic` or `AzureIotHub.EventHub`.
 
-* `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved:  `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`.
+* `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved: `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`.
 
 * `authentication_type` - (Optional) The type used to authenticate against the endpoint. Possible values are `keyBased` and `identityBased`. Defaults to `keyBased`.
 
@@ -248,9 +248,9 @@ A `route` block supports the following:
 
 * `name` - (Required) The name of the route.
 
-* `source` - (Required) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`.
+* `source` - (Required) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents` and `DigitalTwinChangeEvents`.
 
-* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: <https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language>.
 
 * `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed.
 
@@ -270,9 +270,9 @@ An `enrichment` block supports the following:
 
 A `fallback_route` block supports the following:
 
-* `source` - (Optional) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`.
+* `source` - (Optional) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents` and `DigitalTwinChangeEvents`.
 
-* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: <https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language>.
 
 * `endpoint_names` - (Optional) The endpoints to which messages that satisfy the condition are routed. Currently only 1 endpoint is allowed.
 
@@ -330,11 +330,11 @@ The following attributes are exported:
 
 * `id` - The ID of the IoTHub.
 
-* `event_hub_events_endpoint` -  The EventHub compatible endpoint for events data
-* `event_hub_events_namespace` - The EventHub namespace for events data   
-* `event_hub_events_path` -  The EventHub compatible path for events data
-* `event_hub_operations_endpoint` -  The EventHub compatible endpoint for operational data
-* `event_hub_operations_path` -  The EventHub compatible path for operational data
+* `event_hub_events_endpoint` - The EventHub compatible endpoint for events data
+* `event_hub_events_namespace` - The EventHub namespace for events data
+* `event_hub_events_path` - The EventHub compatible path for events data
+* `event_hub_operations_endpoint` - The EventHub compatible endpoint for operational data
+* `event_hub_operations_path` - The EventHub compatible path for operational data
 
 -> **NOTE:** These fields can be used in conjunction with the `shared_access_policy` block to build a connection string
 
@@ -354,7 +354,7 @@ An `identity` block exports the following:
 
 ---
 
-A `shared access policy` block contains the following:
+A `shared_access_policy` block contains the following:
 
 * `key_name` - The name of the shared access policy.
 
@@ -378,5 +378,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 IoTHubs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iothub.hub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1
+terraform import azurerm_iothub.hub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/iotHubs/hub1
 ```

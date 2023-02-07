@@ -10,7 +10,6 @@ description: |-
 
 Manages an API Management Product tag
 
-
 ## Example Usage
 
 ```hcl

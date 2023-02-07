@@ -41,7 +41,7 @@ resource "azurerm_cosmosdb_sql_stored_procedure" "example" {
   container_name      = azurerm_cosmosdb_sql_container.example.name
 
   body = <<BODY
-  	function () { var context = getContext(); var response = context.getResponse(); response.setBody('Hello, World'); }
+   function () { var context = getContext(); var response = context.getResponse(); response.setBody('Hello, World'); }
 BODY
 }
 ```
@@ -61,7 +61,6 @@ The following arguments are supported:
 * `container_name` - (Required) The name of the Cosmos DB SQL Container to create the stored procedure within. Changing this forces a new resource to be created.
 
 * `body` - (Required) The body of the stored procedure.
-
 
 ## Attributes Reference
 

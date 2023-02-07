@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis"
+	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -36,6 +37,11 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.HealthCareFhirV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FhirServiceID(id)
@@ -217,7 +223,6 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
 }
 
 func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -353,7 +358,6 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 			if artifacts := acrConfig.OciArtifacts; artifacts != nil {
 				d.Set("oci_artifact", flattenOciArtifacts(artifacts))
 			}
-
 		}
 		if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
 			d.Set("configuration_export_storage_account_name", props.ExportConfiguration.StorageAccountName)

@@ -97,7 +97,6 @@ The following arguments are supported:
 * `operation` - The comparison operator which is used for object comparison and filtering. Possible value is `==`. Defaults to `==`.
 * `value` -  The filter tag value used for tag based filtering for blob objects.
 
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

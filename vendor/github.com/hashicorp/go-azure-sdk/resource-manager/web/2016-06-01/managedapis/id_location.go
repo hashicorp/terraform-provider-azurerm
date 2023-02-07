@@ -12,14 +12,14 @@ var _ resourceids.ResourceId = LocationId{}
 // LocationId is a struct representing the Resource ID for a Location
 type LocationId struct {
 	SubscriptionId string
-	Location       string
+	LocationName   string
 }
 
 // NewLocationID returns a new LocationId struct
-func NewLocationID(subscriptionId string, location string) LocationId {
+func NewLocationID(subscriptionId string, locationName string) LocationId {
 	return LocationId{
 		SubscriptionId: subscriptionId,
-		Location:       location,
+		LocationName:   locationName,
 	}
 }
 
@@ -38,8 +38,8 @@ func ParseLocationID(input string) (*LocationId, error) {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -61,8 +61,8 @@ func ParseLocationIDInsensitively(input string) (*LocationId, error) {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
 	}
 
-	if id.Location, ok = parsed.Parsed["location"]; !ok {
-		return nil, fmt.Errorf("the segment 'location' was not found in the resource id %q", input)
+	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -86,7 +86,7 @@ func ValidateLocationID(input interface{}, key string) (warnings []string, error
 // ID returns the formatted Location ID
 func (id LocationId) ID() string {
 	fmtString := "/subscriptions/%s/providers/Microsoft.Web/locations/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.Location)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.LocationName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Location ID
@@ -97,7 +97,7 @@ func (id LocationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("location", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
 	}
 }
 
@@ -105,7 +105,7 @@ func (id LocationId) Segments() []resourceids.Segment {
 func (id LocationId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
-		fmt.Sprintf("Location: %q", id.Location),
+		fmt.Sprintf("Location Name: %q", id.LocationName),
 	}
 	return fmt.Sprintf("Location (%s)", strings.Join(components, "\n"))
 }

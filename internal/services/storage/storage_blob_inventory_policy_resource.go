@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -138,6 +138,12 @@ func storageBlobInventoryPolicyResourceSchema() map[string]*pluginsdk.Schema {
 									Default:  false,
 								},
 
+								"include_deleted": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
+
 								"include_snapshots": {
 									Type:     pluginsdk.TypeBool,
 									Optional: true,
@@ -147,6 +153,17 @@ func storageBlobInventoryPolicyResourceSchema() map[string]*pluginsdk.Schema {
 								"prefix_match": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
+									MaxItems: 10,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+
+								"exclude_prefixes": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									MaxItems: 10,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -281,8 +298,10 @@ func expandBlobInventoryPolicyFilter(input []interface{}) *storage.BlobInventory
 	v := input[0].(map[string]interface{})
 	return &storage.BlobInventoryPolicyFilter{
 		PrefixMatch:         utils.ExpandStringSlice(v["prefix_match"].(*pluginsdk.Set).List()),
+		ExcludePrefix:       utils.ExpandStringSlice(v["exclude_prefixes"].(*pluginsdk.Set).List()),
 		BlobTypes:           utils.ExpandStringSlice(v["blob_types"].(*pluginsdk.Set).List()),
 		IncludeBlobVersions: utils.Bool(v["include_blob_versions"].(bool)),
+		IncludeDeleted:      utils.Bool(v["include_deleted"].(bool)),
 		IncludeSnapshots:    utils.Bool(v["include_snapshots"].(bool)),
 	}
 }
@@ -330,6 +349,10 @@ func flattenBlobInventoryPolicyFilter(input *storage.BlobInventoryPolicyFilter) 
 	if input.IncludeBlobVersions != nil {
 		includeBlobVersions = *input.IncludeBlobVersions
 	}
+	var includeDeleted bool
+	if input.IncludeDeleted != nil {
+		includeDeleted = *input.IncludeDeleted
+	}
 	var includeSnapshots bool
 	if input.IncludeSnapshots != nil {
 		includeSnapshots = *input.IncludeSnapshots
@@ -338,8 +361,10 @@ func flattenBlobInventoryPolicyFilter(input *storage.BlobInventoryPolicyFilter) 
 		map[string]interface{}{
 			"blob_types":            utils.FlattenStringSlice(input.BlobTypes),
 			"include_blob_versions": includeBlobVersions,
+			"include_deleted":       includeDeleted,
 			"include_snapshots":     includeSnapshots,
 			"prefix_match":          utils.FlattenStringSlice(input.PrefixMatch),
+			"exclude_prefixes":      utils.FlattenStringSlice(input.ExcludePrefix),
 		},
 	}
 }

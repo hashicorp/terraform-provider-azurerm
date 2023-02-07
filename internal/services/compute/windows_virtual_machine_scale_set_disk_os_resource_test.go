@@ -143,6 +143,21 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardS
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStandardSSDZRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disksOSDiskStorageAccountTypeWithRestrictedLocation(data, "StandardSSD_ZRS", "westeurope"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypePremiumLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -150,6 +165,21 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypePremiumLR
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disksOSDiskStorageAccountType(data, "Premium_LRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypePremiumZRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disksOSDiskStorageAccountTypeWithRestrictedLocation(data, "Premium_ZRS", "westeurope"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -589,6 +619,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), storageAccountType)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) disksOSDiskStorageAccountTypeWithRestrictedLocation(data acceptance.TestData, storageAccountType string, location string) string {
+	// Limited regional availability for some storage account type
+	data.Locations.Primary = location
+	return r.disksOSDiskStorageAccountType(data, storageAccountType)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) disksOSDiskWriteAcceleratorEnabled(data acceptance.TestData, enabled bool) string {

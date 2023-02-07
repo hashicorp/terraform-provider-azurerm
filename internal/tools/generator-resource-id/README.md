@@ -11,7 +11,7 @@ This is run via go:generate whenever the provider is compiled - at this time thi
 ## Example Usage
 
 ```
-go run main.go -path=-path=./ -name=MyResourceType -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AnalysisServices/servers/Server1
+go run main.go -path=./ -name=MyResourceType -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AnalysisServices/servers/Server1
 ```
 
 ## Arguments

@@ -42,6 +42,8 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `location` - The Azure Region where the NetApp Volume exists.
+  
+* `zone` - The Availability Zone in which the Volume is located.
 
 * `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
 
@@ -54,7 +56,7 @@ The following attributes are exported:
 * `network_features` - Network features in use `Basic` or `Standard`.
   
 * `storage_quota_in_gb` - The maximum Storage Quota in Gigabytes allowed for a file system.
- 
+
 * `security_style` - Volume security style
 
 * `data_protection_replication` - Volume data protection block

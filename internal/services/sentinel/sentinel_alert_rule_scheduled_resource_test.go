@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2022-01-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type SentinelAlertRuleScheduledResource struct{}
@@ -202,6 +202,10 @@ resource "azurerm_sentinel_alert_rule_scheduled" "test" {
     display_name_format  = "Suspicious activity was made by {{ComputerIP}}"
     severity_column_name = "Computer"
     tactics_column_name  = "Computer"
+    dynamic_property {
+      name  = "AlertLink"
+      value = "dcount_ResourceId"
+    }
   }
   entity_mapping {
     entity_type = "Host"
@@ -209,6 +213,9 @@ resource "azurerm_sentinel_alert_rule_scheduled" "test" {
       identifier  = "FullName"
       column_name = "Computer"
     }
+  }
+  sentinel_entity_mapping {
+    column_name = "Category"
   }
   entity_mapping {
     entity_type = "IP"

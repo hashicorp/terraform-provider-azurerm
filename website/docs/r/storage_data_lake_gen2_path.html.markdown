@@ -53,14 +53,13 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) Specifies the ID of the Storage Account in which the Data Lake Gen2 File System should exist. Changing this forces a new resource to be created.
 
-* `resource` - (Required) Specifies the type for path to create. Currently only `directory` is supported.
+* `resource` - (Required) Specifies the type for path to create. Currently only `directory` is supported. Changing this forces a new resource to be created.
 
 * `owner` - (Optional) Specifies the Object ID of the Azure Active Directory User to make the owning user. Possible values also include `$superuser`.
 
 * `group` - (Optional) Specifies the Object ID of the Azure Active Directory Group to make the owning group. Possible values also include `$superuser`.
 
-* `ace` - (Required) One or more `ace` blocks as defined below to specify the entries for the ACL for the path.
-
+* `ace` - (Optional) One or more `ace` blocks as defined below to specify the entries for the ACL for the path.
 
 ---
 
@@ -74,7 +73,7 @@ An `ace` block supports the following:
 
 * `permissions` - (Required) Specifies the permissions for the entry in `rwx` form. For example, `rwx` gives full permissions but `r--` only gives read permissions.
 
-More details on ACLs can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-access-control#access-control-lists-on-files-and-directories
+More details on ACLs can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-access-control#access-control-lists-on-files-and-directories>
 
 ~> **Note:** Using the service's ACE inheritance features will not work well with terraform since we cannot handle changes that are taking place out-of-band. Setting the path to inherit its permissions from its parent will result in terraform trying to revert them in the next apply operation.
 

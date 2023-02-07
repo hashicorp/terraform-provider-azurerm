@@ -5,16 +5,18 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2022-01-01-preview/securityinsight"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
@@ -96,6 +98,26 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"event_grouping": {
+				Type:     pluginsdk.TypeList,
+				Required: features.FourPointOhBeta(),
+				Optional: !features.FourPointOhBeta(),
+				Computed: !features.FourPointOhBeta(), // the service will default it to `SingleAlert`.
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"aggregation_method": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(securityinsight.EventGroupingAggregationKindAlertPerResult),
+								string(securityinsight.EventGroupingAggregationKindSingleAlert),
+							}, false),
+						},
+					},
+				},
+			},
+
 			"tactics": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -116,6 +138,15 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 						string(securityinsight.AttackTacticPrivilegeEscalation),
 						string(securityinsight.AttackTacticPreAttack),
 					}, false),
+				},
+			},
+
+			"techniques": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
@@ -258,6 +289,35 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_property": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice(
+											[]string{
+												string(securityinsight.AlertPropertyAlertLink),
+												string(securityinsight.AlertPropertyConfidenceLevel),
+												string(securityinsight.AlertPropertyConfidenceScore),
+												string(securityinsight.AlertPropertyExtendedLinks),
+												string(securityinsight.AlertPropertyProductComponentName),
+												string(securityinsight.AlertPropertyProductName),
+												string(securityinsight.AlertPropertyProviderName),
+												string(securityinsight.AlertPropertyRemediationSteps),
+												string(securityinsight.AlertPropertyTechniques),
+											}, false),
+									},
+									"value": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -302,6 +362,20 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 					},
 				},
 			},
+			"sentinel_entity_mapping": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 5,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"column_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -341,6 +415,7 @@ func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta in
 		NrtAlertRuleProperties: &securityinsight.NrtAlertRuleProperties{
 			Description:           utils.String(d.Get("description").(string)),
 			DisplayName:           utils.String(d.Get("display_name").(string)),
+			Techniques:            expandAlertRuleTechnicals(d.Get("techniques").(*pluginsdk.Set).List()),
 			Tactics:               expandAlertRuleTactics(d.Get("tactics").(*pluginsdk.Set).List()),
 			IncidentConfiguration: expandAlertRuleIncidentConfiguration(d.Get("incident").([]interface{}), "create_incident_enabled", false),
 			Severity:              securityinsight.AlertSeverity(d.Get("severity").(string)),
@@ -357,14 +432,30 @@ func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if v, ok := d.GetOk("alert_rule_template_version"); ok {
 		param.NrtAlertRuleProperties.TemplateVersion = utils.String(v.(string))
 	}
+	if v, ok := d.GetOk("event_grouping"); ok {
+		param.NrtAlertRuleProperties.EventGroupingSettings = expandAlertRuleScheduledEventGroupingSetting(v.([]interface{}))
+	}
 	if v, ok := d.GetOk("alert_details_override"); ok {
 		param.NrtAlertRuleProperties.AlertDetailsOverride = expandAlertRuleAlertDetailsOverride(v.([]interface{}))
 	}
 	if v, ok := d.GetOk("custom_details"); ok {
 		param.NrtAlertRuleProperties.CustomDetails = utils.ExpandMapStringPtrString(v.(map[string]interface{}))
 	}
+
+	entityMappingCount := 0
+	sentinelEntityMappingCount := 0
 	if v, ok := d.GetOk("entity_mapping"); ok {
 		param.NrtAlertRuleProperties.EntityMappings = expandAlertRuleEntityMapping(v.([]interface{}))
+		entityMappingCount = len(*param.NrtAlertRuleProperties.EntityMappings)
+	}
+	if v, ok := d.GetOk("sentinel_entity_mapping"); ok {
+		param.NrtAlertRuleProperties.SentinelEntitiesMappings = expandAlertRuleSentinelEntityMapping(v.([]interface{}))
+		sentinelEntityMappingCount = len(*param.NrtAlertRuleProperties.SentinelEntitiesMappings)
+	}
+
+	// the max number of `sentinel_entity_mapping` and `entity_mapping` together is 5
+	if entityMappingCount+sentinelEntityMappingCount > 5 {
+		return fmt.Errorf("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 5")
 	}
 
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
@@ -426,6 +517,9 @@ func resourceSentinelAlertRuleNrtRead(d *pluginsdk.ResourceData, meta interface{
 		if err := d.Set("tactics", flattenAlertRuleTactics(prop.Tactics)); err != nil {
 			return fmt.Errorf("setting `tactics`: %+v", err)
 		}
+		if err := d.Set("techniques", prop.Techniques); err != nil {
+			return fmt.Errorf("setting `techniques`: %+v", err)
+		}
 		if err := d.Set("incident", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident_enabled", false)); err != nil {
 			return fmt.Errorf("setting `incident`: %+v", err)
 		}
@@ -438,6 +532,9 @@ func resourceSentinelAlertRuleNrtRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 		d.Set("alert_rule_template_version", prop.TemplateVersion)
 
+		if err := d.Set("event_grouping", flattenAlertRuleScheduledEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
+			return fmt.Errorf("setting `event_grouping`: %+v", err)
+		}
 		if err := d.Set("alert_details_override", flattenAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
 			return fmt.Errorf("setting `alert_details_override`: %+v", err)
 		}
@@ -446,6 +543,9 @@ func resourceSentinelAlertRuleNrtRead(d *pluginsdk.ResourceData, meta interface{
 		}
 		if err := d.Set("entity_mapping", flattenAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
 			return fmt.Errorf("setting `entity_mapping`: %+v", err)
+		}
+		if err := d.Set("sentinel_entity_mapping", flattenAlertRuleSentinelEntityMapping(prop.SentinelEntitiesMappings)); err != nil {
+			return fmt.Errorf("setting `sentinel_entity_mapping`: %+v", err)
 		}
 	}
 

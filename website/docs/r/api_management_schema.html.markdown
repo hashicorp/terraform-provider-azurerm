@@ -46,15 +46,13 @@ The following arguments are supported:
 
 * `schema_id` - (Required) A unique identifier for this Schema. Changing this forces a new resource to be created.
 
-* `api_management_name` - (Required) The Name of the API Management Service where the API exists. Changing this forces a
-  new resource to be created.
+* `api_management_name` - (Required) The Name of the API Management Service where the API exists. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists. Changing
-  this forces a new resource to be created.
+* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
 
 * `type` - (Required) The content type of the Schema. Possible values are `xml` and `json`.
 
-* `value` - (Required) The string defining the document representing the Schema. 
+* `value` - (Required) The string defining the document representing the Schema.
 
 * `description` - (Optional) The description of the schema.
 

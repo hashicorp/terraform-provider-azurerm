@@ -86,13 +86,23 @@ The following arguments are supported:
 
 * `entity_mapping` - (Optional) A list of `entity_mapping` blocks as defined below.
 
+* `event_grouping` - (Optional) A `event_grouping` block as defined below.
+
+-> **NOTE:** `event_grouping` will be required in the next major version of the AzureRM Provider.
+
+* `sentinel_entity_mapping` - (Optional) A list of `sentinel_entity_mapping` blocks as defined below.
+
+-> **NOTE:** `entity_mapping` and `sentinel_entity_mapping` together can't exceed 5.
+
 * `incident` - (Optional) A `incident` block as defined below.
 
 * `suppression_duration` - (Optional) If `suppression_enabled` is `true`, this is ISO 8601 timespan duration, which specifies the amount of time the query should stop running after alert is generated. Defaults to `PT5H`.
 
 * `suppression_enabled` - (Optional) Should the Sentinel NRT Alert Rulea stop running query after alert is generated? Defaults to `false`.
 
-* `tactics` - (Optional) A list of categories of attacks by which to classify the rule. Possible values are `Collection`, `CommandAndControl`, `CredentialAccess`, `DefenseEvasion`, `Discovery`, `Execution`, `Exfiltration`, `Impact`, `InitialAccess`, `LateralMovement`, `Persistence` and `PrivilegeEscalation`.
+* `tactics` - (Optional) A list of categories of attacks by which to classify the rule. Possible values are `Collection`, `CommandAndControl`, `CredentialAccess`, `DefenseEvasion`, `Discovery`, `Execution`, `Exfiltration`, `Impact`, `InitialAccess`, `LateralMovement`, `Persistence`, `PrivilegeEscalation` and `PreAttack`.
+
+* `techniques` - (Optional) A list of techniques of attacks by which to classify the rule.
 
 ---
 
@@ -106,6 +116,16 @@ An `alert_details_override` block supports the following:
 
 * `tactics_column_name` - (Optional) The column name to take the alert tactics from.
 
+* `dynamic_property` - (Optional) A list of `dynamic_property` blocks as defined below.
+
+---
+
+A `dynamic_property` block supports the following:
+
+* `name` - (Required) The name of the dynamic property. Possible Values are `AlertLink`, `ConfidenceLevel`, `ConfidenceScore`, `ExtendedLinks`, `ProductComponentName`, `ProductName`, `ProviderName`, `RemediationSteps` and `Techniques`.
+
+* `value` - (Required) The value of the dynamic property. Pssible Values are `Caller`, `dcount_ResourceId` and `EventSubmissionTimestamp`.
+
 ---
 
 An `entity_mapping` block supports the following:
@@ -113,6 +133,18 @@ An `entity_mapping` block supports the following:
 * `entity_type` - (Required) The type of the entity. Possible values are `Account`, `AzureResource`, `CloudApplication`, `DNS`, `File`, `FileHash`, `Host`, `IP`, `Mailbox`, `MailCluster`, `MailMessage`, `Malware`, `Process`, `RegistryKey`, `RegistryValue`, `SecurityGroup`, `SubmissionMail`, `URL`.
 
 * `field_mapping` - (Required) A list of `field_mapping` blocks as defined below.
+
+---
+
+A `event_grouping` block supports the following:
+
+* `aggregation_method` - (Required) The aggregation type of grouping the events. Possible values are `AlertPerResult` and `SingleAlert`.
+
+---
+
+A `sentinel_entity_mapping` block supports the following:
+
+* `column_name` - (Required) The column name to be mapped to the identifier.
 
 ---
 
@@ -128,7 +160,7 @@ A `incident` block supports the following:
 
 * `create_incident_enabled` - (Required) Whether to create an incident from alerts triggered by this Sentinel NRT Alert Rule?
 
-* `grouping` - (Optional) A `grouping` block as defined below.
+* `grouping` - (Required) A `grouping` block as defined below.
 
 ---
 
@@ -144,13 +176,13 @@ A `grouping` block supports the following:
 
 * `by_entities` - (Optional) A list of entity types to group by, only when the `entity_matching_method` is `Selected`. Possible values are `Account`, `AzureResource`, `CloudApplication`, `DNS`, `File`, `FileHash`, `Host`, `IP`, `Mailbox`, `MailCluster`, `MailMessage`, `Malware`, `Process`, `RegistryKey`, `RegistryValue`, `SecurityGroup`, `SubmissionMail`, `URL`.
 
-* `by_alert_details` - (Optional) A list of alert details to group by, only when the `entity_matching_method` is `Selected`.
+* `by_alert_details` - (Optional) A list of alert details to group by, only when the `entity_matching_method` is `Selected`. Possible values are `DisplayName` and `Severity`.
 
 * `by_custom_details` - (Optional) A list of custom details keys to group by, only when the `entity_matching_method` is `Selected`. Only keys defined in the `custom_details` may be used.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Sentinel NRT Alert Rule.
 

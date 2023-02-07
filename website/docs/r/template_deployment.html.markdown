@@ -104,10 +104,8 @@ output "storageAccountName" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the template deployment. Changing this forces a
-    new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the template deployment.
+* `name` - (Required) Specifies the name of the template deployment. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the template deployment. Changing this forces a new resource to be created.
 * `deployment_mode` - (Required) Specifies the mode that is used to deploy resources. This value could be either `Incremental` or `Complete`.
     Note that you will almost *always* want this to be set to `Incremental` otherwise the deployment will destroy all infrastructure not
     specified within the template, and Terraform will not be aware of this.

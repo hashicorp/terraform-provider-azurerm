@@ -264,6 +264,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
+		"managed_disk": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"expand_without_downtime": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+				},
+			},
+		},
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -437,6 +452,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			resourceGroupRaw := items[0].(map[string]interface{})
 			if v, ok := resourceGroupRaw["prevent_deletion_if_contains_resources"]; ok {
 				featuresMap.ResourceGroup.PreventDeletionIfContainsResources = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["managed_disk"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			managedDiskRaw := items[0].(map[string]interface{})
+			if v, ok := managedDiskRaw["expand_without_downtime"]; ok {
+				featuresMap.ManagedDisk.ExpandWithoutDowntime = v.(bool)
 			}
 		}
 	}

@@ -3,7 +3,7 @@ subcategory: "Load Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_load_test"
 description: |-
-  Manages a Load Test Service.
+  Manages a Load Test.
 ---
 
 <!-- Note: This documentation is generated. Any manual changes will be overwritten -->

@@ -3,12 +3,12 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_firewall_policy"
 description: |-
-  Manages an Azure CDN Front Door Firewall Policy instance.
+  Manages a Front Door (standard/premium) Firewall Policy instance.
 ---
 
 # azurerm_cdn_frontdoor_firewall_policy
 
-Manages an Azure CDN Front Door Firewall Policy instance.
+Manages a Front Door (standard/premium) Firewall Policy instance.
 
 ## Example Usage
 
@@ -135,15 +135,15 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The sku's pricing tier for this Cdn Frontdoor firewall policy. Possible values include `Standard_AzureFrontDoor` or `Premium_AzureFrontDoor`.
+* `sku_name` - (Required) The sku's pricing tier for this Front Door Firewall Policy. Possible values include `Standard_AzureFrontDoor` or `Premium_AzureFrontDoor`. Changing this forces a new resource to be created.
 
--> **NOTE:** The `Standard_AzureFrontDoor` Cdn Frontdoor firewall policy sku may contain `custom` rules only. The `Premium_AzureFrontDoor` Cdn Frontdoor firewall policy skus may contain both `custom` and `managed` rules.
+-> **NOTE:** The `Standard_AzureFrontDoor` Front Door Firewall Policy sku may contain `custom` rules only. The `Premium_AzureFrontDoor` Front Door Firewall Policy skus may contain both `custom` and `managed` rules.
 
-* `enabled` - (Optional) Is the Cdn Frontdoor firewall policy enabled? Defaults to `true`.
+* `enabled` - (Optional) Is the Front Door Firewall Policy enabled? Defaults to `true`.
 
-* `mode` - (Optional) The Cdn Frontdoor firewall policy mode. Possible values are `Detection`, `Prevention`. Defaults to `Prevention`.
+* `mode` - (Required) The Front Door Firewall Policy mode. Possible values are `Detection`, `Prevention`.
 
--> **NOTE:** When run in `Detection` mode, the Cdn Frontdoor firewall policy doesn't take any other actions other than monitoring and loging the request and its matched Cdn Frontdoor rule to the Web Application Firewall logs.
+-> **NOTE:** When run in `Detection` mode, the Front Door Firewall Policy doesn't take any other actions other than monitoring and logging the request and its matched Front Door Rule to the Web Application Firewall logs.
 
 * `redirect_url` - (Optional) If action type is redirect, this field represents redirect URL for the client.
 
@@ -155,7 +155,7 @@ The following arguments are supported:
 
 * `managed_rule` - (Optional) One or more `managed_rule` blocks as defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the Cdn Frontdoor firewall policy.
+* `tags` - (Optional) A mapping of tags to assign to the Front Door Firewall Policy.
 
 ---
 
@@ -167,11 +167,11 @@ A `custom_rule` block supports the following:
 
 * `enabled` - (Optional) Is the rule is enabled or disabled? Defaults to `true`.
 
-* `priority` - (Required) The priority of the rule. Rules with a lower value will be evaluated before rules with a higher value. Defaults to `1`.
+* `priority` - (Optional) The priority of the rule. Rules with a lower value will be evaluated before rules with a higher value. Defaults to `1`.
 
 * `type` - (Required) The type of rule. Possible values are `MatchRule` or `RateLimitRule`.
 
-* `match_condition` - (Required) One or more `match_condition` block defined below. Can support up to `10` `match_condition` blocks.
+* `match_condition` - (Optional) One or more `match_condition` block defined below. Can support up to `10` `match_condition` blocks.
 
 * `rate_limit_duration_in_minutes` - (Optional) The rate limit duration in minutes. Defaults to `1`.
 
@@ -197,11 +197,11 @@ A `match_condition` block supports the following:
 
 A `managed_rule` block supports the following:
 
-* `type` - (Required) The name of the managed rule to use with this resource.
+* `type` - (Required) The name of the managed rule to use with this resource. Possible values include `DefaultRuleSet`, `Microsoft_DefaultRuleSet`, `BotProtection` or `Microsoft_BotManagerRuleSet`.
 
-* `version` - (Required) The version on the managed rule to use with this resource.
+* `version` - (Required) The version of the managed rule to use with this resource. Possible values depends on which DRS type you are using, for the `DefaultRuleSet` type the possible values include `1.0` or `preview-0.1`. For `Microsoft_DefaultRuleSet` the possible values include `1.1`, `2.0` or `2.1`. For `BotProtection` the value must be `preview-0.1` and for `Microsoft_BotManagerRuleSet` the value must be `1.0`.
 
-* `action` - (Required) The action to perform when the managed rule is matched. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
+* `action` - (Required) The action to perform for all DRS rules when the managed rule is matched or when the anomaly score is 5 or greater depending on which version of the DRS you are using. Possible values include `Allow`, `Log`, `Block`, and `Redirect`.
 
 * `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
 
@@ -223,7 +223,9 @@ A `rule` block supports the following:
 
 * `rule_id` - (Required) Identifier for the managed rule.
 
-* `action` - (Required) The action to be applied when the rule matches. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
+* `action` - (Required) The action to be applied when the managed rule matches or when the anomaly score is 5 or greater. Possible values for DRS `1.1` and below are `Allow`, `Log`, `Block`, and `Redirect`. For DRS `2.0` and above the possible values are `Log` or `AnomalyScoring`.
+
+->**NOTE:** Please see the DRS [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-drs?tabs=drs20#anomaly-scoring-mode) for more information.
 
 * `enabled` - (Optional) Is the managed rule override enabled or disabled. Defaults to `false`
 
@@ -245,25 +247,23 @@ An `exclusion` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The ID of the Cdn Frontdoor Firewall Policy.
+* `id` - The ID of the Front Door Firewall Policy.
 
-* `location` - The Azure Region where this Cdn Frontdoor Firewall Policy exists.
-
-* `frontend_endpoint_ids` - The Cdn Frontend Endpoints associated with this Cdn Frontdoor Firewall policy.
+* `frontend_endpoint_ids` - The Front Door Profiles frontend endpoints associated with this Front Door Firewall Policy.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Cdn Frontdoor Firewall Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Cdn Frontdoor Firewall Policy.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Cdn Frontdoor Firewall Policy.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Cdn Frontdoor Firewall Policy.
+* `create` - (Defaults to 30 minutes) Used when creating the Front Door Firewall Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Firewall Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Firewall Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Firewall Policy.
 
 ## Import
 
-Frontdoor Firewall Policy can be imported using the `resource id`, e.g.
+Front Door Firewall Policies can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_cdn_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/frontdoorWebApplicationFirewallPolicies/firewallPolicy1
+terraform import azurerm_cdn_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/firewallPolicy1
 ```

@@ -24,6 +24,7 @@ package network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=LocalNetworkGateway -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/localNetworkGateways/localNetworkGateway1
 
 // Application Gateway
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ApplicationGatewayPrivateLinkConfiguration -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/privateLinkConfigurations/privateLinkConfiguration1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontendPort -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/frontendPorts/feport1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FrontendIPConfiguration -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/frontendIPConfigurations/feipconfig1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=BackendAddressPool -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/backendAddressPools/beap1
@@ -78,6 +79,7 @@ package network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VpnServerConfigurationPolicyGroup -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnServerConfigurations/serverConfiguration1/configurationPolicyGroups/configurationPolicyGroup1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VpnSite -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnSites/vpnSite1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VpnSiteLink -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnSites/vpnSite1/vpnSiteLinks/vpnSiteLink1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=RouteMap -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualHubs/vhub1/routeMaps/routeMap1
 
 // Subnet Service Endpoint Policy
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SubnetServiceEndpointStoragePolicy -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/serviceEndpointPolicies/policy1
@@ -108,3 +110,11 @@ package network
 
 // Virtual Machine Scale Set
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualMachineScaleSetPublicIPAddress -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleSet1/virtualMachines/virtualMachine1/networkInterfaces/networkInterface1/ipConfigurations/ipConfiguration1/publicIPAddresses/publicIpAddress1
+
+// Network Manager
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManager -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerConnectivityConfiguration -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/connectivityConfigurations/conf1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerNetworkGroup -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/networkGroups/group1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerScopeConnection -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/scopeConnections/connection1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerStaticMember -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/networkGroups/group1/staticMembers/member1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerSubscriptionConnection -id=/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Network/networkManagerConnections/connection1

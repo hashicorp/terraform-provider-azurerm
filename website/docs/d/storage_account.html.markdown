@@ -134,6 +134,7 @@ output "storage_account_tier" {
     for more information.
 
 * `azure_files_authentication` - A `azure_files_authentication` block as documented below.
+
 ---
 
 * `custom_domain` supports the following:

@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `partition_key_path` - (Required) Define a partition key. Changing this forces a new resource to be created.
 
-* `partition_key_version` - (Optional) Define a partition key version. Changing this forces a new resource to be created. Possible values are `1 `and `2`. This should be set to `2` in order to use large partition keys.
+* `partition_key_version` - (Optional) Define a partition key version. Changing this forces a new resource to be created. Possible values are `1`and `2`. This should be set to `2` in order to use large partition keys.
 
 * `unique_key` - (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -77,15 +77,15 @@ The following arguments are supported:
 
 * `autoscale_settings` - (Optional) An `autoscale_settings` block as defined below. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply. Requires `partition_key_path` to be set.
 
-~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed. 
+~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed.
 
 * `indexing_policy` - (Optional) An `indexing_policy` block as defined below.
 
 * `default_ttl` - (Optional) The default time to live of SQL container. If missing, items are not expired automatically. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 
-* `analytical_storage_ttl` - (Optional) The default time to live of Analytical Storage for this SQL container. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time. Changing this forces a new Cosmos DB SQL Container to be created when removing `analytical_storage_ttl` on an existing Cosmos DB SQL Container.
+* `analytical_storage_ttl` - (Optional) The default time to live of Analytical Storage for this SQL container. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 
-* `conflict_resolution_policy` - (Optional)  A `conflict_resolution_policy` blocks as defined below.
+* `conflict_resolution_policy` - (Optional) A `conflict_resolution_policy` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -96,7 +96,7 @@ An `autoscale_settings` block supports the following:
 ---
 A `unique_key` block supports the following:
 
-* `paths` - (Required) A list of paths to use for this unique key.
+* `paths` - (Required) A list of paths to use for this unique key. Changing this forces a new resource to be created.
 
 ---
 An `indexing_policy` block supports the following:
@@ -115,33 +115,33 @@ An `indexing_policy` block supports the following:
 
 A `spatial_index` block supports the following:
 
-* `path` - (Required) Path for which the indexing behaviour applies to. According to the service design, all spatial types including `LineString`, `MultiPolygon`, `Point`, and `Polygon` will be applied to the path. 
+* `path` - (Required) Path for which the indexing behaviour applies to. According to the service design, all spatial types including `LineString`, `MultiPolygon`, `Point`, and `Polygon` will be applied to the path.
 
 ---
 
 An `included_path` block supports the following:
 
-* `path` - Path for which the indexing behaviour applies to.
+* `path` - (Required) Path for which the indexing behaviour applies to.
 
 ---
 
 An `excluded_path` block supports the following:
 
-* `path` - Path that is excluded from indexing.
+* `path` - (Required) Path that is excluded from indexing.
 
 ---
 
 A `composite_index` block supports the following:
 
-* `index` - One or more `index` blocks as defined below.
+* `index` - (Required) One or more `index` blocks as defined below.
 
 ---
 
 An `index` block supports the following:
 
-* `path` - Path for which the indexing behaviour applies to.
+* `path` - (Required) Path for which the indexing behaviour applies to.
 
-* `order` - Order of the index. Possible values are `Ascending` or `Descending`.
+* `order` - (Required) Order of the index. Possible values are `Ascending` or `Descending`.
 
 ---
 

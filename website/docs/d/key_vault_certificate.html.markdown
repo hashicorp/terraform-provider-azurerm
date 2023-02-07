@@ -47,7 +47,6 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-
 * `id` - The Key Vault Certificate ID.
 
 * `name` - Specifies the name of the Key Vault Certificate.

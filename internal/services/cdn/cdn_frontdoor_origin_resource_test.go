@@ -206,6 +206,7 @@ func (r CdnFrontDoorOriginResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(true), nil
 }
 
+//nolint:unused
 func (r CdnFrontDoorOriginResource) templatePrivateLinkStorage(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
@@ -232,6 +233,7 @@ resource "azurerm_storage_account" "test" {
 `, template, data.RandomString)
 }
 
+// nolint: unused
 func (r CdnFrontDoorOriginResource) templatePrivateLinkStorageStaticWebSite(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
@@ -264,6 +266,7 @@ resource "azurerm_storage_account" "test" {
 `, template, data.RandomString)
 }
 
+// nolint: unused
 func (r CdnFrontDoorOriginResource) templatePrivateLinkLoadBalancer(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", true)
 	return fmt.Sprintf(`
@@ -325,6 +328,7 @@ resource "azurerm_private_link_service" "test" {
 `, template, data.RandomInteger)
 }
 
+//nolint:unused
 func (r CdnFrontDoorOriginResource) templatePrivateLinkWebApp(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
@@ -525,6 +529,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
+// nolint: unused
 func (r CdnFrontDoorOriginResource) privateLinkBlobPrimary(data acceptance.TestData) string {
 	template := r.templatePrivateLinkStorage(data)
 	return fmt.Sprintf(`
@@ -555,6 +560,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
+// nolint: unused
 func (r CdnFrontDoorOriginResource) privateLinkStaticWebSite(data acceptance.TestData) string {
 	template := r.templatePrivateLinkStorageStaticWebSite(data)
 	return fmt.Sprintf(`
@@ -585,6 +591,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
+// nolint: unused
 func (r CdnFrontDoorOriginResource) privateLinkAppServices(data acceptance.TestData) string {
 	template := r.templatePrivateLinkWebApp(data)
 	return fmt.Sprintf(`
@@ -615,6 +622,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
+// nolint: unused
 func (r CdnFrontDoorOriginResource) privateLinkLoadBalancer(data acceptance.TestData) string {
 	template := r.templatePrivateLinkLoadBalancer(data)
 	return fmt.Sprintf(`

@@ -4,18 +4,19 @@ import (
 	"context"
 	"fmt"
 	batchDataplane "github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch"
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/application"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/certificate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	AccountClient     *batchaccount.BatchAccountClient
 	ApplicationClient *application.ApplicationClient
-	CertificateClient *batch.CertificateClient
-	PoolClient        *batch.PoolClient
+	CertificateClient *certificate.CertificateClient
+	PoolClient        *pool.PoolClient
 
 	BatchManagementAuthorizer autorest.Authorizer
 }
@@ -27,10 +28,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	applicationClient := application.NewApplicationClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&applicationClient.Client, o.ResourceManagerAuthorizer)
 
-	certificateClient := batch.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	certificateClient := certificate.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&certificateClient.Client, o.ResourceManagerAuthorizer)
 
-	poolClient := batch.NewPoolClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	poolClient := pool.NewPoolClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&poolClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

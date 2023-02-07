@@ -41,7 +41,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container Group instance.
 
@@ -63,7 +63,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `identity` block exports the following:
 
-* `type` - Type of Managed Service Identity configured on this Container Group. 
+* `type` - Type of Managed Service Identity configured on this Container Group.
 
 * `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Container Group.
 
