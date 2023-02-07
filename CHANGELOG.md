@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `azurestackhci`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
 * `databricks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20309]
 * `datadog`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20311]
+* `databoxedge`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20236]
 * `digitaltwins`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
 * `redis`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20313]
 * `azurerm_media_streaming_locator` - support for the `filter_names` property [GH-20274]
