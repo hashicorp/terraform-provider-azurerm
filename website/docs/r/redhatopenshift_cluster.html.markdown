@@ -1,7 +1,7 @@
 ---
 subcategory: "Red Hat Openshift"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_redhatopenshift_cluster"
+page_title: "Azure Resource Manager: azurerm_redhat_openshift_cluster"
 description: |-
   Manages fully managed Azure Red Hat Openshift Cluster (also known as ARO)
 ---
@@ -10,15 +10,9 @@ description: |-
 
 Manages a fully managed Azure Red Hat Openshift Cluster (also known as ARO).
 
--> **Note:** Due to the fast-moving nature of ARO, we recommend using the latest version of the Azure Provider when using ARO - you can find [the latest version of the Azure Provider here](https://registry.terraform.io/providers/hashicorp/azurerm/latest).
-
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
-~> **Note:** Currently a service principal cannot be associated with two or more ARO clusters on the Azure subscription.
-
 ## Example Usage
-
-This example provisions a basic Azure Red Hat Openshift Cluster. Other examples of the `azurerm_redhatopenshift_cluster` resource can be found in [the `./examples/redhatopenshift` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/redhatopenshift).
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -31,6 +25,18 @@ resource "azurerm_virtual_network" "example" {
   address_space       = ["10.0.0.0/22"]
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azuread_service_principal" "redhatopenshift" {
+  // The is the `Azure Red Hat OpenShift RP` Service Principal ID
+  application_id = "00000-0000-000000"
+  use_existing   = true
+}
+
+resource "azurerm_role_assignment" "redhatopenshift" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azuread_service_principal.redhatopenshift.id
 }
 
 resource "azurerm_subnet" "main_subnet" {
@@ -51,10 +57,14 @@ resource "azurerm_subnet" "worker_subnet" {
   service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
 }
 
-resource "azurerm_redhatopenshift_cluster" "example" {
+resource "azurerm_redhat_openshift_cluster" "example" {
   name                = "example-redhatopenshift1"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+
+  cluster_profile {
+    domain = "foo.example.com"
+  }
 
   service_principal {
     client_id     = "00000000-0000-0000-0000-000000000000"
@@ -67,18 +77,25 @@ resource "azurerm_redhatopenshift_cluster" "example" {
   }
 
   worker_profile {
-    vm_size    = "Standard_D4s_v3"
-    subnet_id  = azurerm_subnet.worker_subnet.id
-    node_count = 3
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    subnet_id    = azurerm_subnet.worker_subnet.id
+    node_count   = 3
+  }
+  
+  api_server_profile {
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    visibility = "Public"
   }
 
   tags = {
     Environment = "Production"
   }
-}
-
-output "openshift_version" {
-  value = azurerm_redhatopenshift_cluster.example.version
+  
+  depends_on = ["azurerm_role_assignment.redhatopenshift"]
 }
 
 output "console_url" {
@@ -102,13 +119,13 @@ The following arguments are supported:
 
 * `worker_profile` - (Required) A `worker_profile` block as defined below.
 
-* `cluster_profile` - (Optional) A `cluster_profile` block as defined below.
+* `cluster_profile` - (Required) A `cluster_profile` block as defined below.
+
+* `api_server_profile` - (Required) An `api_server_profile` block as defined below.
+
+* `ingress_profile` - (Required) An `ingress_profile` block as defined below.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below.
-
-* `api_server_profile` - (Optional) An `api_server_profile` block as defined below.
-
-* `ingress_profile` - (Optional) An `ingress_profile` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -116,49 +133,56 @@ The following arguments are supported:
 
 A `service_principal` block supports the following:
 
-* `client_id` - (Required) The Client ID for the Service Principal.
+* `client_id` - (Required) The Client ID for the Service Principal. Changing this forces a new resource to be created.
 
-* `client_secret` - (Required) The Client Secret for the Service Principal.
+* `client_secret` - (Required) The Client Secret for the Service Principal. Changing this forces a new resource to be created.
+
+~> **Note:** Currently a service principal cannot be associated with more than one ARO clusters on the Azure subscription.
 
 ---
 
 A `main_profile` block supports the following:
 
-* `subnet_id` - (Required) The ID of the subnet where main nodes will be hosted.
-* `vm_size` - (Required) The size of the Virtual Machines for the main nodes.
-* `encryption_at_host_enabled` - (Optional) Whether main virtual machines are encrypted at host. Defaults to `false`.
-* `disk_encryption_set_id` - (Optional) The resource ID of an associated disk encryption set. The `encryption_at_host_enabled` argument must be set to 
--> **NOTE** The subnet which main nodes will be associated must met the following requirements:
+* `subnet_id` - (Required) The ID of the subnet where main nodes will be hosted. Changing this forces a new resource to be created.
 
-  * Private subnet access granted to `Microsoft.Storage` and `Microsoft.ContainerRegistry` service endpoints.
-  * Subnet private endpoint policies disabled. For more info, see [Disable network policies for Private Link service source IP](https://docs.microsoft.com/azure/private-link/disable-private-link-service-network-policy).
+* `vm_size` - (Required) The size of the Virtual Machines for the main nodes. Changing this forces a new resource to be created.
+
+* `encryption_at_host_enabled` - (Optional) Whether main virtual machines are encrypted at host. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `disk_encryption_set_id` - (Optional) The resource ID of an associated disk encryption set. Changing this forces a new resource to be created.
 
 ---
 
 A `worker_profile` block supports the following:
 
-* `subnet_id` - (Required) The ID of the subnet where worker nodes will be hosted.
-* `vm_size` - (Required) The size of the Virtual Machines for the worker nodes.
-* `disk_size_gb` - (Required) The internal OS disk size of the worker Virtual Machines in GB.
-* `node_count` - (Required) The initial number of worker nodes which should exist in the cluster.
-* `encryption_at_host_enabled` - (Optional) Whether worker virtual machines are encrypted at host. Defaults to `false`.
-* `disk_encryption_set_id` - (Optional) The resource ID of an associated disk encryption set.
+* `subnet_id` - (Required) The ID of the subnet where worker nodes will be hosted. Changing this forces a new resource to be created.
 
--> **NOTE** The subnet which worker nodes will be associated must have private subnet access granted to `Microsoft.Storage` and `Microsoft.ContainerRegistry` service endpoints.
+* `vm_size` - (Required) The size of the Virtual Machines for the worker nodes. Changing this forces a new resource to be created.
+
+* `disk_size_gb` - (Required) The internal OS disk size of the worker Virtual Machines in GB. Changing this forces a new resource to be created.
+
+* `node_count` - (Required) The initial number of worker nodes which should exist in the cluster. Changing this forces a new resource to be created.
+
+* `encryption_at_host_enabled` - (Optional) Whether worker virtual machines are encrypted at host. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `disk_encryption_set_id` - (Optional) The resource ID of an associated disk encryption set. Changing this forces a new resource to be created.
 
 ---
 
 A `cluster_profile` block supports the following:
 
-* `pull_secret` - (Optional) The Red Hat pull secret for the cluster.
-* `domain` - (Optional) The custom domain for the cluster. Defaults to `<random>.<location>.aroapp.io`. For more info, see [Prepare a custom domain for your cluster](https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#prepare-a-custom-domain-for-your-cluster-optional).
-* `fips_enabled` - (Optional) Whether Federal Information Processing Standard (FIPS) validated cryptographic modules are used.
+* `domain` - (Required) The custom domain for the cluster. For more info, see [Prepare a custom domain for your cluster](https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#prepare-a-custom-domain-for-your-cluster-optional).  Changing this forces a new resource to be created.
+
+* `pull_secret` - (Optional) The Red Hat pull secret for the cluster. Changing this forces a new resource to be created.
+
+* `fips_enabled` - (Optional) Whether Federal Information Processing Standard (FIPS) validated cryptographic modules are used. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
 A `network_profile` block supports the following:
 
 * `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. Defaults to `10.128.0.0/1`. Changing this forces a new resource to be created.
+
 * `service_cidr` - (Optional) The network range used by the Openshift service. Defaults to `172.30.0.0/16`. Changing this forces a new resource to be created.
 
 ---
@@ -180,9 +204,31 @@ A `ingress_profile` block supports the following:
 The following attributes are exported:
 
 * `version` - The Red Hat Openshift cluster version.
+
 * `console_url` - The Red Hat Openshift cluster console URL.
 
 ---
+
+A `cluster_profile` block exports the following:
+
+* `resource_group_id` - The resource group that the cluster profile is attached to.
+
+---
+
+A `api_server_profile` block exports the following:
+
+* `ip_address` - The IP Address the API Server Profile is associated with.
+
+* `url` - The URL the API Server Profile is associated with.
+
+---
+
+A `ingress_profile` block exports the following: 
+
+* `name` - The name of the Ingress Profile.
+
+* `ip_address` - The IP Address the Ingress Profile is associated with.
+
 
 ## Timeouts
 
