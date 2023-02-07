@@ -17,6 +17,11 @@ type MsSqlManagedInstanceResource struct{}
 
 const managedInstanceStaticRoutes = `
   route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-OneDsCollector"
+    address_prefix = "OneDsCollector"
+    next_hop_type  = "Internet"
+  }
+  route {
     name           = "mi-13-64-11-nexthop-internet"
     address_prefix = "13.64.0.0/11"
     next_hop_type  = "Internet"
