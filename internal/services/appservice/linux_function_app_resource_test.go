@@ -2728,7 +2728,8 @@ resource "azurerm_linux_function_app" "test" {
       "hostingstart.html",
     ]
 
-    http2_enabled = true
+    http2_enabled                 = true
+    public_network_access_enabled = false
 
     ip_restriction {
       ip_address = "10.10.10.10/32"

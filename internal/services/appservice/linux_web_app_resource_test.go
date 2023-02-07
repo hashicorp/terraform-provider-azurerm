@@ -1446,7 +1446,8 @@ resource "azurerm_linux_web_app" "test" {
   site_config {
     always_on = true
     // api_management_config_id = // TODO
-    app_command_line = "/sbin/myserver -b 0.0.0.0"
+    public_network_access_enabled = false
+    app_command_line              = "/sbin/myserver -b 0.0.0.0"
     default_documents = [
       "first.html",
       "second.jsp",

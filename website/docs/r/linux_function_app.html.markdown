@@ -416,7 +416,7 @@ A `site_config` block supports the following:
 
 * `cors` - (Optional) A `cors` block as defined above.
 
-* `default_documents` - (Optional) Specifies a list of Default Documents for the Linux Web App.
+* `default_documents` - (Optional) Specifies a list of Default Documents for the Linux Function App.
 
 * `elastic_instance_minimum` - (Optional) The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.
 
@@ -429,6 +429,8 @@ A `site_config` block supports the following:
 * `http2_enabled` - (Optional) Specifies if the HTTP2 protocol should be enabled. Defaults to `false`.
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
+
+* `public_network_access_enabled` - (Optional) Whether to enable public network access for the Linux Function App.
 
 * `load_balancing_mode` - (Optional) The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
 

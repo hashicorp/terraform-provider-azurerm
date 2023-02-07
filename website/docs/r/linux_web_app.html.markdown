@@ -462,6 +462,8 @@ A `site_config` block supports the following:
 * `http2_enabled` - (Optional) Should the HTTP2 be enabled?
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
+ 
+* `public_network_access_enabled` - (Optional) Whether to enable public network access for the Linux Web App.
 
 * `load_balancing_mode` - (Optional) The Site load balancing. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
 

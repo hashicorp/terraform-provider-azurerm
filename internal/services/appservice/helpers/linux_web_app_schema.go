@@ -11,41 +11,43 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteConfigLinux struct {
-	AlwaysOn                bool                    `tfschema:"always_on"`
-	ApiManagementConfigId   string                  `tfschema:"api_management_api_id"`
-	ApiDefinition           string                  `tfschema:"api_definition_url"`
-	AppCommandLine          string                  `tfschema:"app_command_line"`
-	AutoHeal                bool                    `tfschema:"auto_heal_enabled"`
-	AutoHealSettings        []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
-	UseManagedIdentityACR   bool                    `tfschema:"container_registry_use_managed_identity"`
-	ContainerRegistryMSI    string                  `tfschema:"container_registry_managed_identity_client_id"`
-	DefaultDocuments        []string                `tfschema:"default_documents"`
-	Http2Enabled            bool                    `tfschema:"http2_enabled"`
-	IpRestriction           []IpRestriction         `tfschema:"ip_restriction"`
-	ScmUseMainIpRestriction bool                    `tfschema:"scm_use_main_ip_restriction"`
-	ScmIpRestriction        []IpRestriction         `tfschema:"scm_ip_restriction"`
-	LoadBalancing           string                  `tfschema:"load_balancing_mode"`
-	LocalMysql              bool                    `tfschema:"local_mysql_enabled"`
-	ManagedPipelineMode     string                  `tfschema:"managed_pipeline_mode"`
-	RemoteDebugging         bool                    `tfschema:"remote_debugging_enabled"`
-	RemoteDebuggingVersion  string                  `tfschema:"remote_debugging_version"`
-	ScmType                 string                  `tfschema:"scm_type"`
-	Use32BitWorker          bool                    `tfschema:"use_32_bit_worker"`
-	WebSockets              bool                    `tfschema:"websockets_enabled"`
-	FtpsState               string                  `tfschema:"ftps_state"`
-	HealthCheckPath         string                  `tfschema:"health_check_path"`
-	HealthCheckEvictionTime int                     `tfschema:"health_check_eviction_time_in_min"`
-	NumberOfWorkers         int                     `tfschema:"worker_count"`
-	ApplicationStack        []ApplicationStackLinux `tfschema:"application_stack"`
-	MinTlsVersion           string                  `tfschema:"minimum_tls_version"`
-	ScmMinTlsVersion        string                  `tfschema:"scm_minimum_tls_version"`
-	Cors                    []CorsSetting           `tfschema:"cors"`
-	DetailedErrorLogging    bool                    `tfschema:"detailed_error_logging_enabled"`
-	LinuxFxVersion          string                  `tfschema:"linux_fx_version"`
-	VnetRouteAllEnabled     bool                    `tfschema:"vnet_route_all_enabled"`
+	AlwaysOn                   bool                    `tfschema:"always_on"`
+	ApiManagementConfigId      string                  `tfschema:"api_management_api_id"`
+	ApiDefinition              string                  `tfschema:"api_definition_url"`
+	AppCommandLine             string                  `tfschema:"app_command_line"`
+	AutoHeal                   bool                    `tfschema:"auto_heal_enabled"`
+	AutoHealSettings           []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
+	UseManagedIdentityACR      bool                    `tfschema:"container_registry_use_managed_identity"`
+	ContainerRegistryMSI       string                  `tfschema:"container_registry_managed_identity_client_id"`
+	DefaultDocuments           []string                `tfschema:"default_documents"`
+	Http2Enabled               bool                    `tfschema:"http2_enabled"`
+	IpRestriction              []IpRestriction         `tfschema:"ip_restriction"`
+	PublicNetworkAccessEnabled bool                    `tfschema:"public_network_access_enabled"`
+	ScmUseMainIpRestriction    bool                    `tfschema:"scm_use_main_ip_restriction"`
+	ScmIpRestriction           []IpRestriction         `tfschema:"scm_ip_restriction"`
+	LoadBalancing              string                  `tfschema:"load_balancing_mode"`
+	LocalMysql                 bool                    `tfschema:"local_mysql_enabled"`
+	ManagedPipelineMode        string                  `tfschema:"managed_pipeline_mode"`
+	RemoteDebugging            bool                    `tfschema:"remote_debugging_enabled"`
+	RemoteDebuggingVersion     string                  `tfschema:"remote_debugging_version"`
+	ScmType                    string                  `tfschema:"scm_type"`
+	Use32BitWorker             bool                    `tfschema:"use_32_bit_worker"`
+	WebSockets                 bool                    `tfschema:"websockets_enabled"`
+	FtpsState                  string                  `tfschema:"ftps_state"`
+	HealthCheckPath            string                  `tfschema:"health_check_path"`
+	HealthCheckEvictionTime    int                     `tfschema:"health_check_eviction_time_in_min"`
+	NumberOfWorkers            int                     `tfschema:"worker_count"`
+	ApplicationStack           []ApplicationStackLinux `tfschema:"application_stack"`
+	MinTlsVersion              string                  `tfschema:"minimum_tls_version"`
+	ScmMinTlsVersion           string                  `tfschema:"scm_minimum_tls_version"`
+	Cors                       []CorsSetting           `tfschema:"cors"`
+	DetailedErrorLogging       bool                    `tfschema:"detailed_error_logging_enabled"`
+	LinuxFxVersion             string                  `tfschema:"linux_fx_version"`
+	VnetRouteAllEnabled        bool                    `tfschema:"vnet_route_all_enabled"`
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
 }
 
@@ -119,6 +121,12 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
+
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
@@ -326,6 +334,11 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 				},
 
 				"ip_restriction": IpRestrictionSchemaComputed(),
+
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
@@ -825,6 +838,12 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
+	publicNetworkAccessEnabled := "Enabled"
+	if !metadata.ResourceData.Get("site_config.0.public_network_access_enabled").(bool) {
+		publicNetworkAccessEnabled = "Disabled"
+	}
+	expanded.PublicNetworkAccess = utils.String(publicNetworkAccessEnabled)
+
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(linuxSiteConfig.ScmUseMainIpRestriction)
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
@@ -931,6 +950,12 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 		WebSockets:              pointer.From(appSiteConfig.WebSocketsEnabled),
 		VnetRouteAllEnabled:     pointer.From(appSiteConfig.VnetRouteAllEnabled),
 	}
+
+	publicNetworkAccess := true
+	if appSiteConfig.PublicNetworkAccess != nil && *appSiteConfig.PublicNetworkAccess == "Disabled" {
+		publicNetworkAccess = false
+	}
+	siteConfig.PublicNetworkAccessEnabled = publicNetworkAccess
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
 		siteConfig.ApiManagementConfigId = *appSiteConfig.APIManagementConfig.ID

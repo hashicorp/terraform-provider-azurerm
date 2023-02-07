@@ -377,6 +377,8 @@ A `site_config` block exports the following:
 
 * `ip_restriction` - A `ip_restriction` block as defined above.
 
+* `public_network_access_enabled` - Is public network access enabled?
+
 * `linux_fx_version` - The `LinuxFXVersion` string.
 
 * `load_balancing_mode` - The site Load Balancing Mode.

@@ -391,6 +391,8 @@ A `site_config` block exports the following:
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 
+* `public_network_access_enabled` - Is public network access enabled?
+
 * `load_balancing_mode` -  The Site load balancing mode.
 
 * `managed_pipeline_mode` - Managed pipeline mode.

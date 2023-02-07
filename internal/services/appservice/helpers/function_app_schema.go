@@ -35,6 +35,7 @@ type SiteConfigLinuxFunctionApp struct {
 	ElasticInstanceMinimum        int                                `tfschema:"elastic_instance_minimum"`
 	Http2Enabled                  bool                               `tfschema:"http2_enabled"`
 	IpRestriction                 []IpRestriction                    `tfschema:"ip_restriction"`
+	PublicNetworkAccessEnabled    bool                               `tfschema:"public_network_access_enabled"`
 	LoadBalancing                 string                             `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
 	ManagedPipelineMode           string                             `tfschema:"managed_pipeline_mode"`
 	PreWarmedInstanceCount        int                                `tfschema:"pre_warmed_instance_count"`
@@ -160,6 +161,12 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
+
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:        pluginsdk.TypeBool,
@@ -406,6 +413,11 @@ func SiteConfigSchemaLinuxFunctionAppComputed() *pluginsdk.Schema {
 
 				"ip_restriction": IpRestrictionSchemaComputed(),
 
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -522,6 +534,7 @@ type SiteConfigWindowsFunctionApp struct {
 	ElasticInstanceMinimum        int                                  `tfschema:"elastic_instance_minimum"`
 	Http2Enabled                  bool                                 `tfschema:"http2_enabled"`
 	IpRestriction                 []IpRestriction                      `tfschema:"ip_restriction"`
+	PublicNetworkAccessEnabled    bool                                 `tfschema:"public_network_access_enabled"`
 	LoadBalancing                 string                               `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
 	ManagedPipelineMode           string                               `tfschema:"managed_pipeline_mode"`
 	PreWarmedInstanceCount        int                                  `tfschema:"pre_warmed_instance_count"`
@@ -633,6 +646,12 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
+
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:        pluginsdk.TypeBool,
@@ -869,6 +888,11 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 				},
 
 				"ip_restriction": IpRestrictionSchemaComputed(),
+
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
@@ -1635,6 +1659,12 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
+	publicNetworkAccessEnabled := "Enabled"
+	if !metadata.ResourceData.Get("site_config.0.public_network_access_enabled").(bool) {
+		publicNetworkAccessEnabled = "Disabled"
+	}
+	expanded.PublicNetworkAccess = utils.String(publicNetworkAccessEnabled)
+
 	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
 		expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(linuxSiteConfig.ScmUseMainIpRestriction)
 	}
@@ -1883,6 +1913,12 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
+	publicNetworkAccessEnabled := "Enabled"
+	if !metadata.ResourceData.Get("site_config.0.public_network_access_enabled").(bool) {
+		publicNetworkAccessEnabled = "Disabled"
+	}
+	expanded.PublicNetworkAccess = utils.String(publicNetworkAccessEnabled)
+
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
 		expanded.LoadBalancing = web.SiteLoadBalancing(windowsSiteConfig.LoadBalancing)
 	}
@@ -1984,6 +2020,12 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSiteConfig.VnetRouteAllEnabled),
 	}
 
+	publicNetworkAccess := true
+	if functionAppSiteConfig.PublicNetworkAccess != nil && *functionAppSiteConfig.PublicNetworkAccess == "Disabled" {
+		publicNetworkAccess = false
+	}
+	result.PublicNetworkAccessEnabled = publicNetworkAccess
+
 	if v := functionAppSiteConfig.APIDefinition; v != nil && v.URL != nil {
 		result.ApiDefinition = *v.URL
 	}
@@ -2067,6 +2109,12 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) 
 		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(functionAppSiteConfig.RemoteDebuggingVersion)),
 		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSiteConfig.VnetRouteAllEnabled),
 	}
+
+	publicNetworkAccess := true
+	if functionAppSiteConfig.PublicNetworkAccess != nil && *functionAppSiteConfig.PublicNetworkAccess == "Disabled" {
+		publicNetworkAccess = false
+	}
+	result.PublicNetworkAccessEnabled = publicNetworkAccess
 
 	if v := functionAppSiteConfig.APIDefinition; v != nil && v.URL != nil {
 		result.ApiDefinition = *v.URL
