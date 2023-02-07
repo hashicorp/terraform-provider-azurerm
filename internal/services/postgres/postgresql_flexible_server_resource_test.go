@@ -291,9 +291,17 @@ func TestAccPostgresqlFlexibleServer_replica(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.replica(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			PreConfig: func() { time.Sleep(15 * time.Minute) },
+			Config:    r.replica(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_postgresql_flexible_server.replica").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
@@ -797,26 +805,13 @@ func (r PostgresqlFlexibleServerResource) replica(data acceptance.TestData) stri
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_postgresql_flexible_server" "source" {
-  name                   = "acctest-fssource-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  storage_mb             = 32768
-  version                = "12"
-  zone                   = "2"
-  sku_name               = "GP_Standard_D2s_v3"
+resource "azurerm_postgresql_flexible_server" "replica" {
+  name                = "acctest-fs-replica-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  zone                = "3"
+  create_mode         = "Replica"
+  source_server_id    = azurerm_postgresql_flexible_server.test.id
 }
-
-resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-fsreplica-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  version                = "12"
-  zone                   = "2"
-  create_mode            = "Replica"
-  source_server_id       = azurerm_postgresql_flexible_server.source.id
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.basic(data), data.RandomInteger)
 }
