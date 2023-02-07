@@ -1772,7 +1772,7 @@ resource "azurerm_network_security_rule" "deny_all_inbound_1" {
 
 resource "azurerm_network_security_rule" "allow_management_outbound_1" {
   name                        = "allow_management_outbound"
-  priority                    = 102
+  priority                    = 110
   direction                   = "Outbound"
   access                      = "Allow"
   protocol                    = "Tcp"
@@ -2007,7 +2007,7 @@ resource "azurerm_network_security_rule" "deny_all_inbound_2" {
 
 resource "azurerm_network_security_rule" "allow_management_outbound_2" {
   name                        = "allow_management_outbound"
-  priority                    = 102
+  priority                    = 110
   direction                   = "Outbound"
   access                      = "Allow"
   protocol                    = "Tcp"
@@ -2242,7 +2242,7 @@ resource "azurerm_network_security_rule" "deny_all_inbound_3" {
 
 resource "azurerm_network_security_rule" "allow_management_outbound_3" {
   name                        = "allow_management_outbound"
-  priority                    = 102
+  priority                    = 110
   direction                   = "Outbound"
   access                      = "Allow"
   protocol                    = "Tcp"
