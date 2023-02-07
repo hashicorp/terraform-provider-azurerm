@@ -51,9 +51,9 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"vm_size": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						//ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 

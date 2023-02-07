@@ -1978,13 +1978,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// update the node pool using the separate API
 	if d.HasChange("default_node_pool") {
-		log.Printf("[DEBUG] Updating of Default Node Pool..")
-
 		agentProfiles, err := ExpandDefaultNodePool(d)
 		if err != nil {
 			return fmt.Errorf("expanding `default_node_pool`: %+v", err)
 		}
-
 		agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
 		defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, *agentProfile.Name)
 
@@ -2004,15 +2001,41 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, defaultNodePoolId, agentProfile)
-		if err != nil {
-			return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
-		}
+		if d.HasChange("default_node_pool.0.vm_size") {
+			log.Printf("[DEBUG] Cycling Default Node Pool..")
+			tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "temp")
 
-		if err := agentPool.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("waiting for update of Default Node Pool %s: %+v", defaultNodePoolId, err)
+			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, tempNodePoolId, agentProfile); err != nil {
+				return fmt.Errorf("creating Temporary Default Node Pool %s: %+v", tempNodePoolId, err)
+			}
+
+			ignorePodDisruptionBudget := true
+			deleteOpts := agentpools.DeleteOperationOptions{
+				IgnorePodDisruptionBudget: &ignorePodDisruptionBudget,
+			}
+
+			if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, deleteOpts); err != nil {
+				return fmt.Errorf("deleting Default Node Pool %s: %+v", defaultNodePoolId, err)
+			}
+
+			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile); err != nil {
+				return fmt.Errorf("creating Default Node Pool %s: %+v", tempNodePoolId, err)
+			}
+
+			if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, deleteOpts); err != nil {
+				return fmt.Errorf("deleting Temporary Default Node Pool %s: %+v", tempNodePoolId, err)
+			}
+
+			log.Printf("[DEBUG] Cycled Default Node Pool.")
+		} else {
+			log.Printf("[DEBUG] Updating of Default Node Pool..")
+
+			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile); err != nil {
+				return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
+			}
+
+			log.Printf("[DEBUG] Updated Default Node Pool.")
 		}
-		log.Printf("[DEBUG] Updated Default Node Pool.")
 	}
 
 	if d.HasChange("maintenance_window") {
