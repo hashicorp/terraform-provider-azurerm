@@ -1111,24 +1111,22 @@ func expandCustomOIDCAuthV2Settings(input []CustomOIDCAuthV2Settings) map[string
 		provider := &web.CustomOpenIDConnectProvider{
 			Enabled: pointer.To(true),
 			Registration: &web.OpenIDConnectRegistration{
-				ClientID:         pointer.To(v.ClientId),
-				ClientCredential: nil,
+				ClientID: pointer.To(v.ClientId),
+				ClientCredential: &web.OpenIDConnectClientCredential{
+					Method:                  web.ClientCredentialMethodClientSecretPost,
+					ClientSecretSettingName: pointer.To(fmt.Sprintf("%s_PROVIDER_AUTHENTICATION_SECRET", strings.ToUpper(v.Name))),
+				},
 				OpenIDConnectConfiguration: &web.OpenIDConnectConfig{
 					WellKnownOpenIDConfiguration: pointer.To(v.OpenIDConfigurationEndpoint),
 				},
 			},
 			Login: &web.OpenIDConnectLogin{
-				NameClaimType: nil,
-				Scopes:        nil,
+				Scopes: pointer.To(v.Scopes),
 			},
 		}
 
 		if v.NameClaimType != "" {
 			provider.Login.NameClaimType = pointer.To(v.NameClaimType)
-
-		}
-		if len(v.Scopes) > 0 {
-			provider.Login.Scopes = &v.Scopes
 		}
 
 		result[v.Name] = provider
