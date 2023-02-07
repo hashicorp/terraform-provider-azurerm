@@ -74,9 +74,6 @@ resource "azurerm_databricks_access_connector" "test" {
   name                = "acctestDBAC%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  identity {
-    type = "SystemAssigned"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
