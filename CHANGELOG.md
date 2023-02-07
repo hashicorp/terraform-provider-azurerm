@@ -3,6 +3,13 @@
 FEATURES
 
 * **New Data Source:** `azurerm_mobile_network` [GH-20128]
+* **New Data Source:** `azurerm_container_app_environment` [GH-18008]
+* **New Data Source:** `azurerm_container_app_environment_certificate` [GH-18008]
+* **New Resource:** `azurerm_container_app_environment` [GH-18008]
+* **New Resource:** `azurerm_container_app_environment_storage` [GH-18008]
+* **New Resource:** `azurerm_container_app_environment_dapr_component` [GH-18008]
+* **New Resource:** `azurerm_container_app_environment_certificate` [GH-18008]
+* **New Resource:** `azurerm_container_app` [GH-18008]
 * **New Resource:** `azurerm_machine_learning_datastore_fileshare` [GH-19934]
 * **New Resource:** `azurerm_machine_learning_datastore_datalake_gen2` [GH-20045]
 * **New Resource:** `azurerm_mobile_network` [GH-20128]
