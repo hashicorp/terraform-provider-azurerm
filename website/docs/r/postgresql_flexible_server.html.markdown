@@ -116,10 +116,6 @@ The following arguments are supported:
 
 * `point_in_time_restore_time_in_utc` - (Optional) The point in time to restore from `source_server_id` when `create_mode` is `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `replica_capacity` - (Optional) The allowed replica capacity for a PostgreSQL Flexible Server. Defaults to `5`. Changing this forces a new PostgreSQL Flexible Server to be created.
-
-* `replication_role` - (Optional) The replication role for the PostgreSQL Flexible Server. Possible values are `AsyncReplica`, `GeoAsyncReplica`, `GeoSyncReplica`, `None`, `Primary`, `Secondary`, `SyncReplica` and `WalReplica`. Defaults to `Primary`. Changing this forces a new PostgreSQL Flexible Server to be created.
-
 * `sku_name` - (Optional) The SKU Name for the PostgreSQL Flexible Server. The name of the SKU, follows the `tier` + `name` pattern (e.g. `B_Standard_B1ms`, `GP_Standard_D2s_v3`, `MO_Standard_E4s_v3`).
 
 * `source_server_id` - (Optional) The resource ID of the source PostgreSQL Flexible Server to be restored. Required when `create_mode` is `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.

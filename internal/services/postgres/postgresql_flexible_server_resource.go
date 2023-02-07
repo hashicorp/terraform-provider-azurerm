@@ -249,30 +249,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"replica_capacity": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				ForceNew: true,
-				Default:  5,
-			},
-
-			"replication_role": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(servers.ReplicationRolePrimary),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.ReplicationRoleAsyncReplica),
-					string(servers.ReplicationRoleGeoAsyncReplica),
-					string(servers.ReplicationRoleGeoSyncReplica),
-					string(servers.ReplicationRoleNone),
-					string(servers.ReplicationRolePrimary),
-					string(servers.ReplicationRoleSecondary),
-					string(servers.ReplicationRoleSyncReplica),
-					string(servers.ReplicationRoleWalReplica),
-				}, false),
-			},
-
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"customer_managed_key": {
@@ -423,15 +399,6 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 	parameters.Identity = identity
 
-	if v, ok := d.GetOk("replica_capacity"); ok {
-		parameters.Properties.ReplicaCapacity = utils.Int64(int64(v.(int)))
-	}
-
-	if v, ok := d.GetOk("replication_role"); ok {
-		replicationRole := servers.ReplicationRole(v.(string))
-		parameters.Properties.ReplicationRole = &replicationRole
-	}
-
 	if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -497,8 +464,6 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("zone", props.AvailabilityZone)
 			d.Set("version", props.Version)
 			d.Set("fqdn", props.FullyQualifiedDomainName)
-			d.Set("replica_capacity", props.ReplicaCapacity)
-			d.Set("replication_role", props.ReplicationRole)
 
 			if network := props.Network; network != nil {
 				publicNetworkAccess := false
@@ -666,11 +631,6 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 			return fmt.Errorf("expanding `identity` for Mysql Flexible Server %s (Resource Group %q): %v", id.FlexibleServerName, id.ResourceGroupName, err)
 		}
 		parameters.Identity = identity
-	}
-
-	if d.HasChange("replication_role") {
-		replicationRole := servers.ReplicationRole(d.Get("replication_role").(string))
-		parameters.Properties.ReplicationRole = &replicationRole
 	}
 
 	if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
