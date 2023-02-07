@@ -5,7 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"golang.org/x/crypto/pkcs12"
@@ -126,7 +126,7 @@ func NewMsiAuthorizer(ctx context.Context, api environments.Api, msiEndpoint, cl
 func NewClientCertificateAuthorizer(ctx context.Context, environment environments.Environment, api environments.Api, tokenVersion TokenVersion, tenantId string, auxTenantIds []string, clientId string, pfxData []byte, pfxPath, pfxPass string) (Authorizer, error) {
 	if len(pfxData) == 0 {
 		var err error
-		pfxData, err = ioutil.ReadFile(pfxPath)
+		pfxData, err = os.ReadFile(pfxPath)
 		if err != nil {
 			return nil, fmt.Errorf("could not read pkcs12 store at %q: %s", pfxPath, err)
 		}

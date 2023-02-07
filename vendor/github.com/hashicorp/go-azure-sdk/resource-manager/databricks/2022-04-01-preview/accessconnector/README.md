@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := accessconnector.NewAccessConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectorValue")
+id := accessconnector.NewAccessConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accessConnectorValue")
 
 payload := accessconnector.AccessConnector{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := accessconnector.NewAccessConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectorValue")
+id := accessconnector.NewAccessConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accessConnectorValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := accessconnector.NewAccessConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectorValue")
+id := accessconnector.NewAccessConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accessConnectorValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -103,7 +103,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := accessconnector.NewAccessConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectorValue")
+id := accessconnector.NewAccessConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accessConnectorValue")
 
 payload := accessconnector.AccessConnectorUpdate{
 	// ...

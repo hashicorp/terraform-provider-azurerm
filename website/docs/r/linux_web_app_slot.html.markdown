@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Linux Web App Slot. Changing this forces a new Linux Web App Slot to be created.
 
-* ~> **NOTE:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the ASE for this to complete reliably.
+~> **NOTE:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the ASE for this to complete reliably.
 
 * `app_service_id` - (Required) The ID of the Linux Web App this Deployment Slot will be part of.
 
@@ -87,6 +87,8 @@ The following arguments are supported:
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity).
 
 * `logs` - (Optional) A `logs` block as defined below.
+
+* `service_plan_id` - (Optional) The ID of the Service Plan in which to run this slot. If not specified the same Service Plan as the Linux Web App will be used.
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
@@ -218,7 +220,7 @@ An `azure_blob_storage` block supports the following:
 
 * `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
-* `retention_in_days` - (Optional) The time in days after which to remove blobs. A value of `0` means no retention.
+* `retention_in_days` - (Required) The time in days after which to remove blobs. A value of `0` means no retention.
 
 * `sas_url` - (Required) SAS URL to an Azure blob container with read/write/list/delete permissions.
 
@@ -237,6 +239,8 @@ A `backup` block supports the following:
 ---
 
 A `connection_string` block supports the following:
+
+* `name` - (Required) The name of the Connection String.
 
 * `type` - (Required) Type of database. Possible values include `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
@@ -312,9 +316,17 @@ A `headers` block supports the following:
 
 A `http_logs` block supports the following:
 
-* `azure_blob_storage` - (Optional) A `azure_blob_storage` block as defined above.
+* `azure_blob_storage` - (Optional) A `azure_blob_storage_http` block as defined above.
 
 * `file_system` - (Optional) A `file_system` block as defined above.
+
+---
+
+An `azure_blob_storage_http` block supports the following:
+
+* `retention_in_days` - (Optional) The time in days after which to remove blobs. A value of `0` means no retention.
+
+* `sas_url` - (Required) SAS url to an Azure blob container with read/write/list/delete permissions.
 
 ---
 
@@ -478,7 +490,7 @@ A `site_config` block supports the following:
 
 * `vnet_route_all_enabled` - (Optional) Should all outbound traffic have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
-* `websockets` - (Optional) Should Web Sockets be enabled? Defaults to `false`.
+* `websockets_enabled` - (Optional) Should Web Sockets be enabled? Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Linux App Service Slot.
 

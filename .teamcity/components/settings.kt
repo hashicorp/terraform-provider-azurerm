@@ -59,7 +59,10 @@ var serviceTestConfigurationOverrides = mapOf(
         // Custom Providers is only available in certain locations
         "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
 
-        // Datadog is available only in WestUS2 region 
+        // Dashboard is only available in certain locations
+        "dashboard" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
+
+        // Datadog is available only in WestUS2 region
         "datadog" to testConfiguration(locationOverride = LocationConfiguration("westus2", "westus2", "centraluseuap", false)),
 
         // data factory uses NC class VMs which are not available in eastus2

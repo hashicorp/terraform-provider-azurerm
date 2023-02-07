@@ -11,21 +11,21 @@ var _ resourceids.ResourceId = CassandraKeyspaceTableId{}
 
 // CassandraKeyspaceTableId is a struct representing the Resource ID for a Cassandra Keyspace Table
 type CassandraKeyspaceTableId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
-	KeyspaceName      string
-	TableName         string
+	SubscriptionId        string
+	ResourceGroupName     string
+	DatabaseAccountName   string
+	CassandraKeyspaceName string
+	TableName             string
 }
 
 // NewCassandraKeyspaceTableID returns a new CassandraKeyspaceTableId struct
-func NewCassandraKeyspaceTableID(subscriptionId string, resourceGroupName string, accountName string, keyspaceName string, tableName string) CassandraKeyspaceTableId {
+func NewCassandraKeyspaceTableID(subscriptionId string, resourceGroupName string, databaseAccountName string, cassandraKeyspaceName string, tableName string) CassandraKeyspaceTableId {
 	return CassandraKeyspaceTableId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		KeyspaceName:      keyspaceName,
-		TableName:         tableName,
+		SubscriptionId:        subscriptionId,
+		ResourceGroupName:     resourceGroupName,
+		DatabaseAccountName:   databaseAccountName,
+		CassandraKeyspaceName: cassandraKeyspaceName,
+		TableName:             tableName,
 	}
 }
 
@@ -48,12 +48,12 @@ func ParseCassandraKeyspaceTableID(input string) (*CassandraKeyspaceTableId, err
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.KeyspaceName, ok = parsed.Parsed["keyspaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'keyspaceName' was not found in the resource id %q", input)
+	if id.CassandraKeyspaceName, ok = parsed.Parsed["cassandraKeyspaceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'cassandraKeyspaceName' was not found in the resource id %q", input)
 	}
 
 	if id.TableName, ok = parsed.Parsed["tableName"]; !ok {
@@ -83,12 +83,12 @@ func ParseCassandraKeyspaceTableIDInsensitively(input string) (*CassandraKeyspac
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.KeyspaceName, ok = parsed.Parsed["keyspaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'keyspaceName' was not found in the resource id %q", input)
+	if id.CassandraKeyspaceName, ok = parsed.Parsed["cassandraKeyspaceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'cassandraKeyspaceName' was not found in the resource id %q", input)
 	}
 
 	if id.TableName, ok = parsed.Parsed["tableName"]; !ok {
@@ -116,7 +116,7 @@ func ValidateCassandraKeyspaceTableID(input interface{}, key string) (warnings [
 // ID returns the formatted Cassandra Keyspace Table ID
 func (id CassandraKeyspaceTableId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/cassandraKeyspaces/%s/tables/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.KeyspaceName, id.TableName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Cassandra Keyspace Table ID
@@ -129,9 +129,9 @@ func (id CassandraKeyspaceTableId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
 		resourceids.StaticSegment("staticCassandraKeyspaces", "cassandraKeyspaces", "cassandraKeyspaces"),
-		resourceids.UserSpecifiedSegment("keyspaceName", "keyspaceValue"),
+		resourceids.UserSpecifiedSegment("cassandraKeyspaceName", "cassandraKeyspaceValue"),
 		resourceids.StaticSegment("staticTables", "tables", "tables"),
 		resourceids.UserSpecifiedSegment("tableName", "tableValue"),
 	}
@@ -142,8 +142,8 @@ func (id CassandraKeyspaceTableId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
-		fmt.Sprintf("Keyspace Name: %q", id.KeyspaceName),
+		fmt.Sprintf("Database Account Name: %q", id.DatabaseAccountName),
+		fmt.Sprintf("Cassandra Keyspace Name: %q", id.CassandraKeyspaceName),
 		fmt.Sprintf("Table Name: %q", id.TableName),
 	}
 	return fmt.Sprintf("Cassandra Keyspace Table (%s)", strings.Join(components, "\n"))

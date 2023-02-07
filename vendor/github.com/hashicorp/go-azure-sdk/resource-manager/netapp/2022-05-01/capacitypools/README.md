@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := capacitypools.NewCapacityPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "poolValue")
+id := capacitypools.NewCapacityPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue")
 
 payload := capacitypools.CapacityPool{
 	// ...
@@ -41,7 +41,7 @@ if err := client.PoolsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := capacitypools.NewCapacityPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "poolValue")
+id := capacitypools.NewCapacityPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue")
 
 if err := client.PoolsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.PoolsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := capacitypools.NewCapacityPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "poolValue")
+id := capacitypools.NewCapacityPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue")
 
 read, err := client.PoolsGet(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capacitypools.NewNetAppAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := capacitypools.NewNetAppAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue")
 
 // alternatively `client.PoolsList(ctx, id)` can be used to do batched pagination
 items, err := client.PoolsListComplete(ctx, id)
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := capacitypools.NewCapacityPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "poolValue")
+id := capacitypools.NewCapacityPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "capacityPoolValue")
 
 payload := capacitypools.CapacityPoolPatch{
 	// ...

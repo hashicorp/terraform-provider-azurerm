@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = GetBackupSecurityPINRequestId{}
 
 // GetBackupSecurityPINRequestId is a struct representing the Resource ID for a Get Backup Security P I N Request
 type GetBackupSecurityPINRequestId struct {
-	SubscriptionId     string
-	ResourceGroupName  string
-	ResourceGuardsName string
-	RequestName        string
+	SubscriptionId                  string
+	ResourceGroupName               string
+	ResourceGuardName               string
+	GetBackupSecurityPINRequestName string
 }
 
 // NewGetBackupSecurityPINRequestID returns a new GetBackupSecurityPINRequestId struct
-func NewGetBackupSecurityPINRequestID(subscriptionId string, resourceGroupName string, resourceGuardsName string, requestName string) GetBackupSecurityPINRequestId {
+func NewGetBackupSecurityPINRequestID(subscriptionId string, resourceGroupName string, resourceGuardName string, getBackupSecurityPINRequestName string) GetBackupSecurityPINRequestId {
 	return GetBackupSecurityPINRequestId{
-		SubscriptionId:     subscriptionId,
-		ResourceGroupName:  resourceGroupName,
-		ResourceGuardsName: resourceGuardsName,
-		RequestName:        requestName,
+		SubscriptionId:                  subscriptionId,
+		ResourceGroupName:               resourceGroupName,
+		ResourceGuardName:               resourceGuardName,
+		GetBackupSecurityPINRequestName: getBackupSecurityPINRequestName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseGetBackupSecurityPINRequestID(input string) (*GetBackupSecurityPINRequ
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGuardsName, ok = parsed.Parsed["resourceGuardsName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardsName' was not found in the resource id %q", input)
+	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
 	}
 
-	if id.RequestName, ok = parsed.Parsed["requestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'requestName' was not found in the resource id %q", input)
+	if id.GetBackupSecurityPINRequestName, ok = parsed.Parsed["getBackupSecurityPINRequestName"]; !ok {
+		return nil, fmt.Errorf("the segment 'getBackupSecurityPINRequestName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseGetBackupSecurityPINRequestIDInsensitively(input string) (*GetBackupSe
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGuardsName, ok = parsed.Parsed["resourceGuardsName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardsName' was not found in the resource id %q", input)
+	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
 	}
 
-	if id.RequestName, ok = parsed.Parsed["requestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'requestName' was not found in the resource id %q", input)
+	if id.GetBackupSecurityPINRequestName, ok = parsed.Parsed["getBackupSecurityPINRequestName"]; !ok {
+		return nil, fmt.Errorf("the segment 'getBackupSecurityPINRequestName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateGetBackupSecurityPINRequestID(input interface{}, key string) (warni
 // ID returns the formatted Get Backup Security P I N Request ID
 func (id GetBackupSecurityPINRequestId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataProtection/resourceGuards/%s/getBackupSecurityPINRequests/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceGuardsName, id.RequestName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceGuardName, id.GetBackupSecurityPINRequestName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Get Backup Security P I N Request ID
@@ -119,9 +119,9 @@ func (id GetBackupSecurityPINRequestId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticResourceGuards", "resourceGuards", "resourceGuards"),
-		resourceids.UserSpecifiedSegment("resourceGuardsName", "resourceGuardsValue"),
+		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardValue"),
 		resourceids.StaticSegment("staticGetBackupSecurityPINRequests", "getBackupSecurityPINRequests", "getBackupSecurityPINRequests"),
-		resourceids.UserSpecifiedSegment("requestName", "requestValue"),
+		resourceids.UserSpecifiedSegment("getBackupSecurityPINRequestName", "getBackupSecurityPINRequestValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id GetBackupSecurityPINRequestId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Guards Name: %q", id.ResourceGuardsName),
-		fmt.Sprintf("Request Name: %q", id.RequestName),
+		fmt.Sprintf("Resource Guard Name: %q", id.ResourceGuardName),
+		fmt.Sprintf("Get Backup Security P I N Request Name: %q", id.GetBackupSecurityPINRequestName),
 	}
 	return fmt.Sprintf("Get Backup Security P I N Request (%s)", strings.Join(components, "\n"))
 }

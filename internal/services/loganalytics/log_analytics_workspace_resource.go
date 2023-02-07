@@ -38,10 +38,11 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 2,
+		SchemaVersion: 3,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.WorkspaceV0ToV1{},
 			1: migration.WorkspaceV1ToV2{},
+			2: migration.WorkspaceV2ToV3{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -67,6 +68,12 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"local_authentication_disabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"cmk_for_query_forced": {
@@ -245,6 +252,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	allowResourceOnlyPermission := d.Get("allow_resource_only_permissions").(bool)
+	disableLocalAuth := d.Get("local_authentication_disabled").(bool)
 
 	parameters := workspaces.Workspace{
 		Name:     &name,
@@ -257,6 +265,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 			RetentionInDays:                 &retentionInDays,
 			Features: &workspaces.WorkspaceFeatures{
 				EnableLogAccessUsingOnlyResourcePermissions: utils.Bool(allowResourceOnlyPermission),
+				DisableLocalAuth: utils.Bool(disableLocalAuth),
 			},
 		},
 	}
@@ -408,13 +417,19 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			allowResourceOnlyPermissions := true
+			disableLocalAuth := false
 			if features := props.Features; features != nil {
 				v := features.EnableLogAccessUsingOnlyResourcePermissions
 				if v != nil {
 					allowResourceOnlyPermissions = *v
 				}
+				d := features.DisableLocalAuth
+				if d != nil {
+					disableLocalAuth = *d
+				}
 			}
 			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
+			d.Set("local_authentication_disabled", disableLocalAuth)
 
 			sharedKeyId := sharedKeyWorkspaces.WorkspaceId{
 				SubscriptionId:    id.SubscriptionId,

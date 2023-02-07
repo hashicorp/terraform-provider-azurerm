@@ -37,7 +37,7 @@ resource "azurerm_servicebus_topic" "example" {
 }
 
 resource "azurerm_stream_analytics_output_servicebus_topic" "example" {
-  name                      = "blob-storage-output"
+  name                      = "service-bus-topic-output"
   stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
   resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
   topic_name                = azurerm_servicebus_topic.example.name
@@ -67,9 +67,9 @@ The following arguments are supported:
 
 * `servicebus_namespace` - (Required) The namespace that is associated with the desired Event Hub, Service Bus Topic, Service Bus Topic, etc.
 
-* `shared_access_policy_key` - (Required) The shared access policy key for the specified shared access policy.
+* `shared_access_policy_key` - (Optional) The shared access policy key for the specified shared access policy. Required if `authentication_mode` is `ConnectionString`.
 
-* `shared_access_policy_name` - (Required) The shared access policy name for the Event Hub, Service Bus Queue, Service Bus Topic, etc.
+* `shared_access_policy_name` - (Optional) The shared access policy name for the Event Hub, Service Bus Queue, Service Bus Topic, etc. Required if `authentication_mode` is `ConnectionString`.
 
 * `serialization` - (Required) A `serialization` block as defined below.
 

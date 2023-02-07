@@ -479,7 +479,8 @@ func expandFunctionFiles(input []FunctionFiles) map[string]*string {
 	}
 	result := make(map[string]*string)
 	for _, v := range input {
-		result[v.Name] = &v.Content
+		content := v.Content
+		result[v.Name] = &content
 	}
 
 	return result

@@ -11,23 +11,23 @@ var _ resourceids.ResourceId = ReplicationProtectedItemId{}
 
 // ReplicationProtectedItemId is a struct representing the Resource ID for a Replication Protected Item
 type ReplicationProtectedItemId struct {
-	SubscriptionId              string
-	ResourceGroupName           string
-	ResourceName                string
-	FabricName                  string
-	ProtectionContainerName     string
-	ReplicatedProtectedItemName string
+	SubscriptionId                     string
+	ResourceGroupName                  string
+	VaultName                          string
+	ReplicationFabricName              string
+	ReplicationProtectionContainerName string
+	ReplicationProtectedItemName       string
 }
 
 // NewReplicationProtectedItemID returns a new ReplicationProtectedItemId struct
-func NewReplicationProtectedItemID(subscriptionId string, resourceGroupName string, resourceName string, fabricName string, protectionContainerName string, replicatedProtectedItemName string) ReplicationProtectedItemId {
+func NewReplicationProtectedItemID(subscriptionId string, resourceGroupName string, vaultName string, replicationFabricName string, replicationProtectionContainerName string, replicationProtectedItemName string) ReplicationProtectedItemId {
 	return ReplicationProtectedItemId{
-		SubscriptionId:              subscriptionId,
-		ResourceGroupName:           resourceGroupName,
-		ResourceName:                resourceName,
-		FabricName:                  fabricName,
-		ProtectionContainerName:     protectionContainerName,
-		ReplicatedProtectedItemName: replicatedProtectedItemName,
+		SubscriptionId:                     subscriptionId,
+		ResourceGroupName:                  resourceGroupName,
+		VaultName:                          vaultName,
+		ReplicationFabricName:              replicationFabricName,
+		ReplicationProtectionContainerName: replicationProtectionContainerName,
+		ReplicationProtectedItemName:       replicationProtectedItemName,
 	}
 }
 
@@ -50,20 +50,20 @@ func ParseReplicationProtectedItemID(input string) (*ReplicationProtectedItemId,
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
+		return nil, fmt.Errorf("the segment 'vaultName' was not found in the resource id %q", input)
 	}
 
-	if id.FabricName, ok = parsed.Parsed["fabricName"]; !ok {
-		return nil, fmt.Errorf("the segment 'fabricName' was not found in the resource id %q", input)
+	if id.ReplicationFabricName, ok = parsed.Parsed["replicationFabricName"]; !ok {
+		return nil, fmt.Errorf("the segment 'replicationFabricName' was not found in the resource id %q", input)
 	}
 
-	if id.ProtectionContainerName, ok = parsed.Parsed["protectionContainerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'protectionContainerName' was not found in the resource id %q", input)
+	if id.ReplicationProtectionContainerName, ok = parsed.Parsed["replicationProtectionContainerName"]; !ok {
+		return nil, fmt.Errorf("the segment 'replicationProtectionContainerName' was not found in the resource id %q", input)
 	}
 
-	if id.ReplicatedProtectedItemName, ok = parsed.Parsed["replicatedProtectedItemName"]; !ok {
-		return nil, fmt.Errorf("the segment 'replicatedProtectedItemName' was not found in the resource id %q", input)
+	if id.ReplicationProtectedItemName, ok = parsed.Parsed["replicationProtectedItemName"]; !ok {
+		return nil, fmt.Errorf("the segment 'replicationProtectedItemName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -89,20 +89,20 @@ func ParseReplicationProtectedItemIDInsensitively(input string) (*ReplicationPro
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
+		return nil, fmt.Errorf("the segment 'vaultName' was not found in the resource id %q", input)
 	}
 
-	if id.FabricName, ok = parsed.Parsed["fabricName"]; !ok {
-		return nil, fmt.Errorf("the segment 'fabricName' was not found in the resource id %q", input)
+	if id.ReplicationFabricName, ok = parsed.Parsed["replicationFabricName"]; !ok {
+		return nil, fmt.Errorf("the segment 'replicationFabricName' was not found in the resource id %q", input)
 	}
 
-	if id.ProtectionContainerName, ok = parsed.Parsed["protectionContainerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'protectionContainerName' was not found in the resource id %q", input)
+	if id.ReplicationProtectionContainerName, ok = parsed.Parsed["replicationProtectionContainerName"]; !ok {
+		return nil, fmt.Errorf("the segment 'replicationProtectionContainerName' was not found in the resource id %q", input)
 	}
 
-	if id.ReplicatedProtectedItemName, ok = parsed.Parsed["replicatedProtectedItemName"]; !ok {
-		return nil, fmt.Errorf("the segment 'replicatedProtectedItemName' was not found in the resource id %q", input)
+	if id.ReplicationProtectedItemName, ok = parsed.Parsed["replicationProtectedItemName"]; !ok {
+		return nil, fmt.Errorf("the segment 'replicationProtectedItemName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -126,7 +126,7 @@ func ValidateReplicationProtectedItemID(input interface{}, key string) (warnings
 // ID returns the formatted Replication Protected Item ID
 func (id ReplicationProtectedItemId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.RecoveryServices/vaults/%s/replicationFabrics/%s/replicationProtectionContainers/%s/replicationProtectedItems/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.FabricName, id.ProtectionContainerName, id.ReplicatedProtectedItemName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.VaultName, id.ReplicationFabricName, id.ReplicationProtectionContainerName, id.ReplicationProtectedItemName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Replication Protected Item ID
@@ -139,13 +139,13 @@ func (id ReplicationProtectedItemId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("vaultName", "vaultValue"),
 		resourceids.StaticSegment("staticReplicationFabrics", "replicationFabrics", "replicationFabrics"),
-		resourceids.UserSpecifiedSegment("fabricName", "fabricValue"),
+		resourceids.UserSpecifiedSegment("replicationFabricName", "replicationFabricValue"),
 		resourceids.StaticSegment("staticReplicationProtectionContainers", "replicationProtectionContainers", "replicationProtectionContainers"),
-		resourceids.UserSpecifiedSegment("protectionContainerName", "protectionContainerValue"),
+		resourceids.UserSpecifiedSegment("replicationProtectionContainerName", "replicationProtectionContainerValue"),
 		resourceids.StaticSegment("staticReplicationProtectedItems", "replicationProtectedItems", "replicationProtectedItems"),
-		resourceids.UserSpecifiedSegment("replicatedProtectedItemName", "replicatedProtectedItemValue"),
+		resourceids.UserSpecifiedSegment("replicationProtectedItemName", "replicationProtectedItemValue"),
 	}
 }
 
@@ -154,10 +154,10 @@ func (id ReplicationProtectedItemId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
-		fmt.Sprintf("Fabric Name: %q", id.FabricName),
-		fmt.Sprintf("Protection Container Name: %q", id.ProtectionContainerName),
-		fmt.Sprintf("Replicated Protected Item Name: %q", id.ReplicatedProtectedItemName),
+		fmt.Sprintf("Vault Name: %q", id.VaultName),
+		fmt.Sprintf("Replication Fabric Name: %q", id.ReplicationFabricName),
+		fmt.Sprintf("Replication Protection Container Name: %q", id.ReplicationProtectionContainerName),
+		fmt.Sprintf("Replication Protected Item Name: %q", id.ReplicationProtectedItemName),
 	}
 	return fmt.Sprintf("Replication Protected Item (%s)", strings.Join(components, "\n"))
 }

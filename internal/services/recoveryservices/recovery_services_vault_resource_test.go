@@ -510,7 +510,7 @@ resource "azurerm_recovery_services_vault" "test" {
   location                      = azurerm_resource_group.test.location
   resource_group_name           = azurerm_resource_group.test.name
   sku                           = "Standard"
-  public_network_access_enabled = %v
+  public_network_access_enabled = %t
 
   soft_delete_enabled = false
 }

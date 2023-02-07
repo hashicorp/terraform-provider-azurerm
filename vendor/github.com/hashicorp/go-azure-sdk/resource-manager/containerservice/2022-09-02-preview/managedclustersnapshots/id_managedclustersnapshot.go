@@ -11,17 +11,17 @@ var _ resourceids.ResourceId = ManagedClusterSnapshotId{}
 
 // ManagedClusterSnapshotId is a struct representing the Resource ID for a Managed Cluster Snapshot
 type ManagedClusterSnapshotId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ResourceName      string
+	SubscriptionId             string
+	ResourceGroupName          string
+	ManagedClusterSnapshotName string
 }
 
 // NewManagedClusterSnapshotID returns a new ManagedClusterSnapshotId struct
-func NewManagedClusterSnapshotID(subscriptionId string, resourceGroupName string, resourceName string) ManagedClusterSnapshotId {
+func NewManagedClusterSnapshotID(subscriptionId string, resourceGroupName string, managedClusterSnapshotName string) ManagedClusterSnapshotId {
 	return ManagedClusterSnapshotId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
+		SubscriptionId:             subscriptionId,
+		ResourceGroupName:          resourceGroupName,
+		ManagedClusterSnapshotName: managedClusterSnapshotName,
 	}
 }
 
@@ -44,8 +44,8 @@ func ParseManagedClusterSnapshotID(input string) (*ManagedClusterSnapshotId, err
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.ManagedClusterSnapshotName, ok = parsed.Parsed["managedClusterSnapshotName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterSnapshotName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +71,8 @@ func ParseManagedClusterSnapshotIDInsensitively(input string) (*ManagedClusterSn
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.ManagedClusterSnapshotName, ok = parsed.Parsed["managedClusterSnapshotName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterSnapshotName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +96,7 @@ func ValidateManagedClusterSnapshotID(input interface{}, key string) (warnings [
 // ID returns the formatted Managed Cluster Snapshot ID
 func (id ManagedClusterSnapshotId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/managedClusterSnapshots/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterSnapshotName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Managed Cluster Snapshot ID
@@ -109,7 +109,7 @@ func (id ManagedClusterSnapshotId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticManagedClusterSnapshots", "managedClusterSnapshots", "managedClusterSnapshots"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("managedClusterSnapshotName", "managedClusterSnapshotValue"),
 	}
 }
 
@@ -118,7 +118,7 @@ func (id ManagedClusterSnapshotId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Managed Cluster Snapshot Name: %q", id.ManagedClusterSnapshotName),
 	}
 	return fmt.Sprintf("Managed Cluster Snapshot (%s)", strings.Join(components, "\n"))
 }

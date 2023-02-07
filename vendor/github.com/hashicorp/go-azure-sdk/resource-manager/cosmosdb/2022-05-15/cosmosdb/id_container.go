@@ -11,21 +11,21 @@ var _ resourceids.ResourceId = ContainerId{}
 
 // ContainerId is a struct representing the Resource ID for a Container
 type ContainerId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
-	DatabaseName      string
-	ContainerName     string
+	SubscriptionId      string
+	ResourceGroupName   string
+	DatabaseAccountName string
+	SqlDatabaseName     string
+	ContainerName       string
 }
 
 // NewContainerID returns a new ContainerId struct
-func NewContainerID(subscriptionId string, resourceGroupName string, accountName string, databaseName string, containerName string) ContainerId {
+func NewContainerID(subscriptionId string, resourceGroupName string, databaseAccountName string, sqlDatabaseName string, containerName string) ContainerId {
 	return ContainerId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		DatabaseName:      databaseName,
-		ContainerName:     containerName,
+		SubscriptionId:      subscriptionId,
+		ResourceGroupName:   resourceGroupName,
+		DatabaseAccountName: databaseAccountName,
+		SqlDatabaseName:     sqlDatabaseName,
+		ContainerName:       containerName,
 	}
 }
 
@@ -48,12 +48,12 @@ func ParseContainerID(input string) (*ContainerId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseName' was not found in the resource id %q", input)
+	if id.SqlDatabaseName, ok = parsed.Parsed["sqlDatabaseName"]; !ok {
+		return nil, fmt.Errorf("the segment 'sqlDatabaseName' was not found in the resource id %q", input)
 	}
 
 	if id.ContainerName, ok = parsed.Parsed["containerName"]; !ok {
@@ -83,12 +83,12 @@ func ParseContainerIDInsensitively(input string) (*ContainerId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseName' was not found in the resource id %q", input)
+	if id.SqlDatabaseName, ok = parsed.Parsed["sqlDatabaseName"]; !ok {
+		return nil, fmt.Errorf("the segment 'sqlDatabaseName' was not found in the resource id %q", input)
 	}
 
 	if id.ContainerName, ok = parsed.Parsed["containerName"]; !ok {
@@ -116,7 +116,7 @@ func ValidateContainerID(input interface{}, key string) (warnings []string, erro
 // ID returns the formatted Container ID
 func (id ContainerId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/sqlDatabases/%s/containers/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.DatabaseName, id.ContainerName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Container ID
@@ -129,9 +129,9 @@ func (id ContainerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
 		resourceids.StaticSegment("staticSqlDatabases", "sqlDatabases", "sqlDatabases"),
-		resourceids.UserSpecifiedSegment("databaseName", "databaseValue"),
+		resourceids.UserSpecifiedSegment("sqlDatabaseName", "sqlDatabaseValue"),
 		resourceids.StaticSegment("staticContainers", "containers", "containers"),
 		resourceids.UserSpecifiedSegment("containerName", "containerValue"),
 	}
@@ -142,8 +142,8 @@ func (id ContainerId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
-		fmt.Sprintf("Database Name: %q", id.DatabaseName),
+		fmt.Sprintf("Database Account Name: %q", id.DatabaseAccountName),
+		fmt.Sprintf("Sql Database Name: %q", id.SqlDatabaseName),
 		fmt.Sprintf("Container Name: %q", id.ContainerName),
 	}
 	return fmt.Sprintf("Container (%s)", strings.Join(components, "\n"))

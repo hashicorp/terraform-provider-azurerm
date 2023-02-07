@@ -182,7 +182,7 @@ func dataSourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.ServerName)
+	d.Set("name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

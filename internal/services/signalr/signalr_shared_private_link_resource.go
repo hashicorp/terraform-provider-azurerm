@@ -89,7 +89,7 @@ func resourceSignalRSharedPrivateLinkCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("parsing ID of %s: %+v", signalrID, err)
 	}
 
-	id := signalr.NewSharedPrivateLinkResourceID(subscriptionId, signalrID.ResourceGroupName, signalrID.ResourceName, d.Get("name").(string))
+	id := signalr.NewSharedPrivateLinkResourceID(subscriptionId, signalrID.ResourceGroupName, signalrID.SignalRName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.SharedPrivateLinkResourcesGet(ctx, id)
 		if err != nil {
@@ -143,7 +143,7 @@ func resourceSignalRSharedPrivateLinkRead(d *pluginsdk.ResourceData, meta interf
 
 	if model := resp.Model; model != nil {
 		d.Set("name", model.Name)
-		d.Set("signalr_service_id", signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName).ID())
+		d.Set("signalr_service_id", signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName).ID())
 
 		if props := model.Properties; props != nil {
 			d.Set("sub_resource_name", props.GroupId)

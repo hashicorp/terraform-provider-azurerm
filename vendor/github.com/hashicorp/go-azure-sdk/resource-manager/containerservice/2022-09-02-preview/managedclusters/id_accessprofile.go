@@ -11,19 +11,19 @@ var _ resourceids.ResourceId = AccessProfileId{}
 
 // AccessProfileId is a struct representing the Resource ID for a Access Profile
 type AccessProfileId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ResourceName      string
-	RoleName          string
+	SubscriptionId     string
+	ResourceGroupName  string
+	ManagedClusterName string
+	AccessProfileName  string
 }
 
 // NewAccessProfileID returns a new AccessProfileId struct
-func NewAccessProfileID(subscriptionId string, resourceGroupName string, resourceName string, roleName string) AccessProfileId {
+func NewAccessProfileID(subscriptionId string, resourceGroupName string, managedClusterName string, accessProfileName string) AccessProfileId {
 	return AccessProfileId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
-		RoleName:          roleName,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		ManagedClusterName: managedClusterName,
+		AccessProfileName:  accessProfileName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseAccessProfileID(input string) (*AccessProfileId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
 	}
 
-	if id.RoleName, ok = parsed.Parsed["roleName"]; !ok {
-		return nil, fmt.Errorf("the segment 'roleName' was not found in the resource id %q", input)
+	if id.AccessProfileName, ok = parsed.Parsed["accessProfileName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accessProfileName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseAccessProfileIDInsensitively(input string) (*AccessProfileId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
 	}
 
-	if id.RoleName, ok = parsed.Parsed["roleName"]; !ok {
-		return nil, fmt.Errorf("the segment 'roleName' was not found in the resource id %q", input)
+	if id.AccessProfileName, ok = parsed.Parsed["accessProfileName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accessProfileName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateAccessProfileID(input interface{}, key string) (warnings []string, 
 // ID returns the formatted Access Profile ID
 func (id AccessProfileId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/managedClusters/%s/accessProfiles/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.RoleName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, id.AccessProfileName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Access Profile ID
@@ -119,9 +119,9 @@ func (id AccessProfileId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterValue"),
 		resourceids.StaticSegment("staticAccessProfiles", "accessProfiles", "accessProfiles"),
-		resourceids.UserSpecifiedSegment("roleName", "roleValue"),
+		resourceids.UserSpecifiedSegment("accessProfileName", "accessProfileValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id AccessProfileId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
-		fmt.Sprintf("Role Name: %q", id.RoleName),
+		fmt.Sprintf("Managed Cluster Name: %q", id.ManagedClusterName),
+		fmt.Sprintf("Access Profile Name: %q", id.AccessProfileName),
 	}
 	return fmt.Sprintf("Access Profile (%s)", strings.Join(components, "\n"))
 }
