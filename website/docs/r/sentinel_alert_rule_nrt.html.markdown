@@ -86,6 +86,10 @@ The following arguments are supported:
 
 * `entity_mapping` - (Optional) A list of `entity_mapping` blocks as defined below.
 
+* `event_grouping` - (Optional) A `event_grouping` block as defined below.
+
+-> **NOTE:** `event_grouping` will be required in the next major version of the AzureRM Provider.
+
 * `sentinel_entity_mapping` - (Optional) A list of `sentinel_entity_mapping` blocks as defined below.
 
 -> **NOTE:** `entity_mapping` and `sentinel_entity_mapping` together can't exceed 5.
@@ -129,6 +133,12 @@ An `entity_mapping` block supports the following:
 * `entity_type` - (Required) The type of the entity. Possible values are `Account`, `AzureResource`, `CloudApplication`, `DNS`, `File`, `FileHash`, `Host`, `IP`, `Mailbox`, `MailCluster`, `MailMessage`, `Malware`, `Process`, `RegistryKey`, `RegistryValue`, `SecurityGroup`, `SubmissionMail`, `URL`.
 
 * `field_mapping` - (Required) A list of `field_mapping` blocks as defined below.
+
+---
+
+A `event_grouping` block supports the following:
+
+* `aggregation_method` - (Required) The aggregation type of grouping the events. Possible values are `AlertPerResult` and `SingleAlert`.
 
 ---
 

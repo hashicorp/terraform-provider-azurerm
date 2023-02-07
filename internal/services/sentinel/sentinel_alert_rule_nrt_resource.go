@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -95,6 +96,26 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"event_grouping": {
+				Type:     pluginsdk.TypeList,
+				Required: features.FourPointOhBeta(),
+				Optional: !features.FourPointOhBeta(),
+				Computed: !features.FourPointOhBeta(), // the service will default it to `SingleAlert`.
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"aggregation_method": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(securityinsight.EventGroupingAggregationKindAlertPerResult),
+								string(securityinsight.EventGroupingAggregationKindSingleAlert),
+							}, false),
+						},
+					},
+				},
 			},
 
 			"tactics": {
@@ -411,6 +432,9 @@ func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if v, ok := d.GetOk("alert_rule_template_version"); ok {
 		param.NrtAlertRuleProperties.TemplateVersion = utils.String(v.(string))
 	}
+	if v, ok := d.GetOk("event_grouping"); ok {
+		param.NrtAlertRuleProperties.EventGroupingSettings = expandAlertRuleScheduledEventGroupingSetting(v.([]interface{}))
+	}
 	if v, ok := d.GetOk("alert_details_override"); ok {
 		param.NrtAlertRuleProperties.AlertDetailsOverride = expandAlertRuleAlertDetailsOverride(v.([]interface{}))
 	}
@@ -508,6 +532,9 @@ func resourceSentinelAlertRuleNrtRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 		d.Set("alert_rule_template_version", prop.TemplateVersion)
 
+		if err := d.Set("event_grouping", flattenAlertRuleScheduledEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
+			return fmt.Errorf("setting `event_grouping`: %+v", err)
+		}
 		if err := d.Set("alert_details_override", flattenAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
 			return fmt.Errorf("setting `alert_details_override`: %+v", err)
 		}
