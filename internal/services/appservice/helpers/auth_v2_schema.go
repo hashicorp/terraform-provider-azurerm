@@ -166,6 +166,109 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 		},
 	}
 }
+func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"auth_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Is the AuthV2 Settings be enabled.",
+				},
+
+				"runtime_version": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The Runtime Version of the Authentication and Authorisation feature of this App.",
+				},
+
+				"config_file_path": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The path to the App Auth settings.",
+				},
+
+				"require_authentication": {
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Is the authentication flow used for all requests.",
+				},
+
+				"unauthenticated_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"default_provider": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The Default Authentication Provider used when the `unauthenticated_action` is set to `RedirectToLoginPage`.",
+				},
+
+				"excluded_paths": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+					Description: "The paths which are excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.",
+				},
+
+				"apple": AppleAuthV2SettingsSchemaComputed(),
+
+				"active_directory": AadAuthV2SettingsSchemaComputed(),
+
+				"azure_static_web_app": StaticWebAppAuthV2SettingsSchemaComputed(),
+
+				"custom_oidc": CustomOIDCAuthV2SettingsSchemaComputed(),
+
+				"facebook": FacebookAuthV2SettingsSchemaComputed(),
+
+				"github": GithubAuthV2SettingsSchemaComputed(),
+
+				"google": GoogleAuthV2SettingsSchemaComputed(),
+
+				"microsoft": MicrosoftAuthV2SettingsSchemaComputed(),
+
+				"twitter": TwitterAuthV2SettingsSchemaComputed(),
+
+				"login": authV2LoginSchemaComputed(),
+
+				"require_https": {
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Is HTTPS required on connections?",
+				},
+
+				"http_route_api_prefix": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The prefix that precedes all the authentication and authorisation paths.",
+				},
+
+				"forward_proxy_convention": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The convention used to determine the url of the request made.",
+				},
+
+				"forward_proxy_custom_host_header_name": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The name of the header containing the host of the request.",
+				},
+
+				"forward_proxy_custom_scheme_header_name": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The name of the header containing the scheme of the request.",
+				},
+			},
+		},
+	}
+}
 
 type AuthV2Login struct {
 	LogoutEndpoint                string   `tfschema:"logout_endpoint"`
@@ -276,6 +379,84 @@ func authV2LoginSchema() *pluginsdk.Schema {
 					Optional:    true,
 					Default:     "00:05:00",
 					Description: "The time after the request is made when the nonce should expire.",
+				},
+			},
+		},
+	}
+}
+
+func authV2LoginSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"logout_endpoint": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The endpoint to which logout requests are made.",
+				},
+
+				"token_store_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Is the Token Store configuration Enabled.",
+				},
+
+				"token_refresh_extension_time": {
+					Type:        pluginsdk.TypeFloat,
+					Computed:    true,
+					Description: "The number of hours after session token expiration that a session token can be used to call the token refresh API.",
+				},
+
+				"token_store_path": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The directory path in the App Filesystem in which the tokens are stored.",
+				},
+
+				"token_store_sas_setting_name": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The name of the app setting which contains the SAS URL of the blob storage containing the tokens.",
+				},
+
+				"preserve_url_fragments_for_logins": {
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Are the fragments from the request be preserved after the login request is made.",
+				},
+
+				"allowed_external_redirect_urls": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+					Description: "External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. **Note:** URLs within the current domain are always implicitly allowed.",
+				},
+
+				"cookie_expiration_convention": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"cookie_expiration_time": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The time after the request is made when the session cookie will expire.",
+				},
+
+				"validate_nonce": {
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Is the nonce be validated while completing the login flow.",
+				},
+
+				"nonce_expiration_time": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The time after the request is made when the nonce will expire.",
 				},
 			},
 		},
@@ -427,8 +608,7 @@ func AppleAuthV2SettingsSchema() *pluginsdk.Schema {
 func AppleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
@@ -645,7 +825,6 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
-		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
@@ -866,8 +1045,7 @@ func StaticWebAppAuthV2SettingsSchema() *pluginsdk.Schema {
 func StaticWebAppAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
@@ -1023,7 +1201,7 @@ func CustomOIDCAuthV2SettingsSchema() *pluginsdk.Schema {
 func CustomOIDCAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -1238,27 +1416,24 @@ func FacebookAuthV2SettingsSchema() *pluginsdk.Schema {
 func FacebookAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"app_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The App ID of the Facebook app used for login.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The App ID of the Facebook app used for login.",
 				},
 
 				"app_secret_setting_name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The app setting name that contains the `app_secret` value used for Facebook Login.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The app setting name that contains the `app_secret` value used for Facebook Login.",
 				},
 
 				"oauth_scopes": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -1365,8 +1540,7 @@ func GithubAuthV2SettingsSchema() *pluginsdk.Schema {
 func GithubAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
@@ -1500,8 +1674,7 @@ func GoogleAuthV2SettingsSchema() *pluginsdk.Schema {
 func GoogleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
@@ -1648,27 +1821,24 @@ func MicrosoftAuthV2SettingsSchema() *pluginsdk.Schema {
 func MicrosoftAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The OAuth 2.0 client ID that was created for the app used for authentication.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The OAuth 2.0 client ID that was created for the app used for authentication.",
 				},
 
 				"client_secret_setting_name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.",
 				},
 
 				"oauth_scopes": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -1765,8 +1935,7 @@ func TwitterAuthV2SettingsSchema() *pluginsdk.Schema {
 func TwitterAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"consumer_key": {

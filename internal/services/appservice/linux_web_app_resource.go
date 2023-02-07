@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"strconv"
 	"strings"
 	"time"
@@ -469,9 +470,12 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Auth Settings for Linux %s: %+v", id, err)
 			}
 
-			authV2, err := client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)
+			var authV2 web.SiteAuthSettingsV2
+			if pointer.From(auth.ConfigVersion) == "v2" {
+				authV2, err = client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
+				if err != nil {
+					return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)
+				}
 			}
 
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
@@ -774,8 +778,24 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			updateLogs := false
+
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
+				if authUpdate.SiteAuthSettingsProperties == nil && metadata.ResourceData.HasChange("auth_v2_settings") {
+					authUpdate.SiteAuthSettingsProperties = &web.SiteAuthSettingsProperties{
+						Enabled:                           pointer.To(false),
+						ClientSecret:                      pointer.To(""),
+						ClientSecretSettingName:           pointer.To(""),
+						ClientSecretCertificateThumbprint: pointer.To(""),
+						GoogleClientSecret:                pointer.To(""),
+						FacebookAppSecret:                 pointer.To(""),
+						GitHubClientSecret:                pointer.To(""),
+						TwitterConsumerSecret:             pointer.To(""),
+						MicrosoftAccountClientSecret:      pointer.To(""),
+					}
+					updateLogs = true
+				}
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *authUpdate); err != nil {
 					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
 				}
@@ -786,6 +806,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				if _, err := client.UpdateAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
 				}
+				updateLogs = true
 			}
 
 			if metadata.ResourceData.HasChange("backup") {
@@ -804,7 +825,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("logs") {
+			if metadata.ResourceData.HasChange("logs") || updateLogs {
 				logsUpdate := helpers.ExpandLogsConfig(state.LogsConfig)
 				if logsUpdate.SiteLogsConfigProperties == nil {
 					logsUpdate = helpers.DisabledLogsConfig() // The API is update only, so we need to send an update with everything switched of when a user removes the "logs" block
