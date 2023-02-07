@@ -797,18 +797,25 @@ func (r PostgresqlFlexibleServerResource) replica(data acceptance.TestData) stri
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-fs-%d"
+resource "azurerm_postgresql_flexible_server" "source" {
+  name                   = "acctest-fssource-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  storage_mb             = 32768
   version                = "12"
-  sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
-  replication_role       = "Secondary"
-  replica_capacity       = 6
+  sku_name               = "GP_Standard_D2s_v3"
 }
-`, r.template(data), data.RandomInteger)
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fsreplica-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  version                = "12"
+  zone                   = "2"
+  create_mode            = "Replica"
+  source_server_id       = azurerm_postgresql_flexible_server.source.id
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }

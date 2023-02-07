@@ -139,6 +139,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.CreateModeDefault),
 					string(servers.CreateModePointInTimeRestore),
+					string(servers.CreateModeReplica),
 				}, false),
 			},
 
