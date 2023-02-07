@@ -27,6 +27,7 @@ type IpRestriction struct {
 	ServiceTag   string                 `tfschema:"service_tag"`
 	VnetSubnetId string                 `tfschema:"virtual_network_subnet_id"`
 	Name         string                 `tfschema:"name"`
+	Description  string                 `tfschema:"description"`
 	Priority     int                    `tfschema:"priority"`
 	Action       string                 `tfschema:"action"`
 	Headers      []IpRestrictionHeaders `tfschema:"headers"`
@@ -91,6 +92,14 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 					Description:  "The name which should be used for this `ip_restriction`.",
 				},
 
+				"description": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The rule description of this IP Restriction.",
+				},
+
 				"priority": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
@@ -145,6 +154,12 @@ func IpRestrictionSchemaComputed() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
 					Description: "The name used for this `ip_restriction`.",
+				},
+
+				"description": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The description of this IP Restriction",
 				},
 
 				"priority": {
@@ -1125,6 +1140,10 @@ func ExpandIpRestrictions(restrictions []IpRestriction) (*[]web.IPSecurityRestri
 			restriction.Name = utils.String(v.Name)
 		}
 
+		if v.Description != "" {
+			restriction.Description = utils.String(v.Description)
+		}
+
 		if v.IpAddress != "" {
 			restriction.IPAddress = utils.String(v.IpAddress)
 		}
@@ -1469,13 +1488,17 @@ func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []Ip
 		if v.Name != nil {
 			ipRestriction.Name = *v.Name
 			if *v.Name == ipRestrictionAllowAllName && *v.IPAddress == ipRestrictionDefaultIpAddressRange &&
-				*v.Priority == ipRestrictionLowestPriority && *v.Action == ipRestrictionAllowAllName {
+				*v.Priority == ipRestrictionLowestPriority && *v.Action == ipRestrictionAllowAllAction {
 				continue
 			}
 			if *v.Name == ipRestrictionDenyAllName && *v.IPAddress == ipRestrictionDefaultIpAddressRange &&
-				*v.Priority == ipRestrictionLowestPriority && *v.Action == ipRestrictionDenyAllName {
+				*v.Priority == ipRestrictionLowestPriority && *v.Action == ipRestrictionDenyAllAction {
 				continue
 			}
+		}
+
+		if v.Description != nil {
+			ipRestriction.Description = *v.Description
 		}
 
 		if v.IPAddress != nil {

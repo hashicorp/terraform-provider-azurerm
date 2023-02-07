@@ -364,6 +364,8 @@ A `ip_restriction` block supports the following:
 
 * `name` - (Optional) The name which should be used for this `ip_restriction`.
 
+* `description` - (Optional) The description of this `ip_restriction`.
+
 * `priority` - (Optional) The priority value of this `ip_restriction`. Defaults to `65000`.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
@@ -441,6 +443,8 @@ A `scm_ip_restriction` block supports the following:
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
+
+~> **NOTE:** The default value set for `scm_ip_restriction` that allowing all ip addresses will be added with the lowest priority 2147483647 if the block isn't specified by users.
 
 ---
 

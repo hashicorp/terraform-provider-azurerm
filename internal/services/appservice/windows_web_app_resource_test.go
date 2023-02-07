@@ -1733,10 +1733,11 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     ip_restriction {
-      ip_address = "10.10.10.10/32"
-      name       = "test-restriction"
-      priority   = 123
-      action     = "Allow"
+      ip_address  = "10.10.10.10/32"
+      name        = "test-restriction"
+      description = "tftestdescription"
+      priority    = 123
+      action      = "Allow"
       headers {
         x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
         x_fd_health_probe = ["1"]

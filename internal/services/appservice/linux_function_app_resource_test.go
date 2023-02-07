@@ -1564,10 +1564,11 @@ resource "azurerm_linux_function_app" "test" {
 
   site_config {
     ip_restriction {
-      ip_address = "13.107.6.152/31,13.107.128.0/22"
-      name       = "test-restriction"
-      priority   = 123
-      action     = "Allow"
+      ip_address  = "13.107.6.152/31,13.107.128.0/22"
+      name        = "test-restriction"
+      description = "tftestdescription"
+      priority    = 123
+      action      = "Allow"
       headers {
         x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
         x_fd_health_probe = ["1"]
@@ -2749,10 +2750,11 @@ resource "azurerm_linux_function_app" "test" {
     remote_debugging_version  = "VS2017"
 
     scm_ip_restriction {
-      ip_address = "10.20.20.20/32"
-      name       = "test-scm-restriction"
-      priority   = 123
-      action     = "Allow"
+      ip_address  = "10.20.20.20/32"
+      name        = "test-scm-restriction"
+      description = "tftestscmipdescription"
+      priority    = 123
+      action      = "Allow"
       headers {
         x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
         x_fd_health_probe = ["1"]
