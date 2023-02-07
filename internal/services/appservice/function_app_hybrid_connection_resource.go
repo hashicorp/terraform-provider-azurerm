@@ -220,7 +220,7 @@ func (r FunctionAppHybridConnectionResource) Read() sdk.ResourceFunc {
 
 			if appHybridConn.ServiceBusNamespace != "" && appHybridConn.SendKeyName != "" {
 				relayNamespaceClient := metadata.Client.Relay.NamespacesClient
-				relayId, err := hybridconnections.ParseHybridConnectionID(appHybridConn.RelayId)
+				relayId, err := hybridconnections.ParseHybridConnectionIDInsensitively(appHybridConn.RelayId)
 				if err != nil {
 					return err
 				}
@@ -231,12 +231,7 @@ func (r FunctionAppHybridConnectionResource) Read() sdk.ResourceFunc {
 				}
 
 				hybridConnectionsClient := metadata.Client.Relay.HybridConnectionsClient
-				hybridConnectionID, err := hybridconnections.ParseHybridConnectionID(appHybridConn.RelayId)
-				if err != nil {
-					return err
-				}
-
-				ruleID := hybridconnections.NewHybridConnectionAuthorizationRuleID(id.SubscriptionId, hybridConnectionID.ResourceGroupName, appHybridConn.ServiceBusNamespace, *existing.Name, appHybridConn.SendKeyName)
+				ruleID := hybridconnections.NewHybridConnectionAuthorizationRuleID(id.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, *existing.Name, appHybridConn.SendKeyName)
 				keys, err := hybridConnectionsClient.ListKeys(ctx, ruleID)
 				if err != nil && keys.Model != nil {
 					appHybridConn.SendKeyValue = utils.NormalizeNilableString(keys.Model.PrimaryKey)

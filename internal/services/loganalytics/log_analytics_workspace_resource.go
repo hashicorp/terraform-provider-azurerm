@@ -38,10 +38,11 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 2,
+		SchemaVersion: 3,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.WorkspaceV0ToV1{},
 			1: migration.WorkspaceV1ToV2{},
+			2: migration.WorkspaceV2ToV3{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{

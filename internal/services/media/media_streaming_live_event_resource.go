@@ -23,9 +23,9 @@ import (
 
 func resourceMediaLiveEvent() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMediaLiveEventCreateUpdate,
+		Create: resourceMediaLiveEventCreate,
 		Read:   resourceMediaLiveEventRead,
-		Update: resourceMediaLiveEventCreateUpdate,
+		Update: resourceMediaLiveEventUpdate,
 		Delete: resourceMediaLiveEventDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -203,6 +203,8 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(liveevents.LiveEventEncodingTypeNone),
 								string(liveevents.LiveEventEncodingTypePremiumOneZeroEightZerop),
+								string(liveevents.LiveEventEncodingTypePassthroughBasic),
+								string(liveevents.LiveEventEncodingTypePassthroughStandard),
 								string(liveevents.LiveEventEncodingTypeStandard),
 							}, false),
 							Default: string(liveevents.LiveEventEncodingTypeNone),
@@ -332,6 +334,16 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 				},
 			},
 
+			"stream_options": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(liveevents.PossibleValuesForStreamOptionsFlag(), false),
+				},
+			},
+
 			"transcription_languages": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -352,24 +364,22 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 	}
 }
 
-func resourceMediaLiveEventCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMediaLiveEventCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.V20220801Client.LiveEvents
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := liveevents.NewLiveEventID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_media_live_event", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_media_live_event", id.ID())
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -409,6 +419,10 @@ func resourceMediaLiveEventCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		payload.Properties.Preview = expandPreview(preview.([]interface{}))
 	}
 
+	if streamOptions, ok := d.GetOk("stream_options"); ok {
+		payload.Properties.StreamOptions = expandStreamOptions(streamOptions.([]interface{}))
+	}
+
 	if transcriptionLanguages, ok := d.GetOk("transcription_languages"); ok {
 		payload.Properties.Transcriptions = expandTranscriptions(transcriptionLanguages.([]interface{}))
 	}
@@ -417,21 +431,73 @@ func resourceMediaLiveEventCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		payload.Properties.UseStaticHostname = utils.Bool(useStaticHostName.(bool))
 	}
 
-	if d.IsNewResource() {
-		options := liveevents.CreateOperationOptions{
-			AutoStart: autoStart,
-		}
-		if err := client.CreateThenPoll(ctx, id, payload, options); err != nil {
-			return fmt.Errorf("creating %s: %+v", id, err)
-		}
-	} else {
-		// TODO: split this into a separate update method
-		if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
+	options := liveevents.CreateOperationOptions{
+		AutoStart: autoStart,
+	}
+	if err := client.CreateThenPoll(ctx, id, payload, options); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceMediaLiveEventRead(d, meta)
+}
+
+func resourceMediaLiveEventUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Media.V20220801Client.LiveEvents
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := liveevents.ParseLiveEventID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if resp.Model == nil || resp.Model.Properties == nil {
+		return fmt.Errorf("unexpected null model of %s", id)
+	}
+	existing := resp.Model
+
+	if d.HasChange("input") {
+		existing.Properties.Input = expandLiveEventInput(d.Get("input").([]interface{}))
+	}
+
+	if d.HasChange("cross_site_access_policy") {
+		existing.Properties.CrossSiteAccessPolicies = expandLiveEventCrossSiteAccessPolicies(d.Get("cross_site_access_policy").([]interface{}))
+	}
+
+	if d.HasChange("description") {
+		existing.Properties.Description = utils.String(d.Get("description").(string))
+	}
+
+	if d.HasChange("encoding") {
+		existing.Properties.Encoding = expandEncoding(d.Get("encoding").([]interface{}))
+	}
+
+	if d.HasChange("hostname_prefix") {
+		existing.Properties.HostnamePrefix = utils.String(d.Get("hostname_prefix").(string))
+	}
+
+	if d.HasChange("preview") {
+		existing.Properties.Preview = expandPreview(d.Get("preview").([]interface{}))
+	}
+
+	if d.HasChange("transcription_languages") {
+		existing.Properties.Transcriptions = expandTranscriptions(d.Get("transcription_languages").([]interface{}))
+	}
+
+	if d.HasChange("tags") {
+		existing.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.UpdateThenPoll(ctx, *id, *existing); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
 
 	return resourceMediaLiveEventRead(d, meta)
 }
@@ -486,6 +552,11 @@ func resourceMediaLiveEventRead(d *pluginsdk.ResourceData, meta interface{}) err
 			preview := flattenPreview(props.Preview)
 			if err := d.Set("preview", preview); err != nil {
 				return fmt.Errorf("flattening `preview`: %s", err)
+			}
+
+			streamOptions := flattenStreamOptions(props.StreamOptions)
+			if err := d.Set("stream_options", streamOptions); err != nil {
+				return fmt.Errorf("flattening `stream_options`: %s", err)
 			}
 
 			transcriptions := flattenTranscriptions(props.Transcriptions)
@@ -688,6 +759,15 @@ func expandLiveEventCrossSiteAccessPolicies(input []interface{}) *liveevents.Cro
 		CrossDomainPolicy:  &crossDomainPolicy,
 	}
 }
+
+func expandStreamOptions(input []interface{}) *[]liveevents.StreamOptionsFlag {
+	streamOptions := make([]liveevents.StreamOptionsFlag, 0)
+	for _, v := range input {
+		streamOptions = append(streamOptions, liveevents.StreamOptionsFlag(v.(string)))
+	}
+	return &streamOptions
+}
+
 func expandTranscriptions(input []interface{}) *[]liveevents.LiveEventTranscription {
 	transcriptions := make([]liveevents.LiveEventTranscription, 0)
 	for _, v := range input {
@@ -886,6 +966,19 @@ func flattenLiveEventCrossSiteAccessPolicies(input *liveevents.CrossSiteAccessPo
 			"cross_domain_policy":  crossDomainPolicy,
 		},
 	}
+}
+
+func flattenStreamOptions(input *[]liveevents.StreamOptionsFlag) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	streamOptions := make([]interface{}, 0)
+	for _, v := range *input {
+		streamOptions = append(streamOptions, string(v))
+	}
+
+	return streamOptions
 }
 
 func flattenTranscriptions(input *[]liveevents.LiveEventTranscription) []string {

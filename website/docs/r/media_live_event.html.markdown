@@ -68,6 +68,7 @@ resource "azurerm_media_live_event" "example" {
     }
   }
 
+  stream_options          = ["LowLatency"]
   use_static_hostname     = true
   hostname_prefix         = "special-event"
   transcription_languages = ["en-US"]
@@ -101,6 +102,8 @@ The following arguments are supported:
 * `hostname_prefix` - (Optional) When `use_static_hostname` is set to true, the `hostname_prefix` specifies the first part of the hostname assigned to the live event preview and ingest endpoints. The final hostname would be a combination of this prefix, the media service account name and a short code for the Azure Media Services data center.
 
 * `preview` - (Optional) A `preview` block as defined below.
+
+* `stream_options` - (Optional) A list of options to use for the LiveEvent. Possible values are `Default`, `LowLatency`, `LowLatencyV2`. Please see more at this [document](https://learn.microsoft.com/en-us/azure/media-services/latest/live-event-latency-reference#lowlatency-and-lowlatencyv2-options). Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Live Event.
 

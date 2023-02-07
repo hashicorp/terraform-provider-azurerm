@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `content` - (Required) The content of the Logic App Integration Account Map.
 
-* `map_type` - (Required) The type of the Logic App Integration Account Map. Possible values are `Xslt`, `Xslt20`, `Xslt30` and `Liquid`.
+* `map_type` - (Required) The type of the Logic App Integration Account Map. Possible values are `Liquid`, `NotSpecified`, `Xslt`, `Xslt30` and `Xslt20`.
 
 * `metadata` - (Optional) The metadata of the Logic App Integration Account Map.
 

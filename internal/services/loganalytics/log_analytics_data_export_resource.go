@@ -240,7 +240,7 @@ func flattenDataExportDestination(input *dataexport.Destination) (string, error)
 		if *input.Type == dataexport.TypeEventHub {
 			if input.MetaData != nil && input.MetaData.EventHubName != nil {
 				eventhubName := *input.MetaData.EventHubName
-				eventhubNamespaceId, err := eventhubs.ParseNamespaceID(resourceID)
+				eventhubNamespaceId, err := eventhubs.ParseNamespaceIDInsensitively(resourceID)
 				eventhubId := eventhubs.NewEventhubID(eventhubNamespaceId.SubscriptionId, eventhubNamespaceId.ResourceGroupName, eventhubNamespaceId.NamespaceName, eventhubName)
 				if err != nil {
 					return "", fmt.Errorf("parsing destination eventhub namespace ID error")

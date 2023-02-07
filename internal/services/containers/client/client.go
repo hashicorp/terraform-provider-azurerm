@@ -1,10 +1,10 @@
 package client
 
 import (
-	legacy "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice"            // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
@@ -19,7 +19,7 @@ type Client struct {
 	MaintenanceConfigurationsClient   *maintenanceconfigurations.MaintenanceConfigurationsClient
 	RegistriesClient                  *containerregistry.RegistriesClient
 	ReplicationsClient                *containerregistry.ReplicationsClient
-	ServicesClient                    *legacy.ContainerServicesClient
+	ServicesClient                    *containerservices.ContainerServicesClient
 	WebhooksClient                    *containerregistry.WebhooksClient
 	TokensClient                      *containerregistry.TokensClient
 	ScopeMapsClient                   *containerregistry.ScopeMapsClient
@@ -68,7 +68,7 @@ func NewContainersClient(o *common.ClientOptions) *Client {
 	maintenanceConfigurationsClient := maintenanceconfigurations.NewMaintenanceConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&maintenanceConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
-	servicesClient := legacy.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	servicesClient := containerservices.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
 
 	connectedRegistriesClient := containerregistry.NewConnectedRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

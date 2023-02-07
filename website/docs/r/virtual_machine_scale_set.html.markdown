@@ -285,6 +285,8 @@ The following arguments are supported:
 
 * `upgrade_policy_mode` - (Required) Specifies the mode of an upgrade to virtual machines in the scale set. Possible values, `Rolling`, `Manual`, or `Automatic`. When choosing `Rolling`, you will need to set a health probe.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 ---
 
 * `automatic_os_upgrade` - (Optional) Automatic OS patches can be applied by Azure to your scaleset. This is particularly useful when `upgrade_policy_mode` is set to `Rolling`. Defaults to `false`.
@@ -344,7 +346,7 @@ The `rolling_upgrade_policy` block supports the following:
 
 The `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type to be assigned to the scale set. Allowable values are `SystemAssigned` and `UserAssigned`. For the `SystemAssigned` identity the scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for more information.
+* `type` - (Required) Specifies the identity type to be assigned to the scale set. Allowable values are `SystemAssigned` and `UserAssigned`. For the `SystemAssigned` identity the scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for more information. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned to the VMSS. Required if `type` is `UserAssigned`.
 
@@ -400,7 +402,7 @@ The `os_profile_secrets` block supports the following:
 A `vault_certificates` block support the following:
 
 * `certificate_url` - (Required) It is the Base64 encoding of a JSON Object that which is encoded in UTF-8 of which the contents need to be `data`, `dataType` and `password`.
-* `certificate_store` - (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to.
+* `certificate_store` - (Optional) (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to.
 
 ---
 
@@ -488,7 +490,7 @@ The `public_ip_address_configuration` block supports the following:
 
 A `ssh_keys` block supports the following:
 
-* `key_data` - (Required) The Public SSH Key which should be written to the `path` defined above.
+* `key_data` - (Optional) The Public SSH Key which should be written to the `path` defined above.
 
 ~> **Note:** Azure only supports RSA SSH2 key signatures of at least 2048 bits in length
 
