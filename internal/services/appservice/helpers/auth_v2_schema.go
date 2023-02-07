@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -198,7 +198,7 @@ func authV2LoginSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Is the Token Store configuration Enabled. True if one of `token_store_path` or `token_store_sas_setting_name` are set to a non-empty value, otherwise `false`.",
+					Description: "Should the Token Store configuration Enabled. Defaults to `false`",
 				},
 
 				"token_refresh_extension_time": {
@@ -314,9 +314,7 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *web.Login {
 		}
 		if login.TokenBlobStorageSAS != "" {
 			result.TokenStore.AzureBlobStorage = &web.BlobStorageTokenStore{
-				BlobStorageTokenStoreProperties: &web.BlobStorageTokenStoreProperties{
-					SasURLSettingName: pointer.To(login.TokenBlobStorageSAS),
-				},
+				SasURLSettingName: pointer.To(login.TokenBlobStorageSAS),
 			}
 		}
 	}
@@ -334,14 +332,10 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *web.Login {
 	}
 	if login.TokenBlobStorageSAS != "" {
 		result.TokenStore.AzureBlobStorage = &web.BlobStorageTokenStore{
-			BlobStorageTokenStoreProperties: &web.BlobStorageTokenStoreProperties{
-				SasURLSettingName: pointer.To(login.TokenBlobStorageSAS),
-			},
+			SasURLSettingName: pointer.To(login.TokenBlobStorageSAS),
 		}
 	}
-	if len(login.AllowedExternalRedirectURLs) > 0 {
-		result.AllowedExternalRedirectUrls = &login.AllowedExternalRedirectURLs
-	}
+	result.AllowedExternalRedirectUrls = pointer.To(login.AllowedExternalRedirectURLs)
 
 	return result
 }
@@ -362,7 +356,7 @@ func flattenAuthV2LoginSettings(input *web.Login) []AuthV2Login {
 		if fs := token.FileSystem; fs != nil {
 			result.TokenFilesystemPath = pointer.From(fs.Directory)
 		}
-		if bs := token.AzureBlobStorage; bs != nil && bs.BlobStorageTokenStoreProperties != nil {
+		if bs := token.AzureBlobStorage; bs != nil {
 			result.TokenBlobStorageSAS = pointer.From(bs.SasURLSettingName)
 		}
 	}
@@ -420,11 +414,10 @@ func AppleAuthV2SettingsSchema() *pluginsdk.Schema {
 
 				"login_scopes": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "Specifies a list of OAuth 2.0 scopes that will be requested as part of Apple Sign-In authentication. If not specified, \"openid\", \"profile\", and \"email\" are used as default scopes.",
 				},
 			},
 		},
@@ -466,46 +459,36 @@ func AppleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 func expandAppleAuthV2Settings(input []AppleAuthV2Settings) *web.Apple {
 	if len(input) == 1 {
 		apple := input[0]
-		result := &web.Apple{
-			AppleProperties: &web.AppleProperties{
-				Enabled: pointer.To(true),
-				Registration: &web.AppleRegistration{
-					ClientID:                pointer.To(apple.ClientId),
-					ClientSecretSettingName: pointer.To(apple.ClientSecretSettingName),
-				},
-				Login: &web.LoginScopes{
-					Scopes: pointer.To(apple.LoginScopes),
-				},
+		return &web.Apple{
+			Enabled: pointer.To(true),
+			Registration: &web.AppleRegistration{
+				ClientID:                pointer.To(apple.ClientId),
+				ClientSecretSettingName: pointer.To(apple.ClientSecretSettingName),
+			},
+			Login: &web.LoginScopes{
+				Scopes: pointer.To(apple.LoginScopes),
 			},
 		}
-
-		return result
 	}
 
 	return &web.Apple{
-		AppleProperties: &web.AppleProperties{
-			Enabled: pointer.To(true),
-		},
+		Enabled: pointer.To(false),
 	}
 }
 
 func flattenAppleAuthV2Settings(input *web.Apple) []AppleAuthV2Settings {
-	if input == nil || input.AppleProperties == nil {
-		return nil
+	if input == nil || !pointer.From(input.Enabled) {
+		return []AppleAuthV2Settings{}
 	}
-	result := AppleAuthV2Settings{
-		ClientId:                "",
-		ClientSecretSettingName: "",
-		LoginScopes:             nil,
-	}
+	result := AppleAuthV2Settings{}
 
-	props := *input.AppleProperties
+	props := *input
 	if reg := props.Registration; reg != nil {
 		result.ClientId = pointer.From(reg.ClientID)
 		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
 	}
-	if loginScopes := props.Login; loginScopes != nil && loginScopes.Scopes != nil {
-		result.LoginScopes = *loginScopes.Scopes
+	if loginScopes := props.Login; loginScopes != nil {
+		result.LoginScopes = pointer.From(loginScopes.Scopes)
 	}
 
 	return []AppleAuthV2Settings{result}
@@ -754,53 +737,36 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 
 func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirectory {
 	result := &web.AzureActiveDirectory{
-		Enabled:      pointer.To(false),
-		Registration: &web.AzureActiveDirectoryRegistration{},
-		Login: &web.AzureActiveDirectoryLogin{
-			AzureActiveDirectoryLoginProperties: &web.AzureActiveDirectoryLoginProperties{
-				DisableWWWAuthenticate: pointer.To(false),
-			},
-		},
-		Validation: &web.AzureActiveDirectoryValidation{
-			AzureActiveDirectoryValidationProperties: &web.AzureActiveDirectoryValidationProperties{
-				JwtClaimChecks: &web.JwtClaimChecks{},
-				DefaultAuthorizationPolicy: &web.DefaultAuthorizationPolicy{
-					AllowedPrincipals: &web.AllowedPrincipals{},
-				},
-			},
-		},
+		Enabled: pointer.To(false),
 	}
 	if len(input) == 1 {
 		aad := input[0]
 		result = &web.AzureActiveDirectory{
 			Enabled: pointer.To(true),
 			Registration: &web.AzureActiveDirectoryRegistration{
-				AzureActiveDirectoryRegistrationProperties: &web.AzureActiveDirectoryRegistrationProperties{
-					OpenIDIssuer: pointer.To(aad.TenantAuthURI),
-					ClientID:     pointer.To(aad.ClientId),
-				},
+				OpenIDIssuer:                      pointer.To(aad.TenantAuthURI),
+				ClientID:                          pointer.To(aad.ClientId),
+				ClientSecretSettingName:           pointer.To(aad.ClientSecretSettingName),
+				ClientSecretCertificateThumbprint: pointer.To(aad.ClientSecretCertificateThumbprint),
 			},
 			Login: &web.AzureActiveDirectoryLogin{
-				AzureActiveDirectoryLoginProperties: &web.AzureActiveDirectoryLoginProperties{
-					DisableWWWAuthenticate: pointer.To(aad.DisableWWWAuth),
-				},
+				LoginParameters:        pointer.To([]string{}),
+				DisableWWWAuthenticate: pointer.To(aad.DisableWWWAuth),
 			},
 			Validation: &web.AzureActiveDirectoryValidation{
-				AzureActiveDirectoryValidationProperties: &web.AzureActiveDirectoryValidationProperties{
-					JwtClaimChecks: &web.JwtClaimChecks{},
-					DefaultAuthorizationPolicy: &web.DefaultAuthorizationPolicy{
-						AllowedPrincipals: &web.AllowedPrincipals{
-							AllowedPrincipalsProperties: &web.AllowedPrincipalsProperties{},
-						},
-					},
+				JwtClaimChecks: &web.JwtClaimChecks{
+					AllowedGroups:             pointer.To(aad.JWTAllowedGroups),
+					AllowedClientApplications: pointer.To(aad.JWTAllowedClientApps),
 				},
+				DefaultAuthorizationPolicy: &web.DefaultAuthorizationPolicy{
+					AllowedPrincipals: &web.AllowedPrincipals{
+						Groups:     pointer.To(aad.AllowedGroups),
+						Identities: pointer.To(aad.AllowedIdentities),
+					},
+					AllowedApplications: pointer.To(aad.AllowedApplications),
+				},
+				AllowedAudiences: pointer.To(aad.AllowedAudiences),
 			},
-		}
-
-		if aad.ClientSecretCertificateThumbprint != "" {
-			result.Registration.ClientSecretCertificateThumbprint = pointer.To(aad.ClientSecretCertificateThumbprint)
-		} else {
-			result.Registration.ClientSecretSettingName = pointer.To(aad.ClientSecretSettingName)
 		}
 
 		if len(aad.LoginParameters) > 0 {
@@ -810,47 +776,26 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirector
 			}
 			result.Login.LoginParameters = &params
 		}
-
-		if len(aad.JWTAllowedGroups) > 0 {
-			result.Validation.AzureActiveDirectoryValidationProperties.JwtClaimChecks.AllowedGroups = &aad.JWTAllowedGroups
-		}
-		if len(aad.JWTAllowedClientApps) > 0 {
-			result.Validation.AzureActiveDirectoryValidationProperties.JwtClaimChecks.AllowedClientApplications = &aad.JWTAllowedClientApps
-		}
-		if len(aad.AllowedAudiences) > 0 {
-			result.Validation.AllowedAudiences = &aad.AllowedAudiences
-		}
-		if len(aad.AllowedGroups) > 0 {
-			result.Validation.AzureActiveDirectoryValidationProperties.DefaultAuthorizationPolicy.AllowedPrincipals.AllowedPrincipalsProperties.Groups = &aad.AllowedGroups
-		}
-		if len(aad.AllowedIdentities) > 0 {
-			result.Validation.AzureActiveDirectoryValidationProperties.DefaultAuthorizationPolicy.AllowedPrincipals.AllowedPrincipalsProperties.Identities = &aad.AllowedIdentities
-		}
-		if len(aad.AllowedApplications) > 0 {
-			result.Validation.AzureActiveDirectoryValidationProperties.DefaultAuthorizationPolicy.AllowedApplications = &aad.AllowedApplications
-		}
-
-		return result
 	}
 
 	return result
 }
 
 func flattenAadAuthV2Settings(input *web.AzureActiveDirectory) []AadAuthV2Settings {
-	if input == nil || (input.Enabled != nil && !*input.Enabled) {
+	if input == nil || !pointer.From(input.Enabled) {
 		return []AadAuthV2Settings{}
 	}
 
 	result := AadAuthV2Settings{}
 
-	if reg := input.Registration; reg != nil && reg.AzureActiveDirectoryRegistrationProperties != nil {
+	if reg := input.Registration; reg != nil {
 		result.TenantAuthURI = pointer.From(reg.OpenIDIssuer)
 		result.ClientId = pointer.From(reg.ClientID)
 		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
 		result.ClientSecretCertificateThumbprint = pointer.From(reg.ClientSecretCertificateThumbprint)
 	}
 
-	if login := input.Login; login != nil && login.AzureActiveDirectoryLoginProperties != nil {
+	if login := input.Login; login != nil {
 		result.DisableWWWAuth = pointer.From(login.DisableWWWAuthenticate)
 		if loginParamsRaw := login.LoginParameters; loginParamsRaw != nil {
 			loginParams := make(map[string]string)
@@ -865,29 +810,19 @@ func flattenAadAuthV2Settings(input *web.AzureActiveDirectory) []AadAuthV2Settin
 
 	}
 
-	if validationRaw := input.Validation; validationRaw != nil && validationRaw.AzureActiveDirectoryValidationProperties != nil {
-		if validationRaw.AllowedAudiences != nil {
-			result.AllowedAudiences = *validationRaw.AllowedAudiences
+	if validation := input.Validation; validation != nil {
+		if validation.AllowedAudiences != nil {
+			result.AllowedAudiences = *validation.AllowedAudiences
 		}
-		if jwt := validationRaw.JwtClaimChecks; jwt != nil {
-			if jwt.AllowedGroups != nil {
-				result.JWTAllowedGroups = *jwt.AllowedGroups
-			}
-			if jwt.AllowedClientApplications != nil {
-				result.JWTAllowedClientApps = *jwt.AllowedClientApplications
-			}
+		if jwt := validation.JwtClaimChecks; jwt != nil {
+			result.JWTAllowedGroups = pointer.From(jwt.AllowedGroups)
+			result.JWTAllowedClientApps = pointer.From(jwt.AllowedClientApplications)
 		}
-		if defaultPolicy := validationRaw.DefaultAuthorizationPolicy; defaultPolicy != nil {
-			if defaultPolicy.AllowedApplications != nil {
-				result.AllowedApplications = *defaultPolicy.AllowedApplications
-			}
-			if defaultPolicy.AllowedPrincipals != nil && defaultPolicy.AllowedPrincipals.AllowedPrincipalsProperties != nil {
-				if defaultPolicy.AllowedPrincipals.AllowedPrincipalsProperties.Groups != nil {
-					result.AllowedGroups = *defaultPolicy.AllowedPrincipals.AllowedPrincipalsProperties.Groups
-				}
-				if defaultPolicy.AllowedPrincipals.AllowedPrincipalsProperties.Identities != nil {
-					result.AllowedIdentities = *defaultPolicy.AllowedPrincipals.AllowedPrincipalsProperties.Identities
-				}
+		if defaultPolicy := validation.DefaultAuthorizationPolicy; defaultPolicy != nil {
+			result.AllowedApplications = pointer.From(defaultPolicy.AllowedApplications)
+			if defaultPolicy.AllowedPrincipals != nil {
+				result.AllowedGroups = pointer.From(defaultPolicy.AllowedPrincipals.Groups)
+				result.AllowedIdentities = pointer.From(defaultPolicy.AllowedPrincipals.Identities)
 			}
 		}
 	}
@@ -949,16 +884,16 @@ func expandStaticWebAppAuthV2Settings(input []StaticWebAppAuthV2Settings) *web.A
 	if len(input) == 1 {
 		swa := input[0]
 		return &web.AzureStaticWebApps{
-			AzureStaticWebAppsProperties: &web.AzureStaticWebAppsProperties{
-				Enabled: pointer.To(true),
-				Registration: &web.AzureStaticWebAppsRegistration{
-					ClientID: pointer.To(swa.ClientId),
-				},
+			Enabled: pointer.To(true),
+			Registration: &web.AzureStaticWebAppsRegistration{
+				ClientID: pointer.To(swa.ClientId),
 			},
 		}
 	}
 
-	return nil
+	return &web.AzureStaticWebApps{
+		Enabled: pointer.To(false),
+	}
 }
 
 func flattenStaticWebAppAuthV2Settings(input *web.AzureStaticWebApps) []StaticWebAppAuthV2Settings {
@@ -968,7 +903,7 @@ func flattenStaticWebAppAuthV2Settings(input *web.AzureStaticWebApps) []StaticWe
 
 	result := StaticWebAppAuthV2Settings{}
 
-	if props := input.AzureStaticWebAppsProperties; props != nil && pointer.From(props.Enabled) {
+	if props := input; props != nil && pointer.From(props.Enabled) {
 		if props.Registration != nil {
 			result.ClientId = pointer.From(props.Registration.ClientID)
 		}
@@ -1174,19 +1109,17 @@ func expandCustomOIDCAuthV2Settings(input []CustomOIDCAuthV2Settings) map[string
 			continue
 		}
 		provider := &web.CustomOpenIDConnectProvider{
-			CustomOpenIDConnectProviderProperties: &web.CustomOpenIDConnectProviderProperties{
-				Enabled: pointer.To(true),
-				Registration: &web.OpenIDConnectRegistration{
-					ClientID:         pointer.To(v.ClientId),
-					ClientCredential: nil,
-					OpenIDConnectConfiguration: &web.OpenIDConnectConfig{
-						WellKnownOpenIDConfiguration: pointer.To(v.OpenIDConfigurationEndpoint),
-					},
+			Enabled: pointer.To(true),
+			Registration: &web.OpenIDConnectRegistration{
+				ClientID:         pointer.To(v.ClientId),
+				ClientCredential: nil,
+				OpenIDConnectConfiguration: &web.OpenIDConnectConfig{
+					WellKnownOpenIDConfiguration: pointer.To(v.OpenIDConfigurationEndpoint),
 				},
-				Login: &web.OpenIDConnectLogin{
-					NameClaimType: nil,
-					Scopes:        nil,
-				},
+			},
+			Login: &web.OpenIDConnectLogin{
+				NameClaimType: nil,
+				Scopes:        nil,
 			},
 		}
 
@@ -1211,13 +1144,13 @@ func flattenCustomOIDCAuthV2Settings(input map[string]*web.CustomOpenIDConnectPr
 
 	result := make([]CustomOIDCAuthV2Settings, 0)
 	for k, v := range input {
-		if props := v.CustomOpenIDConnectProviderProperties; props == nil || props.Enabled == nil || !*props.Enabled {
+		if !pointer.From(v.Enabled) {
 			continue
 		} else {
 			provider := CustomOIDCAuthV2Settings{
 				Name: k,
 			}
-			if reg := props.Registration; reg != nil {
+			if reg := v.Registration; reg != nil {
 				provider.ClientId = pointer.From(reg.ClientID)
 				if reg.ClientCredential != nil {
 					provider.ClientSecretSettingName = pointer.From(reg.ClientCredential.ClientSecretSettingName)
@@ -1231,7 +1164,7 @@ func flattenCustomOIDCAuthV2Settings(input map[string]*web.CustomOpenIDConnectPr
 					provider.CertificationURI = pointer.From(config.CertificationURI)
 				}
 			}
-			if login := props.Login; login != nil {
+			if login := v.Login; login != nil {
 				if login.Scopes != nil {
 					provider.Scopes = *login.Scopes
 				}
@@ -1344,32 +1277,26 @@ func expandFacebookAuthV2Settings(input []FacebookAuthV2Settings) *web.Facebook 
 		result := &web.Facebook{
 			Enabled: pointer.To(true),
 			Registration: &web.AppRegistration{
-				AppRegistrationProperties: &web.AppRegistrationProperties{
-					AppID:                pointer.To(facebook.AppId),
-					AppSecretSettingName: pointer.To(facebook.AppSecretSettingName),
-				},
+				AppID:                pointer.To(facebook.AppId),
+				AppSecretSettingName: pointer.To(facebook.AppSecretSettingName),
 			},
 		}
 
-		if facebook.GraphAPIVersion != "" {
-			result.GraphAPIVersion = pointer.To(facebook.GraphAPIVersion)
-		}
-		if len(facebook.LoginScopes) > 0 {
-			result.Login = &web.LoginScopes{
-				Scopes: &facebook.LoginScopes,
-			}
+		result.GraphAPIVersion = pointer.To(facebook.GraphAPIVersion)
+		result.Login = &web.LoginScopes{
+			Scopes: pointer.To(facebook.LoginScopes),
 		}
 
 		return result
 	}
 
 	return &web.Facebook{
-		Enabled: pointer.To(true),
+		Enabled: pointer.To(false),
 	}
 }
 
 func flattenFacebookAuthV2Settings(input *web.Facebook) []FacebookAuthV2Settings {
-	if input == nil || (input.Enabled != nil && !*input.Enabled) {
+	if input == nil || !pointer.From(input.Enabled) {
 		return []FacebookAuthV2Settings{}
 	}
 
@@ -1378,10 +1305,8 @@ func flattenFacebookAuthV2Settings(input *web.Facebook) []FacebookAuthV2Settings
 	}
 
 	if reg := input.Registration; reg != nil {
-		if reg.AppRegistrationProperties != nil {
-			result.AppId = pointer.From(reg.AppID)
-			result.AppSecretSettingName = pointer.From(reg.AppSecretSettingName)
-		}
+		result.AppId = pointer.From(reg.AppID)
+		result.AppSecretSettingName = pointer.From(reg.AppSecretSettingName)
 	}
 	if login := input.Login; login != nil {
 		result.LoginScopes = pointer.From(login.Scopes)
@@ -1475,47 +1400,37 @@ func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *web.GitHub {
 	if len(input) == 1 {
 		github := input[0]
 		result := &web.GitHub{
-			GitHubProperties: &web.GitHubProperties{
-				Enabled: pointer.To(true),
-				Registration: &web.ClientRegistration{
-					ClientID:                pointer.To(github.ClientId),
-					ClientSecretSettingName: pointer.To(github.ClientSecretSettingName),
-				},
-				Login: &web.LoginScopes{},
+			Enabled: pointer.To(true),
+			Registration: &web.ClientRegistration{
+				ClientID:                pointer.To(github.ClientId),
+				ClientSecretSettingName: pointer.To(github.ClientSecretSettingName),
 			},
-		}
-		if len(github.LoginScopes) > 0 {
-			result.GitHubProperties.Login = &web.LoginScopes{Scopes: &github.LoginScopes}
+			Login: &web.LoginScopes{
+				Scopes: pointer.To(github.LoginScopes),
+			},
 		}
 
 		return result
 	}
 
 	return &web.GitHub{
-		GitHubProperties: &web.GitHubProperties{
-			Enabled: pointer.To(true),
-		},
+		Enabled: pointer.To(false),
 	}
 }
 
 func flattenGitHubAuthV2Settings(input *web.GitHub) []GithubAuthV2Settings {
-	if input == nil || input.GitHubProperties == nil || (input.GitHubProperties.Enabled != nil && !*input.GitHubProperties.Enabled) {
+	if input == nil || !pointer.From(input.Enabled) {
 		return []GithubAuthV2Settings{}
-	}
-
-	props := *input.GitHubProperties
-	if props.Enabled == nil || !*props.Enabled {
-		return nil
 	}
 
 	result := GithubAuthV2Settings{}
 
-	if reg := props.Registration; reg != nil {
+	if reg := input.Registration; reg != nil {
 		result.ClientId = pointer.From(reg.ClientID)
 		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
 	}
-	if login := props.Login; login != nil && login.Scopes != nil {
-		result.LoginScopes = *login.Scopes
+	if login := input.Login; login != nil && login.Scopes != nil {
+		result.LoginScopes = pointer.From(login.Scopes)
 	}
 
 	return []GithubAuthV2Settings{result}
@@ -1628,50 +1543,35 @@ func GoogleAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 func expandGoogleAuthV2Settings(input []GoogleAuthV2Settings) *web.Google {
 	if len(input) == 1 {
 		google := input[0]
-		result := &web.Google{
-			GoogleProperties: &web.GoogleProperties{
-				Enabled: pointer.To(true),
-				Registration: &web.ClientRegistration{
-					ClientID:                pointer.To(google.ClientId),
-					ClientSecretSettingName: pointer.To(google.ClientSecretSettingName),
-				},
+		return &web.Google{
+			Enabled: pointer.To(true),
+			Registration: &web.ClientRegistration{
+				ClientID:                pointer.To(google.ClientId),
+				ClientSecretSettingName: pointer.To(google.ClientSecretSettingName),
+			},
+			Validation: &web.AllowedAudiencesValidation{
+				AllowedAudiences: pointer.To(google.AllowedAudiences),
+			},
+			Login: &web.LoginScopes{
+				Scopes: pointer.To(google.LoginScopes),
 			},
 		}
 
-		if len(google.AllowedAudiences) != 0 {
-			result.GoogleProperties.Validation = &web.AllowedAudiencesValidation{
-				AllowedAudiences: &google.AllowedAudiences,
-			}
-		}
-		if len(google.LoginScopes) != 0 {
-			result.GoogleProperties.Login = &web.LoginScopes{
-				Scopes: &google.LoginScopes,
-			}
-		}
-
-		return result
 	}
 
 	return &web.Google{
-		GoogleProperties: &web.GoogleProperties{
-			Enabled: pointer.To(true),
-		},
+		Enabled: pointer.To(false),
 	}
 }
 
 func flattenGoogleAuthV2Settings(input *web.Google) []GoogleAuthV2Settings {
-	if input == nil || input.GoogleProperties == nil || (input.GoogleProperties.Enabled != nil && !*input.GoogleProperties.Enabled) {
+	if input == nil || !pointer.From(input.Enabled) {
 		return []GoogleAuthV2Settings{}
-	}
-
-	props := *input.GoogleProperties
-	if props.Enabled == nil || !*props.Enabled {
-		return nil
 	}
 
 	result := GoogleAuthV2Settings{}
 
-	if reg := props.Registration; reg != nil {
+	if reg := input.Registration; reg != nil {
 		result.ClientId = pointer.From(reg.ClientID)
 		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
 	}
@@ -1784,49 +1684,34 @@ func MicrosoftAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 func expandMicrosoftAuthV2Settings(input []MicrosoftAuthV2Settings) *web.LegacyMicrosoftAccount {
 	if len(input) == 1 {
 		msft := input[0]
-		result := &web.LegacyMicrosoftAccount{
-			LegacyMicrosoftAccountProperties: &web.LegacyMicrosoftAccountProperties{
-				Enabled: pointer.To(true),
-				Registration: &web.ClientRegistration{
-					ClientID:                pointer.To(msft.ClientId),
-					ClientSecretSettingName: pointer.To(msft.ClientSecretSettingName),
-				},
+		return &web.LegacyMicrosoftAccount{
+			Enabled: pointer.To(true),
+			Registration: &web.ClientRegistration{
+				ClientID:                pointer.To(msft.ClientId),
+				ClientSecretSettingName: pointer.To(msft.ClientSecretSettingName),
+			},
+			Validation: &web.AllowedAudiencesValidation{
+				AllowedAudiences: pointer.To(msft.AllowedAudiences),
+			},
+			Login: &web.LoginScopes{
+				Scopes: pointer.To(msft.LoginScopes),
 			},
 		}
-		if len(msft.AllowedAudiences) != 0 {
-			result.LegacyMicrosoftAccountProperties.Validation = &web.AllowedAudiencesValidation{
-				AllowedAudiences: &msft.AllowedAudiences,
-			}
-		}
-		if len(msft.LoginScopes) != 0 {
-			result.LegacyMicrosoftAccountProperties.Login = &web.LoginScopes{
-				Scopes: &msft.LoginScopes,
-			}
-		}
-
-		return result
 	}
 
 	return &web.LegacyMicrosoftAccount{
-		LegacyMicrosoftAccountProperties: &web.LegacyMicrosoftAccountProperties{
-			Enabled: pointer.To(true),
-		},
+		Enabled: pointer.To(false),
 	}
 }
 
 func flattenMicrosoftAuthV2Settings(input *web.LegacyMicrosoftAccount) []MicrosoftAuthV2Settings {
-	if input == nil || input.LegacyMicrosoftAccountProperties == nil || (input.LegacyMicrosoftAccountProperties.Enabled != nil && !*input.LegacyMicrosoftAccountProperties.Enabled) {
+	if input == nil || !pointer.From(input.Enabled) {
 		return []MicrosoftAuthV2Settings{}
-	}
-
-	props := *input.LegacyMicrosoftAccountProperties
-	if props.Enabled == nil || !*props.Enabled {
-		return nil
 	}
 
 	result := MicrosoftAuthV2Settings{}
 
-	if reg := props.Registration; reg != nil {
+	if reg := input.Registration; reg != nil {
 		result.ClientId = pointer.From(reg.ClientID)
 		result.ClientSecretSettingName = pointer.From(reg.ClientSecretSettingName)
 	}
@@ -1906,12 +1791,10 @@ func expandTwitterAuthV2Settings(input []TwitterAuthV2Settings) *web.Twitter {
 	if len(input) == 1 {
 		twitter := input[0]
 		result := &web.Twitter{
-			TwitterProperties: &web.TwitterProperties{
-				Enabled: pointer.To(true),
-				Registration: &web.TwitterRegistration{
-					ConsumerKey:               pointer.To(twitter.ConsumerKey),
-					ConsumerSecretSettingName: pointer.To(twitter.ConsumerSecretSettingName),
-				},
+			Enabled: pointer.To(true),
+			Registration: &web.TwitterRegistration{
+				ConsumerKey:               pointer.To(twitter.ConsumerKey),
+				ConsumerSecretSettingName: pointer.To(twitter.ConsumerSecretSettingName),
 			},
 		}
 
@@ -1919,21 +1802,18 @@ func expandTwitterAuthV2Settings(input []TwitterAuthV2Settings) *web.Twitter {
 	}
 
 	return &web.Twitter{
-		TwitterProperties: &web.TwitterProperties{
-			Enabled: pointer.To(true),
-		},
+		Enabled: pointer.To(false),
 	}
 }
 
 func flattenTwitterAuthV2Settings(input *web.Twitter) []TwitterAuthV2Settings {
-	if input == nil || input.TwitterProperties == nil || (input.TwitterProperties.Enabled != nil && !*input.TwitterProperties.Enabled) {
+	if input == nil || !pointer.From(input.Enabled) {
 		return []TwitterAuthV2Settings{}
 	}
 
-	props := *input.TwitterProperties
-	if pointer.From(props.Enabled) {
+	if pointer.From(input.Enabled) {
 		result := TwitterAuthV2Settings{}
-		if reg := props.Registration; reg != nil {
+		if reg := input.Registration; reg != nil {
 			result.ConsumerKey = pointer.From(reg.ConsumerKey)
 			result.ConsumerSecretSettingName = pointer.From(reg.ConsumerSecretSettingName)
 		}
@@ -1959,6 +1839,7 @@ func ExpandAuthV2Settings(input []AuthV2Settings) *web.SiteAuthSettingsV2 {
 		GlobalValidation: &web.GlobalValidation{
 			RequireAuthentication:       pointer.To(settings.RequireAuth),
 			UnauthenticatedClientAction: web.UnauthenticatedClientActionV2(settings.UnauthenticatedAction),
+			ExcludedPaths:               pointer.To(settings.ExcludedPaths),
 		},
 		IdentityProviders: &web.IdentityProviders{
 			AzureActiveDirectory:         expandAadAuthV2Settings(settings.AzureActiveDirectoryAuth),
@@ -1991,9 +1872,6 @@ func ExpandAuthV2Settings(input []AuthV2Settings) *web.SiteAuthSettingsV2 {
 	// Global
 	if settings.DefaultAuthProvider != "" {
 		props.GlobalValidation.RedirectToProvider = pointer.To(settings.DefaultAuthProvider)
-	}
-	if len(settings.ExcludedPaths) > 0 {
-		props.GlobalValidation.ExcludedPaths = &settings.ExcludedPaths
 	}
 
 	// HTTP
