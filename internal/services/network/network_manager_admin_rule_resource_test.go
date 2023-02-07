@@ -153,7 +153,7 @@ func (r ManagerAdminRuleResource) basic(data acceptance.TestData) string {
 resource "azurerm_network_manager_admin_rule" "test" {
   name                     = "acctest-nmar-%d"
   admin_rule_collection_id = azurerm_network_manager_admin_rule_collection.test.id
-  access                   = "Deny"
+  action                   = "Deny"
   direction                = "Outbound"
   protocol                 = "Tcp"
   priority                 = 1
@@ -169,7 +169,7 @@ func (r ManagerAdminRuleResource) requiresImport(data acceptance.TestData) strin
 resource "azurerm_network_manager_admin_rule" "import" {
   name                     = azurerm_network_manager_admin_rule.test.name
   admin_rule_collection_id = azurerm_network_manager_admin_rule.test.admin_rule_collection_id
-  access                   = azurerm_network_manager_admin_rule.test.access
+  action                   = azurerm_network_manager_admin_rule.test.action
   direction                = azurerm_network_manager_admin_rule.test.direction
   priority                 = azurerm_network_manager_admin_rule.test.priority
   protocol                 = azurerm_network_manager_admin_rule.test.protocol
@@ -185,7 +185,7 @@ func (r ManagerAdminRuleResource) complete(data acceptance.TestData) string {
 resource "azurerm_network_manager_admin_rule" "test" {
   name                     = "acctest-nmar-%d"
   admin_rule_collection_id = azurerm_network_manager_admin_rule_collection.test.id
-  access                   = "Deny"
+  action                   = "Deny"
   description              = "test admin rule"
   direction                = "Outbound"
   priority                 = 1
@@ -212,22 +212,25 @@ func (r ManagerAdminRuleResource) update(data acceptance.TestData) string {
 resource "azurerm_network_manager_admin_rule" "test" {
   name                     = "acctest-nmar-%d"
   admin_rule_collection_id = azurerm_network_manager_admin_rule_collection.test.id
-  access                   = "Deny"
+  action                   = "Allow"
   description              = "test"
   direction                = "Inbound"
   priority                 = 1234
   protocol                 = "Ah"
-  source_port_ranges       = ["80"]
+  source_port_ranges       = ["80", "1024-65535"]
   destination_port_ranges  = ["80"]
   source {
     address_prefix_type = "ServiceTag"
-    address_prefix      = "Internet"
+    address_prefix      = "ActionGroup"
   }
   destination {
     address_prefix_type = "IPPrefix"
-    address_prefix      = "*"
+    address_prefix      = "10.1.0.1"
+  }
+  destination {
+    address_prefix_type = "IPPrefix"
+    address_prefix      = "10.0.0.0/24"
   }
 }
-
 `, template, data.RandomInteger)
 }

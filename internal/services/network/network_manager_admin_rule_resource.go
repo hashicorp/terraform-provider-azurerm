@@ -17,7 +17,7 @@ import (
 type ManagerAdminRuleModel struct {
 	Name                    string                                     `tfschema:"name"`
 	NetworkRuleCollectionId string                                     `tfschema:"admin_rule_collection_id"`
-	Access                  network.SecurityConfigurationRuleAccess    `tfschema:"access"`
+	Action                  network.SecurityConfigurationRuleAccess    `tfschema:"action"`
 	Description             string                                     `tfschema:"description"`
 	DestinationPortRanges   []string                                   `tfschema:"destination_port_ranges"`
 	Destinations            []AddressPrefixItemModel                   `tfschema:"destination"`
@@ -65,7 +65,7 @@ func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.NetworkManagerAdminRuleCollectionID,
 		},
 
-		"access": {
+		"action": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -113,7 +113,8 @@ func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 
@@ -144,7 +145,8 @@ func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 
@@ -205,7 +207,7 @@ func (r ManagerAdminRuleResource) Create() sdk.ResourceFunc {
 
 			rule := &network.AdminRule{
 				AdminPropertiesFormat: &network.AdminPropertiesFormat{
-					Access:                model.Access,
+					Access:                model.Action,
 					Destinations:          expandAddressPrefixItemModel(model.Destinations),
 					DestinationPortRanges: &model.DestinationPortRanges,
 					Direction:             model.Direction,
@@ -261,8 +263,8 @@ func (r ManagerAdminRuleResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			if metadata.ResourceData.HasChange("access") {
-				properties.Access = model.Access
+			if metadata.ResourceData.HasChange("action") {
+				properties.Access = model.Action
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -341,7 +343,7 @@ func (r ManagerAdminRuleResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ManagerAdminRuleModel{
-				Access: properties.Access,
+				Action: properties.Access,
 				Name:   id.RuleName,
 				NetworkRuleCollectionId: parse.NewNetworkManagerAdminRuleCollectionID(id.SubscriptionId, id.ResourceGroup,
 					id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName).ID(),

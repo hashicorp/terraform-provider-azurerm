@@ -51,11 +51,11 @@ resource "azurerm_network_manager_admin_rule_collection" "example" {
 resource "azurerm_network_manager_admin_rule" "example" {
   name                     = "example-admin-rule"
   admin_rule_collection_id = azurerm_network_manager_admin_rule_collection.example.id
-  access                   = "Deny"
+  action                   = "Deny"
   direction                = "Outbound"
   priority                 = 1
   protocol                 = "Tcp"
-  source_port_ranges       = ["80"]
+  source_port_ranges       = ["80", "1024-65535"]
   destination_port_ranges  = ["80"]
   source {
     address_prefix_type = "ServiceTag"
@@ -63,7 +63,11 @@ resource "azurerm_network_manager_admin_rule" "example" {
   }
   destination {
     address_prefix_type = "IPPrefix"
-    address_prefix      = "*"
+    address_prefix      = "10.1.0.1"
+  }
+  destination {
+    address_prefix_type = "IPPrefix"
+    address_prefix      = "10.0.0.0/24"
   }
   description = "example admin rule"
 }
@@ -77,23 +81,23 @@ The following arguments are supported:
 
 * `admin_rule_collection_id` - (Required) Specifies the ID of the Network Manager Admin Rule Collection. Changing this forces a new Network Manager Admin Rule to be created.
 
-* `access` - (Required) Specifies the access allowed for this Network Manager Admin Rule. Possible values are `Allow`, `AlwaysAllow`, and `Deny`.
+* `action` - (Required) Specifies the action allowed for this Network Manager Admin Rule. Possible values are `Allow`, `AlwaysAllow`, and `Deny`.
 
 * `direction` - (Required) Indicates if the traffic matched against the rule in inbound or outbound. Possible values are `Inbound` and `Outbound`.
 
-* `priority` - (Required) The priority of the rule. Possible values are integer between `1` and `4096`. The priority number must be unique for each rule in the collection. The lower the priority number, the higher the priority of the rule.
+* `priority` - (Required) The priority of the rule. Possible values are integers between `1` and `4096`. The priority number must be unique for each rule in the collection. The lower the priority number, the higher the priority of the rule.
 
 * `protocol` - (Required) Specifies which network protocol this Network Manager Admin Rule applies to. Possible values are `Ah`, `Any`, `Esp`, `Icmp`, `Tcp`, and `Udp`.
 
 * `description` - (Optional) A description of the Network Manager Admin Rule.
 
-* `destination_port_ranges` - (Optional) A list of string specifies the destination port ranges.
+* `destination_port_ranges` - (Optional) A list of string specifies the destination port ranges. Specify one or more single port number or port ranges such as `1024-65535`. Use `*` to specify any port.
 
-* `destination` - (Optional) A `destination` block as defined below.
+* `destination` - (Optional) One or more `destination` blocks as defined below.
 
-* `source_port_ranges` - (Optional) A list of string specifies the source port ranges.
+* `source_port_ranges` - (Optional) A list of string specifies the source port ranges. Specify one or more single port number or port ranges such as `1024-65535`. Use `*` to specify any port.
 
-* `source` - (Optional) A `source` block as defined below.
+* `source` - (Optional) One or more `source` blocks as defined below.
 
 ---
 
@@ -109,8 +113,7 @@ A `source` block supports the following:
 
 * `address_prefix` (Required) Specifies the address prefix.
 
-* `address_prefix_type` (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`.
-
+* `address_prefix_type` (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`. For more information, please see [this document](https://learn.microsoft.com/en-us/azure/virtual-network-manager/concept-security-admins#source-and-destination-types).
 
 ## Attributes Reference
 
