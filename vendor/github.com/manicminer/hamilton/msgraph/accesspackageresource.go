@@ -57,7 +57,7 @@ func (c *AccessPackageResourceClient) Get(ctx context.Context, catalogId string,
 	resp, status, _, err := c.BaseClient.Get(ctx, GetHttpRequestInput{
 		ConsistencyFailureFunc: RetryOn404ConsistencyFailureFunc,
 		OData: odata.Query{
-			Filter: fmt.Sprintf("startswith(originId,'%s')", originId),
+			Filter: fmt.Sprintf("originId eq '%s'", originId),
 		},
 		ValidStatusCodes: []int{http.StatusOK},
 		Uri: Uri{
@@ -82,7 +82,11 @@ func (c *AccessPackageResourceClient) Get(ctx context.Context, catalogId string,
 		return nil, status, fmt.Errorf("json.Unmarshal(): %v", err)
 	}
 
-	accessPackageResource := data.AccessPackageResources[0]
+	accessPackageResources := data.AccessPackageResources
 
-	return &accessPackageResource, status, nil
+	if len(accessPackageResources) == 0 {
+		return nil, status, fmt.Errorf("No accessPackageResource found with catalogId %v and originId %v", catalogId, originId)
+	}
+
+	return &accessPackageResources[0], status, nil
 }

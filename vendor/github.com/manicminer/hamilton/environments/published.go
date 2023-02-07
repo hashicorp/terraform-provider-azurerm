@@ -79,6 +79,7 @@ var PublishedApis = map[string]ApiAppId{
 	"MicrosoftAzureFrontDoorCdn":        "205478c0-bd83-4e1b-a9d6-db63a3e1e1c8",
 	"Microsoft365DataAtRestEncryption":  "c066d759-24ae-40e7-a56f-027002b5d3e4",
 	"MicrosoftGraph":                    "00000003-0000-0000-c000-000000000000",
+	"Microsoft.StorageSync":	           "9469b9f5-6722-4481-a2b2-14ed560b706f",
 	"MicrosoftInvoicing":                "b6b84568-6c01-4981-a80f-09da9a20bbed",
 	"Office365Connectors":               "48af08dc-f6d2-435f-b2a7-069abd99c086",
 	"Office365Demeter":                  "982bda36-4632-4165-a46a-9863b1bbcf7d",

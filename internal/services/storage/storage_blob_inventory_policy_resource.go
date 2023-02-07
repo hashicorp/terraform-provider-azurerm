@@ -153,6 +153,17 @@ func storageBlobInventoryPolicyResourceSchema() map[string]*pluginsdk.Schema {
 								"prefix_match": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
+									MaxItems: 10,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+
+								"exclude_prefixes": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									MaxItems: 10,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -287,6 +298,7 @@ func expandBlobInventoryPolicyFilter(input []interface{}) *storage.BlobInventory
 	v := input[0].(map[string]interface{})
 	return &storage.BlobInventoryPolicyFilter{
 		PrefixMatch:         utils.ExpandStringSlice(v["prefix_match"].(*pluginsdk.Set).List()),
+		ExcludePrefix:       utils.ExpandStringSlice(v["exclude_prefixes"].(*pluginsdk.Set).List()),
 		BlobTypes:           utils.ExpandStringSlice(v["blob_types"].(*pluginsdk.Set).List()),
 		IncludeBlobVersions: utils.Bool(v["include_blob_versions"].(bool)),
 		IncludeDeleted:      utils.Bool(v["include_deleted"].(bool)),
@@ -352,6 +364,7 @@ func flattenBlobInventoryPolicyFilter(input *storage.BlobInventoryPolicyFilter) 
 			"include_deleted":       includeDeleted,
 			"include_snapshots":     includeSnapshots,
 			"prefix_match":          utils.FlattenStringSlice(input.PrefixMatch),
+			"exclude_prefixes":      utils.FlattenStringSlice(input.ExcludePrefix),
 		},
 	}
 }

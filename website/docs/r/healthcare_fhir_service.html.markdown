@@ -67,6 +67,8 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Healthcare FHIR Service. Changing this forces a new Healthcare FHIR Service to be created.
 
+* `resource_group_name` - (Required) Specifies the name of the Resource Group in which to create the Healthcare FHIR Service. Changing this forces a new resource to be created.
+
 * `workspace_id` - (Required) Specifies the id of the Healthcare Workspace where the Healthcare FHIR Service should exist. Changing this forces a new Healthcare FHIR Service to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Healthcare FHIR Service should be created. Changing this forces a new Healthcare FHIR Service to be created.
@@ -86,6 +88,8 @@ The following arguments are supported:
 * `authentication` - (Required) An `authentication` block as defined below.
 
 * `configuration_export_storage_account_name` - (Optional) Specifies the name of the storage account which the operation configuration information is exported to.
+
+* `tags` - (Optional) A mapping of tags to assign to the Healthcare FHIR Service.
 
 ---
 An `identity` block supports the following:
@@ -107,6 +111,7 @@ An `authentication` block supports the following:
 * `authority` - (Required) The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
   Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id>}.
 * `audience` - (Required) The intended audience to receive authentication tokens for the service. The default value is `https://<name>.fhir.azurehealthcareapis.com`.
+* `smart_proxy_enabled` - (Optional) Whether smart proxy is enabled.
 
 ---
 

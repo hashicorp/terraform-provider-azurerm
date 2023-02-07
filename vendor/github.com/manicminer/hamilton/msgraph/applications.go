@@ -155,7 +155,7 @@ func (c *ApplicationsClient) GetDeleted(ctx context.Context, id string, query od
 func (c *ApplicationsClient) Update(ctx context.Context, application Application) (int, error) {
 	var status int
 
-	if application.ID == nil {
+	if application.ID() == nil {
 		return status, errors.New("ApplicationsClient.Update(): cannot update application with nil ID")
 	}
 
@@ -182,7 +182,7 @@ func (c *ApplicationsClient) Update(ctx context.Context, application Application
 		ConsistencyFailureFunc: checkApplicationConsistency,
 		ValidStatusCodes:       []int{http.StatusNoContent},
 		Uri: Uri{
-			Entity:      fmt.Sprintf("/applications/%s", *application.ID),
+			Entity:      fmt.Sprintf("/applications/%s", *application.ID()),
 			HasTenantId: true,
 		},
 	})
@@ -378,10 +378,7 @@ func (c *ApplicationsClient) ListOwners(ctx context.Context, id string) (*[]stri
 	}
 
 	var data struct {
-		Owners []struct {
-			Type string `json:"@odata.type"`
-			Id   string `json:"id"`
-		} `json:"value"`
+		Owners []DirectoryObject `json:"value"`
 	}
 	if err := json.Unmarshal(respBody, &data); err != nil {
 		return nil, status, fmt.Errorf("json.Unmarshal(): %v", err)
@@ -389,7 +386,9 @@ func (c *ApplicationsClient) ListOwners(ctx context.Context, id string) (*[]stri
 
 	ret := make([]string, len(data.Owners))
 	for i, v := range data.Owners {
-		ret[i] = v.Id
+		if d := v.ID(); d != nil {
+			ret[i] = *d
+		}
 	}
 
 	return &ret, status, nil
@@ -438,7 +437,7 @@ func (c *ApplicationsClient) GetOwner(ctx context.Context, applicationId, ownerI
 func (c *ApplicationsClient) AddOwners(ctx context.Context, application *Application) (int, error) {
 	var status int
 
-	if application.ID == nil {
+	if application.ID() == nil {
 		return status, errors.New("cannot update application with nil ID")
 	}
 	if application.Owners == nil {
@@ -465,7 +464,7 @@ func (c *ApplicationsClient) AddOwners(ctx context.Context, application *Applica
 			ValidStatusCodes:       []int{http.StatusNoContent},
 			ValidStatusFunc:        checkOwnerAlreadyExists,
 			Uri: Uri{
-				Entity:      fmt.Sprintf("/applications/%s/owners/$ref", *application.ID),
+				Entity:      fmt.Sprintf("/applications/%s/owners/$ref", *application.ID()),
 				HasTenantId: true,
 			},
 		})

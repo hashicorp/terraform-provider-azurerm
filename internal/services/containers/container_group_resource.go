@@ -2009,7 +2009,7 @@ func flattenContainerGroupSubnets(input *[]containerinstance.ContainerGroupSubne
 			continue
 		}
 
-		id, err := networkParse.SubnetID(resourceRef.Id)
+		id, err := networkParse.SubnetIDInsensitively(resourceRef.Id)
 		if err != nil {
 			return nil, fmt.Errorf(`parsing subnet id %q: %v`, resourceRef.Id, err)
 		}

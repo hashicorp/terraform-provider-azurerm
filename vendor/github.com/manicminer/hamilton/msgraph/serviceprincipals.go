@@ -138,7 +138,7 @@ func (c *ServicePrincipalsClient) Get(ctx context.Context, id string, query odat
 func (c *ServicePrincipalsClient) Update(ctx context.Context, servicePrincipal ServicePrincipal) (int, error) {
 	var status int
 
-	if servicePrincipal.ID == nil {
+	if servicePrincipal.ID() == nil {
 		return status, errors.New("cannot update service principal with nil ID")
 	}
 
@@ -152,7 +152,7 @@ func (c *ServicePrincipalsClient) Update(ctx context.Context, servicePrincipal S
 		ConsistencyFailureFunc: RetryOn404ConsistencyFailureFunc,
 		ValidStatusCodes:       []int{http.StatusNoContent},
 		Uri: Uri{
-			Entity:      fmt.Sprintf("/servicePrincipals/%s", *servicePrincipal.ID),
+			Entity:      fmt.Sprintf("/servicePrincipals/%s", *servicePrincipal.ID()),
 			HasTenantId: true,
 		},
 	})
@@ -265,7 +265,7 @@ func (c *ServicePrincipalsClient) GetOwner(ctx context.Context, servicePrincipal
 func (c *ServicePrincipalsClient) AddOwners(ctx context.Context, servicePrincipal *ServicePrincipal) (int, error) {
 	var status int
 
-	if servicePrincipal.ID == nil {
+	if servicePrincipal.ID() == nil {
 		return status, errors.New("cannot update service principal with nil ID")
 	}
 	if servicePrincipal.Owners == nil {
@@ -292,7 +292,7 @@ func (c *ServicePrincipalsClient) AddOwners(ctx context.Context, servicePrincipa
 			ValidStatusCodes:       []int{http.StatusNoContent},
 			ValidStatusFunc:        checkOwnerAlreadyExists,
 			Uri: Uri{
-				Entity:      fmt.Sprintf("/servicePrincipals/%s/owners/$ref", *servicePrincipal.ID),
+				Entity:      fmt.Sprintf("/servicePrincipals/%s/owners/$ref", *servicePrincipal.ID()),
 				HasTenantId: true,
 			},
 		})
@@ -352,7 +352,7 @@ func (c *ServicePrincipalsClient) RemoveOwners(ctx context.Context, servicePrinc
 func (c *ServicePrincipalsClient) AssignClaimsMappingPolicy(ctx context.Context, servicePrincipal *ServicePrincipal) (int, error) {
 	var status int
 
-	if servicePrincipal.ID == nil {
+	if servicePrincipal.ID() == nil {
 		return status, errors.New("cannot update service principal with nil ID")
 	}
 	if servicePrincipal.ClaimsMappingPolicies == nil {
@@ -379,7 +379,7 @@ func (c *ServicePrincipalsClient) AssignClaimsMappingPolicy(ctx context.Context,
 			ValidStatusCodes:       []int{http.StatusNoContent},
 			ValidStatusFunc:        checkPolicyAlreadyExists,
 			Uri: Uri{
-				Entity:      fmt.Sprintf("/servicePrincipals/%s/claimsMappingPolicies/$ref", *servicePrincipal.ID),
+				Entity:      fmt.Sprintf("/servicePrincipals/%s/claimsMappingPolicies/$ref", *servicePrincipal.ID()),
 				HasTenantId: false,
 			},
 		})
@@ -431,7 +431,7 @@ func (c *ServicePrincipalsClient) RemoveClaimsMappingPolicy(ctx context.Context,
 		return status, errors.New("cannot remove, nil policyIds")
 	}
 
-	assignedPolicies, _, err := c.ListClaimsMappingPolicy(ctx, *servicePrincipal.ID)
+	assignedPolicies, _, err := c.ListClaimsMappingPolicy(ctx, *servicePrincipal.ID())
 	if err != nil {
 		return status, fmt.Errorf("ServicePrincipalsClient.BaseClient.ListClaimsMappingPolicy(): %v", err)
 	}
@@ -442,7 +442,7 @@ func (c *ServicePrincipalsClient) RemoveClaimsMappingPolicy(ctx context.Context,
 
 	mapClaimsMappingPolicy := map[string]ClaimsMappingPolicy{}
 	for _, v := range *assignedPolicies {
-		mapClaimsMappingPolicy[*v.ID] = v
+		mapClaimsMappingPolicy[*v.ID()] = v
 	}
 
 	for _, policyId := range *policyIds {
@@ -465,7 +465,7 @@ func (c *ServicePrincipalsClient) RemoveClaimsMappingPolicy(ctx context.Context,
 			ValidStatusCodes:       []int{http.StatusNoContent},
 			ValidStatusFunc:        checkPolicyStatus,
 			Uri: Uri{
-				Entity:      fmt.Sprintf("/servicePrincipals/%s/claimsMappingPolicies/%s/$ref", *servicePrincipal.ID, policyId),
+				Entity:      fmt.Sprintf("/servicePrincipals/%s/claimsMappingPolicies/%s/$ref", *servicePrincipal.ID(), policyId),
 				HasTenantId: false,
 			},
 		})

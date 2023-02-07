@@ -136,9 +136,9 @@ The following arguments are supported:
 
 An `authentication` block supports the following:
 
-* `active_directory_auth_enabled` - (Optional) Whether or not Active Directory authentication is allowed to access the PostgreSQL Flexible Server.
+* `active_directory_auth_enabled` - (Optional) Whether or not Active Directory authentication is allowed to access the PostgreSQL Flexible Server. Defaults to `false`.
 
-* `password_auth_enabled` - (Optional) Whether or not password authentication is allowed to access the PostgreSQL Flexible Server.
+* `password_auth_enabled` - (Optional) Whether or not password authentication is allowed to access the PostgreSQL Flexible Server. Defaults to `true`.
 
 * `tenant_id` - (Optional) The Tenant ID of the Azure Active Directory which is used by the Active Directory authentication. `active_directory_auth_enabled` must be set to `true`.
 
@@ -180,7 +180,7 @@ A `maintenance_window` block supports the following:
 
 A `high_availability` block supports the following:
 
-* `mode` - (Required) The high availability mode for the PostgreSQL Flexible Server. The only possible value is `ZoneRedundant`.
+* `mode` - (Required) The high availability mode for the PostgreSQL Flexible Server. Possible value are `SameZone` or `ZoneRedundant`.
 
 * `standby_availability_zone` - (Optional) Specifies the Availability Zone in which the standby Flexible Server should be located.
 

@@ -89,10 +89,12 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						"active_directory_auth_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"password_auth_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  true,
 						},
 						"tenant_id": {
 							Type:         pluginsdk.TypeString,
@@ -227,6 +229,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(servers.HighAvailabilityModeZoneRedundant),
+								string(servers.HighAvailabilityModeSameZone),
 							}, false),
 						},
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package authentication
 
 import (
@@ -199,11 +202,12 @@ func objectIdFromMsGraph(ctx context.Context, c *Config) (*string, error) {
 		return nil, fmt.Errorf("unexpected Service Principal query result, was nil")
 	}
 
-	if len(*result) != 1 || (*result)[0].ID == nil {
+	if len(*result) != 1 || (*result)[0].ID() == nil {
 		return nil, fmt.Errorf("unexpected Service Principal query result: %+v", *result)
 	}
 
-	return (*result)[0].ID, nil
+	val := (*result)[0]
+	return val.ID(), nil
 }
 
 func hamiltonRequestLogger(req *http.Request) (*http.Request, error) {
