@@ -16,7 +16,7 @@ import (
 
 type OpenShiftClusterResource struct{}
 
-func TestAccOpenShiftCluster_basic(t *testing.T) {
+func TestAccOpenShiftCluster_basic1(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := OpenShiftClusterResource{}
 
@@ -119,7 +119,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain = "foo.example.com"
+    domain = "%[3]s.com"
   }
 
   main_profile {
@@ -149,7 +149,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   depends_on = ["azurerm_role_assignment.redhatopenshift"]
 }
-  `, r.template(data), data.RandomInteger)
+  `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r OpenShiftClusterResource) private(data acceptance.TestData) string {
