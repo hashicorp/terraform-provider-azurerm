@@ -18,6 +18,9 @@ type MobileNetworkSliceResource struct{}
 
 func TestAccMobileNetworkSlice_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_slice", "test")
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkSliceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -32,6 +35,9 @@ func TestAccMobileNetworkSlice_basic(t *testing.T) {
 
 func TestAccMobileNetworkSlice_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_slice", "test")
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkSliceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,6 +52,9 @@ func TestAccMobileNetworkSlice_requiresImport(t *testing.T) {
 
 func TestAccMobileNetworkSlice_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_slice", "test")
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkSliceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,6 +69,9 @@ func TestAccMobileNetworkSlice_complete(t *testing.T) {
 
 func TestAccMobileNetworkSlice_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_slice", "test")
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkSliceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
