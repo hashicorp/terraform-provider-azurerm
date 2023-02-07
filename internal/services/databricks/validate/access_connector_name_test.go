@@ -26,7 +26,7 @@ func TestAccessConnectorName(t *testing.T) {
 		},
 		{
 			Name:  "Maximum character length",
-			Input: "012345678901234567890123456789", // 30 chars
+			Input: "0123456789012345678901234567890123456789012345678901234567890123", // 64 chars
 		},
 
 		// Simple negative cases:
@@ -37,7 +37,7 @@ func TestAccessConnectorName(t *testing.T) {
 		},
 		{
 			Name:           "Above maximum character length",
-			Input:          "01234567890123456789012345678901", // 31 chars
+			Input:          "01234567890123456789012345678901234567890123456789012345678901234", // 65 chars
 			ExpectedErrors: []string{errMaxLen},
 		},
 		{
