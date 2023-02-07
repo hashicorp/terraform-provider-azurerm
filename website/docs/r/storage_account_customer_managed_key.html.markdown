@@ -123,13 +123,17 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the Storage Account. Changing this forces a new resource to be created.
 
-* `key_vault_id` - (Required) The ID of the Key Vault. 
-
 * `key_name` - (Required) The name of Key Vault Key.
+
+* `key_vault_id` - (Optional) The ID of the Key Vault. Exactly one of `key_vault_id`, or `key_vault_uri` must be specified.
+
+* `key_vault_uri` - (Optional) URI pointing at the Key Vault. Required when using `federated_identity_client_id`. Exactly one of `key_vault_id`, or `key_vault_uri` must be specified.
 
 * `key_version` - (Optional) The version of Key Vault Key. Remove or omit this argument to enable Automatic Key Rotation.
 
 * `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
+//ClientId of the multi-tenant application to be used in conjunction with the user-assigned identity for cross-tenant customer-managed-keys server-side encryption on the storage account.
+* `federated_identity_client_id` - (Optional) The Client ID of the multi-tenant application for cross-tenant 
 
 ## Attributes Reference
 
