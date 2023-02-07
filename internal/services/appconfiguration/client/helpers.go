@@ -24,7 +24,7 @@ type ConfigurationStoreDetails struct {
 	dataPlaneEndpoint    string
 }
 
-func (c Client) AddToCache(configurationStoreId *configurationstores.ConfigurationStoreId, dataPlaneEndpoint string) {
+func (c Client) AddToCache(configurationStoreId configurationstores.ConfigurationStoreId, dataPlaneEndpoint string) {
 	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigStoreName)
 	keysmith.Lock()
 	ConfigurationStoreCache[cacheKey] = ConfigurationStoreDetails{
@@ -46,7 +46,7 @@ func (c Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, resourcesC
 		lock[cacheKey] = &sync.RWMutex{}
 	}
 	keysmith.Unlock()
-	lock[cacheKey].Unlock()
+	lock[cacheKey].Lock()
 	defer lock[cacheKey].Unlock()
 
 	if v, ok := ConfigurationStoreCache[cacheKey]; ok {
@@ -81,7 +81,7 @@ func (c Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, resourcesC
 				return nil, fmt.Errorf("retrieving %s: `model.properties.Endpoint` was nil", *id)
 			}
 
-			c.AddToCache(id, *resp.Model.Properties.Endpoint)
+			c.AddToCache(*id, *resp.Model.Properties.Endpoint)
 
 			return utils.String(id.ID()), nil
 		}
@@ -118,7 +118,7 @@ func (c Client) EndpointForConfigurationStore(ctx context.Context, configuration
 		return nil, fmt.Errorf("retrieving %s: `model.properties.Endpoint` was nil", configurationStoreId)
 	}
 
-	c.AddToCache(&configurationStoreId, *resp.Model.Properties.Endpoint)
+	c.AddToCache(configurationStoreId, *resp.Model.Properties.Endpoint)
 
 	return resp.Model.Properties.Endpoint, nil
 }
@@ -149,7 +149,7 @@ func (c Client) Exists(ctx context.Context, configurationStoreId configurationst
 		return false, fmt.Errorf("retrieving %s: `model.properties.Endpoint` was nil", configurationStoreId)
 	}
 
-	c.AddToCache(&configurationStoreId, *resp.Model.Properties.Endpoint)
+	c.AddToCache(configurationStoreId, *resp.Model.Properties.Endpoint)
 
 	return true, nil
 }
