@@ -209,6 +209,12 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/certificates
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/containerapps
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/containerappsrevisions
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/daprcomponents
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironments
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironmentsstorages
 github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview
