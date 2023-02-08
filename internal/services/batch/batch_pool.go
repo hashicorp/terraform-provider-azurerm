@@ -710,8 +710,8 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 			if containerRunOptions, ok := settingMap["run_options"]; ok {
 				containerSettings.ContainerRunOptions = utils.String(containerRunOptions.(string))
 			}
-			if settingMap["registry"].([]interface{})[0] != nil {
-				containerRegMap := settingMap["registry"].([]interface{})[0].(map[string]interface{})
+			if registries, ok := settingMap["registry"].([]interface{}); ok && len(registries) > 0 && registries[0] != nil {
+				containerRegMap := registries[0].(map[string]interface{})
 				if containerRegistryRef, err := expandBatchPoolContainerRegistry(containerRegMap); err == nil {
 					containerSettings.Registry = containerRegistryRef
 				}
