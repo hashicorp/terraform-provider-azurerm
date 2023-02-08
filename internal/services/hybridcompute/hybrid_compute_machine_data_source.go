@@ -873,7 +873,6 @@ func flattenOSProfileModel(input *machines.OSProfile) []OSProfileModel {
 	output.LinuxConfiguration = linuxConfigurationValue
 
 	windowsConfigurationValue := flattenOSProfileWindowsConfigurationModel(input.WindowsConfiguration)
-
 	output.WindowsConfiguration = windowsConfigurationValue
 
 	return append(outputList, output)
