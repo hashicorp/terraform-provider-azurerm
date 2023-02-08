@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -142,7 +141,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 				// set empty keyvault reference which is not needed in Batch Service allocation mode.
 				d.Set("key_vault_reference", []interface{}{})
-			} else if poolAllocationMode == string(batch.PoolAllocationModeUserSubscription) {
+			} else if poolAllocationMode == string(batchaccount.PoolAllocationModeUserSubscription) {
 				if err := d.Set("key_vault_reference", flattenBatchAccountKeyvaultReference(props.KeyVaultReference)); err != nil {
 					return fmt.Errorf("flattening `key_vault_reference`: %+v", err)
 				}

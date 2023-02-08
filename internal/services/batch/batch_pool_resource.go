@@ -1317,12 +1317,14 @@ func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *pool.Po
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		if model := resp.Model; model != nil {
-			if props := model.Properties; props != nil && props.AllocationState != nil && *props.AllocationState == pool.AllocationStateSteady {
-				time.Sleep(time.Second * 30)
-				log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped... New try in 30 seconds...")
+		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.AllocationState != nil {
+			isSteady = *resp.Model.Properties.AllocationState == pool.AllocationStateSteady
+			if isSteady {
+				break
 			}
 		}
+		time.Sleep(time.Second * 30)
+		log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped... New try in 30 seconds...")
 	}
 	return nil
 }

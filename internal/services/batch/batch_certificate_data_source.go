@@ -74,7 +74,9 @@ func dataSourceBatchCertificateRead(d *pluginsdk.ResourceData, meta interface{})
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.CertificateName)
+	if model := resp.Model; model != nil {
+		d.Set("name", model.Name)
+	}
 	d.Set("account_name", id.BatchAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 

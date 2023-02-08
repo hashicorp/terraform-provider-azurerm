@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/certificate"
@@ -66,8 +65,8 @@ func resourceBatchCertificate() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(batch.CertificateFormatCer),
-					string(batch.CertificateFormatPfx),
+					string(certificate.CertificateFormatCer),
+					string(certificate.CertificateFormatPfx),
 				}, false),
 			},
 

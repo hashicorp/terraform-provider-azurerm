@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -67,8 +66,8 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(batch.AutoStorageAuthenticationModeStorageKeys),
-					string(batch.AutoStorageAuthenticationModeBatchAccountManagedIdentity),
+					string(batchaccount.AutoStorageAuthenticationModeStorageKeys),
+					string(batchaccount.AutoStorageAuthenticationModeBatchAccountManagedIdentity),
 				}, false),
 				RequiredWith: []string{"storage_account_id"},
 			},
@@ -87,9 +86,9 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(batch.AuthenticationModeSharedKey),
-						string(batch.AuthenticationModeAAD),
-						string(batch.AuthenticationModeTaskAuthenticationToken),
+						string(batchaccount.AuthenticationModeSharedKey),
+						string(batchaccount.AuthenticationModeAAD),
+						string(batchaccount.AuthenticationModeTaskAuthenticationToken),
 					}, false),
 				},
 			},
@@ -97,10 +96,10 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			"pool_allocation_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(batch.PoolAllocationModeBatchService),
+				Default:  string(batchaccount.PoolAllocationModeBatchService),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(batch.PoolAllocationModeBatchService),
-					string(batch.PoolAllocationModeUserSubscription),
+					string(batchaccount.PoolAllocationModeBatchService),
+					string(batchaccount.PoolAllocationModeUserSubscription),
 				}, false),
 			},
 
@@ -545,7 +544,7 @@ func isShardKeyAllowed(input []interface{}) bool {
 		return false
 	}
 	for _, authMod := range input {
-		if strings.EqualFold(authMod.(string), string(batch.AuthenticationModeSharedKey)) {
+		if strings.EqualFold(authMod.(string), string(batchaccount.AuthenticationModeSharedKey)) {
 			return true
 		}
 	}
