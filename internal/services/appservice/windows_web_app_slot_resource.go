@@ -105,6 +105,8 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"auth_settings": helpers.AuthSettingsSchema(),
 
+		"auth_v2_settings": helpers.AuthV2SettingsSchema(),
+
 		"backup": helpers.BackupSchema(),
 
 		"client_affinity_enabled": {
