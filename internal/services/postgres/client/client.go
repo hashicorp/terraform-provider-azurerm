@@ -14,7 +14,7 @@ import (
 	flexibleserverdatabases "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databases"
 	flexibleserverfirewallrules "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/firewallrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
-	flexibleserveradministrators "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-03-08-preview/administrators"
+	flexibleserveradministrators "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/administrators"
 	flexibleservers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
