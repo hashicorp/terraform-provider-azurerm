@@ -22,9 +22,7 @@ resourceGroup="${resource_group_name}"
 location="${location}"
 authType="principal"
 correlationId="${uuid}"
-
 output=$(wget https://aka.ms/azcmagent -O ~/install_linux_azcmagent.sh 2>&1)
-
 if [ $? != 0 ]; then
   read -d '' bodyData <<EOF
   {
@@ -39,16 +37,12 @@ if [ $? != 0 ]; then
     "message": "${output}"
   }
 EOF
-
   wget -qO- --method=PUT --body-data="${bodyData}" "https://gbl.his.arc.azure.com/log" &> /dev/null || true
 fi
-
 echo "${output}"
-
 sudo chmod +x ~/install_linux_azcmagent.sh
 cd ~
 ./install_linux_azcmagent.sh
-
 sudo azcmagent connect \
   --service-principal-id "${servicePrincipalClientId}" \
   --service-principal-secret "${servicePrincipalSecret}" \

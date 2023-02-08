@@ -57,8 +57,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `error_details` - A `error_details` block as defined below.
 
-* `extensions` - A `extensions` block as defined below.
-
 * `identity` - A `identity` block as defined below.
 
 * `last_status_change` - The time of the last status change.
@@ -149,18 +147,6 @@ A `extension_service` block exports the following:
 
 ---
 
-A `extensions` block exports the following:
-
-* `name` - The machine extension name.
-
-* `status` - A `status` block as defined below.
-
-* `type` - Specifies the type of the extension. For example `CustomScriptExtension`.
-
-* `type_handler_version` - Specifies the version of the script handler.
-
----
-
 A `extensions_allow_list` block exports the following:
 
 * `publisher` - Publisher of the extension.
@@ -236,20 +222,6 @@ A `service_status` block exports the following:
 * `extension_service` - A `extension_service` block as defined above.
 
 * `guest_configuration_service` - A `guest_configuration_service` block as defined above.
-
----
-
-A `status` block exports the following:
-
-* `code` - The status code.
-
-* `display_status` - The short localizable label for the status.
-
-* `level` - The level code.
-
-* `message` - The detailed status message, including for alerts and error messages.
-
-* `time` - The time of the status.
 
 ---
 

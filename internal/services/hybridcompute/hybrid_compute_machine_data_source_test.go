@@ -140,7 +140,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   provisioner "file" {
-    content = templatefile("scripts/install_arc.sh.tmpl", {
+    content = templatefile("scripts/install_arc.sh.tftpl", {
       resource_group_name = azurerm_resource_group.test.name
       uuid                = local.random_uuid
       location            = azurerm_resource_group.test.location
