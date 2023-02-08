@@ -26,11 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-const (
-	logAnalyticsDestinationTypeAzureDiagnostic = "AzureDiagnostics"
-	logAnalyticsDestinationTypeDedicated       = "Dedicated"
-)
-
 func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
 		Create: resourceMonitorDiagnosticSettingCreate,
@@ -106,10 +101,10 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: false,
-				Default:  logAnalyticsDestinationTypeAzureDiagnostic,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					logAnalyticsDestinationTypeDedicated,
-					logAnalyticsDestinationTypeAzureDiagnostic, // Not documented in azure API, but some resource has skew. See: https://github.com/Azure/azure-rest-api-specs/issues/9281
+					"AzureDiagnostics",
+					"Dedicated", // Not documented in azure API, but some resource has skew. See: https://github.com/Azure/azure-rest-api-specs/issues/9281
 				}, false),
 			},
 
@@ -573,7 +568,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 				d.Set("partner_solution_id", partnerSolutionId)
 			}
 
-			logAnalyticsDestinationType := logAnalyticsDestinationTypeAzureDiagnostic
+			logAnalyticsDestinationType := ""
 			if resp.Model.Properties.LogAnalyticsDestinationType != nil && *resp.Model.Properties.LogAnalyticsDestinationType != "" {
 				logAnalyticsDestinationType = *resp.Model.Properties.LogAnalyticsDestinationType
 			}
