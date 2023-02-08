@@ -919,9 +919,7 @@ func flattenOSProfileWindowsConfigurationModel(input *machines.OSProfileWindowsC
 	}
 
 	output := OSProfileWindowsConfigurationModel{}
-
 	patchSettingsValue := flattenPatchSettingsModel(input.PatchSettings)
-
 	output.PatchSettings = patchSettingsValue
 
 	return append(outputList, output)
