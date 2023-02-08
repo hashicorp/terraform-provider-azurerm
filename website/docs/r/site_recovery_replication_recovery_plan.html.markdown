@@ -70,27 +70,27 @@ resource "azurerm_site_recovery_replication_recovery_plan" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Replication Plan. The name can contain only letters, numbers, and hyphens. It should start with a letter and end with a letter or a number. Can be a maximum of 63 characters.
+* `name` - (Required) The name of the Replication Plan. The name can contain only letters, numbers, and hyphens. It should start with a letter and end with a letter or a number. Can be a maximum of 63 characters. Changing this forces a new resource to be created.
 
-* `recovery_vault_id` - (Required) The ID of the vault that should be updated.
+* `recovery_vault_id` - (Required) The ID of the vault that should be updated. Changing this forces a new resource to be created.
 
 * `source_recovery_fabric_id` - (Required) ID of source fabric to be recovered from. Changing this forces a new Replication Plan to be created.
 
 * `target_recovery_fabric_id` - (Required) ID of target fabric to recover. Changing this forces a new Replication Plan to be created.
 
-* `recovery_group` - (Required) Three or more `recovery_group` block.
+* `recovery_group` - (Optional) Three or more `recovery_group` block.
 
 ---
 
-A `recovery_groups` block supports the following:
+A `recovery_group` block supports the following:
 
 *  `type` - (Required) The Recovery Plan Group Type. Possible values are `Boot`, `Failover` and `Shutdown`.
 
-* `replicated_protected_items` - (required) one or more id of protected VM.
+* `replicated_protected_items` - (Optional) (required) one or more id of protected VM.
 
-* `pre_action` - (Optional) one or more `action` block. which will be executed before the group recovery.
+* `pre_action` - (Optional) one or more `action` block as defined below. which will be executed before the group recovery.
 
-* `post_action` - (Optional) one or more `action` block. which will be executed after the group recovery.
+* `post_action` - (Optional) one or more `action` block as defined below. which will be executed after the group recovery.
 
 ---
 
@@ -141,5 +141,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Site Recovery Fabric can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_site_recovery_fabric.myfabric-id=/subscriptions/00000000-0000-0000-0000-00000000000/resourceGroups/groupName/providers/Microsoft.RecoveryServices/vaults/vaultName/replicationRecoveryPlans/planName
+terraform import  azurerm_site_recovery_replication_recovery_plan.example /subscriptions/00000000-0000-0000-0000-00000000000/resourceGroups/groupName/providers/Microsoft.RecoveryServices/vaults/vaultName/replicationRecoveryPlans/planName
 ```

@@ -175,7 +175,7 @@ func (d DiskPoolIscsiTargetLunModel) Read() sdk.ResourceFunc {
 			for _, lun := range *resp.Model.Properties.Luns {
 				if lun.ManagedDiskAzureResourceId == id.ManagedDiskId.ID() {
 					diskPoolId := diskpools.NewDiskPoolID(iscsiTargetId.SubscriptionId, iscsiTargetId.ResourceGroupName, iscsiTargetId.DiskPoolName)
-					diskId, err := disks.ParseDiskID(lun.ManagedDiskAzureResourceId)
+					diskId, err := disks.ParseDiskIDInsensitively(lun.ManagedDiskAzureResourceId)
 					if err != nil {
 						return fmt.Errorf("invalid managed disk id in iscsi target response %q : %q", iscsiTargetId.ID(), lun.ManagedDiskAzureResourceId)
 					}

@@ -7,9 +7,12 @@ import (
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
 	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
+	azurestackhci_v2022_12_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-12-01"
+	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
+	redis_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -33,6 +36,7 @@ import (
 	confidentialledger "github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/client"
 	connections "github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/client"
 	consumption "github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/client"
+	containerapps "github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/client"
 	containerServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	cosmosdb "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	costmanagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/client"
@@ -81,6 +85,7 @@ import (
 	mariadb "github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/client"
 	media "github.com/hashicorp/terraform-provider-azurerm/internal/services/media/client"
 	mixedreality "github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality/client"
+	mobilenetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	mssql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	mysql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
@@ -141,7 +146,7 @@ type Client struct {
 	Attestation           *attestation.Client
 	Authorization         *authorization.Client
 	Automation            *automation.Client
-	AzureStackHCI         *azureStackHCI.Client
+	AzureStackHCI         *azurestackhci_v2022_12_01.Client
 	Batch                 *batch.Client
 	Blueprints            *blueprints.Client
 	Bot                   *bot.Client
@@ -152,6 +157,7 @@ type Client struct {
 	ConfidentialLedger    *confidentialledger.Client
 	Connections           *connections.Client
 	Consumption           *consumption.Client
+	ContainerApps         *containerapps.Client
 	Containers            *containerServices.Client
 	Cosmos                *cosmosdb.Client
 	CostManagement        *costmanagement.Client
@@ -160,7 +166,7 @@ type Client struct {
 	DatabaseMigration     *datamigration.Client
 	DataBricks            *databricks.Client
 	DataboxEdge           *databoxedge.Client
-	Datadog               *datadog.Client
+	Datadog               *datadog_v2021_03_01.Client
 	DataFactory           *datafactory.Client
 	DataProtection        *dataprotection.Client
 	DataShare             *datashare.Client
@@ -201,6 +207,7 @@ type Client struct {
 	Media                 *media.Client
 	MixedReality          *mixedreality.Client
 	Monitor               *monitor.Client
+	MobileNetwork         *mobilenetwork.Client
 	MSSQL                 *mssql.Client
 	MySQL                 *mysql.Client
 	NetApp                *netapp.Client
@@ -216,7 +223,7 @@ type Client struct {
 	PrivateDnsResolver    *dnsresolver.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
-	Redis                 *redis.Client
+	Redis                 *redis_v2021_06_01.Client
 	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
 	Resource              *resource.Client
@@ -274,6 +281,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Connections = connections.NewClient(o)
 	client.Consumption = consumption.NewClient(o)
 	client.Containers = containerServices.NewContainersClient(o)
+	client.ContainerApps = containerapps.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
 	client.CustomProviders = customproviders.NewClient(o)
@@ -322,6 +330,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Media = media.NewClient(o)
 	client.MixedReality = mixedreality.NewClient(o)
 	client.Monitor = monitor.NewClient(o)
+	client.MobileNetwork = mobilenetwork.NewClient(o)
 	client.MSSQL = mssql.NewClient(o)
 	client.MySQL = mysql.NewClient(o)
 	client.NetApp = netapp.NewClient(o)

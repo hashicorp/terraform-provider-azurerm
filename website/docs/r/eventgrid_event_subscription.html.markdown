@@ -231,8 +231,6 @@ The following attributes are exported:
 
 * `id` - The ID of the EventGrid Event Subscription.
 
-* `topic_name` - (Optional/ **Deprecated) Specifies the name of the topic to associate with the event subscription.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

@@ -46,12 +46,10 @@ func (c *DirectoryObjectsClient) Get(ctx context.Context, id string, query odata
 		return nil, status, fmt.Errorf("io.ReadAll(): %v", err)
 	}
 
-	var data map[string]interface{}
-	if err := json.Unmarshal(respBody, &data); err != nil {
+	directoryObject := DirectoryObject{}
+	if err = directoryObject.UnmarshalJSONWithAdditionalData(respBody); err != nil {
 		return nil, status, fmt.Errorf("json.Unmarshal(): %v", err)
 	}
-
-	directoryObject := c.translateResultToDirectoryObject(data)
 
 	return &directoryObject, status, nil
 }
@@ -91,7 +89,7 @@ func (c *DirectoryObjectsClient) GetByIds(ctx context.Context, ids []string, typ
 	}
 
 	var rawData struct {
-		Objects []map[string]interface{} `json:"value"`
+		Objects []json.RawMessage `json:"value"`
 	}
 	if err := json.Unmarshal(respBody, &rawData); err != nil {
 		return nil, status, fmt.Errorf("json.Unmarshal(): %v", err)
@@ -101,8 +99,12 @@ func (c *DirectoryObjectsClient) GetByIds(ctx context.Context, ids []string, typ
 		Objects []DirectoryObject `json:"value"`
 	}
 
-	for _, row := range rawData.Objects {
-		data.Objects = append(data.Objects, c.translateResultToDirectoryObject(row))
+	for _, rawObj := range rawData.Objects {
+		directoryObject := DirectoryObject{}
+		if err = directoryObject.UnmarshalJSONWithAdditionalData(rawObj); err != nil {
+			return nil, status, fmt.Errorf("json.Unmarshal(): %v", err)
+		}
+		data.Objects = append(data.Objects, directoryObject)
 	}
 
 	return &data.Objects, status, nil
@@ -167,7 +169,7 @@ func (c *DirectoryObjectsClient) GetMemberGroups(ctx context.Context, id string,
 
 	result := make([]DirectoryObject, len(data.IDs))
 	for i, id := range data.IDs {
-		result[i].ID = utils.StringPtr(id)
+		result[i].Id = utils.StringPtr(id)
 	}
 
 	return &result, status, nil
@@ -215,43 +217,8 @@ func (c *DirectoryObjectsClient) GetMemberObjects(ctx context.Context, id string
 
 	result := make([]DirectoryObject, len(data.IDs))
 	for i, id := range data.IDs {
-		result[i].ID = utils.StringPtr(id)
+		result[i].Id = utils.StringPtr(id)
 	}
 
 	return &result, status, nil
-}
-
-// translateResultToDirectoryObject translates directory object data into DirectoryObject
-func (c *DirectoryObjectsClient) translateResultToDirectoryObject(data map[string]interface{}) DirectoryObject {
-	object := DirectoryObject{
-		AdditionalData: data,
-	}
-
-	if val, exists := data["@odata.id"]; exists {
-		if v, ok := val.(string); ok {
-			odataId := odata.Id(v)
-			object.ODataId = &odataId
-		}
-	}
-
-	if val, exists := data["@odata.type"]; exists {
-		if v, ok := val.(string); ok {
-			odataType := odata.Type(v)
-			object.ODataType = &odataType
-		}
-	}
-
-	if val, exists := data["id"]; exists {
-		if v, ok := val.(string); ok {
-			object.ID = &v
-		}
-	}
-
-	if val, exists := data["displayName"]; exists {
-		if v, ok := val.(string); ok {
-			object.DisplayName = &v
-		}
-	}
-
-	return object
 }
