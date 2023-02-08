@@ -254,6 +254,8 @@ func PossibleApplicationGatewayRuleSetStatusOptionsValues() []ApplicationGateway
 type ApplicationGatewaySkuName string
 
 const (
+	// ApplicationGatewaySkuNameStandardBasic ...
+	ApplicationGatewaySkuNameStandardBasic ApplicationGatewaySkuName = "Standard_Basic"
 	// ApplicationGatewaySkuNameStandardLarge ...
 	ApplicationGatewaySkuNameStandardLarge ApplicationGatewaySkuName = "Standard_Large"
 	// ApplicationGatewaySkuNameStandardMedium ...
@@ -272,7 +274,7 @@ const (
 
 // PossibleApplicationGatewaySkuNameValues returns an array of possible values for the ApplicationGatewaySkuName const type.
 func PossibleApplicationGatewaySkuNameValues() []ApplicationGatewaySkuName {
-	return []ApplicationGatewaySkuName{ApplicationGatewaySkuNameStandardLarge, ApplicationGatewaySkuNameStandardMedium, ApplicationGatewaySkuNameStandardSmall, ApplicationGatewaySkuNameStandardV2, ApplicationGatewaySkuNameWAFLarge, ApplicationGatewaySkuNameWAFMedium, ApplicationGatewaySkuNameWAFV2}
+	return []ApplicationGatewaySkuName{ApplicationGatewaySkuNameStandardBasic, ApplicationGatewaySkuNameStandardLarge, ApplicationGatewaySkuNameStandardMedium, ApplicationGatewaySkuNameStandardSmall, ApplicationGatewaySkuNameStandardV2, ApplicationGatewaySkuNameWAFLarge, ApplicationGatewaySkuNameWAFMedium, ApplicationGatewaySkuNameWAFV2}
 }
 
 // ApplicationGatewaySslCipherSuite enumerates the values for application gateway ssl cipher suite.
@@ -405,6 +407,8 @@ type ApplicationGatewayTier string
 const (
 	// ApplicationGatewayTierStandard ...
 	ApplicationGatewayTierStandard ApplicationGatewayTier = "Standard"
+	// ApplicationGatewayTierStandardBasic ...
+	ApplicationGatewayTierStandardBasic ApplicationGatewayTier = "Standard_Basic"
 	// ApplicationGatewayTierStandardV2 ...
 	ApplicationGatewayTierStandardV2 ApplicationGatewayTier = "Standard_v2"
 	// ApplicationGatewayTierWAF ...
@@ -415,7 +419,7 @@ const (
 
 // PossibleApplicationGatewayTierValues returns an array of possible values for the ApplicationGatewayTier const type.
 func PossibleApplicationGatewayTierValues() []ApplicationGatewayTier {
-	return []ApplicationGatewayTier{ApplicationGatewayTierStandard, ApplicationGatewayTierStandardV2, ApplicationGatewayTierWAF, ApplicationGatewayTierWAFV2}
+	return []ApplicationGatewayTier{ApplicationGatewayTierStandard, ApplicationGatewayTierStandardBasic, ApplicationGatewayTierStandardV2, ApplicationGatewayTierWAF, ApplicationGatewayTierWAFV2}
 }
 
 // ApplicationGatewayTierTypes enumerates the values for application gateway tier types.

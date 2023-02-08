@@ -235,7 +235,7 @@ func expandContainerAppIngressCustomDomain(input []CustomDomain) *[]containerapp
 	for _, v := range input {
 		customDomain := containerapps.CustomDomain{
 			Name:          v.Name,
-			CertificateId: v.CertificateId,
+			CertificateId: pointer.To(v.CertificateId),
 		}
 		bindingType := containerapps.BindingType(v.CertBinding)
 		customDomain.BindingType = &bindingType
@@ -255,11 +255,13 @@ func flattenContainerAppIngressCustomDomain(input *[]containerapps.CustomDomain)
 
 	for _, v := range *input {
 		customDomain := CustomDomain{
-			CertificateId: v.CertificateId,
-			Name:          v.Name,
+			Name: v.Name,
 		}
 		if v.BindingType != nil {
 			customDomain.CertBinding = string(*v.BindingType)
+		}
+		if v.CertificateId != nil {
+			customDomain.CertificateId = *v.CertificateId
 		}
 		result = append(result, customDomain)
 	}
