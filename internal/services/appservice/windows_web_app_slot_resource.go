@@ -769,7 +769,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
-				if authUpdate.SiteAuthSettingsProperties == nil && metadata.ResourceData.HasChange("auth_v2_settings") {
+				if authUpdate.SiteAuthSettingsProperties == nil {
 					authUpdate.SiteAuthSettingsProperties = &web.SiteAuthSettingsProperties{
 						Enabled:                           pointer.To(false),
 						ClientSecret:                      pointer.To(""),
