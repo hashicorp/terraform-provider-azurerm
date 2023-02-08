@@ -17,6 +17,8 @@ FEATURES
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20230208.1165725` of `github.com/hashicorp/go-azure-sdk` [GH-20381]
+* dependencies: updating to `v0.20230208.1135849` of `github.com/tombuildsstuff/kermit` [GH-20381]
 * dependencies: updating to `v0.11.28` of `github.com/Azure/go-autorest/autorest` [GH-20272]
 * dependencies: updating to `v0.50.0` of `github.com/hashicorp/go-azure-helpers` [GH-20272]
 * dependencies: updating to `v0.20230204.1161343` of `github.com/hashicorp/go-azure-sdk` [GH-20312]
