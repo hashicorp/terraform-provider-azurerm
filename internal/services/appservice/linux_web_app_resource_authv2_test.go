@@ -791,7 +791,7 @@ resource "azurerm_linux_web_app" "test" {
 
   sticky_settings {
     connection_string_names = ["First", "Third"]
-    
+
     app_setting_names = [
       "foo",
       "APPLE_PROVIDER_AUTHENTICATION_SECRET",
