@@ -245,8 +245,6 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	authMode := d.Get("storage_account_authentication_mode").(string)
 	if batchaccount.AutoStorageAuthenticationMode(authMode) == batchaccount.AutoStorageAuthenticationModeBatchAccountManagedIdentity && identity.Type == "None" {
-		// TODO
-		//identity.Type == batch.ResourceIdentityTypeNone {
 		return fmt.Errorf(" storage_account_authentication_mode=`BatchAccountManagedIdentity` can only be set when identity.type is `SystemAssigned` or `UserAssigned`")
 	}
 
@@ -255,7 +253,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("`storage_account_authentication_mode` is required when `storage_account_id` ")
 		}
 		parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
-			StorageAccountId:   storageAccountId,
+			StorageAccountId:   &storageAccountId,
 			AuthenticationMode: utils.ToPtr(batchaccount.AutoStorageAuthenticationMode(authMode)),
 		}
 	}
@@ -402,49 +400,24 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	if d.HasChange("storage_account_id") {
 		if v, ok := d.GetOk("storage_account_id"); ok {
 			parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
-				StorageAccountId: v.(string),
+				StorageAccountId: utils.String(v.(string)),
 			}
 		} else {
-
-			// remove the storage account from the batch account
-			//parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
-			//	// TODO is this sufficient for removing it - update it's not
-			//	StorageAccountId: "",
-			//}
-			parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{}
-			existing, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("reading %s: %+v", *id, err)
-			}
-			if model := existing.Model; model != nil {
-				if props := model.Properties; props != nil {
-					if autoStorage := props.AutoStorage; autoStorage != nil {
-						if autoStorage.NodeIdentityReference != nil {
-							parameters.Properties.AutoStorage.NodeIdentityReference = autoStorage.NodeIdentityReference
-						}
-						if autoStorage.AuthenticationMode != nil {
-							log.Printf("[DEBUG] AuthMode = %s", *autoStorage.AuthenticationMode)
-						}
-						//if autoStorage.AuthenticationMode != nil {
-						//	parameters.Properties.AutoStorage.AuthenticationMode = autoStorage.AuthenticationMode
-						//}
-					}
-				}
+			parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
+				StorageAccountId: nil,
 			}
 		}
 	}
 
 	authMode := d.Get("storage_account_authentication_mode").(string)
 	if batchaccount.AutoStorageAuthenticationMode(authMode) == batchaccount.AutoStorageAuthenticationModeBatchAccountManagedIdentity && identity.Type == "None" {
-		// TODO missing enum in batch sdk?
-		//identity.Type == batch.ResourceIdentityTypeNone {
 		return fmt.Errorf(" storage_account_authentication_mode=`BatchAccountManagedIdentity` can only be set when identity.type is `SystemAssigned` or `UserAssigned`")
 	}
 
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
 		parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
-			StorageAccountId:   storageAccountId,
+			StorageAccountId:   &storageAccountId,
 			AuthenticationMode: utils.ToPtr(batchaccount.AutoStorageAuthenticationMode(authMode)),
 		}
 	}

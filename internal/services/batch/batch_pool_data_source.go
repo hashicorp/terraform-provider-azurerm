@@ -743,6 +743,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("display_name", props.DisplayName)
 			d.Set("vm_size", props.VMSize)
 			d.Set("inter_node_communication", props.InterNodeCommunication)
+			d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
 
 			if scaleSettings := props.ScaleSettings; scaleSettings != nil {
 				if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
@@ -781,9 +782,19 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 							dataDisk := make(map[string]interface{})
 							dataDisk["lun"] = item.Lun
 							dataDisk["disk_size_gb"] = item.DiskSizeGB
-							// TODO nil check
-							dataDisk["caching"] = item.Caching
-							dataDisk["storage_account_type"] = item.StorageAccountType
+
+							caching := ""
+							if item.Caching != nil {
+								caching = string(*item.Caching)
+							}
+							dataDisk["caching"] = caching
+
+							storageAccountType := ""
+							if item.StorageAccountType != nil {
+								storageAccountType = string(*item.StorageAccountType)
+							}
+							dataDisk["storage_account_type"] = storageAccountType
+
 							dataDisks = append(dataDisks, dataDisk)
 						}
 						d.Set("data_disks", dataDisks)

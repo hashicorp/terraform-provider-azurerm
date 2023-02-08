@@ -960,11 +960,6 @@ func FlattenBatchMetaData(metadatas *[]pool.MetadataItem) map[string]interface{}
 	}
 
 	for _, metadata := range *metadatas {
-		//if metadata.Name == nil || metadata.Value == nil {
-		//	continue
-		//}
-		// TODO replace with empty string check?
-
 		output[metadata.Name] = metadata.Value
 	}
 

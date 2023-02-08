@@ -1134,9 +1134,19 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 							dataDisk := make(map[string]interface{})
 							dataDisk["lun"] = item.Lun
 							dataDisk["disk_size_gb"] = item.DiskSizeGB
-							// TODO nil check
-							dataDisk["caching"] = item.Caching
-							dataDisk["storage_account_type"] = item.StorageAccountType
+
+							caching := ""
+							if item.Caching != nil {
+								caching = string(*item.Caching)
+							}
+							dataDisk["caching"] = caching
+
+							storageAccountType := ""
+							if item.StorageAccountType != nil {
+								storageAccountType = string(*item.StorageAccountType)
+							}
+							dataDisk["storage_account_type"] = storageAccountType
+
 							dataDisks = append(dataDisks, dataDisk)
 						}
 						d.Set("data_disks", dataDisks)
