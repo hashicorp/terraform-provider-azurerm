@@ -313,6 +313,12 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
+	if servers.CreateMode(createMode) == servers.CreateModeReplica {
+		if _, ok := d.GetOk("source_server_id"); !ok {
+			return fmt.Errorf("`source_server_id` is required when `create_mode` is `Replica`")
+		}
+	}
+
 	if createMode == "" || servers.CreateMode(createMode) == servers.CreateModeDefault {
 		if _, ok := d.GetOk("administrator_login"); !ok {
 			return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default`")
