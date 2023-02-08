@@ -132,7 +132,9 @@ The following arguments are supported:
 
 * `computer_name` - (Optional) Specifies the Hostname which should be used for this Virtual Machine. If unspecified this defaults to the value for the `name` field. If the value of the `name` field is not a valid `computer_name`, then you must specify `computer_name`. Changing this forces a new resource to be created.
 
-* `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine. Changing this forces a new resource to be created.
+* `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine. Changing this forces a new resource to be created when `custom_data_replace_on_change` is set `true` (the default).
+
+* `custom_data_replace_on_change` - (Optional) Whether to replace the VM when the `custom_data` is updated. The default is `true`.
 
 * `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on. Conflicts with `dedicated_host_group_id`.
 

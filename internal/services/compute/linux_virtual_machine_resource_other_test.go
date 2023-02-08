@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
@@ -252,12 +253,42 @@ func TestAccLinuxVirtualMachine_otherCustomData(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherCustomData(data),
+			Config: r.otherCustomData(data, "/bin/bash"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("custom_data"),
+	})
+}
+
+func TestAccLinuxVirtualMachine_otherCustomData_noReplaceOnChange(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+	var machine_id string
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherCustomData(data, "/bin/bash"),
+			Check: acceptance.ComposeTestCheckFunc(
+				func(s *terraform.State) error {
+					machine_id = s.RootModule().Resources["azurerm_linux_virtual_machine.test"].Primary.Attributes["virtual_machine_id"]
+					return nil
+				},
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("custom_data"),
+		{
+			Config: r.otherCustomData(data, "/bin/sh"),
+			Check: func(s *terraform.State) error {
+				machine_id_after := s.RootModule().Resources["azurerm_linux_virtual_machine.test"].Primary.Attributes["virtual_machine_id"]
+				if machine_id_after != machine_id {
+					return fmt.Errorf("VM was replaced!")
+				}
+				return nil
+			},
+		},
 	})
 }
 
@@ -1331,7 +1362,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) otherCustomData(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) otherCustomData(data acceptance.TestData, custom_data string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1341,7 +1372,10 @@ resource "azurerm_linux_virtual_machine" "test" {
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
   admin_username      = "adminuser"
-  custom_data         = base64encode("/bin/bash")
+
+  custom_data                   = base64encode("%s")
+  custom_data_replace_on_change = false
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1363,7 +1397,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, custom_data)
 }
 
 func (r LinuxVirtualMachineResource) otherEdgeZone(data acceptance.TestData) string {
