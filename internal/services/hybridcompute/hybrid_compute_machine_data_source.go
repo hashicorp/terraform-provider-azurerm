@@ -18,36 +18,35 @@ import (
 )
 
 type HybridComputeMachineModel struct {
-	Name                       string                              `tfschema:"name"`
-	ResourceGroupName          string                              `tfschema:"resource_group_name"`
-	AgentConfiguration         []AgentConfigurationModel           `tfschema:"agent_configuration"`
-	ClientPublicKey            string                              `tfschema:"client_public_key"`
-	CloudMetadata              []CloudMetadataModel                `tfschema:"cloud_metadata"`
-	DetectedProperties         map[string]string                   `tfschema:"detected_properties"`
-	Extensions                 []MachineExtensionInstanceViewModel `tfschema:"extensions"`
-	Location                   string                              `tfschema:"location"`
-	LocationData               []LocationDataModel                 `tfschema:"location_data"`
-	MssqlDiscovered            string                              `tfschema:"mssql_discovered"`
-	OsProfile                  []OSProfileModel                    `tfschema:"os_profile"`
-	OsType                     string                              `tfschema:"os_type"`
-	ParentClusterResourceId    string                              `tfschema:"parent_cluster_resource_id"`
-	PrivateLinkScopeResourceId string                              `tfschema:"private_link_scope_resource_id"`
-	ServiceStatuses            []ServiceStatusesModel              `tfschema:"service_status"`
-	Tags                       map[string]string                   `tfschema:"tags"`
-	VmId                       string                              `tfschema:"vm_id"`
-	AdFqdn                     string                              `tfschema:"ad_fqdn"`
-	AgentVersion               string                              `tfschema:"agent_version"`
-	DisplayName                string                              `tfschema:"display_name"`
-	DnsFqdn                    string                              `tfschema:"dns_fqdn"`
-	DomainName                 string                              `tfschema:"domain_name"`
-	ErrorDetails               []ErrorDetailModel                  `tfschema:"error_details"`
-	LastStatusChange           string                              `tfschema:"last_status_change"`
-	MachineFqdn                string                              `tfschema:"machine_fqdn"`
-	OsName                     string                              `tfschema:"os_name"`
-	OsSku                      string                              `tfschema:"os_sku"`
-	OsVersion                  string                              `tfschema:"os_version"`
-	Status                     machines.StatusTypes                `tfschema:"status"`
-	VmUuid                     string                              `tfschema:"vm_uuid"`
+	Name                       string                    `tfschema:"name"`
+	ResourceGroupName          string                    `tfschema:"resource_group_name"`
+	AgentConfiguration         []AgentConfigurationModel `tfschema:"agent_configuration"`
+	ClientPublicKey            string                    `tfschema:"client_public_key"`
+	CloudMetadata              []CloudMetadataModel      `tfschema:"cloud_metadata"`
+	DetectedProperties         map[string]string         `tfschema:"detected_properties"`
+	Location                   string                    `tfschema:"location"`
+	LocationData               []LocationDataModel       `tfschema:"location_data"`
+	MssqlDiscovered            bool                      `tfschema:"mssql_discovered"`
+	OsProfile                  []OSProfileModel          `tfschema:"os_profile"`
+	OsType                     string                    `tfschema:"os_type"`
+	ParentClusterResourceId    string                    `tfschema:"parent_cluster_resource_id"`
+	PrivateLinkScopeResourceId string                    `tfschema:"private_link_scope_resource_id"`
+	ServiceStatuses            []ServiceStatusesModel    `tfschema:"service_status"`
+	Tags                       map[string]string         `tfschema:"tags"`
+	VmId                       string                    `tfschema:"vm_id"`
+	AdFqdn                     string                    `tfschema:"ad_fqdn"`
+	AgentVersion               string                    `tfschema:"agent_version"`
+	DisplayName                string                    `tfschema:"display_name"`
+	DnsFqdn                    string                    `tfschema:"dns_fqdn"`
+	DomainName                 string                    `tfschema:"domain_name"`
+	ErrorDetails               []ErrorDetailModel        `tfschema:"error_details"`
+	LastStatusChange           string                    `tfschema:"last_status_change"`
+	MachineFqdn                string                    `tfschema:"machine_fqdn"`
+	OsName                     string                    `tfschema:"os_name"`
+	OsSku                      string                    `tfschema:"os_sku"`
+	OsVersion                  string                    `tfschema:"os_version"`
+	Status                     machines.StatusTypes      `tfschema:"status"`
+	VmUuid                     string                    `tfschema:"vm_uuid"`
 }
 
 type AgentConfigurationModel struct {
@@ -67,21 +66,6 @@ type ConfigurationExtensionModel struct {
 
 type CloudMetadataModel struct {
 	Provider string `tfschema:"provider"`
-}
-
-type MachineExtensionInstanceViewModel struct {
-	Name               string                                    `tfschema:"name"`
-	Status             []MachineExtensionInstanceViewStatusModel `tfschema:"status"`
-	Type               string                                    `tfschema:"type"`
-	TypeHandlerVersion string                                    `tfschema:"type_handler_version"`
-}
-
-type MachineExtensionInstanceViewStatusModel struct {
-	Code          string                    `tfschema:"code"`
-	DisplayStatus string                    `tfschema:"display_status"`
-	Level         machines.StatusLevelTypes `tfschema:"level"`
-	Message       string                    `tfschema:"message"`
-	Time          string                    `tfschema:"time"`
 }
 
 type LocationDataModel struct {
@@ -331,63 +315,6 @@ func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schem
 			},
 		},
 
-		"extensions": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"status": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"code": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"display_status": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"level": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"message": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"time": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"type_handler_version": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
 		"identity": commonschema.SystemAssignedIdentityComputed(),
 
 		"last_status_change": {
@@ -432,7 +359,7 @@ func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schem
 		},
 
 		"mssql_discovered": {
-			Type:     pluginsdk.TypeString,
+			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 
@@ -686,10 +613,6 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 
 				state.ErrorDetails = errorDetailsValue
 
-				extensionsValue := flattenMachineExtensionInstanceViewModel(properties.Extensions)
-
-				state.Extensions = extensionsValue
-
 				if properties.LastStatusChange != nil {
 					state.LastStatusChange = *properties.LastStatusChange
 				}
@@ -703,7 +626,10 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 				}
 
 				if properties.MssqlDiscovered != nil {
-					state.MssqlDiscovered = *properties.MssqlDiscovered
+					state.MssqlDiscovered, err = strconv.ParseBool(*properties.MssqlDiscovered)
+					if err != nil {
+						return err
+					}
 				}
 
 				if properties.OsName != nil {
@@ -905,68 +831,6 @@ func flattenErrorAdditionalInfoModel(inputList *[]machines.ErrorAdditionalInfo) 
 	return outputList
 }
 
-func flattenMachineExtensionInstanceViewModel(inputList *[]machines.MachineExtensionInstanceView) []MachineExtensionInstanceViewModel {
-	var outputList []MachineExtensionInstanceViewModel
-	if inputList == nil {
-		return outputList
-	}
-
-	for _, input := range *inputList {
-		output := MachineExtensionInstanceViewModel{}
-
-		if input.Name != nil {
-			output.Name = *input.Name
-		}
-
-		statusValue := flattenMachineExtensionInstanceViewStatusModel(input.Status)
-
-		output.Status = statusValue
-
-		if input.Type != nil {
-			output.Type = *input.Type
-		}
-
-		if input.TypeHandlerVersion != nil {
-			output.TypeHandlerVersion = *input.TypeHandlerVersion
-		}
-
-		outputList = append(outputList, output)
-	}
-
-	return outputList
-}
-
-func flattenMachineExtensionInstanceViewStatusModel(input *machines.MachineExtensionInstanceViewStatus) []MachineExtensionInstanceViewStatusModel {
-	var outputList []MachineExtensionInstanceViewStatusModel
-	if input == nil {
-		return outputList
-	}
-
-	output := MachineExtensionInstanceViewStatusModel{}
-
-	if input.Code != nil {
-		output.Code = *input.Code
-	}
-
-	if input.DisplayStatus != nil {
-		output.DisplayStatus = *input.DisplayStatus
-	}
-
-	if input.Level != nil {
-		output.Level = *input.Level
-	}
-
-	if input.Message != nil {
-		output.Message = *input.Message
-	}
-
-	if input.Time != nil {
-		output.Time = *input.Time
-	}
-
-	return append(outputList, output)
-}
-
 func flattenLocationDataModel(input *machines.LocationData) []LocationDataModel {
 	var outputList []LocationDataModel
 	if input == nil {
@@ -1005,6 +869,7 @@ func flattenOSProfileModel(input *machines.OSProfile) []OSProfileModel {
 	}
 
 	linuxConfigurationValue := flattenOSProfileLinuxConfigurationModel(input.LinuxConfiguration)
+
 	output.LinuxConfiguration = linuxConfigurationValue
 
 	windowsConfigurationValue := flattenOSProfileWindowsConfigurationModel(input.WindowsConfiguration)
@@ -1021,7 +886,9 @@ func flattenOSProfileLinuxConfigurationModel(input *machines.OSProfileLinuxConfi
 	}
 
 	output := OSProfileLinuxConfigurationModel{}
+
 	patchSettingsValue := flattenPatchSettingsModel(input.PatchSettings)
+
 	output.PatchSettings = patchSettingsValue
 
 	return append(outputList, output)
