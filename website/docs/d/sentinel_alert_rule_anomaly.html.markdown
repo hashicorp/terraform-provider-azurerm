@@ -85,6 +85,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `techniques` - A list of techniques of attacks by which to classify the rule.
 
+* `multi_select_observation` - A list of `multi_select_observation` blocks as defined below.
+
+* `single_select_observation` - A list of `single_select_observation` blocks as defined below.
+
+* `prioritized_exclude_observation` - A list of `prioritized_exclude_observation` blocks as defined below.
+
+* `threshold_observation` - A list of `threshold_observation` blocks as defined below.
+
 ---
 
 A `required_data_connector` block exports the following:
@@ -92,6 +100,56 @@ A `required_data_connector` block exports the following:
 * `connector_id` - The ID of the required Data Connector.
 
 * `data_types` - A list of data types of the required Data Connector.
+
+---
+
+A `multi_select_observation` block exports the following:
+
+* `name` - The name of the multi select observation.
+
+* `description` - The description of the multi select observation.
+
+* `supported_values` - A list of supported values of the multi select observation.
+
+* `values` - A list of values of the single select observation.
+
+---
+
+A `single_select_observation` block exports the following:
+
+* `name` - The name of the single select observation.
+
+* `description` - The description of the single select observation.
+
+* `supported_values` - A list of supported values of the single select observation.
+
+* `value` - The value of the multi select observation.
+
+---
+
+A `prioritized_exclude_observation` block exports the following:
+
+* `name` - The name of the prioritized exclude observation.
+
+* `description` - The description of the prioritized exclude observation.
+
+* `prioritize` - The prioritized value per `description`.
+
+* `exclude` - The excluded value per `description`.
+
+---
+
+A `threshold_observation` block exports the following:
+
+* `name` - The name of the threshold observation.
+
+* `description` - The description of the threshold observation.
+
+* `max` - The max value of the threshold observation.
+
+* `min` - The min value of the threshold observation.
+
+* `value` - The value of the threshold observation.
 
 ## Timeouts
 

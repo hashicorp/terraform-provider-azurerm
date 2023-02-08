@@ -34,7 +34,7 @@ type AlertRuleAnomalyDataSourceModel struct {
 	ThresholdObservation    []AnomalyRuleThresholdModel             `tfschema:"threshold_observation"`
 	MultiSelectObservation  []AnomalyRuleMultiSelectModel           `tfschema:"multi_select_observation"`
 	SingleSelectObservation []AnomalyRuleSingleSelectModel          `tfschema:"single_select_observation"`
-	PrioritizedObservation  []AnomalyRulePriorityModel              `tfschema:"prioritized_observation"`
+	PrioritizedObservation  []AnomalyRulePriorityModel              `tfschema:"prioritized_exclude_observation"`
 }
 
 type AlertRuleAnomalyDataSource struct{}
@@ -138,10 +138,10 @@ func (a AlertRuleAnomalyDataSource) Attributes() map[string]*schema.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
-		"multi_select_observation":  AnomalyRuleMultiSelectSchema(),
-		"single_select_observation": AnomalyRuleSingleSelectSchema(),
-		"prioritized_observation":   AnomalyRulePrioritySchema(),
-		"threshold_observation":     AnomalyRuleThresholdSchema(),
+		"multi_select_observation":        AnomalyRuleMultiSelectSchema(),
+		"single_select_observation":       AnomalyRuleSingleSelectSchema(),
+		"prioritized_exclude_observation": AnomalyRulePrioritySchema(),
+		"threshold_observation":           AnomalyRuleThresholdSchema(),
 	}
 }
 

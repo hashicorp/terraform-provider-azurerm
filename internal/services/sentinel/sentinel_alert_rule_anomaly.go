@@ -18,7 +18,7 @@ type AnomalyRuleRequiredDataConnectorModel struct {
 }
 
 type AnomalyRuleMultiSelectModel struct {
-	SupportValues []string `tfschema:"support_values"`
+	SupportValues []string `tfschema:"supported_values"`
 	Values        []string `tfschema:"values"`
 	Name          string   `tfschema:"name"`
 	Description   string   `tfschema:"description"`
@@ -38,7 +38,7 @@ func AnomalyRuleMultiSelectSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
-				"support_values": {
+				"supported_values": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &schema.Schema{
@@ -89,7 +89,7 @@ func flattenSentinelAlertRuleAnomalyMultiSelect(input *[]azuresdkhacks.AnomalySe
 type AnomalyRuleSingleSelectModel struct {
 	Name          string   `tfschema:"name"`
 	Description   string   `tfschema:"description"`
-	SupportValues []string `tfschema:"support_values"`
+	SupportValues []string `tfschema:"supported_values"`
 	Value         string   `tfschema:"value"`
 }
 
@@ -107,7 +107,7 @@ func AnomalyRuleSingleSelectSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
-				"support_values": {
+				"supported_values": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &schema.Schema{

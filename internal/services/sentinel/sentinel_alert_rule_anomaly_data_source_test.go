@@ -116,7 +116,7 @@ func TestAccSentinelAlertRuleAnomalyDataSource_basicWithPrioritized(t *testing.T
 				check.That(data.ResourceName).Key("settings_definition_id").Exists(),
 				check.That(data.ResourceName).Key("tactics.#").HasValue("2"),
 				check.That(data.ResourceName).Key("techniques.#").HasValue("2"),
-				check.That(data.ResourceName).Key("prioritized_observation.#").HasValue("2"),
+				check.That(data.ResourceName).Key("prioritized_exclude_observation.#").HasValue("2"),
 			),
 		},
 	})
