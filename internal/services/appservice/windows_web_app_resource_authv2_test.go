@@ -8,48 +8,45 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-func TestAccLinuxWebApp_authV2AzureActiveDirectory(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
+func TestAccWindowsWebApp_authV2AzureActiveDirectory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authV2AzureActiveDirectory(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLinuxWebApp_authV2Apple(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
+func TestAccWindowsWebApp_authV2Apple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authV2Apple(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLinuxWebApp_authV2CustomOIDC(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
+func TestAccWindowsWebApp_authV2CustomOIDC(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authV2CustomOIDC(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 				check.That(data.ResourceName).Key("auth_v2_settings.0.custom_oidc.0.client_secret_setting_name").HasValue("TESTCUSTOM_PROVIDER_AUTHENTICATION_SECRET"),
 			),
 		},
@@ -57,112 +54,105 @@ func TestAccLinuxWebApp_authV2CustomOIDC(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebApp_authV2Facebook(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
+func TestAccWindowsWebApp_authV2Facebook(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authV2Facebook(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLinuxWebApp_authV2Github(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
+func TestAccWindowsWebApp_authV2Github(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authV2Github(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLinuxWebApp_authV2Google(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
+func TestAccWindowsWebApp_authV2Google(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authV2Google(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLinuxWebApp_authV2Microsoft(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
+func TestAccWindowsWebApp_authV2Microsoft(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authV2Microsoft(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLinuxWebApp_authV2Twitter(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
+func TestAccWindowsWebApp_authV2Twitter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authV2Twitter(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLinuxWebApp_authV2MultipleAuths(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
+func TestAccWindowsWebApp_authV2MultipleAuths(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authV2Multi(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLinuxWebApp_authV2Update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
+func TestAccWindowsWebApp_authV2Update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authV2Apple(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
@@ -170,23 +160,21 @@ func TestAccLinuxWebApp_authV2Update(t *testing.T) {
 			Config: r.authV2Facebook(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLinuxWebApp_authV2UpgradeFromV1(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
-	r := LinuxWebAppResource{}
+func TestAccWindowsWebApp_authV2UpgradeFromV1(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
@@ -194,16 +182,16 @@ func TestAccLinuxWebApp_authV2UpgradeFromV1(t *testing.T) {
 			Config: r.completeAuthV2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func (r LinuxWebAppResource) authV2AzureActiveDirectory(data acceptance.TestData) string {
+func (r WindowsWebAppResource) authV2AzureActiveDirectory(data acceptance.TestData) string {
 	secretSettingName := "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
 	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -211,10 +199,8 @@ provider "azurerm" {
 
 %s
 
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestLWA-%d"
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -243,9 +229,10 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue, data.Client().TenantID)
 }
 
-func (r LinuxWebAppResource) authV2Apple(data acceptance.TestData) string {
+func (r WindowsWebAppResource) authV2Apple(data acceptance.TestData) string {
 	secretSettingName := "APPLE_PROVIDER_AUTHENTICATION_SECRET"
 	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -253,10 +240,8 @@ provider "azurerm" {
 
 %s
 
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestLWA-%d"
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -265,6 +250,10 @@ resource "azurerm_linux_web_app" "test" {
 
   app_settings = {
     "%[3]s" = "%[4]s"
+  }
+
+  sticky_settings {
+    app_setting_names = ["%[3]s"]
   }
 
   auth_v2_settings {
@@ -282,11 +271,10 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue)
 }
 
-// static web app? - Need to add test when Static Web Apps are deployable from TF.
-
-func (r LinuxWebAppResource) authV2CustomOIDC(data acceptance.TestData) string {
+func (r WindowsWebAppResource) authV2CustomOIDC(data acceptance.TestData) string {
 	secretSettingName := "TESTCUSTOM_PROVIDER_AUTHENTICATION_SECRET"
 	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -294,10 +282,8 @@ provider "azurerm" {
 
 %s
 
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestLWA-%d"
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -328,9 +314,10 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue)
 }
 
-func (r LinuxWebAppResource) authV2Facebook(data acceptance.TestData) string {
+func (r WindowsWebAppResource) authV2Facebook(data acceptance.TestData) string {
 	secretSettingName := "FACEBOOK_PROVIDER_AUTHENTICATION_SECRET"
 	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -338,10 +325,8 @@ provider "azurerm" {
 
 %s
 
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestLWA-%d"
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -371,9 +356,10 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue)
 }
 
-func (r LinuxWebAppResource) authV2Github(data acceptance.TestData) string {
+func (r WindowsWebAppResource) authV2Github(data acceptance.TestData) string {
 	secretSettingName := "GITHUB_PROVIDER_AUTHENTICATION_SECRET"
 	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -381,10 +367,8 @@ provider "azurerm" {
 
 %s
 
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestLWA-%d"
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -414,9 +398,10 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue)
 }
 
-func (r LinuxWebAppResource) authV2Google(data acceptance.TestData) string {
+func (r WindowsWebAppResource) authV2Google(data acceptance.TestData) string {
 	secretSettingName := "GOOGLE_PROVIDER_AUTHENTICATION_SECRET"
 	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -424,10 +409,8 @@ provider "azurerm" {
 
 %s
 
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestLWA-%d"
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -457,9 +440,10 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue)
 }
 
-func (r LinuxWebAppResource) authV2Microsoft(data acceptance.TestData) string {
+func (r WindowsWebAppResource) authV2Microsoft(data acceptance.TestData) string {
 	secretSettingName := "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
 	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -467,10 +451,8 @@ provider "azurerm" {
 
 %s
 
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestLWA-%d"
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -500,9 +482,10 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue)
 }
 
-func (r LinuxWebAppResource) authV2Twitter(data acceptance.TestData) string {
+func (r WindowsWebAppResource) authV2Twitter(data acceptance.TestData) string {
 	secretSettingName := "TWITTER_PROVIDER_AUTHENTICATION_SECRET"
 	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -510,10 +493,8 @@ provider "azurerm" {
 
 %s
 
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestLWA-%d"
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -543,8 +524,9 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue)
 }
 
-func (r LinuxWebAppResource) authV2Multi(data acceptance.TestData) string {
+func (r WindowsWebAppResource) authV2Multi(data acceptance.TestData) string {
 	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -552,10 +534,8 @@ provider "azurerm" {
 
 %s
 
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestLWA-%d"
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -622,8 +602,10 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, secretSettingValue)
 }
 
-func (r LinuxWebAppResource) completeAuthV2(data acceptance.TestData) string {
+func (r WindowsWebAppResource) completeAuthV2(data acceptance.TestData) string {
+	secretSettingName := "APPLE_PROVIDER_AUTHENTICATION_SECRET"
 	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -631,7 +613,7 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_web_app" "test" {
+resource "azurerm_windows_web_app" "test" {
   name                = "acctestWA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -713,7 +695,6 @@ resource "azurerm_linux_web_app" "test" {
 
   client_affinity_enabled            = true
   client_certificate_enabled         = true
-  client_certificate_mode            = "Optional"
   client_certificate_exclusion_paths = "/foo;/bar;/hello;/world"
 
   connection_string {
@@ -772,6 +753,17 @@ resource "azurerm_linux_web_app" "test" {
 
     auto_heal_enabled = true
 
+    virtual_application {
+      virtual_path  = "/"
+      physical_path = "site\\wwwroot"
+      preload       = true
+
+      virtual_directory {
+        virtual_path  = "/stuff"
+        physical_path = "site\\stuff"
+      }
+    }
+
     auto_heal_setting {
       trigger {
         status_code {
@@ -808,7 +800,7 @@ resource "azurerm_linux_web_app" "test" {
     account_name = azurerm_storage_account.test.name
     share_name   = azurerm_storage_share.test.name
     access_key   = azurerm_storage_account.test.primary_access_key
-    mount_path   = "/storage/files"
+    mount_path   = "/mounts/files"
   }
 
   tags = {
@@ -816,5 +808,5 @@ resource "azurerm_linux_web_app" "test" {
     foo         = "bar"
   }
 }
-`, r.templateWithStorageAccount(data), data.RandomInteger, secretSettingValue)
+`, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue)
 }
