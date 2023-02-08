@@ -941,7 +941,6 @@ func flattenServiceStatusesModel(input *machines.ServiceStatuses) []ServiceStatu
 	output.ExtensionService = extensionServiceValue
 
 	guestConfigurationServiceValue := flattenServiceStatusModel(input.GuestConfigurationService)
-
 	output.GuestConfigurationService = guestConfigurationServiceValue
 
 	return append(outputList, output)
