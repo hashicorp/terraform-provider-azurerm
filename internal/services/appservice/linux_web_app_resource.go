@@ -384,10 +384,8 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			authv2 := helpers.ExpandAuthV2Settings(webApp.AuthV2Settings)
 			if authv2.SiteAuthSettingsV2Properties != nil {
-				if resp, err := client.UpdateAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName, *authv2); err != nil {
+				if _, err = client.UpdateAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName, *authv2); err != nil {
 					return fmt.Errorf("updating AuthV2 settings for Linux %s: %+v", id, err)
-				} else {
-					metadata.Logger.Infof("[STEBUG] resp is %+v", resp)
 				}
 			}
 
