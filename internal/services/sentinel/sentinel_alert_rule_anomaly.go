@@ -2,7 +2,6 @@ package sentinel
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
@@ -68,16 +67,12 @@ func flattenSentinelAlertRuleAnomalyMultiSelect(input *[]azuresdkhacks.AnomalySe
 		o := AnomalyRuleMultiSelectModel{}
 		if item.Values != nil {
 			values := make([]string, 0)
-			for _, value := range *item.Values {
-				values = append(values, value)
-			}
+			values = append(values, *item.Values...)
 			o.Values = values
 		}
 		if item.SupportValues != nil {
 			supportValues := make([]string, 0)
-			for _, supportValue := range *item.SupportValues {
-				supportValues = append(supportValues, supportValue)
-			}
+			supportValues = append(supportValues, *item.SupportValues...)
 			o.SupportValues = supportValues
 		}
 		if item.Name != nil {
@@ -141,9 +136,7 @@ func flattenSentinelAlertRuleAnomalySingleSelect(input *[]azuresdkhacks.AnomalyS
 		}
 		if item.SupportValues != nil {
 			supportValues := make([]string, 0)
-			for _, supportValue := range *item.SupportValues {
-				supportValues = append(supportValues, supportValue)
-			}
+			supportValues = append(supportValues, *item.SupportValues...)
 			o.SupportValues = supportValues
 		}
 		if item.Name != nil {
@@ -311,15 +304,4 @@ func AlertRuleAnomalyReadWithPredicate(ctx context.Context, baseClient securityi
 // tracked on https://github.com/Azure/azure-rest-api-specs/issues/22500
 func AlertRuleAnomalyIdFromWorkspaceId(workspaceId workspaces.WorkspaceId, name string) string {
 	return parse.NewMLAnalyticsSettingsID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name).ID()
-}
-
-func flattenSentinelAlertRuleAnomalyCustomizableObservations(input interface{}) (string, error) {
-	value := ""
-	val, err := json.Marshal(input)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal to json: %+v", err)
-	}
-	value = string(val)
-
-	return value, nil
 }
