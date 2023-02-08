@@ -2,10 +2,10 @@ package appservice_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"os"
-	"testing"
 )
 
 func TestAccLinuxWebApp_authV2AzureActiveDirectory(t *testing.T) {
@@ -203,7 +203,7 @@ func TestAccLinuxWebApp_authV2UpgradeFromV1(t *testing.T) {
 
 func (r LinuxWebAppResource) authV2AzureActiveDirectory(data acceptance.TestData) string {
 	secretSettingName := "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
-	secretSettingValue := os.Getenv("ARM_CLIENT_SECRET")
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
