@@ -305,6 +305,13 @@ func TestAccPostgresqlFlexibleServer_replica(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.updateReplicationRole(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_postgresql_flexible_server.replica").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
@@ -812,6 +819,22 @@ resource "azurerm_postgresql_flexible_server" "replica" {
   zone                = "3"
   create_mode         = "Replica"
   source_server_id    = azurerm_postgresql_flexible_server.test.id
+}
+`, r.basic(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) updateReplicationRole(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "replica" {
+  name                = "acctest-fs-replica-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  zone                = "3"
+  create_mode         = "Replica"
+  source_server_id    = azurerm_postgresql_flexible_server.test.id
+  replication_role    = "None"
 }
 `, r.basic(data), data.RandomInteger)
 }
