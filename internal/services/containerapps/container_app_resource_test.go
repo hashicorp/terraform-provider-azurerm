@@ -247,10 +247,10 @@ resource "azurerm_container_app" "test" {
 
   template {
     container {
-      name              = "acctest-cont-%[2]d"
-      image             = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu               = 0.25
-      memory            = "0.5Gi"
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
     }
   }
 }
@@ -273,10 +273,10 @@ resource "azurerm_container_app" "test" {
 
   template {
     container {
-      name              = "acctest-cont-%[2]d"
-      image             = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu               = 0.25
-      memory            = "0.5Gi"
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
     }
   }
 }
@@ -306,10 +306,10 @@ resource "azurerm_container_app" "test" {
 
   template {
     container {
-      name              = "acctest-cont-%[2]d"
-      image             = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu               = 0.25
-      memory            = "0.5Gi"
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
     }
   }
 }
@@ -328,10 +328,10 @@ resource "azurerm_container_app" "test" {
 
   template {
     container {
-      name              = "acctest-cont-%[2]d"
-      image             = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu               = 0.5
-      memory            = "1Gi"
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.5
+      memory = "1Gi"
     }
   }
 }
@@ -350,10 +350,10 @@ resource "azurerm_container_app" "import" {
 
   template {
     container {
-      name              = azurerm_container_app.test.template.0.container.0.name
-      image             = azurerm_container_app.test.template.0.container.0.image
-      cpu               = azurerm_container_app.test.template.0.container.0.cpu
-      memory            = azurerm_container_app.test.template.0.container.0.memory
+      name   = azurerm_container_app.test.template.0.container.0.name
+      image  = azurerm_container_app.test.template.0.container.0.image
+      cpu    = azurerm_container_app.test.template.0.container.0.cpu
+      memory = azurerm_container_app.test.template.0.container.0.memory
     }
   }
 }
@@ -372,10 +372,10 @@ resource "azurerm_container_app" "test" {
 
   template {
     container {
-      name              = "acctest-cont-%[2]d"
-      image             = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu               = 0.25
-      memory            = "0.5Gi"
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
 
       readiness_probe {
         transport = "HTTP"
@@ -469,10 +469,10 @@ resource "azurerm_container_app" "test" {
 
   template {
     container {
-      name              = "acctest-cont-%[2]d"
-      image             = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu               = 0.25
-      memory            = "0.5Gi"
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
 
       readiness_probe {
         transport = "HTTP"
@@ -561,8 +561,8 @@ resource "azurerm_container_app" "test" {
       name  = "acctest-cont-%[2]d"
       image = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
 
-      cpu               = 0.5
-      memory            = "1Gi"
+      cpu    = 0.5
+      memory = "1Gi"
 
       readiness_probe {
         transport               = "HTTP"
@@ -669,8 +669,8 @@ resource "azurerm_container_app" "test" {
       name  = "acctest-cont-%[2]d"
       image = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
 
-      cpu               = 0.5
-      memory            = "1Gi"
+      cpu    = 0.5
+      memory = "1Gi"
 
       readiness_probe {
         transport               = "HTTP"
