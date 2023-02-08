@@ -39,7 +39,7 @@ provider "azurerm" {
 
 data "azurerm_client_config" "current" {}
 
-# note: real-life usage perfer random_uuid resource in registry.terraform.io/hashicorp/random
+# note: real-life usage prefer random_uuid resource in registry.terraform.io/hashicorp/random
 locals {
   random_uuid = "%s"
 }
