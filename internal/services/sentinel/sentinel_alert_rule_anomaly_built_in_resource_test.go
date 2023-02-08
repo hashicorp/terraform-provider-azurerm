@@ -11,10 +11,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type SentinelAlertRuleAnomalyBuiltInResource struct{}
@@ -27,7 +27,7 @@ func (r SentinelAlertRuleAnomalyBuiltInResource) Exists(ctx context.Context, cli
 
 	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 	client := clients.Sentinel.AnalyticsSettingsClient
-	resp, err := sentinel.AlertRuleAnomalyReadWithPredicate(ctx, client, workspaceId, func(r *securityinsight.AnomalySecurityMLAnalyticsSettings) bool {
+	resp, err := sentinel.AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, workspaceId, func(r *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
 		if r.Name != nil && strings.EqualFold(sentinel.AlertRuleAnomalyIdFromWorkspaceId(workspaceId, *r.Name), id.ID()) {
 			return true
 		}

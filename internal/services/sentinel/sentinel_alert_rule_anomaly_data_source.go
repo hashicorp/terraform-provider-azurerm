@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -16,21 +17,24 @@ import (
 )
 
 type AlertRuleAnomalyDataSourceModel struct {
-	Name                     string                                  `tfschema:"name"`
-	DisplayName              string                                  `tfschema:"display_name"`
-	WorkspaceId              string                                  `tfschema:"log_analytics_workspace_id"`
-	AnomalyVersion           string                                  `tfschema:"anomaly_version"`
-	AnomalySettingsVersion   int32                                   `tfschema:"anomaly_settings_version"`
-	CustomizableObservations string                                  `tfschema:"customizable_observations"`
-	Description              string                                  `tfschema:"description"`
-	Enabled                  bool                                    `tfschema:"enabled"`
-	Frequency                string                                  `tfschema:"frequency"`
-	IsDefaultSettings        bool                                    `tfschema:"is_default_settings"`
-	RequiredDataConnectors   []AnomalyRuleRequiredDataConnectorModel `tfschema:"required_data_connector"`
-	SettingsDefinitionId     string                                  `tfschema:"settings_definition_id"`
-	Mode                     string                                  `tfschema:"mode"`
-	Tactics                  []string                                `tfschema:"tactics"`
-	Techniques               []string                                `tfschema:"techniques"`
+	Name                    string                                  `tfschema:"name"`
+	DisplayName             string                                  `tfschema:"display_name"`
+	WorkspaceId             string                                  `tfschema:"log_analytics_workspace_id"`
+	AnomalyVersion          string                                  `tfschema:"anomaly_version"`
+	AnomalySettingsVersion  int32                                   `tfschema:"anomaly_settings_version"`
+	Description             string                                  `tfschema:"description"`
+	Enabled                 bool                                    `tfschema:"enabled"`
+	Frequency               string                                  `tfschema:"frequency"`
+	IsDefaultSettings       bool                                    `tfschema:"is_default_settings"`
+	RequiredDataConnectors  []AnomalyRuleRequiredDataConnectorModel `tfschema:"required_data_connector"`
+	SettingsDefinitionId    string                                  `tfschema:"settings_definition_id"`
+	Mode                    string                                  `tfschema:"mode"`
+	Tactics                 []string                                `tfschema:"tactics"`
+	Techniques              []string                                `tfschema:"techniques"`
+	ThresholdObservation    []AnomalyRuleThresholdModel             `tfschema:"threshold_observation"`
+	MultiSelectObservation  []AnomalyRuleMultiSelectModel           `tfschema:"multi_select_observation"`
+	SingleSelectObservation []AnomalyRuleSingleSelectModel          `tfschema:"single_select_observation"`
+	PrioritizedObservation  []AnomalyRulePriorityModel              `tfschema:"prioritized_observation"`
 }
 
 type AlertRuleAnomalyDataSource struct{}
@@ -134,6 +138,10 @@ func (a AlertRuleAnomalyDataSource) Attributes() map[string]*schema.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+		"multi_select_observation":  AnomalyRuleMultiSelectSchema(),
+		"single_select_observation": AnomalyRuleSingleSelectSchema(),
+		"prioritized_observation":   AnomalyRulePrioritySchema(),
+		"threshold_observation":     AnomalyRuleThresholdSchema(),
 	}
 }
 
@@ -160,7 +168,7 @@ func (a AlertRuleAnomalyDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("parsing workspace id: %+v", err)
 			}
 
-			setting, err := AlertRuleAnomalyReadWithPredicate(ctx, client, *workspaceId, func(v *securityinsight.AnomalySecurityMLAnalyticsSettings) bool {
+			setting, err := AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, *workspaceId, func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
 				if v.Name != nil && strings.EqualFold(*v.Name, metaModel.Name) {
 					return true
 				}
@@ -224,11 +232,12 @@ func (a AlertRuleAnomalyDataSource) Read() sdk.ResourceFunc {
 			if setting.Techniques != nil {
 				state.Techniques = *setting.Techniques
 			}
+
 			if setting.CustomizableObservations != nil {
-				state.CustomizableObservations, err = flattenSentinelAlertRuleAnomalyCustomizableObservations(setting.CustomizableObservations)
-				if err != nil {
-					return fmt.Errorf("flattening `customizable_observations`: %+v", err)
-				}
+				state.MultiSelectObservation = flattenSentinelAlertRuleAnomalyMultiSelect(setting.CustomizableObservations.MultiSelectObservations)
+				state.SingleSelectObservation = flattenSentinelAlertRuleAnomalySingleSelect(setting.CustomizableObservations.SingleSelectObservations)
+				state.PrioritizedObservation = flattenSentinelAlertRuleAnomalyPriority(setting.CustomizableObservations.PrioritizeExcludeObservations)
+				state.ThresholdObservation = flattenSentinelAlertRuleAnomalyThreshold(setting.CustomizableObservations.ThresholdObservations)
 			}
 
 			metadata.SetID(id)

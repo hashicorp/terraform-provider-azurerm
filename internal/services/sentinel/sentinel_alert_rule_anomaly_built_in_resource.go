@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,6 +34,10 @@ type AlertRuleAnomalyBuiltInModel struct {
 	SettingsDefinitionId     string                                  `tfschema:"settings_definition_id"`
 	Tactics                  []string                                `tfschema:"tactics"`
 	Techniques               []string                                `tfschema:"techniques"`
+	ThresholdObservation     []AnomalyRuleThresholdModel             `tfschema:"threshold_observation"`
+	MultiSelectObservation   []AnomalyRuleMultiSelectModel           `tfschema:"multi_select_observation"`
+	SingleSelectObservation  []AnomalyRuleSingleSelectModel          `tfschema:"single_select_observation"`
+	PrioritizedObservation   []AnomalyRulePriorityModel              `tfschema:"prioritized_observation"`
 }
 
 type AlertRuleAnomalyBuiltInResource struct{}
@@ -151,6 +156,10 @@ func (r AlertRuleAnomalyBuiltInResource) Attributes() map[string]*schema.Schema 
 				Type: pluginsdk.TypeString,
 			},
 		},
+		"multi_select_observation":  AnomalyRuleMultiSelectSchema(),
+		"single_select_observation": AnomalyRuleSingleSelectSchema(),
+		"prioritized_observation":   AnomalyRulePrioritySchema(),
+		"threshold_observation":     AnomalyRuleThresholdSchema(),
 	}
 }
 
@@ -170,7 +179,7 @@ func (r AlertRuleAnomalyBuiltInResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing workspace id: %+v", err)
 			}
 
-			builtinRule, err := AlertRuleAnomalyReadWithPredicate(ctx, client, *workspaceId, func(v *securityinsight.AnomalySecurityMLAnalyticsSettings) bool {
+			builtinRule, err := AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, *workspaceId, func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
 				if v.Name != nil && strings.EqualFold(*v.Name, metaModel.Name) {
 					return true
 				}
@@ -239,7 +248,7 @@ func (r AlertRuleAnomalyBuiltInResource) Read() sdk.ResourceFunc {
 			}
 			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
-			resp, err := AlertRuleAnomalyReadWithPredicate(ctx, client, workspaceId, func(v *securityinsight.AnomalySecurityMLAnalyticsSettings) bool {
+			resp, err := AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, workspaceId, func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
 				if v.ID != nil && strings.EqualFold(*v.ID, id.ID()) {
 					return true
 				}
@@ -260,40 +269,52 @@ func (r AlertRuleAnomalyBuiltInResource) Read() sdk.ResourceFunc {
 			if resp.Name != nil {
 				state.Name = *resp.Name
 			}
+
 			if resp.DisplayName != nil {
 				state.DisplayName = *resp.DisplayName
 			}
+
 			if resp.AnomalyVersion != nil {
 				state.AnomalyVersion = *resp.AnomalyVersion
 			}
+
 			if resp.AnomalySettingsVersion != nil {
 				state.AnomalySettingsVersion = *resp.AnomalySettingsVersion
 			}
+
 			if resp.Description != nil {
 				state.Description = *resp.Description
 			}
+
 			if resp.Enabled != nil {
 				state.Enabled = *resp.Enabled
 			}
+
 			if resp.Frequency != nil {
 				state.Frequency = *resp.Frequency
 			}
+
 			if resp.IsDefaultSettings != nil {
 				state.IsDefaultSettings = *resp.IsDefaultSettings
 			}
+
 			state.RequiredDataConnectors = flattenSentinelAlertRuleAnomalyRequiredDataConnectors(resp.RequiredDataConnectors)
+
 			if resp.SettingsDefinitionID != nil {
 				state.SettingsDefinitionId = resp.SettingsDefinitionID.String()
 			}
+
 			state.Tactics = flattenSentinelAlertRuleAnomalyTactics(resp.Tactics)
+
 			if resp.Techniques != nil {
 				state.Techniques = *resp.Techniques
 			}
+
 			if resp.CustomizableObservations != nil {
-				state.CustomizableObservations, err = flattenSentinelAlertRuleAnomalyCustomizableObservations(resp.CustomizableObservations)
-				if err != nil {
-					return fmt.Errorf("flattening `customizable_observations`: %+v", err)
-				}
+				state.MultiSelectObservation = flattenSentinelAlertRuleAnomalyMultiSelect(resp.CustomizableObservations.MultiSelectObservations)
+				state.SingleSelectObservation = flattenSentinelAlertRuleAnomalySingleSelect(resp.CustomizableObservations.SingleSelectObservations)
+				state.PrioritizedObservation = flattenSentinelAlertRuleAnomalyPriority(resp.CustomizableObservations.PrioritizeExcludeObservations)
+				state.ThresholdObservation = flattenSentinelAlertRuleAnomalyThreshold(resp.CustomizableObservations.ThresholdObservations)
 			}
 
 			return metadata.Encode(&state)
@@ -322,7 +343,7 @@ func (r AlertRuleAnomalyBuiltInResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("parsing workspace id: %+v", err)
 			}
 
-			existing, err := AlertRuleAnomalyReadWithPredicate(ctx, client, *workspaceId, func(v *securityinsight.AnomalySecurityMLAnalyticsSettings) bool {
+			existing, err := AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, *workspaceId, func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
 				if v.ID != nil && strings.EqualFold(*v.ID, id.ID()) {
 					return true
 				}
@@ -387,7 +408,7 @@ func (r AlertRuleAnomalyBuiltInResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("parsing workspace id: %+v", err)
 			}
 
-			existing, err := AlertRuleAnomalyReadWithPredicate(ctx, client, *workspaceId, func(v *securityinsight.AnomalySecurityMLAnalyticsSettings) bool {
+			existing, err := AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, *workspaceId, func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
 				if v.ID != nil && strings.EqualFold(*v.ID, id.ID()) {
 					return true
 				}
