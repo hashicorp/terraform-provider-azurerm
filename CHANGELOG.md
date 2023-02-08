@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230204.1161343` of `github.com/hashicorp/go-azure-sdk` [GH-20312]
 * dependencies: updating to `v0.55.0` of `github.com/manicminer/hamilton` [GH-20272]
 * dependencies: update `appservice` to api version `2021-03-01` [GH-20349]
+* dependencies: update `postgresql/2022-03-08-preview/administrators` to  `2022-12-01` [GH-20367]
 * `azurestackhci`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
 * `databricks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20309]
 * `datadog`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20311]
