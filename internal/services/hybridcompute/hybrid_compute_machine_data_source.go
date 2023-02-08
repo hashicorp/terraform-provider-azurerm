@@ -1022,9 +1022,7 @@ func flattenOSProfileLinuxConfigurationModel(input *machines.OSProfileLinuxConfi
 	}
 
 	output := OSProfileLinuxConfigurationModel{}
-
 	patchSettingsValue := flattenPatchSettingsModel(input.PatchSettings)
-
 	output.PatchSettings = patchSettingsValue
 
 	return append(outputList, output)
