@@ -58,7 +58,8 @@ func (client EntityQueryTemplatesClient) Get(ctx context.Context, resourceGroupN
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.EntityQueryTemplatesClient", "Get", err.Error())
 	}
 
@@ -148,7 +149,8 @@ func (client EntityQueryTemplatesClient) List(ctx context.Context, resourceGroup
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.EntityQueryTemplatesClient", "List", err.Error())
 	}
 
