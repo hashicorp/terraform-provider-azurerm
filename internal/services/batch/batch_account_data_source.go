@@ -2,14 +2,14 @@ package batch
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -110,7 +110,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.AccountName)
+	d.Set("name", id.BatchAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

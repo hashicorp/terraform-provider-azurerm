@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+
 	batchDataplane "github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/application"

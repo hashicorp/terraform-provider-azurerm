@@ -2,13 +2,13 @@ package batch
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/certificate"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/certificate"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

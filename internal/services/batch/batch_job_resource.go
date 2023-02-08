@@ -3,11 +3,11 @@ package batch
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
 	"time"
 
 	batchDataplane "github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"

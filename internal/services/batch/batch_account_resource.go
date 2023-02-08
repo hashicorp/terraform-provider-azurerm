@@ -2,7 +2,6 @@ package batch
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
 	"log"
 	"strings"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -196,7 +196,6 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
-	//identity, err := expandBatchAccountIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
@@ -298,7 +297,7 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.AccountName)
+	d.Set("name", id.BatchAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

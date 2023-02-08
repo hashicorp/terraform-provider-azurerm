@@ -2,15 +2,11 @@ package batch
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/application"
 	"log"
 	"time"
 
-<<<<<<< HEAD
-=======
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch" // nolint: staticcheck
->>>>>>> main
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/application"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -138,7 +134,7 @@ func resourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.Set("name", id.ApplicationName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("account_name", id.AccountName)
+	d.Set("account_name", id.BatchAccountName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

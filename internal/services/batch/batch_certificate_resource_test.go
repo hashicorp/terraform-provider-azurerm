@@ -3,10 +3,10 @@ package batch_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/certificate"
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/certificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

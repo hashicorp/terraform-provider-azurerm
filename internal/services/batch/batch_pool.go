@@ -2,12 +2,12 @@ package batch
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
 	"log"
 	"strconv"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
