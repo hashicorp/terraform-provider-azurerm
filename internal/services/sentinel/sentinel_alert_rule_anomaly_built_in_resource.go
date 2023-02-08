@@ -19,25 +19,25 @@ import (
 )
 
 type AlertRuleAnomalyBuiltInModel struct {
-	Name                     string                                  `tfschema:"name"`
-	DisplayName              string                                  `tfschema:"display_name"`
-	WorkspaceId              string                                  `tfschema:"log_analytics_workspace_id"`
-	CustomizableObservations string                                  `tfschema:"customizable_observations"`
-	Enabled                  bool                                    `tfschema:"enabled"`
-	Mode                     string                                  `tfschema:"mode"`
-	AnomalyVersion           string                                  `tfschema:"anomaly_version"`
-	AnomalySettingsVersion   int32                                   `tfschema:"anomaly_settings_version"`
-	Description              string                                  `tfschema:"description"`
-	Frequency                string                                  `tfschema:"frequency"`
-	IsDefaultSettings        bool                                    `tfschema:"is_default_settings"`
-	RequiredDataConnectors   []AnomalyRuleRequiredDataConnectorModel `tfschema:"required_data_connector"`
-	SettingsDefinitionId     string                                  `tfschema:"settings_definition_id"`
-	Tactics                  []string                                `tfschema:"tactics"`
-	Techniques               []string                                `tfschema:"techniques"`
-	ThresholdObservation     []AnomalyRuleThresholdModel             `tfschema:"threshold_observation"`
-	MultiSelectObservation   []AnomalyRuleMultiSelectModel           `tfschema:"multi_select_observation"`
-	SingleSelectObservation  []AnomalyRuleSingleSelectModel          `tfschema:"single_select_observation"`
-	PrioritizedObservation   []AnomalyRulePriorityModel              `tfschema:"prioritized_exclude_observation"`
+	Name                         string                                  `tfschema:"name"`
+	DisplayName                  string                                  `tfschema:"display_name"`
+	WorkspaceId                  string                                  `tfschema:"log_analytics_workspace_id"`
+	CustomizableObservations     string                                  `tfschema:"customizable_observations"`
+	Enabled                      bool                                    `tfschema:"enabled"`
+	Mode                         string                                  `tfschema:"mode"`
+	AnomalyVersion               string                                  `tfschema:"anomaly_version"`
+	AnomalySettingsVersion       int32                                   `tfschema:"anomaly_settings_version"`
+	Description                  string                                  `tfschema:"description"`
+	Frequency                    string                                  `tfschema:"frequency"`
+	IsDefaultSettings            bool                                    `tfschema:"is_default_settings"`
+	RequiredDataConnectors       []AnomalyRuleRequiredDataConnectorModel `tfschema:"required_data_connector"`
+	SettingsDefinitionId         string                                  `tfschema:"settings_definition_id"`
+	Tactics                      []string                                `tfschema:"tactics"`
+	Techniques                   []string                                `tfschema:"techniques"`
+	ThresholdObservation         []AnomalyRuleThresholdModel             `tfschema:"threshold_observation"`
+	MultiSelectObservation       []AnomalyRuleMultiSelectModel           `tfschema:"multi_select_observation"`
+	SingleSelectObservation      []AnomalyRuleSingleSelectModel          `tfschema:"single_select_observation"`
+	PrioritizeExcludeObservation []AnomalyRulePriorityModel              `tfschema:"prioritized_exclude_observation"`
 }
 
 type AlertRuleAnomalyBuiltInResource struct{}
@@ -313,7 +313,7 @@ func (r AlertRuleAnomalyBuiltInResource) Read() sdk.ResourceFunc {
 			if resp.CustomizableObservations != nil {
 				state.MultiSelectObservation = flattenSentinelAlertRuleAnomalyMultiSelect(resp.CustomizableObservations.MultiSelectObservations)
 				state.SingleSelectObservation = flattenSentinelAlertRuleAnomalySingleSelect(resp.CustomizableObservations.SingleSelectObservations)
-				state.PrioritizedObservation = flattenSentinelAlertRuleAnomalyPriority(resp.CustomizableObservations.PrioritizeExcludeObservations)
+				state.PrioritizeExcludeObservation = flattenSentinelAlertRuleAnomalyPriority(resp.CustomizableObservations.PrioritizeExcludeObservations)
 				state.ThresholdObservation = flattenSentinelAlertRuleAnomalyThreshold(resp.CustomizableObservations.ThresholdObservations)
 			}
 
