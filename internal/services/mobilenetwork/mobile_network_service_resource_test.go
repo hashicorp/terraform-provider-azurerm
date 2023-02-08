@@ -152,14 +152,14 @@ resource "azurerm_mobile_network_service" "test" {
   location           = "%s"
   service_precedence = 0
 
-  pcc_rules {
-    rule_name               = "default-rule"
-    rule_precedence         = 1
+  pcc_rule {
+    name                    = "default-rule"
+    precedence              = 1
     traffic_control_enabled = true
 
-    service_data_flow_templates {
+    service_data_flow_template {
       direction      = "Uplink"
-      template_name  = "IP-to-server"
+      name           = "IP-to-server"
       ports          = []
       protocol       = ["ip"]
       remote_ip_list = ["10.3.4.0/24"]
@@ -180,20 +180,20 @@ resource "azurerm_mobile_network_service" "test" {
   location           = "%s"
   service_precedence = 0
 
-  pcc_rules {
-    rule_name               = "default-rule"
-    rule_precedence         = 1
+  pcc_rule {
+    name                    = "default-rule"
+    precedence              = 1
     traffic_control_enabled = true
 
-    service_data_flow_templates {
+    service_data_flow_template {
       direction      = "Uplink"
-      template_name  = "IP-to-server"
+      name           = "IP-to-server"
       ports          = []
       protocol       = ["ip"]
       remote_ip_list = ["10.3.4.0/24"]
     }
 
-    rule_qos_policy {
+    qos_policy {
       allocation_and_retention_priority_level = 9
       qos_indicator                           = 9
       preemption_capability                   = "NotPreempt"
@@ -219,14 +219,14 @@ resource "azurerm_mobile_network_service" "test" {
   location           = "%s"
   service_precedence = 0
 
-  pcc_rules {
-    rule_name               = "default-rule"
-    rule_precedence         = 1
+  pcc_rule {
+    name                    = "default-rule"
+    precedence              = 1
     traffic_control_enabled = true
 
-    service_data_flow_templates {
+    service_data_flow_template {
       direction      = "Uplink"
-      template_name  = "IP-to-server"
+      name           = "IP-to-server"
       ports          = []
       protocol       = ["ip"]
       remote_ip_list = ["10.3.4.0/24"]
@@ -259,14 +259,14 @@ resource "azurerm_mobile_network_service" "import" {
   location           = "%s"
   service_precedence = 0
 
-  pcc_rules {
-    rule_name               = "default-rule"
-    rule_precedence         = 1
+  pcc_rule {
+    name                    = "default-rule"
+    precedence              = 1
     traffic_control_enabled = true
 
-    service_data_flow_templates {
+    service_data_flow_template {
       direction      = "Uplink"
-      template_name  = "IP-to-server"
+      name           = "IP-to-server"
       ports          = []
       protocol       = ["ip"]
       remote_ip_list = ["10.3.4.0/24"]
@@ -285,11 +285,11 @@ resource "azurerm_mobile_network_service" "test" {
   mobile_network_id  = azurerm_mobile_network.test.id
   location           = "%s"
   service_precedence = 0
-  pcc_rules {
-    rule_name               = "default-rule"
-    rule_precedence         = 1
+  pcc_rule {
+    name                    = "default-rule"
+    precedence              = 1
     traffic_control_enabled = true
-    rule_qos_policy {
+    qos_policy {
       allocation_and_retention_priority_level = 9
       qos_indicator                           = 9
       preemption_capability                   = "NotPreempt"
@@ -304,9 +304,9 @@ resource "azurerm_mobile_network_service" "test" {
       }
     }
 
-    service_data_flow_templates {
+    service_data_flow_template {
       direction      = "Uplink"
-      template_name  = "IP-to-server"
+      name           = "IP-to-server"
       ports          = []
       protocol       = ["ip"]
       remote_ip_list = ["10.3.4.0/24"]
@@ -339,11 +339,11 @@ resource "azurerm_mobile_network_service" "test" {
   mobile_network_id  = azurerm_mobile_network.test.id
   location           = "%s"
   service_precedence = 0
-  pcc_rules {
-    rule_name               = "default-rule-2"
-    rule_precedence         = 1
+  pcc_rule {
+    name                    = "default-rule-2"
+    precedence              = 1
     traffic_control_enabled = false
-    rule_qos_policy {
+    qos_policy {
       allocation_and_retention_priority_level = 9
       qos_indicator                           = 9
       preemption_capability                   = "MayPreempt"
@@ -358,9 +358,9 @@ resource "azurerm_mobile_network_service" "test" {
       }
     }
 
-    service_data_flow_templates {
+    service_data_flow_template {
       direction      = "Uplink"
-      template_name  = "IP-to-server"
+      name           = "IP-to-server"
       ports          = []
       protocol       = ["ip"]
       remote_ip_list = ["10.3.4.0/24"]

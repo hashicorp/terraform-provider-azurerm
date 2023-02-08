@@ -32,12 +32,12 @@ resource "azurerm_mobile_network_service" "example" {
   location           = azurerm_resource_group.example.location
   service_precedence = 0
 
-  pcc_rules {
-    rule_name               = "default-rule"
-    rule_precedence         = 1
+  pcc_rule {
+    name                    = "default-rule"
+    precedence              = 1
     traffic_control_enabled = true
 
-    rule_qos_policy {
+    qos_policy {
       allocation_and_retention_priority_level = 9
       qos_indicator                           = 9
       preemption_capability                   = "NotPreempt"
@@ -56,7 +56,7 @@ resource "azurerm_mobile_network_service" "example" {
 
     service_data_flow_templates {
       direction      = "Uplink"
-      template_name  = "IP-to-server"
+      name           = "IP-to-server"
       ports          = []
       protocol       = ["ip"]
       remote_ip_list = ["10.3.4.0/24"]
@@ -93,29 +93,29 @@ The following arguments are supported:
 
 * `service_precedence` - (Required) A precedence value that is used to decide between services when identifying the QoS values to use for a particular SIM. A lower value means a higher priority. This value should be unique among all services configured in the mobile network. Must be between `0` and `255`.
 
-* `pcc_rules` - (Required) A `pcc_rules` block as defined below. The set of PCC Rules that make up this service.
+* `pcc_rule` - (Required) A `pcc_rule` block as defined below. The set of PCC Rules that make up this service.
 
-* `service_qos_policy` - (Optional) A `service_qos_policy` block as defined below. The QoS policy to use for packets matching this service. This can be overridden for particular flows using the ruleQosPolicy field in a `pcc_rules`. If this field is not specified then the `sim_policy` of User Equipment (UE) will define the QoS settings.
+* `service_qos_policy` - (Optional) A `service_qos_policy` block as defined below. The QoS policy to use for packets matching this service. This can be overridden for particular flows using the ruleQosPolicy field in a `pcc_rule`. If this field is not specified then the `sim_policy` of User Equipment (UE) will define the QoS settings.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network Service.
 
 ---
 
-A `pcc_rules` block supports the following:
+A `pcc_rule` block supports the following:
 
-* `rule_name` - (Required) Specifies the name of the rule. This must be unique within the parent service. You must not use any of the following reserved strings - `default`, `requested` or `service`.
+* `name` - (Required) Specifies the name of the rule. This must be unique within the parent service. You must not use any of the following reserved strings - `default`, `requested` or `service`.
 
-* `rule_precedence` - (Required) A precedence value that is used to decide between data flow policy rules when identifying the QoS values to use for a particular SIM. A lower value means a higher priority. This value should be unique among all data flow policy rules configured in the mobile network. Must be between `0` and `255`.
+* `precedence` - (Required) A precedence value that is used to decide between data flow policy rules when identifying the QoS values to use for a particular SIM. A lower value means a higher priority. This value should be unique among all data flow policy rules configured in the mobile network. Must be between `0` and `255`.
 
-* `rule_qos_policy` - (Optional) A `rule_qos_policy` block as defined below. The QoS policy to use for packets matching this rule. If this field is not specified then the Service will define the QoS settings.
+* `qos_policy` - (Optional) A `qos_policy` block as defined below. The QoS policy to use for packets matching this rule. If this field is not specified then the Service will define the QoS settings.
 
-* `service_data_flow_templates` - (Required) A `service_data_flow_templates` block as defined below. The set of service data flow templates to use for this PCC rule.
+* `service_data_flow_template` - (Required) A `service_data_flow_template` block as defined below. The set of service data flow templates to use for this PCC rule.
 
 * `traffic_control_enabled` - (Optional) Determines whether flows that match this data flow policy rule are permitted. Defaults to `true`.
 
 ---
 
-A `rule_qos_policy` block supports the following:
+A `qos_policy` block supports the following:
 
 * `allocation_and_retention_priority_level` - (Optional) QoS Flow allocation and retention priority (ARP) level. Flows with higher priority preempt flows with lower priority, if the settings of `preemption_capability` and `preemption_vulnerability` allow it. 1 is the highest level of priority. If this field is not specified then `qos_indicator` is used to derive the ARP value. Defaults to `9`. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters.
 
@@ -139,9 +139,9 @@ A `guaranteed_bit_rate` block supports the following:
 
 ---
 
-A `service_data_flow_templates` block supports the following:
+A `service_data_flow_template` block supports the following:
 
-* `template_name` - (Required) Specifies the name of the data flow template. This must be unique within the parent data flow policy rule. You must not use any of the following reserved strings - `default`, `requested` or `service`.
+* `name` - (Required) Specifies the name of the data flow template. This must be unique within the parent data flow policy rule. You must not use any of the following reserved strings - `default`, `requested` or `service`.
 
 * `direction` - (Required) Specifies the direction of this flow. Possible values are `Uplink`, `Downlink` and `Bidirectional`.
 

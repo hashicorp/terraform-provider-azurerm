@@ -21,17 +21,17 @@ type ServiceModel struct {
 	Name                         string                      `tfschema:"name"`
 	MobileNetworkMobileNetworkId string                      `tfschema:"mobile_network_id"`
 	Location                     string                      `tfschema:"location"`
-	PccRules                     []PccRuleConfigurationModel `tfschema:"pcc_rules"`
+	PccRules                     []PccRuleConfigurationModel `tfschema:"pcc_rule"`
 	ServicePrecedence            int64                       `tfschema:"service_precedence"`
 	ServiceQosPolicy             []QosPolicyModel            `tfschema:"service_qos_policy"`
 	Tags                         map[string]string           `tfschema:"tags"`
 }
 
 type PccRuleConfigurationModel struct {
-	RuleName                 string                         `tfschema:"rule_name"`
-	RulePrecedence           int64                          `tfschema:"rule_precedence"`
-	RuleQosPolicy            []PccRuleQosPolicyModel        `tfschema:"rule_qos_policy"`
-	ServiceDataFlowTemplates []ServiceDataFlowTemplateModel `tfschema:"service_data_flow_templates"`
+	RuleName                 string                         `tfschema:"name"`
+	RulePrecedence           int64                          `tfschema:"precedence"`
+	RuleQosPolicy            []PccRuleQosPolicyModel        `tfschema:"qos_policy"`
+	ServiceDataFlowTemplates []ServiceDataFlowTemplateModel `tfschema:"service_data_flow_template"`
 	TrafficControlEnabled    bool                           `tfschema:"traffic_control_enabled"`
 }
 
@@ -54,7 +54,7 @@ type ServiceDataFlowTemplateModel struct {
 	Ports        []string `tfschema:"ports"`
 	Protocol     []string `tfschema:"protocol"`
 	RemoteIPList []string `tfschema:"remote_ip_list"`
-	TemplateName string   `tfschema:"template_name"`
+	TemplateName string   `tfschema:"name"`
 }
 
 type QosPolicyModel struct {
@@ -99,24 +99,24 @@ func (r MobileNetworkServiceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"pcc_rules": {
+		"pcc_rule": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"rule_name": {
+					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringLenBetween(1, 64),
 					},
 
-					"rule_precedence": {
+					"precedence": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 255),
 					},
 
-					"rule_qos_policy": {
+					"qos_policy": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
@@ -206,7 +206,7 @@ func (r MobileNetworkServiceResource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"service_data_flow_templates": {
+					"service_data_flow_template": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
 						Elem: &pluginsdk.Resource{
@@ -245,7 +245,7 @@ func (r MobileNetworkServiceResource) Arguments() map[string]*pluginsdk.Schema {
 									},
 								},
 
-								"template_name": {
+								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -413,7 +413,7 @@ func (r MobileNetworkServiceResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			if metadata.ResourceData.HasChange("pcc_rules") {
+			if metadata.ResourceData.HasChange("pcc_rule") {
 				properties.Properties.PccRules = expandPccRuleConfigurationModel(model.PccRules)
 			}
 

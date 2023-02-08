@@ -54,22 +54,22 @@ func (r MobileNetworkServiceDataSource) Attributes() map[string]*pluginsdk.Schem
 
 		"location": commonschema.LocationComputed(),
 
-		"pcc_rules": {
+		"pcc_rule": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"rule_name": {
+					"name": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 
-					"rule_precedence": {
+					"precedence": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
 
-					"rule_qos_policy": {
+					"qos_policy": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
@@ -133,7 +133,7 @@ func (r MobileNetworkServiceDataSource) Attributes() map[string]*pluginsdk.Schem
 						},
 					},
 
-					"service_data_flow_templates": {
+					"service_data_flow_template": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
@@ -167,7 +167,7 @@ func (r MobileNetworkServiceDataSource) Attributes() map[string]*pluginsdk.Schem
 									},
 								},
 
-								"template_name": {
+								"name": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},

@@ -42,23 +42,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `service_precedence` - A precedence value that is used to decide between services when identifying the QoS values to use for a particular SIM. A lower value means a higher priority. This value should be unique among all services configured in the mobile network.
 
-* `pcc_rules` - A `pcc_rules` block as defined below. The set of PCC Rules that make up this service.
+* `pcc_rule` - A `pcc_rule` block as defined below. The set of PCC Rules that make up this service.
 
-* `service_qos_policy` - A `service_qos_policy` block as defined below. The QoS policy to use for packets matching this service. This can be overridden for particular flows using the ruleQosPolicy field in a `pcc_rules`. If this field is not specified then the `sim_policy` of User Equipment (UE) will define the QoS settings.
+* `service_qos_policy` - A `service_qos_policy` block as defined below. The QoS policy to use for packets matching this service. This can be overridden for particular flows using the ruleQosPolicy field in a `pcc_rule`. If this field is not specified then the `sim_policy` of User Equipment (UE) will define the QoS settings.
 
 * `tags` - A mapping of tags which should be assigned to the Mobile Network Service.
 
 ---
 
-A `pcc_rules` block supports the following:
+A `pcc_rule` block supports the following:
 
-* `rule_name` - The name of the rule. This must be unique within the parent service.
+* `name` - The name of the rule. This must be unique within the parent service.
 
-* `rule_precedence` - A precedence value that is used to decide between data flow policy rules when identifying the QoS values to use for a particular SIM. A lower value means a higher priority. This value should be unique among all data flow policy rules configured in the mobile network.
+* `precedence` - A precedence value that is used to decide between data flow policy rules when identifying the QoS values to use for a particular SIM. A lower value means a higher priority. This value should be unique among all data flow policy rules configured in the mobile network.
 
-* `rule_qos_policy` - A `rule_qos_policy` block as defined below. The QoS policy to use for packets matching this rule. If this field is not specified then the Service will define the QoS settings.
+* `qos_policy` - A `rule_qos_policy` block as defined below. The QoS policy to use for packets matching this rule. If this field is not specified then the Service will define the QoS settings.
 
-* `service_data_flow_templates` - A `service_data_flow_templates` block as defined below. The set of service data flow templates to use for this PCC rule.
+* `service_data_flow_template` - A `service_data_flow_template` block as defined below. The set of service data flow templates to use for this PCC rule.
 
 * `traffic_control_enabled` - Determines whether flows that match this data flow policy rule are permitted.
 
@@ -88,9 +88,9 @@ A `guaranteed_bit_rate` block supports the following:
 
 ---
 
-A `service_data_flow_templates` block supports the following:
+A `service_data_flow_template` block supports the following:
 
-* `template_name` - The name of the data flow template. This must be unique within the parent data flow policy rule.
+* `name` - The name of the data flow template. This must be unique within the parent data flow policy rule.
 
 * `direction` - The direction of this flow. Possible values are `Uplink`, `Downlink` and `Bidirectional`.
 
