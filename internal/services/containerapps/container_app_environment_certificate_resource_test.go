@@ -95,7 +95,7 @@ provider "azurerm" {
 
 resource "azurerm_container_app_environment_certificate" "test" {
   name                         = "acctest-cacert%[2]d"
-  container_app_environment_id = azurerm_container_app_environment.test.id	
+  container_app_environment_id = azurerm_container_app_environment.test.id
   certificate_blob_base64      = filebase64("testdata/testacc.pfx")
   certificate_password         = "TestAcc"
 
