@@ -5,6 +5,6 @@ package containerapps
 
 type CustomDomain struct {
 	BindingType   *BindingType `json:"bindingType,omitempty"`
-	CertificateId string       `json:"certificateId"`
+	CertificateId *string      `json:"certificateId,omitempty"`
 	Name          string       `json:"name"`
 }

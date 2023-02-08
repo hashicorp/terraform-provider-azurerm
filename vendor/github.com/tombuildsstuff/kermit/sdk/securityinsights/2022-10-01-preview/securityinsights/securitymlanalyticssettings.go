@@ -59,7 +59,8 @@ func (client SecurityMLAnalyticsSettingsClient) CreateOrUpdate(ctx context.Conte
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.SecurityMLAnalyticsSettingsClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -151,7 +152,8 @@ func (client SecurityMLAnalyticsSettingsClient) Delete(ctx context.Context, reso
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.SecurityMLAnalyticsSettingsClient", "Delete", err.Error())
 	}
 
@@ -240,7 +242,8 @@ func (client SecurityMLAnalyticsSettingsClient) Get(ctx context.Context, resourc
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.SecurityMLAnalyticsSettingsClient", "Get", err.Error())
 	}
 
@@ -329,7 +332,8 @@ func (client SecurityMLAnalyticsSettingsClient) List(ctx context.Context, resour
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.SecurityMLAnalyticsSettingsClient", "List", err.Error())
 	}
 
