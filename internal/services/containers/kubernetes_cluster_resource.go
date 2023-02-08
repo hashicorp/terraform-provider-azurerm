@@ -458,9 +458,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"dns_zone_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: dnsValidate.ValidateDnsZoneID,
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.Any(
+								dnsValidate.ValidateDnsZoneID,
+								validation.StringIsEmpty,
+							),
 						},
 					},
 				},
