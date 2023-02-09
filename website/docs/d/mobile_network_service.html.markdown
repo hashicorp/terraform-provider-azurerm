@@ -28,9 +28,9 @@ resource "azurerm_mobile_network_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Mobile Network Service. Changing this forces a new Mobile Network Service to be created.
+* `name` - (Required) Specifies the name which should be used for this Mobile Network Service. 
 
-* `mobile_network_id` - (Required) Specifies the ID of the Mobile Network Service. Changing this forces a new Mobile Network Service to be created.
+* `mobile_network_id` - (Required) Specifies the ID of the Mobile Network Service. 
 
 ## Attributes Reference
 
