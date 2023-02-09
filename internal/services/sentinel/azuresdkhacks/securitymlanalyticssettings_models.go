@@ -277,10 +277,14 @@ type AnomalySecurityMLAnalyticsCustomizableObservations struct {
 
 // unused properties are defined to interface{}.
 type AnomalySecurityMLAnalyticsMultiSelectObservations struct {
-	SupportValues *[]string `json:"supportedValues,omitempty"`
-	Values        *[]string `json:"values,omitempty"`
-	Name          *string   `json:"name,omitempty"`
-	Description   *string   `json:"description,omitempty"`
+	SupportValues      *[]string    `json:"supportedValues,omitempty"`
+	Values             *[]string    `json:"values,omitempty"`
+	Name               *string      `json:"name,omitempty"`
+	Description        *string      `json:"description,omitempty"`
+	SupportedValuesKql *interface{} `json:"supportedValuesKql,omitempty"`
+	ValuesKql          *interface{} `json:"valuesKql,omitempty"`
+	SequenceNumber     *interface{} `json:"sequenceNumber,omitempty"`
+	Rerun              *interface{} `json:"rerun,omitempty"`
 }
 
 type AnomalySecurityMLAnalyticsSingleSelectObservations struct {
