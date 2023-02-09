@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/administrators"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -84,6 +85,9 @@ func resourcePostgresqlFlexibleServerAdministratorCreate(d *pluginsdk.ResourceDa
 	defer cancel()
 
 	id := administrators.NewAdministratorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("object_id").(string))
+
+	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -161,6 +165,9 @@ func resourcePostgresqlFlexibleServerAdministratorDelete(d *pluginsdk.ResourceDa
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
