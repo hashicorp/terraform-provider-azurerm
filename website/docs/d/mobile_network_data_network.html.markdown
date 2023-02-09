@@ -28,9 +28,9 @@ data "azurerm_mobile_network_data_network" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Mobile Network Data Network. Changing this forces a new Mobile Network Data Network to be created.
+* `name` - (Required) Specifies the name which should be used for this Mobile Network Data Network. 
 
-* `mobile_network_id` - (Required) Specifies the ID of the Mobile Network. Changing this forces a new Mobile Network Data Network to be created.
+* `mobile_network_id` - (Required) Specifies the ID of the Mobile Network. 
 
 ## Attributes Reference
 
