@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Mobile Network Site. Changing this forces a new Mobile Network Site to be created.
 
-* `mobile_network_id` - (Required) the ID of Mobile Network which the Mobile Network Site belongs to. Changing this forces a new Mobile Network Site to be created.
+* `mobile_network_id` - (Required) the ID of the Mobile Network which the Mobile Network Site belongs to. Changing this forces a new Mobile Network Site to be created.
 
 ## Attributes Reference
 

@@ -163,7 +163,7 @@ resource "azurerm_mobile_network_site" "test" {
   location          = "%s"
 
   tags = {
-    key = "value"
+    key = "update"
   }
 
 }
