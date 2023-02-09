@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230208.1165725` of `github.com/hashicorp/go-azure-sdk` [GH-20381]
 * dependencies: updating to `v0.55.0` of `github.com/manicminer/hamilton` [GH-20272]
 * dependencies: updating to `v0.20230208.1135849` of `github.com/tombuildsstuff/kermit` [GH-20381]
+* dependences: updating `postgresql/2021-06-01/databases` to 2022-12-01 [GH-20369]
 * `appservice`: updating to API Version `2021-03-01` [GH-20349]
 * `azurestackhci`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
 * `batch`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20375]
