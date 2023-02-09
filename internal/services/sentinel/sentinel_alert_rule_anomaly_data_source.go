@@ -77,10 +77,6 @@ func (a AlertRuleAnomalyDataSource) Attributes() map[string]*schema.Schema {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
-		"customizable_observations": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 		"description": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,

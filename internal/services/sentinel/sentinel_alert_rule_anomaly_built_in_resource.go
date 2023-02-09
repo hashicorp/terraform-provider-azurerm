@@ -22,7 +22,6 @@ type AlertRuleAnomalyBuiltInModel struct {
 	Name                         string                                  `tfschema:"name"`
 	DisplayName                  string                                  `tfschema:"display_name"`
 	WorkspaceId                  string                                  `tfschema:"log_analytics_workspace_id"`
-	CustomizableObservations     string                                  `tfschema:"customizable_observations"`
 	Enabled                      bool                                    `tfschema:"enabled"`
 	Mode                         string                                  `tfschema:"mode"`
 	AnomalyVersion               string                                  `tfschema:"anomaly_version"`
@@ -101,10 +100,6 @@ func (r AlertRuleAnomalyBuiltInResource) Attributes() map[string]*schema.Schema 
 		},
 		"anomaly_settings_version": {
 			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-		"customizable_observations": {
-			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"description": {
@@ -425,29 +420,20 @@ func (r AlertRuleAnomalyBuiltInResource) Delete() sdk.ResourceFunc {
 			param := securityinsight.AnomalySecurityMLAnalyticsSettings{
 				Kind: securityinsight.KindBasicSecurityMLAnalyticsSettingKindAnomaly,
 				AnomalySecurityMLAnalyticsSettingsProperties: &securityinsight.AnomalySecurityMLAnalyticsSettingsProperties{
-					Description:            existing.Description,
-					DisplayName:            existing.DisplayName,
-					RequiredDataConnectors: existing.RequiredDataConnectors,
-					Tactics:                existing.Tactics,
-					Techniques:             existing.Techniques,
-					AnomalyVersion:         existing.AnomalyVersion,
-					Frequency:              existing.Frequency,
-					IsDefaultSettings:      existing.IsDefaultSettings,
-					AnomalySettingsVersion: existing.AnomalySettingsVersion,
-					SettingsDefinitionID:   existing.SettingsDefinitionID,
-					Enabled:                utils.Bool(false),
-					SettingsStatus:         securityinsight.SettingsStatus(metaModel.Mode),
+					Description:              existing.Description,
+					DisplayName:              existing.DisplayName,
+					RequiredDataConnectors:   existing.RequiredDataConnectors,
+					Tactics:                  existing.Tactics,
+					Techniques:               existing.Techniques,
+					AnomalyVersion:           existing.AnomalyVersion,
+					Frequency:                existing.Frequency,
+					IsDefaultSettings:        existing.IsDefaultSettings,
+					AnomalySettingsVersion:   existing.AnomalySettingsVersion,
+					SettingsDefinitionID:     existing.SettingsDefinitionID,
+					Enabled:                  utils.Bool(false),
+					SettingsStatus:           securityinsight.SettingsStatus(metaModel.Mode),
+					CustomizableObservations: existing.CustomizableObservations,
 				},
-			}
-
-			if metaModel.CustomizableObservations != "" {
-				v, err := pluginsdk.ExpandJsonFromString(metaModel.CustomizableObservations)
-				if err != nil {
-					return fmt.Errorf("expanding `customizable_observations`: %+v", err)
-				}
-				param.AnomalySecurityMLAnalyticsSettingsProperties.CustomizableObservations = v
-			} else {
-				param.AnomalySecurityMLAnalyticsSettingsProperties.CustomizableObservations = existing.CustomizableObservations
 			}
 
 			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param)

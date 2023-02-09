@@ -65,8 +65,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `anomaly_version` - The anomaly version of the Anomaly Alert Rule.
 
-* `customizable_observations` - The customizable observations of the Anomaly Alert Rule.
-
 * `description` - The description of the Anomaly Alert Rule.
 
 * `enabled` - Is the Anomaly Alert Rule enabled?
