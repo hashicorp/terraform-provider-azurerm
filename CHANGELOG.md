@@ -24,6 +24,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230208.1135849` of `github.com/tombuildsstuff/kermit` [GH-20381]
 * `appservice`: updating to API Version `2021-03-01` [GH-20349]
 * `azurestackhci`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
+* `batch`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20375]
 * `databricks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20309]
 * `datadog`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20311]
 * `databoxedge`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20236]
