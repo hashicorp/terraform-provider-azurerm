@@ -1154,7 +1154,7 @@ resource "azurerm_api_management" "test" {
 
   delegation {
     url                       = "https://google.com"
-		validation_key            = "test123themostsecretone"
+		validation_key            = "aW50ZWdyYXRpb24mMjAyMzAzMTAxODMwJkxRaUxzcUVsaUpEaHJRK01YZkJYV3paUi9qdzZDSWMrazhjUXB0bVdyTGxKcVYrd0R4OXRqMGRzTWZXU3hmeGQ0a2V0WjcrcE44U0dJdDNsYUQ3Rk5BPT0="
 		subscriptions_enabled     = true
 		user_registration_enabled = true
   }
