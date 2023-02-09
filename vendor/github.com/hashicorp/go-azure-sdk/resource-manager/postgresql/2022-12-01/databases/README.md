@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databases` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/databases` Documentation
 
-The `databases` SDK allows for interaction with the Azure Resource Manager Service `postgresql` (API Version `2021-06-01`).
+The `databases` SDK allows for interaction with the Azure Resource Manager Service `postgresql` (API Version `2022-12-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databases"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/databases"
 ```
 
 
