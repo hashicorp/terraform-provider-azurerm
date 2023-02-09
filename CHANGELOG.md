@@ -40,6 +40,7 @@ ENHANCEMENTS:
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `dynamic_property` block [GH-20212]
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `sentinel_entity_mapping` block [GH-20230]
 * `azurerm_shared_image` - support for the `confidential_vm_supported` and `confidential_vm_enabled` properties [GH-20249]
+* `azurerm_postgresql_flexible_server` - support for `replication_role` and new enum value `Replica` for `create_mode` [GH-20364]
 
 BUG FIXES:
 
