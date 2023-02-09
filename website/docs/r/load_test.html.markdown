@@ -15,7 +15,7 @@ Manages a Load Test Service.
 ## Example Usage
 
 ```hcl
-resource "azurerm_load_test" "example" {
+resource "azurerm_load_example" "example" {
   location            = azurerm_resource_group.example.location
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
