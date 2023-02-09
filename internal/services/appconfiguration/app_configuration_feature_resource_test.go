@@ -185,7 +185,7 @@ func (t AppConfigurationFeatureResource) Exists(ctx context.Context, clients *cl
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
 	}
 
-	client, err := clients.AppConfiguration.DataPlaneClientWithEndpoint(ctx, nestedItemId.ConfigurationStoreEndpoint)
+	client, err := clients.AppConfiguration.DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -453,7 +453,7 @@ resource "azurerm_app_configuration" "test" {
 
 resource "azurerm_app_configuration_feature" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
-  key                    = "acctest-ackey-%d/Label/AppConfigurationKey/Label/"
+  name                    = "acctest-ackey-%d/Label/AppConfigurationKey/Label/"
   label                  = "/Key/AppConfigurationKey/Label/acctest-ackeylabel-%d"
   enabled                = true
 }

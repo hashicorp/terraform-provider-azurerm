@@ -163,7 +163,7 @@ func (t AppConfigurationKeyResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
 	}
 
-	client, err := clients.AppConfiguration.DataPlaneClientWithEndpoint(ctx, nestedItemId.ConfigurationStoreEndpoint)
+	client, err := clients.AppConfiguration.DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
 	if err != nil {
 		return nil, err
 	}

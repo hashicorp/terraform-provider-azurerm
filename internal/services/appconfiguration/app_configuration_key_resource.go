@@ -127,7 +127,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 
 			configurationStoreId, err := configurationstores.ParseConfigurationStoreID(model.ConfigurationStoreId)
 			if err != nil {
-				return nil
+				return err
 			}
 
 			configurationStoreEndpoint, err := metadata.Client.AppConfiguration.EndpointForConfigurationStore(ctx, *configurationStoreId)
@@ -135,7 +135,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retriving Endpoint for feature %q in %q: %s", model.Key, *configurationStoreId, err)
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(ctx, *configurationStoreEndpoint)
+			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(*configurationStoreEndpoint)
 			if err != nil {
 				return err
 			}
@@ -228,7 +228,7 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				return metadata.MarkAsGone(nestedItemId)
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(ctx, nestedItemId.ConfigurationStoreEndpoint)
+			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
 				return err
 			}
@@ -288,7 +288,7 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(ctx, nestedItemId.ConfigurationStoreEndpoint)
+			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
 				return err
 			}
@@ -354,7 +354,7 @@ func (k KeyResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(ctx, nestedItemId.ConfigurationStoreEndpoint)
+			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
 				return err
 			}
