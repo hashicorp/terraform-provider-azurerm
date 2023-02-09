@@ -103,6 +103,7 @@ resource "azurerm_sentinel_data_connector_threat_intelligence" "test" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   tenant_id                  = data.azurerm_client_config.test.tenant_id
   depends_on                 = [azurerm_log_analytics_solution.test]
+  lookback_date              = "1990-01-01T00:00:00Z"
 }
 `, template, data.RandomInteger)
 }
