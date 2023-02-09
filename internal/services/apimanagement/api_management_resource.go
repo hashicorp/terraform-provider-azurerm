@@ -513,8 +513,9 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						Required: true,
 					},
 					"validation_key": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:      pluginsdk.TypeString,
+						Optional:  true,
+						Sensitive: true,
 					},
 				},
 			},
@@ -1124,7 +1125,12 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("retrieving Delegation Settings for %s: %+v", *id, err)
 		}
 
-		if err := d.Set("delegation", flattenApiManagementDelegationSettings(delegationSettings)); err != nil {
+		delegationValidationKeyContract, err := delegationClient.ListSecrets(ctx, id.ResourceGroup, id.ServiceName)
+		if err != nil {
+			return fmt.Errorf("retrieving Delegation Validation Key for %s: %+v", *id, err)
+		}
+
+		if err := d.Set("delegation", flattenApiManagementDelegationSettings(delegationSettings, delegationValidationKeyContract)); err != nil {
 			return fmt.Errorf("setting `delegation`: %+v", err)
 		}
 	} else {
@@ -1892,19 +1898,14 @@ func expandApiManagementDelegationSettings(input []interface{}) apimanagement.Po
 	}
 }
 
-func flattenApiManagementDelegationSettings(input apimanagement.PortalDelegationSettings) []interface{} {
+func flattenApiManagementDelegationSettings(input apimanagement.PortalDelegationSettings, keyContract apimanagement.PortalSettingValidationKeyContract) []interface{} {
 	url := ""
-	validationKey := ""
 	subscriptionsEnabled := false
 	userRegistrationEnabled := false
 
 	if props := input.PortalDelegationSettingsProperties; props != nil {
 		if props.URL != nil {
 			url = *props.URL
-		}
-
-		if props.ValidationKey != nil {
-			validationKey = *props.ValidationKey
 		}
 
 		if props.Subscriptions != nil && props.Subscriptions.Enabled != nil {
@@ -1915,13 +1916,17 @@ func flattenApiManagementDelegationSettings(input apimanagement.PortalDelegation
 			userRegistrationEnabled = *props.UserRegistration.Enabled
 		}
 	}
+	validationKey := ""
+	if keyContract.ValidationKey != nil {
+		validationKey = *keyContract.ValidationKey
+	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"url":                       url,
-			"validation_key":            validationKey,
 			"subscriptions_enabled":     subscriptionsEnabled,
 			"user_registration_enabled": userRegistrationEnabled,
+			"validation_key":            validationKey,
 		},
 	}
 }
