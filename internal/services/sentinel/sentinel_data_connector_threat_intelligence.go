@@ -69,7 +69,8 @@ func resourceSentinelDataConnectorThreatIntelligence() *pluginsdk.Resource {
 }
 
 func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
+	client := azuresdkhacks.DataConnectorsClient{BaseClient: meta.(*clients.Client).Sentinel.DataConnectorsClient.BaseClient}
+
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -80,10 +81,8 @@ func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *pluginsdk.Re
 	name := d.Get("name").(string)
 	id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
 
-	c := azuresdkhacks.DataConnectorsClient{BaseClient: client.BaseClient}
-
 	if d.IsNewResource() {
-		resp, err := c.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -118,7 +117,7 @@ func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *pluginsdk.Re
 		Kind: securityinsight.KindBasicDataConnectorKindThreatIntelligence,
 	}
 
-	if _, err = c.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, param); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -128,7 +127,7 @@ func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *pluginsdk.Re
 }
 
 func resourceSentinelDataConnectorThreatIntelligenceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
+	client := azuresdkhacks.DataConnectorsClient{BaseClient: meta.(*clients.Client).Sentinel.DataConnectorsClient.BaseClient}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -138,8 +137,7 @@ func resourceSentinelDataConnectorThreatIntelligenceRead(d *pluginsdk.ResourceDa
 	}
 	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
-	c := azuresdkhacks.DataConnectorsClient{BaseClient: client.BaseClient}
-	resp, err := c.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
