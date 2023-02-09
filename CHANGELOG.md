@@ -3,6 +3,13 @@
 FEATURES
 
 * **New Data Source:** `azurerm_mobile_network` [GH-20128]
+* **New Data Source:** `azurerm_container_app_environment` [GH-18008]
+* **New Data Source:** `azurerm_container_app_environment_certificate` [GH-18008]
+* **New Resource:** `azurerm_container_app_environment` [GH-18008]
+* **New Resource:** `azurerm_container_app_environment_storage` [GH-18008]
+* **New Resource:** `azurerm_container_app_environment_dapr_component` [GH-18008]
+* **New Resource:** `azurerm_container_app_environment_certificate` [GH-18008]
+* **New Resource:** `azurerm_container_app` [GH-18008]
 * **New Resource:** `azurerm_machine_learning_datastore_fileshare` [GH-19934]
 * **New Resource:** `azurerm_machine_learning_datastore_datalake_gen2` [GH-20045]
 * **New Resource:** `azurerm_mobile_network` [GH-20128]
@@ -10,10 +17,14 @@ FEATURES
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20230208.1165725` of `github.com/hashicorp/go-azure-sdk` [GH-20381]
+* dependencies: updating to `v0.20230208.1135849` of `github.com/tombuildsstuff/kermit` [GH-20381]
 * dependencies: updating to `v0.11.28` of `github.com/Azure/go-autorest/autorest` [GH-20272]
 * dependencies: updating to `v0.50.0` of `github.com/hashicorp/go-azure-helpers` [GH-20272]
 * dependencies: updating to `v0.20230204.1161343` of `github.com/hashicorp/go-azure-sdk` [GH-20312]
 * dependencies: updating to `v0.55.0` of `github.com/manicminer/hamilton` [GH-20272]
+* dependencies: update `appservice` to api version `2021-03-01` [GH-20349]
+* dependencies: update `postgresql/2022-03-08-preview/administrators` to  `2022-12-01` [GH-20367]
 * `azurestackhci`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
 * `databricks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20309]
 * `datadog`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20311]
@@ -37,7 +48,9 @@ BUG FIXES:
 * `azurerm_function_app_function` - fix bug for multiple file blocks resulting in last file being used for all entries [GH-20198]
 * `azurerm_monitor_diagnostic_setting` - changing the `storage_account_id`, `eventhub_authorization_rule_id`, and `eventhub_name` properties no longer creates a new resource [GH-20307]
 * `azurerm_redis_enterprise_cluster` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` [GH-20314]
+* `azurerm_service_fabric_managed_cluster` - Fix potential panic when setting `node_type` [GH-20345]
 * `azurerm_web_application_firewall_policy` - prevent a failure caused by changing the order of the `disabled_rules` properties [GH-20285]
+* `azurerm_databricks_access_connector` - `name` can now be up to 64 character in length [GH-20353]
 
 ## 3.42.0 (February 02, 2023)
 
