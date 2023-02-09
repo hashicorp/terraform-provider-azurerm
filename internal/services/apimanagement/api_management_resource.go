@@ -1868,8 +1868,6 @@ func expandApiManagementDelegationSettings(input []interface{}) apimanagement.Po
 	if len(input) == 0 {
 		return apimanagement.PortalDelegationSettings{
 			PortalDelegationSettingsProperties: &apimanagement.PortalDelegationSettingsProperties{
-				URL:           utils.String(""),
-				ValidationKey: utils.String(""),
 				Subscriptions: &apimanagement.SubscriptionsDelegationSettingsProperties{
 					Enabled: utils.Bool(false),
 				},
@@ -1889,8 +1887,12 @@ func expandApiManagementDelegationSettings(input []interface{}) apimanagement.Po
 		Subscriptions: &apimanagement.SubscriptionsDelegationSettingsProperties{
 			Enabled: utils.Bool(vs["subscriptions_enabled"].(bool)),
 		},
-		URL:           utils.String(vs["url"].(string)),
-		ValidationKey: utils.String(vs["validation_key"].(string)),
+		URL: utils.String(vs["url"].(string)),
+	}
+
+	validationKey := vs["validation_key"].(string)
+	if validationKey != "" {
+		props.ValidationKey = utils.String(validationKey)
 	}
 
 	return apimanagement.PortalDelegationSettings{
