@@ -70,7 +70,7 @@ A `link` block supports the following:
   
 * `macsec_cipher` - (Optional) The MACSec cipher used for this Express Route Port Link. Possible values are `GcmAes128` and `GcmAes256`. Defaults to `GcmAes128`.
 
-* `encapsulation` - (Optional) The billing type of the ExpressRoutePort resource. possible value are `MeteredData` and `UnlimitedData`.
+* `billing_type` - (Optional) The billing type of the Express Route Port. Possible values are `MeteredData` and `UnlimitedData`.
 
 * `macsec_ckn_keyvault_secret_id` - (Optional) The ID of the Key Vault Secret that contains the MACSec CKN key for this Express Route Port Link.
 
