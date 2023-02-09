@@ -1851,7 +1851,7 @@ func (r SiteRecoveryReplicatedVmResource) withTargetEdgeZone(data acceptance.Tes
 %s
 
 data "azurerm_extended_locations" "test" {
-  location = azurerm_resource_group.test.location
+  location = azurerm_resource_group.test2.location
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
