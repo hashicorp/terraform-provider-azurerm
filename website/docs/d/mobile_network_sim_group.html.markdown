@@ -23,9 +23,9 @@ data "azurerm_mobile_network_sim_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Mobile Network Sim Groups. Changing this forces a new Mobile Network Sim Group to be created.
+* `name` - (Required) Specifies the name which should be used for this Mobile Network Sim Groups.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Mobile Network Sim Groups should exist. Changing this forces a new Mobile Network Sim Group to be created.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Mobile Network Sim Groups should exist. 
 
 ## Attributes Reference
 
