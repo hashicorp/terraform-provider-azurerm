@@ -858,9 +858,11 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 						nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
 						d.Set("node_placement", nodePlacementConfiguration)
 					}
-					if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil {
-						d.Set("os_disk_placement", string(*config.OsDisk.EphemeralOSDiskSettings.Placement))
+					osDiskPlacement := ""
+					if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil && config.OsDisk.EphemeralOSDiskSettings.Placement != nil {
+						osDiskPlacement = string(*config.OsDisk.EphemeralOSDiskSettings.Placement)
 					}
+					d.Set("os_disk_placement", osDiskPlacement)
 					if config.WindowsConfiguration != nil {
 						windowsConfig := []interface{}{
 							map[string]interface{}{
