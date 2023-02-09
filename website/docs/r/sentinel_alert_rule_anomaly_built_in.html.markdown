@@ -88,8 +88,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `techniques` - A list of techniques of attacks by which to classify the rule.
 
-* `customizable_observations` - The customizable observations of the Built-in Anomaly Alert Rule.
-
 * `multi_select_observation` - A list of `multi_select_observation` blocks as defined below.
 
 * `single_select_observation` - A list of `single_select_observation` blocks as defined below.
