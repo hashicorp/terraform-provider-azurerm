@@ -324,88 +324,88 @@ type TIDataConnector struct {
 	SystemData                 *securityinsight.SystemData            `json:"systemData,omitempty"`
 }
 
-func (T TIDataConnector) AsAADDataConnector() (*securityinsight.AADDataConnector, bool) {
+func (TIDataConnector) AsAADDataConnector() (*securityinsight.AADDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsMSTIDataConnector() (*securityinsight.MSTIDataConnector, bool) {
+func (TIDataConnector) AsMSTIDataConnector() (*securityinsight.MSTIDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsMTPDataConnector() (*securityinsight.MTPDataConnector, bool) {
+func (TIDataConnector) AsMTPDataConnector() (*securityinsight.MTPDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsAATPDataConnector() (*securityinsight.AATPDataConnector, bool) {
+func (TIDataConnector) AsAATPDataConnector() (*securityinsight.AATPDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsASCDataConnector() (*securityinsight.ASCDataConnector, bool) {
+func (TIDataConnector) AsASCDataConnector() (*securityinsight.ASCDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsAwsCloudTrailDataConnector() (*securityinsight.AwsCloudTrailDataConnector, bool) {
+func (TIDataConnector) AsAwsCloudTrailDataConnector() (*securityinsight.AwsCloudTrailDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsAwsS3DataConnector() (*securityinsight.AwsS3DataConnector, bool) {
+func (TIDataConnector) AsAwsS3DataConnector() (*securityinsight.AwsS3DataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsMCASDataConnector() (*securityinsight.MCASDataConnector, bool) {
+func (TIDataConnector) AsMCASDataConnector() (*securityinsight.MCASDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsDynamics365DataConnector() (*securityinsight.Dynamics365DataConnector, bool) {
+func (TIDataConnector) AsDynamics365DataConnector() (*securityinsight.Dynamics365DataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsOfficeATPDataConnector() (*securityinsight.OfficeATPDataConnector, bool) {
+func (TIDataConnector) AsOfficeATPDataConnector() (*securityinsight.OfficeATPDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsOffice365ProjectDataConnector() (*securityinsight.Office365ProjectDataConnector, bool) {
+func (TIDataConnector) AsOffice365ProjectDataConnector() (*securityinsight.Office365ProjectDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsOfficePowerBIDataConnector() (*securityinsight.OfficePowerBIDataConnector, bool) {
+func (TIDataConnector) AsOfficePowerBIDataConnector() (*securityinsight.OfficePowerBIDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsOfficeIRMDataConnector() (*securityinsight.OfficeIRMDataConnector, bool) {
+func (TIDataConnector) AsOfficeIRMDataConnector() (*securityinsight.OfficeIRMDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsMDATPDataConnector() (*securityinsight.MDATPDataConnector, bool) {
+func (TIDataConnector) AsMDATPDataConnector() (*securityinsight.MDATPDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsOfficeDataConnector() (*securityinsight.OfficeDataConnector, bool) {
+func (TIDataConnector) AsOfficeDataConnector() (*securityinsight.OfficeDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsTIDataConnector() (*securityinsight.TIDataConnector, bool) {
+func (TIDataConnector) AsTIDataConnector() (*securityinsight.TIDataConnector, bool) {
 	// This method is not used at all, only for implementing the interface.
 	return nil, false
 }
 
-func (T TIDataConnector) AsTiTaxiiDataConnector() (*securityinsight.TiTaxiiDataConnector, bool) {
+func (TIDataConnector) AsTiTaxiiDataConnector() (*securityinsight.TiTaxiiDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsIoTDataConnector() (*securityinsight.IoTDataConnector, bool) {
+func (TIDataConnector) AsIoTDataConnector() (*securityinsight.IoTDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsCodelessUIDataConnector() (*securityinsight.CodelessUIDataConnector, bool) {
+func (TIDataConnector) AsCodelessUIDataConnector() (*securityinsight.CodelessUIDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsCodelessAPIPollingDataConnector() (*securityinsight.CodelessAPIPollingDataConnector, bool) {
+func (TIDataConnector) AsCodelessAPIPollingDataConnector() (*securityinsight.CodelessAPIPollingDataConnector, bool) {
 	return nil, false
 }
 
-func (T TIDataConnector) AsDataConnector() (*securityinsight.DataConnector, bool) {
+func (TIDataConnector) AsDataConnector() (*securityinsight.DataConnector, bool) {
 	return nil, false
 }
 
