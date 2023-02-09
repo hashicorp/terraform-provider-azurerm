@@ -31,7 +31,7 @@ resource "azurerm_mobile_network_slice" "example" {
   name              = "example-mns"
   mobile_network_id = azurerm_mobile_network.test.id
   location          = azurerm_resource_group.example.location
-  description       = ""
+  description       = "an example slice"
 
   single_network_slice_selection_assistance_information {
     slice_service_type = 1
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `single_network_slice_selection_assistance_information` - (Required) A `single_network_slice_selection_assistance_information` block as defined below. Single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
 
-* `description` - (Optional) An optional description for this network slice.
+* `description` - (Optional) A description for this Mobile Network Slice.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network Slice.
 

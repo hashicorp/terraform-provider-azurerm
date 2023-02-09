@@ -173,7 +173,7 @@ func (r SliceResource) Update() sdk.ResourceFunc {
 
 			properties := resp.Model
 			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+				return fmt.Errorf("retrieving %s: properties were nil", id)
 			}
 
 			if metadata.ResourceData.HasChange("description") {

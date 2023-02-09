@@ -28,9 +28,9 @@ data "azurerm_mobile_network_slice" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Mobile Network Slice. Changing this forces a new Mobile Network Slice to be created.
+* `name` - (Required) Specifies the name which should be used for this Mobile Network Slice. 
 
-* `mobile_network_id` - (Required) The ID of Mobile Network which the Mobile Network Slice belongs to. Changing this forces a new Mobile Network Slice to be created.
+* `mobile_network_id` - (Required) The ID of Mobile Network which the Mobile Network Slice belongs to.
 
 ## Attributes Reference
 
@@ -38,13 +38,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Mobile Network Slice.
 
-* `location` - The Azure Region where the Mobile Network Slice should exist. Changing this forces a new Mobile Network Slice to be created.
+* `location` - The Azure Region where the Mobile Network Slice should exist. 
 
 * `single_network_slice_selection_assistance_information` - A `single_network_slice_selection_assistance_information` block as defined below. Single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
 
-* `description` - An optional description for this network slice.
+* `description` - A description of this Mobile Network Slice.
 
-* `tags` - A mapping of tags which should be assigned to the Mobile Network Slice.
+* `tags` - A mapping of tags which are assigned to the Mobile Network Slice.
 
 ---
 
