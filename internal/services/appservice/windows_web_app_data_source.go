@@ -26,7 +26,7 @@ type WindowsWebAppDataSourceModel struct {
 	ServicePlanId                 string                      `tfschema:"service_plan_id"`
 	AppSettings                   map[string]string           `tfschema:"app_settings"`
 	AuthSettings                  []helpers.AuthSettings      `tfschema:"auth_settings"`
-	AuthV2Settings                []helpers.AuthV2Settings    `tfschema:"auth_v2_settings"`
+	AuthV2Settings                []helpers.AuthV2Settings    `tfschema:"auth_settings_v2"`
 	Backup                        []helpers.Backup            `tfschema:"backup"`
 	ClientAffinityEnabled         bool                        `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                        `tfschema:"client_certificate_enabled"`

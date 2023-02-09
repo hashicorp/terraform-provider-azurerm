@@ -21,13 +21,13 @@ type AuthV2Settings struct {
 	DefaultAuthProvider   string   `tfschema:"default_provider"`
 	ExcludedPaths         []string `tfschema:"excluded_paths"`
 	// IdentityProviders
-	AppleAuth                []AppleAuthV2Settings        `tfschema:"apple"`
-	AzureActiveDirectoryAuth []AadAuthV2Settings          `tfschema:"active_directory"`
-	AzureStaticWebAuth       []StaticWebAppAuthV2Settings `tfschema:"azure_static_web_app"`
-	CustomOIDCAuth           []CustomOIDCAuthV2Settings   `tfschema:"custom_oidc"`
-	FacebookAuth             []FacebookAuthV2Settings     `tfschema:"facebook"`
-	GithubAuth               []GithubAuthV2Settings       `tfschema:"github"`
-	GoogleAuth               []GoogleAuthV2Settings       `tfschema:"google"`
+	AppleAuth                []AppleAuthV2Settings        `tfschema:"apple_v2"`
+	AzureActiveDirectoryAuth []AadAuthV2Settings          `tfschema:"active_directory_v2"`
+	AzureStaticWebAuth       []StaticWebAppAuthV2Settings `tfschema:"azure_static_web_app_v2"`
+	CustomOIDCAuth           []CustomOIDCAuthV2Settings   `tfschema:"custom_oidc_v2"`
+	FacebookAuth             []FacebookAuthV2Settings     `tfschema:"facebook_v2"`
+	GithubAuth               []GithubAuthV2Settings       `tfschema:"github_v2"`
+	GoogleAuth               []GoogleAuthV2Settings       `tfschema:"google_v2"`
 	MicrosoftAuth            []MicrosoftAuthV2Settings    `tfschema:"microsoft"`
 	TwitterAuth              []TwitterAuthV2Settings      `tfschema:"twitter"`
 	// Login
@@ -102,19 +102,19 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Description: "The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.",
 				},
 
-				"apple": AppleAuthV2SettingsSchema(),
+				"apple_v2": AppleAuthV2SettingsSchema(),
 
-				"active_directory": AadAuthV2SettingsSchema(),
+				"active_directory_v2": AadAuthV2SettingsSchema(),
 
-				"azure_static_web_app": StaticWebAppAuthV2SettingsSchema(),
+				"azure_static_web_app_v2": StaticWebAppAuthV2SettingsSchema(),
 
-				"custom_oidc": CustomOIDCAuthV2SettingsSchema(),
+				"custom_oidc_v2": CustomOIDCAuthV2SettingsSchema(),
 
-				"facebook": FacebookAuthV2SettingsSchema(),
+				"facebook_v2": FacebookAuthV2SettingsSchema(),
 
-				"github": GithubAuthV2SettingsSchema(),
+				"github_v2": GithubAuthV2SettingsSchema(),
 
-				"google": GoogleAuthV2SettingsSchema(),
+				"google_v2": GoogleAuthV2SettingsSchema(),
 
 				"microsoft": MicrosoftAuthV2SettingsSchema(),
 
@@ -216,19 +216,19 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 					Description: "The paths which are excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.",
 				},
 
-				"apple": AppleAuthV2SettingsSchemaComputed(),
+				"apple_v2": AppleAuthV2SettingsSchemaComputed(),
 
-				"active_directory": AadAuthV2SettingsSchemaComputed(),
+				"active_directory_v2": AadAuthV2SettingsSchemaComputed(),
 
-				"azure_static_web_app": StaticWebAppAuthV2SettingsSchemaComputed(),
+				"azure_static_web_app_v2": StaticWebAppAuthV2SettingsSchemaComputed(),
 
-				"custom_oidc": CustomOIDCAuthV2SettingsSchemaComputed(),
+				"custom_oidc_v2": CustomOIDCAuthV2SettingsSchemaComputed(),
 
-				"facebook": FacebookAuthV2SettingsSchemaComputed(),
+				"facebook_v2": FacebookAuthV2SettingsSchemaComputed(),
 
-				"github": GithubAuthV2SettingsSchemaComputed(),
+				"github_v2": GithubAuthV2SettingsSchemaComputed(),
 
-				"google": GoogleAuthV2SettingsSchemaComputed(),
+				"google_v2": GoogleAuthV2SettingsSchemaComputed(),
 
 				"microsoft": MicrosoftAuthV2SettingsSchemaComputed(),
 
@@ -317,7 +317,7 @@ func authV2LoginSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					ConflictsWith: []string{
-						"auth_v2_settings.0.login.0.token_store_sas_setting_name",
+						"auth_settings_v2.0.login.0.token_store_sas_setting_name",
 					},
 					Description: "The directory path in the App Filesystem in which the tokens will be stored.",
 				},
@@ -326,7 +326,7 @@ func authV2LoginSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ConflictsWith: []string{
-						"auth_v2_settings.0.login.0.token_store_path",
+						"auth_settings_v2.0.login.0.token_store_path",
 					},
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The name of the app setting which contains the SAS URL of the blob storage containing the tokens.",
@@ -567,15 +567,15 @@ func AppleAuthV2SettingsSchema() *pluginsdk.Schema {
 		Optional: true,
 		MaxItems: 1,
 		AtLeastOneOf: []string{
-			"auth_v2_settings.0.apple",
-			"auth_v2_settings.0.active_directory",
-			"auth_v2_settings.0.azure_static_web_app",
-			"auth_v2_settings.0.custom_oidc",
-			"auth_v2_settings.0.facebook",
-			"auth_v2_settings.0.github",
-			"auth_v2_settings.0.google",
-			"auth_v2_settings.0.microsoft",
-			"auth_v2_settings.0.twitter",
+			"auth_settings_v2.0.apple_v2",
+			"auth_settings_v2.0.active_directory_v2",
+			"auth_settings_v2.0.azure_static_web_app_v2",
+			"auth_settings_v2.0.custom_oidc_v2",
+			"auth_settings_v2.0.facebook_v2",
+			"auth_settings_v2.0.github_v2",
+			"auth_settings_v2.0.google_v2",
+			"auth_settings_v2.0.microsoft",
+			"auth_settings_v2.0.twitter",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -695,15 +695,15 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 		Optional: true,
 		MaxItems: 1,
 		AtLeastOneOf: []string{
-			"auth_v2_settings.0.apple",
-			"auth_v2_settings.0.active_directory",
-			"auth_v2_settings.0.azure_static_web_app",
-			"auth_v2_settings.0.custom_oidc",
-			"auth_v2_settings.0.facebook",
-			"auth_v2_settings.0.github",
-			"auth_v2_settings.0.google",
-			"auth_v2_settings.0.microsoft",
-			"auth_v2_settings.0.twitter",
+			"auth_settings_v2.0.apple_v2",
+			"auth_settings_v2.0.active_directory_v2",
+			"auth_settings_v2.0.azure_static_web_app_v2",
+			"auth_settings_v2.0.custom_oidc_v2",
+			"auth_settings_v2.0.facebook_v2",
+			"auth_settings_v2.0.github_v2",
+			"auth_settings_v2.0.google_v2",
+			"auth_settings_v2.0.microsoft",
+			"auth_settings_v2.0.twitter",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -726,8 +726,8 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					ExactlyOneOf: []string{
-						"auth_v2_settings.0.active_directory.0.client_secret_setting_name",
-						"auth_v2_settings.0.active_directory.0.client_secret_certificate_thumbprint",
+						"auth_settings_v2.0.active_directory.0.client_secret_setting_name",
+						"auth_settings_v2.0.active_directory.0.client_secret_certificate_thumbprint",
 					},
 					Description: "The App Setting name that contains the client secret of the Client.",
 				},
@@ -737,8 +737,8 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					ExactlyOneOf: []string{
-						"auth_v2_settings.0.active_directory.0.client_secret_setting_name",
-						"auth_v2_settings.0.active_directory.0.client_secret_certificate_thumbprint",
+						"auth_settings_v2.0.active_directory.0.client_secret_setting_name",
+						"auth_settings_v2.0.active_directory.0.client_secret_certificate_thumbprint",
 					},
 					Description: "The thumbprint of the certificate used for signing purposes.",
 				},
@@ -1019,15 +1019,15 @@ func StaticWebAppAuthV2SettingsSchema() *pluginsdk.Schema {
 		Optional: true,
 		MaxItems: 1,
 		AtLeastOneOf: []string{
-			"auth_v2_settings.0.apple",
-			"auth_v2_settings.0.active_directory",
-			"auth_v2_settings.0.azure_static_web_app",
-			"auth_v2_settings.0.custom_oidc",
-			"auth_v2_settings.0.facebook",
-			"auth_v2_settings.0.github",
-			"auth_v2_settings.0.google",
-			"auth_v2_settings.0.microsoft",
-			"auth_v2_settings.0.twitter",
+			"auth_settings_v2.0.apple_v2",
+			"auth_settings_v2.0.active_directory_v2",
+			"auth_settings_v2.0.azure_static_web_app_v2",
+			"auth_settings_v2.0.custom_oidc_v2",
+			"auth_settings_v2.0.facebook_v2",
+			"auth_settings_v2.0.github_v2",
+			"auth_settings_v2.0.google_v2",
+			"auth_settings_v2.0.microsoft",
+			"auth_settings_v2.0.twitter",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1109,15 +1109,15 @@ func CustomOIDCAuthV2SettingsSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		AtLeastOneOf: []string{
-			"auth_v2_settings.0.apple",
-			"auth_v2_settings.0.active_directory",
-			"auth_v2_settings.0.azure_static_web_app",
-			"auth_v2_settings.0.custom_oidc",
-			"auth_v2_settings.0.facebook",
-			"auth_v2_settings.0.github",
-			"auth_v2_settings.0.google",
-			"auth_v2_settings.0.microsoft",
-			"auth_v2_settings.0.twitter",
+			"auth_settings_v2.0.apple_v2",
+			"auth_settings_v2.0.active_directory_v2",
+			"auth_settings_v2.0.azure_static_web_app_v2",
+			"auth_settings_v2.0.custom_oidc_v2",
+			"auth_settings_v2.0.facebook_v2",
+			"auth_settings_v2.0.github_v2",
+			"auth_settings_v2.0.google_v2",
+			"auth_settings_v2.0.microsoft",
+			"auth_settings_v2.0.twitter",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1366,15 +1366,15 @@ func FacebookAuthV2SettingsSchema() *pluginsdk.Schema {
 		Optional: true,
 		MaxItems: 1,
 		AtLeastOneOf: []string{
-			"auth_v2_settings.0.apple",
-			"auth_v2_settings.0.active_directory",
-			"auth_v2_settings.0.azure_static_web_app",
-			"auth_v2_settings.0.custom_oidc",
-			"auth_v2_settings.0.facebook",
-			"auth_v2_settings.0.github",
-			"auth_v2_settings.0.google",
-			"auth_v2_settings.0.microsoft",
-			"auth_v2_settings.0.twitter",
+			"auth_settings_v2.0.apple_v2",
+			"auth_settings_v2.0.active_directory_v2",
+			"auth_settings_v2.0.azure_static_web_app_v2",
+			"auth_settings_v2.0.custom_oidc_v2",
+			"auth_settings_v2.0.facebook_v2",
+			"auth_settings_v2.0.github_v2",
+			"auth_settings_v2.0.google_v2",
+			"auth_settings_v2.0.microsoft",
+			"auth_settings_v2.0.twitter",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1500,15 +1500,15 @@ func GithubAuthV2SettingsSchema() *pluginsdk.Schema {
 		Optional: true,
 		MaxItems: 1,
 		AtLeastOneOf: []string{
-			"auth_v2_settings.0.apple",
-			"auth_v2_settings.0.active_directory",
-			"auth_v2_settings.0.azure_static_web_app",
-			"auth_v2_settings.0.custom_oidc",
-			"auth_v2_settings.0.facebook",
-			"auth_v2_settings.0.github",
-			"auth_v2_settings.0.google",
-			"auth_v2_settings.0.microsoft",
-			"auth_v2_settings.0.twitter",
+			"auth_settings_v2.0.apple_v2",
+			"auth_settings_v2.0.active_directory_v2",
+			"auth_settings_v2.0.azure_static_web_app_v2",
+			"auth_settings_v2.0.custom_oidc_v2",
+			"auth_settings_v2.0.facebook_v2",
+			"auth_settings_v2.0.github_v2",
+			"auth_settings_v2.0.google_v2",
+			"auth_settings_v2.0.microsoft",
+			"auth_settings_v2.0.twitter",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1621,15 +1621,15 @@ func GoogleAuthV2SettingsSchema() *pluginsdk.Schema {
 		Optional: true,
 		MaxItems: 1,
 		AtLeastOneOf: []string{
-			"auth_v2_settings.0.apple",
-			"auth_v2_settings.0.active_directory",
-			"auth_v2_settings.0.azure_static_web_app",
-			"auth_v2_settings.0.custom_oidc",
-			"auth_v2_settings.0.facebook",
-			"auth_v2_settings.0.github",
-			"auth_v2_settings.0.google",
-			"auth_v2_settings.0.microsoft",
-			"auth_v2_settings.0.twitter",
+			"auth_settings_v2.0.apple_v2",
+			"auth_settings_v2.0.active_directory_v2",
+			"auth_settings_v2.0.azure_static_web_app_v2",
+			"auth_settings_v2.0.custom_oidc_v2",
+			"auth_settings_v2.0.facebook_v2",
+			"auth_settings_v2.0.github_v2",
+			"auth_settings_v2.0.google_v2",
+			"auth_settings_v2.0.microsoft",
+			"auth_settings_v2.0.twitter",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1769,15 +1769,15 @@ func MicrosoftAuthV2SettingsSchema() *pluginsdk.Schema {
 		Optional: true,
 		MaxItems: 1,
 		AtLeastOneOf: []string{
-			"auth_v2_settings.0.apple",
-			"auth_v2_settings.0.active_directory",
-			"auth_v2_settings.0.azure_static_web_app",
-			"auth_v2_settings.0.custom_oidc",
-			"auth_v2_settings.0.facebook",
-			"auth_v2_settings.0.github",
-			"auth_v2_settings.0.google",
-			"auth_v2_settings.0.microsoft",
-			"auth_v2_settings.0.twitter",
+			"auth_settings_v2.0.apple_v2",
+			"auth_settings_v2.0.active_directory_v2",
+			"auth_settings_v2.0.azure_static_web_app_v2",
+			"auth_settings_v2.0.custom_oidc_v2",
+			"auth_settings_v2.0.facebook_v2",
+			"auth_settings_v2.0.github_v2",
+			"auth_settings_v2.0.google_v2",
+			"auth_settings_v2.0.microsoft",
+			"auth_settings_v2.0.twitter",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1904,15 +1904,15 @@ func TwitterAuthV2SettingsSchema() *pluginsdk.Schema {
 		Optional: true,
 		MaxItems: 1,
 		AtLeastOneOf: []string{
-			"auth_v2_settings.0.apple",
-			"auth_v2_settings.0.active_directory",
-			"auth_v2_settings.0.azure_static_web_app",
-			"auth_v2_settings.0.custom_oidc",
-			"auth_v2_settings.0.facebook",
-			"auth_v2_settings.0.github",
-			"auth_v2_settings.0.google",
-			"auth_v2_settings.0.microsoft",
-			"auth_v2_settings.0.twitter",
+			"auth_settings_v2.0.apple_v2",
+			"auth_settings_v2.0.active_directory_v2",
+			"auth_settings_v2.0.azure_static_web_app_v2",
+			"auth_settings_v2.0.custom_oidc_v2",
+			"auth_settings_v2.0.facebook_v2",
+			"auth_settings_v2.0.github_v2",
+			"auth_settings_v2.0.google_v2",
+			"auth_settings_v2.0.microsoft",
+			"auth_settings_v2.0.twitter",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{

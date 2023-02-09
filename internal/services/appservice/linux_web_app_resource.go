@@ -33,7 +33,7 @@ type LinuxWebAppModel struct {
 	AppSettings                   map[string]string          `tfschema:"app_settings"`
 	StickySettings                []helpers.StickySettings   `tfschema:"sticky_settings"`
 	AuthSettings                  []helpers.AuthSettings     `tfschema:"auth_settings"`
-	AuthV2Settings                []helpers.AuthV2Settings   `tfschema:"auth_v2_settings"`
+	AuthV2Settings                []helpers.AuthV2Settings   `tfschema:"auth_settings_v2"`
 	Backup                        []helpers.Backup           `tfschema:"backup"`
 	ClientAffinityEnabled         bool                       `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                       `tfschema:"client_certificate_enabled"`
@@ -94,7 +94,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"auth_settings": helpers.AuthSettingsSchema(),
 
-		"auth_v2_settings": helpers.AuthV2SettingsSchema(),
+		"auth_settings_v2": helpers.AuthV2SettingsSchema(),
 
 		"backup": helpers.BackupSchema(),
 
@@ -800,7 +800,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("auth_v2_settings") {
+			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
 				if _, err := client.UpdateAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)

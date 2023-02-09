@@ -139,6 +139,8 @@ provider "azurerm" {
 
 %s
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
   app_service_id = azurerm_windows_web_app.test.id
@@ -149,7 +151,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     "%[3]s" = "%[4]s"
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "Return401"
     active_directory {
@@ -184,7 +186,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     "%[3]s" = "%[4]s"
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "Return401"
 
@@ -220,7 +222,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     "%[3]s" = "%[4]s"
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "Return401"
 
@@ -257,7 +259,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     "%[3]s" = "%[4]s"
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
@@ -293,7 +295,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     "%[3]s" = "%[4]s"
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
@@ -329,7 +331,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     "%[3]s" = "%[4]s"
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
@@ -365,7 +367,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     "%[3]s" = "%[4]s"
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
@@ -401,7 +403,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     "%[3]s" = "%[4]s"
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
@@ -441,18 +443,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     "TWITTER_PROVIDER_AUTHENTICATION_SECRET"   = "%[3]s"
   }
 
-  sticky_settings {
-    app_setting_names = [
-      "APPLE_PROVIDER_AUTHENTICATION_SECRET",
-      "FACEBOOK_PROVIDER_AUTHENTICATION_SECRET",
-      "GITHUB_PROVIDER_AUTHENTICATION_SECRET",
-      "GOOGLE_PROVIDER_AUTHENTICATION_SECRET",
-      "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET",
-      "TWITTER_PROVIDER_AUTHENTICATION_SECRET",
-    ]
-  }
-
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
@@ -514,7 +505,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     "TWITTER_PROVIDER_AUTHENTICATION_SECRET"   = "%[3]s"
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 

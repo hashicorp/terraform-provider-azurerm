@@ -31,7 +31,7 @@ type WindowsWebAppSlotModel struct {
 	ServicePlanID                 string                                `tfschema:"service_plan_id"`
 	AppSettings                   map[string]string                     `tfschema:"app_settings"`
 	AuthSettings                  []helpers.AuthSettings                `tfschema:"auth_settings"`
-	AuthV2Settings                []helpers.AuthV2Settings              `tfschema:"auth_v2_settings"`
+	AuthV2Settings                []helpers.AuthV2Settings              `tfschema:"auth_settings_v2"`
 	Backup                        []helpers.Backup                      `tfschema:"backup"`
 	ClientAffinityEnabled         bool                                  `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                                  `tfschema:"client_certificate_enabled"`
@@ -105,7 +105,7 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"auth_settings": helpers.AuthSettingsSchema(),
 
-		"auth_v2_settings": helpers.AuthV2SettingsSchema(),
+		"auth_settings_v2": helpers.AuthV2SettingsSchema(),
 
 		"backup": helpers.BackupSchema(),
 
@@ -788,7 +788,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("auth_v2_settings") {
+			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
 				if _, err := client.UpdateAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, *authV2Update, id.SlotName); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)

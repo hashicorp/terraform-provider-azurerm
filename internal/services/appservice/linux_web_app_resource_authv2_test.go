@@ -50,7 +50,7 @@ func TestAccLinuxWebApp_authV2CustomOIDC(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
-				check.That(data.ResourceName).Key("auth_v2_settings.0.custom_oidc.0.client_secret_setting_name").HasValue("TESTCUSTOM_PROVIDER_AUTHENTICATION_SECRET"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.custom_oidc.0.client_secret_setting_name").HasValue("TESTCUSTOM_PROVIDER_AUTHENTICATION_SECRET"),
 			),
 		},
 		data.ImportStep(),
@@ -229,7 +229,7 @@ resource "azurerm_linux_web_app" "test" {
     app_setting_names = ["%[3]s"]
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "Return401"
     active_directory {
@@ -267,7 +267,7 @@ resource "azurerm_linux_web_app" "test" {
     "%[3]s" = "%[4]s"
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "Return401"
 
@@ -312,7 +312,7 @@ resource "azurerm_linux_web_app" "test" {
     app_setting_names = ["%[3]s"]
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "Return401"
 
@@ -356,7 +356,7 @@ resource "azurerm_linux_web_app" "test" {
     app_setting_names = ["%[3]s"]
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
@@ -399,7 +399,7 @@ resource "azurerm_linux_web_app" "test" {
     app_setting_names = ["%[3]s"]
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
@@ -442,7 +442,7 @@ resource "azurerm_linux_web_app" "test" {
     app_setting_names = ["%[3]s"]
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
@@ -485,7 +485,7 @@ resource "azurerm_linux_web_app" "test" {
     app_setting_names = ["%[3]s"]
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
@@ -528,7 +528,7 @@ resource "azurerm_linux_web_app" "test" {
     app_setting_names = ["%[3]s"]
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
@@ -582,7 +582,7 @@ resource "azurerm_linux_web_app" "test" {
     ]
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
@@ -647,7 +647,7 @@ resource "azurerm_linux_web_app" "test" {
     "TWITTER_PROVIDER_AUTHENTICATION_SECRET"   = "%[3]s"
   }
 
-  auth_v2_settings {
+  auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
