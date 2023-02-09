@@ -1169,8 +1169,8 @@ resource "azurerm_api_management" "test" {
 
   delegation {
     url                       = "https://google.com"
-		subscriptions_enabled     = false
-		user_registration_enabled = true
+    subscriptions_enabled     = false
+    user_registration_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1198,9 +1198,9 @@ resource "azurerm_api_management" "test" {
 
   delegation {
     url                       = "https://google.com"
-		validation_key            = "aW50ZWdyYXRpb24mMjAyMzAzMTAxODMwJkxRaUxzcUVsaUpEaHJRK01YZkJYV3paUi9qdzZDSWMrazhjUXB0bVdyTGxKcVYrd0R4OXRqMGRzTWZXU3hmeGQ0a2V0WjcrcE44U0dJdDNsYUQ3Rk5BPT0="
-		subscriptions_enabled     = true
-		user_registration_enabled = true
+    validation_key            = "aW50ZWdyYXRpb24mMjAyMzAzMTAxODMwJkxRaUxzcUVsaUpEaHJRK01YZkJYV3paUi9qdzZDSWMrazhjUXB0bVdyTGxKcVYrd0R4OXRqMGRzTWZXU3hmeGQ0a2V0WjcrcE44U0dJdDNsYUQ3Rk5BPT0="
+    subscriptions_enabled     = true
+    user_registration_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
