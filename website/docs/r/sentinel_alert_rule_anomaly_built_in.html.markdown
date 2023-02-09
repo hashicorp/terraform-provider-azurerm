@@ -104,7 +104,6 @@ A `required_data_connector` block exports the following:
 
 * `data_types` - A list of data types of the required Data Connector.
 
-
 ---
 
 A `multi_select_observation` block exports the following:
