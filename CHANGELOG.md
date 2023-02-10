@@ -14,6 +14,10 @@ ENHANCEMENTS:
 * `azurerm_express_route_port` - support for the `billing_type` property [GH-20361]
 * `postgres` - updating API to `2022-12-01` [GH-20370]
 
+BUG FIXES:
+
+* `azurerm_eventgrid_domain_topic` - `name` can now be up to 128 characters [GH-20407]
+
 ## 3.43.0 (February 09, 2023)
 
 FEATURES
