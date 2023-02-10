@@ -8,6 +8,10 @@ FEATURES:
 * **New Resource:** `azurerm_network_manager_admin_rule` [GH-20233]
 * **New Resource:** `azurerm_mobile_network_site` [GH-20334]
 
+ENHANCEMENTS:
+
+* `azurerm_express_route_port` - support for the `billing_type` property [GH-20361]
+
 ## 3.43.0 (February 09, 2023)
 
 FEATURES
