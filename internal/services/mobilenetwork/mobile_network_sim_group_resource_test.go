@@ -129,10 +129,9 @@ func (r MobileNetworkSimGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 				%s
 resource "azurerm_mobile_network_sim_group" "test" {
-  name                = "acctest-mnsg-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  mobile_network_id   = azurerm_mobile_network.test.id
+  name              = "acctest-mnsg-%d"
+  location          = azurerm_resource_group.test.location
+  mobile_network_id = azurerm_mobile_network.test.id
 }
 `, MobileNetworkResource{}.basic(data), data.RandomInteger)
 }
@@ -182,11 +181,10 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_mobile_network_sim_group" "test" {
-  name                = "acctest-mnsg-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-  encryption_key_url  = azurerm_key_vault_key.test.versionless_id
-  mobile_network_id   = azurerm_mobile_network.test.id
+  name               = "acctest-mnsg-%[2]d"
+  location           = "%[3]s"
+  encryption_key_url = azurerm_key_vault_key.test.versionless_id
+  mobile_network_id  = azurerm_mobile_network.test.id
 
   identity {
     type         = "UserAssigned"
@@ -201,10 +199,9 @@ func (r MobileNetworkSimGroupResource) requiresImport(data acceptance.TestData) 
 			%s
 
 resource "azurerm_mobile_network_sim_group" "import" {
-  name                = azurerm_mobile_network_sim_group.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%s"
-  mobile_network_id   = azurerm_mobile_network_sim_group.test.mobile_network_id
+  name              = azurerm_mobile_network_sim_group.test.name
+  location          = "%s"
+  mobile_network_id = azurerm_mobile_network_sim_group.test.mobile_network_id
 
 }
 `, r.basic(data), data.Locations.Primary)
@@ -256,11 +253,10 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_mobile_network_sim_group" "test" {
-  name                = "acctest-mnsg-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-  mobile_network_id   = azurerm_mobile_network.test.id
-  encryption_key_url  = azurerm_key_vault_key.test.versionless_id
+  name               = "acctest-mnsg-%[2]d"
+  location           = "%[3]s"
+  mobile_network_id  = azurerm_mobile_network.test.id
+  encryption_key_url = azurerm_key_vault_key.test.versionless_id
 
   identity {
     type         = "UserAssigned"
@@ -321,11 +317,10 @@ resource "azurerm_key_vault_key" "test" {
 
 
 resource "azurerm_mobile_network_sim_group" "test" {
-  name                = "acctest-mnsg-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-  mobile_network_id   = azurerm_mobile_network.test.id
-  encryption_key_url  = azurerm_key_vault_key.test.versionless_id
+  name               = "acctest-mnsg-%[2]d"
+  location           = "%[3]s"
+  mobile_network_id  = azurerm_mobile_network.test.id
+  encryption_key_url = azurerm_key_vault_key.test.versionless_id
 
   identity {
     type         = "UserAssigned"

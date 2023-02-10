@@ -36,11 +36,10 @@ data "azurerm_key_vault_key" "example" {
 }
 
 resource "azurerm_mobile_network_sim_group" "example" {
-  name                = "example-mnsg"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  mobile_network_id   = azurerm_mobile_network.example.id
-  encryption_key_url  = data.azurerm_key_vault_key.example.id
+  name               = "example-mnsg"
+  location           = azurerm_resource_group.example.location
+  mobile_network_id  = azurerm_mobile_network.example.id
+  encryption_key_url = data.azurerm_key_vault_key.example.id
 
   identity {
     type         = "SystemAssigned, UserAssigned"
@@ -59,8 +58,6 @@ resource "azurerm_mobile_network_sim_group" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name which should be used for this Mobile Network Sim Groups. Changing this forces a new Mobile Network Sim Group to be created.
-
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Mobile Network Sim Groups should exist. Changing this forces a new Mobile Network Sim Group to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Mobile Network Sim Groups should exist. Changing this forces a new Mobile Network Sim Group to be created.
 

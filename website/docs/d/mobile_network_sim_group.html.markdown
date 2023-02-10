@@ -13,9 +13,14 @@ Get information about a Mobile Network Sim Group.
 ## Example Usage
 
 ```hcl
+data "azurerm_mobile_network" "example" {
+  name                = "example-mn"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
 data "azurerm_mobile_network_sim_group" "example" {
-  name                = "example-mnsg"
-  resource_group_name = "example-rg"
+  name              = "example-mnsg"
+  mobile_network_id = data.azurerm_mobile_network.example.id
 }
 ```
 
@@ -25,7 +30,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name which should be used for this Mobile Network Sim Groups.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Mobile Network Sim Groups should exist. 
+* `mobile_network_id` - (Required) The ID of Mobile Network which the Mobile Network Sim Group belongs to.
 
 ## Attributes Reference
 
@@ -34,8 +39,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Mobile Network Sim Groups.
 
 * `location` - The Azure Region where the Mobile Network Sim Groups should exist.
-
-* `mobile_network_id` - The ID of Mobile Network which the Mobile Network Sim Group belongs to.
 
 * `encryption_key_url` - A key to encrypt the SIM data that belongs to this SIM group.
 

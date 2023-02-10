@@ -34,8 +34,8 @@ func (r MobileNetworkSimGroupDataSource) complete(data acceptance.TestData) stri
 	%s
 
 data "azurerm_mobile_network_sim_group" "test" {
-  name                = azurerm_mobile_network_sim_group.test.name
-  resource_group_name = azurerm_mobile_network_sim_group.test.resource_group_name
+  name              = azurerm_mobile_network_sim_group.test.name
+  mobile_network_id = azurerm_mobile_network.test.id
 }
 `, MobileNetworkSimGroupResource{}.complete(data))
 }

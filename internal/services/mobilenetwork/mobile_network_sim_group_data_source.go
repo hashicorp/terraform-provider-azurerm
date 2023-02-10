@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -39,7 +40,11 @@ func (r SimGroupDataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"mobile_network_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: mobilenetwork.ValidateMobileNetworkID,
+		},
 	}
 }
 
@@ -55,11 +60,6 @@ func (r SimGroupDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.LocationComputed(),
 
-		"mobile_network_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"tags": commonschema.TagsDataSource(),
 	}
 }
@@ -74,8 +74,11 @@ func (r SimGroupDataSource) Read() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.MobileNetwork.SIMGroupClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := simgroup.NewSimGroupID(subscriptionId, metaModel.ResourceGroupName, metaModel.Name)
+			parsedMobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(metaModel.MobileNetworkId)
+			if err != nil {
+				return fmt.Errorf("parsing `mobile_network_id`: %+v", err)
+			}
+			id := simgroup.NewSimGroupID(parsedMobileNetworkId.SubscriptionId, parsedMobileNetworkId.ResourceGroupName, metaModel.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -92,9 +95,9 @@ func (r SimGroupDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := SimGroupModel{
-				Name:              id.SimGroupName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
+				Name:            id.SimGroupName,
+				MobileNetworkId: metaModel.MobileNetworkId,
+				Location:        location.Normalize(model.Location),
 			}
 
 			identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,13 +18,12 @@ import (
 )
 
 type SimGroupModel struct {
-	Name              string                       `tfschema:"name"`
-	ResourceGroupName string                       `tfschema:"resource_group_name"`
-	EncryptionKeyUrl  string                       `tfschema:"encryption_key_url"`
-	Identity          []identity.ModelUserAssigned `tfschema:"identity"`
-	Location          string                       `tfschema:"location"`
-	MobileNetworkId   string                       `tfschema:"mobile_network_id"`
-	Tags              map[string]string            `tfschema:"tags"`
+	Name             string                       `tfschema:"name"`
+	EncryptionKeyUrl string                       `tfschema:"encryption_key_url"`
+	Identity         []identity.ModelUserAssigned `tfschema:"identity"`
+	Location         string                       `tfschema:"location"`
+	MobileNetworkId  string                       `tfschema:"mobile_network_id"`
+	Tags             map[string]string            `tfschema:"tags"`
 }
 
 type SimGroupResource struct{}
@@ -51,7 +51,12 @@ func (r SimGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"mobile_network_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: mobilenetwork.ValidateMobileNetworkID,
+		},
 
 		"encryption_key_url": { // needs UserAssignedIdentity
 			Type:         pluginsdk.TypeString,
@@ -62,13 +67,6 @@ func (r SimGroupResource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"location": commonschema.Location(),
-
-		"mobile_network_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
 
 		"tags": commonschema.Tags(),
 	}
@@ -88,8 +86,13 @@ func (r SimGroupResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.MobileNetwork.SIMGroupClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := simgroup.NewSimGroupID(subscriptionId, model.ResourceGroupName, model.Name)
+
+			parsedMobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkId)
+			if err != nil {
+				return fmt.Errorf("parsing: %+v", err)
+			}
+
+			id := simgroup.NewSimGroupID(parsedMobileNetworkId.SubscriptionId, parsedMobileNetworkId.ResourceGroupName, model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -218,9 +221,8 @@ func (r SimGroupResource) Read() sdk.ResourceFunc {
 			}
 
 			state := SimGroupModel{
-				Name:              id.SimGroupName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
+				Name:     id.SimGroupName,
+				Location: location.Normalize(model.Location),
 			}
 
 			identityValue, err := flattenMobileNetworkUserAssignedToNetworkLegacyIdentity(model.Identity)
