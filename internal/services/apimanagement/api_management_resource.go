@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -502,20 +503,24 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"subscriptions_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Optional: true,
+						Default:  false,
 					},
 					"user_registration_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Optional: true,
+						Default:  false,
 					},
 					"url": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
 					"validation_key": {
-						Type:      pluginsdk.TypeString,
-						Required:  true,
-						Sensitive: true,
+						Type:           pluginsdk.TypeString,
+						Optional:       true,
+						ValidationFunc: validate.Base64EncodedString,
+						Sensitive:      true,
 					},
 				},
 			},
@@ -1878,12 +1883,24 @@ func expandApiManagementDelegationSettings(input []interface{}) apimanagement.Po
 		Subscriptions: &apimanagement.SubscriptionsDelegationSettingsProperties{
 			Enabled: utils.Bool(vs["subscriptions_enabled"].(bool)),
 		},
-		URL: utils.String(vs["url"].(string)),
 	}
 
 	validationKey := vs["validation_key"].(string)
+	if !vs["user_registration_enabled"].(bool) && !vs["subscriptions_enabled"].(bool) && validationKey == "" {
+		// for some reason we cannot leave this empty
+		props.ValidationKey = utils.String("cGxhY2Vob2xkZXIxCg==")
+	}
 	if validationKey != "" {
 		props.ValidationKey = utils.String(validationKey)
+	}
+
+	url := vs["url"].(string)
+	if !vs["user_registration_enabled"].(bool) && !vs["subscriptions_enabled"].(bool) && url == "" {
+		// for some reason we cannot leave this empty
+		props.URL = utils.String("https://www.placeholder.com")
+	}
+	if url != "" {
+		props.URL = utils.String(url)
 	}
 
 	return apimanagement.PortalDelegationSettings{

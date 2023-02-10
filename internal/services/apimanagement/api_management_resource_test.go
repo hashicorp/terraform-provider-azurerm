@@ -1211,9 +1211,7 @@ resource "azurerm_api_management" "test" {
   sku_name = "Developer_1"
 
   delegation {
-    url                       = "https://google.com"
     subscriptions_enabled     = false
-    validation_key            = "aW50ZWdyYXRpb24mMjAyMzAzMTAxODMwJkxRaUxzcUVsaUpEaHJRK01YZkJYV3paUi9qdzZDSWMrazhjUXB0bVdyTGxKcVYrd0R4OXRqMGRzTWZXU3hmeGQ0a2V0WjcrcE44U0dJdDNsYUQ3Rk5BPT0="
     user_registration_enabled = false
   }
 }
