@@ -36,15 +36,15 @@ type PccRuleConfigurationModel struct {
 }
 
 type PccRuleQosPolicyModel struct {
-	AllocationAndRetentionPriorityLevel int64             `tfschema:"allocation_and_retention_priority_level"`
-	QosIdentifier                       int64             `tfschema:"qos_indicator"`
-	GuaranteedBitRate                   []maxBitRateModel `tfschema:"guaranteed_bit_rate"`
-	MaximumBitRate                      []maxBitRateModel `tfschema:"maximum_bit_rate"`
-	PreemptionCapability                string            `tfschema:"preemption_capability"`
-	PreemptionVulnerability             string            `tfschema:"preemption_vulnerability"`
+	AllocationAndRetentionPriorityLevel int64          `tfschema:"allocation_and_retention_priority_level"`
+	QosIdentifier                       int64          `tfschema:"qos_indicator"`
+	GuaranteedBitRate                   []BitRateModel `tfschema:"guaranteed_bit_rate"`
+	MaximumBitRate                      []BitRateModel `tfschema:"maximum_bit_rate"`
+	PreemptionCapability                string         `tfschema:"preemption_capability"`
+	PreemptionVulnerability             string         `tfschema:"preemption_vulnerability"`
 }
 
-type maxBitRateModel struct {
+type BitRateModel struct {
 	Downlink string `tfschema:"downlink"`
 	Uplink   string `tfschema:"uplink"`
 }
@@ -58,11 +58,11 @@ type ServiceDataFlowTemplateModel struct {
 }
 
 type QosPolicyModel struct {
-	AllocationAndRetentionPriorityLevel int64             `tfschema:"allocation_and_retention_priority_level"`
-	QosIdentifier                       int64             `tfschema:"qos_indicator"`
-	MaximumBitRate                      []maxBitRateModel `tfschema:"maximum_bit_rate"`
-	PreemptionCapability                string            `tfschema:"preemption_capability"`
-	PreemptionVulnerability             string            `tfschema:"preemption_vulnerability"`
+	AllocationAndRetentionPriorityLevel int64          `tfschema:"allocation_and_retention_priority_level"`
+	QosIdentifier                       int64          `tfschema:"qos_indicator"`
+	MaximumBitRate                      []BitRateModel `tfschema:"maximum_bit_rate"`
+	PreemptionCapability                string         `tfschema:"preemption_capability"`
+	PreemptionVulnerability             string         `tfschema:"preemption_vulnerability"`
 }
 
 type MobileNetworkServiceResource struct{}
@@ -555,9 +555,9 @@ func expandPccRuleQosPolicyModel(inputList []PccRuleQosPolicyModel) *service.Pcc
 		PreemptionVulnerability:             &vulnerability,
 	}
 
-	output.GuaranteedBitRate = expandMaxBitRateModel(input.GuaranteedBitRate)
+	output.GuaranteedBitRate = expandBitRateModel(input.GuaranteedBitRate)
 
-	if v := expandMaxBitRateModel(input.MaximumBitRate); v != nil {
+	if v := expandBitRateModel(input.MaximumBitRate); v != nil {
 		output.MaximumBitRate = *v
 	}
 
@@ -597,7 +597,7 @@ func expandQosPolicyModel(inputList []QosPolicyModel) *service.QosPolicy {
 		PreemptionVulnerability:             &vulnerability,
 	}
 
-	if v := expandMaxBitRateModel(input.MaximumBitRate); v != nil {
+	if v := expandBitRateModel(input.MaximumBitRate); v != nil {
 		output.MaximumBitRate = *v
 	}
 
@@ -643,9 +643,9 @@ func flattenPccRuleQosPolicyModel(input *service.PccRuleQosPolicy) []PccRuleQosP
 		output.QosIdentifier = *input.Fiveqi
 	}
 
-	output.GuaranteedBitRate = flattenMaxBitRateModel(input.GuaranteedBitRate)
+	output.GuaranteedBitRate = flattenBitRateModel(input.GuaranteedBitRate)
 
-	output.MaximumBitRate = flattenMaxBitRateModel(&input.MaximumBitRate)
+	output.MaximumBitRate = flattenBitRateModel(&input.MaximumBitRate)
 
 	if input.PreemptionCapability != nil {
 		output.PreemptionCapability = string(*input.PreemptionCapability)
@@ -698,7 +698,7 @@ func flattenQosPolicyModel(input *service.QosPolicy) []QosPolicyModel {
 		output.QosIdentifier = *input.Fiveqi
 	}
 
-	output.MaximumBitRate = flattenMaxBitRateModel(&input.MaximumBitRate)
+	output.MaximumBitRate = flattenBitRateModel(&input.MaximumBitRate)
 
 	if input.PreemptionCapability != nil {
 		output.PreemptionCapability = string(*input.PreemptionCapability)
@@ -712,7 +712,7 @@ func flattenQosPolicyModel(input *service.QosPolicy) []QosPolicyModel {
 }
 
 // make it return a pointer because some property accept nil value
-func expandMaxBitRateModel(inputList []maxBitRateModel) *service.Ambr {
+func expandBitRateModel(inputList []BitRateModel) *service.Ambr {
 	if len(inputList) == 0 {
 		return nil
 	}
@@ -726,13 +726,13 @@ func expandMaxBitRateModel(inputList []maxBitRateModel) *service.Ambr {
 	return &output
 }
 
-func flattenMaxBitRateModel(input *service.Ambr) []maxBitRateModel {
-	var outputList []maxBitRateModel
+func flattenBitRateModel(input *service.Ambr) []BitRateModel {
+	var outputList []BitRateModel
 	if input == nil {
 		return outputList
 	}
 
-	output := maxBitRateModel{
+	output := BitRateModel{
 		Downlink: input.Downlink,
 		Uplink:   input.Uplink,
 	}

@@ -94,11 +94,11 @@ A `service_data_flow_template` block supports the following:
 
 * `direction` - The direction of this flow. Possible values are `Uplink`, `Downlink` and `Bidirectional`.
 
-* `protocol` - A list of the allowed protocol(s) for this flow. If you want this flow to be able to use any protocol within the internet protocol suite, use the value `ip`. If you only want to allow a selection of protocols, you must use the corresponding IANA Assigned Internet Protocol Number for each protocol, as described in https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml. For example, for UDP, you must use 17. If you use the value `ip` then you must leave the field `port` unspecified.
+* `protocol` - A list of the allowed protocol(s) for this flow. 
 
-* `remote_ip_list` - The remote IP address(es) to which UEs will connect for this flow. If you want to allow connections on any IP address, use the value `any`. Otherwise, you must provide each of the remote IP addresses to which the packet core instance will connect for this flow. You must provide each IP address in CIDR notation, including the netmask (for example, `192.0.2.54/24`).
+* `remote_ip_list` - The remote IP address(es) to which UEs will connect for this flow. 
 
-* `ports` - The port(s) to which UEs will connect for this flow. You can specify zero or more ports or port ranges. If you specify one or more ports or port ranges then you must specify a value other than `ip` in the `protocol` field. If it is not specified then connections will be allowed on all ports. Port ranges must be specified as <FirstPort>-<LastPort>. For example: [`8080`, `8082-8085`].
+* `ports` - The port(s) to which UEs will connect for this flow. You can specify zero or more ports or port ranges. 
 
 ---
 
@@ -112,7 +112,7 @@ A `service_qos_policy` block supports the following:
 
 * `preemption_capability` - The Preemption Capability of a QoS Flow controls whether it can preempt another QoS Flow with a lower priority level. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters.
 
-* `preemption_vulnerability` - The Preemption Vulnerability of a QoS Flow controls whether it can be preempted by QoS Flow with a higher priority level. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters. Possible values are `NotPreemptable` and `Preemptable`. Defaults to `Preemptable`.
+* `preemption_vulnerability` - The Preemption Vulnerability of a QoS Flow controls whether it can be preempted by QoS Flow with a higher priority level. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters. 
 
 ---
 

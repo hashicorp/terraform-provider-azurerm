@@ -160,7 +160,6 @@ resource "azurerm_mobile_network_service" "test" {
     service_data_flow_template {
       direction      = "Uplink"
       name           = "IP-to-server"
-      ports          = []
       protocol       = ["ip"]
       remote_ip_list = ["10.3.4.0/24"]
     }
