@@ -1648,6 +1648,8 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 	// first try loading this from the Resource Data if possible (e.g. when Created)
 	defaultNodePoolName := d.Get("default_node_pool.0.name")
 
+	// TODO check the temporary node pool name and use that - make name not forceNew (forceNew when node pool name is not nodepool name or temp node pool name - only if API doesn't support updating the name of the default node pool)
+
 	var agentPool *managedclusters.ManagedClusterAgentPoolProfile
 	if defaultNodePoolName != "" {
 		// find it
@@ -1659,6 +1661,7 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 		}
 	}
 
+	// fallback
 	if agentPool == nil {
 		// otherwise we need to fall back to the name of the first agent pool
 		for _, v := range *input {
