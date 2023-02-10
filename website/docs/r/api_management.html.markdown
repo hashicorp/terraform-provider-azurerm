@@ -139,11 +139,11 @@ A `certificate` block supports the following:
 
 A `delegation` block supports the following:
 
-* `subscriptions_enabled` - (Required) Should subscription requests be delegated to an external url?
+* `subscriptions_enabled` - (Optional) Should subscription requests be delegated to an external url? Defaults to `false`.
 
-* `user_registration_enabled` - (Required) Should user registration requests be delegated to an external url?
+* `user_registration_enabled` - (Optional) Should user registration requests be delegated to an external url? Defaults to `false`.
 
-* `url` - (Required) The delegation URL.
+* `url` - (Optional) The delegation URL.
 
 * `validation_key` - (Optional) A base64-encoded validation key to validate, that a request is coming from Azure API Management.
 
