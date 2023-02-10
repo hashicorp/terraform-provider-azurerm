@@ -23,6 +23,7 @@ var services = mapOf(
         "confidentialledger" to "Confidential Ledger",
         "connections" to "Connections",
         "consumption" to "Consumption",
+        "containerapps" to "Container Apps",
         "containers" to "Container Services",
         "cosmos" to "CosmosDB",
         "costmanagement" to "Cost Management",

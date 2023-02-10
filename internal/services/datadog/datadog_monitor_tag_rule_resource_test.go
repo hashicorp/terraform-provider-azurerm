@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -164,18 +163,18 @@ func (r TagRulesDatadogMonitorResource) requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_datadog_monitor_tag_rule" "import" {
-	datadog_monitor_id = azurerm_datadog_monitor_tag_rule.test.datadog_monitor_id
-	name 			   = azurerm_datadog_monitor_tag_rule.test.name
-	log {
-		subscription_log_enabled = true
-	}
-	metric {
-		filter {
-			name   = "Test"
-			value  = "Testing-Logs"
-			action = "Include"
-		}
-	}
+  datadog_monitor_id = azurerm_datadog_monitor_tag_rule.test.datadog_monitor_id
+  name               = azurerm_datadog_monitor_tag_rule.test.name
+  log {
+    subscription_log_enabled = true
+  }
+  metric {
+    filter {
+      name   = "Test"
+      value  = "Testing-Logs"
+      action = "Include"
+    }
+  }
 }
 `, r.basic(data))
 }

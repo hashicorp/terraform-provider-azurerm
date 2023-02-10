@@ -94,8 +94,8 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 						"automation_account_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
+							RequiredWith: []string{"automatic_update.0.enabled"},
 						},
 					},
 				},
