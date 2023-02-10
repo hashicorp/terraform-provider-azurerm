@@ -28,8 +28,8 @@ type AuthV2Settings struct {
 	FacebookAuth             []FacebookAuthV2Settings     `tfschema:"facebook_v2"`
 	GithubAuth               []GithubAuthV2Settings       `tfschema:"github_v2"`
 	GoogleAuth               []GoogleAuthV2Settings       `tfschema:"google_v2"`
-	MicrosoftAuth            []MicrosoftAuthV2Settings    `tfschema:"microsoft"`
-	TwitterAuth              []TwitterAuthV2Settings      `tfschema:"twitter"`
+	MicrosoftAuth            []MicrosoftAuthV2Settings    `tfschema:"microsoft_v2"`
+	TwitterAuth              []TwitterAuthV2Settings      `tfschema:"twitter_v2"`
 	// Login
 	Login []AuthV2Login `tfschema:"login"`
 	// HTTPSettings
@@ -116,9 +116,9 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 
 				"google_v2": GoogleAuthV2SettingsSchema(),
 
-				"microsoft": MicrosoftAuthV2SettingsSchema(),
+				"microsoft_v2": MicrosoftAuthV2SettingsSchema(),
 
-				"twitter": TwitterAuthV2SettingsSchema(),
+				"twitter_v2": TwitterAuthV2SettingsSchema(),
 
 				"login": authV2LoginSchema(),
 
@@ -230,9 +230,9 @@ func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 
 				"google_v2": GoogleAuthV2SettingsSchemaComputed(),
 
-				"microsoft": MicrosoftAuthV2SettingsSchemaComputed(),
+				"microsoft_v2": MicrosoftAuthV2SettingsSchemaComputed(),
 
-				"twitter": TwitterAuthV2SettingsSchemaComputed(),
+				"twitter_v2": TwitterAuthV2SettingsSchemaComputed(),
 
 				"login": authV2LoginSchemaComputed(),
 
@@ -574,8 +574,8 @@ func AppleAuthV2SettingsSchema() *pluginsdk.Schema {
 			"auth_settings_v2.0.facebook_v2",
 			"auth_settings_v2.0.github_v2",
 			"auth_settings_v2.0.google_v2",
-			"auth_settings_v2.0.microsoft",
-			"auth_settings_v2.0.twitter",
+			"auth_settings_v2.0.microsoft_v2",
+			"auth_settings_v2.0.twitter_v2",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -702,8 +702,8 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 			"auth_settings_v2.0.facebook_v2",
 			"auth_settings_v2.0.github_v2",
 			"auth_settings_v2.0.google_v2",
-			"auth_settings_v2.0.microsoft",
-			"auth_settings_v2.0.twitter",
+			"auth_settings_v2.0.microsoft_v2",
+			"auth_settings_v2.0.twitter_v2",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -726,8 +726,8 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					ExactlyOneOf: []string{
-						"auth_settings_v2.0.active_directory.0.client_secret_setting_name",
-						"auth_settings_v2.0.active_directory.0.client_secret_certificate_thumbprint",
+						"auth_settings_v2.0.active_directory_v2.0.client_secret_setting_name",
+						"auth_settings_v2.0.active_directory_v2.0.client_secret_certificate_thumbprint",
 					},
 					Description: "The App Setting name that contains the client secret of the Client.",
 				},
@@ -737,8 +737,8 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					ExactlyOneOf: []string{
-						"auth_settings_v2.0.active_directory.0.client_secret_setting_name",
-						"auth_settings_v2.0.active_directory.0.client_secret_certificate_thumbprint",
+						"auth_settings_v2.0.active_directory_v2.0.client_secret_setting_name",
+						"auth_settings_v2.0.active_directory_v2.0.client_secret_certificate_thumbprint",
 					},
 					Description: "The thumbprint of the certificate used for signing purposes.",
 				},
@@ -1026,8 +1026,8 @@ func StaticWebAppAuthV2SettingsSchema() *pluginsdk.Schema {
 			"auth_settings_v2.0.facebook_v2",
 			"auth_settings_v2.0.github_v2",
 			"auth_settings_v2.0.google_v2",
-			"auth_settings_v2.0.microsoft",
-			"auth_settings_v2.0.twitter",
+			"auth_settings_v2.0.microsoft_v2",
+			"auth_settings_v2.0.twitter_v2",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1116,8 +1116,8 @@ func CustomOIDCAuthV2SettingsSchema() *pluginsdk.Schema {
 			"auth_settings_v2.0.facebook_v2",
 			"auth_settings_v2.0.github_v2",
 			"auth_settings_v2.0.google_v2",
-			"auth_settings_v2.0.microsoft",
-			"auth_settings_v2.0.twitter",
+			"auth_settings_v2.0.microsoft_v2",
+			"auth_settings_v2.0.twitter_v2",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1373,8 +1373,8 @@ func FacebookAuthV2SettingsSchema() *pluginsdk.Schema {
 			"auth_settings_v2.0.facebook_v2",
 			"auth_settings_v2.0.github_v2",
 			"auth_settings_v2.0.google_v2",
-			"auth_settings_v2.0.microsoft",
-			"auth_settings_v2.0.twitter",
+			"auth_settings_v2.0.microsoft_v2",
+			"auth_settings_v2.0.twitter_v2",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1507,8 +1507,8 @@ func GithubAuthV2SettingsSchema() *pluginsdk.Schema {
 			"auth_settings_v2.0.facebook_v2",
 			"auth_settings_v2.0.github_v2",
 			"auth_settings_v2.0.google_v2",
-			"auth_settings_v2.0.microsoft",
-			"auth_settings_v2.0.twitter",
+			"auth_settings_v2.0.microsoft_v2",
+			"auth_settings_v2.0.twitter_v2",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1628,8 +1628,8 @@ func GoogleAuthV2SettingsSchema() *pluginsdk.Schema {
 			"auth_settings_v2.0.facebook_v2",
 			"auth_settings_v2.0.github_v2",
 			"auth_settings_v2.0.google_v2",
-			"auth_settings_v2.0.microsoft",
-			"auth_settings_v2.0.twitter",
+			"auth_settings_v2.0.microsoft_v2",
+			"auth_settings_v2.0.twitter_v2",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1776,8 +1776,8 @@ func MicrosoftAuthV2SettingsSchema() *pluginsdk.Schema {
 			"auth_settings_v2.0.facebook_v2",
 			"auth_settings_v2.0.github_v2",
 			"auth_settings_v2.0.google_v2",
-			"auth_settings_v2.0.microsoft",
-			"auth_settings_v2.0.twitter",
+			"auth_settings_v2.0.microsoft_v2",
+			"auth_settings_v2.0.twitter_v2",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1911,8 +1911,8 @@ func TwitterAuthV2SettingsSchema() *pluginsdk.Schema {
 			"auth_settings_v2.0.facebook_v2",
 			"auth_settings_v2.0.github_v2",
 			"auth_settings_v2.0.google_v2",
-			"auth_settings_v2.0.microsoft",
-			"auth_settings_v2.0.twitter",
+			"auth_settings_v2.0.microsoft_v2",
+			"auth_settings_v2.0.twitter_v2",
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
