@@ -18,33 +18,21 @@ func GetAzurermDataShareDataSetId(ds dataset.DataSet) *string {
 	if d, ok := ds.(dataset.BlobContainerDataSet); ok {
 		return d.Id
 	}
-	//switch t := dataset.(type) {
-	//case dataset.:
-	//	return t.ID
-	//case datashare.BlobFolderDataSet:
-	//	return t.ID
-	//case datashare.BlobContainerDataSet:
-	//	return t.ID
-	//case datashare.ADLSGen2FileDataSet:
-	//	return t.ID
-	//case datashare.ADLSGen2FolderDataSet:
-	//	return t.ID
-	//case datashare.ADLSGen2FileSystemDataSet:
-	//	return t.ID
-	//case datashare.ADLSGen1FolderDataSet:
-	//	return t.ID
-	//case datashare.ADLSGen1FileDataSet:
-	//	return t.ID
-	//case datashare.KustoClusterDataSet:
-	//	return t.ID
-	//case datashare.KustoDatabaseDataSet:
-	//	return t.ID
-	//case datashare.SQLDWTableDataSet:
-	//	return t.ID
-	//case datashare.SQLDBTableDataSet:
-	//	return t.ID
-	//default:
-	//	return nil
-	//}
+	if d, ok := ds.(dataset.ADLSGen2FileDataSet); ok {
+		return d.Id
+	}
+	if d, ok := ds.(dataset.ADLSGen2FolderDataSet); ok {
+		return d.Id
+	}
+	if d, ok := ds.(dataset.ADLSGen2FileSystemDataSet); ok {
+		return d.Id
+	}
+	if d, ok := ds.(dataset.KustoClusterDataSet); ok {
+		return d.Id
+	}
+	if d, ok := ds.(dataset.KustoDatabaseDataSet); ok {
+		return d.Id
+	}
+
 	return nil
 }
