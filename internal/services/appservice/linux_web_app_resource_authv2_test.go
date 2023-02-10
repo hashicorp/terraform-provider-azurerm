@@ -50,7 +50,7 @@ func TestAccLinuxWebApp_authV2CustomOIDC(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
-				check.That(data.ResourceName).Key("auth_settings_v2.0.custom_oidc.0.client_secret_setting_name").HasValue("TESTCUSTOM_PROVIDER_AUTHENTICATION_SECRET"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.custom_oidc_v2.0.client_secret_setting_name").HasValue("TESTCUSTOM_PROVIDER_AUTHENTICATION_SECRET"),
 			),
 		},
 		data.ImportStep(),
