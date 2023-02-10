@@ -8,10 +8,11 @@ package botservice
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // OperationsClient is the azure Bot Service is a platform for creating smart conversational agents.

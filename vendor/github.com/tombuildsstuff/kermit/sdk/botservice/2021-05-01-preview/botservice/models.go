@@ -9,16 +9,150 @@ package botservice
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2021-05-01-preview/botservice"
+const fqdn = "home/runner/work/kermit/kermit/sdk/botservice/2021-05-01-preview/botservice"
+
+// AcsChatChannel acsChat channel definition
+type AcsChatChannel struct {
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
+	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AcsChatChannel.
+func (acc AcsChatChannel) MarshalJSON() ([]byte, error) {
+	acc.ChannelName = ChannelNameBasicChannelChannelNameAcsChatChannel
+	objectMap := make(map[string]interface{})
+	if acc.Etag != nil {
+		objectMap["etag"] = acc.Etag
+	}
+	if acc.Location != nil {
+		objectMap["location"] = acc.Location
+	}
+	if acc.ChannelName != "" {
+		objectMap["channelName"] = acc.ChannelName
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAlexaChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsAlexaChannel() (*AlexaChannel, bool) {
+	return nil, false
+}
+
+// AsFacebookChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsFacebookChannel() (*FacebookChannel, bool) {
+	return nil, false
+}
+
+// AsEmailChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsOutlookChannel() (*OutlookChannel, bool) {
+	return nil, false
+}
+
+// AsMsTeamsChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsMsTeamsChannel() (*MsTeamsChannel, bool) {
+	return nil, false
+}
+
+// AsSkypeChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsSkypeChannel() (*SkypeChannel, bool) {
+	return nil, false
+}
+
+// AsKikChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsKikChannel() (*KikChannel, bool) {
+	return nil, false
+}
+
+// AsWebChatChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsWebChatChannel() (*WebChatChannel, bool) {
+	return nil, false
+}
+
+// AsDirectLineChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsDirectLineChannel() (*DirectLineChannel, bool) {
+	return nil, false
+}
+
+// AsTelegramChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsTelegramChannel() (*TelegramChannel, bool) {
+	return nil, false
+}
+
+// AsSmsChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsSmsChannel() (*SmsChannel, bool) {
+	return nil, false
+}
+
+// AsSlackChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsSlackChannel() (*SlackChannel, bool) {
+	return nil, false
+}
+
+// AsLineChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsLineChannel() (*LineChannel, bool) {
+	return nil, false
+}
+
+// AsDirectLineSpeechChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool) {
+	return nil, false
+}
+
+// AsOmnichannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return &acc, true
+}
+
+// AsSearchAssistant is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
+// AsChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsChannel() (*Channel, bool) {
+	return nil, false
+}
+
+// AsBasicChannel is the BasicChannel implementation for AcsChatChannel.
+func (acc AcsChatChannel) AsBasicChannel() (BasicChannel, bool) {
+	return &acc, true
+}
 
 // AlexaChannel alexa channel definition
 type AlexaChannel struct {
@@ -30,7 +164,7 @@ type AlexaChannel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -65,6 +199,11 @@ func (ac AlexaChannel) AsFacebookChannel() (*FacebookChannel, bool) {
 
 // AsEmailChannel is the BasicChannel implementation for AlexaChannel.
 func (ac AlexaChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for AlexaChannel.
+func (ac AlexaChannel) AsOutlookChannel() (*OutlookChannel, bool) {
 	return nil, false
 }
 
@@ -115,6 +254,31 @@ func (ac AlexaChannel) AsLineChannel() (*LineChannel, bool) {
 
 // AsDirectLineSpeechChannel is the BasicChannel implementation for AlexaChannel.
 func (ac AlexaChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool) {
+	return nil, false
+}
+
+// AsOmnichannel is the BasicChannel implementation for AlexaChannel.
+func (ac AlexaChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for AlexaChannel.
+func (ac AlexaChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for AlexaChannel.
+func (ac AlexaChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for AlexaChannel.
+func (ac AlexaChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for AlexaChannel.
+func (ac AlexaChannel) AsM365Extensions() (*M365Extensions, bool) {
 	return nil, false
 }
 
@@ -173,8 +337,6 @@ type Bot struct {
 	Kind Kind `json:"kind,omitempty"`
 	// Etag - Entity Tag
 	Etag *string `json:"etag,omitempty"`
-	// Zones - READ-ONLY; Entity zones
-	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Bot.
@@ -222,8 +384,6 @@ type BotChannel struct {
 	Kind Kind `json:"kind,omitempty"`
 	// Etag - Entity Tag
 	Etag *string `json:"etag,omitempty"`
-	// Zones - READ-ONLY; Entity zones
-	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for BotChannel.
@@ -337,15 +497,6 @@ func (bc *BotChannel) UnmarshalJSON(body []byte) error {
 				}
 				bc.Etag = &etag
 			}
-		case "zones":
-			if v != nil {
-				var zones []string
-				err = json.Unmarshal(*v, &zones)
-				if err != nil {
-					return err
-				}
-				bc.Zones = &zones
-			}
 		}
 	}
 
@@ -398,6 +549,8 @@ type BotProperties struct {
 	CmekKeyVaultURL *string `json:"cmekKeyVaultUrl,omitempty"`
 	// CmekEncryptionStatus - READ-ONLY; The CMK encryption status
 	CmekEncryptionStatus *string `json:"cmekEncryptionStatus,omitempty"`
+	// TenantID - The Tenant Id for the bot
+	TenantID *string `json:"tenantId,omitempty"`
 	// PublicNetworkAccess - Whether the bot is in an isolated network. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 	// IsStreamingSupported - Whether the bot is streaming supported
@@ -480,6 +633,9 @@ func (bp BotProperties) MarshalJSON() ([]byte, error) {
 	}
 	if bp.CmekKeyVaultURL != nil {
 		objectMap["cmekKeyVaultUrl"] = bp.CmekKeyVaultURL
+	}
+	if bp.TenantID != nil {
+		objectMap["tenantId"] = bp.TenantID
 	}
 	if bp.PublicNetworkAccess != "" {
 		objectMap["publicNetworkAccess"] = bp.PublicNetworkAccess
@@ -681,6 +837,7 @@ type BasicChannel interface {
 	AsAlexaChannel() (*AlexaChannel, bool)
 	AsFacebookChannel() (*FacebookChannel, bool)
 	AsEmailChannel() (*EmailChannel, bool)
+	AsOutlookChannel() (*OutlookChannel, bool)
 	AsMsTeamsChannel() (*MsTeamsChannel, bool)
 	AsSkypeChannel() (*SkypeChannel, bool)
 	AsKikChannel() (*KikChannel, bool)
@@ -691,6 +848,11 @@ type BasicChannel interface {
 	AsSlackChannel() (*SlackChannel, bool)
 	AsLineChannel() (*LineChannel, bool)
 	AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool)
+	AsOmnichannel() (*Omnichannel, bool)
+	AsTelephonyChannel() (*TelephonyChannel, bool)
+	AsAcsChatChannel() (*AcsChatChannel, bool)
+	AsSearchAssistant() (*SearchAssistant, bool)
+	AsM365Extensions() (*M365Extensions, bool)
 	AsChannel() (*Channel, bool)
 }
 
@@ -702,7 +864,7 @@ type Channel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -726,6 +888,10 @@ func unmarshalBasicChannel(body []byte) (BasicChannel, error) {
 		var ec EmailChannel
 		err := json.Unmarshal(body, &ec)
 		return ec, err
+	case string(ChannelNameBasicChannelChannelNameOutlookChannel):
+		var oc OutlookChannel
+		err := json.Unmarshal(body, &oc)
+		return oc, err
 	case string(ChannelNameBasicChannelChannelNameMsTeamsChannel):
 		var mtc MsTeamsChannel
 		err := json.Unmarshal(body, &mtc)
@@ -766,6 +932,26 @@ func unmarshalBasicChannel(body []byte) (BasicChannel, error) {
 		var dlsc DirectLineSpeechChannel
 		err := json.Unmarshal(body, &dlsc)
 		return dlsc, err
+	case string(ChannelNameBasicChannelChannelNameOmnichannel):
+		var o Omnichannel
+		err := json.Unmarshal(body, &o)
+		return o, err
+	case string(ChannelNameBasicChannelChannelNameTelephonyChannel):
+		var tc TelephonyChannel
+		err := json.Unmarshal(body, &tc)
+		return tc, err
+	case string(ChannelNameBasicChannelChannelNameAcsChatChannel):
+		var acc AcsChatChannel
+		err := json.Unmarshal(body, &acc)
+		return acc, err
+	case string(ChannelNameBasicChannelChannelNameSearchAssistant):
+		var sa SearchAssistant
+		err := json.Unmarshal(body, &sa)
+		return sa, err
+	case string(ChannelNameBasicChannelChannelNameM365Extensions):
+		var me M365Extensions
+		err := json.Unmarshal(body, &me)
+		return me, err
 	default:
 		var c Channel
 		err := json.Unmarshal(body, &c)
@@ -822,6 +1008,11 @@ func (c Channel) AsEmailChannel() (*EmailChannel, bool) {
 	return nil, false
 }
 
+// AsOutlookChannel is the BasicChannel implementation for Channel.
+func (c Channel) AsOutlookChannel() (*OutlookChannel, bool) {
+	return nil, false
+}
+
 // AsMsTeamsChannel is the BasicChannel implementation for Channel.
 func (c Channel) AsMsTeamsChannel() (*MsTeamsChannel, bool) {
 	return nil, false
@@ -869,6 +1060,31 @@ func (c Channel) AsLineChannel() (*LineChannel, bool) {
 
 // AsDirectLineSpeechChannel is the BasicChannel implementation for Channel.
 func (c Channel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool) {
+	return nil, false
+}
+
+// AsOmnichannel is the BasicChannel implementation for Channel.
+func (c Channel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for Channel.
+func (c Channel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for Channel.
+func (c Channel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for Channel.
+func (c Channel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for Channel.
+func (c Channel) AsM365Extensions() (*M365Extensions, bool) {
 	return nil, false
 }
 
@@ -1070,6 +1286,8 @@ type ChannelSettings struct {
 	IsEnabled *bool `json:"isEnabled,omitempty"`
 	// DisableLocalAuth - Opt-out of local authentication and ensure only MSI and AAD can be used exclusively for authentication.
 	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
+	// RequireTermsAgreement - Whether customer needs to agree to new terms.
+	RequireTermsAgreement *bool `json:"requireTermsAgreement,omitempty"`
 }
 
 // CheckNameAvailabilityRequestBody the request body for a request to Bot Service Management to check
@@ -1089,6 +1307,8 @@ type CheckNameAvailabilityResponseBody struct {
 	Valid *bool `json:"valid,omitempty"`
 	// Message - additional message from the bot management api showing why a bot name is not available
 	Message *string `json:"message,omitempty"`
+	// AbsCode - response code from ABS
+	AbsCode *string `json:"absCode,omitempty"`
 }
 
 // ConnectionItemName the display name of a connection Item Setting registered with the Bot
@@ -1124,8 +1344,6 @@ type ConnectionSetting struct {
 	Kind Kind `json:"kind,omitempty"`
 	// Etag - Entity Tag
 	Etag *string `json:"etag,omitempty"`
-	// Zones - READ-ONLY; Entity zones
-	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ConnectionSetting.
@@ -1163,10 +1381,6 @@ type ConnectionSettingParameter struct {
 
 // ConnectionSettingProperties properties for a Connection Setting Item
 type ConnectionSettingProperties struct {
-	// ID - Id associated with the Connection Setting.
-	ID *string `json:"id,omitempty"`
-	// Name - Name associated with the Connection Setting.
-	Name *string `json:"name,omitempty"`
 	// ClientID - Client Id associated with the Connection Setting.
 	ClientID *string `json:"clientId,omitempty"`
 	// SettingID - READ-ONLY; Setting Id set by the service for the Connection Setting.
@@ -1188,12 +1402,6 @@ type ConnectionSettingProperties struct {
 // MarshalJSON is the custom marshaler for ConnectionSettingProperties.
 func (csp ConnectionSettingProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if csp.ID != nil {
-		objectMap["id"] = csp.ID
-	}
-	if csp.Name != nil {
-		objectMap["name"] = csp.Name
-	}
 	if csp.ClientID != nil {
 		objectMap["clientId"] = csp.ClientID
 	}
@@ -1396,7 +1604,7 @@ type DirectLineChannel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -1431,6 +1639,11 @@ func (dlc DirectLineChannel) AsFacebookChannel() (*FacebookChannel, bool) {
 
 // AsEmailChannel is the BasicChannel implementation for DirectLineChannel.
 func (dlc DirectLineChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for DirectLineChannel.
+func (dlc DirectLineChannel) AsOutlookChannel() (*OutlookChannel, bool) {
 	return nil, false
 }
 
@@ -1484,6 +1697,31 @@ func (dlc DirectLineChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChann
 	return nil, false
 }
 
+// AsOmnichannel is the BasicChannel implementation for DirectLineChannel.
+func (dlc DirectLineChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for DirectLineChannel.
+func (dlc DirectLineChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for DirectLineChannel.
+func (dlc DirectLineChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for DirectLineChannel.
+func (dlc DirectLineChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for DirectLineChannel.
+func (dlc DirectLineChannel) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
 // AsChannel is the BasicChannel implementation for DirectLineChannel.
 func (dlc DirectLineChannel) AsChannel() (*Channel, bool) {
 	return nil, false
@@ -1498,12 +1736,18 @@ func (dlc DirectLineChannel) AsBasicChannel() (BasicChannel, bool) {
 type DirectLineChannelProperties struct {
 	// Sites - The list of Direct Line sites
 	Sites *[]DirectLineSite `json:"sites,omitempty"`
+	// ExtensionKey1 - The extensionKey1
+	ExtensionKey1 *string `json:"extensionKey1,omitempty"`
+	// ExtensionKey2 - The extensionKey2
+	ExtensionKey2 *string `json:"extensionKey2,omitempty"`
 	// DirectLineEmbedCode - Direct Line embed code of the resource
 	DirectLineEmbedCode *string `json:"DirectLineEmbedCode,omitempty"`
 }
 
 // DirectLineSite a site for the Direct Line channel
 type DirectLineSite struct {
+	// TenantID - Tenant Id
+	TenantID *string `json:"tenantId,omitempty"`
 	// SiteID - READ-ONLY; Site Id
 	SiteID *string `json:"siteId,omitempty"`
 	// SiteName - Site name
@@ -1512,28 +1756,65 @@ type DirectLineSite struct {
 	Key *string `json:"key,omitempty"`
 	// Key2 - READ-ONLY; Secondary key. Value only returned through POST to the action Channel List API, otherwise empty.
 	Key2 *string `json:"key2,omitempty"`
-	// IsEnabled - Whether this site is enabled for DirectLine channel.
+	// IsEnabled - Whether this site is enabled for DirectLine channel
 	IsEnabled *bool `json:"isEnabled,omitempty"`
+	// IsTokenEnabled - READ-ONLY; Whether this site is token enabled for channel
+	IsTokenEnabled *bool `json:"isTokenEnabled,omitempty"`
+	// IsEndpointParametersEnabled - Whether this site is EndpointParameters enabled for channel
+	IsEndpointParametersEnabled *bool `json:"isEndpointParametersEnabled,omitempty"`
+	// IsDetailedLoggingEnabled - Whether this site is disabled detailed logging for
+	IsDetailedLoggingEnabled *bool `json:"isDetailedLoggingEnabled,omitempty"`
+	// IsBlockUserUploadEnabled - Whether this site is enabled for block user upload.
+	IsBlockUserUploadEnabled *bool `json:"isBlockUserUploadEnabled,omitempty"`
+	// IsNoStorageEnabled - Whether this no-storage site is disabled detailed logging for
+	IsNoStorageEnabled *bool `json:"isNoStorageEnabled,omitempty"`
+	// ETag - Entity Tag
+	ETag *string `json:"eTag,omitempty"`
+	// AppID - DirectLine application id
+	AppID *string `json:"appId,omitempty"`
 	// IsV1Enabled - Whether this site is enabled for Bot Framework V1 protocol.
 	IsV1Enabled *bool `json:"isV1Enabled,omitempty"`
-	// IsV3Enabled - Whether this site is enabled for Bot Framework V1 protocol.
+	// IsV3Enabled - Whether this site is enabled for Bot Framework V3 protocol.
 	IsV3Enabled *bool `json:"isV3Enabled,omitempty"`
 	// IsSecureSiteEnabled - Whether this site is enabled for authentication with Bot Framework.
 	IsSecureSiteEnabled *bool `json:"isSecureSiteEnabled,omitempty"`
-	// IsBlockUserUploadEnabled - Whether this site is enabled for block user upload.
-	IsBlockUserUploadEnabled *bool `json:"isBlockUserUploadEnabled,omitempty"`
 	// TrustedOrigins - List of Trusted Origin URLs for this site. This field is applicable only if isSecureSiteEnabled is True.
 	TrustedOrigins *[]string `json:"trustedOrigins,omitempty"`
+	// IsWebChatSpeechEnabled - Whether this site is enabled for Webchat Speech
+	IsWebChatSpeechEnabled *bool `json:"isWebChatSpeechEnabled,omitempty"`
+	// IsWebchatPreviewEnabled - Whether this site is enabled for preview versions of Webchat
+	IsWebchatPreviewEnabled *bool `json:"isWebchatPreviewEnabled,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DirectLineSite.
 func (dls DirectLineSite) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if dls.TenantID != nil {
+		objectMap["tenantId"] = dls.TenantID
+	}
 	if dls.SiteName != nil {
 		objectMap["siteName"] = dls.SiteName
 	}
 	if dls.IsEnabled != nil {
 		objectMap["isEnabled"] = dls.IsEnabled
+	}
+	if dls.IsEndpointParametersEnabled != nil {
+		objectMap["isEndpointParametersEnabled"] = dls.IsEndpointParametersEnabled
+	}
+	if dls.IsDetailedLoggingEnabled != nil {
+		objectMap["isDetailedLoggingEnabled"] = dls.IsDetailedLoggingEnabled
+	}
+	if dls.IsBlockUserUploadEnabled != nil {
+		objectMap["isBlockUserUploadEnabled"] = dls.IsBlockUserUploadEnabled
+	}
+	if dls.IsNoStorageEnabled != nil {
+		objectMap["isNoStorageEnabled"] = dls.IsNoStorageEnabled
+	}
+	if dls.ETag != nil {
+		objectMap["eTag"] = dls.ETag
+	}
+	if dls.AppID != nil {
+		objectMap["appId"] = dls.AppID
 	}
 	if dls.IsV1Enabled != nil {
 		objectMap["isV1Enabled"] = dls.IsV1Enabled
@@ -1544,11 +1825,14 @@ func (dls DirectLineSite) MarshalJSON() ([]byte, error) {
 	if dls.IsSecureSiteEnabled != nil {
 		objectMap["isSecureSiteEnabled"] = dls.IsSecureSiteEnabled
 	}
-	if dls.IsBlockUserUploadEnabled != nil {
-		objectMap["isBlockUserUploadEnabled"] = dls.IsBlockUserUploadEnabled
-	}
 	if dls.TrustedOrigins != nil {
 		objectMap["trustedOrigins"] = dls.TrustedOrigins
+	}
+	if dls.IsWebChatSpeechEnabled != nil {
+		objectMap["isWebChatSpeechEnabled"] = dls.IsWebChatSpeechEnabled
+	}
+	if dls.IsWebchatPreviewEnabled != nil {
+		objectMap["isWebchatPreviewEnabled"] = dls.IsWebchatPreviewEnabled
 	}
 	return json.Marshal(objectMap)
 }
@@ -1563,7 +1847,7 @@ type DirectLineSpeechChannel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -1598,6 +1882,11 @@ func (dlsc DirectLineSpeechChannel) AsFacebookChannel() (*FacebookChannel, bool)
 
 // AsEmailChannel is the BasicChannel implementation for DirectLineSpeechChannel.
 func (dlsc DirectLineSpeechChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for DirectLineSpeechChannel.
+func (dlsc DirectLineSpeechChannel) AsOutlookChannel() (*OutlookChannel, bool) {
 	return nil, false
 }
 
@@ -1651,6 +1940,31 @@ func (dlsc DirectLineSpeechChannel) AsDirectLineSpeechChannel() (*DirectLineSpee
 	return &dlsc, true
 }
 
+// AsOmnichannel is the BasicChannel implementation for DirectLineSpeechChannel.
+func (dlsc DirectLineSpeechChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for DirectLineSpeechChannel.
+func (dlsc DirectLineSpeechChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for DirectLineSpeechChannel.
+func (dlsc DirectLineSpeechChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for DirectLineSpeechChannel.
+func (dlsc DirectLineSpeechChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for DirectLineSpeechChannel.
+func (dlsc DirectLineSpeechChannel) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
 // AsChannel is the BasicChannel implementation for DirectLineSpeechChannel.
 func (dlsc DirectLineSpeechChannel) AsChannel() (*Channel, bool) {
 	return nil, false
@@ -1663,6 +1977,8 @@ func (dlsc DirectLineSpeechChannel) AsBasicChannel() (BasicChannel, bool) {
 
 // DirectLineSpeechChannelProperties the parameters to provide for the DirectLine Speech channel.
 type DirectLineSpeechChannelProperties struct {
+	// CognitiveServiceResourceID - The cognitive service id with this channel registration.
+	CognitiveServiceResourceID *string `json:"cognitiveServiceResourceId,omitempty"`
 	// CognitiveServiceRegion - The cognitive service region with this channel registration.
 	CognitiveServiceRegion *string `json:"cognitiveServiceRegion,omitempty"`
 	// CognitiveServiceSubscriptionKey - The cognitive service subscription key to use with this channel registration.
@@ -1687,7 +2003,7 @@ type EmailChannel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -1723,6 +2039,11 @@ func (ec EmailChannel) AsFacebookChannel() (*FacebookChannel, bool) {
 // AsEmailChannel is the BasicChannel implementation for EmailChannel.
 func (ec EmailChannel) AsEmailChannel() (*EmailChannel, bool) {
 	return &ec, true
+}
+
+// AsOutlookChannel is the BasicChannel implementation for EmailChannel.
+func (ec EmailChannel) AsOutlookChannel() (*OutlookChannel, bool) {
+	return nil, false
 }
 
 // AsMsTeamsChannel is the BasicChannel implementation for EmailChannel.
@@ -1775,6 +2096,31 @@ func (ec EmailChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bo
 	return nil, false
 }
 
+// AsOmnichannel is the BasicChannel implementation for EmailChannel.
+func (ec EmailChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for EmailChannel.
+func (ec EmailChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for EmailChannel.
+func (ec EmailChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for EmailChannel.
+func (ec EmailChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for EmailChannel.
+func (ec EmailChannel) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
 // AsChannel is the BasicChannel implementation for EmailChannel.
 func (ec EmailChannel) AsChannel() (*Channel, bool) {
 	return nil, false
@@ -1789,8 +2135,12 @@ func (ec EmailChannel) AsBasicChannel() (BasicChannel, bool) {
 type EmailChannelProperties struct {
 	// EmailAddress - The email address
 	EmailAddress *string `json:"emailAddress,omitempty"`
+	// AuthMethod - Email channel auth method. 0 Password (Default); 1 Graph.
+	AuthMethod *float64 `json:"authMethod,omitempty"`
 	// Password - The password for the email address. Value only returned through POST to the action Channel List API, otherwise empty.
 	Password *string `json:"password,omitempty"`
+	// MagicCode - The magic code for setting up the modern authentication.
+	MagicCode *string `json:"magicCode,omitempty"`
 	// IsEnabled - Whether this channel is enabled for the bot
 	IsEnabled *bool `json:"isEnabled,omitempty"`
 }
@@ -1819,7 +2169,7 @@ type FacebookChannel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -1854,6 +2204,11 @@ func (fc FacebookChannel) AsFacebookChannel() (*FacebookChannel, bool) {
 
 // AsEmailChannel is the BasicChannel implementation for FacebookChannel.
 func (fc FacebookChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for FacebookChannel.
+func (fc FacebookChannel) AsOutlookChannel() (*OutlookChannel, bool) {
 	return nil, false
 }
 
@@ -1904,6 +2259,31 @@ func (fc FacebookChannel) AsLineChannel() (*LineChannel, bool) {
 
 // AsDirectLineSpeechChannel is the BasicChannel implementation for FacebookChannel.
 func (fc FacebookChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool) {
+	return nil, false
+}
+
+// AsOmnichannel is the BasicChannel implementation for FacebookChannel.
+func (fc FacebookChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for FacebookChannel.
+func (fc FacebookChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for FacebookChannel.
+func (fc FacebookChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for FacebookChannel.
+func (fc FacebookChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for FacebookChannel.
+func (fc FacebookChannel) AsM365Extensions() (*M365Extensions, bool) {
 	return nil, false
 }
 
@@ -1991,7 +2371,7 @@ type KikChannel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -2026,6 +2406,11 @@ func (kc KikChannel) AsFacebookChannel() (*FacebookChannel, bool) {
 
 // AsEmailChannel is the BasicChannel implementation for KikChannel.
 func (kc KikChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for KikChannel.
+func (kc KikChannel) AsOutlookChannel() (*OutlookChannel, bool) {
 	return nil, false
 }
 
@@ -2079,6 +2464,31 @@ func (kc KikChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool
 	return nil, false
 }
 
+// AsOmnichannel is the BasicChannel implementation for KikChannel.
+func (kc KikChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for KikChannel.
+func (kc KikChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for KikChannel.
+func (kc KikChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for KikChannel.
+func (kc KikChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for KikChannel.
+func (kc KikChannel) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
 // AsChannel is the BasicChannel implementation for KikChannel.
 func (kc KikChannel) AsChannel() (*Channel, bool) {
 	return nil, false
@@ -2111,7 +2521,7 @@ type LineChannel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -2146,6 +2556,11 @@ func (lc LineChannel) AsFacebookChannel() (*FacebookChannel, bool) {
 
 // AsEmailChannel is the BasicChannel implementation for LineChannel.
 func (lc LineChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for LineChannel.
+func (lc LineChannel) AsOutlookChannel() (*OutlookChannel, bool) {
 	return nil, false
 }
 
@@ -2196,6 +2611,31 @@ func (lc LineChannel) AsLineChannel() (*LineChannel, bool) {
 
 // AsDirectLineSpeechChannel is the BasicChannel implementation for LineChannel.
 func (lc LineChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool) {
+	return nil, false
+}
+
+// AsOmnichannel is the BasicChannel implementation for LineChannel.
+func (lc LineChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for LineChannel.
+func (lc LineChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for LineChannel.
+func (lc LineChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for LineChannel.
+func (lc LineChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for LineChannel.
+func (lc LineChannel) AsM365Extensions() (*M365Extensions, bool) {
 	return nil, false
 }
 
@@ -2281,8 +2721,6 @@ type ListChannelWithKeysResponse struct {
 	Kind Kind `json:"kind,omitempty"`
 	// Etag - Entity Tag
 	Etag *string `json:"etag,omitempty"`
-	// Zones - READ-ONLY; Entity zones
-	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ListChannelWithKeysResponse.
@@ -2453,19 +2891,143 @@ func (lcwkr *ListChannelWithKeysResponse) UnmarshalJSON(body []byte) error {
 				}
 				lcwkr.Etag = &etag
 			}
-		case "zones":
-			if v != nil {
-				var zones []string
-				err = json.Unmarshal(*v, &zones)
-				if err != nil {
-					return err
-				}
-				lcwkr.Zones = &zones
-			}
 		}
 	}
 
 	return nil
+}
+
+// M365Extensions m365 Extensions definition
+type M365Extensions struct {
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
+	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for M365Extensions.
+func (me M365Extensions) MarshalJSON() ([]byte, error) {
+	me.ChannelName = ChannelNameBasicChannelChannelNameM365Extensions
+	objectMap := make(map[string]interface{})
+	if me.Etag != nil {
+		objectMap["etag"] = me.Etag
+	}
+	if me.Location != nil {
+		objectMap["location"] = me.Location
+	}
+	if me.ChannelName != "" {
+		objectMap["channelName"] = me.ChannelName
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAlexaChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsAlexaChannel() (*AlexaChannel, bool) {
+	return nil, false
+}
+
+// AsFacebookChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsFacebookChannel() (*FacebookChannel, bool) {
+	return nil, false
+}
+
+// AsEmailChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsOutlookChannel() (*OutlookChannel, bool) {
+	return nil, false
+}
+
+// AsMsTeamsChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsMsTeamsChannel() (*MsTeamsChannel, bool) {
+	return nil, false
+}
+
+// AsSkypeChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsSkypeChannel() (*SkypeChannel, bool) {
+	return nil, false
+}
+
+// AsKikChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsKikChannel() (*KikChannel, bool) {
+	return nil, false
+}
+
+// AsWebChatChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsWebChatChannel() (*WebChatChannel, bool) {
+	return nil, false
+}
+
+// AsDirectLineChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsDirectLineChannel() (*DirectLineChannel, bool) {
+	return nil, false
+}
+
+// AsTelegramChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsTelegramChannel() (*TelegramChannel, bool) {
+	return nil, false
+}
+
+// AsSmsChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsSmsChannel() (*SmsChannel, bool) {
+	return nil, false
+}
+
+// AsSlackChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsSlackChannel() (*SlackChannel, bool) {
+	return nil, false
+}
+
+// AsLineChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsLineChannel() (*LineChannel, bool) {
+	return nil, false
+}
+
+// AsDirectLineSpeechChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool) {
+	return nil, false
+}
+
+// AsOmnichannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsM365Extensions() (*M365Extensions, bool) {
+	return &me, true
+}
+
+// AsChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsChannel() (*Channel, bool) {
+	return nil, false
+}
+
+// AsBasicChannel is the BasicChannel implementation for M365Extensions.
+func (me M365Extensions) AsBasicChannel() (BasicChannel, bool) {
+	return &me, true
 }
 
 // MsTeamsChannel microsoft Teams channel definition
@@ -2478,7 +3040,7 @@ type MsTeamsChannel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -2513,6 +3075,11 @@ func (mtc MsTeamsChannel) AsFacebookChannel() (*FacebookChannel, bool) {
 
 // AsEmailChannel is the BasicChannel implementation for MsTeamsChannel.
 func (mtc MsTeamsChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for MsTeamsChannel.
+func (mtc MsTeamsChannel) AsOutlookChannel() (*OutlookChannel, bool) {
 	return nil, false
 }
 
@@ -2566,6 +3133,31 @@ func (mtc MsTeamsChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel,
 	return nil, false
 }
 
+// AsOmnichannel is the BasicChannel implementation for MsTeamsChannel.
+func (mtc MsTeamsChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for MsTeamsChannel.
+func (mtc MsTeamsChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for MsTeamsChannel.
+func (mtc MsTeamsChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for MsTeamsChannel.
+func (mtc MsTeamsChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for MsTeamsChannel.
+func (mtc MsTeamsChannel) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
 // AsChannel is the BasicChannel implementation for MsTeamsChannel.
 func (mtc MsTeamsChannel) AsChannel() (*Channel, bool) {
 	return nil, false
@@ -2580,8 +3172,8 @@ func (mtc MsTeamsChannel) AsBasicChannel() (BasicChannel, bool) {
 type MsTeamsChannelProperties struct {
 	// EnableCalling - Enable calling for Microsoft Teams channel
 	EnableCalling *bool `json:"enableCalling,omitempty"`
-	// CallingWebHook - Webhook for Microsoft Teams channel calls
-	CallingWebHook *string `json:"callingWebHook,omitempty"`
+	// CallingWebhook - Webhook for Microsoft Teams channel calls
+	CallingWebhook *string `json:"callingWebhook,omitempty"`
 	// IsEnabled - Whether this channel is enabled for the bot
 	IsEnabled *bool `json:"isEnabled,omitempty"`
 	// IncomingCallRoute - Webhook for Microsoft Teams channel calls
@@ -2590,6 +3182,139 @@ type MsTeamsChannelProperties struct {
 	DeploymentEnvironment *string `json:"deploymentEnvironment,omitempty"`
 	// AcceptedTerms - Whether this channel accepted terms
 	AcceptedTerms *bool `json:"acceptedTerms,omitempty"`
+}
+
+// Omnichannel omnichannel channel definition
+type Omnichannel struct {
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
+	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Omnichannel.
+func (o Omnichannel) MarshalJSON() ([]byte, error) {
+	o.ChannelName = ChannelNameBasicChannelChannelNameOmnichannel
+	objectMap := make(map[string]interface{})
+	if o.Etag != nil {
+		objectMap["etag"] = o.Etag
+	}
+	if o.Location != nil {
+		objectMap["location"] = o.Location
+	}
+	if o.ChannelName != "" {
+		objectMap["channelName"] = o.ChannelName
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAlexaChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsAlexaChannel() (*AlexaChannel, bool) {
+	return nil, false
+}
+
+// AsFacebookChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsFacebookChannel() (*FacebookChannel, bool) {
+	return nil, false
+}
+
+// AsEmailChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsOutlookChannel() (*OutlookChannel, bool) {
+	return nil, false
+}
+
+// AsMsTeamsChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsMsTeamsChannel() (*MsTeamsChannel, bool) {
+	return nil, false
+}
+
+// AsSkypeChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsSkypeChannel() (*SkypeChannel, bool) {
+	return nil, false
+}
+
+// AsKikChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsKikChannel() (*KikChannel, bool) {
+	return nil, false
+}
+
+// AsWebChatChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsWebChatChannel() (*WebChatChannel, bool) {
+	return nil, false
+}
+
+// AsDirectLineChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsDirectLineChannel() (*DirectLineChannel, bool) {
+	return nil, false
+}
+
+// AsTelegramChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsTelegramChannel() (*TelegramChannel, bool) {
+	return nil, false
+}
+
+// AsSmsChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsSmsChannel() (*SmsChannel, bool) {
+	return nil, false
+}
+
+// AsSlackChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsSlackChannel() (*SlackChannel, bool) {
+	return nil, false
+}
+
+// AsLineChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsLineChannel() (*LineChannel, bool) {
+	return nil, false
+}
+
+// AsDirectLineSpeechChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool) {
+	return nil, false
+}
+
+// AsOmnichannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsOmnichannel() (*Omnichannel, bool) {
+	return &o, true
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
+// AsChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsChannel() (*Channel, bool) {
+	return nil, false
+}
+
+// AsBasicChannel is the BasicChannel implementation for Omnichannel.
+func (o Omnichannel) AsBasicChannel() (BasicChannel, bool) {
+	return &o, true
 }
 
 // OperationDisplayInfo the operation supported by Bot Service Management.
@@ -2837,6 +3562,139 @@ func (future *OperationResultsGetFuture) result(client OperationResultsClient) (
 	return
 }
 
+// OutlookChannel outlook channel definition
+type OutlookChannel struct {
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
+	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OutlookChannel.
+func (oc OutlookChannel) MarshalJSON() ([]byte, error) {
+	oc.ChannelName = ChannelNameBasicChannelChannelNameOutlookChannel
+	objectMap := make(map[string]interface{})
+	if oc.Etag != nil {
+		objectMap["etag"] = oc.Etag
+	}
+	if oc.Location != nil {
+		objectMap["location"] = oc.Location
+	}
+	if oc.ChannelName != "" {
+		objectMap["channelName"] = oc.ChannelName
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAlexaChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsAlexaChannel() (*AlexaChannel, bool) {
+	return nil, false
+}
+
+// AsFacebookChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsFacebookChannel() (*FacebookChannel, bool) {
+	return nil, false
+}
+
+// AsEmailChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsOutlookChannel() (*OutlookChannel, bool) {
+	return &oc, true
+}
+
+// AsMsTeamsChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsMsTeamsChannel() (*MsTeamsChannel, bool) {
+	return nil, false
+}
+
+// AsSkypeChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsSkypeChannel() (*SkypeChannel, bool) {
+	return nil, false
+}
+
+// AsKikChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsKikChannel() (*KikChannel, bool) {
+	return nil, false
+}
+
+// AsWebChatChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsWebChatChannel() (*WebChatChannel, bool) {
+	return nil, false
+}
+
+// AsDirectLineChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsDirectLineChannel() (*DirectLineChannel, bool) {
+	return nil, false
+}
+
+// AsTelegramChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsTelegramChannel() (*TelegramChannel, bool) {
+	return nil, false
+}
+
+// AsSmsChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsSmsChannel() (*SmsChannel, bool) {
+	return nil, false
+}
+
+// AsSlackChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsSlackChannel() (*SlackChannel, bool) {
+	return nil, false
+}
+
+// AsLineChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsLineChannel() (*LineChannel, bool) {
+	return nil, false
+}
+
+// AsDirectLineSpeechChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool) {
+	return nil, false
+}
+
+// AsOmnichannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
+// AsChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsChannel() (*Channel, bool) {
+	return nil, false
+}
+
+// AsBasicChannel is the BasicChannel implementation for OutlookChannel.
+func (oc OutlookChannel) AsBasicChannel() (BasicChannel, bool) {
+	return &oc, true
+}
+
 // PrivateEndpoint the Private Endpoint resource.
 type PrivateEndpoint struct {
 	// ID - READ-ONLY; The ARM identifier for Private Endpoint
@@ -2938,6 +3796,8 @@ type PrivateEndpointConnectionProperties struct {
 	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
 	// ProvisioningState - The provisioning state of the private endpoint connection resource. Possible values include: 'PrivateEndpointConnectionProvisioningStateSucceeded', 'PrivateEndpointConnectionProvisioningStateCreating', 'PrivateEndpointConnectionProvisioningStateDeleting', 'PrivateEndpointConnectionProvisioningStateFailed'
 	ProvisioningState PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
+	// GroupIds - Group ids
+	GroupIds *[]string `json:"groupIds,omitempty"`
 }
 
 // PrivateLinkResource a private link resource
@@ -3084,8 +3944,6 @@ type Resource struct {
 	Kind Kind `json:"kind,omitempty"`
 	// Etag - Entity Tag
 	Etag *string `json:"etag,omitempty"`
-	// Zones - READ-ONLY; Entity zones
-	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
@@ -3107,6 +3965,139 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 		objectMap["etag"] = r.Etag
 	}
 	return json.Marshal(objectMap)
+}
+
+// SearchAssistant searchAssistant definition
+type SearchAssistant struct {
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
+	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SearchAssistant.
+func (sa SearchAssistant) MarshalJSON() ([]byte, error) {
+	sa.ChannelName = ChannelNameBasicChannelChannelNameSearchAssistant
+	objectMap := make(map[string]interface{})
+	if sa.Etag != nil {
+		objectMap["etag"] = sa.Etag
+	}
+	if sa.Location != nil {
+		objectMap["location"] = sa.Location
+	}
+	if sa.ChannelName != "" {
+		objectMap["channelName"] = sa.ChannelName
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAlexaChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsAlexaChannel() (*AlexaChannel, bool) {
+	return nil, false
+}
+
+// AsFacebookChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsFacebookChannel() (*FacebookChannel, bool) {
+	return nil, false
+}
+
+// AsEmailChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsOutlookChannel() (*OutlookChannel, bool) {
+	return nil, false
+}
+
+// AsMsTeamsChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsMsTeamsChannel() (*MsTeamsChannel, bool) {
+	return nil, false
+}
+
+// AsSkypeChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsSkypeChannel() (*SkypeChannel, bool) {
+	return nil, false
+}
+
+// AsKikChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsKikChannel() (*KikChannel, bool) {
+	return nil, false
+}
+
+// AsWebChatChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsWebChatChannel() (*WebChatChannel, bool) {
+	return nil, false
+}
+
+// AsDirectLineChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsDirectLineChannel() (*DirectLineChannel, bool) {
+	return nil, false
+}
+
+// AsTelegramChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsTelegramChannel() (*TelegramChannel, bool) {
+	return nil, false
+}
+
+// AsSmsChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsSmsChannel() (*SmsChannel, bool) {
+	return nil, false
+}
+
+// AsSlackChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsSlackChannel() (*SlackChannel, bool) {
+	return nil, false
+}
+
+// AsLineChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsLineChannel() (*LineChannel, bool) {
+	return nil, false
+}
+
+// AsDirectLineSpeechChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool) {
+	return nil, false
+}
+
+// AsOmnichannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsSearchAssistant() (*SearchAssistant, bool) {
+	return &sa, true
+}
+
+// AsM365Extensions is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
+// AsChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsChannel() (*Channel, bool) {
+	return nil, false
+}
+
+// AsBasicChannel is the BasicChannel implementation for SearchAssistant.
+func (sa SearchAssistant) AsBasicChannel() (BasicChannel, bool) {
+	return &sa, true
 }
 
 // ServiceProvider service Provider Definition
@@ -3157,11 +4148,11 @@ type ServiceProviderProperties struct {
 	ID *string `json:"id,omitempty"`
 	// DisplayName - READ-ONLY; Display Name of the Service Provider
 	DisplayName *string `json:"displayName,omitempty"`
-	// ServiceProviderName - READ-ONLY; Display Name of the Service Provider
+	// ServiceProviderName - READ-ONLY; Name of the Service Provider
 	ServiceProviderName *string `json:"serviceProviderName,omitempty"`
-	// DevPortalURL - READ-ONLY; Display Name of the Service Provider
+	// DevPortalURL - READ-ONLY; URL of Dev Portal
 	DevPortalURL *string `json:"devPortalUrl,omitempty"`
-	// IconURL - READ-ONLY; Display Name of the Service Provider
+	// IconURL - The URL of icon
 	IconURL *string `json:"iconUrl,omitempty"`
 	// Parameters - The list of parameters for the Service Provider
 	Parameters *[]ServiceProviderParameter `json:"parameters,omitempty"`
@@ -3170,6 +4161,9 @@ type ServiceProviderProperties struct {
 // MarshalJSON is the custom marshaler for ServiceProviderProperties.
 func (spp ServiceProviderProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if spp.IconURL != nil {
+		objectMap["iconUrl"] = spp.IconURL
+	}
 	if spp.Parameters != nil {
 		objectMap["parameters"] = spp.Parameters
 	}
@@ -3196,6 +4190,8 @@ func (sprl ServiceProviderResponseList) MarshalJSON() ([]byte, error) {
 
 // Site a site for the channel
 type Site struct {
+	// TenantID - Tenant Id
+	TenantID *string `json:"tenantId,omitempty"`
 	// SiteID - READ-ONLY; Site Id
 	SiteID *string `json:"siteId,omitempty"`
 	// SiteName - Site name
@@ -3206,35 +4202,63 @@ type Site struct {
 	Key2 *string `json:"key2,omitempty"`
 	// IsEnabled - Whether this site is enabled for DirectLine channel
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// IsWebchatPreviewEnabled - Whether this site is enabled for preview versions of Webchat
-	IsWebchatPreviewEnabled *bool `json:"isWebchatPreviewEnabled,omitempty"`
+	// IsTokenEnabled - READ-ONLY; Whether this site is token enabled for channel
+	IsTokenEnabled *bool `json:"isTokenEnabled,omitempty"`
+	// IsEndpointParametersEnabled - Whether this site is EndpointParameters enabled for channel
+	IsEndpointParametersEnabled *bool `json:"isEndpointParametersEnabled,omitempty"`
+	// IsDetailedLoggingEnabled - Whether this site is disabled detailed logging for
+	IsDetailedLoggingEnabled *bool `json:"isDetailedLoggingEnabled,omitempty"`
+	// IsBlockUserUploadEnabled - Whether this site is enabled for block user upload.
+	IsBlockUserUploadEnabled *bool `json:"isBlockUserUploadEnabled,omitempty"`
+	// IsNoStorageEnabled - Whether this no-storage site is disabled detailed logging for
+	IsNoStorageEnabled *bool `json:"isNoStorageEnabled,omitempty"`
+	// ETag - Entity Tag
+	ETag *string `json:"eTag,omitempty"`
+	// AppID - DirectLine application id
+	AppID *string `json:"appId,omitempty"`
 	// IsV1Enabled - Whether this site is enabled for Bot Framework V1 protocol.
 	IsV1Enabled *bool `json:"isV1Enabled,omitempty"`
-	// IsV3Enabled - Whether this site is enabled for Bot Framework V1 protocol.
+	// IsV3Enabled - Whether this site is enabled for Bot Framework V3 protocol.
 	IsV3Enabled *bool `json:"isV3Enabled,omitempty"`
 	// IsSecureSiteEnabled - Whether this site is enabled for authentication with Bot Framework.
 	IsSecureSiteEnabled *bool `json:"isSecureSiteEnabled,omitempty"`
-	// IsBlockUserUploadEnabled - Whether this site is enabled for block user upload.
-	IsBlockUserUploadEnabled *bool `json:"isBlockUserUploadEnabled,omitempty"`
 	// TrustedOrigins - List of Trusted Origin URLs for this site. This field is applicable only if isSecureSiteEnabled is True.
 	TrustedOrigins *[]string `json:"trustedOrigins,omitempty"`
-	// IsTokenEnabled - Whether this site is token enabled for channel
-	IsTokenEnabled *bool `json:"isTokenEnabled,omitempty"`
-	// ETag - Entity Tag
-	ETag *string `json:"eTag,omitempty"`
+	// IsWebChatSpeechEnabled - Whether this site is enabled for Webchat Speech
+	IsWebChatSpeechEnabled *bool `json:"isWebChatSpeechEnabled,omitempty"`
+	// IsWebchatPreviewEnabled - Whether this site is enabled for preview versions of Webchat
+	IsWebchatPreviewEnabled *bool `json:"isWebchatPreviewEnabled,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Site.
 func (s Site) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if s.TenantID != nil {
+		objectMap["tenantId"] = s.TenantID
+	}
 	if s.SiteName != nil {
 		objectMap["siteName"] = s.SiteName
 	}
 	if s.IsEnabled != nil {
 		objectMap["isEnabled"] = s.IsEnabled
 	}
-	if s.IsWebchatPreviewEnabled != nil {
-		objectMap["isWebchatPreviewEnabled"] = s.IsWebchatPreviewEnabled
+	if s.IsEndpointParametersEnabled != nil {
+		objectMap["isEndpointParametersEnabled"] = s.IsEndpointParametersEnabled
+	}
+	if s.IsDetailedLoggingEnabled != nil {
+		objectMap["isDetailedLoggingEnabled"] = s.IsDetailedLoggingEnabled
+	}
+	if s.IsBlockUserUploadEnabled != nil {
+		objectMap["isBlockUserUploadEnabled"] = s.IsBlockUserUploadEnabled
+	}
+	if s.IsNoStorageEnabled != nil {
+		objectMap["isNoStorageEnabled"] = s.IsNoStorageEnabled
+	}
+	if s.ETag != nil {
+		objectMap["eTag"] = s.ETag
+	}
+	if s.AppID != nil {
+		objectMap["appId"] = s.AppID
 	}
 	if s.IsV1Enabled != nil {
 		objectMap["isV1Enabled"] = s.IsV1Enabled
@@ -3245,17 +4269,14 @@ func (s Site) MarshalJSON() ([]byte, error) {
 	if s.IsSecureSiteEnabled != nil {
 		objectMap["isSecureSiteEnabled"] = s.IsSecureSiteEnabled
 	}
-	if s.IsBlockUserUploadEnabled != nil {
-		objectMap["isBlockUserUploadEnabled"] = s.IsBlockUserUploadEnabled
-	}
 	if s.TrustedOrigins != nil {
 		objectMap["trustedOrigins"] = s.TrustedOrigins
 	}
-	if s.IsTokenEnabled != nil {
-		objectMap["isTokenEnabled"] = s.IsTokenEnabled
+	if s.IsWebChatSpeechEnabled != nil {
+		objectMap["isWebChatSpeechEnabled"] = s.IsWebChatSpeechEnabled
 	}
-	if s.ETag != nil {
-		objectMap["eTag"] = s.ETag
+	if s.IsWebchatPreviewEnabled != nil {
+		objectMap["isWebchatPreviewEnabled"] = s.IsWebchatPreviewEnabled
 	}
 	return json.Marshal(objectMap)
 }
@@ -3296,7 +4317,7 @@ type SkypeChannel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -3331,6 +4352,11 @@ func (sc SkypeChannel) AsFacebookChannel() (*FacebookChannel, bool) {
 
 // AsEmailChannel is the BasicChannel implementation for SkypeChannel.
 func (sc SkypeChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for SkypeChannel.
+func (sc SkypeChannel) AsOutlookChannel() (*OutlookChannel, bool) {
 	return nil, false
 }
 
@@ -3384,6 +4410,31 @@ func (sc SkypeChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bo
 	return nil, false
 }
 
+// AsOmnichannel is the BasicChannel implementation for SkypeChannel.
+func (sc SkypeChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for SkypeChannel.
+func (sc SkypeChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for SkypeChannel.
+func (sc SkypeChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for SkypeChannel.
+func (sc SkypeChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for SkypeChannel.
+func (sc SkypeChannel) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
 // AsChannel is the BasicChannel implementation for SkypeChannel.
 func (sc SkypeChannel) AsChannel() (*Channel, bool) {
 	return nil, false
@@ -3428,7 +4479,7 @@ type SlackChannel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -3463,6 +4514,11 @@ func (sc SlackChannel) AsFacebookChannel() (*FacebookChannel, bool) {
 
 // AsEmailChannel is the BasicChannel implementation for SlackChannel.
 func (sc SlackChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for SlackChannel.
+func (sc SlackChannel) AsOutlookChannel() (*OutlookChannel, bool) {
 	return nil, false
 }
 
@@ -3513,6 +4569,31 @@ func (sc SlackChannel) AsLineChannel() (*LineChannel, bool) {
 
 // AsDirectLineSpeechChannel is the BasicChannel implementation for SlackChannel.
 func (sc SlackChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool) {
+	return nil, false
+}
+
+// AsOmnichannel is the BasicChannel implementation for SlackChannel.
+func (sc SlackChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for SlackChannel.
+func (sc SlackChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for SlackChannel.
+func (sc SlackChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for SlackChannel.
+func (sc SlackChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for SlackChannel.
+func (sc SlackChannel) AsM365Extensions() (*M365Extensions, bool) {
 	return nil, false
 }
 
@@ -3589,7 +4670,7 @@ type SmsChannel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -3624,6 +4705,11 @@ func (sc SmsChannel) AsFacebookChannel() (*FacebookChannel, bool) {
 
 // AsEmailChannel is the BasicChannel implementation for SmsChannel.
 func (sc SmsChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for SmsChannel.
+func (sc SmsChannel) AsOutlookChannel() (*OutlookChannel, bool) {
 	return nil, false
 }
 
@@ -3677,6 +4763,31 @@ func (sc SmsChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool
 	return nil, false
 }
 
+// AsOmnichannel is the BasicChannel implementation for SmsChannel.
+func (sc SmsChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for SmsChannel.
+func (sc SmsChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for SmsChannel.
+func (sc SmsChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for SmsChannel.
+func (sc SmsChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for SmsChannel.
+func (sc SmsChannel) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
 // AsChannel is the BasicChannel implementation for SmsChannel.
 func (sc SmsChannel) AsChannel() (*Channel, bool) {
 	return nil, false
@@ -3711,7 +4822,7 @@ type TelegramChannel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -3746,6 +4857,11 @@ func (tc TelegramChannel) AsFacebookChannel() (*FacebookChannel, bool) {
 
 // AsEmailChannel is the BasicChannel implementation for TelegramChannel.
 func (tc TelegramChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for TelegramChannel.
+func (tc TelegramChannel) AsOutlookChannel() (*OutlookChannel, bool) {
 	return nil, false
 }
 
@@ -3799,6 +4915,31 @@ func (tc TelegramChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel,
 	return nil, false
 }
 
+// AsOmnichannel is the BasicChannel implementation for TelegramChannel.
+func (tc TelegramChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for TelegramChannel.
+func (tc TelegramChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for TelegramChannel.
+func (tc TelegramChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for TelegramChannel.
+func (tc TelegramChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for TelegramChannel.
+func (tc TelegramChannel) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
 // AsChannel is the BasicChannel implementation for TelegramChannel.
 func (tc TelegramChannel) AsChannel() (*Channel, bool) {
 	return nil, false
@@ -3819,6 +4960,202 @@ type TelegramChannelProperties struct {
 	IsEnabled *bool `json:"isEnabled,omitempty"`
 }
 
+// TelephonyChannel telephony channel definition
+type TelephonyChannel struct {
+	// Properties - The set of properties specific to Telephony channel resource
+	Properties *TelephonyChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
+	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TelephonyChannel.
+func (tc TelephonyChannel) MarshalJSON() ([]byte, error) {
+	tc.ChannelName = ChannelNameBasicChannelChannelNameTelephonyChannel
+	objectMap := make(map[string]interface{})
+	if tc.Properties != nil {
+		objectMap["properties"] = tc.Properties
+	}
+	if tc.Etag != nil {
+		objectMap["etag"] = tc.Etag
+	}
+	if tc.Location != nil {
+		objectMap["location"] = tc.Location
+	}
+	if tc.ChannelName != "" {
+		objectMap["channelName"] = tc.ChannelName
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAlexaChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsAlexaChannel() (*AlexaChannel, bool) {
+	return nil, false
+}
+
+// AsFacebookChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsFacebookChannel() (*FacebookChannel, bool) {
+	return nil, false
+}
+
+// AsEmailChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsOutlookChannel() (*OutlookChannel, bool) {
+	return nil, false
+}
+
+// AsMsTeamsChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsMsTeamsChannel() (*MsTeamsChannel, bool) {
+	return nil, false
+}
+
+// AsSkypeChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsSkypeChannel() (*SkypeChannel, bool) {
+	return nil, false
+}
+
+// AsKikChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsKikChannel() (*KikChannel, bool) {
+	return nil, false
+}
+
+// AsWebChatChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsWebChatChannel() (*WebChatChannel, bool) {
+	return nil, false
+}
+
+// AsDirectLineChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsDirectLineChannel() (*DirectLineChannel, bool) {
+	return nil, false
+}
+
+// AsTelegramChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsTelegramChannel() (*TelegramChannel, bool) {
+	return nil, false
+}
+
+// AsSmsChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsSmsChannel() (*SmsChannel, bool) {
+	return nil, false
+}
+
+// AsSlackChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsSlackChannel() (*SlackChannel, bool) {
+	return nil, false
+}
+
+// AsLineChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsLineChannel() (*LineChannel, bool) {
+	return nil, false
+}
+
+// AsDirectLineSpeechChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel, bool) {
+	return nil, false
+}
+
+// AsOmnichannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return &tc, true
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
+// AsChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsChannel() (*Channel, bool) {
+	return nil, false
+}
+
+// AsBasicChannel is the BasicChannel implementation for TelephonyChannel.
+func (tc TelephonyChannel) AsBasicChannel() (BasicChannel, bool) {
+	return &tc, true
+}
+
+// TelephonyChannelProperties the parameters to provide for the Direct Line channel.
+type TelephonyChannelProperties struct {
+	// PhoneNumbers - The list of Telephony phone numbers
+	PhoneNumbers *[]TelephonyPhoneNumbers `json:"phoneNumbers,omitempty"`
+	// APIConfigurations - The list of Telephony api configuration
+	APIConfigurations *[]TelephonyChannelResourceAPIConfiguration `json:"apiConfigurations,omitempty"`
+	// CognitiveServiceSubscriptionKey - The extensionKey1
+	CognitiveServiceSubscriptionKey *string `json:"cognitiveServiceSubscriptionKey,omitempty"`
+	// CognitiveServiceRegion - The extensionKey2
+	CognitiveServiceRegion *string `json:"cognitiveServiceRegion,omitempty"`
+	// DefaultLocale - The default locale of the channel
+	DefaultLocale *string `json:"defaultLocale,omitempty"`
+	// PremiumSKU - The premium SKU applied to the channel
+	PremiumSKU *string `json:"premiumSKU,omitempty"`
+	// IsEnabled - Whether the channel is enabled
+	IsEnabled *bool `json:"isEnabled,omitempty"`
+}
+
+// TelephonyChannelResourceAPIConfiguration a resource Api configuration for the Telephony channel
+type TelephonyChannelResourceAPIConfiguration struct {
+	// ID - The id of config.
+	ID *string `json:"id,omitempty"`
+	// ProviderName - The provider name.
+	ProviderName *string `json:"providerName,omitempty"`
+	// CognitiveServiceSubscriptionKey - The cognitive service subscription key.
+	CognitiveServiceSubscriptionKey *string `json:"cognitiveServiceSubscriptionKey,omitempty"`
+	// CognitiveServiceRegion - The cognitive service region.
+	CognitiveServiceRegion *string `json:"cognitiveServiceRegion,omitempty"`
+	// CognitiveServiceResourceID - The cognitive service resourceId.
+	CognitiveServiceResourceID *string `json:"cognitiveServiceResourceId,omitempty"`
+	// DefaultLocale - The default locale.
+	DefaultLocale *string `json:"defaultLocale,omitempty"`
+}
+
+// TelephonyPhoneNumbers a telephone number for the Telephony channel
+type TelephonyPhoneNumbers struct {
+	// ID - The element id.
+	ID *string `json:"id,omitempty"`
+	// PhoneNumber - The phone number.
+	PhoneNumber *string `json:"phoneNumber,omitempty"`
+	// AcsEndpoint - The endpoint of ACS.
+	AcsEndpoint *string `json:"acsEndpoint,omitempty"`
+	// AcsSecret - The secret of ACS.
+	AcsSecret *string `json:"acsSecret,omitempty"`
+	// AcsResourceID - The resource id of ACS.
+	AcsResourceID *string `json:"acsResourceId,omitempty"`
+	// CognitiveServiceSubscriptionKey - The subscription key of cognitive service.
+	CognitiveServiceSubscriptionKey *string `json:"cognitiveServiceSubscriptionKey,omitempty"`
+	// CognitiveServiceRegion - The service region of cognitive service.
+	CognitiveServiceRegion *string `json:"cognitiveServiceRegion,omitempty"`
+	// CognitiveServiceResourceID - The resource id of cognitive service.
+	CognitiveServiceResourceID *string `json:"cognitiveServiceResourceId,omitempty"`
+	// DefaultLocale - The default locale of the phone number.
+	DefaultLocale *string `json:"defaultLocale,omitempty"`
+	// OfferType - Optional Property that will determine the offering type of the phone.
+	OfferType *string `json:"offerType,omitempty"`
+}
+
 // WebChatChannel web Chat channel definition
 type WebChatChannel struct {
 	// Properties - The set of properties specific to Web Chat channel resource
@@ -3829,7 +5166,7 @@ type WebChatChannel struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
+	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameOutlookChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel', 'ChannelNameBasicChannelChannelNameOmnichannel', 'ChannelNameBasicChannelChannelNameTelephonyChannel', 'ChannelNameBasicChannelChannelNameAcsChatChannel', 'ChannelNameBasicChannelChannelNameSearchAssistant', 'ChannelNameBasicChannelChannelNameM365Extensions'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
 
@@ -3864,6 +5201,11 @@ func (wcc WebChatChannel) AsFacebookChannel() (*FacebookChannel, bool) {
 
 // AsEmailChannel is the BasicChannel implementation for WebChatChannel.
 func (wcc WebChatChannel) AsEmailChannel() (*EmailChannel, bool) {
+	return nil, false
+}
+
+// AsOutlookChannel is the BasicChannel implementation for WebChatChannel.
+func (wcc WebChatChannel) AsOutlookChannel() (*OutlookChannel, bool) {
 	return nil, false
 }
 
@@ -3917,6 +5259,31 @@ func (wcc WebChatChannel) AsDirectLineSpeechChannel() (*DirectLineSpeechChannel,
 	return nil, false
 }
 
+// AsOmnichannel is the BasicChannel implementation for WebChatChannel.
+func (wcc WebChatChannel) AsOmnichannel() (*Omnichannel, bool) {
+	return nil, false
+}
+
+// AsTelephonyChannel is the BasicChannel implementation for WebChatChannel.
+func (wcc WebChatChannel) AsTelephonyChannel() (*TelephonyChannel, bool) {
+	return nil, false
+}
+
+// AsAcsChatChannel is the BasicChannel implementation for WebChatChannel.
+func (wcc WebChatChannel) AsAcsChatChannel() (*AcsChatChannel, bool) {
+	return nil, false
+}
+
+// AsSearchAssistant is the BasicChannel implementation for WebChatChannel.
+func (wcc WebChatChannel) AsSearchAssistant() (*SearchAssistant, bool) {
+	return nil, false
+}
+
+// AsM365Extensions is the BasicChannel implementation for WebChatChannel.
+func (wcc WebChatChannel) AsM365Extensions() (*M365Extensions, bool) {
+	return nil, false
+}
+
 // AsChannel is the BasicChannel implementation for WebChatChannel.
 func (wcc WebChatChannel) AsChannel() (*Channel, bool) {
 	return nil, false
@@ -3946,6 +5313,8 @@ func (wccp WebChatChannelProperties) MarshalJSON() ([]byte, error) {
 
 // WebChatSite a site for the Webchat channel
 type WebChatSite struct {
+	// TenantID - Tenant Id
+	TenantID *string `json:"tenantId,omitempty"`
 	// SiteID - READ-ONLY; Site Id
 	SiteID *string `json:"siteId,omitempty"`
 	// SiteName - Site name
@@ -3956,6 +5325,30 @@ type WebChatSite struct {
 	Key2 *string `json:"key2,omitempty"`
 	// IsEnabled - Whether this site is enabled for DirectLine channel
 	IsEnabled *bool `json:"isEnabled,omitempty"`
+	// IsTokenEnabled - READ-ONLY; Whether this site is token enabled for channel
+	IsTokenEnabled *bool `json:"isTokenEnabled,omitempty"`
+	// IsEndpointParametersEnabled - Whether this site is EndpointParameters enabled for channel
+	IsEndpointParametersEnabled *bool `json:"isEndpointParametersEnabled,omitempty"`
+	// IsDetailedLoggingEnabled - Whether this site is disabled detailed logging for
+	IsDetailedLoggingEnabled *bool `json:"isDetailedLoggingEnabled,omitempty"`
+	// IsBlockUserUploadEnabled - Whether this site is enabled for block user upload.
+	IsBlockUserUploadEnabled *bool `json:"isBlockUserUploadEnabled,omitempty"`
+	// IsNoStorageEnabled - Whether this no-storage site is disabled detailed logging for
+	IsNoStorageEnabled *bool `json:"isNoStorageEnabled,omitempty"`
+	// ETag - Entity Tag
+	ETag *string `json:"eTag,omitempty"`
+	// AppID - DirectLine application id
+	AppID *string `json:"appId,omitempty"`
+	// IsV1Enabled - Whether this site is enabled for Bot Framework V1 protocol.
+	IsV1Enabled *bool `json:"isV1Enabled,omitempty"`
+	// IsV3Enabled - Whether this site is enabled for Bot Framework V3 protocol.
+	IsV3Enabled *bool `json:"isV3Enabled,omitempty"`
+	// IsSecureSiteEnabled - Whether this site is enabled for authentication with Bot Framework.
+	IsSecureSiteEnabled *bool `json:"isSecureSiteEnabled,omitempty"`
+	// TrustedOrigins - List of Trusted Origin URLs for this site. This field is applicable only if isSecureSiteEnabled is True.
+	TrustedOrigins *[]string `json:"trustedOrigins,omitempty"`
+	// IsWebChatSpeechEnabled - Whether this site is enabled for Webchat Speech
+	IsWebChatSpeechEnabled *bool `json:"isWebChatSpeechEnabled,omitempty"`
 	// IsWebchatPreviewEnabled - Whether this site is enabled for preview versions of Webchat
 	IsWebchatPreviewEnabled *bool `json:"isWebchatPreviewEnabled,omitempty"`
 }
@@ -3963,11 +5356,47 @@ type WebChatSite struct {
 // MarshalJSON is the custom marshaler for WebChatSite.
 func (wcs WebChatSite) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if wcs.TenantID != nil {
+		objectMap["tenantId"] = wcs.TenantID
+	}
 	if wcs.SiteName != nil {
 		objectMap["siteName"] = wcs.SiteName
 	}
 	if wcs.IsEnabled != nil {
 		objectMap["isEnabled"] = wcs.IsEnabled
+	}
+	if wcs.IsEndpointParametersEnabled != nil {
+		objectMap["isEndpointParametersEnabled"] = wcs.IsEndpointParametersEnabled
+	}
+	if wcs.IsDetailedLoggingEnabled != nil {
+		objectMap["isDetailedLoggingEnabled"] = wcs.IsDetailedLoggingEnabled
+	}
+	if wcs.IsBlockUserUploadEnabled != nil {
+		objectMap["isBlockUserUploadEnabled"] = wcs.IsBlockUserUploadEnabled
+	}
+	if wcs.IsNoStorageEnabled != nil {
+		objectMap["isNoStorageEnabled"] = wcs.IsNoStorageEnabled
+	}
+	if wcs.ETag != nil {
+		objectMap["eTag"] = wcs.ETag
+	}
+	if wcs.AppID != nil {
+		objectMap["appId"] = wcs.AppID
+	}
+	if wcs.IsV1Enabled != nil {
+		objectMap["isV1Enabled"] = wcs.IsV1Enabled
+	}
+	if wcs.IsV3Enabled != nil {
+		objectMap["isV3Enabled"] = wcs.IsV3Enabled
+	}
+	if wcs.IsSecureSiteEnabled != nil {
+		objectMap["isSecureSiteEnabled"] = wcs.IsSecureSiteEnabled
+	}
+	if wcs.TrustedOrigins != nil {
+		objectMap["trustedOrigins"] = wcs.TrustedOrigins
+	}
+	if wcs.IsWebChatSpeechEnabled != nil {
+		objectMap["isWebChatSpeechEnabled"] = wcs.IsWebChatSpeechEnabled
 	}
 	if wcs.IsWebchatPreviewEnabled != nil {
 		objectMap["isWebchatPreviewEnabled"] = wcs.IsWebchatPreviewEnabled
