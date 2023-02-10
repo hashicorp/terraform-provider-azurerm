@@ -514,7 +514,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					},
 					"validation_key": {
 						Type:      pluginsdk.TypeString,
-						Optional:  true,
+						Required:  true,
 						Sensitive: true,
 					},
 				},
@@ -940,7 +940,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if sku.Name == apimanagement.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
 		return fmt.Errorf("`delegation` is not support for sku tier `Consumption`")
 	}
-	if sku.Name != apimanagement.SkuTypeConsumption {
+	if sku.Name != apimanagement.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
 		delegationSettings := expandApiManagementDelegationSettings(delegationSettingsRaw)
 		delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
 		if _, err := delegationClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, delegationSettings, ""); err != nil {
@@ -1866,16 +1866,7 @@ func flattenApiManagementSignInSettings(input apimanagement.PortalSigninSettings
 
 func expandApiManagementDelegationSettings(input []interface{}) apimanagement.PortalDelegationSettings {
 	if len(input) == 0 {
-		return apimanagement.PortalDelegationSettings{
-			PortalDelegationSettingsProperties: &apimanagement.PortalDelegationSettingsProperties{
-				Subscriptions: &apimanagement.SubscriptionsDelegationSettingsProperties{
-					Enabled: utils.Bool(false),
-				},
-				UserRegistration: &apimanagement.RegistrationDelegationSettingsProperties{
-					Enabled: utils.Bool(false),
-				},
-			},
-		}
+		return apimanagement.PortalDelegationSettings{}
 	}
 
 	vs := input[0].(map[string]interface{})
