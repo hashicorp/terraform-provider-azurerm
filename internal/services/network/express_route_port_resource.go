@@ -148,6 +148,16 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 
 			"identity": commonschema.UserAssignedIdentityOptional(),
 
+			"billing_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.ExpressRoutePortsBillingTypeMeteredData),
+					string(network.ExpressRoutePortsBillingTypeUnlimitedData),
+				}, false),
+			},
+
 			"link1": expressRoutePortSchema,
 
 			"link2": expressRoutePortSchema,
@@ -211,6 +221,10 @@ func resourceArmExpressRoutePortCreateUpdate(d *pluginsdk.ResourceData, meta int
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("billing_type"); ok {
+		param.ExpressRoutePortPropertiesFormat.BillingType = network.ExpressRoutePortsBillingType(v.(string))
 	}
 
 	// The link properties can't be specified in first creation. It will result into either error (e.g. setting `adminState`) or being ignored (e.g. setting MACSec)
@@ -277,6 +291,7 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("peering_location", prop.PeeringLocation)
 		d.Set("bandwidth_in_gbps", prop.BandwidthInGbps)
 		d.Set("encapsulation", prop.Encapsulation)
+		d.Set("billing_type", prop.BillingType)
 		link1, link2, err := flattenExpressRoutePortLinks(resp.Links)
 		if err != nil {
 			return fmt.Errorf("flattening links: %v", err)

@@ -150,8 +150,6 @@ The following arguments are supported:
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist. Changing this forces a new resource to be created.
 
--> **NOTE:** At this time the `vnet_subnet_id` must be the same for all node pools in the cluster
-
 ~> **NOTE:** A route table must be configured on this Subnet.
 
 * `windows_profile` - (Optional) A `windows_profile` block as documented below. Changing this forces a new resource to be created.

@@ -37,7 +37,7 @@ func resourceMobileNetworkChildWaitForDeletion(ctx context.Context, id string, g
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for deleting %s: %+v", id, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil
