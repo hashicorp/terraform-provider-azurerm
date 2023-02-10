@@ -24,9 +24,9 @@ data "azurerm_mobile_network" "example" {
 
 The following arguments are supported:
 
-* `name` - Specifies the name which should be used for this Mobile Network. Changing this forces a new Mobile Network to be created.
+* `name` - Specifies the name which should be used for this Mobile Network.
 
-* `resource_group_name` - Specifies the name of the Resource Group where the Mobile Network should exist. Changing this forces a new Mobile Network to be created.
+* `resource_group_name` - Specifies the name of the Resource Group where the Mobile Network should exist. 
 
 ---
 

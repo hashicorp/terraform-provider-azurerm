@@ -768,9 +768,15 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 		VmImageVersion:   utils.NormalizeNilableString(props.VMImageVersion),
 		VmInstanceCount:  props.VMInstanceCount,
 		VmSize:           utils.NormalizeNilableString(props.VMSize),
-		ApplicationPorts: fmt.Sprintf("%d-%d", props.ApplicationPorts.StartPort, props.ApplicationPorts.EndPort),
-		EphemeralPorts:   fmt.Sprintf("%d-%d", props.EphemeralPorts.StartPort, props.EphemeralPorts.EndPort),
 		Id:               utils.NormalizeNilableString(nt.Id),
+	}
+
+	if appPorts := props.ApplicationPorts; appPorts != nil {
+		out.ApplicationPorts = fmt.Sprintf("%d-%d", appPorts.StartPort, appPorts.EndPort)
+	}
+
+	if ephemeralPorts := props.EphemeralPorts; ephemeralPorts != nil {
+		out.EphemeralPorts = fmt.Sprintf("%d-%d", ephemeralPorts.StartPort, ephemeralPorts.EndPort)
 	}
 
 	if mpg := props.MultiplePlacementGroups; mpg != nil {

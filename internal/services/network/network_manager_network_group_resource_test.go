@@ -101,7 +101,7 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-nmng-%d"
+  name     = "acctestRG-network-manager-%d"
   location = "%s"
 }
 data "azurerm_subscription" "current" {
