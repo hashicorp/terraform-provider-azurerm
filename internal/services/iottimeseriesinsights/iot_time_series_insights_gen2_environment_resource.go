@@ -127,14 +127,11 @@ func resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *pluginsdk.Resou
 		}
 	}
 
-	sku, err := convertEnvironmentSkuName(d.Get("sku_name").(string))
-	if err != nil {
-		return fmt.Errorf("expanding sku: %+v", err)
-	}
+	sku := convertEnvironmentSkuName(d.Get("sku_name").(string))
 	payload := environments.Gen2EnvironmentCreateOrUpdateParameters{
 		Location: location.Normalize(d.Get("location").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-		Sku:      *sku,
+		Sku:      sku,
 		Properties: environments.Gen2EnvironmentCreationProperties{
 			TimeSeriesIdProperties: expandIdProperties(d.Get("id_properties").([]interface{})),
 			StorageConfiguration:   expandStorage(d.Get("storage").([]interface{})),
@@ -223,12 +220,12 @@ func resourceIoTTimeSeriesInsightsGen2EnvironmentDelete(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func convertEnvironmentSkuName(skuName string) (*environments.Sku, error) {
-	return &environments.Sku{
+func convertEnvironmentSkuName(skuName string) environments.Sku {
+	return environments.Sku{
 		Name: environments.SkuName(skuName),
 		// Gen2 cannot set capacity manually but SDK requires capacity
 		Capacity: int64(1),
-	}, nil
+	}
 }
 
 func expandStorage(input []interface{}) environments.Gen2StorageConfigurationInput {
