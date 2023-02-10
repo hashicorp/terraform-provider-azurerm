@@ -12,6 +12,7 @@ ENHANCEMENTS:
 
 * `management_locks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20387]
 * `azurerm_express_route_port` - support for the `billing_type` property [GH-20361]
+* `postgres` - updating API to `2022-12-01` [GH-20370]
 
 ## 3.43.0 (February 09, 2023)
 
