@@ -49,7 +49,6 @@ github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/site
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2015-12-01/features
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-02-01/resources
-github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources
@@ -463,6 +462,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/da
 github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/redisenterprise
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/hybridconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces
+github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/querykeys
