@@ -6,7 +6,6 @@ github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor
 github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement
 github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights
 github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch
-github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb
@@ -194,6 +193,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-12-01/skus
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-12-01/updateruns
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-12-01/updates
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-12-01/updatesummaries
+github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/application
+github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount
+github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/certificate
+github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/cognitiveservicesaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/deployments
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2020-08-20/communicationservice
@@ -429,9 +432,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/administrators
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/firewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/powerbidedicated/2021-01-01/capacities

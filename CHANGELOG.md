@@ -17,19 +17,20 @@ FEATURES
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230208.1165725` of `github.com/hashicorp/go-azure-sdk` [GH-20381]
-* dependencies: updating to `v0.20230208.1135849` of `github.com/tombuildsstuff/kermit` [GH-20381]
 * dependencies: updating to `v0.11.28` of `github.com/Azure/go-autorest/autorest` [GH-20272]
 * dependencies: updating to `v0.50.0` of `github.com/hashicorp/go-azure-helpers` [GH-20272]
-* dependencies: updating to `v0.20230204.1161343` of `github.com/hashicorp/go-azure-sdk` [GH-20312]
+* dependencies: updating to `v0.20230208.1165725` of `github.com/hashicorp/go-azure-sdk` [GH-20381]
 * dependencies: updating to `v0.55.0` of `github.com/manicminer/hamilton` [GH-20272]
-* dependencies: update `appservice` to api version `2021-03-01` [GH-20349]
-* dependencies: update `postgresql/2022-03-08-preview/administrators` to  `2022-12-01` [GH-20367]
+* dependencies: updating to `v0.20230208.1135849` of `github.com/tombuildsstuff/kermit` [GH-20381]
+* dependences: updating `postgresql/2021-06-01/databases` to 2022-12-01 [GH-20369]
+* `appservice`: updating to API Version `2021-03-01` [GH-20349]
 * `azurestackhci`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
+* `batch`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20375]
 * `databricks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20309]
 * `datadog`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20311]
 * `databoxedge`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20236]
 * `digitaltwins`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
+* `postgresql`: updating to API Version `2022-12-01` [GH-20367]
 * `redis`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20313]
 * `azurerm_media_streaming_locator` - support for the `filter_names` property [GH-20274]
 * `azurerm_media_live_event_output` - support for the `rewind_window_duration` property [GH-20271]
@@ -41,6 +42,7 @@ ENHANCEMENTS:
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `dynamic_property` block [GH-20212]
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `sentinel_entity_mapping` block [GH-20230]
 * `azurerm_shared_image` - support for the `confidential_vm_supported` and `confidential_vm_enabled` properties [GH-20249]
+* `azurerm_postgresql_flexible_server` - support for `replication_role` and new enum value `Replica` for `create_mode` [GH-20364]
 
 BUG FIXES:
 
