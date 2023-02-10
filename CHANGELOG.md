@@ -10,9 +10,10 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* `management_locks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20387]
-* `azurerm_express_route_port` - support for the `billing_type` property [GH-20361]
+* dependencies: updating to `v0.20230210.1121632` of `github.com/hashicorp/go-azure-sdk` [GH-20417]
+* `managementlocks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20387]
 * `postgres` - updating API to `2022-12-01` [GH-20370]
+* `azurerm_express_route_port` - support for the `billing_type` property [GH-20361]
 
 BUG FIXES:
 
