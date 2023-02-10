@@ -102,7 +102,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-nm-%d"
+  name     = "acctestRG-network-manager-%d"
   location = "%s"
 }
 
@@ -127,7 +127,7 @@ resource "azurerm_network_manager" "test" {
 func (r ManagerScopeConnectionResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+%s
 
 resource "azurerm_network_manager_scope_connection" "test" {
   name               = "acctest-nsc-%d"
@@ -141,7 +141,7 @@ resource "azurerm_network_manager_scope_connection" "test" {
 func (r ManagerScopeConnectionResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_network_manager_scope_connection" "import" {
   name               = azurerm_network_manager_scope_connection.test.name
@@ -155,7 +155,7 @@ resource "azurerm_network_manager_scope_connection" "import" {
 func (r ManagerScopeConnectionResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_network_manager_scope_connection" "test" {
   name               = "acctest-nsc-%d"
@@ -170,7 +170,7 @@ resource "azurerm_network_manager_scope_connection" "test" {
 func (r ManagerScopeConnectionResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_network_manager_scope_connection" "test" {
   name               = "acctest-nsc-%d"

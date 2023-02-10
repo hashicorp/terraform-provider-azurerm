@@ -67,7 +67,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-network-manager-%d"
+  name     = "acctestRG-network-manager-%d"
   location = "%s"
 }
 
