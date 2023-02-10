@@ -1,11 +1,11 @@
 package bot
 
 import (
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice" // nolint: staticcheck
 )
 
 type AzureBotServiceResource struct {
