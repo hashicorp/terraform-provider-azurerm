@@ -1,10 +1,18 @@
+## 3.44.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_network_manager_security_admin_configuration` [GH-20233]
+* **New Resource:** `azurerm_network_manager_admin_rule_collection` [GH-20233]
+* **New Resource:** `azurerm_network_manager_admin_rule` [GH-20233]
+
 ## 3.43.0 (February 09, 2023)
 
 FEATURES
 
-* **New Data Source:** `azurerm_mobile_network` ([#20128](https://github.com/hashicorp/terraform-provider-azurerm/issues/20128))
 * **New Data Source:** `azurerm_container_app_environment` ([#18008](https://github.com/hashicorp/terraform-provider-azurerm/issues/18008))
 * **New Data Source:** `azurerm_container_app_environment_certificate` ([#18008](https://github.com/hashicorp/terraform-provider-azurerm/issues/18008))
+* **New Data Source:** `azurerm_mobile_network` ([#20128](https://github.com/hashicorp/terraform-provider-azurerm/issues/20128))
 * **New Resource:** `azurerm_container_app_environment` ([#18008](https://github.com/hashicorp/terraform-provider-azurerm/issues/18008))
 * **New Resource:** `azurerm_container_app_environment_storage` ([#18008](https://github.com/hashicorp/terraform-provider-azurerm/issues/18008))
 * **New Resource:** `azurerm_container_app_environment_dapr_component` ([#18008](https://github.com/hashicorp/terraform-provider-azurerm/issues/18008))
@@ -47,7 +55,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_custom_provider` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` ([#20315](https://github.com/hashicorp/terraform-provider-azurerm/issues/20315))
-* `azurerm_function_app_function` - fix bug for multiple file blocks resulting in last file being used for all entries ([#20198](https://github.com/hashicorp/terraform-provider-azurerm/issues/20198))
+* `azurerm_function_app_function` - prevent a bug with multiple file blocks resulting in last file being used for all entries ([#20198](https://github.com/hashicorp/terraform-provider-azurerm/issues/20198))
 * `azurerm_monitor_diagnostic_setting` - changing the `storage_account_id`, `eventhub_authorization_rule_id`, and `eventhub_name` properties no longer creates a new resource ([#20307](https://github.com/hashicorp/terraform-provider-azurerm/issues/20307))
 * `azurerm_redis_enterprise_cluster` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` ([#20314](https://github.com/hashicorp/terraform-provider-azurerm/issues/20314))
 * `azurerm_service_fabric_managed_cluster` - Fix potential panic when setting `node_type` ([#20345](https://github.com/hashicorp/terraform-provider-azurerm/issues/20345))
