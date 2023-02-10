@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IoTTimeSeriesInsightsGen2EnvironmentResource struct{}
@@ -89,17 +90,20 @@ func TestAccIoTTimeSeriesInsightsGen2Environment_multiple_property_ids(t *testin
 }
 
 func (IoTTimeSeriesInsightsGen2EnvironmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.EnvironmentID(state.ID)
+	id, err := environments.ParseEnvironmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.IoTTimeSeriesInsights.EnvironmentsClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.IoTTimeSeriesInsights.Environments.Get(ctx, *id, environments.DefaultGetOperationOptions())
 	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
+		}
 		return nil, fmt.Errorf("retrieving IoT Time Series Insights Gen2 Environment (%q): %+v", id.String(), err)
 	}
 
-	return utils.Bool(!utils.ResponseWasNotFound(resp.Response)), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (IoTTimeSeriesInsightsGen2EnvironmentResource) basic(data acceptance.TestData) string {
