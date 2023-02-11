@@ -91,7 +91,7 @@ A `secret` block supports the following:
 
 A `template` block supports the following:
 
-* `container` - (Required) A `container` block as detailed below.
+* `container` - (Required) One or more `container` blocks as detailed below.
 
 * `max_replicas` - (Optional) The maximum number of replicas for this container.
 
