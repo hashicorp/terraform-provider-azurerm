@@ -620,7 +620,6 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MinItems: 1,
-		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
