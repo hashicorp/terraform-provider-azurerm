@@ -178,7 +178,7 @@ func resourceIoTTimeSeriesInsightsEventSourceEventhubRead(d *pluginsdk.ResourceD
 	if model := resp.Model; model != nil {
 		eventSource, ok := (*model).(eventsources.EventHubEventSourceResource)
 		if !ok {
-			return fmt.Errorf("retireving %s: expected a EventHubEventSourceResource but got: %+v", *id, *model)
+			return fmt.Errorf("retrieving %s: expected an EventHubEventSourceResource but got: %+v", *id, *model)
 		}
 
 		d.Set("location", location.Normalize(eventSource.Location))
