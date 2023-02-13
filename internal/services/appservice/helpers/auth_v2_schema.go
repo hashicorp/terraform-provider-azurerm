@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -84,6 +85,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 						string(web.UnauthenticatedClientActionV2Return401),
 						string(web.UnauthenticatedClientActionV2Return403),
 					}, false),
+					Description: "The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.",
 				},
 
 				"default_provider": {
@@ -146,7 +148,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 						string(web.ForwardProxyConventionCustom),
 						string(web.ForwardProxyConventionStandard),
 					}, false),
-					Description: "The convention used to determine the url of the request made. Possible values include 'ForwardProxyConventionNoProxy', 'ForwardProxyConventionStandard', 'ForwardProxyConventionCustom'. Defaults to `ForwardProxyConventionNoProxy`.",
+					Description: "The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`",
 				},
 
 				"forward_proxy_custom_host_header_name": {
@@ -336,7 +338,7 @@ func authV2LoginSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the fragments from the request be preserved after the login request is made. Defaults to `false`",
+					Description: "Should the fragments from the request be preserved after the login request is made. Defaults to `false`.",
 				},
 
 				"allowed_external_redirect_urls": {
@@ -357,28 +359,30 @@ func authV2LoginSchema() *pluginsdk.Schema {
 						string(web.CookieExpirationConventionIdentityProviderDerived),
 						string(web.CookieExpirationConventionFixedTime),
 					}, false),
+					Description: "The method by which cookies expire. Possible values include: `FixedTime`, and `IdentityProviderDerived`. Defaults to `FixedTime`.",
 				},
 
 				"cookie_expiration_time": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "08:00:00",
-					// ValidateFunc: // TODO - Find the allowed strings / values for validation
-					Description: "The time after the request is made when the session cookie should expire.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      "08:00:00",
+					ValidateFunc: validate.TimeInterval,
+					Description:  "The time after the request is made when the session cookie should expire. Defaults to `08:00:00`.",
 				},
 
 				"validate_nonce": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should the nonce be validated while completing the login flow. Defaults to `true`",
+					Description: "Should the nonce be validated while completing the login flow. Defaults to `true`.",
 				},
 
 				"nonce_expiration_time": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Default:     "00:05:00",
-					Description: "The time after the request is made when the nonce should expire.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      "00:05:00",
+					ValidateFunc: validate.TimeInterval,
+					Description:  "The time after the request is made when the nonce should expire. Defaults to `00:05:00`.",
 				},
 			},
 		},
@@ -680,7 +684,7 @@ type AadAuthV2Settings struct {
 	ClientSecretSettingName           string            `tfschema:"client_secret_setting_name"`
 	ClientSecretCertificateThumbprint string            `tfschema:"client_secret_certificate_thumbprint"`
 	LoginParameters                   map[string]string `tfschema:"login_parameters"`
-	DisableWWWAuth                    bool              `tfschema:"disable_www_authentication"`
+	DisableWWWAuth                    bool              `tfschema:"www_authentication_disabled"`
 	JWTAllowedGroups                  []string          `tfschema:"jwt_allowed_groups"`
 	JWTAllowedClientApps              []string          `tfschema:"jwt_allowed_client_applications"`
 	AllowedApplications               []string          `tfschema:"allowed_applications"`
@@ -718,7 +722,7 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-					Description:  "The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`",
+					Description:  "The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`.",
 				},
 
 				"client_secret_setting_name": {
@@ -763,7 +767,7 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 					Description: "A list of Allowed Client Applications in the JWT Claim.",
 				},
 
-				"disable_www_authentication": {
+				"www_authentication_disabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Description: "Should the www-authenticate provider should be omitted from the request? Defaults to `false`",
@@ -1161,7 +1165,7 @@ func CustomOIDCAuthV2SettingsSchema() *pluginsdk.Schema {
 				"client_credential_method": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Client Credential Method used. Currently the only supported value is `ClientSecretPost`",
+					Description: "The Client Credential Method used. Currently the only supported value is `ClientSecretPost`.",
 				},
 
 				"client_secret_setting_name": {

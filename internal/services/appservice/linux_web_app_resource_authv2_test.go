@@ -40,6 +40,22 @@ func TestAccLinuxWebApp_authV2Apple(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_authV2AppleCustomSettingName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2AppleCustomSetting(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebApp_authV2CustomOIDC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -245,6 +261,44 @@ resource "azurerm_linux_web_app" "test" {
 
 func (r LinuxWebAppResource) authV2Apple(data acceptance.TestData) string {
 	secretSettingName := "APPLE_PROVIDER_AUTHENTICATION_SECRET"
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestLWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  app_settings = {
+    "%[3]s" = "%[4]s"
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "Return401"
+
+    apple_v2 {
+      client_id                  = "testAppleID"
+    }
+
+    login {}
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue)
+}
+
+func (r LinuxWebAppResource) authV2AppleCustomSetting(data acceptance.TestData) string {
+	secretSettingName := "TEST_PROVIDER_AUTHENTICATION_SECRET"
 	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
 	return fmt.Sprintf(`
 provider "azurerm" {
