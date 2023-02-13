@@ -18,10 +18,10 @@ import (
 type KubernetesClusterResource struct{}
 
 var (
-	olderKubernetesVersion        = "1.23.12"
-	currentKubernetesVersion      = "1.24.3"
-	olderKubernetesVersionAlias   = "1.23"
-	currentKubernetesVersionAlias = "1.24"
+	olderKubernetesVersion        = "1.24.9"
+	currentKubernetesVersion      = "1.25.5"
+	olderKubernetesVersionAlias   = "1.24"
+	currentKubernetesVersionAlias = "1.25"
 )
 
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
@@ -486,7 +486,7 @@ func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_VOneDotTwoFourDo
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotThree(data, ""),
+			Config: r.roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotNine(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_config.0.host").IsSet(),
