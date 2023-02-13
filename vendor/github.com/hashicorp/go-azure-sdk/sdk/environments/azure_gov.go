@@ -1,7 +1,9 @@
 package environments
 
+const AzureUSGovernmentCloud = "USGovernment"
+
 func AzureUSGovernment() *Environment {
-	env := baseEnvironmentWithName("USGovernment")
+	env := baseEnvironmentWithName(AzureUSGovernmentCloud)
 
 	env.Authorization = &Authorization{
 		Audiences: []string{

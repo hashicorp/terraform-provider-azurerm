@@ -67,6 +67,7 @@ func Build() (*clients.Client, error) {
 			TerraformVersion:         os.Getenv("TERRAFORM_CORE_VERSION"),
 			Features:                 features.Default(),
 			StorageUseAzureAD:        false,
+			SubscriptionID:           os.Getenv("ARM_SUBSCRIPTION_ID"),
 		}
 
 		client, err := clients.Build(ctx, clientBuilder)

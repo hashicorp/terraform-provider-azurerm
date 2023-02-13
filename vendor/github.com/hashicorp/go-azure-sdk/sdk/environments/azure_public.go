@@ -1,7 +1,9 @@
 package environments
 
+const AzurePublicCloud = "Public"
+
 func AzurePublic() *Environment {
-	env := baseEnvironmentWithName("Public")
+	env := baseEnvironmentWithName(AzurePublicCloud)
 
 	env.Authorization = &Authorization{
 		Audiences: []string{

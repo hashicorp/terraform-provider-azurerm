@@ -1,7 +1,9 @@
 package environments
 
+const AzureChinaCloud = "China"
+
 func AzureChina() *Environment {
-	env := baseEnvironmentWithName("China")
+	env := baseEnvironmentWithName(AzureChinaCloud)
 
 	env.Authorization = &Authorization{
 		Audiences: []string{
