@@ -256,32 +256,33 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 		return i, fmt.Errorf("waiting for the Azure Backup Protected VM %q to be deleted (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
 
-	// besides waiting for the protected item to be fully deleted, it's also needed to wait for the protection container to be unregistered, or it will fail when creating another backup for the same vm in another recovery vault.
-	containerState := &pluginsdk.StateChangeConf{
-		MinTimeout: 30 * time.Second,
-		Delay:      10 * time.Second,
-		Pending:    []string{"Pending"},
-		Target:     []string{"NotFound"},
-		Refresh: func() (interface{}, string, error) {
-			resp, err := containerClient.Get(ctx, vaultName, resourceGroup, "Azure", containerName)
-			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
-					return resp, "NotFound", nil
+	/*
+		// besides waiting for the protected item to be fully deleted, it's also needed to wait for the protection container to be unregistered, or it will fail when creating another backup for the same vm in another recovery vault.
+		containerState := &pluginsdk.StateChangeConf{
+			MinTimeout: 30 * time.Second,
+			Delay:      10 * time.Second,
+			Pending:    []string{"Pending"},
+			Target:     []string{"NotFound"},
+			Refresh: func() (interface{}, string, error) {
+				resp, err := containerClient.Get(ctx, vaultName, resourceGroup, "Azure", containerName)
+				if err != nil {
+					if utils.ResponseWasNotFound(resp.Response) {
+						return resp, "NotFound", nil
+					}
+
+					return resp, "Error", fmt.Errorf("making Read request on Azure Backup Protection Container %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 				}
 
-				return resp, "Error", fmt.Errorf("making Read request on Azure Backup Protection Container %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
-			}
+				return resp, "Pending", nil
+			},
 
-			return resp, "Pending", nil
-		},
+			Timeout: d.Timeout(pluginsdk.TimeoutDelete),
+		}
 
-		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	_, err = containerState.WaitForStateContext(ctx)
-	if err != nil {
-		return resp.(backup.ProtectedItemResource), fmt.Errorf("waiting for the Azure Backup Protection Container %q to be deleted (Resource Group %q): %+v", containerName, resourceGroup, err)
-	}
+		_, err = containerState.WaitForStateContext(ctx)
+		if err != nil {
+			return resp.(backup.ProtectedItemResource), fmt.Errorf("waiting for the Azure Backup Protection Container %q to be deleted (Resource Group %q): %+v", containerName, resourceGroup, err)
+		}*/
 
 	return resp.(backup.ProtectedItemResource), nil
 }
