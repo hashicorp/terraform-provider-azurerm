@@ -154,7 +154,7 @@ resource "azurerm_linux_web_app_slot" "test" {
   auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "Return401"
-    active_directory {
+    active_directory_v2 {
       client_id                  = data.azurerm_client_config.current.client_id
       client_secret_setting_name = "%[3]s"
       tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
@@ -263,7 +263,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
-    facebook {
+    facebook_v2 {
       app_id                  = "testFacebookID"
       app_secret_setting_name = "%[3]s"
     }
@@ -452,7 +452,7 @@ resource "azurerm_linux_web_app_slot" "test" {
       client_secret_setting_name = "APPLE_PROVIDER_AUTHENTICATION_SECRET"
     }
 
-    facebook {
+    facebook_v2 {
       app_id                  = "testFacebookID"
       app_secret_setting_name = "FACEBOOK_PROVIDER_AUTHENTICATION_SECRET"
     }
@@ -514,7 +514,7 @@ resource "azurerm_linux_web_app_slot" "test" {
       client_secret_setting_name = "APPLE_PROVIDER_AUTHENTICATION_SECRET"
     }
 
-    facebook {
+    facebook_v2 {
       app_id                  = "testFacebookID"
       app_secret_setting_name = "FACEBOOK_PROVIDER_AUTHENTICATION_SECRET"
     }

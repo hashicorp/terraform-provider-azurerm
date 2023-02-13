@@ -154,7 +154,7 @@ resource "azurerm_windows_web_app_slot" "test" {
   auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "Return401"
-    active_directory {
+    active_directory_v2 {
       client_id                  = data.azurerm_client_config.current.client_id
       client_secret_setting_name = "%[3]s"
       tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
@@ -190,7 +190,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     auth_enabled           = true
     unauthenticated_action = "Return401"
 
-    apple {
+    apple_v2 {
       client_id                  = "testAppleID"
       client_secret_setting_name = "%[3]s"
     }
@@ -263,7 +263,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
-    facebook {
+    facebook_v2 {
       app_id                  = "testFacebookID"
       app_secret_setting_name = "%[3]s"
     }
@@ -299,7 +299,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
-    github {
+    github_v2 {
       client_id                  = "testGithubID"
       client_secret_setting_name = "%[3]s"
     }
@@ -335,7 +335,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
-    google {
+    google_v2 {
       client_id                  = "testGoogleID"
       client_secret_setting_name = "%[3]s"
     }
@@ -371,7 +371,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
-    microsoft {
+    microsoft_v2 {
       client_id                  = "testMSFTID"
       client_secret_setting_name = "%[3]s"
     }
@@ -407,7 +407,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
-    twitter {
+    twitter_v2 {
       consumer_key                 = "testTwitterKey"
       consumer_secret_setting_name = "%[3]s"
     }
@@ -447,32 +447,32 @@ resource "azurerm_windows_web_app_slot" "test" {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
-    apple {
+    apple_v2 {
       client_id                  = "testAppleID"
       client_secret_setting_name = "APPLE_PROVIDER_AUTHENTICATION_SECRET"
     }
 
-    facebook {
+    facebook_v2 {
       app_id                  = "testFacebookID"
       app_secret_setting_name = "FACEBOOK_PROVIDER_AUTHENTICATION_SECRET"
     }
 
-    github {
+    github_v2 {
       client_id                  = "testGithubID"
       client_secret_setting_name = "GITHUB_PROVIDER_AUTHENTICATION_SECRET"
     }
 
-    google {
+    google_v2 {
       client_id                  = "testGoogleID"
       client_secret_setting_name = "GOOGLE_PROVIDER_AUTHENTICATION_SECRET"
     }
 
-    microsoft {
+    microsoft_v2 {
       client_id                  = "testMSFTID"
       client_secret_setting_name = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
     }
 
-    twitter {
+    twitter_v2 {
       consumer_key                 = "testTwitterKey"
       consumer_secret_setting_name = "TWITTER_PROVIDER_AUTHENTICATION_SECRET"
     }
@@ -509,32 +509,32 @@ resource "azurerm_windows_web_app_slot" "test" {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
 
-    apple {
+    apple_v2 {
       client_id                  = "testAppleID"
       client_secret_setting_name = "APPLE_PROVIDER_AUTHENTICATION_SECRET"
     }
 
-    facebook {
+    facebook_v2 {
       app_id                  = "testFacebookID"
       app_secret_setting_name = "FACEBOOK_PROVIDER_AUTHENTICATION_SECRET"
     }
 
-    github {
+    github_v2 {
       client_id                  = "testGithubID"
       client_secret_setting_name = "GITHUB_PROVIDER_AUTHENTICATION_SECRET"
     }
 
-    google {
+    google_v2 {
       client_id                  = "testGoogleID"
       client_secret_setting_name = "GOOGLE_PROVIDER_AUTHENTICATION_SECRET"
     }
 
-    microsoft {
+    microsoft_v2 {
       client_id                  = "testMSFTID"
       client_secret_setting_name = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
     }
 
-    twitter {
+    twitter_v2 {
       consumer_key                 = "testTwitterKey"
       consumer_secret_setting_name = "TWITTER_PROVIDER_AUTHENTICATION_SECRET"
     }
