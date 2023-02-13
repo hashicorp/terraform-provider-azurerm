@@ -2,6 +2,7 @@ package hybridcompute_test
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"testing"
 
@@ -12,22 +13,45 @@ import (
 
 type HybridComputeMachineDataSource struct{}
 
+const LetterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const NumberBytes = "1234567890"
+const SpecialBytes = "!@#$%^()"
+
+func generateRandomPassword(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		r := rand.Int()
+		if r%3 == 0 {
+			b[i] = LetterBytes[rand.Intn(len(LetterBytes))]
+		} else if r%3 == 1 {
+			b[i] = SpecialBytes[rand.Intn(len(SpecialBytes))]
+		} else if r%3 == 2 {
+			b[i] = NumberBytes[rand.Intn(len(NumberBytes))]
+		}
+	}
+	return string(b)
+}
+
 func TestAccHybridComputeMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hybrid_compute_machine", "test")
 	d := HybridComputeMachineDataSource{}
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	randomUUID, _ := uuid.GenerateUUID()
+	password := generateRandomPassword(10)
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: d.basic(data, clientSecret, randomUUID),
+			Config: d.basic(data, clientSecret, randomUUID, password),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mssql_discovered").HasValue("false"),
+				check.That(data.ResourceName).Key("os_name").HasValue("linux"),
+				check.That(data.ResourceName).Key("os_profile.#").HasValue("1"),
 			),
 		},
 	})
 }
 
-func (r HybridComputeMachineDataSource) template(data acceptance.TestData, secret string, randomUUID string) string {
+func (r HybridComputeMachineDataSource) template(data acceptance.TestData, secret string, randomUUID string, password string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -112,7 +136,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   location                        = azurerm_resource_group.test.location
   size                            = "Standard_F2"
   admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  admin_password                  = "%s"
   provision_vm_agent              = false
   allow_extension_operations      = false
   disable_password_authentication = false
@@ -136,7 +160,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     type     = "ssh"
     host     = azurerm_public_ip.test.ip_address
     user     = "adminuser"
-    password = "P@$$w0rd1234!"
+    password = "%s"
   }
 
   provisioner "file" {
@@ -161,11 +185,11 @@ resource "azurerm_linux_virtual_machine" "test" {
     ]
   }
 }
-`, randomUUID, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, secret)
+`, randomUUID, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, password, password, secret)
 }
 
-func (r HybridComputeMachineDataSource) basic(data acceptance.TestData, secret string, randomUUID string) string {
-	template := r.template(data, secret, randomUUID)
+func (r HybridComputeMachineDataSource) basic(data acceptance.TestData, secret string, randomUUID string, password string) string {
+	template := r.template(data, secret, randomUUID, password)
 	return fmt.Sprintf(`
 				%s
 

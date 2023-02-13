@@ -28,27 +28,27 @@ if [ $? != 0 ]; then
   {
     "operation": "onboarding",
     "messageType": "DownloadScriptFailed",
-    "tenantId": "${tenantId}",
-    "subscriptionId": "${subscriptionId}",
-    "resourceGroup": "${resourceGroup}",
-    "location": "${location}",
-    "correlationId": "${correlationId}",
-    "authType": "${authType}",
-    "message": "${output}"
+    "tenantId": "$tenantId",
+    "subscriptionId": "$subscriptionId",
+    "resourceGroup": "$resourceGroup",
+    "location": "$location",
+    "correlationId": "$correlationId",
+    "authType": "$authType",
+    "message": "$output"
   }
 EOF
-  wget -qO- --method=PUT --body-data="${bodyData}" "https://gbl.his.arc.azure.com/log" &> /dev/null || true
+  wget -qO- --method=PUT --body-data="$bodyData" "https://gbl.his.arc.azure.com/log" &> /dev/null || true
 fi
-echo "${output}"
+echo "$output"
 sudo chmod +x ~/install_linux_azcmagent.sh
 cd ~
 ./install_linux_azcmagent.sh
 sudo azcmagent connect \
-  --service-principal-id "${servicePrincipalClientId}" \
-  --service-principal-secret "${servicePrincipalSecret}" \
-  --cloud "${cloud}" \
-  --tenant-id "${tenantId}" \
-  --subscription-id "${subscriptionId}" \
-  --resource-group "${resourceGroup}" \
-  --location "${location}" \
-  --correlation-id "${correlationId}"
+  --service-principal-id "$servicePrincipalClientId" \
+  --service-principal-secret "$servicePrincipalSecret" \
+  --cloud "$cloud" \
+  --tenant-id "$tenantId" \
+  --subscription-id "$subscriptionId" \
+  --resource-group "$resourceGroup" \
+  --location "$location" \
+  --correlation-id "$correlationId"
