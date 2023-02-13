@@ -175,25 +175,27 @@ func (r SliceResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties were nil", id)
 			}
 
+			updateModel := resp.Model
+
 			if metadata.ResourceData.HasChange("description") {
 				if model.Description != "" {
-					resp.Model.Properties.Description = &model.Description
+					updateModel.Properties.Description = &model.Description
 				} else {
-					resp.Model.Properties.Description = nil
+					updateModel.Properties.Description = nil
 				}
 			}
 
 			if metadata.ResourceData.HasChange("snssai") {
-				resp.Model.Properties.Snssai = expandSnssaiModel(model.Snssai)
+				updateModel.Properties.Snssai = expandSnssaiModel(model.Snssai)
 			}
 
-			resp.Model.SystemData = nil
+			updateModel.SystemData = nil
 
 			if metadata.ResourceData.HasChange("tags") {
-				resp.Model.Tags = &model.Tags
+				updateModel.Tags = &model.Tags
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *resp.Model); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *updateModel); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -226,20 +228,22 @@ func (r SliceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
+			model := *resp.Model
+
 			state := SliceModel{
 				Name:                         id.SliceName,
 				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
-				Location:                     location.Normalize(resp.Model.Location),
+				Location:                     location.Normalize(model.Location),
 			}
 
-			properties := resp.Model.Properties
+			properties := model.Properties
 			if properties.Description != nil {
 				state.Description = *properties.Description
 			}
 
 			state.Snssai = flattenSnssaiModel(properties.Snssai)
-			if resp.Model.Tags != nil {
-				state.Tags = *resp.Model.Tags
+			if model.Tags != nil {
+				state.Tags = *model.Tags
 			}
 
 			return metadata.Encode(&state)
