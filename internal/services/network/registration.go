@@ -36,6 +36,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ManagerAdminRuleResource{},
 		ManagerAdminRuleCollectionResource{},
+		ManagerCommitResource{},
 		ManagerConnectivityConfigurationResource{},
 		ManagerManagementGroupConnectionResource{},
 		ManagerNetworkGroupResource{},

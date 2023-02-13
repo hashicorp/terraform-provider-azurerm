@@ -171,16 +171,16 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
-
 		"network": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"relaxed_locking": {
+					"manager_commit_keep_on_destroy": {
 						Type:     pluginsdk.TypeBool,
-						Required: true,
+						Default:  true,
+						Optional: true,
 					},
 				},
 			},
@@ -442,6 +442,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := scaleSetRaw["scale_to_zero_before_deletion"]; ok {
 				featuresMap.VirtualMachineScaleSet.ScaleToZeroOnDelete = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["network"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			networkRaw := items[0].(map[string]interface{})
+			if v, ok := networkRaw["manager_commit_keep_on_destroy"]; ok {
+				featuresMap.Network.ManagerCommitKeepOnDestroy = v.(bool)
 			}
 		}
 	}

@@ -28,7 +28,9 @@ type Client struct {
 	ManagersClient                           *network.ManagersClient
 	ManagerAdminRulesClient                  *network.AdminRulesClient
 	ManagerAdminRuleCollectionsClient        *network.AdminRuleCollectionsClient
+	ManagerCommitsClient                     *network.ManagerCommitsClient
 	ManagerConnectivityConfigurationsClient  *network.ConnectivityConfigurationsClient
+	ManagerDeploymentStatusClient            *network.ManagerDeploymentStatusClient
 	ManagerManagementGroupConnectionsClient  *network.ManagementGroupNetworkManagerConnectionsClient
 	ManagerNetworkGroupsClient               *network.GroupsClient
 	ManagerScopeConnectionsClient            *network.ScopeConnectionsClient
@@ -144,6 +146,12 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ManagerConnectivityConfigurationsClient := network.NewConnectivityConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagerConnectivityConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+
+	ManagerCommitsClient := network.NewManagerCommitsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ManagerCommitsClient.Client, o.ResourceManagerAuthorizer)
+
+	ManagerDeploymentStatusClient := network.NewManagerDeploymentStatusClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ManagerDeploymentStatusClient.Client, o.ResourceManagerAuthorizer)
 
 	ManagerScopeConnectionsClient := network.NewScopeConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagerScopeConnectionsClient.Client, o.ResourceManagerAuthorizer)
@@ -301,6 +309,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		ManagerAdminRulesClient:                  &ManagerAdminRulesClient,
 		ManagerAdminRuleCollectionsClient:        &ManagerAdminRuleCollectionsClient,
 		ManagerConnectivityConfigurationsClient:  &ManagerConnectivityConfigurationsClient,
+		ManagerCommitsClient:                     &ManagerCommitsClient,
+		ManagerDeploymentStatusClient:            &ManagerDeploymentStatusClient,
 		ManagerManagementGroupConnectionsClient:  &ManagerManagementGroupConnectionsClient,
 		ManagerNetworkGroupsClient:               &ManagerNetworkGroupsClient,
 		ManagerScopeConnectionsClient:            &ManagerScopeConnectionsClient,

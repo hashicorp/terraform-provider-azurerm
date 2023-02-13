@@ -80,6 +80,13 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManagerAdminRule_update,
 			"requiresImport": testAccNetworkManagerAdminRule_requiresImport,
 		},
+		"Commit": {
+			"basic":          testAccNetworkManagerCommit_basic,
+			"basicAdmin":     testAccNetworkManagerCommit_basicAdmin,
+			"complete":       testAccNetworkManagerCommit_complete,
+			"update":         testAccNetworkManagerCommit_update,
+			"requiresImport": testAccNetworkManagerCommit_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {
