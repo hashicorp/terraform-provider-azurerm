@@ -67,6 +67,8 @@ The following arguments are supported:
 
 * `dapr` - (Optional) A `dapr` block as detailed below.
 
+* `identity` - (Optional) An `identity` block as detailed below.
+
 * `ingress` - (Optional) An `ingress` block as detailed below.
 
 * `registry` - (Optional) A `registry` block as detailed below.
@@ -121,7 +123,7 @@ A `container` block supports the following:
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
-* `env` - (Optional) An `env` block as detailed below.
+* `env` - (Optional) One or more `env` blocks as detailed below.
 
 * `ephemeral_storage` - The amount of ephemeral storage available to the Container App. 
 
@@ -254,6 +256,14 @@ A `volume_mounts` block supports the following:
 * `name` - (Required) The name of the Volume to be mounted in the container.
 
 * `path` - (Required) The path in the container at which to mount this volume.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The type of managed identity to assign. Possible values are `UserAssigned` and `SystemAssigned`
+
+* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`.
 
 ---
 
