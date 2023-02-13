@@ -107,7 +107,7 @@ func (r SimGroupResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			properties := &simgroup.SimGroup{
+			properties := simgroup.SimGroup{
 				Identity: identityValue,
 				Location: location.Normalize(model.Location),
 				Properties: simgroup.SimGroupPropertiesFormat{
@@ -124,7 +124,7 @@ func (r SimGroupResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -155,10 +155,11 @@ func (r SimGroupResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			properties := resp.Model
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: Model was nil", id)
 			}
+
+			properties := *resp.Model
 
 			if metadata.ResourceData.HasChange("identity") {
 				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
@@ -186,7 +187,7 @@ func (r SimGroupResource) Update() sdk.ResourceFunc {
 				properties.Tags = &model.Tags
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -215,10 +216,11 @@ func (r SimGroupResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
+
+			model := *resp.Model
 
 			state := SimGroupModel{
 				Name:     id.SimGroupName,

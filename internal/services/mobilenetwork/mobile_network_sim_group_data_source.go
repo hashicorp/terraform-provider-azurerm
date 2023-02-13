@@ -89,10 +89,11 @@ func (r SimGroupDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
+
+			model := *resp.Model
 
 			state := SimGroupModel{
 				Name:            id.SimGroupName,
@@ -109,7 +110,7 @@ func (r SimGroupDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
-			properties := &model.Properties
+			properties := model.Properties
 
 			if properties.EncryptionKey != nil && properties.EncryptionKey.KeyUrl != nil {
 				state.EncryptionKeyUrl = *properties.EncryptionKey.KeyUrl
