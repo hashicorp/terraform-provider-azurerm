@@ -172,7 +172,7 @@ func SqlAPI(domainSuffix string) *ApiEndpoint {
 	}
 }
 
-func StorageAPI(domainSuffix string) Api {
+func StorageAPI(domainSuffix string) *ApiEndpoint {
 	return &ApiEndpoint{
 		domainSuffix:        pointer.To(domainSuffix),
 		endpoint:            nil,
