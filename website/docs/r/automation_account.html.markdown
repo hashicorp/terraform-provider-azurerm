@@ -72,7 +72,7 @@ An `encryption` block supports the following:
 
 * `key_source` - (Optional) The source of the encryption key. Possible values are `Microsoft.Automation` and `Microsoft.Keyvault`.
 
-* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Automation Account.
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key which should be used to Encrypt the data in this Automation Account. Required when `key_source` is set to `Microsoft.Keyvault`.
 
 ---
 

@@ -86,7 +86,7 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 						},
 					},
