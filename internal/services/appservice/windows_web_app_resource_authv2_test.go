@@ -199,6 +199,8 @@ provider "azurerm" {
 
 %s
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_windows_web_app" "test" {
   name                = "acctestWA-%[2]d"
   location            = azurerm_resource_group.test.location
