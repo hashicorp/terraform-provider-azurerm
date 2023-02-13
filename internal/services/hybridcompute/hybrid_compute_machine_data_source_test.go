@@ -21,11 +21,12 @@ func generateRandomPassword(n int) string {
 	b := make([]byte, n)
 	for i := range b {
 		r := rand.Int()
-		if r%3 == 0 {
+		switch r % 3 {
+		case 0:
 			b[i] = LetterBytes[rand.Intn(len(LetterBytes))]
-		} else if r%3 == 1 {
+		case 1:
 			b[i] = SpecialBytes[rand.Intn(len(SpecialBytes))]
-		} else if r%3 == 2 {
+		case 2:
 			b[i] = NumberBytes[rand.Intn(len(NumberBytes))]
 		}
 	}
