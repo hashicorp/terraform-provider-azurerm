@@ -285,6 +285,36 @@ func TestAccPostgresqlFlexibleServer_createWithCustomerManagedKey(t *testing.T) 
 	})
 }
 
+func TestAccPostgresqlFlexibleServer_replica(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			PreConfig: func() { time.Sleep(15 * time.Minute) },
+			Config:    r.replica(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_postgresql_flexible_server.replica").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.updateReplicationRole(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_postgresql_flexible_server.replica").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
 func (PostgresqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := servers.ParseFlexibleServerID(state.ID)
 	if err != nil {
@@ -764,16 +794,47 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                = "12"
   sku_name               = "B_Standard_B1ms"
   zone                   = "1"
-  
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-  
+
   customer_managed_key {
-    key_vault_key_id                    = azurerm_key_vault_key.test.id
-    primary_user_assigned_identity_id   = azurerm_user_assigned_identity.test.id
+    key_vault_key_id                  = azurerm_key_vault_key.test.id
+    primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 }
 `, r.cmkTemplate(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) replica(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "replica" {
+  name                = "acctest-fs-replica-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  zone                = "2"
+  create_mode         = "Replica"
+  source_server_id    = azurerm_postgresql_flexible_server.test.id
+}
+`, r.basic(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) updateReplicationRole(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "replica" {
+  name                = "acctest-fs-replica-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  zone                = "2"
+  create_mode         = "Replica"
+  source_server_id    = azurerm_postgresql_flexible_server.test.id
+  replication_role    = "None"
+}
+`, r.basic(data), data.RandomInteger)
 }

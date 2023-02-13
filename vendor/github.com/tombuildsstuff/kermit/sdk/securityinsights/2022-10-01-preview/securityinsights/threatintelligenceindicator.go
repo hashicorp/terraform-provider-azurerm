@@ -59,7 +59,8 @@ func (client ThreatIntelligenceIndicatorClient) AppendTags(ctx context.Context, 
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "AppendTags", err.Error())
 	}
 
@@ -151,7 +152,8 @@ func (client ThreatIntelligenceIndicatorClient) Create(ctx context.Context, reso
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "Create", err.Error())
 	}
 
@@ -243,7 +245,8 @@ func (client ThreatIntelligenceIndicatorClient) CreateIndicator(ctx context.Cont
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "CreateIndicator", err.Error())
 	}
 
@@ -334,7 +337,8 @@ func (client ThreatIntelligenceIndicatorClient) Delete(ctx context.Context, reso
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "Delete", err.Error())
 	}
 
@@ -423,7 +427,8 @@ func (client ThreatIntelligenceIndicatorClient) Get(ctx context.Context, resourc
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "Get", err.Error())
 	}
 
@@ -513,7 +518,8 @@ func (client ThreatIntelligenceIndicatorClient) QueryIndicators(ctx context.Cont
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "QueryIndicators", err.Error())
 	}
 
@@ -647,7 +653,8 @@ func (client ThreatIntelligenceIndicatorClient) ReplaceTags(ctx context.Context,
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "ReplaceTags", err.Error())
 	}
 

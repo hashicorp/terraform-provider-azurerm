@@ -151,7 +151,7 @@ func resourceMsSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interfa
 
 		subnetId := ""
 		if sid := props.VirtualNetworkSubnetID; sid != nil {
-			id, err := networkParse.SubnetID(*props.VirtualNetworkSubnetID)
+			id, err := networkParse.SubnetIDInsensitively(*props.VirtualNetworkSubnetID)
 			if err != nil {
 				return fmt.Errorf("parsing subnet ID returned by API %q: %+v", *sid, err)
 			}

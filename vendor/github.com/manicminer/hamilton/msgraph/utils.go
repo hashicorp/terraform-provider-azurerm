@@ -1,6 +1,10 @@
 package msgraph
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/hashicorp/go-uuid"
+)
 
 func MarshalDocs(docs [][]byte) ([]byte, error) {
 	out := make(map[string]interface{})
@@ -15,4 +19,14 @@ func MarshalDocs(docs [][]byte) ([]byte, error) {
 		}
 	}
 	return json.Marshal(out)
+}
+
+func ValidateId(id *string) bool {
+	if id == nil || *id == "" {
+		return false
+	}
+	if _, err := uuid.ParseUUID(*id); err != nil {
+		return false
+	}
+	return true
 }

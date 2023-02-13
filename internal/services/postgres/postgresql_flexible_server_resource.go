@@ -89,10 +89,12 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						"active_directory_auth_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"password_auth_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  true,
 						},
 						"tenant_id": {
 							Type:         pluginsdk.TypeString,
@@ -137,6 +139,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.CreateModeDefault),
 					string(servers.CreateModePointInTimeRestore),
+					string(servers.CreateModeReplica),
 				}, false),
 			},
 
@@ -227,6 +230,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(servers.HighAvailabilityModeZoneRedundant),
+								string(servers.HighAvailabilityModeSameZone),
 							}, false),
 						},
 
@@ -243,6 +247,14 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
+			},
+
+			"replication_role": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servers.ReplicationRoleNone),
+				}, false),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -300,12 +312,22 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 
 	createMode := d.Get("create_mode").(string)
 
+	if _, ok := d.GetOk("replication_role"); ok {
+		return fmt.Errorf("`replication_role` cannot be set while creating")
+	}
+
 	if servers.CreateMode(createMode) == servers.CreateModePointInTimeRestore {
 		if _, ok := d.GetOk("source_server_id"); !ok {
 			return fmt.Errorf("`source_server_id` is required when `create_mode` is `PointInTimeRestore`")
 		}
 		if _, ok := d.GetOk("point_in_time_restore_time_in_utc"); !ok {
 			return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is `PointInTimeRestore`")
+		}
+	}
+
+	if servers.CreateMode(createMode) == servers.CreateModeReplica {
+		if _, ok := d.GetOk("source_server_id"); !ok {
+			return fmt.Errorf("`source_server_id` is required when `create_mode` is `Replica`")
 		}
 	}
 
@@ -461,6 +483,9 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("version", props.Version)
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 
+			// Currently, `replicationRole` is set to `Primary` when `createMode` is `Replica` and `replicationRole` is updated to `None`. Service team confirmed it should be set to `None` for this scenario. See more details from https://github.com/Azure/azure-rest-api-specs/issues/22499
+			d.Set("replication_role", d.Get("replication_role").(string))
+
 			if network := props.Network; network != nil {
 				publicNetworkAccess := false
 				if network.PublicNetworkAccess != nil {
@@ -578,6 +603,25 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 				// if high_availability.0.mode changes from "ZoneRedundant", an existing high_availability block has been removed as this is a required field
 				// if high_availability.0.mode is not currently "ZoneRedundant", this must be a newly added block
 			}
+		}
+	}
+
+	if d.HasChange("replication_role") {
+		createMode := d.Get("create_mode").(string)
+		replicationRole := d.Get("replication_role").(string)
+		if createMode == string(servers.CreateModeReplica) && replicationRole == string(servers.ReplicationRoleNone) {
+			replicationRole := servers.ReplicationRoleNone
+			parameters := servers.ServerForUpdate{
+				Properties: &servers.ServerPropertiesForUpdate{
+					ReplicationRole: &replicationRole,
+				},
+			}
+
+			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+				return fmt.Errorf("updating `replication_role` for %s: %+v", *id, err)
+			}
+		} else {
+			return fmt.Errorf("`replication_role` only can be updated to `None` for replica server")
 		}
 	}
 

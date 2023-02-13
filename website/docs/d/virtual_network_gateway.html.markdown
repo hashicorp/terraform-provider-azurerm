@@ -141,12 +141,6 @@ The `root_certificate` block supports:
     authority. The certificate must be provided in Base-64 encoded X.509 format
     (PEM).
 
-The `root_revoked_certificate` block supports:
-
-* `name` - The user-defined name of the revoked certificate.
-
-* `public_cert_data` - The SHA1 thumbprint of the certificate to be revoked.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

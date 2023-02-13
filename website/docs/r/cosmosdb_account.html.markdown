@@ -70,15 +70,15 @@ resource "azurerm_cosmosdb_account" "db" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the CosmosDB Account. Changing this forces a new resource to be created. 
+* `name` - (Required) Specifies the name of the CosmosDB Account. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which the CosmosDB Account is created. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. 
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account - currently this can only be set to `Standard`.
+* `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account; currently, this can only be set to `Standard`.
 
 * `analytical_storage` - (Optional) An `analytical_storage` block as defined below.
 
@@ -96,17 +96,17 @@ The following arguments are supported:
 
 * `geo_location` - (Required) Specifies a `geo_location` resource, used to define where data should be replicated with the `failover_priority` 0 specifying the primary location. Value is a `geo_location` block as defined below.
 
-* `ip_range_filter` - (Optional) CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IP's for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
+* `ip_range_filter` - (Optional) CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
 
 ~> **NOTE:** To enable the "Allow access from the Azure portal" behavior, you should add the IP addresses provided by the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal) to this list.
 
 ~> **NOTE:** To enable the "Accept connections from within public Azure datacenters" behavior, you should add `0.0.0.0` to the list, see the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure) for more details.
 
-* `enable_free_tier` - (Optional) Enable Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
+* `enable_free_tier` - (Optional) Enable the Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `analytical_storage_enabled` - (Optional) Enable Analytical Storage option for this Cosmos DB account. Defaults to `false`. Enabling and then disabling analytical storage forces a new resource to be created.
 
-* `enable_automatic_failover` - (Optional) Enable automatic fail over for this Cosmos DB account.
+* `enable_automatic_failover` - (Optional) Enable automatic failover for this Cosmos DB account.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account. Defaults to `true`.
 
@@ -149,8 +149,10 @@ The following arguments are supported:
 The `consistency_policy` block Configures the database consistency and supports the following:
 
 * `consistency_level` - (Required) The Consistency Level to use for this CosmosDB Account - can be either `BoundedStaleness`, `Eventual`, `Session`, `Strong` or `ConsistentPrefix`.
-* `max_interval_in_seconds` - (Optional) When used with the Bounded Staleness consistency level, this value represents the time amount of staleness (in seconds) tolerated. Accepted range for this value is `5` - `86400` (1 day). Defaults to `5`. Required when `consistency_level` is set to `BoundedStaleness`.
-* `max_staleness_prefix` - (Optional) When used with the Bounded Staleness consistency level, this value represents the number of stale requests tolerated. Accepted range for this value is `10` – `2147483647`. Defaults to `100`. Required when `consistency_level` is set to `BoundedStaleness`.
+  
+* `max_interval_in_seconds` - (Optional) When used with the Bounded Staleness consistency level, this value represents the time amount of staleness (in seconds) tolerated. The accepted range for this value is `5` - `86400` (1 day). Defaults to `5`. Required when `consistency_level` is set to `BoundedStaleness`.
+  
+* `max_staleness_prefix` - (Optional) When used with the Bounded Staleness consistency level, this value represents the number of stale requests tolerated. The accepted range for this value is `10` – `2147483647`. Defaults to `100`. Required when `consistency_level` is set to `BoundedStaleness`.
 
 ~> **Note:** `max_interval_in_seconds` and `max_staleness_prefix` can only be set to custom values when `consistency_level` is set to `BoundedStaleness` - otherwise they will return the default values shown above.
 
@@ -159,20 +161,22 @@ The `consistency_policy` block Configures the database consistency and supports 
 The `geo_location` block Configures the geographic locations the data is replicated to and supports the following:
 
 * `location` - (Required) The name of the Azure region to host replicated data.
+  
 * `failover_priority` - (Required) The failover priority of the region. A failover priority of `0` indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists. Changing this causes the location to be re-provisioned and cannot be changed for the location with failover priority `0`.
+  
 * `zone_redundant` - (Optional) Should zone redundancy be enabled for this region? Defaults to `false`.
 
 ---
 
-`capabilities` Configures the capabilities to enable for this Cosmos DB account:
+A `capabilities` block Configures the capabilities to be enabled for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableMongo16MBDocumentSupport`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`. Changing this forces a new resource to be created in certain cases as defined below.
+* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableMongo16MBDocumentSupport`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableServerless`, `EnableTable`, `EnableUniqueCompoundNestedDocs`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
 
 ~> **NOTE:** Setting `MongoDBv3.4` also requires setting `EnableMongo`. 
 
-~> **NOTE:** Only `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `MongoDBv3.4`, `EnableMongo16MBDocumentSupport` and `mongoEnableDocLevelTTL` can be added to an existing Cosmos DB account.
+~> **NOTE:** Only `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `MongoDBv3.4`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableUniqueCompoundNestedDocs`, `EnableMongo16MBDocumentSupport` and `mongoEnableDocLevelTTL` can be added to an existing Cosmos DB account.
 
-~> **NOTE:** Only `DisableRateLimitingResponses` can be removed from an existing Cosmos DB account.
+~> **NOTE:** Only `DisableRateLimitingResponses` and `EnableMongoRetryableWrites` can be removed from an existing Cosmos DB account.
 
 ---
 
@@ -183,7 +187,7 @@ The `virtual_network_rule` block Configures the virtual network subnets allowed 
 
 ---
 
-A `analytical_storage` block supports the following:
+An `analytical_storage` block supports the following:
 
 * `schema_type` - (Required) The schema type of the Analytical Storage for this Cosmos DB account. Possible values are `FullFidelity` and `WellDefined`.
 
@@ -203,7 +207,7 @@ A `backup` block supports the following:
 
 * `retention_in_hours` - (Optional) The time in hours that each backup is retained. This is configurable only when `type` is `Periodic`. Possible values are between 8 and 720.
 
-* `storage_redundancy` - (Optional) The storage redundancy which is used to indicate type of backup residency. This is configurable only when `type` is `Periodic`. Possible values are `Geo`, `Local` and `Zone`.
+* `storage_redundancy` - (Optional) The storage redundancy is used to indicate the type of backup residency. This is configurable only when `type` is `Periodic`. Possible values are `Geo`, `Local` and `Zone`.
 
 ---
 
@@ -221,7 +225,7 @@ A `cors_rule` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - (Required) The Type of Managed Identity assigned to this Cosmos account. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
@@ -233,7 +237,7 @@ A `restore` block supports the following:
 
 * `source_cosmosdb_account_id` - (Required) The resource ID of the restorable database account from which the restore has to be initiated. The example is `/subscriptions/{subscriptionId}/providers/Microsoft.DocumentDB/locations/{location}/restorableDatabaseAccounts/{restorableDatabaseAccountName}`. Changing this forces a new resource to be created.
 
-~> **NOTE:** Any database account with `Continuous` type (live account or accounts deleted in last 30 days) are the restorable database accounts and there cannot be Create/Update/Delete operations on the restorable database accounts. They can only be read and be retrieved by `azurerm_cosmosdb_restorable_database_accounts`.
+~> **NOTE:** Any database account with `Continuous` type (live account or accounts deleted in last 30 days) is a restorable database account and there cannot be Create/Update/Delete operations on the restorable database accounts. They can only be read and retrieved by `azurerm_cosmosdb_restorable_database_accounts`.
 
 * `restore_timestamp_in_utc` - (Required) The creation time of the database or the collection (Datetime Format `RFC 3339`). Changing this forces a new resource to be created.
 

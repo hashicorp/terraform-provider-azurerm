@@ -47,9 +47,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for the API Management Gateway. Changing this forces a new API Management Gateway to be created.
 
-* `api_management_name` - (Required) The name of the API Management Service in which the gateway will be created. Changing this forces a new API Management Gateway resource to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group in which the API Management Gateway exists.
+* `api_management_id` - (Required) The ID of the API Management Resource in which the gateway will be created. Changing this forces a new API Management Gateway resource to be created.
 
 * `location_data` - (Required) A `location_data` block as documented below.
 

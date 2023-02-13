@@ -235,7 +235,7 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	aksComputeProperties := computeResource.Model.Properties.(machinelearningcomputes.AKS)
 
 	// Retrieve AKS Cluster ID
-	aksId, err := managedclusters.ParseManagedClusterID(*aksComputeProperties.ResourceId)
+	aksId, err := managedclusters.ParseManagedClusterIDInsensitively(*aksComputeProperties.ResourceId)
 	if err != nil {
 		return err
 	}

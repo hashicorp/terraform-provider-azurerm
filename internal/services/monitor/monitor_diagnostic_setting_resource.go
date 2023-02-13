@@ -12,14 +12,13 @@ import (
 	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
-	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -63,14 +62,12 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"eventhub_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: eventhubValidate.ValidateEventHubName(),
 			},
 
 			"eventhub_authorization_rule_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: authRuleParse.ValidateAuthorizationRuleID,
 				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
@@ -85,8 +82,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: storageaccounts.ValidateStorageAccountID,
 				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
 
@@ -553,7 +549,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 
 			storageAccountId := ""
 			if props.StorageAccountId != nil && *props.StorageAccountId != "" {
-				parsedId, err := storageParse.StorageAccountID(*props.StorageAccountId)
+				parsedId, err := storageaccounts.ParseStorageAccountIDInsensitively(*props.StorageAccountId)
 				if err != nil {
 					return err
 				}

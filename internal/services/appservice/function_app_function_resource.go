@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -479,7 +479,8 @@ func expandFunctionFiles(input []FunctionFiles) map[string]*string {
 	}
 	result := make(map[string]*string)
 	for _, v := range input {
-		result[v.Name] = &v.Content
+		content := v.Content
+		result[v.Name] = &content
 	}
 
 	return result

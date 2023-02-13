@@ -101,6 +101,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `azure_policy_enabled` - (Optional) Should the Azure Policy Add-On be enabled? For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
+* `confidential_computing` - (Optional) A `confidential_computing` block as defined below. For more details please [the documentation](https://learn.microsoft.com/en-us/azure/confidential-computing/confidential-nodes-aks-overview)
+
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/azure/aks/azure-disk-customer-managed-keys). Changing this forces a new resource to be created.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
@@ -342,6 +344,12 @@ When `managed` is set to `false` the following properties can be specified:
 
 ---
 
+A `confidential_computing` block supports the following:
+
+* `sgx_quote_helper_enabled` - (Required) Should the SGX quote helper be enabled?
+
+---
+
 An `monitor_metrics` block supports the following:
 
 * `annotations_allowed` - (Optional) Specifies a comma-separated list of Kubernetes annotation keys that will be used in the resource's labels metric.
@@ -466,10 +474,9 @@ An `identity` block supports the following:
 
 A `key_management_service` block supports the following:
 
-* `key_vault_key_id` - (Optional) Identifier of Azure Key Vault key. See [key identifier format](https://learn.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details. When Azure Key Vault key management service is enabled, this field is required and must be a valid key identifier. When `enabled` is `false`, leave the field empty.
+* `key_vault_key_id` - (Required) Identifier of Azure Key Vault key. See [key identifier format](https://learn.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details. When Azure Key Vault key management service is enabled, this field is required and must be a valid key identifier. When `enabled` is `false`, leave the field empty.
 
-* `key_vault_network_access` - (Optional) Network access of the key vault
-Network access of key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link. The default value is `Public`.
+* `key_vault_network_access` - (Optional) Network access of the key vault Network access of key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link. The default value is `Public`.
 
 ---
 
@@ -531,9 +538,11 @@ A `linux_os_config` block supports the following:
 
 A `node_network_profile` block supports the following:
 
-* `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs.
+* `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered.
+
+---
 
 A `linux_profile` block supports the following:
 
@@ -863,13 +872,43 @@ In addition to all arguments above, the following attributes are exported:
 
 * `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
 
-* `node_resource_group` - (Optional) The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster. Changing this forces a new resource to be created.
+* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster. Changing this forces a new resource to be created.
+
+* `network_profile` - A `network_profile` block as defined below.
+
+* `ingress_application_gateway` - An `ingress_application_gateway` block as defined below.
+
+* `oms_agent` - An `oms_agent` block as defined below.
+
+* `key_vault_secrets_provider` - A `key_vault_secrets_provider` block as defined below.
+
+---
+
+The `aci_connector_linux` block exports the following:
+
+* `connector_identity` - A `connector_identity` block is exported. The exported attributes are defined below.
+
+---
+
+The `connector_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the ACI Connector.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the ACI Connector.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the ACI Connector.
 
 ---
 
 A `load_balancer_profile` block exports the following:
 
 * `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
+
+---
+
+A `network_profile` block supports the following:
+
+* `nat_gateway_profile` - A `nat_gateway_profile` block as defined below.
 
 ---
 

@@ -34,10 +34,14 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		ManagerAdminRuleResource{},
+		ManagerAdminRuleCollectionResource{},
+		ManagerConnectivityConfigurationResource{},
 		ManagerManagementGroupConnectionResource{},
 		ManagerNetworkGroupResource{},
 		ManagerResource{},
 		ManagerScopeConnectionResource{},
+		ManagerSecurityAdminConfigurationResource{},
 		ManagerStaticMemberResource{},
 		ManagerSubscriptionConnectionResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
@@ -94,6 +98,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_express_route_gateway":                    resourceExpressRouteGateway(),
 		"azurerm_express_route_port":                       resourceArmExpressRoutePort(),
 		"azurerm_ip_group":                                 resourceIpGroup(),
+		"azurerm_ip_group_cidr":                            resourceIpGroupCidr(),
 		"azurerm_local_network_gateway":                    resourceLocalNetworkGateway(),
 		"azurerm_nat_gateway":                              resourceNatGateway(),
 		"azurerm_nat_gateway_public_ip_association":        resourceNATGatewayPublicIpAssociation(),

@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement"
@@ -74,6 +75,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql"
@@ -130,6 +132,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		compute.Registration{},
 		consumption.Registration{},
 		cosmos.Registration{},
+		containerapps.Registration{},
 		costmanagement.Registration{},
 		dashboard.Registration{},
 		databoxedge.Registration{},
@@ -149,6 +152,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		media.Registration{},
 		machinelearning.Registration{},
 		monitor.Registration{},
+		mobilenetwork.Registration{},
 		mssql.Registration{},
 		network.Registration{},
 		nginx.Registration{},

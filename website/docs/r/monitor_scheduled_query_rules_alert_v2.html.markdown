@@ -102,7 +102,7 @@ The following arguments are supported:
 
 -> **Note** `evaluation_frequency` cannot be greater than the `mute_actions_after_alert_duration`.
 
-* `scopes` - (Required) Specifies the list of resource ids that this scheduled query rule is scoped to. Changing this forces a new resource to be created.
+* `scopes` - (Required) Specifies the list of resource IDs that this scheduled query rule is scoped to. Changing this forces a new resource to be created. Currently, the API supports exactly 1 resource ID in the scopes list.
 
 * `severity` - (Required) Severity of the alert. Should be an integer between 0 and 4. Value of 0 is severest.
 
@@ -138,7 +138,7 @@ The following arguments are supported:
 
 An `action` block supports the following:
 
-* `action_groups` - (Optional) List of Action Group resource ids to invoke when the alert fires.
+* `action_groups` - (Optional) List of Action Group resource IDs to invoke when the alert fires.
 
 * `custom_properties` - (Optional) Specifies the properties of an alert payload.
 
@@ -160,7 +160,7 @@ A `criteria` block supports the following:
 
 * `metric_measure_column` - (Optional) Specifies the column containing the metric measure number.
 
-* `resource_id_column` - (Optional) Specifies the column containing the resource id. The content of the column must be an uri formatted as resource id.
+* `resource_id_column` - (Optional) Specifies the column containing the resource ID. The content of the column must be an uri formatted as resource ID.
 
 ---
 
@@ -188,7 +188,7 @@ A `failing_periods` block supports the following:
 
 The following Attributes are exported:
 
-* `id` - The id of the Monitor Scheduled Query Rule.
+* `id` - The ID of the Monitor Scheduled Query Rule.
 
 * `created_with_api_version` - The api-version used when creating this alert rule.
 

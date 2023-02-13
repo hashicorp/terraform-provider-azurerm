@@ -119,6 +119,8 @@ func (a *AuthorizerWrapper) Token() (*oauth2.Token, error) {
 	var adalToken adal.Token
 	if spToken, ok := tokenProviders[0].(ServicePrincipalToken); ok && spToken != nil {
 		adalToken = spToken.Token()
+	} else if token, ok := tokenProviders[0].(*adal.Token); ok && token != nil {
+		adalToken = *token
 	}
 	if adalToken.AccessToken == "" {
 		return nil, fmt.Errorf("could not obtain access token from token provider")

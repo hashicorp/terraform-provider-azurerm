@@ -105,6 +105,28 @@ func TestAccSentinelAlertRuleNrt_withAlertRuleTemplateGuid(t *testing.T) {
 	})
 }
 
+func TestAccSentinelAlertRuleNrt_updateEventGroupingSetting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_nrt", "test")
+	r := SentinelAlertRuleNrtResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.eventGroupingSetting(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateEventGroupingSetting(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t SentinelAlertRuleNrtResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AlertRuleID(state.ID)
 	if err != nil {
@@ -176,6 +198,10 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
     display_name_format  = "Suspicious activity was made by {{ComputerIP}}"
     severity_column_name = "Computer"
     tactics_column_name  = "Computer"
+    dynamic_property {
+      name  = "AlertLink"
+      value = "dcount_ResourceId"
+    }
   }
   entity_mapping {
     entity_type = "Host"
@@ -183,6 +209,9 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
       identifier  = "FullName"
       column_name = "Computer"
     }
+  }
+  sentinel_entity_mapping {
+    column_name = "Category"
   }
   entity_mapping {
     entity_type = "IP"
@@ -247,6 +276,52 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
   severity                   = "Low"
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
   query                      = "Heartbeat"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SentinelAlertRuleNrtResource) eventGroupingSetting(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_nrt" "test" {
+  name                       = "acctest-SentinelAlertRule-NRT-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  display_name               = "Some Rule"
+  severity                   = "High"
+  query                      = <<QUERY
+AzureActivity |
+  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
+  where ActivityStatus == "Succeeded" |
+  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
+QUERY
+
+  event_grouping {
+    aggregation_method = "SingleAlert"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SentinelAlertRuleNrtResource) updateEventGroupingSetting(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_nrt" "test" {
+  name                       = "acctest-SentinelAlertRule-NRT-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  display_name               = "Some Rule"
+  severity                   = "High"
+  query                      = <<QUERY
+AzureActivity |
+  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
+  where ActivityStatus == "Succeeded" |
+  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
+QUERY
+
+  event_grouping {
+    aggregation_method = "AlertPerResult"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

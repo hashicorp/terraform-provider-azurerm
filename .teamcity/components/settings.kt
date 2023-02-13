@@ -53,13 +53,19 @@ var serviceTestConfigurationOverrides = mapOf(
         //Confidential Ledger
         "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
 
+        // Container App Managed Environments are limited to 5 per location, using 3 as they can take some time to clear
+        "containerapps" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope","eastus","canadacentral", false)),
+
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), useDevTestSubscription = true),
 
         // Custom Providers is only available in certain locations
         "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
 
-        // Datadog is available only in WestUS2 region 
+        // Dashboard is only available in certain locations
+        "dashboard" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
+
+        // Datadog is available only in WestUS2 region
         "datadog" to testConfiguration(locationOverride = LocationConfiguration("westus2", "westus2", "centraluseuap", false)),
 
         // data factory uses NC class VMs which are not available in eastus2

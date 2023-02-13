@@ -259,7 +259,7 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
   topic_name                = azurerm_servicebus_topic.test.name
   servicebus_namespace      = azurerm_servicebus_namespace.test.name
-  authentication_mode 		= "Msi"
+  authentication_mode       = "Msi"
 
   serialization {
     type     = "Json"
