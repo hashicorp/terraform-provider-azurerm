@@ -22,7 +22,7 @@ resourceGroup="${resource_group_name}"
 location="${location}"
 authType="principal"
 correlationId="${uuid}"
-output=$(wget https://aka.ms/azcmagent -O ~/install_linux_azcmagent.sh 2>&1)
+output="$(wget https://aka.ms/azcmagent -O ~/install_linux_azcmagent.sh 2>&1)"
 if [ $? != 0 ]; then
   read -d '' bodyData <<EOF
   {
