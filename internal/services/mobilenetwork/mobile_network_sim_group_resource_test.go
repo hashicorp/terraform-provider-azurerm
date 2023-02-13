@@ -266,7 +266,6 @@ resource "azurerm_mobile_network_sim_group" "test" {
   tags = {
     key = "value"
   }
-
 }
 `, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
 }
