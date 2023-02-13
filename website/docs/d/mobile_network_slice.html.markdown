@@ -38,9 +38,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Mobile Network Slice.
 
-* `location` - The Azure Region where the Mobile Network Slice should exist. 
+* `location` - The Azure Region where the Mobile Network Slice exists. 
 
-* `single_network_slice_selection_assistance_information` - A `single_network_slice_selection_assistance_information` block as defined below. Single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
+* `single_network_slice_selection_assistance_information` - A `single_network_slice_selection_assistance_information` block as defined below. Single-network slice selection assistance information (S-NSSAI). 
 
 * `description` - A description of this Mobile Network Slice.
 
