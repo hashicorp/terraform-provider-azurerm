@@ -106,26 +106,25 @@ func (r SliceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
 			state := SliceModel{
 				Name:                         id.SliceName,
 				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
-				Location:                     location.Normalize(model.Location),
+				Location:                     location.Normalize(resp.Model.Location),
 			}
 
-			properties := &model.Properties
+			properties := &resp.Model.Properties
 			if properties.Description != nil {
 				state.Description = *properties.Description
 			}
 
 			state.Snssai = flattenSnssaiModel(properties.Snssai)
 
-			if model.Tags != nil {
-				state.Tags = *model.Tags
+			if resp.Model.Tags != nil {
+				state.Tags = *resp.Model.Tags
 			}
 
 			metadata.SetID(id)
