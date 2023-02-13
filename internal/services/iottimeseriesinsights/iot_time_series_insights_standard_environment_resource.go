@@ -127,7 +127,9 @@ func resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *pluginsdk.R
 			}
 		}
 
-		return tf.ImportAsExistsError("azurerm_iot_time_series_insights_environment", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_iot_time_series_insights_environment", id.ID())
+		}
 	}
 
 	sku, err := expandEnvironmentSkuName(d.Get("sku_name").(string))
