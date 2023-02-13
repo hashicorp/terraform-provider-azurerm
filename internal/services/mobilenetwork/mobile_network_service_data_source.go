@@ -262,10 +262,11 @@ func (r MobileNetworkServiceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
+
+			model := *resp.Model
 
 			state := ServiceModel{
 				Name:                         id.ServiceName,
@@ -273,7 +274,7 @@ func (r MobileNetworkServiceDataSource) Read() sdk.ResourceFunc {
 				Location:                     location.Normalize(model.Location),
 			}
 
-			properties := &model.Properties
+			properties := model.Properties
 
 			state.PccRules = flattenPccRuleConfigurationModel(properties.PccRules)
 
