@@ -24,11 +24,10 @@ type ResourceManagerAccount struct {
 	SkipResourceProviderRegistration bool
 
 	// TODO: delete these when no longer needed by older clients
-	AzureEnvironment        azure.Environment
-	ResourceManagerEndpoint string
+	AzureEnvironment azure.Environment
 }
 
-func NewResourceManagerAccount(ctx context.Context, authorizer auth.Authorizer, config auth.Credentials, subscriptionId string, skipResourceProviderRegistration bool, azureEnvironment azure.Environment, resourceManagerEndpoint string) (*ResourceManagerAccount, error) {
+func NewResourceManagerAccount(ctx context.Context, authorizer auth.Authorizer, config auth.Credentials, subscriptionId string, skipResourceProviderRegistration bool, azureEnvironment azure.Environment) (*ResourceManagerAccount, error) {
 	// Acquire an access token so we can inspect the claims
 	token, err := authorizer.Token(ctx, &http.Request{})
 	if err != nil {
@@ -57,8 +56,7 @@ func NewResourceManagerAccount(ctx context.Context, authorizer auth.Authorizer, 
 		SkipResourceProviderRegistration: skipResourceProviderRegistration,
 
 		// TODO: delete these when no longer needed by older clients
-		AzureEnvironment:        azureEnvironment,
-		ResourceManagerEndpoint: resourceManagerEndpoint,
+		AzureEnvironment: azureEnvironment,
 	}
 
 	return &account, nil

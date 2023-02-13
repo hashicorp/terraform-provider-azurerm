@@ -108,7 +108,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 	resourceManagerEndpoint, _ := builder.AuthConfig.Environment.ResourceManager.Endpoint()
 
-	account, err := NewResourceManagerAccount(ctx, resourceManagerAuth, *builder.AuthConfig, builder.SubscriptionID, builder.SkipProviderRegistration, *azureEnvironment, *resourceManagerEndpoint)
+	account, err := NewResourceManagerAccount(ctx, resourceManagerAuth, *builder.AuthConfig, builder.SubscriptionID, builder.SkipProviderRegistration, *azureEnvironment)
 	if err != nil {
 		return nil, fmt.Errorf("building account: %+v", err)
 	}
@@ -147,8 +147,9 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		SkipProviderReg:             builder.SkipProviderRegistration,
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 
+		// TODO: remove when `Azure/go-autorest` is no longer used
 		AzureEnvironment:        *azureEnvironment,
-		ResourceManagerEndpoint: *resourceManagerEndpoint, // TODO: remove when autorest no longer used
+		ResourceManagerEndpoint: *resourceManagerEndpoint,
 	}
 
 	if err := client.Build(ctx, o); err != nil {
