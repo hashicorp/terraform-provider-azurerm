@@ -14,6 +14,7 @@ import (
 	mariaDB "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01/redis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -871,6 +872,11 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
 					if serverId, err := mariaDB.ParseServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
+					}
+				}
+				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.redis") {
+					if cacheId, err := redis.ParseRediIDInsensitively(privateConnectionId); err == nil {
+						privateConnectionId = cacheId.ID()
 					}
 				}
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.signalrservice") {
