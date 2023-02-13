@@ -35,7 +35,6 @@ func (r MobileNetworkDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 

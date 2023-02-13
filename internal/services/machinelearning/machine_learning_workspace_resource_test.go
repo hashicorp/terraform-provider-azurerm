@@ -430,7 +430,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   sku_name                      = "Basic"
   high_business_impact          = true
   public_network_access_enabled = true
-  image_build_compute_name      = "terraformCompute"
+  image_build_compute_name      = "terraformComputeUpdate"
 
   identity {
     type = "SystemAssigned"
