@@ -593,7 +593,7 @@ func expandStorageCacheDirectorySettings(d *pluginsdk.ResourceData) *storagecach
 }
 
 func flattenStorageCacheDirectorySettings(d *pluginsdk.ResourceData, input *storagecache.CacheDirectorySettings) (ad, flatFile, ldap []interface{}, err error) {
-	if input == nil || input.UsernameDownload == nil {
+	if input == nil || input.UsernameDownload == nil || input.UsernameDownload.UsernameSource == storagecache.UsernameSourceNone {
 		return nil, nil, nil, nil
 	}
 
