@@ -18,6 +18,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_eventgrid_domain_topic` - `name` can now be up to 128 characters [GH-20407]
+* `azurerm_private_endpoint` - normalizing the `private_connection_resource_id` for a redis cache [GH-20418]
 
 ## 3.43.0 (February 09, 2023)
 
