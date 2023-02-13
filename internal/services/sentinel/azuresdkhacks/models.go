@@ -97,7 +97,7 @@ func unmarshalBasicDataConnector(body []byte) (securityinsight.BasicDataConnecto
 		err := json.Unmarshal(body, &odc)
 		return odc, err
 	case string(securityinsight.KindBasicDataConnectorKindThreatIntelligence):
-		var tdc securityinsight.TIDataConnector
+		var tdc TIDataConnector
 		err := json.Unmarshal(body, &tdc)
 		return tdc, err
 	case string(securityinsight.KindBasicDataConnectorKindThreatIntelligenceTaxii):
@@ -310,6 +310,109 @@ func (ttdc *TiTaxiiDataConnector) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
+}
+
+var _ securityinsight.BasicDataConnector = TIDataConnector{}
+
+type TIDataConnector struct {
+	*TIDataConnectorProperties `json:"properties,omitempty"`
+	Kind                       securityinsight.KindBasicDataConnector `json:"kind,omitempty"`
+	Etag                       *string                                `json:"etag,omitempty"`
+	ID                         *string                                `json:"id,omitempty"`
+	Name                       *string                                `json:"name,omitempty"`
+	Type                       *string                                `json:"type,omitempty"`
+	SystemData                 *securityinsight.SystemData            `json:"systemData,omitempty"`
+}
+
+func (TIDataConnector) AsAADDataConnector() (*securityinsight.AADDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsMSTIDataConnector() (*securityinsight.MSTIDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsMTPDataConnector() (*securityinsight.MTPDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsAATPDataConnector() (*securityinsight.AATPDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsASCDataConnector() (*securityinsight.ASCDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsAwsCloudTrailDataConnector() (*securityinsight.AwsCloudTrailDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsAwsS3DataConnector() (*securityinsight.AwsS3DataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsMCASDataConnector() (*securityinsight.MCASDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsDynamics365DataConnector() (*securityinsight.Dynamics365DataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsOfficeATPDataConnector() (*securityinsight.OfficeATPDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsOffice365ProjectDataConnector() (*securityinsight.Office365ProjectDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsOfficePowerBIDataConnector() (*securityinsight.OfficePowerBIDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsOfficeIRMDataConnector() (*securityinsight.OfficeIRMDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsMDATPDataConnector() (*securityinsight.MDATPDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsOfficeDataConnector() (*securityinsight.OfficeDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsTIDataConnector() (*securityinsight.TIDataConnector, bool) {
+	// This method is not used at all, only for implementing the interface.
+	return nil, false
+}
+
+func (TIDataConnector) AsTiTaxiiDataConnector() (*securityinsight.TiTaxiiDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsIoTDataConnector() (*securityinsight.IoTDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsCodelessUIDataConnector() (*securityinsight.CodelessUIDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsCodelessAPIPollingDataConnector() (*securityinsight.CodelessAPIPollingDataConnector, bool) {
+	return nil, false
+}
+
+func (TIDataConnector) AsDataConnector() (*securityinsight.DataConnector, bool) {
+	return nil, false
+}
+
+type TIDataConnectorProperties struct {
+	TipLookbackPeriod *Time                                     `json:"tipLookbackPeriod,omitempty"`
+	DataTypes         *securityinsight.TIDataConnectorDataTypes `json:"dataTypes,omitempty"`
+	TenantID          *string                                   `json:"tenantId,omitempty"`
 }
 
 type PollingFrequency string

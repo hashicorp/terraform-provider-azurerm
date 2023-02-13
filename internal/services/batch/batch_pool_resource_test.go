@@ -7,10 +7,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -712,17 +712,17 @@ func TestAccBatchPool_windowsUserAccountsWithAdditionalConfig(t *testing.T) {
 }
 
 func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PoolID(state.ID)
+	id, err := pool.ParsePoolID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Batch.PoolClient.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
+	resp, err := clients.Batch.PoolClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s", *id)
 	}
 
-	return utils.Bool(resp.PoolProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (BatchPoolResource) fixedScale_complete(data acceptance.TestData) string {

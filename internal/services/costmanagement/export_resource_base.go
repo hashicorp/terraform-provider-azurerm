@@ -7,10 +7,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/blobcontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -59,7 +58,7 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: storageValidate.StorageContainerResourceManagerID,
+						ValidateFunc: blobcontainers.ValidateContainerID,
 					},
 					"root_folder_path": {
 						Type:         pluginsdk.TypeString,
@@ -292,12 +291,12 @@ func expandExportDataStorageLocation(input []interface{}) (*exports.ExportDelive
 	}
 	attrs := input[0].(map[string]interface{})
 
-	containerId, err := storageParse.StorageContainerResourceManagerID(attrs["container_id"].(string))
+	containerId, err := blobcontainers.ParseContainerID(attrs["container_id"].(string))
 	if err != nil {
 		return nil, err
 	}
 
-	storageId := storageParse.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroup, containerId.StorageAccountName)
+	storageId := blobcontainers.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName)
 
 	deliveryInfo := &exports.ExportDeliveryInfo{
 		Destination: exports.ExportDeliveryDestination{
@@ -331,10 +330,10 @@ func flattenExportDataStorageLocation(input *exports.ExportDeliveryInfo) ([]inte
 
 	destination := input.Destination
 	var err error
-	var storageAccountId *storageParse.StorageAccountId
+	var storageAccountId *blobcontainers.StorageAccountId
 
 	if v := destination.ResourceId; v != nil {
-		storageAccountId, err = storageParse.StorageAccountID(*v)
+		storageAccountId, err = blobcontainers.ParseStorageAccountIDInsensitively(*v)
 		if err != nil {
 			return nil, err
 		}
@@ -342,7 +341,7 @@ func flattenExportDataStorageLocation(input *exports.ExportDeliveryInfo) ([]inte
 
 	containerId := ""
 	if v := destination.Container; v != "" && storageAccountId != nil {
-		containerId = storageParse.NewStorageContainerResourceManagerID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroup, storageAccountId.Name, "default", v).ID()
+		containerId = blobcontainers.NewContainerID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroupName, storageAccountId.StorageAccountName, v).ID()
 	}
 
 	rootFolderPath := ""
