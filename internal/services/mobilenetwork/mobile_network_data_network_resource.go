@@ -97,7 +97,7 @@ func (r DataNetworkResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := &datanetwork.DataNetwork{
+			properties := datanetwork.DataNetwork{
 				Location:   location.Normalize(model.Location),
 				Properties: &datanetwork.DataNetworkPropertiesFormat{},
 				Tags:       &model.Tags,
@@ -107,7 +107,7 @@ func (r DataNetworkResource) Create() sdk.ResourceFunc {
 				properties.Properties.Description = &model.Description
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -138,10 +138,11 @@ func (r DataNetworkResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			properties := resp.Model
-			if properties == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
+
+			properties := *resp.Model
 
 			if metadata.ResourceData.HasChange("description") {
 				if model.Description != "" {
@@ -157,7 +158,7 @@ func (r DataNetworkResource) Update() sdk.ResourceFunc {
 				properties.Tags = &model.Tags
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -186,10 +187,11 @@ func (r DataNetworkResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
+
+			model := *resp.Model
 
 			state := DataNetworkModel{
 				Name:                         id.DataNetworkName,

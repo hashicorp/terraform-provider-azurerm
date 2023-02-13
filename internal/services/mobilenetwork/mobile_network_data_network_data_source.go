@@ -86,10 +86,11 @@ func (r DataNetworkDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
+
+			model := *resp.Model
 
 			state := DataNetworkModel{
 				Name:                         id.DataNetworkName,
