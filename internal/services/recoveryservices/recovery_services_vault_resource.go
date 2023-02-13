@@ -144,7 +144,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("cross_region_restore_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old.(bool) == true && new.(bool) == false
+				return old.(bool) && !new.(bool)
 			}),
 		),
 	}
