@@ -480,7 +480,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, maxSurge)
 }
 
-func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_VOneDotTwoFourDotThree(t *testing.T) {
+func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_VOneDotTwoFourDotNine(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
