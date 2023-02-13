@@ -262,6 +262,8 @@ The following arguments are supported:
 
 * `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover).
 
+* `test_network_id` - (Optional) Network to use when a test failover is done.
+
 * `network_interface` - (Optional) One or more `network_interface` block as defined below.
 * 
 * `multi_vm_group_name` - (Optional) Name of group in which all machines will replicate together and have shared crash consistent and app-consistent recovery points when failed over.
