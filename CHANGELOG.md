@@ -10,8 +10,14 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* `management_locks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20387]
+* dependencies: updating to `v0.20230210.1121632` of `github.com/hashicorp/go-azure-sdk` [GH-20417]
+* `managementlocks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20387]
+* `postgres` - updating API to `2022-12-01` [GH-20370]
 * `azurerm_express_route_port` - support for the `billing_type` property [GH-20361]
+
+BUG FIXES:
+
+* `azurerm_eventgrid_domain_topic` - `name` can now be up to 128 characters [GH-20407]
 
 ## 3.43.0 (February 09, 2023)
 
