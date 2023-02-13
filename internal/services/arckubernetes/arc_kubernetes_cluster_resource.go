@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArcKubernetesCluster() *pluginsdk.Resource {
@@ -60,25 +59,21 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 				ValidateFunc: azValidate.Base64EncodedString,
 			},
 
-			"distribution": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
-
-			"infrastructure": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
 
 			"location": commonschema.Location(),
 
 			"agent_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"distribution": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"infrastructure": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -140,8 +135,6 @@ func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interfac
 		Location: location,
 		Properties: arckubernetes.ConnectedClusterProperties{
 			AgentPublicKeyCertificate: d.Get("agent_public_key_certificate").(string),
-			Distribution:              utils.String(d.Get("distribution").(string)),
-			Infrastructure:            utils.String(d.Get("infrastructure").(string)),
 		},
 		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
 	}

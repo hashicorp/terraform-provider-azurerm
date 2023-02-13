@@ -3,6 +3,8 @@ package arckubernetes_test
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"os"
 	"testing"
 
 	arckubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/sdk/2021-10-01/hybridkubernetes"
@@ -25,6 +27,15 @@ func TestAccArcKubernetesCluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("distribution").HasValue("kind"),
+				check.That(data.ResourceName).Key("infrastructure").HasValue("generic"),
 			),
 		},
 		data.ImportStep(),
@@ -56,24 +67,12 @@ func TestAccArcKubernetesCluster_complete(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccArcKubernetesCluster_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
-	r := ArcKubernetesClusterResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("distribution").HasValue("kind"),
+				check.That(data.ResourceName).Key("infrastructure").HasValue("generic"),
 			),
 		},
 		data.ImportStep(),
@@ -97,34 +96,172 @@ func (r ArcKubernetesClusterResource) Exists(ctx context.Context, clients *clien
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r ArcKubernetesClusterResource) template(data acceptance.TestData) string {
+func (r ArcKubernetesClusterResource) template(data acceptance.TestData, credential string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestnic-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_network_security_group" "my_terraform_nsg" {
+  name                = "myNetworkSecurityGroup"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_network_interface_security_group_association" "example" {
+  network_interface_id      = azurerm_network_interface.test.id
+  network_security_group_id = azurerm_network_security_group.my_terraform_nsg.id
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "acctestVM-%[1]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_F2"
+  admin_username                  = "adminuser"
+  admin_password                  = "%[3]s"
+  provision_vm_agent              = false
+  allow_extension_operations      = false
+  disable_password_authentication = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, credential)
+}
+
+func (r ArcKubernetesClusterResource) provisionTemplate(data acceptance.TestData, credential string) string {
+	return fmt.Sprintf(`
+connection {
+  type     = "ssh"
+  host     = azurerm_public_ip.test.ip_address
+  user     = "adminuser"
+  password = "%[1]s"
+}
+
+provisioner "file" {
+  content = templatefile("testdata/install_agent.sh.tftpl", {
+    subscription_id     = "%[4]s"
+    resource_group_name = azurerm_resource_group.test.name
+    cluster_name        = "acctest-akcc-%[2]d"
+    location            = azurerm_resource_group.test.location
+    tenant_id           = "%[5]s"
+    working_dir         = "%[3]s"
+  })
+  destination = "%[3]s/install_agent.sh"
+}
+
+provisioner "file" {
+  source      = "testdata/install_agent.py"
+  destination = "%[3]s/install_agent.py"
+}
+
+provisioner "file" {
+  source      = "testdata/kind.yaml"
+  destination = "%[3]s/kind.yaml"
+}
+
+provisioner "file" {
+  source      = "testdata/private.pem"
+  destination = "%[3]s/private.pem"
+}
+
+provisioner "remote-exec" {
+  inline = [
+    "sudo sed -i 's/\r$//' %[3]s/install_agent.sh",
+    "sudo chmod +x %[3]s/install_agent.sh",
+    "bash %[3]s/install_agent.sh > %[3]s/agent_log",
+  ]
+}
+`, credential, data.RandomInteger, "/home/adminuser", os.Getenv("ARM_SUBSCRIPTION_ID"), os.Getenv("ARM_TENANT_ID"))
 }
 
 func (r ArcKubernetesClusterResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
+	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
+	template := r.template(data, credential)
+	provisionTemplate := r.provisionTemplate(data, credential)
 	return fmt.Sprintf(`
-				%s
+				%[1]s
 
 resource "azurerm_arc_kubernetes_cluster" "test" {
-  name                         = "acctest-akcc-%d"
+  name                         = "acctest-akcc-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
-  agent_public_key_certificate = "MIICCgKCAgEAsSpALlON3394ysLQdRSy6cCBwL08NgZp7c1xsy0kQH/wHuixfoCwtL1OZ0a5kqod9vE6L8ICsXAE+iEdU1OspcJxL9J/gSyiOCMYPUabbYRXFy5x258RRLtn60NoaqcaDW+Z80HLwJOMECdJ/yDkuuNbnL0J2cyR8/WXjoeee8cG52QmDuxB6a4ROOushroIE2NS3FuhJh3b3Ddj+NU3gfbgIjjCMJQDpJWqUi/68lB33K1FQwuY1CCT8rKC5dDRKnlTgEWtnhBBly1D+C9GPTh7l9NTxcAEcBKo1ZIkMcixcS+gTcsTtDRRwuTtt8kybohfRMvmBA/S9bkD6cCaGJMe8YerOyJsDd4zSUHz/qN9iTt8FDdFcCIjhEdsMKl350wMj7+UNPvchlRAAve3oCIntW9063fDlQHrsaPfhCplTlKLAt1jcUkGSaeuylnRi8te+hmDCIhmo8wDqMv8Yvy7BTX4bYMg+6j0EGiIKPMRf5NHt6bXbiWEcO5LWEwgCbvpTjf7XdrU/xJ+eB+uAP1etvE0tCYAEFisfFnqNZxMQCFjovI0ZNxizrZOBznk15fWTr4KTNsPUTkEvbJfZPQqc/QyC5yqIAFHAAj+jusd4tK9f19nCsoi78xeKGH2s1zrD0AmBNGUrPLPVzgfdueadJKbVbiPteYec9qSG50CAwEAAQ=="
+  location                     = azurerm_resource_group.test.location
+  agent_public_key_certificate = filebase64("testdata/public.cer")
   identity {
     type = "SystemAssigned"
   }
-  location = "%s"
+
+  %[3]s
+
+  depends_on = [
+    azurerm_linux_virtual_machine.test
+  ]
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, provisionTemplate)
 }
 
 func (r ArcKubernetesClusterResource) requiresImport(data acceptance.TestData) string {
@@ -135,59 +272,72 @@ func (r ArcKubernetesClusterResource) requiresImport(data acceptance.TestData) s
 resource "azurerm_arc_kubernetes_cluster" "import" {
   name                         = azurerm_arc_kubernetes_cluster.test.name
   resource_group_name          = azurerm_arc_kubernetes_cluster.test.resource_group_name
+  location                     = azurerm_arc_kubernetes_cluster.test.location
   agent_public_key_certificate = azurerm_arc_kubernetes_cluster.test.agent_public_key_certificate
+
   identity {
     type = "SystemAssigned"
   }
-  location = azurerm_arc_kubernetes_cluster.test.location
 }
 `, config)
 }
 
 func (r ArcKubernetesClusterResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
+	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
+	template := r.template(data, credential)
+	provisionTemplate := r.provisionTemplate(data, credential)
 	return fmt.Sprintf(`
-			%s
+			%[1]s
 
 resource "azurerm_arc_kubernetes_cluster" "test" {
-  name                         = "acctest-akcc-%d"
+  name                         = "acctest-akcc-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
-  agent_public_key_certificate = "MIICCgKCAgEAsSpALlON3394ysLQdRSy6cCBwL08NgZp7c1xsy0kQH/wHuixfoCwtL1OZ0a5kqod9vE6L8ICsXAE+iEdU1OspcJxL9J/gSyiOCMYPUabbYRXFy5x258RRLtn60NoaqcaDW+Z80HLwJOMECdJ/yDkuuNbnL0J2cyR8/WXjoeee8cG52QmDuxB6a4ROOushroIE2NS3FuhJh3b3Ddj+NU3gfbgIjjCMJQDpJWqUi/68lB33K1FQwuY1CCT8rKC5dDRKnlTgEWtnhBBly1D+C9GPTh7l9NTxcAEcBKo1ZIkMcixcS+gTcsTtDRRwuTtt8kybohfRMvmBA/S9bkD6cCaGJMe8YerOyJsDd4zSUHz/qN9iTt8FDdFcCIjhEdsMKl350wMj7+UNPvchlRAAve3oCIntW9063fDlQHrsaPfhCplTlKLAt1jcUkGSaeuylnRi8te+hmDCIhmo8wDqMv8Yvy7BTX4bYMg+6j0EGiIKPMRf5NHt6bXbiWEcO5LWEwgCbvpTjf7XdrU/xJ+eB+uAP1etvE0tCYAEFisfFnqNZxMQCFjovI0ZNxizrZOBznk15fWTr4KTNsPUTkEvbJfZPQqc/QyC5yqIAFHAAj+jusd4tK9f19nCsoi78xeKGH2s1zrD0AmBNGUrPLPVzgfdueadJKbVbiPteYec9qSG50CAwEAAQ=="
-  distribution                 = "kind"
+  location                     = azurerm_resource_group.test.location
+  agent_public_key_certificate = filebase64("testdata/public.cer")
 
   identity {
     type = "SystemAssigned"
   }
-  infrastructure = "generic"
-  location       = "%s"
 
   tags = {
     ENV = "Test"
   }
+
+  %[3]s
+
+  depends_on = [
+    azurerm_linux_virtual_machine.test
+  ]
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, provisionTemplate)
 }
 
 func (r ArcKubernetesClusterResource) update(data acceptance.TestData) string {
-	template := r.template(data)
+	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
+	template := r.template(data, credential)
+	provisionTemplate := r.provisionTemplate(data, credential)
 	return fmt.Sprintf(`
-			%s
+			%[1]s
 
 resource "azurerm_arc_kubernetes_cluster" "test" {
-  name                         = "acctest-akcc-%d"
+  name                         = "acctest-akcc-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
-  agent_public_key_certificate = "MIICCgKCAgEAsSpALlON3394ysLQdRSy6cCBwL08NgZp7c1xsy0kQH/wHuixfoCwtL1OZ0a5kqod9vE6L8ICsXAE+iEdU1OspcJxL9J/gSyiOCMYPUabbYRXFy5x258RRLtn60NoaqcaDW+Z80HLwJOMECdJ/yDkuuNbnL0J2cyR8/WXjoeee8cG52QmDuxB6a4ROOushroIE2NS3FuhJh3b3Ddj+NU3gfbgIjjCMJQDpJWqUi/68lB33K1FQwuY1CCT8rKC5dDRKnlTgEWtnhBBly1D+C9GPTh7l9NTxcAEcBKo1ZIkMcixcS+gTcsTtDRRwuTtt8kybohfRMvmBA/S9bkD6cCaGJMe8YerOyJsDd4zSUHz/qN9iTt8FDdFcCIjhEdsMKl350wMj7+UNPvchlRAAve3oCIntW9063fDlQHrsaPfhCplTlKLAt1jcUkGSaeuylnRi8te+hmDCIhmo8wDqMv8Yvy7BTX4bYMg+6j0EGiIKPMRf5NHt6bXbiWEcO5LWEwgCbvpTjf7XdrU/xJ+eB+uAP1etvE0tCYAEFisfFnqNZxMQCFjovI0ZNxizrZOBznk15fWTr4KTNsPUTkEvbJfZPQqc/QyC5yqIAFHAAj+jusd4tK9f19nCsoi78xeKGH2s1zrD0AmBNGUrPLPVzgfdueadJKbVbiPteYec9qSG50CAwEAAQ=="
-  distribution                 = "kind"
+  location                     = azurerm_resource_group.test.location
+  agent_public_key_certificate = filebase64("testdata/public.cer")
 
   identity {
     type = "SystemAssigned"
   }
-  infrastructure = "generic"
-  location       = "%s"
 
   tags = {
     ENV = "TestUpdate"
   }
+
+  %[3]s
+
+  depends_on = [
+    azurerm_linux_virtual_machine.test
+  ]
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, provisionTemplate)
 }

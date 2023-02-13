@@ -22,9 +22,7 @@ resource "azurerm_arc_kubernetes_cluster" "example" {
   name                         = "example-akcc"
   resource_group_name          = azurerm_resource_group.example.name
   location                     = "West Europe"
-  distribution                 = "azure"
-  infrastructure               = "azure"
-  agent_public_key_certificate = "xxxxxxxxxxxxxxxxxxx"
+  agent_public_key_certificate = filebase64("testdata/public.cer")
 
   identity {
     type = "SystemAssigned"
@@ -50,10 +48,6 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Arc Kubernetes Cluster should exist. Changing this forces a new Arc Kubernetes Cluster to be created.
 
-* `distribution` - (Optional) Specifies the distribution running on this Arc Kubernetes Cluster. Changing this forces a new Arc Kubernetes Cluster to be created.
-
-* `infrastructure` - (Optional) Specifies the infrastructure on which the Arc Kubernetes Cluster is running on. Changing this forces a new Arc Kubernetes Cluster to be created.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to the Arc Kubernetes Cluster.
 
 ---
@@ -70,7 +64,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `agent_version` - Version of the agent running on the cluster resource.
 
+* `distribution` - The distribution running on this Arc Kubernetes Cluster.
+
 * `identity` - An `identity` block as defined below.
+
+* `infrastructure` - The infrastructure on which the Arc Kubernetes Cluster is running on.
 
 * `kubernetes_version` - The Kubernetes version of the cluster resource.
 
