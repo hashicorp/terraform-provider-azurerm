@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_mobile_network_site` [GH-20334]
+* **New Data Source:** `azurerm_hybrid_compute_machine` [GH-20211]
 * **New Resource:** `azurerm_network_manager_security_admin_configuration` [GH-20233]
 * **New Resource:** `azurerm_network_manager_admin_rule_collection` [GH-20233]
 * **New Resource:** `azurerm_network_manager_admin_rule` [GH-20233]
