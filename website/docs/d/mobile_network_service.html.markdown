@@ -40,11 +40,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Mobile Network Service should exist.
 
-* `service_precedence` - A precedence value that is used to decide between services when identifying the QoS values to use for a particular SIM. A lower value means a higher priority. This value should be unique among all services configured in the mobile network.
+* `service_precedence` - A precedence value that is used to decide between services when identifying the QoS values to use for a particular SIM. A lower value means a higher priority. 
 
 * `pcc_rule` - A `pcc_rule` block as defined below. The set of PCC Rules that make up this service.
 
-* `service_qos_policy` - A `service_qos_policy` block as defined below. The QoS policy to use for packets matching this service. This can be overridden for particular flows using the ruleQosPolicy field in a `pcc_rule`. If this field is not specified then the `sim_policy` of User Equipment (UE) will define the QoS settings.
+* `service_qos_policy` - A `service_qos_policy` block as defined below. The QoS policy to use for packets matching this service. 
 
 * `tags` - A mapping of tags which should be assigned to the Mobile Network Service.
 
@@ -54,9 +54,9 @@ A `pcc_rule` block supports the following:
 
 * `name` - The name of the rule. This must be unique within the parent service.
 
-* `precedence` - A precedence value that is used to decide between data flow policy rules when identifying the QoS values to use for a particular SIM. A lower value means a higher priority. This value should be unique among all data flow policy rules configured in the mobile network.
+* `precedence` - A precedence value that is used to decide between data flow policy rules when identifying the QoS values to use for a particular SIM. A lower value means a higher priority. 
 
-* `qos_policy` - A `rule_qos_policy` block as defined below. The QoS policy to use for packets matching this rule. If this field is not specified then the Service will define the QoS settings.
+* `qos_policy` - A `rule_qos_policy` block as defined below. The QoS policy to use for packets matching this rule.
 
 * `service_data_flow_template` - A `service_data_flow_template` block as defined below. The set of service data flow templates to use for this PCC rule.
 
@@ -66,11 +66,11 @@ A `pcc_rule` block supports the following:
 
 A `rule_qos_policy` block supports the following:
 
-* `allocation_and_retention_priority_level` - QoS Flow allocation and retention priority (ARP) level. Flows with higher priority preempt flows with lower priority, if the settings of `preemption_capability` and `preemption_vulnerability` allow it. 1 is the highest level of priority. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters.
+* `allocation_and_retention_priority_level` - QoS Flow allocation and retention priority (ARP) level. Flows with higher priority preempt flows with lower priority.
 
 * `qos_indicator` - The QoS Indicator (5QI for 5G network /QCI for 4G net work) value identifies a set of QoS characteristics that control QoS forwarding treatment for QoS flows or EPS bearers.
 
-* `guaranteed_bit_rate` - A `guaranteed_bit_rate` block as defined below. The Guaranteed Bit Rate (GBR) for all service data flows that use this PCC Rule. If it's not specified, there will be no GBR set for the PCC Rule that uses this QoS definition.
+* `guaranteed_bit_rate` - A `guaranteed_bit_rate` block as defined below. The Guaranteed Bit Rate (GBR) for all service data flows that use this PCC Rule. 
 
 * `maximum_bit_rate` - A `maximum_bit_rate` block as defined below. The Maximum Bit Rate (MBR) for all service data flows that use this PCC Rule or Service.
 
@@ -104,7 +104,7 @@ A `service_data_flow_template` block supports the following:
 
 A `service_qos_policy` block supports the following:
 
-* `allocation_and_retention_priority_level` - QoS Flow allocation and retention priority (ARP) level. Flows with higher priority preempt flows with lower priority, if the settings of `preemption_capability` and `preemption_vulnerability` allow it. 1 is the highest level of priority. If this field is not specified then `qos_indicator` is used to derive the ARP value. Defaults to `9`. See 3GPP TS23.501 section 5.7.2.2 for a full description of the ARP parameters.
+* `allocation_and_retention_priority_level` - QoS Flow allocation and retention priority (ARP) level. 
 
 * `qos_indicator` - The QoS Indicator (5QI for 5G network /QCI for 4G net work) value identifies a set of QoS characteristics that control QoS forwarding treatment for QoS flows or EPS bearers.
 
