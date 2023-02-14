@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
+	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -143,16 +144,18 @@ func flattenParameterDefinitionsValueToString(input map[string]*policy.Parameter
 	return compactJson.String(), nil
 }
 
-func expandParameterValuesValueFromString(jsonString string) (map[string]*policy.ParameterValuesValue, error) {
-	var result map[string]*policy.ParameterValuesValue
+func expandParameterValuesValueFromString(jsonString string) (map[string]assignments.ParameterValuesValue, error) {
+	var result map[string]assignments.ParameterValuesValue
 
 	err := json.Unmarshal([]byte(jsonString), &result)
 
 	return result, err
 }
 
-func flattenParameterValuesValueToString(input map[string]*policy.ParameterValuesValue) (string, error) {
-	if len(input) == 0 {
+// this function is used by both azure-go-sdk and azure-sdk-for-go. so change input to interface to accept
+// both kind of parameter value map
+func flattenParameterValuesValueToString(input interface{}) (string, error) {
+	if input == nil {
 		return "", nil
 	}
 
