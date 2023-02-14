@@ -11,7 +11,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230210.1121632` of `github.com/hashicorp/go-azure-sdk` [GH-20417]
+* dependencies: updating to `v0.20230213.1235936` of `github.com/hashicorp/go-azure-sdk` [GH-20444]
 * dependencies: no longer utilizing `github.com/manicminer/hamilton` [GH-20320]
 * **Provider:** support for the `client_certificate` provider property [GH-20320]
 * **Provider:** support for the `use_cli` provider property [GH-20320]
