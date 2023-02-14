@@ -79,6 +79,11 @@ func dataSourceArmPolicyDefinition() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+
+			"mode": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -122,6 +127,7 @@ func dataSourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("description", policyDefinition.Description)
 	d.Set("type", policyDefinition.Type)
 	d.Set("policy_type", policyDefinition.PolicyType)
+	d.Set("mode", policyDefinition.Mode)
 
 	policyRule := policyDefinition.PolicyRule.(map[string]interface{})
 	if policyRuleStr := flattenJSON(policyRule); policyRuleStr != "" {
