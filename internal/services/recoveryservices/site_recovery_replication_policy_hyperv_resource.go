@@ -138,8 +138,7 @@ func (r ReplicationPolicyHyperVResource) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					metadata.MarkAsGone(id)
-					return nil
+					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading %s : %+v", id.String(), err)
 			}
