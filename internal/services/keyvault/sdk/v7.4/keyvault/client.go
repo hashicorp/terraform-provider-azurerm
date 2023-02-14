@@ -1,4 +1,4 @@
-// Package keyvault implements the Azure ARM Keyvault service API version 7.3.
+// Package keyvault implements the Azure ARM Keyvault service API version 7.4.
 //
 // The key vault client performs cryptographic key operations and vault operations against the Key Vault service.
 package keyvault
@@ -83,7 +83,7 @@ func (client BaseClient) BackupCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -169,7 +169,7 @@ func (client BaseClient) BackupKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -248,7 +248,7 @@ func (client BaseClient) BackupSecretPreparer(ctx context.Context, vaultBaseURL 
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -327,7 +327,7 @@ func (client BaseClient) BackupStorageAccountPreparer(ctx context.Context, vault
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -422,7 +422,7 @@ func (client BaseClient) CreateCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -512,7 +512,7 @@ func (client BaseClient) CreateKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -607,7 +607,7 @@ func (client BaseClient) DecryptPreparer(ctx context.Context, vaultBaseURL strin
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -689,7 +689,7 @@ func (client BaseClient) DeleteCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -763,7 +763,7 @@ func (client BaseClient) DeleteCertificateContactsPreparer(ctx context.Context, 
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -842,7 +842,7 @@ func (client BaseClient) DeleteCertificateIssuerPreparer(ctx context.Context, va
 		"issuer-name": autorest.Encode("path", issuerName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -921,7 +921,7 @@ func (client BaseClient) DeleteCertificateOperationPreparer(ctx context.Context,
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1001,7 +1001,7 @@ func (client BaseClient) DeleteKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1090,7 +1090,7 @@ func (client BaseClient) DeleteSasDefinitionPreparer(ctx context.Context, vaultB
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1169,7 +1169,7 @@ func (client BaseClient) DeleteSecretPreparer(ctx context.Context, vaultBaseURL 
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1253,7 +1253,7 @@ func (client BaseClient) DeleteStorageAccountPreparer(ctx context.Context, vault
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1346,7 +1346,7 @@ func (client BaseClient) EncryptPreparer(ctx context.Context, vaultBaseURL strin
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1379,8 +1379,7 @@ func (client BaseClient) EncryptResponder(resp *http.Response) (result KeyOperat
 	return
 }
 
-// FullBackup creates a full backup using a user-provided SAS token to an Azure blob storage container. This operation
-// is supported only by the Managed HSM service.
+// FullBackup creates a full backup using a user-provided SAS token to an Azure blob storage container.
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
 // azureStorageBlobContainerURI - azure blob shared access signature token pointing to a valid Azure blob
@@ -1427,7 +1426,7 @@ func (client BaseClient) FullBackupPreparer(ctx context.Context, vaultBaseURL st
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1519,7 +1518,7 @@ func (client BaseClient) FullBackupStatusPreparer(ctx context.Context, vaultBase
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1600,7 +1599,7 @@ func (client BaseClient) FullRestoreOperationPreparer(ctx context.Context, vault
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1696,7 +1695,7 @@ func (client BaseClient) GetCertificatePreparer(ctx context.Context, vaultBaseUR
 		"certificate-version": autorest.Encode("path", certificateVersion),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1770,7 +1769,7 @@ func (client BaseClient) GetCertificateContactsPreparer(ctx context.Context, vau
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1849,7 +1848,7 @@ func (client BaseClient) GetCertificateIssuerPreparer(ctx context.Context, vault
 		"issuer-name": autorest.Encode("path", issuerName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1939,7 +1938,7 @@ func (client BaseClient) GetCertificateIssuersPreparer(ctx context.Context, vaul
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2058,7 +2057,7 @@ func (client BaseClient) GetCertificateOperationPreparer(ctx context.Context, va
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2137,7 +2136,7 @@ func (client BaseClient) GetCertificatePolicyPreparer(ctx context.Context, vault
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2228,7 +2227,7 @@ func (client BaseClient) GetCertificatesPreparer(ctx context.Context, vaultBaseU
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2366,7 +2365,7 @@ func (client BaseClient) GetCertificateVersionsPreparer(ctx context.Context, vau
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2486,7 +2485,7 @@ func (client BaseClient) GetDeletedCertificatePreparer(ctx context.Context, vaul
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2579,7 +2578,7 @@ func (client BaseClient) GetDeletedCertificatesPreparer(ctx context.Context, vau
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2702,7 +2701,7 @@ func (client BaseClient) GetDeletedKeyPreparer(ctx context.Context, vaultBaseURL
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2794,7 +2793,7 @@ func (client BaseClient) GetDeletedKeysPreparer(ctx context.Context, vaultBaseUR
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2923,7 +2922,7 @@ func (client BaseClient) GetDeletedSasDefinitionPreparer(ctx context.Context, va
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3020,7 +3019,7 @@ func (client BaseClient) GetDeletedSasDefinitionsPreparer(ctx context.Context, v
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3139,7 +3138,7 @@ func (client BaseClient) GetDeletedSecretPreparer(ctx context.Context, vaultBase
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3229,7 +3228,7 @@ func (client BaseClient) GetDeletedSecretsPreparer(ctx context.Context, vaultBas
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3354,7 +3353,7 @@ func (client BaseClient) GetDeletedStorageAccountPreparer(ctx context.Context, v
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3444,7 +3443,7 @@ func (client BaseClient) GetDeletedStorageAccountsPreparer(ctx context.Context, 
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3566,7 +3565,7 @@ func (client BaseClient) GetKeyPreparer(ctx context.Context, vaultBaseURL string
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3645,7 +3644,7 @@ func (client BaseClient) GetKeyRotationPolicyPreparer(ctx context.Context, vault
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3737,7 +3736,7 @@ func (client BaseClient) GetKeysPreparer(ctx context.Context, vaultBaseURL strin
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3872,7 +3871,7 @@ func (client BaseClient) GetKeyVersionsPreparer(ctx context.Context, vaultBaseUR
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3995,7 +3994,7 @@ func (client BaseClient) GetRandomBytesPreparer(ctx context.Context, vaultBaseUR
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4086,7 +4085,7 @@ func (client BaseClient) GetSasDefinitionPreparer(ctx context.Context, vaultBase
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4183,7 +4182,7 @@ func (client BaseClient) GetSasDefinitionsPreparer(ctx context.Context, vaultBas
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4305,7 +4304,7 @@ func (client BaseClient) GetSecretPreparer(ctx context.Context, vaultBaseURL str
 		"secret-version": autorest.Encode("path", secretVersion),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4396,7 +4395,7 @@ func (client BaseClient) GetSecretsPreparer(ctx context.Context, vaultBaseURL st
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4531,7 +4530,7 @@ func (client BaseClient) GetSecretVersionsPreparer(ctx context.Context, vaultBas
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4602,6 +4601,157 @@ func (client BaseClient) GetSecretVersionsComplete(ctx context.Context, vaultBas
 	return
 }
 
+// GetSetting retrieves the setting object of a specified setting name.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// settingName - the name of the account setting. Must be a valid settings option.
+func (client BaseClient) GetSetting(ctx context.Context, vaultBaseURL string, settingName string) (result Setting, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSetting")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetSettingPreparer(ctx, vaultBaseURL, settingName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSetting", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetSettingSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSetting", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetSettingResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSetting", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetSettingPreparer prepares the GetSetting request.
+func (client BaseClient) GetSettingPreparer(ctx context.Context, vaultBaseURL string, settingName string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"setting-name": autorest.Encode("path", settingName),
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/settings/{setting-name}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetSettingSender sends the GetSetting request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetSettingSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetSettingResponder handles the response to the GetSetting request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetSettingResponder(resp *http.Response) (result Setting, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetSettings retrieves a list of all the available account settings that can be configured.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+func (client BaseClient) GetSettings(ctx context.Context, vaultBaseURL string) (result SettingsListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSettings")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetSettingsPreparer(ctx, vaultBaseURL)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSettings", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetSettingsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSettings", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetSettingsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSettings", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetSettingsPreparer prepares the GetSettings request.
+func (client BaseClient) GetSettingsPreparer(ctx context.Context, vaultBaseURL string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPath("/settings"),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetSettingsSender sends the GetSettings request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetSettingsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetSettingsResponder handles the response to the GetSettings request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetSettingsResponder(resp *http.Response) (result SettingsListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // GetStorageAccount gets information about a specified storage account. This operation requires the storage/get
 // permission.
 // Parameters:
@@ -4656,7 +4806,7 @@ func (client BaseClient) GetStorageAccountPreparer(ctx context.Context, vaultBas
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4746,7 +4896,7 @@ func (client BaseClient) GetStorageAccountsPreparer(ctx context.Context, vaultBa
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4884,7 +5034,7 @@ func (client BaseClient) ImportCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4976,7 +5126,7 @@ func (client BaseClient) ImportKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5064,7 +5214,7 @@ func (client BaseClient) MergeCertificatePreparer(ctx context.Context, vaultBase
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5146,7 +5296,7 @@ func (client BaseClient) PurgeDeletedCertificatePreparer(ctx context.Context, va
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5225,7 +5375,7 @@ func (client BaseClient) PurgeDeletedKeyPreparer(ctx context.Context, vaultBaseU
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5304,7 +5454,7 @@ func (client BaseClient) PurgeDeletedSecretPreparer(ctx context.Context, vaultBa
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5389,7 +5539,7 @@ func (client BaseClient) PurgeDeletedStorageAccountPreparer(ctx context.Context,
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5468,7 +5618,7 @@ func (client BaseClient) RecoverDeletedCertificatePreparer(ctx context.Context, 
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5549,7 +5699,7 @@ func (client BaseClient) RecoverDeletedKeyPreparer(ctx context.Context, vaultBas
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5638,7 +5788,7 @@ func (client BaseClient) RecoverDeletedSasDefinitionPreparer(ctx context.Context
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5717,7 +5867,7 @@ func (client BaseClient) RecoverDeletedSecretPreparer(ctx context.Context, vault
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5802,7 +5952,7 @@ func (client BaseClient) RecoverDeletedStorageAccountPreparer(ctx context.Contex
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5890,7 +6040,7 @@ func (client BaseClient) RegenerateStorageAccountKeyPreparer(ctx context.Context
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5981,7 +6131,7 @@ func (client BaseClient) ReleasePreparer(ctx context.Context, vaultBaseURL strin
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6064,7 +6214,7 @@ func (client BaseClient) RestoreCertificatePreparer(ctx context.Context, vaultBa
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6154,7 +6304,7 @@ func (client BaseClient) RestoreKeyPreparer(ctx context.Context, vaultBaseURL st
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6237,7 +6387,7 @@ func (client BaseClient) RestoreSecretPreparer(ctx context.Context, vaultBaseURL
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6317,7 +6467,7 @@ func (client BaseClient) RestoreStatusPreparer(ctx context.Context, vaultBaseURL
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6398,7 +6548,7 @@ func (client BaseClient) RestoreStorageAccountPreparer(ctx context.Context, vaul
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6484,7 +6634,7 @@ func (client BaseClient) RotateKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6570,7 +6720,7 @@ func (client BaseClient) SelectiveKeyRestoreOperationMethodPreparer(ctx context.
 		"keyName": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6659,7 +6809,7 @@ func (client BaseClient) SetCertificateContactsPreparer(ctx context.Context, vau
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6749,7 +6899,7 @@ func (client BaseClient) SetCertificateIssuerPreparer(ctx context.Context, vault
 		"issuer-name": autorest.Encode("path", issuerName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6846,7 +6996,7 @@ func (client BaseClient) SetSasDefinitionPreparer(ctx context.Context, vaultBase
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6937,7 +7087,7 @@ func (client BaseClient) SetSecretPreparer(ctx context.Context, vaultBaseURL str
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7030,7 +7180,7 @@ func (client BaseClient) SetStorageAccountPreparer(ctx context.Context, vaultBas
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7120,7 +7270,7 @@ func (client BaseClient) SignPreparer(ctx context.Context, vaultBaseURL string, 
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7212,7 +7362,7 @@ func (client BaseClient) UnwrapKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7296,7 +7446,7 @@ func (client BaseClient) UpdateCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-version": autorest.Encode("path", certificateVersion),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7378,7 +7528,7 @@ func (client BaseClient) UpdateCertificateIssuerPreparer(ctx context.Context, va
 		"issuer-name": autorest.Encode("path", issuerName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7460,7 +7610,7 @@ func (client BaseClient) UpdateCertificateOperationPreparer(ctx context.Context,
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7542,7 +7692,7 @@ func (client BaseClient) UpdateCertificatePolicyPreparer(ctx context.Context, va
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7627,7 +7777,7 @@ func (client BaseClient) UpdateKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7709,7 +7859,7 @@ func (client BaseClient) UpdateKeyRotationPolicyPreparer(ctx context.Context, va
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7802,7 +7952,7 @@ func (client BaseClient) UpdateSasDefinitionPreparer(ctx context.Context, vaultB
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7887,7 +8037,7 @@ func (client BaseClient) UpdateSecretPreparer(ctx context.Context, vaultBaseURL 
 		"secret-version": autorest.Encode("path", secretVersion),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7911,6 +8061,87 @@ func (client BaseClient) UpdateSecretSender(req *http.Request) (*http.Response, 
 // UpdateSecretResponder handles the response to the UpdateSecret request. The method always
 // closes the http.Response Body.
 func (client BaseClient) UpdateSecretResponder(resp *http.Response) (result SecretBundle, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// UpdateSetting description of the pool setting to be updated
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// settingName - the name of the account setting. Must be a valid settings option.
+// parameters - the parameters to update an account setting.
+func (client BaseClient) UpdateSetting(ctx context.Context, vaultBaseURL string, settingName string, parameters UpdateSettingRequest) (result Setting, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.UpdateSetting")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.UpdateSettingPreparer(ctx, vaultBaseURL, settingName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "UpdateSetting", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateSettingSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "UpdateSetting", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateSettingResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "UpdateSetting", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// UpdateSettingPreparer prepares the UpdateSetting request.
+func (client BaseClient) UpdateSettingPreparer(ctx context.Context, vaultBaseURL string, settingName string, parameters UpdateSettingRequest) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"setting-name": autorest.Encode("path", settingName),
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPatch(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/settings/{setting-name}", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateSettingSender sends the UpdateSetting request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) UpdateSettingSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// UpdateSettingResponder handles the response to the UpdateSetting request. The method always
+// closes the http.Response Body.
+func (client BaseClient) UpdateSettingResponder(resp *http.Response) (result Setting, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -7975,7 +8206,7 @@ func (client BaseClient) UpdateStorageAccountPreparer(ctx context.Context, vault
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8068,7 +8299,7 @@ func (client BaseClient) VerifyPreparer(ctx context.Context, vaultBaseURL string
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8161,7 +8392,7 @@ func (client BaseClient) WrapKeyPreparer(ctx context.Context, vaultBaseURL strin
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

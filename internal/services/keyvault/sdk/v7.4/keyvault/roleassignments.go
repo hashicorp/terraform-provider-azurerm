@@ -85,7 +85,7 @@ func (client RoleAssignmentsClient) CreatePreparer(ctx context.Context, vaultBas
 		"scope":              scope,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -167,7 +167,7 @@ func (client RoleAssignmentsClient) DeletePreparer(ctx context.Context, vaultBas
 		"scope":              scope,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -247,7 +247,7 @@ func (client RoleAssignmentsClient) GetPreparer(ctx context.Context, vaultBaseUR
 		"scope":              scope,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -333,7 +333,7 @@ func (client RoleAssignmentsClient) ListForScopePreparer(ctx context.Context, va
 		"scope": scope,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

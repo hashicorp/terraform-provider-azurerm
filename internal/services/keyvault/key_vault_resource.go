@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	KeyVaultMgmt "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/sdk/v7.3/keyvault"
+	KeyVaultMgmt "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/sdk/v7.4/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"

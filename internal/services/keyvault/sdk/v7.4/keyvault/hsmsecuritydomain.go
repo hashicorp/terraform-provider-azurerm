@@ -78,7 +78,7 @@ func (client HSMSecurityDomainClient) DownloadPreparer(ctx context.Context, vaul
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -229,7 +229,7 @@ func (client HSMSecurityDomainClient) TransferKeyMethodPreparer(ctx context.Cont
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.3"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

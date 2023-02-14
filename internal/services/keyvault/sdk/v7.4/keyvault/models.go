@@ -23,7 +23,7 @@ const fqdn = "github.com/Azure/azure-sdk-for-go/"
 // Action the action that will be executed.
 type Action struct {
 	// ActionType - The type of the action. Possible values include: 'EmailContacts', 'AutoRenew'
-	ActionType CertificateActionType `json:"action_type,omitempty"`
+	ActionType CertificatePolicyAction `json:"action_type,omitempty"`
 }
 
 // AdministratorDetails details of the organization administrator of the certificate issuer.
@@ -2388,7 +2388,7 @@ type KeyAttributes struct {
 	RecoverableDays *int32 `json:"recoverableDays,omitempty"`
 	// RecoveryLevel - READ-ONLY; Reflects the deletion recovery level currently in effect for keys in the current vault. If it contains 'Purgeable' the key can be permanently deleted by a privileged user; otherwise, only the system can purge the key, at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription', 'CustomizedRecoverablePurgeable', 'CustomizedRecoverable', 'CustomizedRecoverableProtectedSubscription'
 	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
-	// Exportable - Indicates if the private key can be exported. Release policy must be provided when creating the 1st version of an exportable key.
+	// Exportable - Indicates if the private key can be exported. Release policy must be provided when creating the first version of an exportable key.
 	Exportable *bool `json:"exportable,omitempty"`
 	// Enabled - Determines whether the object is enabled.
 	Enabled *bool `json:"enabled,omitempty"`
@@ -2775,7 +2775,7 @@ type KeyOperationsParameters struct {
 
 // KeyProperties properties of the key pair backing a certificate.
 type KeyProperties struct {
-	// Exportable - Indicates if the private key can be exported. Release policy must be provided when creating the 1st version of an exportable key.
+	// Exportable - Indicates if the private key can be exported. Release policy must be provided when creating the first version of an exportable key.
 	Exportable *bool `json:"exportable,omitempty"`
 	// KeyType - The type of key pair to be used for the certificate. Possible values include: 'EC', 'ECHSM', 'RSA', 'RSAHSM', 'Oct', 'OctHSM'
 	KeyType JSONWebKeyType `json:"kty,omitempty"`
@@ -2956,7 +2956,7 @@ type LifetimeActionsTrigger struct {
 // LifetimeActionsType the action that will be executed.
 type LifetimeActionsType struct {
 	// Type - The type of the action. Possible values include: 'Rotate', 'Notify'
-	Type LifetimeActionType `json:"type,omitempty"`
+	Type KeyRotationPolicyAction `json:"type,omitempty"`
 }
 
 // OrganizationDetails details of the organization of the certificate issuer.
@@ -4243,6 +4243,30 @@ type SelectiveKeyRestoreOperationParameters struct {
 	Folder *string `json:"folder,omitempty"`
 }
 
+// Setting ...
+type Setting struct {
+	autorest.Response `json:"-"`
+	// Name - The account setting to be updated
+	Name *string `json:"name,omitempty"`
+	// Value - The value of the pool setting.
+	Value *string `json:"value,omitempty"`
+	// Type - The type specifier of the value. Possible values include: 'Boolean'
+	Type SettingTypeEnum `json:"type,omitempty"`
+}
+
+// SettingsListResult the settings list result.
+type SettingsListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; A response message containing a list of account settings with their associated value.
+	Value *[]Setting `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SettingsListResult.
+func (slr SettingsListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // StorageAccountAttributes the storage account management attributes.
 type StorageAccountAttributes struct {
 	// Enabled - the enabled state of the object.
@@ -4589,6 +4613,12 @@ type Trigger struct {
 	DaysBeforeExpiry *int32 `json:"days_before_expiry,omitempty"`
 }
 
+// UpdateSettingRequest the update settings request object.
+type UpdateSettingRequest struct {
+	// Value - The value of the pool setting.
+	Value *string `json:"value,omitempty"`
+}
+
 // X509CertificateProperties properties of the X509 component of a certificate.
 type X509CertificateProperties struct {
 	// Subject - The subject name. Should be a valid X509 distinguished Name.
@@ -4597,7 +4627,7 @@ type X509CertificateProperties struct {
 	Ekus *[]string `json:"ekus,omitempty"`
 	// SubjectAlternativeNames - The subject alternative names.
 	SubjectAlternativeNames *SubjectAlternativeNames `json:"sans,omitempty"`
-	// KeyUsage - List of key usages.
+	// KeyUsage - Defines how the certificate's key may be used.
 	KeyUsage *[]KeyUsageType `json:"key_usage,omitempty"`
 	// ValidityInMonths - The duration that the certificate is valid in months.
 	ValidityInMonths *int32 `json:"validity_months,omitempty"`
