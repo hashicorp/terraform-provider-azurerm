@@ -21,7 +21,7 @@ ENHANCEMENTS:
 * **Provider:** cloud configuration now uses the `github.com/hashicorp/go-azure-sdk/sdk/environments` package [GH-20320]
 * `managementlocks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20387]
 * `postgres` - updating API to `2022-12-01` [GH-20370]
-* Data Source: `azurerm_policy_definition` - support for th `mode` property [GH-20420]
+* Data Source: `azurerm_policy_definition` - support for the `mode` property [GH-20420]
 * `azurerm_cognitive_account` - the field `sku_name` can now be set to `DC0` [GH-20426]
 * `azurerm_express_route_port` - support for the `billing_type` property [GH-20361]
 * `azurerm_linux_virtual_machine` - validating that the value for the `admin_username` field isn't a disallowed username [GH-20424]
@@ -31,6 +31,8 @@ BUG FIXES:
 
 * `azurerm_eventgrid_domain_topic` - `name` can now be up to 128 characters [GH-20407]
 * `azurerm_private_endpoint` - normalizing the `private_connection_resource_id` for a redis cache [GH-20418]
+* `azurerm_recovery_services_vault` - updating `cross_region_restore_enabled` to `false` recreates the resource since this operation isn't supported by the API [GH-20406]
+* `azurerm_storage_management_policy` - `rule.filters` is now Required since storage management policies fail if it's unspecified [GH-20448]
 
 ## 3.43.0 (February 09, 2023)
 
