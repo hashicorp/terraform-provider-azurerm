@@ -2334,7 +2334,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  web_app_routing {}
+  web_app_routing {
+    dns_zone_id = ""
+  }
 }
  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
