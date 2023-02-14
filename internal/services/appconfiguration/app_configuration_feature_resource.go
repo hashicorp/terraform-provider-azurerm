@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/1.0/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
@@ -30,6 +31,8 @@ const (
 type FeatureResource struct{}
 
 var _ sdk.ResourceWithUpdate = FeatureResource{}
+
+var _ sdk.ResourceWithStateMigration = FeatureResource{}
 
 type FeatureResourceModel struct {
 	ConfigurationStoreId string                       `tfschema:"configuration_store_id"`
@@ -450,4 +453,12 @@ func createOrUpdateFeature(ctx context.Context, client *appconfiguration.BaseCli
 	}
 
 	return nil
+}
+func (k FeatureResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.FeatureResourceV0ToV1{},
+		},
+	}
 }

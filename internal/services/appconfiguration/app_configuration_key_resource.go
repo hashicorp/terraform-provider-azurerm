@@ -407,9 +407,10 @@ func (k KeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 
 func (k KeyResource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		Upgraders: map[int]pluginsdk.StateUpgrade{
 			0: migration.KeyResourceV0ToV1{},
+			1: migration.KeyResourceV1ToV2{},
 		},
 	}
 }
