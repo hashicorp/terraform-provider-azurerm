@@ -13,19 +13,19 @@ var _ resourceids.ResourceId = StoredProcedureId{}
 type StoredProcedureId struct {
 	SubscriptionId      string
 	ResourceGroupName   string
-	AccountName         string
-	DatabaseName        string
+	DatabaseAccountName string
+	SqlDatabaseName     string
 	ContainerName       string
 	StoredProcedureName string
 }
 
 // NewStoredProcedureID returns a new StoredProcedureId struct
-func NewStoredProcedureID(subscriptionId string, resourceGroupName string, accountName string, databaseName string, containerName string, storedProcedureName string) StoredProcedureId {
+func NewStoredProcedureID(subscriptionId string, resourceGroupName string, databaseAccountName string, sqlDatabaseName string, containerName string, storedProcedureName string) StoredProcedureId {
 	return StoredProcedureId{
 		SubscriptionId:      subscriptionId,
 		ResourceGroupName:   resourceGroupName,
-		AccountName:         accountName,
-		DatabaseName:        databaseName,
+		DatabaseAccountName: databaseAccountName,
+		SqlDatabaseName:     sqlDatabaseName,
 		ContainerName:       containerName,
 		StoredProcedureName: storedProcedureName,
 	}
@@ -50,12 +50,12 @@ func ParseStoredProcedureID(input string) (*StoredProcedureId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseName' was not found in the resource id %q", input)
+	if id.SqlDatabaseName, ok = parsed.Parsed["sqlDatabaseName"]; !ok {
+		return nil, fmt.Errorf("the segment 'sqlDatabaseName' was not found in the resource id %q", input)
 	}
 
 	if id.ContainerName, ok = parsed.Parsed["containerName"]; !ok {
@@ -89,12 +89,12 @@ func ParseStoredProcedureIDInsensitively(input string) (*StoredProcedureId, erro
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
-	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseName' was not found in the resource id %q", input)
+	if id.SqlDatabaseName, ok = parsed.Parsed["sqlDatabaseName"]; !ok {
+		return nil, fmt.Errorf("the segment 'sqlDatabaseName' was not found in the resource id %q", input)
 	}
 
 	if id.ContainerName, ok = parsed.Parsed["containerName"]; !ok {
@@ -126,7 +126,7 @@ func ValidateStoredProcedureID(input interface{}, key string) (warnings []string
 // ID returns the formatted Stored Procedure ID
 func (id StoredProcedureId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/sqlDatabases/%s/containers/%s/storedProcedures/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.DatabaseName, id.ContainerName, id.StoredProcedureName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, id.StoredProcedureName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Stored Procedure ID
@@ -139,9 +139,9 @@ func (id StoredProcedureId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
 		resourceids.StaticSegment("staticSqlDatabases", "sqlDatabases", "sqlDatabases"),
-		resourceids.UserSpecifiedSegment("databaseName", "databaseValue"),
+		resourceids.UserSpecifiedSegment("sqlDatabaseName", "sqlDatabaseValue"),
 		resourceids.StaticSegment("staticContainers", "containers", "containers"),
 		resourceids.UserSpecifiedSegment("containerName", "containerValue"),
 		resourceids.StaticSegment("staticStoredProcedures", "storedProcedures", "storedProcedures"),
@@ -154,8 +154,8 @@ func (id StoredProcedureId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
-		fmt.Sprintf("Database Name: %q", id.DatabaseName),
+		fmt.Sprintf("Database Account Name: %q", id.DatabaseAccountName),
+		fmt.Sprintf("Sql Database Name: %q", id.SqlDatabaseName),
 		fmt.Sprintf("Container Name: %q", id.ContainerName),
 		fmt.Sprintf("Stored Procedure Name: %q", id.StoredProcedureName),
 	}

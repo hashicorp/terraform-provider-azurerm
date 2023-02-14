@@ -60,6 +60,43 @@ func TestAccWindowsWebAppSlot_autoSwap(t *testing.T) {
 	})
 }
 
+func TestAccWidowsWebAppSlot_separateStandardPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.separatePlan(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsWebAppSlot_separateStandardPlanUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.separatePlan(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.separatePlanUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Complete
 
 func TestAccWindowsWebAppSlot_complete(t *testing.T) {
@@ -1886,6 +1923,66 @@ resource "azurerm_windows_web_app_slot" "test" {
 }
 
 `, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppSlotResource) separatePlan(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_service_plan" "test2" {
+  name                = "acctestASP2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "%[3]s"
+}
+
+resource "azurerm_windows_web_app_slot" "test" {
+  name           = "acctestWAS-%[2]d"
+  app_service_id = azurerm_windows_web_app.test2.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger, SkuStandardPlan)
+}
+
+func (r WindowsWebAppSlotResource) separatePlanUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_service_plan" "test2" {
+  name                = "acctestASP2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "%[3]s"
+}
+
+resource "azurerm_service_plan" "test3" {
+  name                = "acctestASP3-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "%[4]s"
+}
+
+resource "azurerm_windows_web_app_slot" "test" {
+  name           = "acctestWAS-%[2]d"
+  app_service_id = azurerm_windows_web_app.test3.id
+
+  service_plan_id = azurerm_service_plan.test3.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger, SkuStandardPlan, SkuPremiumPlan)
 }
 
 // Templates

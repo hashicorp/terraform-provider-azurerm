@@ -22,7 +22,6 @@ func resourceSiteRecoveryFabric() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceSiteRecoveryFabricCreate,
 		Read:   resourceSiteRecoveryFabricRead,
-		Update: nil,
 		Delete: resourceSiteRecoveryFabricDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ReplicationFabricID(id)
@@ -121,18 +120,22 @@ func resourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("making read request on site recovery fabric %s: %+v", id.String(), err)
 	}
 
-	model := resp.Model
-	if model == nil {
-		return fmt.Errorf("making read request on site recovery fabric %s: model is nil", id.String())
+	d.Set("name", id.ReplicationFabricName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("recovery_vault_name", id.VaultName)
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if details := props.CustomDetails; details != nil {
+				fabric, ok := details.(replicationfabrics.AzureFabricSpecificDetails)
+				if !ok {
+					return fmt.Errorf("expected `details` to be an AzureFabricSpecificDetails but it wasn't: %+v", details)
+				}
+				d.Set("location", location.NormalizeNilable(fabric.Location))
+			}
+		}
 	}
 
-	d.Set("name", model.Name)
-	d.Set("resource_group_name", id.ResourceGroupName)
-	if model.Properties.CustomDetails != nil {
-		loc := *model.Properties.CustomDetails.(replicationfabrics.AzureFabricSpecificDetails).Location
-		d.Set("location", location.Normalize(loc))
-	}
-	d.Set("recovery_vault_name", id.ResourceName)
 	return nil
 }
 
@@ -146,9 +149,8 @@ func resourceSiteRecoveryFabricDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("deleting site recovery fabric %s : %+v", id.String(), err)
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

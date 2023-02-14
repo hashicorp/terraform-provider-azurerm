@@ -147,7 +147,7 @@ A `access_control` block supports the following:
 
 * `akamai_signature_header_authentication_key` - (Optional) One or more `akamai_signature_header_authentication_key` blocks as defined below.
 
-* `ip_allow` - (Optional) A `ip` block as defined below.
+* `ip_allow` - (Optional) A `ip_allow` block as defined below.
 
 ---
 

@@ -6,15 +6,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -54,7 +54,7 @@ func (r EdgeDeviceResource) ResourceType() string {
 }
 
 func (r EdgeDeviceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.DeviceID
+	return devices.ValidateDataBoxEdgeDeviceID
 }
 
 func (r EdgeDeviceResource) Arguments() map[string]*schema.Schema {
@@ -77,7 +77,7 @@ func (r EdgeDeviceResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validate.DataboxEdgeDeviceSkuName,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -163,34 +163,30 @@ func (r EdgeDeviceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			id := parse.NewDeviceID(subscriptionId, metaModel.ResourceGroupName, metaModel.Name)
+			id := devices.NewDataBoxEdgeDeviceID(subscriptionId, metaModel.ResourceGroupName, metaModel.Name)
 			// sdk method is Get(ctx context.Context, deviceName string, resourceGroupName string)
-			existing, err := client.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
+			existing, err := client.Get(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError("azurerm_databox_edge_device", id.ID())
 			}
 
-			dataBoxEdgeDevice := databoxedge.Device{
-				Location: utils.String(location.Normalize(metaModel.Location)),
+			dataBoxEdgeDevice := devices.DataBoxEdgeDevice{
+				Location: location.Normalize(metaModel.Location),
 				Sku:      expandDeviceSku(metaModel.SkuName),
-				Tags:     tags.FromTypedObject(metaModel.Tags),
+				Tags:     &metaModel.Tags,
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.DataBoxEdgeDeviceName, dataBoxEdgeDevice, id.ResourceGroup)
-			if err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, dataBoxEdgeDevice); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
-			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -202,14 +198,14 @@ func (r EdgeDeviceResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataboxEdge.DeviceClient
 
-			id, err := parse.DeviceID(metadata.ResourceData.Id())
+			id, err := devices.ParseDataBoxEdgeDeviceID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("parse: %+v", err)
 			}
 
-			resp, err := client.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					log.Printf("[INFO] %s was not found - removing from state", id)
 					return metadata.MarkAsGone(id)
 				}
@@ -218,14 +214,16 @@ func (r EdgeDeviceResource) Read() sdk.ResourceFunc {
 
 			state := EdgeDeviceModel{
 				Name:              id.DataBoxEdgeDeviceName,
-				ResourceGroupName: id.ResourceGroup,
-				Location:          location.NormalizeNilable(resp.Location),
+				ResourceGroupName: id.ResourceGroupName,
 			}
 
-			if props := resp.DeviceProperties; props != nil {
-				state.DeviceProperties = flattenDeviceProperties(props)
-				state.SkuName = flattenDeviceSku(resp.Sku)
-				state.Tags = tags.ToTypedObject(resp.Tags)
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				if props := model.Properties; props != nil {
+					state.DeviceProperties = flattenDeviceProperties(props)
+				}
+				state.SkuName = flattenDeviceSku(model.Sku)
+				state.Tags = *model.Tags
 			}
 
 			metadata.SetID(id)
@@ -241,7 +239,7 @@ func (r EdgeDeviceResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataboxEdge.DeviceClient
 
-			id, err := parse.DeviceID(metadata.ResourceData.Id())
+			id, err := devices.ParseDataBoxEdgeDeviceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -251,12 +249,12 @@ func (r EdgeDeviceResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := databoxedge.DevicePatch{}
+			parameters := devices.DataBoxEdgeDevicePatch{}
 			if metadata.ResourceData.HasChange("tags") {
-				parameters.Tags = tags.FromTypedObject(metaModel.Tags)
+				parameters.Tags = &metaModel.Tags
 			}
 
-			if _, err := client.Update(ctx, id.DataBoxEdgeDeviceName, parameters, id.ResourceGroup); err != nil {
+			if _, err := client.Update(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -271,7 +269,7 @@ func (r EdgeDeviceResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataboxEdge.DeviceClient
 
-			id, err := parse.DeviceID(metadata.ResourceData.Id())
+			id, err := devices.ParseDataBoxEdgeDeviceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -280,20 +278,16 @@ func (r EdgeDeviceResource) Delete() sdk.ResourceFunc {
 			if err := metadata.Decode(&metaModel); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-			future, err := client.Delete(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
-			if err != nil {
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-			}
 			return nil
 		},
 	}
 }
 
-func expandDeviceSku(input string) *databoxedge.Sku {
+func expandDeviceSku(input string) *devices.Sku {
 	if len(input) == 0 {
 		return nil
 	}
@@ -303,13 +297,13 @@ func expandDeviceSku(input string) *databoxedge.Sku {
 		return nil
 	}
 
-	return &databoxedge.Sku{
-		Name: databoxedge.SkuName(v.Name),
-		Tier: databoxedge.SkuTier(v.Tier),
+	return &devices.Sku{
+		Name: utils.ToPtr(devices.SkuName(v.Name)),
+		Tier: utils.ToPtr(devices.SkuTier(v.Tier)),
 	}
 }
 
-func flattenDeviceProperties(input *databoxedge.DeviceProperties) []DevicePropertiesModel {
+func flattenDeviceProperties(input *devices.DataBoxEdgeDeviceProperties) []DevicePropertiesModel {
 	output := make([]DevicePropertiesModel, 0)
 	configuredRoleTypes := make([]string, 0)
 
@@ -333,8 +327,8 @@ func flattenDeviceProperties(input *databoxedge.DeviceProperties) []DeviceProper
 			o.ConfiguredRoleTypes = configuredRoleTypes
 		}
 
-		if input.DataBoxEdgeDeviceStatus != "" {
-			status = string(input.DataBoxEdgeDeviceStatus)
+		if v := input.DataBoxEdgeDeviceStatus; v != nil && *v != "" {
+			status = string(*v)
 			o.Status = status
 		}
 
@@ -363,13 +357,13 @@ func flattenDeviceProperties(input *databoxedge.DeviceProperties) []DeviceProper
 			o.SoftwareVersion = softwareVersion
 		}
 
-		if input.DeviceType != "" {
-			deviceType = string(input.DeviceType)
+		if v := input.DeviceType; v != nil && *v != "" {
+			deviceType = string(*v)
 			o.Type = deviceType
 		}
 
 		if input.NodeCount != nil {
-			nodeCount = *input.NodeCount
+			nodeCount = int32(*input.NodeCount)
 			o.NodeCount = nodeCount
 		}
 
@@ -389,22 +383,22 @@ func flattenDeviceProperties(input *databoxedge.DeviceProperties) []DeviceProper
 	return output
 }
 
-func flattenDeviceSku(input *databoxedge.Sku) string {
+func flattenDeviceSku(input *devices.Sku) string {
 	if input == nil {
 		return ""
 	}
 
-	var name databoxedge.SkuName
-	var tier databoxedge.SkuTier
+	var name devices.SkuName
+	var tier devices.SkuTier
 
-	if input.Name != "" {
-		name = input.Name
+	if v := input.Name; v != nil && *v != "" {
+		name = *v
 	}
 
-	if input.Tier != "" {
-		tier = input.Tier
+	if v := input.Tier; v != nil && *v != "" {
+		tier = *v
 	} else {
-		tier = databoxedge.Standard
+		tier = devices.SkuTierStandard
 	}
 
 	skuName := fmt.Sprintf("%s-%s", name, tier)

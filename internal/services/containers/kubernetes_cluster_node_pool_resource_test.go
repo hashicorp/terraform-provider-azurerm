@@ -600,6 +600,21 @@ func TestAccKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_virtualNetworkMultipleSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.virtualNetworkMultipleSubnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_windows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -918,6 +933,21 @@ func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatEnabled(t *testin
 	})
 }
 
+func TestAccKubernetesClusterNodePool_nodeIPTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodeIPTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := agentpools.ParseAgentPoolID(state.ID)
 	if err != nil {
@@ -940,9 +970,9 @@ func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance
 		if err != nil {
 			return fmt.Errorf("parsing kubernetes cluster id: %+v", err)
 		}
-		parsedAgentPoolId := agentpools.NewAgentPoolID(parsedK8sId.SubscriptionId, parsedK8sId.ResourceGroupName, parsedK8sId.ResourceName, nodePoolName)
+		parsedAgentPoolId := agentpools.NewAgentPoolID(parsedK8sId.SubscriptionId, parsedK8sId.ResourceGroupName, parsedK8sId.ManagedClusterName, nodePoolName)
 
-		clusterName := parsedK8sId.ResourceName
+		clusterName := parsedK8sId.ManagedClusterName
 		resourceGroup := parsedK8sId.ResourceGroupName
 
 		nodePool, err := clients.Containers.AgentPoolsClient.Get(ctx, parsedAgentPoolId)
@@ -1851,6 +1881,31 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateVirtualNetworkConfig(data))
 }
 
+func (r KubernetesClusterNodePoolResource) virtualNetworkMultipleSubnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestsubnet2%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.1.0/24"]
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  vnet_subnet_id        = azurerm_subnet.test2.id
+}
+`, r.templateVirtualNetworkConfig(data), data.RandomInteger)
+}
+
 func (r KubernetesClusterNodePoolResource) windowsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2441,4 +2496,44 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 }
 `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterNodePoolResource) nodeIPTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D2s_v3"
+  enable_node_public_ip = true
+  node_network_profile {
+    node_public_ip_tags = {
+      RoutingPreference = "Internet"
+    }
+  }
+}
+ `, data.Locations.Primary, data.RandomInteger)
 }

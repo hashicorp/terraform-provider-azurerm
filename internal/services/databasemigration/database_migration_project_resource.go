@@ -5,15 +5,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2018-04-19/projectresource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,7 +28,7 @@ func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 		Delete: resourceDatabaseMigrationProjectDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ProjectID(id)
+			_, err := projectresource.ParseProjectID(id)
 			return err
 		}),
 
@@ -64,7 +64,7 @@ func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// Now that go sdk only export SQL as source platform type, we only allow it here.
-					string(datamigration.ProjectSourcePlatformSQL),
+					string(projectresource.ProjectSourcePlatformSQL),
 				}, false),
 			},
 
@@ -74,11 +74,11 @@ func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// Now that go sdk only export SQL as source platform type, we only allow it here.
-					string(datamigration.ProjectTargetPlatformSQLDB),
+					string(projectresource.ProjectTargetPlatformSQLDB),
 				}, false),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -89,15 +89,15 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewProjectID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").(string), d.Get("name").(string))
+	id := projectresource.NewProjectID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+		existing, err := client.ProjectsGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_database_migration_project", id.ID())
 		}
 	}
@@ -107,16 +107,16 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, met
 	targetPlatform := d.Get("target_platform").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	parameters := datamigration.Project{
-		Location: utils.String(location),
-		ProjectProperties: &datamigration.ProjectProperties{
-			SourcePlatform: datamigration.ProjectSourcePlatform(sourcePlatform),
-			TargetPlatform: datamigration.ProjectTargetPlatform(targetPlatform),
+	parameters := projectresource.Project{
+		Location: location,
+		Properties: &projectresource.ProjectProperties{
+			SourcePlatform: projectresource.ProjectSourcePlatform(sourcePlatform),
+			TargetPlatform: projectresource.ProjectTargetPlatform(targetPlatform),
 		},
 		Tags: tags.Expand(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, parameters, id.ResourceGroup, id.ServiceName, id.Name); err != nil {
+	if _, err := client.ProjectsCreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -129,14 +129,14 @@ func resourceDatabaseMigrationProjectRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ProjectID(d.Id())
+	id, err := projectresource.ParseProjectID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.ProjectsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -144,17 +144,19 @@ func resourceDatabaseMigrationProjectRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.ProjectName)
 	d.Set("service_name", id.ServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if prop := resp.ProjectProperties; prop != nil {
-		d.Set("source_platform", string(prop.SourcePlatform))
-		d.Set("target_platform", string(prop.TargetPlatform))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		if props := model.Properties; props != nil {
+			d.Set("source_platform", string(props.SourcePlatform))
+			d.Set("target_platform", string(props.TargetPlatform))
+		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceDatabaseMigrationProjectDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -162,13 +164,15 @@ func resourceDatabaseMigrationProjectDelete(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ProjectID(d.Id())
+	id, err := projectresource.ParseProjectID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	deleteRunningTasks := false
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, &deleteRunningTasks); err != nil {
+	opts := projectresource.ProjectsDeleteOperationOptions{
+		DeleteRunningTasks: utils.Bool(false),
+	}
+	if _, err := client.ProjectsDelete(ctx, *id, opts); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

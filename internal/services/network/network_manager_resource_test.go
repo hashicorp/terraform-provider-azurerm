@@ -51,6 +51,35 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManagerScopeConnection_update,
 			"requiresImport": testAccNetworkManagerScopeConnection_requiresImport,
 		},
+		"StaticMember": {
+			"basic":          testAccNetworkManagerStaticMember_basic,
+			"requiresImport": testAccNetworkManagerStaticMember_requiresImport,
+		},
+		"ConnectivityConfiguration": {
+			"basic":             testAccNetworkManagerConnectivityConfiguration_basic,
+			"basicTopologyMesh": testAccNetworkManagerConnectivityConfiguration_basicTopologyMesh,
+			"complete":          testAccNetworkManagerConnectivityConfiguration_complete,
+			"update":            testAccNetworkManagerConnectivityConfiguration_update,
+			"requiresImport":    testAccNetworkManagerConnectivityConfiguration_requiresImport,
+		},
+		"SecurityAdminConfiguration": {
+			"basic":          testAccNetworkManagerSecurityAdminConfiguration_basic,
+			"complete":       testAccNetworkManagerSecurityAdminConfiguration_complete,
+			"update":         testAccNetworkManagerSecurityAdminConfiguration_update,
+			"requiresImport": testAccNetworkManagerSecurityAdminConfiguration_requiresImport,
+		},
+		"AdminRuleCollection": {
+			"basic":          testAccNetworkManagerAdminRuleCollection_basic,
+			"complete":       testAccNetworkManagerAdminRuleCollection_complete,
+			"update":         testAccNetworkManagerAdminRuleCollection_update,
+			"requiresImport": testAccNetworkManagerAdminRuleCollection_requiresImport,
+		},
+		"AdminRule": {
+			"basic":          testAccNetworkManagerAdminRule_basic,
+			"complete":       testAccNetworkManagerAdminRule_complete,
+			"update":         testAccNetworkManagerAdminRule_update,
+			"requiresImport": testAccNetworkManagerAdminRule_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {

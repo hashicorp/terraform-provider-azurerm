@@ -222,7 +222,7 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("name", id.ClusterName)
+	d.Set("name", id.CassandraClusterName)
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 

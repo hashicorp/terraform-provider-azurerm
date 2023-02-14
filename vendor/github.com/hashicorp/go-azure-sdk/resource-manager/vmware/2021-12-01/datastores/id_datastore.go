@@ -15,17 +15,17 @@ type DataStoreId struct {
 	ResourceGroupName string
 	PrivateCloudName  string
 	ClusterName       string
-	DatastoreName     string
+	DataStoreName     string
 }
 
 // NewDataStoreID returns a new DataStoreId struct
-func NewDataStoreID(subscriptionId string, resourceGroupName string, privateCloudName string, clusterName string, datastoreName string) DataStoreId {
+func NewDataStoreID(subscriptionId string, resourceGroupName string, privateCloudName string, clusterName string, dataStoreName string) DataStoreId {
 	return DataStoreId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
 		PrivateCloudName:  privateCloudName,
 		ClusterName:       clusterName,
-		DatastoreName:     datastoreName,
+		DataStoreName:     dataStoreName,
 	}
 }
 
@@ -56,8 +56,8 @@ func ParseDataStoreID(input string) (*DataStoreId, error) {
 		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
 	}
 
-	if id.DatastoreName, ok = parsed.Parsed["datastoreName"]; !ok {
-		return nil, fmt.Errorf("the segment 'datastoreName' was not found in the resource id %q", input)
+	if id.DataStoreName, ok = parsed.Parsed["dataStoreName"]; !ok {
+		return nil, fmt.Errorf("the segment 'dataStoreName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -91,8 +91,8 @@ func ParseDataStoreIDInsensitively(input string) (*DataStoreId, error) {
 		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
 	}
 
-	if id.DatastoreName, ok = parsed.Parsed["datastoreName"]; !ok {
-		return nil, fmt.Errorf("the segment 'datastoreName' was not found in the resource id %q", input)
+	if id.DataStoreName, ok = parsed.Parsed["dataStoreName"]; !ok {
+		return nil, fmt.Errorf("the segment 'dataStoreName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -116,7 +116,7 @@ func ValidateDataStoreID(input interface{}, key string) (warnings []string, erro
 // ID returns the formatted Data Store ID
 func (id DataStoreId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AVS/privateClouds/%s/clusters/%s/dataStores/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.PrivateCloudName, id.ClusterName, id.DatastoreName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.PrivateCloudName, id.ClusterName, id.DataStoreName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Data Store ID
@@ -133,7 +133,7 @@ func (id DataStoreId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
 		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
 		resourceids.StaticSegment("staticDataStores", "dataStores", "dataStores"),
-		resourceids.UserSpecifiedSegment("datastoreName", "datastoreValue"),
+		resourceids.UserSpecifiedSegment("dataStoreName", "dataStoreValue"),
 	}
 }
 
@@ -144,7 +144,7 @@ func (id DataStoreId) String() string {
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Private Cloud Name: %q", id.PrivateCloudName),
 		fmt.Sprintf("Cluster Name: %q", id.ClusterName),
-		fmt.Sprintf("Datastore Name: %q", id.DatastoreName),
+		fmt.Sprintf("Data Store Name: %q", id.DataStoreName),
 	}
 	return fmt.Sprintf("Data Store (%s)", strings.Join(components, "\n"))
 }

@@ -339,9 +339,7 @@ func buildErrorString(stub string, m map[int]float64) string {
 	}
 
 	// copy the values of the map of keys into a slice of ints
-	for v := range p {
-		a = append(a, p[v])
-	}
+	a = append(a, p...)
 
 	// sort the slice to get them in order
 	sort.Ints(a)

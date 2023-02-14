@@ -152,7 +152,7 @@ func (c *DirectoryRolesClient) ListMembers(ctx context.Context, id string) (*[]s
 func (c *DirectoryRolesClient) AddMembers(ctx context.Context, directoryRole *DirectoryRole) (int, error) {
 	var status int
 
-	if directoryRole.ID == nil {
+	if directoryRole.ID() == nil {
 		return status, errors.New("cannot update directory role with nil ID")
 	}
 	if directoryRole.Members == nil {
@@ -178,7 +178,7 @@ func (c *DirectoryRolesClient) AddMembers(ctx context.Context, directoryRole *Di
 			ValidStatusCodes: []int{http.StatusNoContent},
 			ValidStatusFunc:  checkMemberAlreadyExists,
 			Uri: Uri{
-				Entity:      fmt.Sprintf("/directoryRoles/%s/members/$ref", *directoryRole.ID),
+				Entity:      fmt.Sprintf("/directoryRoles/%s/members/$ref", *directoryRole.ID()),
 				HasTenantId: true,
 			},
 		})

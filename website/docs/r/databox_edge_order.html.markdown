@@ -10,6 +10,8 @@ description: |-
 
 Manages a Databox Edge Order.
 
+!> Creation of Databox Edge Order is not supported by the Azure API - as such the `azurerm_databox_edge_order` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.
+
 ## Example Usage
 
 ```hcl

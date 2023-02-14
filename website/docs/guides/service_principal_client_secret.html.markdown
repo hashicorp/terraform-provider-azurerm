@@ -28,10 +28,10 @@ It's possible to complete this task in either the [Azure CLI](#creating-a-servic
 
 ### Creating a Service Principal using the Azure CLI
 
-~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
+~> **Note**: If you're using the **China** or **US Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
 ```shell
-az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
+az cloud set --name AzureChinaCloud|AzureUSGovernment
 ```
 
 ---
@@ -54,11 +54,11 @@ The output (similar to below) will display one or more Subscriptions - with the 
 [
   {
     "cloudName": "AzureCloud",
-    "id": "00000000-0000-0000-0000-000000000000",
+    "id": "20000000-0000-0000-0000-000000000000",
     "isDefault": true,
     "name": "PAYG Subscription",
     "state": "Enabled",
-    "tenantId": "00000000-0000-0000-0000-000000000000",
+    "tenantId": "10000000-0000-0000-0000-000000000000",
     "user": {
       "name": "user@example.com",
       "type": "user"
@@ -70,13 +70,13 @@ The output (similar to below) will display one or more Subscriptions - with the 
 Should you have more than one Subscription, you can specify the Subscription to use via the following command:
 
 ```shell
-az account set --subscription="SUBSCRIPTION_ID"
+az account set --subscription="20000000-0000-0000-0000-000000000000"
 ```
 
 We can now create the Service Principal which will have permissions to manage resources in the specified Subscription using the following command:
 
 ```shell
-az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/SUBSCRIPTION_ID"
+az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/20000000-0000-0000-0000-000000000000"
 ```
 
 This command will output 5 values:
@@ -169,13 +169,20 @@ As we've obtained the credentials for this Service Principal - it's possible to 
 
 When storing the credentials as Environment Variables, for example:
 
-```bash
+```shell-session
+# sh
 export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
-export ARM_CLIENT_SECRET="00000000-0000-0000-0000-000000000000"
-export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
-export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
+export ARM_CLIENT_SECRET="12345678-0000-0000-0000-000000000000"
+export ARM_TENANT_ID="10000000-0000-0000-0000-000000000000"
+export ARM_SUBSCRIPTION_ID="20000000-0000-0000-0000-000000000000"
 ```
-
+```powershell
+# PowerShell
+> $env:ARM_CLIENT_ID = "00000000-0000-0000-0000-000000000000"
+> $env:ARM_CLIENT_SECRET = "12345678-0000-0000-0000-000000000000"
+> $env:ARM_TENANT_ID = "10000000-0000-0000-0000-000000000000"
+> $env:ARM_SUBSCRIPTION_ID = "20000000-0000-0000-0000-000000000000"
+```
 The following Terraform and Provider blocks can be specified - where `3.0.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
@@ -204,7 +211,7 @@ At this point running either `terraform plan` or `terraform apply` should allow 
 
 It's also possible to configure these variables either in-line or from using variables in Terraform (as the `client_secret` is in this example), like so:
 
-~> **NOTE:** We'd recommend not defining these variables in-line since they could easily be checked into Source Control.
+~> **Caution** We recommend not defining these variables in-line since they could easily be checked into Source Control.
 
 ```hcl
 variable "client_secret" {
@@ -225,10 +232,10 @@ terraform {
 provider "azurerm" {
   features {}
 
-  subscription_id = "00000000-0000-0000-0000-000000000000"
   client_id       = "00000000-0000-0000-0000-000000000000"
   client_secret   = var.client_secret
-  tenant_id       = "00000000-0000-0000-0000-000000000000"
+  tenant_id       = "10000000-0000-0000-0000-000000000000"
+  subscription_id = "20000000-0000-0000-0000-000000000000"
 }
 ```
 

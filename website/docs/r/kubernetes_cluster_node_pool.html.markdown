@@ -106,6 +106,8 @@ The following arguments are supported:
 
 * `mode` - (Optional) Should this Node Pool be used for System or User resources? Possible values are `System` and `User`. Defaults to `User`.
 
+* `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
+
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in this Node Pool.
 
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
@@ -147,8 +149,6 @@ The following arguments are supported:
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist. Changing this forces a new resource to be created.
-
--> **NOTE:** At this time the `vnet_subnet_id` must be the same for all node pools in the cluster
 
 ~> **NOTE:** A route table must be configured on this Subnet.
 
@@ -212,6 +212,13 @@ A `linux_os_config` block supports the following:
 
 * `transparent_huge_page_enabled` - (Optional) Specifies the Transparent Huge Page enabled configuration. Possible values are `always`, `madvise` and `never`. Changing this forces a new resource to be created.
 
+---
+
+A `node_network_profile` block supports the following:
+
+* `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered.
 ---
 
 A `sysctl_config` block supports the following:

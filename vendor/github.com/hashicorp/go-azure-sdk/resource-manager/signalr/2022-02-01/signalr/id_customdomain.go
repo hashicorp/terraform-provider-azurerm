@@ -13,17 +13,17 @@ var _ resourceids.ResourceId = CustomDomainId{}
 type CustomDomainId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	ResourceName      string
-	Name              string
+	SignalRName       string
+	CustomDomainName  string
 }
 
 // NewCustomDomainID returns a new CustomDomainId struct
-func NewCustomDomainID(subscriptionId string, resourceGroupName string, resourceName string, name string) CustomDomainId {
+func NewCustomDomainID(subscriptionId string, resourceGroupName string, signalRName string, customDomainName string) CustomDomainId {
 	return CustomDomainId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
-		Name:              name,
+		SignalRName:       signalRName,
+		CustomDomainName:  customDomainName,
 	}
 }
 
@@ -46,12 +46,12 @@ func ParseCustomDomainID(input string) (*CustomDomainId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.SignalRName, ok = parsed.Parsed["signalRName"]; !ok {
+		return nil, fmt.Errorf("the segment 'signalRName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.CustomDomainName, ok = parsed.Parsed["customDomainName"]; !ok {
+		return nil, fmt.Errorf("the segment 'customDomainName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +77,12 @@ func ParseCustomDomainIDInsensitively(input string) (*CustomDomainId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.SignalRName, ok = parsed.Parsed["signalRName"]; !ok {
+		return nil, fmt.Errorf("the segment 'signalRName' was not found in the resource id %q", input)
 	}
 
-	if id.Name, ok = parsed.Parsed["name"]; !ok {
-		return nil, fmt.Errorf("the segment 'name' was not found in the resource id %q", input)
+	if id.CustomDomainName, ok = parsed.Parsed["customDomainName"]; !ok {
+		return nil, fmt.Errorf("the segment 'customDomainName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +106,7 @@ func ValidateCustomDomainID(input interface{}, key string) (warnings []string, e
 // ID returns the formatted Custom Domain ID
 func (id CustomDomainId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/signalR/%s/customDomains/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.SignalRName, id.CustomDomainName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Custom Domain ID
@@ -119,9 +119,9 @@ func (id CustomDomainId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticSignalR", "signalR", "signalR"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("signalRName", "signalRValue"),
 		resourceids.StaticSegment("staticCustomDomains", "customDomains", "customDomains"),
-		resourceids.UserSpecifiedSegment("name", "nameValue"),
+		resourceids.UserSpecifiedSegment("customDomainName", "customDomainValue"),
 	}
 }
 
@@ -130,8 +130,8 @@ func (id CustomDomainId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
-		fmt.Sprintf("Name: %q", id.Name),
+		fmt.Sprintf("Signal R Name: %q", id.SignalRName),
+		fmt.Sprintf("Custom Domain Name: %q", id.CustomDomainName),
 	}
 	return fmt.Sprintf("Custom Domain (%s)", strings.Join(components, "\n"))
 }

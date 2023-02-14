@@ -48,6 +48,8 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Storage Queue.
 
+* `resource_manager_id` - The Resource Manager ID of this Storage Queue.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
