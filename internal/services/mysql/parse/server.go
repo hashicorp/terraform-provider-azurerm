@@ -68,7 +68,7 @@ func ServerID(input string) (*ServerId, error) {
 	return &resourceId, nil
 }
 
-// ServerIDInsensitively parses a Server ID into an ServerId struct, insensitively
+// ServerIDInsensitively parses an Server ID into an ServerId struct, insensitively
 // This should only be used to parse an ID for rewriting, the ServerID
 // method should be used instead for validation etc.
 //
