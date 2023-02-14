@@ -207,8 +207,8 @@ github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brv
 github.com/hashicorp/go-azure-helpers v0.12.0/go.mod h1:Zc3v4DNeX6PDdy7NljlYpnrdac1++qNW0I4U+ofGwpg=
 github.com/hashicorp/go-azure-helpers v0.51.0 h1:8KSDGkGnWH6zOT60R3KUqsi0fk1vA7AMunaOUJZMM6k=
 github.com/hashicorp/go-azure-helpers v0.51.0/go.mod h1:lsykLR4KjTUO7MiRmNWiTiX8QQtw3ILjyOvT0f5h3rw=
-github.com/hashicorp/go-azure-sdk v0.20230213.1173636-0.20230213214920-ce82c3ba5b2a h1:NqkD0wK6NwvfdNuzaRJQR2adHg6NMKOc8SYaiNblpzg=
-github.com/hashicorp/go-azure-sdk v0.20230213.1173636-0.20230213214920-ce82c3ba5b2a/go.mod h1:aHinadEuBi04I1i+yvpPMZUxvxRxl5JgBOwlzIIxozU=
+github.com/hashicorp/go-azure-sdk v0.20230213.1235936 h1:JEqzFbmnkTZZrIIs5ZxIi4gY6oMF43zbo8+315qmbPs=
+github.com/hashicorp/go-azure-sdk v0.20230213.1235936/go.mod h1:aHinadEuBi04I1i+yvpPMZUxvxRxl5JgBOwlzIIxozU=
 github.com/hashicorp/go-checkpoint v0.5.0 h1:MFYpPZCnQqQTE18jFwSII6eUQrD/oxMFp3mlgcqk5mU=
 github.com/hashicorp/go-checkpoint v0.5.0/go.mod h1:7nfLNL10NsxqO4iWuW6tWW0HjZuDrwkBuEQsVcpCOgg=
 github.com/hashicorp/go-cleanhttp v0.5.0/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
