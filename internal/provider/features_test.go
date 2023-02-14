@@ -1099,7 +1099,7 @@ func TestExpandFeaturesNetwork(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				Network: features.NetworkFeatures{
-					ManagerCommitKeepOnDestroy: true,
+					ManagerCommitKeepOnDestroy: false,
 				},
 			},
 		},
