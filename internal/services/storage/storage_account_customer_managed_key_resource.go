@@ -63,7 +63,6 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
 				ExactlyOneOf: []string{"key_vault_id", "key_vault_uri"},
-				RequiredWith: []string{"federated_identity_client_id"},
 			},
 
 			"key_name": {
