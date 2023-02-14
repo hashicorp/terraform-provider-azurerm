@@ -179,7 +179,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"manager_commit_keep_on_destroy": {
 						Type:     pluginsdk.TypeBool,
-						Default:  true,
+						Default:  false,
 						Optional: true,
 					},
 				},

@@ -50,7 +50,7 @@ func TestExpandFeatures(t *testing.T) {
 					ExpandWithoutDowntime: true,
 				},
 				Network: features.NetworkFeatures{
-					ManagerCommitKeepOnDestroy: true,
+					ManagerCommitKeepOnDestroy: false,
 				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: true,

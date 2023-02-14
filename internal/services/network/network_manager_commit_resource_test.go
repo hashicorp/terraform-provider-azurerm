@@ -45,24 +45,47 @@ func testAccNetworkManagerCommit_basicAdmin(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerCommit_replace(t *testing.T) {
+func testAccNetworkManagerCommit_keepThenRecreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_commit", "test")
 	r := ManagerCommitResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicReplace(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicReplace(data),
+			Config: r.absentWithFeatureFlag(data, true),
+		},
+		{
+			Config:      r.basic(data),
+			ExpectError: acceptance.RequiresImportError(data.ResourceType),
+		},
+	})
+}
+
+func testAccNetworkManagerCommit_purgeThenRecreate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_manager_commit", "test")
+	r := ManagerCommitResource{}
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.absentWithFeatureFlag(data, false),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 	})
 }
 
@@ -128,9 +151,13 @@ func (r ManagerCommitResource) Exists(ctx context.Context, clients *clients.Clie
 	}
 	resp, err := client.List(ctx, listParam, id.ResourceGroup, id.NetworkManagerName, nil)
 	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Value != nil && len(*resp.Value) != 0), nil
+
+	return utils.Bool(resp.Value != nil && len(*resp.Value) != 0 && *(*resp.Value)[0].ConfigurationIds != nil && len(*(*resp.Value)[0].ConfigurationIds) != 0), nil
 }
 
 func (r ManagerCommitResource) template(data acceptance.TestData) string {
@@ -246,12 +273,12 @@ resource "azurerm_network_manager_commit" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerCommitResource) basicReplace(data acceptance.TestData) string {
+func (r ManagerCommitResource) absentWithFeatureFlag(data acceptance.TestData, featureFlag bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
     network {
-      manager_commit_keep_on_destroy = true
+      manager_commit_keep_on_destroy = %t
     }
   }
 }
@@ -265,7 +292,7 @@ data "azurerm_subscription" "current" {
 }
 
 resource "azurerm_network_manager" "test" {
-  name                = "acctest-nm-%[1]d"
+  name                = "acctest-nm-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   scope {
@@ -275,53 +302,32 @@ resource "azurerm_network_manager" "test" {
 }
 
 resource "azurerm_network_manager_network_group" "test" {
-  name               = "acctest-nmng-%[1]d"
+  name               = "acctest-nmng-%[2]d"
   network_manager_id = azurerm_network_manager.test.id
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                    = "acctest-vnet-%[1]d"
+  name                    = "acctest-vnet-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   address_space           = ["10.0.0.0/16"]
   flow_timeout_in_minutes = 10
 }
 
-resource "azurerm_network_manager_security_admin_configuration" "test" {
-  name               = "acctest-nmsac-%[1]d"
-  network_manager_id = azurerm_network_manager.test.id
-}
-
-resource "azurerm_network_manager_admin_rule_collection" "test" {
-  name                            = "acctest-nmarc-%[1]d"
-  security_admin_configuration_id = azurerm_network_manager_security_admin_configuration.test.id
-  network_group_ids               = [azurerm_network_manager_network_group.test.id]
-}
-
-resource "azurerm_network_manager_admin_rule" "test" {
-  name                     = "acctest-nmar-%[1]d"
-  admin_rule_collection_id = azurerm_network_manager_admin_rule_collection.test.id
-  action                   = "Deny"
-  direction                = "Outbound"
-  protocol                 = "Tcp"
-  priority                 = 1
-}
-
-resource "azurerm_network_manager_commit" "test" {
-  network_manager_id = azurerm_network_manager.test.id
-  location           = "eastus"
-  scope_access       = "SecurityAdmin"
-  configuration_ids  = [azurerm_network_manager_security_admin_configuration.test.id]
-  depends_on         = [azurerm_network_manager_admin_rule.test]
-  lifecycle {
-    replace_triggered_by = [
-      azurerm_network_manager_security_admin_configuration.test,
-      azurerm_network_manager_admin_rule_collection.test,
-      azurerm_network_manager_admin_rule.test,
-    ]
+resource "azurerm_network_manager_connectivity_configuration" "test" {
+  name                  = "acctest-nmcc-%[2]d"
+  network_manager_id    = azurerm_network_manager.test.id
+  connectivity_topology = "HubAndSpoke"
+  applies_to_group {
+    group_connectivity = "None"
+    network_group_id   = azurerm_network_manager_network_group.test.id
+  }
+  hub {
+    resource_id   = azurerm_virtual_network.test.id
+    resource_type = "Microsoft.Network/virtualNetworks"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, featureFlag, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ManagerCommitResource) updateReplace(data acceptance.TestData) string {

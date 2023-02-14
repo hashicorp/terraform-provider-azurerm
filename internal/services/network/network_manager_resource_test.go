@@ -85,6 +85,8 @@ func TestAccNetworkManager(t *testing.T) {
 			"basicAdmin":     testAccNetworkManagerCommit_basicAdmin,
 			"complete":       testAccNetworkManagerCommit_complete,
 			"update":         testAccNetworkManagerCommit_update,
+			"keepOnDestroy":  testAccNetworkManagerCommit_keepThenRecreate,
+			"purgeOnDestroy": testAccNetworkManagerCommit_purgeThenRecreate,
 			"requiresImport": testAccNetworkManagerCommit_requiresImport,
 		},
 	}

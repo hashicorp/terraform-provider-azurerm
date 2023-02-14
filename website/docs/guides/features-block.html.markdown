@@ -186,7 +186,7 @@ The `managed_disk` block supports the following:
 
 The `network` block supports the following:
 
-* `manager_commit_keep_on_destroy` - (Optional) Should the `azurerm_network_manager_commit` resource keep the deployed configuration when deleting, this is to avoid downtime while recreating the commit resource. Defaults to `true`.
+* `manager_commit_keep_on_destroy` - (Optional) Should the `azurerm_network_manager_commit` resource keep the committed configuration when deleting. Set to `true` to avoid downtime while recreating the commit resource. Set this flag to `true` will also overwrite existing commit in creation. Defaults to `false`.
 
 ---
 

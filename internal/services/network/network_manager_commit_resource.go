@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
@@ -96,16 +97,20 @@ func (r ManagerCommitResource) Create() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("creating %s", id)
 
+			// overwrite existing commit if feature flag enabled
 			if !metadata.Client.Features.Network.ManagerCommitKeepOnDestroy {
 				listParam := network.ManagerDeploymentStatusParameter{
 					Regions:         &[]string{azure.NormalizeLocation(state.Location)},
 					DeploymentTypes: &[]network.ConfigurationType{network.ConfigurationType(state.ScopeAccess)},
 				}
-				existing, err := statusClient.List(ctx, listParam, id.ResourceGroup, id.NetworkManagerName, nil)
+				resp, err := statusClient.List(ctx, listParam, id.ResourceGroup, id.NetworkManagerName, nil)
 				if err != nil {
+					if utils.ResponseWasNotFound(resp.Response) {
+						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					}
 					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
 				}
-				if existing.Value != nil && len(*existing.Value) > 0 {
+				if resp.Value != nil && len(*resp.Value) != 0 && *(*resp.Value)[0].ConfigurationIds != nil && len(*(*resp.Value)[0].ConfigurationIds) != 0 {
 					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
@@ -148,6 +153,10 @@ func (r ManagerCommitResource) Read() sdk.ResourceFunc {
 			}
 			resp, err := client.List(ctx, listParam, id.ResourceGroup, id.NetworkManagerName, nil)
 			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					metadata.Logger.Infof("%s was not found - removing from state!", *id)
+					return metadata.MarkAsGone(id)
+				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
@@ -190,6 +199,10 @@ func (r ManagerCommitResource) Update() sdk.ResourceFunc {
 			}
 			resp, err := statusClient.List(ctx, listParam, id.ResourceGroup, id.NetworkManagerName, nil)
 			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					metadata.Logger.Infof("%s was not found - removing from state!", *id)
+					return metadata.MarkAsGone(id)
+				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
@@ -241,9 +254,8 @@ func (r ManagerCommitResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s..", *id)
-
 			if !metadata.Client.Features.Network.ManagerCommitKeepOnDestroy {
+				metadata.Logger.Infof("deleting %s..", *id)
 				input := network.ManagerCommit{
 					ConfigurationIds: &[]string{},
 					TargetLocations:  &[]string{id.Location},
@@ -306,14 +318,17 @@ func resourceManagerCommitWaitForFinished(ctx context.Context, client *network.M
 	return resp.(network.ManagerDeploymentStatusListResult), nil
 }
 
-func resourceManagerCommitResultRefreshFunc(ctx context.Context, client *network.ManagerDeploymentStatusClient, managerCommitId *parse.ManagerCommitId) pluginsdk.StateRefreshFunc {
+func resourceManagerCommitResultRefreshFunc(ctx context.Context, client *network.ManagerDeploymentStatusClient, id *parse.ManagerCommitId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		listParam := network.ManagerDeploymentStatusParameter{
-			Regions:         &[]string{azure.NormalizeLocation(managerCommitId.Location)},
-			DeploymentTypes: &[]network.ConfigurationType{network.ConfigurationType(managerCommitId.ScopeAccess)},
+			Regions:         &[]string{azure.NormalizeLocation(id.Location)},
+			DeploymentTypes: &[]network.ConfigurationType{network.ConfigurationType(id.ScopeAccess)},
 		}
-		resp, err := client.List(ctx, listParam, managerCommitId.ResourceGroup, managerCommitId.NetworkManagerName, nil)
+		resp, err := client.List(ctx, listParam, id.ResourceGroup, id.NetworkManagerName, nil)
 		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return resp, "NotFound", nil
+			}
 			return resp, "Error", fmt.Errorf("retriving Commit: %+v", err)
 		}
 

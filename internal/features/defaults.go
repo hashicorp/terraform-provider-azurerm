@@ -35,7 +35,7 @@ func Default() UserFeatures {
 			ExpandWithoutDowntime: true,
 		},
 		Network: NetworkFeatures{
-			ManagerCommitKeepOnDestroy: true,
+			ManagerCommitKeepOnDestroy: false,
 		},
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: true,

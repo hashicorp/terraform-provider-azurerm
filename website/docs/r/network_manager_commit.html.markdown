@@ -10,7 +10,7 @@ description: |-
 
 Manages a Network Manager Commit.
 
--> **Note** The Azure Provider includes a Feature Toggle which will not delete committed resource on default. See [`manager_commit_keep_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#manager_commit_keep_on_destroy) for more information. 
+-> **Note** The Azure Provider includes a Feature Toggle which by default will purge the committed resource when deleting, which might causes downtime gap in recreation. See [`manager_commit_keep_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#manager_commit_keep_on_destroy) for more information. 
 
 ## Example Usage
 
