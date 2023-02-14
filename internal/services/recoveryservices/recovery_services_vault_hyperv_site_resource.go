@@ -132,7 +132,7 @@ func (r HyperVSiteResource) Read() sdk.ResourceFunc {
 
 func (r HyperVSiteResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 180 * time.Minute, // when a host connected to site, it will cost up to 180 minutes to delete.
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.RecoveryServices.FabricClient
 			id, err := replicationfabrics.ParseReplicationFabricID(metadata.ResourceData.Id())
