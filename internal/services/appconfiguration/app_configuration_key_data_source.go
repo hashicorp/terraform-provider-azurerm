@@ -95,7 +95,7 @@ func (k KeyDataSource) Read() sdk.ResourceFunc {
 
 			configurationStoreEndpoint, err := metadata.Client.AppConfiguration.EndpointForConfigurationStore(ctx, *configurationStoreId)
 			if err != nil {
-				return fmt.Errorf("retriving Endpoint for feature %q in %q: %s", model.Key, *configurationStoreId, err)
+				return fmt.Errorf("retrieving Endpoint for feature %q in %q: %s", model.Key, *configurationStoreId, err)
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(*configurationStoreEndpoint)

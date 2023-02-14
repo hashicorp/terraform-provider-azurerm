@@ -25,7 +25,7 @@ type ConfigurationStoreDetails struct {
 }
 
 func (c Client) AddToCache(configurationStoreId configurationstores.ConfigurationStoreId, dataPlaneEndpoint string) {
-	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigStoreName)
+	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigurationStoreName)
 	keysmith.Lock()
 	ConfigurationStoreCache[cacheKey] = ConfigurationStoreDetails{
 		configurationStoreId: configurationStoreId.ID(),
@@ -69,7 +69,7 @@ func (c Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, resourcesC
 			if err != nil {
 				return nil, fmt.Errorf("parsing %q: %+v", *v.ID, err)
 			}
-			if !strings.EqualFold(id.ConfigStoreName, *configurationStoreName) {
+			if !strings.EqualFold(id.ConfigurationStoreName, *configurationStoreName) {
 				continue
 			}
 
@@ -96,7 +96,7 @@ func (c Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, resourcesC
 }
 
 func (c Client) EndpointForConfigurationStore(ctx context.Context, configurationStoreId configurationstores.ConfigurationStoreId) (*string, error) {
-	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigStoreName)
+	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigurationStoreName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {
 		lock[cacheKey] = &sync.RWMutex{}
@@ -124,7 +124,7 @@ func (c Client) EndpointForConfigurationStore(ctx context.Context, configuration
 }
 
 func (c Client) Exists(ctx context.Context, configurationStoreId configurationstores.ConfigurationStoreId) (bool, error) {
-	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigStoreName)
+	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigurationStoreName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {
 		lock[cacheKey] = &sync.RWMutex{}
@@ -155,7 +155,7 @@ func (c Client) Exists(ctx context.Context, configurationStoreId configurationst
 }
 
 func (c Client) Purge(configurationStoreId configurationstores.ConfigurationStoreId) {
-	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigStoreName)
+	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigurationStoreName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {
 		lock[cacheKey] = &sync.RWMutex{}

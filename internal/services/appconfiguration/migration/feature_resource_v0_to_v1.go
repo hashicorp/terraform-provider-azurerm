@@ -35,7 +35,7 @@ func (FeatureResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return rawState, fmt.Errorf("parseing Configuration Store ID %q: %+v", configurationStoreId, err)
 		}
 
-		configurationStoreEndpoint := fmt.Sprintf("https://%s.azconfig.io", configurationStoreId.ConfigStoreName)
+		configurationStoreEndpoint := fmt.Sprintf("https://%s.azconfig.io", configurationStoreId.ConfigurationStoreName)
 
 		featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, parsedOldId.Name)
 		nestedItemId, err := parse.NewNestedItemID(configurationStoreEndpoint, featureKey, parsedOldId.Label)

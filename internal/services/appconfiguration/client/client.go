@@ -23,25 +23,29 @@ type Client struct {
 }
 
 func (c Client) DataPlaneClientWithEndpoint(configurationStoreEndpoint string) (*appconfiguration.BaseClient, error) {
-	appConfigAuth, err := c.tokenFunc(configurationStoreEndpoint)
+	api := environments.NewApiEndpoint("AppConfiguration", configurationStoreEndpoint, nil)
+	appConfigAuth, err := c.authorizerFunc(api)
 	if err != nil {
 		return nil, fmt.Errorf("obtaining auth token for %q: %+v", configurationStoreEndpoint, err)
 	}
 
 	client := appconfiguration.NewWithoutDefaults("", configurationStoreEndpoint)
-	c.configureClientFunc(&client.Client, appConfigAuth)
+	c.configureClientFunc(&client.Client, authWrapper.AutorestAuthorizer(appConfigAuth))
+
 	return &client, nil
 }
 
 func (c Client) LinkWorkaroundDataPlaneClientWithEndpoint(configurationStoreEndpoint string) (*azuresdkhacks.DataPlaneClient, error) {
-	appConfigAuth, err := c.tokenFunc(configurationStoreEndpoint)
+	api := environments.NewApiEndpoint("AppConfiguration", configurationStoreEndpoint, nil)
+	appConfigAuth, err := c.authorizerFunc(api)
 	if err != nil {
 		return nil, fmt.Errorf("obtaining auth token for %q: %+v", configurationStoreEndpoint, err)
 	}
 
 	client := appconfiguration.NewWithoutDefaults("", configurationStoreEndpoint)
-	c.configureClientFunc(&client.Client, appConfigAuth)
+	c.configureClientFunc(&client.Client, authWrapper.AutorestAuthorizer(appConfigAuth))
 	workaroundClient := azuresdkhacks.NewDataPlaneClient(client)
+
 	return &workaroundClient, nil
 }
 

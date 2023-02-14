@@ -177,7 +177,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 
 			configurationStoreEndpoint, err := metadata.Client.AppConfiguration.EndpointForConfigurationStore(ctx, *configurationStoreId)
 			if err != nil {
-				return fmt.Errorf("retriving Endpoint for feature %q in %q: %s", model.Name, *configurationStoreId, err)
+				return fmt.Errorf("retrieving Endpoint for feature %q in %q: %s", model.Name, *configurationStoreId, err)
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(*configurationStoreEndpoint)
@@ -228,7 +228,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			resourceClient := metadata.Client.Resource
 			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, resourceClient, nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
-				return fmt.Errorf("while retriving the Resource ID of Configuration Store at Endpoint: %q: %s", nestedItemId.ConfigurationStoreEndpoint, err)
+				return fmt.Errorf("while retrieving the Resource ID of Configuration Store at Endpoint: %q: %s", nestedItemId.ConfigurationStoreEndpoint, err)
 			}
 			if configurationStoreIdRaw == nil {
 				// if the AppConfiguration is gone then all the data inside it is too

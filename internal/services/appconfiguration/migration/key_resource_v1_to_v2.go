@@ -31,7 +31,7 @@ func (KeyResourceV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return rawState, fmt.Errorf("parseing Configuration Store ID %q: %+v", configurationStoreId, err)
 		}
 
-		configurationStoreEndpoint := fmt.Sprintf("https://%s.azconfig.io", configurationStoreId.ConfigStoreName)
+		configurationStoreEndpoint := fmt.Sprintf("https://%s.azconfig.io", configurationStoreId.ConfigurationStoreName)
 
 		nestedItemId, err := parse.NewNestedItemID(configurationStoreEndpoint, parsedOldId.Key, parsedOldId.Label)
 		if err != nil {
