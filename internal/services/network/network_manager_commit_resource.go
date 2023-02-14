@@ -125,7 +125,7 @@ func (r ManagerCommitResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			if _, err = resourceManagerCommitWaitForFinished(ctx, statusClient, id, metadata.ResourceData); err != nil {
+			if err = resourceManagerCommitWaitForFinished(ctx, statusClient, id, metadata.ResourceData); err != nil {
 				return err
 			}
 
@@ -235,7 +235,7 @@ func (r ManagerCommitResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			if _, err = resourceManagerCommitWaitForFinished(ctx, statusClient, id, metadata.ResourceData); err != nil {
+			if err = resourceManagerCommitWaitForFinished(ctx, statusClient, id, metadata.ResourceData); err != nil {
 				return err
 			}
 
@@ -300,7 +300,7 @@ func resourceManagerCommitWaitForDeleted(ctx context.Context, client *network.Ma
 	return resp.(network.ManagerDeploymentStatusListResult), nil
 }
 
-func resourceManagerCommitWaitForFinished(ctx context.Context, client *network.ManagerDeploymentStatusClient, managerCommitId *parse.ManagerCommitId, d *pluginsdk.ResourceData) (network.ManagerDeploymentStatusListResult, error) {
+func resourceManagerCommitWaitForFinished(ctx context.Context, client *network.ManagerDeploymentStatusClient, managerCommitId *parse.ManagerCommitId, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
@@ -310,12 +310,12 @@ func resourceManagerCommitWaitForFinished(ctx context.Context, client *network.M
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	resp, err := state.WaitForStateContext(ctx)
+	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(network.ManagerDeploymentStatusListResult), fmt.Errorf("waiting for the Commit %s: %+v", *managerCommitId, err)
+		return fmt.Errorf("waiting for the Commit %s: %+v", *managerCommitId, err)
 	}
 
-	return resp.(network.ManagerDeploymentStatusListResult), nil
+	return nil
 }
 
 func resourceManagerCommitResultRefreshFunc(ctx context.Context, client *network.ManagerDeploymentStatusClient, id *parse.ManagerCommitId) pluginsdk.StateRefreshFunc {
@@ -329,7 +329,7 @@ func resourceManagerCommitResultRefreshFunc(ctx context.Context, client *network
 			if utils.ResponseWasNotFound(resp.Response) {
 				return resp, "NotFound", nil
 			}
-			return resp, "Error", fmt.Errorf("retriving Commit: %+v", err)
+			return resp, "Error", fmt.Errorf("retrieving Commit: %+v", err)
 		}
 
 		if resp.Value == nil || len(*resp.Value) == 0 || *(*resp.Value)[0].ConfigurationIds == nil || len(*(*resp.Value)[0].ConfigurationIds) == 0 {
