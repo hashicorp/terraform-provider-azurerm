@@ -158,9 +158,9 @@ resource "azurerm_mobile_network_data_network" "test" {
   name              = "acctest-mndn-%d"
   mobile_network_id = azurerm_mobile_network.test.id
   location          = "%s"
-  description       = "my favourite data network"
+  description       = "my favourite data network 2"
   tags = {
-    key = "value"
+    key = "updated"
   }
 
 }
