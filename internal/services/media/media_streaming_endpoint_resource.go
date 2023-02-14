@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
@@ -219,7 +219,7 @@ func resourceMediaStreamingEndpoint() *pluginsdk.Resource {
 
 func resourceMediaStreamingEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Media.V20200501Client.StreamingEndpoints
+	client := meta.(*clients.Client).Media.V20220801Client.StreamingEndpoints
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -294,7 +294,7 @@ func resourceMediaStreamingEndpointCreate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceMediaStreamingEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.StreamingEndpoints
+	client := meta.(*clients.Client).Media.V20220801Client.StreamingEndpoints
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -367,7 +367,7 @@ func resourceMediaStreamingEndpointUpdate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceMediaStreamingEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.StreamingEndpoints
+	client := meta.(*clients.Client).Media.V20220801Client.StreamingEndpoints
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -429,7 +429,7 @@ func resourceMediaStreamingEndpointRead(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceMediaStreamingEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.StreamingEndpoints
+	client := meta.(*clients.Client).Media.V20220801Client.StreamingEndpoints
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

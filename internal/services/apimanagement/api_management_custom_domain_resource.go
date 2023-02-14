@@ -169,6 +169,11 @@ func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	apimHostNameSuffix, ok := environment.ApiManagement.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine API Management domain suffix for environment %q", environment.Name)
+	}
+
 	id, err := parse.CustomDomainID(d.Id())
 	if err != nil {
 		return err
@@ -190,8 +195,7 @@ func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("api_management_id", apiMgmtId.ID())
 
 	if resp.ServiceProperties != nil && resp.ServiceProperties.HostnameConfigurations != nil {
-		apimHostNameSuffix := environment.APIManagementHostNameSuffix
-		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d, *resp.Name, apimHostNameSuffix)
+		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d, *resp.Name, *apimHostNameSuffix)
 		for _, config := range configs {
 			for key, v := range config.(map[string]interface{}) {
 				// lintignore:R001
