@@ -77,7 +77,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: computeValidate.WindowsAdminUsername,
 			},
 
 			"network_interface_ids": {
