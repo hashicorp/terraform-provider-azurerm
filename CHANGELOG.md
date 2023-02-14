@@ -22,6 +22,8 @@ ENHANCEMENTS:
 * Data Source: `azurerm_policy_definition` - support for th `mode` property [GH-20420]
 * `azurerm_cognitive_account` - the field `sku_name` can now be set to `DC0` [GH-20426]
 * `azurerm_express_route_port` - support for the `billing_type` property [GH-20361]
+* `azurerm_linux_virtual_machine` - validating that the value for the `admin_username` field isn't a disallowed username [GH-20424]
+* `azurerm_windows_virtual_machine` - validating that the value for the `admin_username` field isn't a disallowed username [GH-20424]
 
 BUG FIXES:
 
