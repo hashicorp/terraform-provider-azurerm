@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -94,11 +93,6 @@ func dataSourceDataShareDatasetBlobStorageRead(d *pluginsdk.ResourceData, meta i
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	respId := helper.GetAzurermDataShareDataSetId(resp.Model)
-	if respId == nil || *respId == "" {
-		return fmt.Errorf("empty or nil ID returned for reading %s", id)
 	}
 
 	d.SetId(id.ID())

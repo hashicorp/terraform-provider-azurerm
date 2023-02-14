@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	storageParsers "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -77,11 +76,6 @@ func dataSourceDataShareDatasetDataLakeGen2Read(d *pluginsdk.ResourceData, meta 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	respId := helper.GetAzurermDataShareDataSetId(resp.Model)
-	if respId == nil || *respId == "" {
-		return fmt.Errorf("empty or nil ID returned for %s", id)
 	}
 
 	d.SetId(id.ID())

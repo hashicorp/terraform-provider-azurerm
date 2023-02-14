@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account"
@@ -217,16 +218,6 @@ func resourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			settings = append(settings, s)
 		}
 	}
-	//for syncIterator.NotDone() {
-	//	item, ok := syncIterator.Value().AsScheduledSynchronizationSetting()
-	//	if ok && item != nil {
-	//		settings = append(settings, *item)
-	//	}
-	//
-	//	if err := syncIterator.NextWithContext(ctx); err != nil {
-	//		return fmt.Errorf("retrieving next Snapshot Schedule: %+v", err)
-	//	}
-	//}
 	if err := d.Set("snapshot_schedule", flattenAzureRmDataShareSnapshotSchedule(settings)); err != nil {
 		return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
 	}
@@ -269,10 +260,12 @@ func expandAzureRmDataShareSnapshotSchedule(input []interface{}) *synchronizatio
 
 	startTime, _ := time.Parse(time.RFC3339, snapshotSchedule["start_time"].(string))
 
+	syncTime := date.Time{Time: startTime}.String()
+
 	return &synchronizationsetting.ScheduledSynchronizationSetting{
 		Properties: synchronizationsetting.ScheduledSynchronizationSettingProperties{
 			RecurrenceInterval:  synchronizationsetting.RecurrenceInterval(snapshotSchedule["recurrence"].(string)),
-			SynchronizationTime: startTime.String(),
+			SynchronizationTime: syncTime,
 		},
 	}
 }
@@ -283,8 +276,8 @@ func flattenAzureRmDataShareSnapshotSchedule(input []synchronizationsetting.Sche
 	for _, setting := range input {
 		props := setting.Properties
 		name := ""
-		if props.UserName != nil {
-			name = *props.UserName
+		if setting.Name != nil {
+			name = *setting.Name
 		}
 
 		output = append(output, map[string]interface{}{

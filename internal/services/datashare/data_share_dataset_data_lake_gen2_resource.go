@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	storageParsers "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -106,9 +105,8 @@ func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta 
 			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 	}
-	existingId := helper.GetAzurermDataShareDataSetId(existing.Model)
-	if existingId != nil && *existingId != "" {
-		return tf.ImportAsExistsError("azurerm_data_share_dataset_data_lake_gen2", *existingId)
+	if existing.Model != nil {
+		return tf.ImportAsExistsError("azurerm_data_share_dataset_data_lake_gen2", id.ID())
 	}
 
 	strId, err := storageParsers.StorageAccountID(d.Get("storage_account_id").(string))
