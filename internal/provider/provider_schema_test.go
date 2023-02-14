@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -162,6 +164,9 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 			"recommendations_enabled": {},
 		},
 	}
+	if features.FourPointOhBeta() {
+		resourceFieldsWhichNeedToBeAddressed = map[string]map[string]struct{}{}
+	}
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
@@ -302,6 +307,9 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 			"name": {},
 		},
 	}
+	if features.FourPointOhBeta() {
+		resourceFieldsWhichNeedToBeAddressed = map[string]map[string]struct{}{}
+	}
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
@@ -410,6 +418,9 @@ func TestDataSourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 		"azurerm_managed_disk":      {},
 		"azurerm_snapshot":          {},
 	}
+	if features.FourPointOhBeta() {
+		dataSourcesWhichNeedToBeAddressed = map[string]struct{}{}
+	}
 
 	for _, dataSourceName := range dataSourceNames {
 		dataSource := provider.DataSourcesMap[dataSourceName]
@@ -449,6 +460,9 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 		"azurerm_managed_disk":           {},
 		"azurerm_media_services_account": {},
 		"azurerm_snapshot":               {},
+	}
+	if features.FourPointOhBeta() {
+		resourcesWhichNeedToBeAddressed = map[string]struct{}{}
 	}
 
 	for _, resourceName := range resourceNames {
