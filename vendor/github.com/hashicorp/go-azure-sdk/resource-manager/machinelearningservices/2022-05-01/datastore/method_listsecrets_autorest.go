@@ -2,8 +2,8 @@ package datastore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -59,16 +59,14 @@ func (c DatastoreClient) preparerForListSecrets(ctx context.Context, id DataStor
 // responderForListSecrets handles the response to the ListSecrets request. The method always
 // closes the http.Response Body.
 func (c DatastoreClient) responderForListSecrets(resp *http.Response) (result ListSecretsOperationResponse, err error) {
+	var respObj json.RawMessage
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&respObj),
 		autorest.ByClosing())
 	result.HttpResponse = resp
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return result, fmt.Errorf("reading response body for DatastoreSecrets: %+v", err)
-	}
-	model, err := unmarshalDatastoreSecretsImplementation(b)
+	model, err := unmarshalDatastoreSecretsImplementation(respObj)
 	if err != nil {
 		return
 	}

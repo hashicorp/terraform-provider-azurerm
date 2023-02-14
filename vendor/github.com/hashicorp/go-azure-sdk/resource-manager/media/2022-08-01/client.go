@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/contentkeypolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/liveevents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/liveoutputs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingendpoint"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingpoliciesandstreaminglocators"
 )
@@ -18,7 +17,6 @@ type Client struct {
 	ContentKeyPolicies                    *contentkeypolicies.ContentKeyPoliciesClient
 	LiveEvents                            *liveevents.LiveEventsClient
 	LiveOutputs                           *liveoutputs.LiveOutputsClient
-	StreamingEndpoint                     *streamingendpoint.StreamingEndpointClient
 	StreamingEndpoints                    *streamingendpoints.StreamingEndpointsClient
 	StreamingPoliciesAndStreamingLocators *streamingpoliciesandstreaminglocators.StreamingPoliciesAndStreamingLocatorsClient
 }
@@ -40,9 +38,6 @@ func NewClientWithBaseURI(endpoint string, configureAuthFunc func(c *autorest.Cl
 	liveOutputsClient := liveoutputs.NewLiveOutputsClientWithBaseURI(endpoint)
 	configureAuthFunc(&liveOutputsClient.Client)
 
-	streamingEndpointClient := streamingendpoint.NewStreamingEndpointClientWithBaseURI(endpoint)
-	configureAuthFunc(&streamingEndpointClient.Client)
-
 	streamingEndpointsClient := streamingendpoints.NewStreamingEndpointsClientWithBaseURI(endpoint)
 	configureAuthFunc(&streamingEndpointsClient.Client)
 
@@ -55,7 +50,6 @@ func NewClientWithBaseURI(endpoint string, configureAuthFunc func(c *autorest.Cl
 		ContentKeyPolicies:                    &contentKeyPoliciesClient,
 		LiveEvents:                            &liveEventsClient,
 		LiveOutputs:                           &liveOutputsClient,
-		StreamingEndpoint:                     &streamingEndpointClient,
 		StreamingEndpoints:                    &streamingEndpointsClient,
 		StreamingPoliciesAndStreamingLocators: &streamingPoliciesAndStreamingLocatorsClient,
 	}
