@@ -6,19 +6,17 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type ReplicationPolicyHyperVModel struct {
 	Name                                          string `tfschema:"name"`
-	ResourceGroupName                             string `tfschema:"resource_group_name"`
-	RecoveryVaultName                             string `tfschema:"recovery_vault_name"`
+	RecoveryVaultId                               string `tfschema:"recovery_vault_id"`
 	RecoveryPointRetentionInHours                 int64  `tfschema:"recovery_point_retention_in_hours"`
 	ApplicationConsistentSnapshotFrequencyInHours int64  `tfschema:"application_consistent_snapshot_frequency_in_hours"`
 	CopyFrequency                                 int64  `tfschema:"replication_interval_in_seconds"`
@@ -36,30 +34,25 @@ func (r ReplicationPolicyHyperVResource) Arguments() map[string]*schema.Schema {
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"recovery_vault_name": {
+		"recovery_vault_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.RecoveryServicesVaultName,
+			ValidateFunc: vaults.ValidateVaultID,
 		},
 		"recovery_point_retention_in_hours": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ForceNew:     false,
 			ValidateFunc: validation.IntBetween(0, 24),
 		},
 		"application_consistent_snapshot_frequency_in_hours": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ForceNew:     false,
 			ValidateFunc: validation.IntBetween(0, 12),
 		},
 		"replication_interval_in_seconds": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ForceNew:     false,
 			ValidateFunc: validation.IntInSlice([]int{30, 300}),
 		},
 	}
@@ -74,7 +67,7 @@ func (r ReplicationPolicyHyperVResource) ModelObject() interface{} {
 }
 
 func (r ReplicationPolicyHyperVResource) ResourceType() string {
-	return "azurerm_site_recovery_replication_policy_hyperv"
+	return "azurerm_site_recovery_hyperv_replication_policy"
 }
 
 func (r ReplicationPolicyHyperVResource) Create() sdk.ResourceFunc {
@@ -86,10 +79,14 @@ func (r ReplicationPolicyHyperVResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
 			client := metadata.Client.RecoveryServices.ReplicationPoliciesClient
 
-			id := replicationpolicies.NewReplicationPolicyID(subscriptionId, plan.ResourceGroupName, plan.RecoveryVaultName, plan.Name)
+			parsedVaultId, err := vaults.ParseVaultID(plan.RecoveryVaultId)
+			if err != nil {
+				return fmt.Errorf("parsing %s: %+v", plan.RecoveryVaultId, err)
+			}
+
+			id := replicationpolicies.NewReplicationPolicyID(parsedVaultId.SubscriptionId, parsedVaultId.ResourceGroupName, parsedVaultId.VaultName, plan.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -99,7 +96,7 @@ func (r ReplicationPolicyHyperVResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+			if existing.Model != nil {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -114,7 +111,7 @@ func (r ReplicationPolicyHyperVResource) Create() sdk.ResourceFunc {
 			}
 			err = client.CreateThenPoll(ctx, id, parameters)
 			if err != nil {
-				return fmt.Errorf("creating site recovery replication policy %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -130,7 +127,7 @@ func (r ReplicationPolicyHyperVResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := replicationpolicies.ParseReplicationPolicyID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			client := metadata.Client.RecoveryServices.ReplicationPoliciesClient
@@ -140,17 +137,18 @@ func (r ReplicationPolicyHyperVResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s : %+v", id.String(), err)
+				return fmt.Errorf("retrieving %s : %+v", *id, err)
 			}
 
+			vaultId := vaults.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
+
 			state := ReplicationPolicyHyperVModel{
-				Name:              id.ReplicationPolicyName,
-				ResourceGroupName: id.ResourceGroupName,
-				RecoveryVaultName: id.VaultName,
+				Name:            id.ReplicationPolicyName,
+				RecoveryVaultId: vaultId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
-				if detail, isA2A := expandH2APolicyDetail(resp.Model); isA2A {
+				if detail, isA2A := expandHyperVToAzurePolicyDetail(resp.Model); isA2A {
 					if detail.ApplicationConsistentSnapshotFrequencyInHours != nil {
 						state.ApplicationConsistentSnapshotFrequencyInHours = *detail.ApplicationConsistentSnapshotFrequencyInHours
 					}
@@ -179,7 +177,7 @@ func (r ReplicationPolicyHyperVResource) Update() sdk.ResourceFunc {
 
 			id, err := replicationpolicies.ParseReplicationPolicyID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			client := metadata.Client.RecoveryServices.ReplicationPoliciesClient
@@ -217,7 +215,7 @@ func (r ReplicationPolicyHyperVResource) Delete() sdk.ResourceFunc {
 
 			err = client.DeleteThenPoll(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("deleting  %s : %+v", id, err)
+				return fmt.Errorf("deleting %s : %+v", id, err)
 			}
 
 			return nil
@@ -229,7 +227,7 @@ func (r ReplicationPolicyHyperVResource) IDValidationFunc() pluginsdk.SchemaVali
 	return replicationpolicies.ValidateReplicationPolicyID
 }
 
-func expandH2APolicyDetail(input *replicationpolicies.Policy) (out *replicationpolicies.HyperVReplicaAzurePolicyDetails, isA2A bool) {
+func expandHyperVToAzurePolicyDetail(input *replicationpolicies.Policy) (out *replicationpolicies.HyperVReplicaAzurePolicyDetails, isA2A bool) {
 	if input.Properties == nil {
 		return nil, false
 	}

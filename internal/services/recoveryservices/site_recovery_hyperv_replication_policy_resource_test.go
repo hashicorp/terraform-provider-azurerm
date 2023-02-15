@@ -16,7 +16,7 @@ import (
 type SiteRecoveryReplicationPolicyHyperVResource struct{}
 
 func TestAccSiteRecoveryReplicationPolicyHyperV_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_policy_hyperv", "test")
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_hyperv_replication_policy", "test")
 	r := SiteRecoveryReplicationPolicyHyperVResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -31,7 +31,7 @@ func TestAccSiteRecoveryReplicationPolicyHyperV_basic(t *testing.T) {
 }
 
 func TestAccSiteRecoveryReplicationPolicyHyperV_noSnapshots(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_policy_hyperv", "test")
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_hyperv_replication_policy", "test")
 	r := SiteRecoveryReplicationPolicyHyperVResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -68,7 +68,7 @@ resource "azurerm_recovery_services_vault" "test" {
   soft_delete_enabled = false
 }
 
-resource "azurerm_site_recovery_replication_policy_hyperv" "test" {
+resource "azurerm_site_recovery_hyperv_replication_policy" "test" {
   resource_group_name                                = azurerm_resource_group.test.name
   recovery_vault_name                                = azurerm_recovery_services_vault.test.name
   name                                               = "acctest-policy-%d"
@@ -87,13 +87,8 @@ func (t SiteRecoveryReplicationPolicyHyperVResource) Exists(ctx context.Context,
 
 	resp, err := clients.RecoveryServices.ReplicationPoliciesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading site recovery replication policy (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	model := resp.Model
-	if model == nil {
-		return nil, fmt.Errorf("reading site recovery replication policy (%s): model is nil", id.String())
-	}
-
-	return utils.Bool(model.Id != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }

@@ -1,14 +1,14 @@
 ---
 subcategory: "Recovery Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_site_recovery_replication_policy_hyperv"
+page_title: "Azure Resource Manager: azurerm_site_recovery_hyperv_replication_policy"
 description: |-
     Manages an Azure Site Recovery replication policy for HyperV on Azure.
 ---
 
-# azurerm_site_recovery_replication_policy_hyperv
+# azurerm_site_recovery_hyperv_replication_policy
 
-Manages a Azure Site Recovery replication policy fir HyperV within a recovery vault. Replication policies define the frequency at which recovery points are created and how long they are stored.
+Manages a Azure Site Recovery replication policy for HyperV within a Recovery Vault. Replication policies define the frequency at which recovery points are created and how long they are stored.
 
 ## Example Usage
 
@@ -25,7 +25,7 @@ resource "azurerm_recovery_services_vault" "vault" {
   sku                 = "Standard"
 }
 
-resource "azurerm_site_recovery_replication_policy_hyperv" "policy" {
+resource "azurerm_site_recovery_hyperv_replication_policy" "policy" {
   name                                               = "policy"
   resource_group_name                                = azurerm_resource_group.example.name
   recovery_vault_name                                = azurerm_recovery_services_vault.vault.name
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `recovery_point_retention_in_hours` - (Required) The duration in hours for which the recovery points need to be stored.
 
-* `application_consistent_snapshot_frequency_in_hours` - (Required) Specifies the frequency(in hours) at which to create application consistent recovery points.
+* `application_consistent_snapshot_frequency_in_hours` - (Required) Specifies the frequency at which to create application consistent recovery points.
 
 * `replication_interval_in_seconds` - (Required) Specifies how frequently data should be synchronized between source and target locations. Possible values are `30` and `300`.
 
