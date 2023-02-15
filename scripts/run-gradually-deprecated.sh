@@ -149,6 +149,7 @@ function runDeprecatedFunctions {
 
 function main {
   # testing
+  echo "in main"
   exit 1
 
   if [ "$GITHUB_ACTIONS_STAGE" == "UNIT_TESTS" ];
@@ -163,4 +164,5 @@ function main {
   checkForUnclearErrorMessages
 }
 
+echo "in file"
 main
