@@ -32,6 +32,7 @@ BUG FIXES:
 
 * `azurerm_eventgrid_domain_topic` - `name` can now be up to 128 characters [GH-20407]
 * `azurerm_private_endpoint` - normalizing the `private_connection_resource_id` for a redis cache [GH-20418]
+* `azurerm_private_endpoint` - consistently normalizing the value returned from the API for `private_connection_resource_id` [GH-20452]
 * `azurerm_recovery_services_vault` - updating `cross_region_restore_enabled` to `false` recreates the resource since this operation isn't supported by the API [GH-20406]
 * `azurerm_storage_management_policy` - `rule.filters` is now Required since storage management policies fail if it's unspecified [GH-20448]
 
