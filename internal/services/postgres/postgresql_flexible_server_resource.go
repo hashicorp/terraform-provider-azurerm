@@ -289,32 +289,36 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			oldVersionVal, newVersionVal := d.GetChange("version")
 			createModeVal := d.Get("create_mode").(string)
+			oldVersionVal, newVersionVal := d.GetChange("version")
 
-			if createModeVal != string(servers.CreateModeUpdate) {
-				d.ForceNew("create_mode")
-			}
+			if createModeVal == string(servers.CreateModeUpdate) {
+				if d.HasChange("version") {
+					if oldVersionVal != "" && newVersionVal != "" {
+						oldVersion, err := strconv.ParseInt(oldVersionVal.(string), 10, 32)
+						if err != nil {
+							return err
+						}
 
-			if d.HasChange("version") {
-				if oldVersionVal != "" && newVersionVal != "" {
-					oldVersion, err := strconv.ParseInt(oldVersionVal.(string), 10, 32)
-					if err != nil {
-						return err
-					}
+						newVersion, err := strconv.ParseInt(newVersionVal.(string), 10, 32)
+						if err != nil {
+							return err
+						}
 
-					newVersion, err := strconv.ParseInt(newVersionVal.(string), 10, 32)
-					if err != nil {
-						return err
-					}
-
-					if !(oldVersion < newVersion && createModeVal == string(servers.CreateModeUpdate)) {
+						if !(oldVersion < newVersion) {
+							d.ForceNew("create_mode")
+							d.ForceNew("version")
+						}
+					} else {
+						d.ForceNew("create_mode")
 						d.ForceNew("version")
 					}
 				} else {
+					d.ForceNew("create_mode")
 					d.ForceNew("version")
 				}
 			} else {
+				d.ForceNew("create_mode")
 				d.ForceNew("version")
 			}
 
