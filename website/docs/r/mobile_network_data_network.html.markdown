@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Mobile Network Data Network should exist. Changing this forces a new Mobile Network Data Network to be created.
 
-* `description` - (Optional) An optional description for this data network.
+* `description` - (Optional) A description of this Mobile Network Data Network.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network Data Network.
 
@@ -58,8 +58,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Mobile Network Data Network.
-
-
 
 ## Timeouts
 

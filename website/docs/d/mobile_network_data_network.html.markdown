@@ -38,9 +38,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Mobile Network Data Network.
 
-* `location` - The Azure Region where the Mobile Network Data Network should exist. 
+* `location` - The Azure Region where the Mobile Network Data Network exists. 
 
-* `description` - An optional description for this data network.
+* `description` - The description for this Mobile Network Data Network.
 
 * `tags` - A mapping of tags which should be assigned to the Mobile Network Data Network.
 

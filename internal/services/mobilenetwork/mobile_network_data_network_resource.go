@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DataNetworkModel struct {
@@ -148,11 +149,9 @@ func (r DataNetworkResource) Update() sdk.ResourceFunc {
 				if model.Description != "" {
 					properties.Properties.Description = &model.Description
 				} else {
-					properties.Properties.Description = nil
+					properties.Properties.Description = utils.String("")
 				}
 			}
-
-			properties.SystemData = nil
 
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
