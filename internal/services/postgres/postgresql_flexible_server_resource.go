@@ -290,10 +290,11 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			createModeVal := d.Get("create_mode").(string)
-			oldVersionVal, newVersionVal := d.GetChange("version")
 
 			if createModeVal == string(servers.CreateModeUpdate) {
 				if d.HasChange("version") {
+					oldVersionVal, newVersionVal := d.GetChange("version")
+					
 					if oldVersionVal != "" && newVersionVal != "" {
 						oldVersion, err := strconv.ParseInt(oldVersionVal.(string), 10, 32)
 						if err != nil {
