@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -77,7 +78,6 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 						"key_source": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
 							ValidateFunc: validation.StringInSlice(
 								automationaccount.PossibleValuesForEncryptionKeySourceType(),
 								false,
@@ -376,6 +376,7 @@ func expandEncryption(encMap map[string]interface{}) (*automationaccount.Encrypt
 			UserAssignedIdentity: &id,
 		},
 	}
+	prop.KeySource = pointer.To(automationaccount.EncryptionKeySourceTypeMicrosoftPointAutomation)
 	if val, ok := encMap["key_source"].(string); ok && val != "" {
 		prop.KeySource = (*automationaccount.EncryptionKeySourceType)(&val)
 	}
@@ -383,6 +384,9 @@ func expandEncryption(encMap map[string]interface{}) (*automationaccount.Encrypt
 		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyIdStr)
 		if err != nil {
 			return nil, err
+		}
+		if prop.KeySource == nil {
+			prop.KeySource = pointer.To(automationaccount.EncryptionKeySourceTypeMicrosoftPointKeyvault)
 		}
 		prop.KeyVaultProperties = &automationaccount.KeyVaultProperties{
 			KeyName:     utils.String(keyId.Name),
