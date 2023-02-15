@@ -26,6 +26,10 @@ refreshenv
 
 You must run `Developing the Provider` commands in `bash` because `sh` scrips are invoked as part of these.
 
+You may hit issues with `make build` telling you every file needs to be formatted as a result of line endings. To avoid this issue set your git config using `git config --global core.autocrlf false`. This will tell git to use the source `LF` rather than the Windows default of `CRLF`.
+
+You may get errors when cloning the repository on Windows that end with `Filename too long`. To avoid this issue set your git config using `git config --system core.longpaths true`. This will tell git to allow file names longer than 260 characters which is the default on Windows.
+
 ## Developing the Provider
 
 If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine. You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.

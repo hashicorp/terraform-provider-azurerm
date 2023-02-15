@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2021-05-01-preview/botservice" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 func resourceBotChannelMsTeams() *pluginsdk.Resource {
@@ -103,7 +103,7 @@ func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("calling_web_hook"); ok {
 		channel, _ := channel.Properties.AsMsTeamsChannel()
-		channel.Properties.CallingWebHook = utils.String(v.(string))
+		channel.Properties.CallingWebhook = utils.String(v.(string))
 	}
 
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameMsTeamsChannel, channel); err != nil {
@@ -142,7 +142,7 @@ func resourceBotChannelMsTeamsRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsMsTeamsChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				d.Set("calling_web_hook", channelProps.CallingWebHook)
+				d.Set("calling_web_hook", channelProps.CallingWebhook)
 				d.Set("enable_calling", channelProps.EnableCalling)
 			}
 		}
@@ -165,7 +165,7 @@ func resourceBotChannelMsTeamsUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Properties: botservice.MsTeamsChannel{
 			Properties: &botservice.MsTeamsChannelProperties{
 				EnableCalling:  utils.Bool(d.Get("enable_calling").(bool)),
-				CallingWebHook: utils.String(d.Get("calling_web_hook").(string)),
+				CallingWebhook: utils.String(d.Get("calling_web_hook").(string)),
 				IsEnabled:      utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameMsTeamsChannel,
