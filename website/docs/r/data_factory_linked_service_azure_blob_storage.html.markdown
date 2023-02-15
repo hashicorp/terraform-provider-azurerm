@@ -114,9 +114,13 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 The following supported arguments are specific to Azure Blob Storage Linked Service:
 
-* `connection_string` - (Optional) The connection string. Conflicts with `sas_uri` and `service_endpoint`.
+* `connection_string` - (Optional) The connection string. Conflicts with `insecure_connection_string`, `sas_uri` and `service_endpoint`.
 
-* `sas_uri` - (Optional) The SAS URI. Conflicts with `connection_string` and `service_endpoint`.
+* `insecure_connection_string` - (Optional) The connection string sent insecurely. Conflicts with `connection_string`, `sas_uri` and `service_endpoint`.
+
+~> **Note:** `connection_string` is sent to the Azure encrypted whilst `insecure_connection_string` is sent unencrypted. The benefit of using `insecure_connection_string` is that the storage account name is now viewable in state and portal.
+
+* `sas_uri` - (Optional) The SAS URI. Conflicts with `insecure_connection_string`, `connection_string` and `service_endpoint`.
 
 * `key_vault_sas_token` - (Optional) A `key_vault_sas_token` block as defined below. Use this argument to store SAS Token in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service. A `sas_uri` is required.
 
@@ -142,7 +146,7 @@ A `service_principal_linked_key_vault_key` block supports the following:
 
 ---
 
-* `service_endpoint` - (Optional) The Service Endpoint. Conflicts with `connection_string` and `sas_uri`.
+* `service_endpoint` - (Optional) The Service Endpoint. Conflicts with `connection_string`, `insecure_connection_string` and `sas_uri`.
 
 * `use_managed_identity` - (Optional) Whether to use the Data Factory's managed identity to authenticate against the Azure Blob Storage account. Incompatible with `service_principal_id` and `service_principal_key`.
 
