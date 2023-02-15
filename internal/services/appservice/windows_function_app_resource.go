@@ -316,6 +316,11 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
+
 			var functionApp WindowsFunctionAppModel
 
 			if err := metadata.Decode(&functionApp); err != nil {
@@ -397,7 +402,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				if functionApp.StorageKeyVaultSecretID != "" {
 					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, functionApp.StorageKeyVaultSecretID)
 				} else {
-					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionApp.StorageAccountName, functionApp.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionApp.StorageAccountName, functionApp.StorageAccountKey, *storageDomainSuffix)
 				}
 			}
 
@@ -720,6 +725,11 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
+
 			client := metadata.Client.AppService.WebAppsClient
 
 			id, err := parse.FunctionAppID(metadata.ResourceData.Id())
@@ -811,7 +821,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				if state.StorageKeyVaultSecretID != "" {
 					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
 				} else {
-					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, *storageDomainSuffix)
 				}
 			}
 

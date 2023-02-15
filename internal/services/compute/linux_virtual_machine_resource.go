@@ -68,7 +68,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: computeValidate.LinuxAdminUsername,
 			},
 
 			"network_interface_ids": {
