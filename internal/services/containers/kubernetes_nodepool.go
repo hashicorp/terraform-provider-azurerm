@@ -57,9 +57,8 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"vm_size": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						//ForceNew:     true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
@@ -1654,8 +1653,6 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 	// first try loading this from the Resource Data if possible (e.g. when Created)
 	defaultNodePoolName := d.Get("default_node_pool.0.name")
 
-	// TODO check the temporary node pool name and use that - make name not forceNew (forceNew when node pool name is not nodepool name or temp node pool name - only if API doesn't support updating the name of the default node pool)
-
 	var agentPool *managedclusters.ManagedClusterAgentPoolProfile
 	if defaultNodePoolName != "" {
 		// find it
@@ -1667,7 +1664,18 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 		}
 	}
 
-	// fallback
+	// check for temp node pool that may have been created when cycling node pools to resize the VMs
+	tempNodePoolName := d.Get("default_node_pool.0.temporary_name")
+	if agentPool == nil && tempNodePoolName != "" {
+		for _, v := range *input {
+			if v.Name == tempNodePoolName {
+				agentPool = &v
+				break
+			}
+		}
+	}
+
+	// fallback if neither default nor temp node pool were found
 	if agentPool == nil {
 		// otherwise we need to fall back to the name of the first agent pool
 		for _, v := range *input {

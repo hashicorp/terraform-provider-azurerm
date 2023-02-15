@@ -72,6 +72,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("api_server_access_profile.0.subnet_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != "" && new == ""
 			}),
+			pluginsdk.ForceNewIf("default_node_pool.0.name", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+				defaultNodePoolName := d.Get("default_node_pool.0.name").(string)
+				temporaryNodePoolName := d.Get("default_node_pool.0.temporary_name").(string)
+				return defaultNodePoolName != temporaryNodePoolName
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -2026,10 +2031,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			// create the default node pool with the new vm size
-			if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
-				// if creation of the default node pool fails we can fall back on the temporary one
-				log.Printf("[DEBUG] Creation of resized default node pool failed, falling back to temporary node pool")
-			}
+			//if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
+			//	// if creation of the default node pool fails we can fall back on the temporary one
+			//	log.Printf("[DEBUG] Creation of resized default node pool failed, falling back to temporary node pool")
+			//}
 
 			// check whether both the temp node pool and resized default node pool exist before proceeding
 			tempExisting, err := nodePoolsClient.Get(ctx, tempNodePoolId)
@@ -2038,7 +2043,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			defaultExisting, err := nodePoolsClient.Get(ctx, defaultNodePoolId)
-			if err != nil {
+			if !response.WasNotFound(defaultExisting.HttpResponse) && err != nil {
 				return fmt.Errorf("retrieving %s: %+v", defaultNodePoolId, err)
 			}
 
@@ -3841,17 +3846,19 @@ func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedC
 
 func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
 	// retries the creation of a system node pool 3 times
-	var err error
 	retries := 3
 	attempt := 0
-	for attempt < retries && err != nil {
-		if err := client.CreateOrUpdateThenPoll(ctx, id, profile); err != nil {
+	for attempt < retries {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, profile); err == nil {
+			break
+		} else {
 			// only return the error on the final retry
 			if attempt != 2 {
 				continue
 			}
 			return err
 		}
+		attempt++
 	}
 	return nil
 }
