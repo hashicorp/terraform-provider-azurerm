@@ -2003,9 +2003,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if d.HasChange("default_node_pool.0.vm_size") {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
-			tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "temp")
 
-			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, tempNodePoolId, agentProfile); err != nil {
+			tempNodePoolName := "temp"
+			if v := d.Get("default_node_pool.0.temporary_name").(string); v != "" {
+				tempNodePoolName = v
+			}
+			tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
+
+			// create the temporary default node pool with the new vm size
+			if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, agentProfile); err != nil {
 				return fmt.Errorf("creating Temporary Default Node Pool %s: %+v", tempNodePoolId, err)
 			}
 
@@ -2014,16 +2020,33 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				IgnorePodDisruptionBudget: &ignorePodDisruptionBudget,
 			}
 
+			// delete the old default node pool
 			if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, deleteOpts); err != nil {
 				return fmt.Errorf("deleting Default Node Pool %s: %+v", defaultNodePoolId, err)
 			}
 
-			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile); err != nil {
-				return fmt.Errorf("creating Default Node Pool %s: %+v", tempNodePoolId, err)
+			// create the default node pool with the new vm size
+			if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
+				// if creation of the default node pool fails we can fall back on the temporary one
+				log.Printf("[DEBUG] Creation of resized default node pool failed, falling back to temporary node pool")
 			}
 
-			if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, deleteOpts); err != nil {
-				return fmt.Errorf("deleting Temporary Default Node Pool %s: %+v", tempNodePoolId, err)
+			// check whether both the temp node pool and resized default node pool exist before proceeding
+			tempExisting, err := nodePoolsClient.Get(ctx, tempNodePoolId)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", tempNodePoolId, err)
+			}
+
+			defaultExisting, err := nodePoolsClient.Get(ctx, defaultNodePoolId)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", defaultNodePoolId, err)
+			}
+
+			// if the temp node pool and resized default node pool exist tear down the temp node pool
+			if tempExisting.Model != nil && defaultExisting.Model != nil {
+				if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, deleteOpts); err != nil {
+					return fmt.Errorf("deleting Temporary Default Node Pool %s: %+v", tempNodePoolId, err)
+				}
 			}
 
 			log.Printf("[DEBUG] Cycled Default Node Pool.")
@@ -3814,4 +3837,21 @@ func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedC
 			"labels_allowed":      labelAllowList,
 		},
 	}
+}
+
+func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
+	// retries the creation of a system node pool 3 times
+	var err error
+	retries := 3
+	attempt := 0
+	for attempt < retries && err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, profile); err != nil {
+			// only return the error on the final retry
+			if attempt != 2 {
+				continue
+			}
+			return err
+		}
+	}
+	return nil
 }

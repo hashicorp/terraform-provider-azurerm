@@ -39,6 +39,12 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: validate.KubernetesAgentPoolName,
 					},
 
+					"temporary_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.KubernetesAgentPoolName,
+					},
+
 					"type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
