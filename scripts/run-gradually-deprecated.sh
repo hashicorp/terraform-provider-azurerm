@@ -121,7 +121,7 @@ function checkForUnclearErrorMessages {
 
 function runDeprecatedFunctions {
   echo "==> Checking for use of deprecated functions..."
-  result=$(grep -Ril "d.setid(\"\")" ./internal/services/**/*.go) | grep data_source
+  result=$(grep -Ril "d.setid(\"\")" ./internal/services/**/*.go | grep data_source)
   if [ "$result" != "" ];
   then
     echo "Data Sources should return an error when a resource cannot be found rather than"
@@ -130,6 +130,19 @@ function runDeprecatedFunctions {
     echo "Please remove the references to 'd.SetId("") from the Data Sources listed below"
     echo "and raise an error instead:"
     echo ""
+    echo "$result"
+    exit 1
+  fi
+  result=$(grep -Ril "markasgone" ./internal/services/**/*.go | grep data_source)
+  if [ "$result" != "" ];
+  then
+    echo "Data Sources should return an error when a resource cannot be found rather than"
+    echo "marking the resource as gone."
+    echo ""
+    echo "Please remove the references to 'metadata.MarkAsGone' from the Data Sources listed below"
+    echo "and raise an error instead:"
+    echo ""
+    echo "$result"
     exit 1
   fi
 }
