@@ -100,7 +100,9 @@ The following arguments are supported:
 
 * `geo_redundant_backup_enabled` - (Optional) Is Geo-Redundant backup enabled on the PostgreSQL Flexible Server. Defaults to `false`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `PointInTimeRestore` and `Replica`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `PointInTimeRestore`, `Replica` and `Update`. Changing this forces a new PostgreSQL Flexible Server to be created.
+
+-> **Note:** When `create_mode` is set to `Update`, it wouldn't force a new resource to be created.
 
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the PostgreSQL Flexible Server. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -129,6 +131,8 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 
 * `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13` and `14`. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
+
+-> **Note:** When `create_mode` is `Update`, upgrading version wouldn't force a new resource to be created.
 
 * `zone` - (Optional) Specifies the Availability Zone in which the PostgreSQL Flexible Server should be located.
 

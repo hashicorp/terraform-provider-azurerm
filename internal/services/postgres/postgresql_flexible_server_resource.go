@@ -1,8 +1,10 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -126,7 +128,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForServerVersion(), false),
 			},
 
@@ -135,11 +136,11 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.CreateModeDefault),
 					string(servers.CreateModePointInTimeRestore),
 					string(servers.CreateModeReplica),
+					string(servers.CreateModeUpdate),
 				}, false),
 			},
 
@@ -286,6 +287,39 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			oldVersionVal, newVersionVal := d.GetChange("version")
+			createModeVal := d.Get("create_mode").(string)
+
+			if createModeVal != string(servers.CreateModeUpdate) {
+				d.ForceNew("create_mode")
+			}
+
+			if d.HasChange("version") {
+				if oldVersionVal != "" && newVersionVal != "" {
+					oldVersion, err := strconv.ParseInt(oldVersionVal.(string), 10, 32)
+					if err != nil {
+						return err
+					}
+
+					newVersion, err := strconv.ParseInt(newVersionVal.(string), 10, 32)
+					if err != nil {
+						return err
+					}
+
+					if !(oldVersion < newVersion && createModeVal == string(servers.CreateModeUpdate)) {
+						d.ForceNew("version")
+					}
+				} else {
+					d.ForceNew("version")
+				}
+			} else {
+				d.ForceNew("version")
+			}
+
+			return nil
+		}),
 	}
 }
 
@@ -671,6 +705,16 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 			return fmt.Errorf("expanding `identity` for Mysql Flexible Server %s (Resource Group %q): %v", id.FlexibleServerName, id.ResourceGroupName, err)
 		}
 		parameters.Identity = identity
+	}
+
+	if d.HasChange("create_mode") {
+		createMode := servers.CreateModeForUpdate(d.Get("create_mode").(string))
+		parameters.Properties.CreateMode = &createMode
+	}
+
+	if d.HasChange("version") {
+		version := servers.ServerVersion(d.Get("version").(string))
+		parameters.Properties.Version = &version
 	}
 
 	if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
