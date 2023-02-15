@@ -292,25 +292,20 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			createModeVal := d.Get("create_mode").(string)
 
 			if createModeVal == string(servers.CreateModeUpdate) {
-				if d.HasChange("version") {
-					oldVersionVal, newVersionVal := d.GetChange("version")
-					
-					if oldVersionVal != "" && newVersionVal != "" {
-						oldVersion, err := strconv.ParseInt(oldVersionVal.(string), 10, 32)
-						if err != nil {
-							return err
-						}
+				oldVersionVal, newVersionVal := d.GetChange("version")
 
-						newVersion, err := strconv.ParseInt(newVersionVal.(string), 10, 32)
-						if err != nil {
-							return err
-						}
+				if oldVersionVal != "" && newVersionVal != "" {
+					oldVersion, err := strconv.ParseInt(oldVersionVal.(string), 10, 32)
+					if err != nil {
+						return err
+					}
 
-						if !(oldVersion < newVersion) {
-							d.ForceNew("create_mode")
-							d.ForceNew("version")
-						}
-					} else {
+					newVersion, err := strconv.ParseInt(newVersionVal.(string), 10, 32)
+					if err != nil {
+						return err
+					}
+
+					if !(oldVersion < newVersion) {
 						d.ForceNew("create_mode")
 						d.ForceNew("version")
 					}
