@@ -6,7 +6,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/hashicorp/go-azure-helpers/authentication"
+	"github.com/hashicorp/go-azure-sdk/sdk/auth"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
@@ -21,38 +22,59 @@ func Build() (*clients.Client, error) {
 	defer clientLock.Unlock()
 
 	if _client == nil {
-		environment, exists := os.LookupEnv("ARM_ENVIRONMENT")
+		var (
+			ctx = context.TODO()
+
+			env *environments.Environment
+			err error
+
+			metadataHost = os.Getenv("ARM_METADATA_HOSTNAME")
+		)
+
+		envName, exists := os.LookupEnv("ARM_ENVIRONMENT")
 		if !exists {
-			environment = "public"
+			envName = "public"
 		}
 
-		builder := authentication.Builder{
-			SubscriptionID: os.Getenv("ARM_SUBSCRIPTION_ID"),
-			ClientID:       os.Getenv("ARM_CLIENT_ID"),
-			TenantID:       os.Getenv("ARM_TENANT_ID"),
-			ClientSecret:   os.Getenv("ARM_CLIENT_SECRET"),
-			Environment:    environment,
-			MetadataHost:   os.Getenv("ARM_METADATA_HOSTNAME"),
-
-			// we intentionally only support Client Secret auth for tests (since those variables are used all over)
-			SupportsClientSecretAuth: true,
+		if metadataHost != "" {
+			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost), envName); err != nil {
+				return nil, fmt.Errorf("building test client: %+v", err)
+			}
+		} else if env, err = environments.FromName(envName); err != nil {
+			return nil, fmt.Errorf("building test client: %+v", err)
 		}
-		config, err := builder.Build()
-		if err != nil {
-			return nil, fmt.Errorf("building ARM Client: %+v", err)
+
+		authConfig := auth.Credentials{
+			Environment: *env,
+			ClientID:    os.Getenv("ARM_CLIENT_ID"),
+			TenantID:    os.Getenv("ARM_TENANT_ID"),
+
+			ClientCertificatePath:     os.Getenv("ARM_CLIENT_CERTIFICATE_PATH"),
+			ClientCertificatePassword: os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"),
+			ClientSecret:              os.Getenv("ARM_CLIENT_SECRET"),
+
+			EnableAuthenticatingUsingClientCertificate: true,
+			EnableAuthenticatingUsingClientSecret:      true,
+			EnableAuthenticatingUsingAzureCLI:          false,
+			EnableAuthenticatingUsingManagedIdentity:   false,
+			EnableAuthenticationUsingOIDC:              false,
+			EnableAuthenticationUsingGitHubOIDC:        false,
 		}
 
 		clientBuilder := clients.ClientBuilder{
-			AuthConfig:               config,
+			AuthConfig:               &authConfig,
 			SkipProviderRegistration: true,
 			TerraformVersion:         os.Getenv("TERRAFORM_CORE_VERSION"),
 			Features:                 features.Default(),
 			StorageUseAzureAD:        false,
+			SubscriptionID:           os.Getenv("ARM_SUBSCRIPTION_ID"),
 		}
-		client, err := clients.Build(context.TODO(), clientBuilder)
+
+		client, err := clients.Build(ctx, clientBuilder)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("building test client: %+v", err)
 		}
+
 		_client = client
 	}
 

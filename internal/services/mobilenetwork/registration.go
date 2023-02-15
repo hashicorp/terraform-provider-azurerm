@@ -42,12 +42,18 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		MobileNetworkDataSource{},
+		SiteDataSource{},
+		SimGroupDataSource{},
+		SliceDataSource{},
 	}
 }
 
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		SimGroupResource{},
+		SliceResource{},
 		MobileNetworkResource{},
+		SiteResource{},
 	}
 }

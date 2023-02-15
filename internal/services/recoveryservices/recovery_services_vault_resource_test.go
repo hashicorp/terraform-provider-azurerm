@@ -32,16 +32,32 @@ func TestAccRecoveryServicesVault_basic(t *testing.T) {
 	})
 }
 
-func TestAccRecoveryServicesVault_basicWithCrossRegionRestore(t *testing.T) {
+func TestAccRecoveryServicesVault_ToggleCrossRegionRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithCrossRegionRestore(data),
+			Config: r.basicWithCrossRegionRestore(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cross_region_restore_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithCrossRegionRestore(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cross_region_restore_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithCrossRegionRestore(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cross_region_restore_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -517,7 +533,7 @@ resource "azurerm_recovery_services_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
 
-func (RecoveryServicesVaultResource) basicWithCrossRegionRestore(data acceptance.TestData) string {
+func (RecoveryServicesVaultResource) basicWithCrossRegionRestore(data acceptance.TestData, enable bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -534,11 +550,11 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  cross_region_restore_enabled = true
+  cross_region_restore_enabled = %v
 
   soft_delete_enabled = false
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enable)
 }
 
 func (RecoveryServicesVaultResource) basicWithCrossRegionRestoreAndWrongStorageType(data acceptance.TestData) string {

@@ -1,55 +1,98 @@
-## 3.43.0 (Unreleased)
+## 3.44.0 (Unreleased)
 
-FEATURES
+FEATURES:
 
-* **New Data Source:** `azurerm_mobile_network` [GH-20128]
-* **New Data Source:** `azurerm_container_app_environment` [GH-18008]
-* **New Data Source:** `azurerm_container_app_environment_certificate` [GH-18008]
-* **New Resource:** `azurerm_container_app_environment` [GH-18008]
-* **New Resource:** `azurerm_container_app_environment_storage` [GH-18008]
-* **New Resource:** `azurerm_container_app_environment_dapr_component` [GH-18008]
-* **New Resource:** `azurerm_container_app_environment_certificate` [GH-18008]
-* **New Resource:** `azurerm_container_app` [GH-18008]
-* **New Resource:** `azurerm_machine_learning_datastore_fileshare` [GH-19934]
-* **New Resource:** `azurerm_machine_learning_datastore_datalake_gen2` [GH-20045]
-* **New Resource:** `azurerm_mobile_network` [GH-20128]
-* **New Resource:** `azurerm_sentinel_data_connector_microsoft_threat_intelligence` [GH-20273]
+* **New Data Source:** `azurerm_mobile_network_site` [GH-20334]
+* **New Data Source:** `azurerm_hybrid_compute_machine` [GH-20211]
+* **New Data Source:** `azurerm_mobile_network_slice` [GH-20336]
+* **New DataSource:** `azurerm_mobile_network_sim_group` [GH-20339]
+* **New Resource:** `azurerm_network_manager_security_admin_configuration` [GH-20233]
+* **New Resource:** `azurerm_network_manager_admin_rule_collection` [GH-20233]
+* **New Resource:** `azurerm_network_manager_admin_rule` [GH-20233]
+* **New Resource:** `azurerm_mobile_network_site` [GH-20334]
+* **New Resource:** `azurerm_mobile_network_slice` [GH-20336]
+* **New Resource:** `azurerm_mobile_network_sim_group` [GH-20339
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.11.28` of `github.com/Azure/go-autorest/autorest` [GH-20272]
-* dependencies: updating to `v0.50.0` of `github.com/hashicorp/go-azure-helpers` [GH-20272]
-* dependencies: updating to `v0.20230208.1165725` of `github.com/hashicorp/go-azure-sdk` [GH-20381]
-* dependencies: updating to `v0.55.0` of `github.com/manicminer/hamilton` [GH-20272]
-* dependencies: updating to `v0.20230208.1135849` of `github.com/tombuildsstuff/kermit` [GH-20381]
-* `appservice`: updating to API Version `2021-03-01` [GH-20349]
-* `azurestackhci`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
-* `databricks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20309]
-* `datadog`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20311]
-* `databoxedge`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20236]
-* `digitaltwins`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20318]
-* `postgresql`: updating to API Version `2022-12-01` [GH-20367]
-* `redis`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20313]
-* `azurerm_media_streaming_locator` - support for the `filter_names` property [GH-20274]
-* `azurerm_media_live_event_output` - support for the `rewind_window_duration` property [GH-20271]
-* `azurerm_media_streaming_live_event` - support for the `stream_options` property [GH-20254]
-* `azurerm_storage_blob_inventory_policy` - support for the `exclude_prefixes` property [GH-20281]
-* `azurerm_sentinel_alert_rule_nrt` - support for the `dynamic_property` block [GH-20212]
-* `azurerm_sentinel_alert_rule_nrt` - support for the `sentinel_entity_mapping` block [GH-20230]
-* `azurerm_sentinel_alert_rule_nrt` - support for the `event_grouping` block [GH-20231]
-* `azurerm_sentinel_alert_rule_scheduled` - support for the `dynamic_property` block [GH-20212]
-* `azurerm_sentinel_alert_rule_scheduled` - support for the `sentinel_entity_mapping` block [GH-20230]
-* `azurerm_shared_image` - support for the `confidential_vm_supported` and `confidential_vm_enabled` properties [GH-20249]
+* dependencies: updating to `v0.20230214.1122756` of `github.com/hashicorp/go-azure-sdk` [GH-20456]
+* dependencies: no longer utilizing `github.com/manicminer/hamilton` [GH-20320]
+* provider: support for the `client_certificate` provider property [GH-20320]
+* provider: support for the `use_cli` provider property [GH-20320]
+* provider: authentication now uses the `github.com/hashicorp/go-azure-sdk/sdk/auth` package [GH-20320]
+* provider: cloud configuration now uses the `github.com/hashicorp/go-azure-sdk/sdk/environments` package [GH-20320]
+* `managementlocks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20387]
+* `media`: refactoring `StreamingEndpoints` to use API Version `2022-08-01` [GH-20457]
+* `postgres` - updating API to `2022-12-01` [GH-20370]
+* Data Source: `azurerm_policy_definition` - support for the `mode` property [GH-20420]
+* `azurerm_cognitive_account` - the field `sku_name` can now be set to `DC0` [GH-20426]
+* `azurerm_express_route_port` - support for the `billing_type` property [GH-20361]
+* `azurerm_linux_virtual_machine` - validating that the value for the `admin_username` field isn't a disallowed username [GH-20424]
+* `azurerm_windows_virtual_machine` - validating that the value for the `admin_username` field isn't a disallowed username [GH-20424]
 
 BUG FIXES:
 
-* `azurerm_custom_provider` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` [GH-20315]
-* `azurerm_function_app_function` - fix bug for multiple file blocks resulting in last file being used for all entries [GH-20198]
-* `azurerm_monitor_diagnostic_setting` - changing the `storage_account_id`, `eventhub_authorization_rule_id`, and `eventhub_name` properties no longer creates a new resource [GH-20307]
-* `azurerm_redis_enterprise_cluster` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` [GH-20314]
-* `azurerm_service_fabric_managed_cluster` - Fix potential panic when setting `node_type` [GH-20345]
-* `azurerm_web_application_firewall_policy` - prevent a failure caused by changing the order of the `disabled_rules` properties [GH-20285]
-* `azurerm_databricks_access_connector` - `name` can now be up to 64 character in length [GH-20353]
+* `azurerm_eventgrid_domain_topic` - `name` can now be up to 128 characters [GH-20407]
+* `azurerm_private_endpoint` - normalizing the `private_connection_resource_id` for a redis cache [GH-20418]
+* `azurerm_private_endpoint` - consistently normalizing the value returned from the API for `private_connection_resource_id` [GH-20452]
+* `azurerm_recovery_services_vault` - updating `cross_region_restore_enabled` to `false` recreates the resource since this operation isn't supported by the API [GH-20406]
+* `azurerm_storage_management_policy` - `rule.filters` is now Required since storage management policies fail if it's unspecified [GH-20448]
+
+## 3.43.0 (February 09, 2023)
+
+FEATURES
+
+* **New Data Source:** `azurerm_container_app_environment` ([#18008](https://github.com/hashicorp/terraform-provider-azurerm/issues/18008))
+* **New Data Source:** `azurerm_container_app_environment_certificate` ([#18008](https://github.com/hashicorp/terraform-provider-azurerm/issues/18008))
+* **New Data Source:** `azurerm_mobile_network` ([#20128](https://github.com/hashicorp/terraform-provider-azurerm/issues/20128))
+* **New Resource:** `azurerm_container_app_environment` ([#18008](https://github.com/hashicorp/terraform-provider-azurerm/issues/18008))
+* **New Resource:** `azurerm_container_app_environment_storage` ([#18008](https://github.com/hashicorp/terraform-provider-azurerm/issues/18008))
+* **New Resource:** `azurerm_container_app_environment_dapr_component` ([#18008](https://github.com/hashicorp/terraform-provider-azurerm/issues/18008))
+* **New Resource:** `azurerm_container_app_environment_certificate` ([#18008](https://github.com/hashicorp/terraform-provider-azurerm/issues/18008))
+* **New Resource:** `azurerm_container_app` ([#18008](https://github.com/hashicorp/terraform-provider-azurerm/issues/18008))
+* **New Resource:** `azurerm_machine_learning_datastore_fileshare` ([#19934](https://github.com/hashicorp/terraform-provider-azurerm/issues/19934))
+* **New Resource:** `azurerm_machine_learning_datastore_datalake_gen2` ([#20045](https://github.com/hashicorp/terraform-provider-azurerm/issues/20045))
+* **New Resource:** `azurerm_mobile_network` ([#20128](https://github.com/hashicorp/terraform-provider-azurerm/issues/20128))
+* **New Resource:** `azurerm_sentinel_data_connector_microsoft_threat_intelligence` ([#20273](https://github.com/hashicorp/terraform-provider-azurerm/issues/20273))
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.11.28` of `github.com/Azure/go-autorest/autorest` ([#20272](https://github.com/hashicorp/terraform-provider-azurerm/issues/20272))
+* dependencies: updating to `v0.50.0` of `github.com/hashicorp/go-azure-helpers` ([#20272](https://github.com/hashicorp/terraform-provider-azurerm/issues/20272))
+* dependencies: updating to `v0.20230208.1165725` of `github.com/hashicorp/go-azure-sdk` ([#20381](https://github.com/hashicorp/terraform-provider-azurerm/issues/20381))
+* dependencies: updating to `v0.55.0` of `github.com/manicminer/hamilton` ([#20272](https://github.com/hashicorp/terraform-provider-azurerm/issues/20272))
+* dependencies: updating to `v0.20230208.1135849` of `github.com/tombuildsstuff/kermit` ([#20381](https://github.com/hashicorp/terraform-provider-azurerm/issues/20381))
+* dependences: updating `postgresql/2021-06-01/databases` to 2022-12-01 ([#20369](https://github.com/hashicorp/terraform-provider-azurerm/issues/20369))
+* `appservice`: updating to API Version `2021-03-01` ([#20349](https://github.com/hashicorp/terraform-provider-azurerm/issues/20349))
+* `azurestackhci`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20318](https://github.com/hashicorp/terraform-provider-azurerm/issues/20318))
+* `batch`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20375](https://github.com/hashicorp/terraform-provider-azurerm/issues/20375))
+* `databricks`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20309](https://github.com/hashicorp/terraform-provider-azurerm/issues/20309))
+* `datadog`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20311](https://github.com/hashicorp/terraform-provider-azurerm/issues/20311))
+* `databoxedge`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20236](https://github.com/hashicorp/terraform-provider-azurerm/issues/20236))
+* `digitaltwins`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20318](https://github.com/hashicorp/terraform-provider-azurerm/issues/20318))
+* `postgresql`: updating to API Version `2022-12-01` ([#20367](https://github.com/hashicorp/terraform-provider-azurerm/issues/20367))
+* `redis`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20313](https://github.com/hashicorp/terraform-provider-azurerm/issues/20313))
+* `azurerm_media_streaming_locator` - support for the `filter_names` property ([#20274](https://github.com/hashicorp/terraform-provider-azurerm/issues/20274))
+* `azurerm_media_live_event_output` - support for the `rewind_window_duration` property ([#20271](https://github.com/hashicorp/terraform-provider-azurerm/issues/20271))
+* `azurerm_media_streaming_live_event` - support for the `stream_options` property ([#20254](https://github.com/hashicorp/terraform-provider-azurerm/issues/20254))
+* `azurerm_storage_blob_inventory_policy` - support for the `exclude_prefixes` property ([#20281](https://github.com/hashicorp/terraform-provider-azurerm/issues/20281))
+* `azurerm_sentinel_alert_rule_nrt` - support for the `dynamic_property` block ([#20212](https://github.com/hashicorp/terraform-provider-azurerm/issues/20212))
+* `azurerm_sentinel_alert_rule_nrt` - support for the `sentinel_entity_mapping` block ([#20230](https://github.com/hashicorp/terraform-provider-azurerm/issues/20230))
+* `azurerm_sentinel_alert_rule_nrt` - support for the `event_grouping` block ([#20231](https://github.com/hashicorp/terraform-provider-azurerm/issues/20231))
+* `azurerm_sentinel_alert_rule_scheduled` - support for the `dynamic_property` block ([#20212](https://github.com/hashicorp/terraform-provider-azurerm/issues/20212))
+* `azurerm_sentinel_alert_rule_scheduled` - support for the `sentinel_entity_mapping` block ([#20230](https://github.com/hashicorp/terraform-provider-azurerm/issues/20230))
+* `azurerm_shared_image` - support for the `confidential_vm_supported` and `confidential_vm_enabled` properties ([#20249](https://github.com/hashicorp/terraform-provider-azurerm/issues/20249))
+* `azurerm_postgresql_flexible_server` - support for `replication_role` and new enum value `Replica` for `create_mode` ([#20364](https://github.com/hashicorp/terraform-provider-azurerm/issues/20364))
+
+BUG FIXES:
+
+* `azurerm_custom_provider` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` ([#20315](https://github.com/hashicorp/terraform-provider-azurerm/issues/20315))
+* `azurerm_function_app_function` - prevent a bug with multiple file blocks resulting in last file being used for all entries ([#20198](https://github.com/hashicorp/terraform-provider-azurerm/issues/20198))
+* `azurerm_monitor_diagnostic_setting` - changing the `storage_account_id`, `eventhub_authorization_rule_id`, and `eventhub_name` properties no longer creates a new resource ([#20307](https://github.com/hashicorp/terraform-provider-azurerm/issues/20307))
+* `azurerm_redis_enterprise_cluster` - switching a spurious usage of `Azure/azure-sdk-for-go` to `hashicorp/go-azure-sdk` ([#20314](https://github.com/hashicorp/terraform-provider-azurerm/issues/20314))
+* `azurerm_service_fabric_managed_cluster` - Fix potential panic when setting `node_type` ([#20345](https://github.com/hashicorp/terraform-provider-azurerm/issues/20345))
+* `azurerm_web_application_firewall_policy` - prevent a failure caused by changing the order of the `disabled_rules` properties ([#20285](https://github.com/hashicorp/terraform-provider-azurerm/issues/20285))
+* `azurerm_databricks_access_connector` - `name` can now be up to 64 character in length ([#20353](https://github.com/hashicorp/terraform-provider-azurerm/issues/20353))
 
 ## 3.42.0 (February 02, 2023)
 
