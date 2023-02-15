@@ -105,6 +105,18 @@ func FlattenMapStringPtrString(input map[string]*string) map[string]interface{} 
 	return result
 }
 
+func FlattenPtrMapStringString(input *map[string]string) map[string]interface{} {
+	result := make(map[string]interface{})
+	if input == nil {
+		return result
+	}
+	for k, v := range *input {
+		result[k] = v
+	}
+
+	return result
+}
+
 func FlattenInt32Slice(input *[]int32) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
