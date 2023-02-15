@@ -546,7 +546,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, id, machines.GetOperationOptions{})
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("%s was not found", id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", id, err)

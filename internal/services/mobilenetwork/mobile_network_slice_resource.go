@@ -18,12 +18,12 @@ import (
 )
 
 type SliceModel struct {
-	Name                         string            `tfschema:"name"`
-	MobileNetworkMobileNetworkId string            `tfschema:"mobile_network_id"`
-	Description                  string            `tfschema:"description"`
-	Location                     string            `tfschema:"location"`
-	Snssai                       []SnssaiModel     `tfschema:"single_network_slice_selection_assistance_information"`
-	Tags                         map[string]string `tfschema:"tags"`
+	Name            string            `tfschema:"name"`
+	MobileNetworkId string            `tfschema:"mobile_network_id"`
+	Description     string            `tfschema:"description"`
+	Location        string            `tfschema:"location"`
+	Snssai          []SnssaiModel     `tfschema:"single_network_slice_selection_assistance_information"`
+	Tags            map[string]string `tfschema:"tags"`
 }
 
 type SnssaiModel struct {
@@ -113,7 +113,7 @@ func (r SliceResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.MobileNetwork.SliceClient
-			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkMobileNetworkId)
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkId)
 			if err != nil {
 				return err
 			}
@@ -231,9 +231,9 @@ func (r SliceResource) Read() sdk.ResourceFunc {
 			model := *resp.Model
 
 			state := SliceModel{
-				Name:                         id.SliceName,
-				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
-				Location:                     location.Normalize(model.Location),
+				Name:            id.SliceName,
+				MobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
+				Location:        location.Normalize(model.Location),
 			}
 
 			properties := model.Properties

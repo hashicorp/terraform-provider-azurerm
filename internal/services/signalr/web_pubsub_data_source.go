@@ -2,7 +2,6 @@ package signalr
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -131,9 +130,7 @@ func dataSourceWebPubsubRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] Web Pubsub %s does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}

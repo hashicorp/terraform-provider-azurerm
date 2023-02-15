@@ -90,7 +90,7 @@ func (r SliceDataSource) Read() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.MobileNetwork.SliceClient
-			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(metaModel.MobileNetworkMobileNetworkId)
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(metaModel.MobileNetworkId)
 			if err != nil {
 				return err
 			}
@@ -100,7 +100,7 @@ func (r SliceDataSource) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("%s was not found", id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -113,9 +113,9 @@ func (r SliceDataSource) Read() sdk.ResourceFunc {
 			model := *resp.Model
 
 			state := SliceModel{
-				Name:                         id.SliceName,
-				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
-				Location:                     location.Normalize(model.Location),
+				Name:            id.SliceName,
+				MobileNetworkId: mobileNetworkId.ID(),
+				Location:        location.Normalize(model.Location),
 			}
 
 			properties := model.Properties
