@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/site"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/slice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -9,6 +10,7 @@ import (
 
 type Client struct {
 	MobileNetworkClient *mobilenetwork.MobileNetworkClient
+	SIMGroupClient      *simgroup.SIMGroupClient
 	SliceClient         *slice.SliceClient
 	SiteClient          *site.SiteClient
 }
@@ -16,6 +18,9 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	mobileNetworkClient := mobilenetwork.NewMobileNetworkClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&mobileNetworkClient.Client, o.ResourceManagerAuthorizer)
+
+	simGroupClient := simgroup.NewSIMGroupClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&simGroupClient.Client, o.ResourceManagerAuthorizer)
 
 	siteClient := site.NewSiteClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&siteClient.Client, o.ResourceManagerAuthorizer)
@@ -25,6 +30,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		MobileNetworkClient: &mobileNetworkClient,
+		SIMGroupClient:      &simGroupClient,
 		SiteClient:          &siteClient,
 		SliceClient:         &sliceClient,
 	}
