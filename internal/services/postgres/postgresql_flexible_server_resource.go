@@ -305,18 +305,14 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						return err
 					}
 
-					if !(oldVersion < newVersion) {
-						d.ForceNew("create_mode")
-						d.ForceNew("version")
+					if oldVersion < newVersion {
+						return nil
 					}
-				} else {
-					d.ForceNew("create_mode")
-					d.ForceNew("version")
 				}
-			} else {
-				d.ForceNew("create_mode")
-				d.ForceNew("version")
 			}
+
+			d.ForceNew("create_mode")
+			d.ForceNew("version")
 
 			return nil
 		}),
