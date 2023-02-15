@@ -177,6 +177,11 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s for %s: %+v", *envId, id, err)
 			}
 
+			registries, err := helpers.ExpandContainerAppRegistries(app.Registries)
+			if err != nil {
+				return fmt.Errorf("invalid registry config for %s: %+v", id, err)
+			}
+
 			containerApp := containerapps.ContainerApp{
 				Location: location.Normalize(env.Model.Location),
 				Properties: &containerapps.ContainerAppProperties{
@@ -184,7 +189,7 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 						Ingress:    helpers.ExpandContainerAppIngress(app.Ingress, id.ContainerAppName),
 						Dapr:       helpers.ExpandContainerAppDapr(app.Dapr),
 						Secrets:    helpers.ExpandContainerSecrets(app.Secrets),
-						Registries: helpers.ExpandContainerAppRegistries(app.Registries),
+						Registries: registries,
 					},
 					ManagedEnvironmentId: pointer.To(app.ManagedEnvironmentId),
 					Template:             helpers.ExpandContainerAppTemplate(app.Template, metadata),
@@ -347,8 +352,10 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("registry") {
-				model.Properties.Configuration.Registries = helpers.ExpandContainerAppRegistries(state.Registries)
-
+				model.Properties.Configuration.Registries, err = helpers.ExpandContainerAppRegistries(state.Registries)
+				if err != nil {
+					return fmt.Errorf("invalid registry config for %s: %+v", id, err)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("dapr") {
