@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingpoliciesandstreaminglocators"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
@@ -70,6 +71,66 @@ func resourceMediaStreamingPolicy() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"clear_key_encryption_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"custom_keys_acquisition_url_template": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.IsURLWithHTTPS,
+									},
+								},
+							},
+						},
+
+						"clear_track": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*schema.Schema{
+									"condition": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										ForceNew: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"operation": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+													ForceNew: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(streamingpoliciesandstreaminglocators.TrackPropertyCompareOperationEqual),
+													}, false),
+												},
+
+												"property": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+													ForceNew: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(streamingpoliciesandstreaminglocators.TrackPropertyTypeFourCC),
+													}, false),
+												},
+
+												"value": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+
 						"enabled_protocols": enabledProtocolsSchema(),
 
 						"drm_widevine_custom_license_acquisition_url_template": {
@@ -106,6 +167,72 @@ func resourceMediaStreamingPolicy() *pluginsdk.Resource {
 						},
 
 						"default_content_key": defaultContentKeySchema(),
+
+						"content_key_to_track_mapping": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"label": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"policy_name": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"track": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										ForceNew: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*schema.Schema{
+												"condition": {
+													Type:     pluginsdk.TypeSet,
+													Required: true,
+													ForceNew: true,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"operation": {
+																Type:     pluginsdk.TypeString,
+																Required: true,
+																ForceNew: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(streamingpoliciesandstreaminglocators.TrackPropertyCompareOperationEqual),
+																}, false),
+															},
+
+															"property": {
+																Type:     pluginsdk.TypeString,
+																Required: true,
+																ForceNew: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(streamingpoliciesandstreaminglocators.TrackPropertyTypeFourCC),
+																}, false),
+															},
+
+															"value": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ForceNew:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -117,6 +244,23 @@ func resourceMediaStreamingPolicy() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"clear_key_encryption_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"custom_keys_acquisition_url_template": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.IsURLWithHTTPS,
+									},
+								},
+							},
+						},
+
 						"enabled_protocols": enabledProtocolsSchema(),
 
 						"drm_fairplay": {
@@ -145,6 +289,27 @@ func resourceMediaStreamingPolicy() *pluginsdk.Resource {
 						},
 
 						"default_content_key": defaultContentKeySchema(),
+					},
+				},
+			},
+
+			"envelope_encryption": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"custom_key_acquisition_url_template": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.IsURLWithHTTPS,
+						},
+
+						"default_content_key": defaultContentKeySchema(),
+
+						"enabled_protocols": enabledProtocolsSchema(),
 					},
 				},
 			},
