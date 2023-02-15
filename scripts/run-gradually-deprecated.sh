@@ -148,10 +148,6 @@ function runDeprecatedFunctions {
 }
 
 function main {
-  # testing
-  echo "in main"
-  exit 1
-
   if [ "$GITHUB_ACTIONS_STAGE" == "UNIT_TESTS" ];
   then
     echo "Skipping - the Gradually Deprecated check is separate in Github Actions"
@@ -164,5 +160,4 @@ function main {
   checkForUnclearErrorMessages
 }
 
-echo "in file"
 main
