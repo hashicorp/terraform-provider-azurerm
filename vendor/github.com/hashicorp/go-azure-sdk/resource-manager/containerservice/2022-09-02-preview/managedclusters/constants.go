@@ -530,21 +530,24 @@ func parseManagedClusterSKUName(input string) (*ManagedClusterSKUName, error) {
 type ManagedClusterSKUTier string
 
 const (
-	ManagedClusterSKUTierFree ManagedClusterSKUTier = "Free"
-	ManagedClusterSKUTierPaid ManagedClusterSKUTier = "Paid"
+	ManagedClusterSKUTierFree     ManagedClusterSKUTier = "Free"
+	ManagedClusterSKUTierPaid     ManagedClusterSKUTier = "Paid"
+	ManagedClusterSKUTierStandard ManagedClusterSKUTier = "Standard"
 )
 
 func PossibleValuesForManagedClusterSKUTier() []string {
 	return []string{
 		string(ManagedClusterSKUTierFree),
 		string(ManagedClusterSKUTierPaid),
+		string(ManagedClusterSKUTierStandard),
 	}
 }
 
 func parseManagedClusterSKUTier(input string) (*ManagedClusterSKUTier, error) {
 	vals := map[string]ManagedClusterSKUTier{
-		"free": ManagedClusterSKUTierFree,
-		"paid": ManagedClusterSKUTierPaid,
+		"free":     ManagedClusterSKUTierFree,
+		"paid":     ManagedClusterSKUTierPaid,
+		"standard": ManagedClusterSKUTierStandard,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
