@@ -52,6 +52,7 @@ type WindowsFunctionAppDataSourceModel struct {
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
+	HostingEnvId                  string   `tfschema:"hosting_environment_id"`
 	Kind                          string   `tfschema:"kind"`
 	OutboundIPAddresses           string   `tfschema:"outbound_ip_addresses"`
 	OutboundIPAddressList         []string `tfschema:"outbound_ip_address_list"`
@@ -184,6 +185,11 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Computed: true,
 		},
 
+		"hosting_environment_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"kind": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -272,6 +278,10 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
 			functionApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
 			functionApp.VirtualNetworkSubnetId = utils.NormalizeNilableString(props.VirtualNetworkSubnetID)
+
+			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+				functionApp.HostingEnvId = utils.NormalizeNilableString(hostingEnv.ID)
+			}
 
 			if v := props.OutboundIPAddresses; v != nil {
 				functionApp.OutboundIPAddresses = *v

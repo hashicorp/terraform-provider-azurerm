@@ -480,6 +480,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Windows Function App.
 
+* `hosting_environment_id` - The hosting environment id used by Function App.
+
 * `identity` - An `identity` block as defined below.
 
 * `kind` - The Kind value for this Windows Function App.

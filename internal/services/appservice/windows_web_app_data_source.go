@@ -39,6 +39,7 @@ type WindowsWebAppDataSourceModel struct {
 	StorageAccounts               []helpers.StorageAccount    `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString  `tfschema:"connection_string"`
 	CustomDomainVerificationId    string                      `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                  string                      `tfschema:"hosting_environment_id"`
 	DefaultHostname               string                      `tfschema:"default_hostname"`
 	Kind                          string                      `tfschema:"kind"`
 	OutboundIPAddresses           string                      `tfschema:"outbound_ip_addresses"`
@@ -123,6 +124,11 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"default_hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"hosting_environment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -303,6 +309,9 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
 				webApp.PossibleOutboundIPAddresses = utils.NormalizeNilableString(props.PossibleOutboundIPAddresses)
 				webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
+				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+					webApp.HostingEnvId = utils.NormalizeNilableString(hostingEnv.ID)
+				}
 			}
 
 			webApp.AuthSettings = helpers.FlattenAuthSettings(auth)

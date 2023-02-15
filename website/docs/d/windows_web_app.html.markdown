@@ -55,6 +55,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
+* `hosting_environment_id` - The hosting environment id used by App Service.
+
 * `default_hostname` - The Default Hostname of the Windows Web App.
 
 * `enabled` - Is the Windows Web App enabled?

@@ -48,6 +48,7 @@ type LinuxWebAppSlotModel struct {
 	Tags                          map[string]string                   `tfschema:"tags"`
 	CustomDomainVerificationId    string                              `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string                              `tfschema:"default_hostname"`
+	HostingEnvId                  string                              `tfschema:"hosting_environment_id"`
 	Kind                          string                              `tfschema:"kind"`
 	OutboundIPAddresses           string                              `tfschema:"outbound_ip_addresses"`
 	OutboundIPAddressList         []string                            `tfschema:"outbound_ip_address_list"`
@@ -492,6 +493,10 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				Enabled:                     pointer.From(props.Enabled),
 				HttpsOnly:                   pointer.From(props.HTTPSOnly),
 				Tags:                        tags.ToTypedObject(webAppSlot.Tags),
+			}
+
+			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+				state.HostingEnvId = utils.NormalizeNilableString(hostingEnv.ID)
 			}
 
 			webApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)

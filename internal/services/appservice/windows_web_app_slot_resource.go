@@ -44,6 +44,7 @@ type WindowsWebAppSlotModel struct {
 	StorageAccounts               []helpers.StorageAccount              `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString            `tfschema:"connection_string"`
 	CustomDomainVerificationId    string                                `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                  string                                `tfschema:"hosting_environment_id"`
 	DefaultHostname               string                                `tfschema:"default_hostname"`
 	Kind                          string                                `tfschema:"kind"`
 	OutboundIPAddresses           string                                `tfschema:"outbound_ip_addresses"`
@@ -191,6 +192,11 @@ func (r WindowsWebAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"default_hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"hosting_environment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -507,6 +513,10 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				SiteCredentials:             helpers.FlattenSiteCredentials(siteCredentials),
 				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
 				Tags:                        tags.ToTypedObject(webAppSlot.Tags),
+			}
+
+			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+				state.HostingEnvId = utils.NormalizeNilableString(hostingEnv.ID)
 			}
 
 			webApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
