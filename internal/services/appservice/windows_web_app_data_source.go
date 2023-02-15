@@ -92,6 +92,8 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
 
+		"auth_settings_v2": helpers.AuthV2SettingsComputedSchema(),
+
 		"backup": helpers.BackupSchemaComputed(),
 
 		"client_affinity_enabled": {

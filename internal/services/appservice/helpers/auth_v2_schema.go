@@ -1435,7 +1435,13 @@ func FacebookAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Description: "The app setting name that contains the `app_secret` value used for Facebook Login.",
 				},
 
-				"oauth_scopes": {
+				"graph_api_version": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The version of the Facebook API to be used while logging in.",
+				},
+
+				"login_scopes": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
@@ -1840,13 +1846,22 @@ func MicrosoftAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Description: "The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.",
 				},
 
-				"oauth_scopes": {
+				"allowed_audiences": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "The list of OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. If not specified, `wl.basic` is used as the default scope.",
+					Description: "Specifies a list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.",
+				},
+
+				"login_scopes": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+					Description: "The list of Login scopes that will be requested as part of Microsoft Account authentication.",
 				},
 			},
 		},

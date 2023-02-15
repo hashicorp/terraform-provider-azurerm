@@ -289,6 +289,7 @@ resource "azurerm_linux_web_app" "test" {
 
     apple_v2 {
       client_id                  = "testAppleID"
+      client_secret_setting_name = "%[3]s"
     }
 
     login {}
