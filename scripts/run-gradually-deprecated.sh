@@ -121,7 +121,7 @@ function checkForUnclearErrorMessages {
 
 function runDeprecatedFunctions {
   echo "==> Checking for use of deprecated functions..."
-  result=$(grep -Ril "d.setid(\"\")" ./internal/services/**/*.go | grep data_source)
+  result=$(grep -Ril "d.setid(\"\")" ./internal/services/**/*data_source*.go)
   if [ "$result" != "" ];
   then
     echo "Data Sources should return an error when a resource cannot be found rather than"
