@@ -2,10 +2,10 @@
 
 FEATURES:
 
-* **New Data Source:** `azurerm_mobile_network_site` [GH-20334]
 * **New Data Source:** `azurerm_hybrid_compute_machine` [GH-20211]
+* **New Data Source:** `azurerm_mobile_network_site` [GH-20334]
 * **New Data Source:** `azurerm_mobile_network_slice` [GH-20336]
-* **New DataSource:** `azurerm_mobile_network_sim_group` [GH-20339]
+* **New Data Source:** `azurerm_mobile_network_sim_group` [GH-20339]
 * **New Resource:** `azurerm_network_manager_security_admin_configuration` [GH-20233]
 * **New Resource:** `azurerm_network_manager_admin_rule_collection` [GH-20233]
 * **New Resource:** `azurerm_network_manager_admin_rule` [GH-20233]
@@ -62,6 +62,7 @@ BUG FIXES:
 * Data Source: `azurerm_vpn_gateway` - fixing a bug where the Data Source didn't return an error when the VPN Gateway was not found [GH-20479]
 * Data Source: `azurerm_web_pubsub` - fixing a bug where the Data Source didn't return an error when the Web PubSub was not found [GH-20479]
 * `azurerm_eventgrid_domain_topic` - `name` can now be up to 128 characters [GH-20407]
+* `azurerm_kubernetes_cluster` - parsing the API response for the `log_analytics_workspace_id` field case-insensitively [GH-20484]
 * `azurerm_private_endpoint` - normalizing the `private_connection_resource_id` for a redis cache [GH-20418]
 * `azurerm_private_endpoint` - consistently normalizing the value returned from the API for `private_connection_resource_id` [GH-20452]
 * `azurerm_recovery_services_vault` - updating `cross_region_restore_enabled` to `false` recreates the resource since this operation isn't supported by the API [GH-20406]
