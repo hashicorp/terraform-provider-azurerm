@@ -367,7 +367,7 @@ func (r MobileNetworkServiceResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := &service.Service{
+			properties := service.Service{
 				Location: location.Normalize(model.Location),
 				Properties: service.ServicePropertiesFormat{
 					ServicePrecedence: model.ServicePrecedence,
@@ -377,7 +377,7 @@ func (r MobileNetworkServiceResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
