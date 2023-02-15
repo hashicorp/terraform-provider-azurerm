@@ -9,6 +9,8 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
+	"github.com/hashicorp/go-azure-sdk/sdk/auth"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -46,32 +48,48 @@ func Environment() (*azure.Environment, error) {
 	return authentication.AzureEnvironmentByNameFromEndpoint(context.TODO(), metadataURL, envName)
 }
 
-func GetAuthConfig(t *testing.T) *authentication.Config {
+func GetAuthConfig(t *testing.T) *auth.Credentials {
 	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Integration test skipped unless env '%s' set", resource.EnvTfAcc)
+		t.Skipf("Acceptance test skipped unless env '%s' set", resource.EnvTfAcc)
 		return nil
 	}
 
-	environment := EnvironmentName()
+	var (
+		ctx = context.TODO()
 
-	builder := authentication.Builder{
-		SubscriptionID: os.Getenv("ARM_SUBSCRIPTION_ID"),
-		ClientID:       os.Getenv("ARM_CLIENT_ID"),
-		TenantID:       os.Getenv("ARM_TENANT_ID"),
-		ClientSecret:   os.Getenv("ARM_CLIENT_SECRET"),
-		Environment:    environment,
-		MetadataHost:   os.Getenv("ARM_METADATA_HOSTNAME"),
+		env *environments.Environment
+		err error
 
-		// we intentionally only support Client Secret auth for tests (since those variables are used all over)
-		SupportsClientSecretAuth: true,
-	}
-	config, err := builder.Build()
-	if err != nil {
-		t.Fatalf("Error building ARM Client: %+v", err)
+		envName      = EnvironmentName()
+		metadataHost = os.Getenv("ARM_METADATA_HOSTNAME")
+	)
+
+	if metadataHost != "" {
+		if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost), envName); err != nil {
+			t.Fatalf("building test client: %+v", err)
+			return nil
+		}
+	} else if env, err = environments.FromName(envName); err != nil {
+		t.Fatalf("building test client: %+v", err)
 		return nil
 	}
 
-	return config
+	return &auth.Credentials{
+		Environment: *env,
+		ClientID:    os.Getenv("ARM_CLIENT_ID"),
+		TenantID:    os.Getenv("ARM_TENANT_ID"),
+
+		ClientCertificatePath:     os.Getenv("ARM_CLIENT_CERTIFICATE_PATH"),
+		ClientCertificatePassword: os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"),
+		ClientSecret:              os.Getenv("ARM_CLIENT_SECRET"),
+
+		EnableAuthenticatingUsingClientCertificate: true,
+		EnableAuthenticatingUsingClientSecret:      true,
+		EnableAuthenticatingUsingAzureCLI:          false,
+		EnableAuthenticatingUsingManagedIdentity:   false,
+		EnableAuthenticationUsingOIDC:              false,
+		EnableAuthenticationUsingGitHubOIDC:        false,
+	}
 }
 
 func RequiresImportError(resourceName string) *regexp.Regexp {

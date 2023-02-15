@@ -3,21 +3,37 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_mobile_network_site` [GH-20334]
+* **New Data Source:** `azurerm_hybrid_compute_machine` [GH-20211]
+* **New Data Source:** `azurerm_mobile_network_slice` [GH-20336]
 * **New Resource:** `azurerm_network_manager_security_admin_configuration` [GH-20233]
 * **New Resource:** `azurerm_network_manager_admin_rule_collection` [GH-20233]
 * **New Resource:** `azurerm_network_manager_admin_rule` [GH-20233]
 * **New Resource:** `azurerm_mobile_network_site` [GH-20334]
+* **New Resource:** `azurerm_mobile_network_slice` [GH-20336]
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230210.1121632` of `github.com/hashicorp/go-azure-sdk` [GH-20417]
+* dependencies: updating to `v0.20230214.1122756` of `github.com/hashicorp/go-azure-sdk` [GH-20456]
+* dependencies: no longer utilizing `github.com/manicminer/hamilton` [GH-20320]
+* provider: support for the `client_certificate` provider property [GH-20320]
+* provider: support for the `use_cli` provider property [GH-20320]
+* provider: authentication now uses the `github.com/hashicorp/go-azure-sdk/sdk/auth` package [GH-20320]
+* provider: cloud configuration now uses the `github.com/hashicorp/go-azure-sdk/sdk/environments` package [GH-20320]
 * `managementlocks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20387]
+* `media`: refactoring `StreamingEndpoints` to use API Version `2022-08-01` [GH-20457]
 * `postgres` - updating API to `2022-12-01` [GH-20370]
+* Data Source: `azurerm_policy_definition` - support for the `mode` property [GH-20420]
+* `azurerm_cognitive_account` - the field `sku_name` can now be set to `DC0` [GH-20426]
 * `azurerm_express_route_port` - support for the `billing_type` property [GH-20361]
+* `azurerm_linux_virtual_machine` - validating that the value for the `admin_username` field isn't a disallowed username [GH-20424]
+* `azurerm_windows_virtual_machine` - validating that the value for the `admin_username` field isn't a disallowed username [GH-20424]
 
 BUG FIXES:
 
 * `azurerm_eventgrid_domain_topic` - `name` can now be up to 128 characters [GH-20407]
+* `azurerm_private_endpoint` - normalizing the `private_connection_resource_id` for a redis cache [GH-20418]
+* `azurerm_recovery_services_vault` - updating `cross_region_restore_enabled` to `false` recreates the resource since this operation isn't supported by the API [GH-20406]
+* `azurerm_storage_management_policy` - `rule.filters` is now Required since storage management policies fail if it's unspecified [GH-20448]
 
 ## 3.43.0 (February 09, 2023)
 

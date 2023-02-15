@@ -166,7 +166,7 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
   name                                      = "mapping-%[2]d"
   automatic_update {
-    enabled               = %[3]v
+    enabled               = %[3]t
     automation_account_id = azurerm_automation_account.test.id
   }
 }
@@ -210,7 +210,7 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
   name                                      = "mapping-%[2]d"
   automatic_update {
-    enabled               = %[3]v
+    enabled               = %[3]t
     automation_account_id = azurerm_automation_account.test2.id
   }
 }

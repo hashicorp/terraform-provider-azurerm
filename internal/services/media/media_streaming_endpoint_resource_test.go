@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -97,7 +97,7 @@ func (r MediaStreamingEndpointResource) Start(ctx context.Context, client *clien
 		return err
 	}
 
-	if err := client.Media.V20200501Client.StreamingEndpoints.StartThenPoll(ctx, *id); err != nil {
+	if err := client.Media.V20220801Client.StreamingEndpoints.StartThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("starting %s: %+v", id, err)
 	}
 
@@ -110,7 +110,7 @@ func (MediaStreamingEndpointResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.Media.V20200501Client.StreamingEndpoints.Get(ctx, *id)
+	resp, err := clients.Media.V20220801Client.StreamingEndpoints.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}

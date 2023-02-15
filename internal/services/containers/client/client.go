@@ -84,7 +84,7 @@ func NewContainersClient(o *common.ClientOptions) *Client {
 		WebhooksClient:                    &webhooksClient,
 		ReplicationsClient:                &replicationsClient,
 		ServicesClient:                    &servicesClient,
-		Environment:                       o.Environment,
+		Environment:                       o.AzureEnvironment,
 		TokensClient:                      &tokensClient,
 		ScopeMapsClient:                   &scopeMapsClient,
 		TasksClient:                       &tasksClient,
