@@ -366,56 +366,20 @@ resource "azurerm_resource_group" "test" {
 
 func (r PostgresqlFlexibleServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-postgresql-test0223"
-  location = "westeurope"
-}
+%s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-fs-test0222"
+  name                   = "acctest-fs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
+  version                = "12"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
-
-  create_mode            = "Default"
-  version                = "13"
 }
-`)
-}
-
-func (r PostgresqlFlexibleServerResource) basic2(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-postgresql-test0223"
-  location = "westeurope"
-}
-
-resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-fs-test0222"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  storage_mb             = 32768
-  sku_name               = "GP_Standard_D2s_v3"
-  zone                   = "2"
-
-  create_mode            = "Update"
-  version                = "13"
-}
-`)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r PostgresqlFlexibleServerResource) requiresImport(data acceptance.TestData) string {
