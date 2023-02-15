@@ -148,6 +148,9 @@ function runDeprecatedFunctions {
 }
 
 function main {
+  # testing
+  exit 1
+
   if [ "$GITHUB_ACTIONS_STAGE" == "UNIT_TESTS" ];
   then
     echo "Skipping - the Gradually Deprecated check is separate in Github Actions"
