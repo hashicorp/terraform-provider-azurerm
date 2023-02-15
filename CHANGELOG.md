@@ -5,11 +5,13 @@ FEATURES:
 * **New Data Source:** `azurerm_mobile_network_site` [GH-20334]
 * **New Data Source:** `azurerm_hybrid_compute_machine` [GH-20211]
 * **New Data Source:** `azurerm_mobile_network_slice` [GH-20336]
+* **New DataSource:** `azurerm_mobile_network_sim_group` [GH-20339]
 * **New Resource:** `azurerm_network_manager_security_admin_configuration` [GH-20233]
 * **New Resource:** `azurerm_network_manager_admin_rule_collection` [GH-20233]
 * **New Resource:** `azurerm_network_manager_admin_rule` [GH-20233]
 * **New Resource:** `azurerm_mobile_network_site` [GH-20334]
 * **New Resource:** `azurerm_mobile_network_slice` [GH-20336]
+* **New Resource:** `azurerm_mobile_network_sim_group` [GH-20339
 
 ENHANCEMENTS:
 
@@ -32,6 +34,7 @@ BUG FIXES:
 
 * `azurerm_eventgrid_domain_topic` - `name` can now be up to 128 characters [GH-20407]
 * `azurerm_private_endpoint` - normalizing the `private_connection_resource_id` for a redis cache [GH-20418]
+* `azurerm_private_endpoint` - consistently normalizing the value returned from the API for `private_connection_resource_id` [GH-20452]
 * `azurerm_recovery_services_vault` - updating `cross_region_restore_enabled` to `false` recreates the resource since this operation isn't supported by the API [GH-20406]
 * `azurerm_storage_management_policy` - `rule.filters` is now Required since storage management policies fail if it's unspecified [GH-20448]
 

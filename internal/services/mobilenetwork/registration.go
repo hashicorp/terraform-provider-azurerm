@@ -44,6 +44,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		MobileNetworkDataSource{},
 		MobileNetworkServiceDataSource{},
 		SiteDataSource{},
+		SimGroupDataSource{},
 		SliceDataSource{},
 	}
 }
@@ -52,8 +53,9 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		MobileNetworkServiceResource{},
-		MobileNetworkResource{},
+		SimGroupResource{},
 		SliceResource{},
+		MobileNetworkResource{},
 		SiteResource{},
 	}
 }
