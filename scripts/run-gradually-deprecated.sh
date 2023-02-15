@@ -133,7 +133,7 @@ function runDeprecatedFunctions {
     echo "$result"
     exit 1
   fi
-  result=$(grep -Ril "markasgone" ./internal/services/**/*.go | grep data_source)
+  result=$(grep -Ril "markasgone" ./internal/services/**/*data_source*.go)
   if [ "$result" != "" ];
   then
     echo "Data Sources should return an error when a resource cannot be found rather than"
