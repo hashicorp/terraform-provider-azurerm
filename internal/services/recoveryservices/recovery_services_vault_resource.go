@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2021-12-01/backupresourcestorageconfigsnoncrr"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2021-12-01/backupresourcevaultconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationvaultsetting"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -140,6 +141,13 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+
+			"classic_vmware_replicate_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
@@ -154,6 +162,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
 	storageCfgsClient := meta.(*clients.Client).RecoveryServices.StorageConfigsClient
+	settingsClient := meta.(*clients.Client).RecoveryServices.VaultsSettingsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -322,6 +331,19 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
+	}
+
+	if d.Get("classic_vmware_replicate_enabled").(bool) {
+		settingsId := replicationvaultsetting.NewReplicationVaultSettingID(id.SubscriptionId, id.ResourceGroupName, id.VaultName, "default")
+		settingsInput := replicationvaultsetting.VaultSettingCreationInput{
+			Properties: replicationvaultsetting.VaultSettingCreationInputProperties{
+				VMwareToAzureProviderType: utils.String("Vmware"),
+			},
+		}
+		err := settingsClient.CreateThenPoll(ctx, settingsId, settingsInput)
+		if err != nil {
+			return fmt.Errorf("creating %s: %+v", settingsId, err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -548,6 +570,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
 	storageCfgsClient := meta.(*clients.Client).RecoveryServices.StorageConfigsClient
+	vaultSettingsClient := meta.(*clients.Client).RecoveryServices.VaultsSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -630,6 +653,16 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	encryption := flattenVaultEncryption(*model)
 	if encryption != nil {
 		d.Set("encryption", []interface{}{encryption})
+	}
+
+	vaultSettingsId := replicationvaultsetting.NewReplicationVaultSettingID(id.SubscriptionId, id.ResourceGroupName, id.VaultName, "default")
+	vaultSetting, err := vaultSettingsClient.Get(ctx, vaultSettingsId)
+	if err != nil {
+		return fmt.Errorf("reading Recovery Service Vault Setting %s: %+v", id.String(), err)
+	}
+	if vaultSetting.Model != nil && vaultSetting.Model.Properties != nil && vaultSetting.Model.Properties.VMwareToAzureProviderType != nil {
+		providerType := vaultSetting.Model.Properties.VMwareToAzureProviderType
+		d.Set("classic_vmware_replicate_enabled", strings.EqualFold(*providerType, "vmware"))
 	}
 
 	return tags.FlattenAndSet(d, model.Tags)

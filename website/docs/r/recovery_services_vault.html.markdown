@@ -60,6 +60,8 @@ The following arguments are supported:
 
 !> **Note:** Once Encryption with your own key has been Enabled it's not possible to Disable it.
 
+* `classic_vmware_replicate_enabled` - (Optional) Whether to enable Classic experience for VMWare replication. If it set to `false` it will protect VMware machines using the new stateless ASR replication appliance. Defaults to `false`. Changing this forces a new resource to be created.
+
 ---
 
 An `identity` block supports the following:
