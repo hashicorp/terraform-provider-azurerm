@@ -1,24 +1,24 @@
 ---
 subcategory: "Policy"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_policy_definition"
+page_title: "Azure Resource Manager: azurerm_policy_definition_built_in"
 description: |-
-  Get information about a Policy Definition.
+  Get information about a Built-In Policy Definition.
 ---
 
-# Data Source: azurerm_policy_definition
+# Data Source: azurerm_policy_definition_built_in
 
-Use this data source to access information about a Policy Definition, both custom and built in. Retrieves Policy Definitions from your current subscription by default.
+Use this data source to access information about a Built-In Policy Definition. Retrieves Policy Definitions from your current subscription by default.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_policy_definition" "example" {
+data "azurerm_policy_definition_built_in" "example" {
   display_name = "Allowed resource types"
 }
 
 output "id" {
-  value = data.azurerm_policy_definition.example.id
+  value = data.azurerm_policy_definition_built_in.example.id
 }
 ```
 
