@@ -11,14 +11,14 @@ import (
 )
 
 func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string,
-	typ policy.Type) (policy.Definition, error) {
+	builtInOnly bool) (policy.Definition, error) {
 	var policyDefinitions policy.DefinitionListResultIterator
 	var err error
 
 	if managementGroupName != "" {
 		policyDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupName, "", nil)
 	} else {
-		if typ == policy.TypeBuiltIn {
+		if builtInOnly {
 			policyDefinitions, err = client.ListBuiltInComplete(ctx, "", nil)
 		} else {
 			policyDefinitions, err = client.ListComplete(ctx, "", nil)
@@ -53,10 +53,10 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 	return results[0], nil
 }
 
-func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupName string, typ policy.Type) (res policy.Definition, err error) {
+func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupName string) (res policy.Definition, err error) {
 	if managementGroupName == "" {
 		res, err = client.GetBuiltIn(ctx, name)
-		if utils.ResponseWasNotFound(res.Response) && typ != policy.TypeBuiltIn {
+		if utils.ResponseWasNotFound(res.Response) {
 			res, err = client.Get(ctx, name)
 		}
 	} else {

@@ -63,7 +63,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.IsNewResource() {
-		existing, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName, "")
+		existing, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Policy Definition %q: %+v", name, err)
@@ -143,7 +143,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("waiting for Policy Definition %q to become available: %+v", name, err)
 	}
 
-	resp, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName, "")
+	resp, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
 	if err != nil {
 		return err
 	}
@@ -179,7 +179,7 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 		managementGroupName = managementGroupId.Name
 	}
 
-	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, managementGroupName, "")
+	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, managementGroupName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Policy Definition %q - removing from state", d.Id())
@@ -259,7 +259,7 @@ func resourceArmPolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface
 
 func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupID string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := getPolicyDefinitionByName(ctx, client, name, managementGroupID, "")
+		res, err := getPolicyDefinitionByName(ctx, client, name, managementGroupID)
 		if err != nil {
 			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q: %+v", name, err)
 		}
