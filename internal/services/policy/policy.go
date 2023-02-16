@@ -37,12 +37,12 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 
 	// we found none
 	if len(results) == 0 {
-		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: could not find policy '%s'", displayName)
+		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: could not find policy '%s'. has the policies name changed? list availible with `az policy definition listgita	`", displayName)
 	}
 
 	// we found more than one
 	if len(results) > 1 {
-		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: found more than one policy '%s'", displayName)
+		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: found more than one (%d) policy '%s'", len(results), displayName)
 	}
 
 	return results[0], nil
