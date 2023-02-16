@@ -2,8 +2,7 @@ package synchronizationsetting
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
+	"encoding/json"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -60,16 +59,14 @@ func (c SynchronizationSettingClient) preparerForCreate(ctx context.Context, id 
 // responderForCreate handles the response to the Create request. The method always
 // closes the http.Response Body.
 func (c SynchronizationSettingClient) responderForCreate(resp *http.Response) (result CreateOperationResponse, err error) {
+	var respObj json.RawMessage
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusCreated, http.StatusOK),
+		autorest.ByUnmarshallingJSON(&respObj),
 		autorest.ByClosing())
 	result.HttpResponse = resp
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return result, fmt.Errorf("reading response body for SynchronizationSetting: %+v", err)
-	}
-	model, err := unmarshalSynchronizationSettingImplementation(b)
+	model, err := unmarshalSynchronizationSettingImplementation(respObj)
 	if err != nil {
 		return
 	}

@@ -2,8 +2,7 @@ package dataset
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
+	"encoding/json"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -60,16 +59,14 @@ func (c DataSetClient) preparerForCreate(ctx context.Context, id DataSetId, inpu
 // responderForCreate handles the response to the Create request. The method always
 // closes the http.Response Body.
 func (c DataSetClient) responderForCreate(resp *http.Response) (result CreateOperationResponse, err error) {
+	var respObj json.RawMessage
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusCreated, http.StatusOK),
+		autorest.ByUnmarshallingJSON(&respObj),
 		autorest.ByClosing())
 	result.HttpResponse = resp
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return result, fmt.Errorf("reading response body for DataSet: %+v", err)
-	}
-	model, err := unmarshalDataSetImplementation(b)
+	model, err := unmarshalDataSetImplementation(respObj)
 	if err != nil {
 		return
 	}

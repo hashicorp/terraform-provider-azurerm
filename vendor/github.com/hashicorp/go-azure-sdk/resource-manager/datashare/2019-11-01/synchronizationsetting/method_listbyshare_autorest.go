@@ -1,4 +1,4 @@
-package dataset
+package synchronizationsetting
 
 import (
 	"context"
@@ -16,14 +16,14 @@ import (
 
 type ListByShareOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *[]DataSet
+	Model        *[]SynchronizationSetting
 
 	nextLink     *string
 	nextPageFunc func(ctx context.Context, nextLink string) (ListByShareOperationResponse, error)
 }
 
 type ListByShareCompleteResult struct {
-	Items []DataSet
+	Items []SynchronizationSetting
 }
 
 func (r ListByShareOperationResponse) HasMore() bool {
@@ -38,79 +38,45 @@ func (r ListByShareOperationResponse) LoadMore(ctx context.Context) (resp ListBy
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type ListByShareOperationOptions struct {
-	Filter  *string
-	Orderby *string
-}
-
-func DefaultListByShareOperationOptions() ListByShareOperationOptions {
-	return ListByShareOperationOptions{}
-}
-
-func (o ListByShareOperationOptions) toHeaders() map[string]interface{} {
-	out := make(map[string]interface{})
-
-	return out
-}
-
-func (o ListByShareOperationOptions) toQueryString() map[string]interface{} {
-	out := make(map[string]interface{})
-
-	if o.Filter != nil {
-		out["$filter"] = *o.Filter
-	}
-
-	if o.Orderby != nil {
-		out["$orderby"] = *o.Orderby
-	}
-
-	return out
-}
-
 // ListByShare ...
-func (c DataSetClient) ListByShare(ctx context.Context, id ShareId, options ListByShareOperationOptions) (resp ListByShareOperationResponse, err error) {
-	req, err := c.preparerForListByShare(ctx, id, options)
+func (c SynchronizationSettingClient) ListByShare(ctx context.Context, id ShareId) (resp ListByShareOperationResponse, err error) {
+	req, err := c.preparerForListByShare(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dataset.DataSetClient", "ListByShare", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synchronizationsetting.SynchronizationSettingClient", "ListByShare", nil, "Failure preparing request")
 		return
 	}
 
 	resp.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dataset.DataSetClient", "ListByShare", resp.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synchronizationsetting.SynchronizationSettingClient", "ListByShare", resp.HttpResponse, "Failure sending request")
 		return
 	}
 
 	resp, err = c.responderForListByShare(resp.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dataset.DataSetClient", "ListByShare", resp.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synchronizationsetting.SynchronizationSettingClient", "ListByShare", resp.HttpResponse, "Failure responding to request")
 		return
 	}
 	return
 }
 
 // preparerForListByShare prepares the ListByShare request.
-func (c DataSetClient) preparerForListByShare(ctx context.Context, id ShareId, options ListByShareOperationOptions) (*http.Request, error) {
+func (c SynchronizationSettingClient) preparerForListByShare(ctx context.Context, id ShareId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
-	}
-
-	for k, v := range options.toQueryString() {
-		queryParameters[k] = autorest.Encode("query", v)
 	}
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithHeaders(options.toHeaders()),
-		autorest.WithPath(fmt.Sprintf("%s/dataSets", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/synchronizationSettings", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // preparerForListByShareWithNextLink prepares the ListByShare request with the given nextLink token.
-func (c DataSetClient) preparerForListByShareWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
+func (c SynchronizationSettingClient) preparerForListByShareWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
 	uri, err := url.Parse(nextLink)
 	if err != nil {
 		return nil, fmt.Errorf("parsing nextLink %q: %+v", nextLink, err)
@@ -136,7 +102,7 @@ func (c DataSetClient) preparerForListByShareWithNextLink(ctx context.Context, n
 
 // responderForListByShare handles the response to the ListByShare request. The method always
 // closes the http.Response Body.
-func (c DataSetClient) responderForListByShare(resp *http.Response) (result ListByShareOperationResponse, err error) {
+func (c SynchronizationSettingClient) responderForListByShare(resp *http.Response) (result ListByShareOperationResponse, err error) {
 	type page struct {
 		Values   []json.RawMessage `json:"value"`
 		NextLink *string           `json:"nextLink"`
@@ -148,11 +114,11 @@ func (c DataSetClient) responderForListByShare(resp *http.Response) (result List
 		autorest.ByUnmarshallingJSON(&respObj),
 		autorest.ByClosing())
 	result.HttpResponse = resp
-	temp := make([]DataSet, 0)
+	temp := make([]SynchronizationSetting, 0)
 	for i, v := range respObj.Values {
-		val, err := unmarshalDataSetImplementation(v)
+		val, err := unmarshalSynchronizationSettingImplementation(v)
 		if err != nil {
-			err = fmt.Errorf("unmarshalling item %d for DataSet (%q): %+v", i, v, err)
+			err = fmt.Errorf("unmarshalling item %d for SynchronizationSetting (%q): %+v", i, v, err)
 			return result, err
 		}
 		temp = append(temp, val)
@@ -163,19 +129,19 @@ func (c DataSetClient) responderForListByShare(resp *http.Response) (result List
 		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListByShareOperationResponse, err error) {
 			req, err := c.preparerForListByShareWithNextLink(ctx, nextLink)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "dataset.DataSetClient", "ListByShare", nil, "Failure preparing request")
+				err = autorest.NewErrorWithError(err, "synchronizationsetting.SynchronizationSettingClient", "ListByShare", nil, "Failure preparing request")
 				return
 			}
 
 			result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "dataset.DataSetClient", "ListByShare", result.HttpResponse, "Failure sending request")
+				err = autorest.NewErrorWithError(err, "synchronizationsetting.SynchronizationSettingClient", "ListByShare", result.HttpResponse, "Failure sending request")
 				return
 			}
 
 			result, err = c.responderForListByShare(result.HttpResponse)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "dataset.DataSetClient", "ListByShare", result.HttpResponse, "Failure responding to request")
+				err = autorest.NewErrorWithError(err, "synchronizationsetting.SynchronizationSettingClient", "ListByShare", result.HttpResponse, "Failure responding to request")
 				return
 			}
 
@@ -186,15 +152,15 @@ func (c DataSetClient) responderForListByShare(resp *http.Response) (result List
 }
 
 // ListByShareComplete retrieves all of the results into a single object
-func (c DataSetClient) ListByShareComplete(ctx context.Context, id ShareId, options ListByShareOperationOptions) (ListByShareCompleteResult, error) {
-	return c.ListByShareCompleteMatchingPredicate(ctx, id, options, DataSetOperationPredicate{})
+func (c SynchronizationSettingClient) ListByShareComplete(ctx context.Context, id ShareId) (ListByShareCompleteResult, error) {
+	return c.ListByShareCompleteMatchingPredicate(ctx, id, SynchronizationSettingOperationPredicate{})
 }
 
 // ListByShareCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DataSetClient) ListByShareCompleteMatchingPredicate(ctx context.Context, id ShareId, options ListByShareOperationOptions, predicate DataSetOperationPredicate) (resp ListByShareCompleteResult, err error) {
-	items := make([]DataSet, 0)
+func (c SynchronizationSettingClient) ListByShareCompleteMatchingPredicate(ctx context.Context, id ShareId, predicate SynchronizationSettingOperationPredicate) (resp ListByShareCompleteResult, err error) {
+	items := make([]SynchronizationSetting, 0)
 
-	page, err := c.ListByShare(ctx, id, options)
+	page, err := c.ListByShare(ctx, id)
 	if err != nil {
 		err = fmt.Errorf("loading the initial page: %+v", err)
 		return

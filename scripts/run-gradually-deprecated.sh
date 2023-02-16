@@ -72,30 +72,36 @@ function runGraduallyDeprecatedFunctions {
       }
     fi
 
-    # check for d.Get inside Delete
-    deleteFuncName=$(grep -o "Delete: .*," "$f" -m1 | grep -o " .*Delete"| tr -d " ")
-    if [ "$deleteFuncName" != "" ];
+    # avoid false positives
+    isThisScript=$(echo "$f" | grep "run-gradually-deprecated")
+    if [ "$isThisScript" == "" ];
     then
-      deleteMethod=$(cat -n $f | sed -n -e "/func $deleteFuncName.*$/,/[[:digit:]]*\treturn nil/{ /func $deleteFuncName$/d; /[[:digit:]]*\treturn nil/d; p; }")
-      foundGet=$(echo "$deleteMethod" | grep "d\.Get(.*)" -m1)
-      if [ "$foundGet" != "" ];
+      # check for d.Get inside Delete
+      deleteFuncName=$(grep -o "Delete: .*," "$f" -m1 | grep -o " .*Delete"| tr -d " ")
+      if [ "$deleteFuncName" != "" ];
       then
-        echo "$f $foundGet"
-        echo "Please do not use 'd.Get' within the Delete function as this does not work as expected in Delete"
-        exit 1
-      fi
-    else
-      # check for Get in typed resource
-      deleteFuncName=" Delete() sdk.ResourceFunc "
-      deleteMethod=$(cat -n $f | sed -n -e "/$deleteFuncName.*$/,/[[:digit:]]*\t\t\treturn nil/{ /$deleteFuncName.*$/d; /[[:digit:]]*\t\t\treturn nil/d; p; }")
-      foundGet=$(echo "$deleteMethod" | grep "metadata.ResourceData.Get" -m1)
-      if [ "$foundGet" != "" ];
-      then
-        echo "$f $foundGet"
-        echo "Please do not use 'metadata.ResourceData.Get' within the Delete function as this does not work as expected in Delete"
-        exit 1
-      fi
+        deleteMethod=$(cat -n $f | sed -n -e "/func $deleteFuncName.*$/,/[[:digit:]]*\treturn nil/{ /func $deleteFuncName$/d; /[[:digit:]]*\treturn nil/d; p; }")
+        foundGet=$(echo "$deleteMethod" | grep "d\.Get(.*)" -m1)
+        if [ "$foundGet" != "" ];
+        then
+          echo "$f $foundGet"
+          echo "Please do not use 'd.Get' within the Delete function as this does not work as expected in Delete"
+          exit 1
+        fi
+      else
+        # check for Get in typed resource
+        deleteFuncName=" Delete() sdk.ResourceFunc "
+        deleteMethod=$(cat -n $f | sed -n -e "/$deleteFuncName.*$/,/[[:digit:]]*\t\t\treturn nil/{ /$deleteFuncName.*$/d; /[[:digit:]]*\t\t\treturn nil/d; p; }")
+        foundGet=$(echo "$deleteMethod" | grep "metadata.ResourceData.Get" -m1)
+        if [ "$foundGet" != "" ];
+        then
+            echo "$f $foundGet"
+            echo "Please do not use 'metadata.ResourceData.Get' within the Delete function as this does not work as expected in Delete"
+            exit 1
+          fi
+        fi
     fi
+
   done
 }
 
@@ -115,7 +121,7 @@ function checkForUnclearErrorMessages {
 
 function runDeprecatedFunctions {
   echo "==> Checking for use of deprecated functions..."
-  result=$(grep -Ril "d.setid(\"\")" ./internal/services/**/data_source_*.go)
+  result=$(grep -Ril "d.setid(\"\")" ./internal/services/**/*data_source*.go)
   if [ "$result" != "" ];
   then
     echo "Data Sources should return an error when a resource cannot be found rather than"
@@ -124,6 +130,19 @@ function runDeprecatedFunctions {
     echo "Please remove the references to 'd.SetId("") from the Data Sources listed below"
     echo "and raise an error instead:"
     echo ""
+    echo "$result"
+    exit 1
+  fi
+  result=$(grep -Ril "markasgone" ./internal/services/**/*data_source*.go)
+  if [ "$result" != "" ];
+  then
+    echo "Data Sources should return an error when a resource cannot be found rather than"
+    echo "marking the resource as gone."
+    echo ""
+    echo "Please remove the references to 'metadata.MarkAsGone' from the Data Sources listed below"
+    echo "and raise an error instead:"
+    echo ""
+    echo "$result"
     exit 1
   fi
 }

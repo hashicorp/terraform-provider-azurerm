@@ -17,11 +17,11 @@ import (
 )
 
 type SiteModel struct {
-	Name                         string            `tfschema:"name"`
-	MobileNetworkMobileNetworkId string            `tfschema:"mobile_network_id"`
-	Location                     string            `tfschema:"location"`
-	NetworkFunctions             []string          `tfschema:"network_function_ids"`
-	Tags                         map[string]string `tfschema:"tags"`
+	Name             string            `tfschema:"name"`
+	MobileNetworkId  string            `tfschema:"mobile_network_id"`
+	Location         string            `tfschema:"location"`
+	NetworkFunctions []string          `tfschema:"network_function_ids"`
+	Tags             map[string]string `tfschema:"tags"`
 }
 
 type SiteResource struct{}
@@ -84,7 +84,7 @@ func (r SiteResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.MobileNetwork.SiteClient
-			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkMobileNetworkId)
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkId)
 			if err != nil {
 				return err
 			}
@@ -182,9 +182,9 @@ func (r SiteResource) Read() sdk.ResourceFunc {
 			}
 
 			state := SiteModel{
-				Name:                         id.SiteName,
-				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
-				Location:                     location.Normalize(model.Location),
+				Name:            id.SiteName,
+				MobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
+				Location:        location.Normalize(model.Location),
 			}
 
 			if properties := model.Properties; properties != nil {
