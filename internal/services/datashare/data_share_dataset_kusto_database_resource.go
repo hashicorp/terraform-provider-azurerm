@@ -85,7 +85,7 @@ func resourceDataShareDataSetKustoDatabaseCreate(d *pluginsdk.ResourceData, meta
 			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
-	if existing.Model != nil {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_data_share_dataset_kusto_database", id.ID())
 	}
 

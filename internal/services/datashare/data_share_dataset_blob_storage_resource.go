@@ -125,7 +125,7 @@ func resourceDataShareDataSetBlobStorageCreate(d *pluginsdk.ResourceData, meta i
 			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 	}
-	if existing.Model != nil {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_data_share_dataset_blob_storage", id.ID())
 	}
 

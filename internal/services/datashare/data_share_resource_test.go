@@ -96,13 +96,13 @@ func TestAccDataShare_snapshotSchedule(t *testing.T) {
 	startTime2 := time.Now().Add(time.Hour * 8).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		//{
-		//	Config: r.basic(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.snapshotSchedule(data, startTime),
 			Check: acceptance.ComposeTestCheckFunc(

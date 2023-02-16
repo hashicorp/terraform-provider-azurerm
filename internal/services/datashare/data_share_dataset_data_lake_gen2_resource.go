@@ -105,7 +105,7 @@ func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta 
 			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 	}
-	if existing.Model != nil {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_data_share_dataset_data_lake_gen2", id.ID())
 	}
 
