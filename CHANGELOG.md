@@ -32,6 +32,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_key_vault_certificates` - now exports the `certificates` block [GH-20498]
 * Data Source: `azurerm_key_vault_secrets` - now exports the `secrets` block [GH-20498]
 * `azurerm_cognitive_account` - the field `sku_name` can now be set to `DC0` [GH-20426]
+* `azurerm_container_app` - support for the `registry.identity` property [GH-20466]
 * `azurerm_data_factory_linked_service_azure_blob_storage` - Add support for `connection_string_insecure`  [Gh-20494]
 * `azurerm_express_route_port` - support for the `billing_type` property [GH-20361]
 * `azurerm_kubernetes_cluster` - `web_app_routing.dns_zone_id` now accepts an empty string for BYO DNS [GH-20341]
