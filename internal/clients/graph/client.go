@@ -50,7 +50,9 @@ func graphClient(authorizer auth.Authorizer, environment environments.Environmen
 
 func ServicePrincipalObjectID(ctx context.Context, authorizer auth.Authorizer, environment environments.Environment, clientId string) (*string, error) {
 	if _, ok := ctx.Deadline(); !ok {
-		ctx, _ = context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+		defer cancel()
 	}
 
 	opts := client.RequestOptions{
@@ -103,7 +105,9 @@ func ServicePrincipalObjectID(ctx context.Context, authorizer auth.Authorizer, e
 
 func UserPrincipalObjectID(ctx context.Context, authorizer auth.Authorizer, environment environments.Environment) (*string, error) {
 	if _, ok := ctx.Deadline(); !ok {
-		ctx, _ = context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+		defer cancel()
 	}
 
 	opts := client.RequestOptions{
