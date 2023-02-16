@@ -130,18 +130,18 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_update(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryLinkedServiceAzureBlobStorage_insecureConnectionString(t *testing.T) {
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_connectionStringInsecure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
 	r := LinkedServiceAzureBlobStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.insecureConnectionString(data),
+			Config: r.connectionStringInsecure(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("insecure_connection_string"),
+		data.ImportStep("connection_string_insecure"),
 	})
 }
 
@@ -439,7 +439,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func (LinkedServiceAzureBlobStorageResource) insecureConnectionString(data acceptance.TestData) string {
+func (LinkedServiceAzureBlobStorageResource) connectionStringInsecure(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -459,7 +459,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name                        = "acctestlsblob%d"
   data_factory_id            = azurerm_data_factory.test.id
-  insecure_connection_string = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  connection_string_insecure = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

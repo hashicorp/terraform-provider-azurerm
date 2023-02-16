@@ -55,14 +55,14 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"connection_string", "insecure_connection_string", "sas_uri", "service_endpoint"},
+				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
 			},
 
-			"insecure_connection_string": {
+			"connection_string_insecure": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"connection_string", "insecure_connection_string", "sas_uri", "service_endpoint"},
+				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					accountKeyRegex := regexp.MustCompile("AccountKey=[^;]+")
 
@@ -87,7 +87,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"connection_string", "insecure_connection_string", "sas_uri", "service_endpoint"},
+				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
 			},
 
 			// TODO for @favoretti: rename this to 'sas_token_linked_key_vault_key' for 3.4.0
@@ -159,7 +159,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"connection_string", "insecure_connection_string", "sas_uri", "service_endpoint"},
+				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
 			},
 
 			"service_principal_id": {
@@ -245,7 +245,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 		}
 	}
 
-	if v, ok := d.GetOk("insecure_connection_string"); ok {
+	if v, ok := d.GetOk("connection_string_insecure"); ok {
 		blobStorageProperties.ConnectionString = v.(string)
 	}
 
@@ -366,9 +366,9 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 			d.Set("use_managed_identity", true)
 		}
 
-		// blobStorage.ConnectionString is returned as a String when using `insecure_connection_string` and SecureString when using `connection_string`
+		// blobStorage.ConnectionString is returned as a String when using `connection_string_insecure` and SecureString when using `connection_string`
 		if insecureConnectionString, ok := blobStorage.ConnectionString.(string); ok {
-			d.Set("insecure_connection_string", insecureConnectionString)
+			d.Set("connection_string_insecure", insecureConnectionString)
 		}
 	}
 
