@@ -26,9 +26,10 @@ func resourceKustoClusterManagedPrivateEndpoint() *pluginsdk.Resource {
 		Update: resourceKustoClusterManagedPrivateEndpointCreateUpdate,
 		Delete: resourceKustoClusterManagedPrivateEndpointDelete,
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.KustoManagedPrivateEndpointV0ToV1{},
+			1: migration.KustoManagedPrivateEndpointV1ToV2{},
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
