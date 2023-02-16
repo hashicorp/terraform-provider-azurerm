@@ -6,6 +6,7 @@ FEATURES:
 * **New Data Source:** `azurerm_mobile_network_site` [GH-20334]
 * **New Data Source:** `azurerm_mobile_network_slice` [GH-20336]
 * **New Data Source:** `azurerm_mobile_network_sim_group` [GH-20339]
+* **New Data Source:** `azurerm_virtual_desktop_host_pool` [GH-20505]
 * **New Resource:** `azurerm_network_manager_security_admin_configuration` [GH-20233]
 * **New Resource:** `azurerm_network_manager_admin_rule_collection` [GH-20233]
 * **New Resource:** `azurerm_network_manager_admin_rule` [GH-20233]
