@@ -102,8 +102,6 @@ The following arguments are supported:
 
 * `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `PointInTimeRestore`, `Replica` and `Update`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
--> **Note:** When `create_mode` is set to `Update`, it wouldn't force a new resource to be created.
-
 -> **Note:** While creating the resource, `create_mode` cannot be set to `Update`.
 
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the PostgreSQL Flexible Server. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new PostgreSQL Flexible Server to be created.
