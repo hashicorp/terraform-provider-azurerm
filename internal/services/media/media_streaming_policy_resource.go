@@ -72,10 +72,11 @@ func resourceMediaStreamingPolicy() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"clear_key_encryption_configuration": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							ForceNew: true,
-							MaxItems: 1,
+							Type:          pluginsdk.TypeList,
+							Optional:      true,
+							ForceNew:      true,
+							MaxItems:      1,
+							ConflictsWith: []string{"common_encryption_cenc.0.drm_widevine_custom_license_acquisition_url_template", "common_encryption_cenc.0.drm_playready"},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"custom_keys_acquisition_url_template": {
@@ -134,17 +135,19 @@ func resourceMediaStreamingPolicy() *pluginsdk.Resource {
 						"enabled_protocols": enabledProtocolsSchema(),
 
 						"drm_widevine_custom_license_acquisition_url_template": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.IsURLWithHTTPS,
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							ValidateFunc:  validation.IsURLWithHTTPS,
+							ConflictsWith: []string{"common_encryption_cenc.0.clear_key_encryption_configuration"},
 						},
 
 						"drm_playready": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							ForceNew: true,
-							MaxItems: 1,
+							Type:          pluginsdk.TypeList,
+							Optional:      true,
+							ForceNew:      true,
+							MaxItems:      1,
+							ConflictsWith: []string{"common_encryption_cenc.0.clear_key_encryption_configuration"},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"custom_license_acquisition_url_template": {
@@ -245,10 +248,11 @@ func resourceMediaStreamingPolicy() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"clear_key_encryption_configuration": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							ForceNew: true,
-							MaxItems: 1,
+							Type:          pluginsdk.TypeList,
+							Optional:      true,
+							ForceNew:      true,
+							MaxItems:      1,
+							ConflictsWith: []string{"common_encryption_cbcs.0.drm_fairplay"},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"custom_keys_acquisition_url_template": {
@@ -264,10 +268,11 @@ func resourceMediaStreamingPolicy() *pluginsdk.Resource {
 						"enabled_protocols": enabledProtocolsSchema(),
 
 						"drm_fairplay": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							ForceNew: true,
-							MaxItems: 1,
+							Type:          pluginsdk.TypeList,
+							Optional:      true,
+							ForceNew:      true,
+							MaxItems:      1,
+							ConflictsWith: []string{"common_encryption_cbcs.0.clear_key_encryption_configuration"},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"custom_license_acquisition_url_template": {
@@ -349,7 +354,9 @@ func resourceMediaStreamingPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if noEncryption, ok := d.GetOk("no_encryption_enabled_protocols"); ok {
-		payload.Properties.NoEncryption = expandNoEncryption(noEncryption.([]interface{}))
+		payload.Properties.NoEncryption = &streamingpoliciesandstreaminglocators.NoEncryption{
+			EnabledProtocols: expandEnabledProtocols(noEncryption.([]interface{})),
+		}
 	}
 
 	if commonEncryptionCENC, ok := d.GetOk("common_encryption_cenc"); ok {
@@ -362,6 +369,10 @@ func resourceMediaStreamingPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 
 	if contentKeyPolicyName, ok := d.GetOk("default_content_key_policy_name"); ok {
 		payload.Properties.DefaultContentKeyPolicyName = utils.String(contentKeyPolicyName.(string))
+	}
+
+	if envelopeEncryption, ok := d.GetOk("envelope_encryption"); ok {
+		payload.Properties.EnvelopeEncryption = expandEnvelopeEncryption(envelopeEncryption.([]interface{}))
 	}
 
 	if _, err := client.StreamingPoliciesCreate(ctx, id, payload); err != nil {
@@ -412,6 +423,11 @@ func resourceMediaStreamingPolicyRead(d *pluginsdk.ResourceData, meta interface{
 
 			commonEncryptionCBCS := flattenCommonEncryptionCbcs(props.CommonEncryptionCbcs)
 			if err := d.Set("common_encryption_cbcs", commonEncryptionCBCS); err != nil {
+				return fmt.Errorf("flattening `common_encryption_cbcs`: %s", err)
+			}
+
+			envelopeEncryption := flattenEnvelopeEncryption(props.EnvelopeEncryption)
+			if err := d.Set("common_encryption_cbcs", envelopeEncryption); err != nil {
 				return fmt.Errorf("flattening `common_encryption_cbcs`: %s", err)
 			}
 
@@ -503,40 +519,29 @@ func defaultContentKeySchema() *pluginsdk.Schema {
 	}
 }
 
-func expandNoEncryption(input []interface{}) *streamingpoliciesandstreaminglocators.NoEncryption {
+func expandEnabledProtocols(input []interface{}) *streamingpoliciesandstreaminglocators.EnabledProtocols {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-
-	noEncryption := input[0].(map[string]interface{})
-
-	return &streamingpoliciesandstreaminglocators.NoEncryption{
-		EnabledProtocols: expandEnabledProtocols(noEncryption),
-	}
-}
-
-func expandEnabledProtocols(input map[string]interface{}) *streamingpoliciesandstreaminglocators.EnabledProtocols {
-	if len(input) == 0 {
-		return nil
-	}
+	protocols := input[0].(map[string]interface{})
 
 	dash := false
-	if v := input["dash"]; v != nil {
+	if v := protocols["dash"]; v != nil {
 		dash = v.(bool)
 	}
 
 	download := false
-	if v := input["download"]; v != nil {
+	if v := protocols["download"]; v != nil {
 		download = v.(bool)
 	}
 
 	hls := false
-	if v := input["hls"]; v != nil {
+	if v := protocols["hls"]; v != nil {
 		hls = v.(bool)
 	}
 
 	smoothStreaming := false
-	if v := input["smooth_streaming"]; v != nil {
+	if v := protocols["smooth_streaming"]; v != nil {
 		smoothStreaming = v.(bool)
 	}
 
@@ -557,10 +562,7 @@ func expandCommonEncryptionCenc(input []interface{}) *streamingpoliciesandstream
 
 	var enabledProtocols *streamingpoliciesandstreaminglocators.EnabledProtocols
 	if v := item["enabled_protocols"]; v != nil {
-		protocols := v.([]interface{})
-		if len(protocols) != 0 && protocols[0] != nil {
-			enabledProtocols = expandEnabledProtocols(protocols[0].(map[string]interface{}))
-		}
+		enabledProtocols = expandEnabledProtocols(v.([]interface{}))
 	}
 
 	drmWidevineTemplate := ""
@@ -579,7 +581,9 @@ func expandCommonEncryptionCenc(input []interface{}) *streamingpoliciesandstream
 	}
 
 	return &streamingpoliciesandstreaminglocators.CommonEncryptionCenc{
-		EnabledProtocols: enabledProtocols,
+		ClearKeyEncryptionConfiguration: expandClearKeyEncryptionConfiguration(item["clear_key_encryption_configuration"].([]interface{})),
+		ClearTracks:                     expandTrackSelections(item["clear_track"].(*pluginsdk.Set).List()),
+		EnabledProtocols:                enabledProtocols,
 		Drm: &streamingpoliciesandstreaminglocators.CencDrmConfiguration{
 			Widevine: &streamingpoliciesandstreaminglocators.StreamingPolicyWidevineConfiguration{
 				CustomLicenseAcquisitionUrlTemplate: utils.String(drmWidevineTemplate),
@@ -587,7 +591,8 @@ func expandCommonEncryptionCenc(input []interface{}) *streamingpoliciesandstream
 			PlayReady: drmPlayReady,
 		},
 		ContentKeys: &streamingpoliciesandstreaminglocators.StreamingPolicyContentKeys{
-			DefaultKey: defaultKey,
+			DefaultKey:         defaultKey,
+			KeyToTrackMappings: expandKeyToTrackMappings(item["content_key_to_track_mapping"].(*pluginsdk.Set).List()),
 		},
 	}
 }
@@ -601,10 +606,7 @@ func expandCommonEncryptionCbcs(input []interface{}) *streamingpoliciesandstream
 
 	var enabledProtocols *streamingpoliciesandstreaminglocators.EnabledProtocols
 	if v := item["enabled_protocols"]; v != nil {
-		protocols := v.([]interface{})
-		if len(protocols) != 0 && protocols[0] != nil {
-			enabledProtocols = expandEnabledProtocols(protocols[0].(map[string]interface{}))
-		}
+		enabledProtocols = expandEnabledProtocols(v.([]interface{}))
 	}
 
 	var defaultKey *streamingpoliciesandstreaminglocators.DefaultKey
@@ -618,7 +620,8 @@ func expandCommonEncryptionCbcs(input []interface{}) *streamingpoliciesandstream
 	}
 
 	return &streamingpoliciesandstreaminglocators.CommonEncryptionCbcs{
-		EnabledProtocols: enabledProtocols,
+		ClearKeyEncryptionConfiguration: expandClearKeyEncryptionConfiguration(item["clear_key_encryption_configuration"].([]interface{})),
+		EnabledProtocols:                enabledProtocols,
 		Drm: &streamingpoliciesandstreaminglocators.CbcsDrmConfiguration{
 			FairPlay: drmFairPlay,
 		},
@@ -626,6 +629,26 @@ func expandCommonEncryptionCbcs(input []interface{}) *streamingpoliciesandstream
 			DefaultKey: defaultKey,
 		},
 	}
+}
+
+func expandEnvelopeEncryption(input []interface{}) *streamingpoliciesandstreaminglocators.EnvelopeEncryption {
+	if len(input) == 0 {
+		return nil
+	}
+
+	item := input[0].(map[string]interface{})
+	result := &streamingpoliciesandstreaminglocators.EnvelopeEncryption{
+		ContentKeys: &streamingpoliciesandstreaminglocators.StreamingPolicyContentKeys{
+			DefaultKey: expandDefaultKey(item["default_content_key"].([]interface{})),
+		},
+		EnabledProtocols: expandEnabledProtocols(item["enabled_protocols"].([]interface{})),
+	}
+
+	if v := item["custom_key_acquisition_url_template"].(string); v != "" {
+		result.CustomKeyAcquisitionUrlTemplate = utils.String(v)
+	}
+
+	return result
 }
 
 func expandPlayReady(input []interface{}) *streamingpoliciesandstreaminglocators.StreamingPolicyPlayReadyConfiguration {
@@ -668,6 +691,84 @@ func expandDefaultKey(input []interface{}) *streamingpoliciesandstreaminglocator
 	}
 
 	return defaultKeyResult
+}
+
+func expandClearKeyEncryptionConfiguration(input []interface{}) *streamingpoliciesandstreaminglocators.ClearKeyEncryptionConfiguration {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := streamingpoliciesandstreaminglocators.ClearKeyEncryptionConfiguration{}
+	clearKeyEncryptionConfiguration := input[0].(map[string]interface{})
+
+	if v := clearKeyEncryptionConfiguration["custom_keys_acquisition_url_template"].(string); v != "" {
+		result.CustomKeysAcquisitionUrlTemplate = utils.String(v)
+	}
+
+	return &result
+}
+
+func expandTrackSelections(input []interface{}) *[]streamingpoliciesandstreaminglocators.TrackSelection {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]streamingpoliciesandstreaminglocators.TrackSelection, 0)
+	for _, v := range input {
+		selections := v.(map[string]interface{})
+		conditions := expandTrackPropertyConditions(selections["condition"].(*pluginsdk.Set).List())
+
+		result = append(result, streamingpoliciesandstreaminglocators.TrackSelection{
+			TrackSelections: conditions,
+		})
+	}
+
+	return &result
+}
+
+func expandTrackPropertyConditions(input []interface{}) *[]streamingpoliciesandstreaminglocators.TrackPropertyCondition {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]streamingpoliciesandstreaminglocators.TrackPropertyCondition, 0)
+	for _, c := range input {
+		conditionRaw := c.(map[string]interface{})
+		condition := streamingpoliciesandstreaminglocators.TrackPropertyCondition{
+			Operation: streamingpoliciesandstreaminglocators.TrackPropertyCompareOperation(conditionRaw["operation"].(string)),
+			Property:  streamingpoliciesandstreaminglocators.TrackPropertyType(conditionRaw["property"].(string)),
+			Value:     utils.String(conditionRaw["value"].(string)),
+		}
+
+		result = append(result, condition)
+	}
+	return &result
+}
+
+func expandKeyToTrackMappings(input []interface{}) *[]streamingpoliciesandstreaminglocators.StreamingPolicyContentKey {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]streamingpoliciesandstreaminglocators.StreamingPolicyContentKey, 0)
+	for _, v := range input {
+		mappings := v.(map[string]interface{})
+		contentKey := streamingpoliciesandstreaminglocators.StreamingPolicyContentKey{
+			Tracks: expandTrackSelections(mappings["track"].(*pluginsdk.Set).List()),
+		}
+
+		if label := mappings["label"].(string); label != "" {
+			contentKey.Label = utils.String(label)
+		}
+
+		if policyName := mappings["policy_name"].(string); policyName != "" {
+			contentKey.Label = utils.String(policyName)
+		}
+
+		result = append(result, contentKey)
+	}
+
+	return &result
 }
 
 func expandFairPlay(input []interface{}) *streamingpoliciesandstreaminglocators.StreamingPolicyFairPlayConfiguration {
@@ -743,10 +844,11 @@ func flattenCommonEncryptionCenc(input *streamingpoliciesandstreaminglocators.Co
 
 	return []interface{}{
 		map[string]interface{}{
-			"enabled_protocols": enabledProtocols,
+			"clear_key_encryption_configuration":                   flattenClearKeyEncryptionConfiguration(input.ClearKeyEncryptionConfiguration),
+			"enabled_protocols":                                    enabledProtocols,
 			"drm_widevine_custom_license_acquisition_url_template": widevineTemplate,
-			"drm_playready":       drmPlayReady,
-			"default_content_key": defaultContentKey,
+			"drm_playready":                                        drmPlayReady,
+			"default_content_key":                                  defaultContentKey,
 		},
 	}
 }
@@ -766,6 +868,11 @@ func flattenCommonEncryptionCbcs(input *streamingpoliciesandstreaminglocators.Co
 		defaultContentKey = flattenContentKey(input.ContentKeys.DefaultKey)
 	}
 
+	keyToTrackMappings := make([]interface{}, 0)
+	if input.ContentKeys != nil && input.ContentKeys.KeyToTrackMappings != nil {
+		keyToTrackMappings = flattenKeyToTrackMappings(input.ContentKeys.KeyToTrackMappings)
+	}
+
 	drmFairPlay := make([]interface{}, 0)
 	if input.Drm != nil && input.Drm.FairPlay != nil {
 		drmFairPlay = flattenFairPlay(input.Drm.FairPlay)
@@ -773,9 +880,36 @@ func flattenCommonEncryptionCbcs(input *streamingpoliciesandstreaminglocators.Co
 
 	return []interface{}{
 		map[string]interface{}{
-			"enabled_protocols":   enabledProtocols,
-			"default_content_key": defaultContentKey,
-			"drm_fairplay":        drmFairPlay,
+			"clear_key_encryption_configuration": flattenClearKeyEncryptionConfiguration(input.ClearKeyEncryptionConfiguration),
+			"clear_track":                        flattenTrackSelections(input.ClearTracks),
+			"content_key_to_track_mapping":       keyToTrackMappings,
+			"enabled_protocols":                  enabledProtocols,
+			"default_content_key":                defaultContentKey,
+			"drm_fairplay":                       drmFairPlay,
+		},
+	}
+}
+
+func flattenEnvelopeEncryption(input *streamingpoliciesandstreaminglocators.EnvelopeEncryption) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	customKeyAcquisitionUrlTemplate := ""
+	if input.CustomKeyAcquisitionUrlTemplate != nil {
+		customKeyAcquisitionUrlTemplate = *input.CustomKeyAcquisitionUrlTemplate
+	}
+
+	defaultContentKey := make([]interface{}, 0)
+	if input.ContentKeys != nil && input.ContentKeys.DefaultKey != nil {
+		defaultContentKey = flattenContentKey(input.ContentKeys.DefaultKey)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"custom_key_acquisition_url_template": customKeyAcquisitionUrlTemplate,
+			"default_content_key":                 defaultContentKey,
+			"enabled_protocols":                   flattenEnabledProtocols(input.EnabledProtocols),
 		},
 	}
 }
@@ -801,6 +935,85 @@ func flattenPlayReady(input *streamingpoliciesandstreaminglocators.StreamingPoli
 			"custom_license_acquisition_url_template": customLicenseURLTemplate,
 		},
 	}
+}
+
+func flattenClearKeyEncryptionConfiguration(input *streamingpoliciesandstreaminglocators.ClearKeyEncryptionConfiguration) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	customKeysAcquisitionUrlTemplate := ""
+	if input.CustomKeysAcquisitionUrlTemplate != nil {
+		customKeysAcquisitionUrlTemplate = *input.CustomKeysAcquisitionUrlTemplate
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"custom_keys_acquisition_url_template": customKeysAcquisitionUrlTemplate,
+		},
+	}
+}
+
+func flattenTrackSelections(input *[]streamingpoliciesandstreaminglocators.TrackSelection) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make([]interface{}, 0)
+	for _, v := range *input {
+		result = append(result, map[string]interface{}{
+			"condition": flattenTrackPropertyConditions(v.TrackSelections),
+		})
+	}
+
+	return result
+}
+
+func flattenTrackPropertyConditions(input *[]streamingpoliciesandstreaminglocators.TrackPropertyCondition) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make([]interface{}, 0)
+	for _, v := range *input {
+		value := ""
+		if v.Value != nil {
+			value = *v.Value
+		}
+		result = append(result, map[string]interface{}{
+			"operation": string(v.Operation),
+			"property":  string(v.Property),
+			"value":     value,
+		})
+	}
+
+	return result
+}
+
+func flattenKeyToTrackMappings(input *[]streamingpoliciesandstreaminglocators.StreamingPolicyContentKey) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+	result := make([]interface{}, 0)
+	for _, v := range *input {
+		label := ""
+		if v.Label != nil {
+			label = *v.Label
+		}
+
+		policyName := ""
+		if v.PolicyName != nil {
+			policyName = *v.PolicyName
+		}
+
+		result = append(result, map[string]interface{}{
+			"label":       label,
+			"policy_name": policyName,
+			"track":       flattenTrackSelections(v.Tracks),
+		})
+	}
+
+	return result
 }
 
 func flattenFairPlay(input *streamingpoliciesandstreaminglocators.StreamingPolicyFairPlayConfiguration) []interface{} {
