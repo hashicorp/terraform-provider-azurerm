@@ -62,6 +62,7 @@ BUG FIXES:
 * Data Source: `azurerm_vpn_gateway` - fixing a bug where the Data Source didn't return an error when the VPN Gateway was not found [GH-20479]
 * Data Source: `azurerm_web_pubsub` - fixing a bug where the Data Source didn't return an error when the Web PubSub was not found [GH-20479]
 * `azurerm_backup_protected_vm` - fix a bug during deletion [GH-20469]
+* `azurerm_eventhub` - changing the `partition_count` property now works by creating a new resource [GH-20480]
 * `azurerm_eventgrid_domain_topic` - `name` can now be up to 128 characters [GH-20407]
 * `azurerm_kubernetes_cluster` - parsing the API response for the `log_analytics_workspace_id` field case-insensitively [GH-20484]
 * `azurerm_private_endpoint` - normalizing the `private_connection_resource_id` for a redis cache [GH-20418]
