@@ -108,7 +108,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 	resourceManagerEndpoint, _ := builder.AuthConfig.Environment.ResourceManager.Endpoint()
 
-	account, err := NewResourceManagerAccount(ctx, resourceManagerAuth, *builder.AuthConfig, builder.SubscriptionID, builder.SkipProviderRegistration, *azureEnvironment)
+	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, builder.SubscriptionID, builder.SkipProviderRegistration, *azureEnvironment)
 	if err != nil {
 		return nil, fmt.Errorf("building account: %+v", err)
 	}
