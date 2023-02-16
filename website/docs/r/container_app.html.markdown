@@ -315,11 +315,16 @@ A `dapr` block supports the following:
 
 A `registry` block supports the following:
 
-* `password_secret_name` - (Required) The name of the Secret Reference containing the password value for this user on the Container Registry.
-
 * `server` - (Required) The hostname for the Container Registry.
 
-* `username` - (Required) The username to use for this Container Registry.
+The authentication details must also be supplied, `identity` and `username`/`password_secret_name` are mutually exclusive.
+
+* `identity` - (Optional) Resource ID for the User Assigned Managed identity to use when pulling from the Container Registry.
+
+* `password_secret_name` - (Optional) The name of the Secret Reference containing the password value for this user on the Container Registry, `username` must also be supplied.
+
+* `username` - (Optional) The username to use for this Container Registry, `password_secret_name` must also be supplied..
+
 
 
 ## Attributes Reference
