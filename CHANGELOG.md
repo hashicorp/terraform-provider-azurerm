@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * provider: support for the `use_cli` provider property [GH-20320]
 * provider: authentication now uses the `github.com/hashicorp/go-azure-sdk/sdk/auth` package [GH-20320]
 * provider: cloud configuration now uses the `github.com/hashicorp/go-azure-sdk/sdk/environments` package [GH-20320]
+* `datashare`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20501]
 * `managementlocks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20387]
 * `media`: refactoring `StreamingEndpoints` to use API Version `2022-08-01` [GH-20457]
 * `postgres` - updating API to `2022-12-01` [GH-20370]
