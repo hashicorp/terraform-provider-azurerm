@@ -458,9 +458,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"dns_zone_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: dnsValidate.ValidateDnsZoneID,
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.Any(
+								dnsValidate.ValidateDnsZoneID,
+								validation.StringIsEmpty,
+							),
 						},
 					},
 				},
@@ -3705,23 +3708,29 @@ func base64IsEncoded(data string) bool {
 }
 
 func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ManagedClusterIngressProfile {
-	if (len(input) == 0 || input[0] == nil) && d.HasChange("web_app_routing") {
+	if len(input) == 0 && d.HasChange("web_app_routing") {
 		return &managedclusters.ManagedClusterIngressProfile{
 			WebAppRouting: &managedclusters.ManagedClusterIngressProfileWebAppRouting{
 				Enabled: utils.Bool(false),
 			},
 		}
-	} else if len(input) == 0 || input[0] == nil {
+	} else if len(input) == 0 {
 		return nil
 	}
 
-	config := input[0].(map[string]interface{})
-	return &managedclusters.ManagedClusterIngressProfile{
+	out := managedclusters.ManagedClusterIngressProfile{
 		WebAppRouting: &managedclusters.ManagedClusterIngressProfileWebAppRouting{
-			Enabled:           utils.Bool(true),
-			DnsZoneResourceId: utils.String(config["dns_zone_id"].(string)),
+			Enabled: utils.Bool(true),
 		},
 	}
+	if input[0] != nil {
+		config := input[0].(map[string]interface{})
+		dnsZoneResourceId := config["dns_zone_id"].(string)
+		if dnsZoneResourceId != "" {
+			out.WebAppRouting.DnsZoneResourceId = utils.String(dnsZoneResourceId)
+		}
+	}
+	return &out
 }
 
 func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedClusterIngressProfile) []interface{} {
