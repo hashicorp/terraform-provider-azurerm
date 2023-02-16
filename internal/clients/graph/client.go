@@ -19,7 +19,7 @@ type options struct {
 
 func (o options) ToHeaders() *client.Headers {
 	h := client.Headers{}
-	h.Append(o.query.Headers())
+	h.AppendHeader(o.query.Headers())
 	return &h
 }
 
@@ -29,7 +29,7 @@ func (o options) ToOData() *odata.Query {
 
 func (o options) ToQuery() *client.QueryParams {
 	q := client.QueryParams{}
-	q.Append(o.query.Values())
+	q.AppendValues(o.query.Values())
 	return &q
 }
 
