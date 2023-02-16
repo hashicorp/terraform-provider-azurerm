@@ -157,7 +157,6 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 			},
 		},
 	}
-	properties := parameters.Properties
 
 	// parameters to be passed into the runbook
 	if v, ok := d.GetOk("parameters"); ok {
@@ -166,12 +165,12 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 			value := v.(string)
 			jsParameters[k] = value
 		}
-		properties.Parameters = &jsParameters
+		parameters.Properties.Parameters = &jsParameters
 	}
 
 	if v, ok := d.GetOk("run_on"); ok {
 		value := v.(string)
-		properties.RunOn = &value
+		parameters.Properties.RunOn = &value
 	}
 
 	if _, err := client.Create(ctx, id, parameters); err != nil {

@@ -238,14 +238,12 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			TimeZone:    &timeZone,
 		},
 	}
-	properties := parameters.Properties
 
 	// start time can default to now + 7 (5 could be invalid by the time the API is called)
 	loc, err := time.LoadLocation(timeZone)
 	if err != nil {
 		return err
 	}
-
 	if v, ok := d.GetOk("start_time"); ok {
 		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 		duration := time.Duration(5) * time.Minute
@@ -253,30 +251,30 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			return fmt.Errorf("`start_time` is %q and should be at least %q in the future", t, duration)
 		}
 
-		properties.SetStartTimeAsTime(t.In(loc))
+		parameters.Properties.SetStartTimeAsTime(t.In(loc))
 	} else {
-		properties.SetStartTimeAsTime(time.Now().In(loc).Add(time.Duration(7) * time.Minute))
+		parameters.Properties.SetStartTimeAsTime(time.Now().In(loc).Add(time.Duration(7) * time.Minute))
 	}
 
 	if v, ok := d.GetOk("expiry_time"); ok {
 		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
-		properties.SetExpiryTimeAsTime(t.In(loc))
+		parameters.Properties.SetExpiryTimeAsTime(t.In(loc))
 	}
 
 	// only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
-	if properties.Frequency != schedule.ScheduleFrequencyOneTime {
+	if parameters.Properties.Frequency != schedule.ScheduleFrequencyOneTime {
 
 		var interval interface{}
 		interval = 1
 		if v, ok := d.GetOk("interval"); ok {
 			interval = v
 		}
-		properties.Interval = &interval
+		parameters.Properties.Interval = &interval
 	}
 
 	// only pay attention to the advanced schedule fields if frequency is either Week or Month
-	if properties.Frequency == schedule.ScheduleFrequencyWeek || properties.Frequency == schedule.ScheduleFrequencyMonth {
-		properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")
+	if parameters.Properties.Frequency == schedule.ScheduleFrequencyWeek || parameters.Properties.Frequency == schedule.ScheduleFrequencyMonth {
+		parameters.Properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
