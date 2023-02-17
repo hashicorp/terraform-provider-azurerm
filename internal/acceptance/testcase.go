@@ -133,7 +133,7 @@ func (td TestData) providers() map[string]func() (*schema.Provider, error) {
 func (td TestData) externalProviders() map[string]resource.ExternalProvider {
 	return map[string]resource.ExternalProvider{
 		"azuread": {
-			VersionConstraint: "=2.8.0",
+			VersionConstraint: "=2.33.0",
 			Source:            "registry.terraform.io/hashicorp/azuread",
 		},
 	}
