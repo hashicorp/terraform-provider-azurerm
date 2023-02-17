@@ -550,7 +550,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  cross_region_restore_enabled = %v
+  cross_region_restore_enabled = %t
 
   soft_delete_enabled = false
 }
