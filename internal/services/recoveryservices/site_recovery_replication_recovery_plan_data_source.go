@@ -47,13 +47,12 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, metaModel.Name)
-
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("%s was not found", id)
 				}
-				return fmt.Errorf("making Read request on site recovery replication plan %s : %+v", id.String(), err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			model := resp.Model

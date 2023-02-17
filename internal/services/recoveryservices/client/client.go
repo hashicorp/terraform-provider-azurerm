@@ -23,6 +23,7 @@ type Client struct {
 	ProtectionContainerOperationResultsClient *backup.ProtectionContainerOperationResultsClient
 	BackupProtectionContainersClient          *backup.ProtectionContainersClient
 	BackupOperationStatusesClient             *backup.OperationStatusesClient
+	BackupOperationResultsClient              *backup.OperationResultsClient
 	VaultsClient                              *vaults.VaultsClient
 	VaultsConfigsClient                       *backupresourcevaultconfigs.BackupResourceVaultConfigsClient
 	StorageConfigsClient                      *backupresourcestorageconfigsnoncrr.BackupResourceStorageConfigsNonCRRClient
@@ -63,6 +64,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	backupOperationStatusesClient := backup.NewOperationStatusesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&backupOperationStatusesClient.Client, o.ResourceManagerAuthorizer)
 
+	backupOperationResultClient := backup.NewOperationResultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&backupOperationResultClient.Client, o.ResourceManagerAuthorizer)
+
 	backupProtectionContainerOperationResultsClient := backup.NewProtectionContainerOperationResultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&backupProtectionContainerOperationResultsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -95,6 +99,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ProtectionContainerOperationResultsClient: &backupProtectionContainerOperationResultsClient,
 		BackupProtectionContainersClient:          &backupProtectionContainersClient,
 		BackupOperationStatusesClient:             &backupOperationStatusesClient,
+		BackupOperationResultsClient:              &backupOperationResultClient,
 		VaultsClient:                              &vaultsClient,
 		VaultsConfigsClient:                       &vaultConfigsClient,
 		StorageConfigsClient:                      &storageConfigsClient,

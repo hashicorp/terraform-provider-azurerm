@@ -3,6 +3,7 @@ package client
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/datanetwork"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/service"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/site"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/slice"
@@ -11,6 +12,7 @@ import (
 
 type Client struct {
 	MobileNetworkClient *mobilenetwork.MobileNetworkClient
+	ServiceClient       *service.ServiceClient
 	SIMGroupClient      *simgroup.SIMGroupClient
 	SliceClient         *slice.SliceClient
 	SiteClient          *site.SiteClient
@@ -24,6 +26,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	dataNetworkClient := datanetwork.NewDataNetworkClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&dataNetworkClient.Client, o.ResourceManagerAuthorizer)
 
+	serviceClient := service.NewServiceClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&serviceClient.Client, o.ResourceManagerAuthorizer)
+
 	simGroupClient := simgroup.NewSIMGroupClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&simGroupClient.Client, o.ResourceManagerAuthorizer)
 
@@ -36,6 +41,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		MobileNetworkClient: &mobileNetworkClient,
 		DataNetworkClient:   &dataNetworkClient,
+		ServiceClient:       &serviceClient,
 		SIMGroupClient:      &simGroupClient,
 		SiteClient:          &siteClient,
 		SliceClient:         &sliceClient,

@@ -102,8 +102,9 @@ func (m ConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"config_file": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
+			Type:         pluginsdk.TypeSet,
+			Optional:     true,
+			AtLeastOneOf: []string{"config_file", "package_data"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"content": {
@@ -122,8 +123,9 @@ func (m ConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"protected_file": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Type:         pluginsdk.TypeSet,
+			Optional:     true,
+			RequiredWith: []string{"config_file"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"content": {
@@ -143,9 +145,11 @@ func (m ConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"package_data": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			AtLeastOneOf:  []string{"config_file", "package_data"},
+			ConflictsWith: []string{"protected_file", "config_file"},
 		},
 
 		"root_file": {

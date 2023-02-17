@@ -1132,6 +1132,12 @@ func validatePrivateEndpointSettings(d *pluginsdk.ResourceData) error {
 
 // normalize the PrivateConnectionId due to the casing change at service side
 func normalizePrivateConnectionId(privateConnectionId string) string {
+	// intentionally including the extra segment to handle Redis vs Redis Enterprise (which is within the same RP)
+	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.cache/redis/") {
+		if cacheId, err := redis.ParseRediIDInsensitively(privateConnectionId); err == nil {
+			privateConnectionId = cacheId.ID()
+		}
+	}
 	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
 		if serverId, err := postgresqlServers.ParseServerIDInsensitively(privateConnectionId); err == nil {
 			privateConnectionId = serverId.ID()
@@ -1145,11 +1151,6 @@ func normalizePrivateConnectionId(privateConnectionId string) string {
 	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
 		if serverId, err := mariadbServers.ParseServerIDInsensitively(privateConnectionId); err == nil {
 			privateConnectionId = serverId.ID()
-		}
-	}
-	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.redis") {
-		if cacheId, err := redis.ParseRediIDInsensitively(privateConnectionId); err == nil {
-			privateConnectionId = cacheId.ID()
 		}
 	}
 	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.signalrservice") {
