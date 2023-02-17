@@ -169,9 +169,9 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 			// lintignore:R001
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
-			identityIns, err := identity.FlattenSystemOrUserAssignedMapToModel(model.Identity)
+			identityIns, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
 			if err != nil {
-				return fmt.Errorf("FlattenSystemOrUserAssignedMapToModel: %+v", err)
+				return fmt.Errorf("FlattenSystemOrUserAssignedMap: %+v", err)
 			}
 			if err = metadata.ResourceData.Set("identity", identityIns); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)

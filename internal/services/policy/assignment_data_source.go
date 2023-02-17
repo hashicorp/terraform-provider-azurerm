@@ -169,7 +169,7 @@ func (AssignmentDataSource) Read() sdk.ResourceFunc {
 				Location: location.NormalizeNilable(respModel.Location),
 			}
 
-			if _, err = identity.FlattenSystemOrUserAssignedMapToModel(respModel.Identity); err != nil {
+			if err = model.flattenIdentity(respModel.Identity); err != nil {
 				return fmt.Errorf("flatten `identity`: %v", err)
 			}
 
@@ -237,5 +237,15 @@ func (m *AssignmentDataSourceModel) flattenParameter(input *map[string]assignmen
 	}
 
 	m.Parameters = compactJson.String()
+	return nil
+}
+
+func (m *AssignmentDataSourceModel) flattenIdentity(input *identity.SystemOrUserAssignedMap) error {
+	model, err := identity.FlattenSystemOrUserAssignedMapToModel(input)
+	if err != nil {
+		return err
+	}
+
+	m.Identity = *model
 	return nil
 }
