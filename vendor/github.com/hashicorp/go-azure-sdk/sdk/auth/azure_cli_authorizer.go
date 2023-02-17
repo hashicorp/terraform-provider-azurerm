@@ -45,6 +45,9 @@ type AzureCliAuthorizer struct {
 	// TenantID is the specified tenant ID, or the auto-detected tenant ID if none was specified
 	TenantID string
 
+	// DefaultSubscriptionID is the default subscription, when detected
+	DefaultSubscriptionID string
+
 	conf *azureCliConfig
 }
 
@@ -141,6 +144,9 @@ type azureCliConfig struct {
 
 	// AuxiliaryTenantIDs is an optional list of tenant IDs for which to obtain additional tokens
 	AuxiliaryTenantIDs []string
+
+	// DefaultSubscriptionID is the optional default subscription ID
+	DefaultSubscriptionID string
 }
 
 // newAzureCliConfig validates the supplied tenant ID and returns a new azureCliConfig.
@@ -153,7 +159,7 @@ func newAzureCliConfig(api environments.Api, tenantId string, auxiliaryTenantIds
 		return nil, err
 	}
 
-	// check tenant id
+	// check tenant ID
 	tenantId, err = azurecli.CheckTenantID(tenantId)
 	if err != nil {
 		return nil, err
@@ -162,10 +168,17 @@ func newAzureCliConfig(api environments.Api, tenantId string, auxiliaryTenantIds
 		return nil, errors.New("invalid tenantId or unable to determine tenantId")
 	}
 
+	// get the default subscription ID
+	subscriptionId, err := azurecli.GetDefaultSubscriptionID()
+	if err != nil {
+		return nil, err
+	}
+
 	return &azureCliConfig{
-		Api:                api,
-		TenantID:           tenantId,
-		AuxiliaryTenantIDs: auxiliaryTenantIds,
+		Api:                   api,
+		TenantID:              tenantId,
+		AuxiliaryTenantIDs:    auxiliaryTenantIds,
+		DefaultSubscriptionID: subscriptionId,
 	}, nil
 }
 
@@ -173,8 +186,9 @@ func newAzureCliConfig(api environments.Api, tenantId string, auxiliaryTenantIds
 func (c *azureCliConfig) TokenSource(ctx context.Context) (Authorizer, error) {
 	// Cache access tokens internally to avoid unnecessary `az` invocations
 	return NewCachedAuthorizer(&AzureCliAuthorizer{
-		TenantID: c.TenantID,
-		conf:     c,
+		TenantID:              c.TenantID,
+		DefaultSubscriptionID: c.DefaultSubscriptionID,
+		conf:                  c,
 	})
 }
 
