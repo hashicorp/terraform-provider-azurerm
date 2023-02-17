@@ -1,3 +1,9 @@
+## 3.44.1 (Unreleased)
+
+BUG FIXES
+
+* `azurerm_kubernetes_cluster` - fix a crash when `securityProfile` is nil in the API Response [GH-20517]
+
 ## 3.44.0 (February 16, 2023)
 
 FEATURES:
