@@ -17,6 +17,8 @@ BUG FIXES
 * `azurerm_app_configuration_key` - fixing an issue where the App Configuration was misleadingly marked as gone when the data plane client couldn't be build [GH-20533]
 * `azurerm_app_configuration_key` - surfacing the error when a data plane client can't be built [GH-20533]
 * `azurerm_kubernetes_cluster` - fix a crash when `securityProfile` is nil in the API Response [GH-20517]
+* `azurerm_logic_app_standard` - fixing an issue where the `storage endpoint suffix` couldn't be found [GH-20536]
+* `azurerm_synapse_role_assignment` - fixing an issue where the `Synapse domain suffix` couldn't be found [GH-20536]
 
 ## 3.44.0 (February 16, 2023)
 
