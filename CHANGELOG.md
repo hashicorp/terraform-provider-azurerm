@@ -8,6 +8,14 @@ BUG FIXES
 
 * authentication: fix an issue when obtaining the auth token for Resource Manager in Azure Government [GH-20523]
 * authentication: fix an issue where the default subscription ID was not detected when authenticating using Azure CLI [GH-20526]
+* Data Source: `azurerm_app_configuration_key` - fixing an issue where the App Configuration was misleadingly marked as gone when the data plane client couldn't be build [GH-20533]
+* Data Source: `azurerm_app_configuration_key` - surfacing the error when a data plane client can't be built [GH-20533]
+* Data Source: `azurerm_app_configuration_keys` - fixing an issue where the App Configuration was misleadingly marked as gone when the data plane client couldn't be build [GH-20533]
+* Data Source: `azurerm_app_configuration_keys` - surfacing the error when a data plane client can't be built [GH-20533]
+* `azurerm_app_configuration_feature` - fixing an issue where the App Configuration was misleadingly marked as gone when the data plane client couldn't be build [GH-20533]
+* `azurerm_app_configuration_feature` - surfacing the error when a data plane client can't be built [GH-20533]
+* `azurerm_app_configuration_key` - fixing an issue where the App Configuration was misleadingly marked as gone when the data plane client couldn't be build [GH-20533]
+* `azurerm_app_configuration_key` - surfacing the error when a data plane client can't be built [GH-20533]
 * `azurerm_kubernetes_cluster` - fix a crash when `securityProfile` is nil in the API Response [GH-20517]
 
 ## 3.44.0 (February 16, 2023)
