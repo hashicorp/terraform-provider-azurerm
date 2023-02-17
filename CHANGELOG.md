@@ -33,7 +33,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_policy_definition` - support for the `mode` property ([#20420](https://github.com/hashicorp/terraform-provider-azurerm/issues/20420))
 * Data Source: `azurerm_key_vault_certificates` - now exports the `certificates` block ([#20498](https://github.com/hashicorp/terraform-provider-azurerm/issues/20498))
 * Data Source: `azurerm_key_vault_secrets` - now exports the `secrets` block ([#20498](https://github.com/hashicorp/terraform-provider-azurerm/issues/20498))
-* `azurerm_api_management` - the field `sku_name` can now be set to `DC0` ([#20399](https://github.com/hashicorp/terraform-provider-azurerm/issues/20399))
+* `azurerm_api_management` - support for the `delegation` block ([#20399](https://github.com/hashicorp/terraform-provider-azurerm/issues/20399))
 * `azurerm_container_app` - now supports multiple `container` blocks ([#20423](https://github.com/hashicorp/terraform-provider-azurerm/issues/20423))
 * `azurerm_cognitive_account` - the field `sku_name` can now be set to `DC0` ([#20426](https://github.com/hashicorp/terraform-provider-azurerm/issues/20426))
 * `azurerm_container_app` - support for the `registry.identity` property ([#20466](https://github.com/hashicorp/terraform-provider-azurerm/issues/20466))
