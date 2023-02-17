@@ -68,8 +68,6 @@ The following arguments are supported:
 
 * `backup` - (Optional) A `backup` block as defined below.
 
-* `push` - (Optional) A `push` block as defined below.
-
 * `client_affinity_enabled` - (Optional) Should Client Affinity be enabled?
 
 * `client_certificate_enabled` - (Optional) Should Client Certificates be enabled?
@@ -243,20 +241,6 @@ A `backup` block supports the following:
 * `storage_account_url` - (Required) The SAS URL to the container.
 
 * `enabled` - (Optional) Should this backup job be enabled? Defaults to `true`.
-
----
-
-A `push` block supports the following:
-
-~> **NOTE:** Please ensure notification hub is connected by setting both the connection string key `MS_NotificationHubConnectionString` and app setting key `MS_NotificationHubId` or `MS_NotificationHubName` before enable push.
-
-* `is_push_enabled` - (Optional) Whether to enable push endpoint for the Web App.
-
-* `tags_to_whitelist` - (Optional) A list of tags that are in the allowed list for use by the push registration endpoint.
-
-* `dynamic_tags_to_whitelist` - (Optional)  A list of dynamic tags that will be evaluated from user claims in the push registration endpoint.
-
-* `tags_requiring_auth****` - (Optional) A list of tags that require user authentication to be used in the push registration endpoint.
 
 ---
 

@@ -75,8 +75,6 @@ The following arguments are supported:
 
 * `backup` - (Optional) a `backup` block as detailed below.
 
-* `push` - (Optional) A `push` block as defined below.
-
 * `builtin_logging_enabled` - (Optional) Should built-in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting. Defaults to `true`.
 
 * `client_certificate_enabled` - (Optional) Should the Function App Slot use Client Certificates.
@@ -176,20 +174,6 @@ A `backup` block supports the following:
 * `storage_account_url` - (Required) The SAS URL to the container.
 
 * `enabled` - (Optional) Should this backup job be enabled? Defaults to `true`.
-
----
-
-A `push` block supports the following:
-
-~> **NOTE:** Please ensure notification hub is connected by setting both the connection string key `MS_NotificationHubConnectionString` and app setting key `MS_NotificationHubId` or `MS_NotificationHubName` before enable push.
-
-* `is_push_enabled` - (Optional) Whether to enable push endpoint for the Web App.
-
-* `tags_to_whitelist` - (Optional) A list of tags that are in the allowed list for use by the push registration endpoint.
-
-* `dynamic_tags_to_whitelist` - (Optional)  A list of dynamic tags that will be evaluated from user claims in the push registration endpoint.
-
-* `tags_requiring_auth****` - (Optional) A list of tags that require user authentication to be used in the push registration endpoint.
 
 ---
 
