@@ -21,7 +21,11 @@ func TestAccKubernetesCluster_updateVmSize(t *testing.T) {
 			),
 		},
 		{
-			Config: r.updateVmSize(data, "Standard_DS3_v2"),
+			Config: r.updateVmSize2(data, "Standard_DS3_v2"),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		{
+			Config: r.updateVmSize2(data, "Standard_DS4_v2"),
 			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 	})
@@ -280,6 +284,42 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name       = "default"
+    node_count = 1
+    vm_size    = "%s"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, vmSize)
+}
+
+func (KubernetesClusterResource) updateVmSize2(data acceptance.TestData, vmSize string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+	temporary_name = "temp"
     node_count = 1
     vm_size    = "%s"
   }

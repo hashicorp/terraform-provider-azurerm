@@ -73,9 +73,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return old != "" && new == ""
 			}),
 			pluginsdk.ForceNewIf("default_node_pool.0.name", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
-				defaultNodePoolName := d.Get("default_node_pool.0.name").(string)
 				temporaryNodePoolName := d.Get("default_node_pool.0.temporary_name").(string)
-				return defaultNodePoolName != temporaryNodePoolName
+				defaultNodePoolName := d.Get("default_node_pool.0.name").(string)
+				_, new := d.GetChange("default_node_pool.0.name")
+				if new == temporaryNodePoolName || new == defaultNodePoolName {
+					return false
+				}
+				//return defaultNodePoolName != temporaryNodePoolName
+				return true
 			}),
 		),
 
@@ -2009,14 +2014,17 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if d.HasChange("default_node_pool.0.vm_size") {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
 
-			tempNodePoolName := "temp"
-			if v := d.Get("default_node_pool.0.temporary_name").(string); v != "" {
-				tempNodePoolName = v
+			if v := d.Get("default_node_pool.0.temporary_name").(string); v == "" {
+				return fmt.Errorf("`temporary_name` must be specified when updating `vm_size`")
 			}
-			tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
 
+			temporaryNodePoolName := d.Get("default_node_pool.0.temporary_name").(string)
+			tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, temporaryNodePoolName)
+
+			tempAgentProfile := agentProfile
+			tempAgentProfile.Name = &temporaryNodePoolName
 			// create the temporary default node pool with the new vm size
-			if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, agentProfile); err != nil {
+			if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
 				return fmt.Errorf("creating Temporary Default Node Pool %s: %+v", tempNodePoolId, err)
 			}
 
@@ -2031,10 +2039,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			// create the default node pool with the new vm size
-			//if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
-			//	// if creation of the default node pool fails we can fall back on the temporary one
-			//	log.Printf("[DEBUG] Creation of resized default node pool failed, falling back to temporary node pool")
-			//}
+			if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
+				// if creation of the default node pool fails we can fall back on the temporary one
+				log.Printf("[DEBUG] Creation of resized default node pool failed, falling back to temporary node pool")
+			}
 
 			// check whether both the temp node pool and resized default node pool exist before proceeding
 			tempExisting, err := nodePoolsClient.Get(ctx, tempNodePoolId)

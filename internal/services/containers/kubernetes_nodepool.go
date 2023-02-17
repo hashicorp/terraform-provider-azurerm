@@ -1185,6 +1185,8 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 
 	name := agentPool.Name
 
+	temporaryName := d.Get("default_node_pool.0.temporary_name").(string)
+
 	var nodeLabels map[string]string
 	if agentPool.NodeLabels != nil {
 		nodeLabels = make(map[string]string)
@@ -1310,6 +1312,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"os_sku":                        osSKU,
 		"scale_down_mode":               string(scaleDownMode),
 		"tags":                          tags.Flatten(agentPool.Tags),
+		"temporary_name":                temporaryName,
 		"type":                          agentPoolType,
 		"ultra_ssd_enabled":             enableUltraSSD,
 		"vm_size":                       vmSize,
