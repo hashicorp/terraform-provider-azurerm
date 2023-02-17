@@ -1981,41 +1981,61 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
+
 resource "azurerm_storage_container" "test" {
   name                  = "accbatchsc%s"
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "blob"
 }
+
 resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "testidentity%s"
+}
+
+resource "azurerm_role_assignment" "blob_contributor" {
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  role_definition_name = "Storage Blob Data Contributor"
+  scope                = azurerm_storage_account.test.id
+}
+
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
-  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  display_name        = "Test Acc Pool Auto"
   vm_size             = "Standard_A1"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
+
+  fixed_scale {
+    target_dedicated_nodes = 0
+  }
+
+  storage_image_reference {
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "20-04-lts"
+    version   = "latest"
+  }
+
   mount {
     azure_blob_file_system {
       account_name        = azurerm_storage_account.test.name
       container_name      = azurerm_storage_container.test.name
-      account_key         = azurerm_storage_account.test.primary_access_key
-      relative_mount_path = "/mnt/"
+      relative_mount_path = "external"
+      identity_id         = azurerm_user_assigned_identity.test.id
     }
   }
-  fixed_scale {
-    target_dedicated_nodes = 1
-  }
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-lts"
-    version   = "latest"
-  }
 }
-`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) mountConfigurationAzureFileShare(data acceptance.TestData) string {
