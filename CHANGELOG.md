@@ -39,9 +39,9 @@ ENHANCEMENTS:
 * `azurerm_container_app` - support for the `registry.identity` property [GH-20466]
 * `azurerm_data_factory_linked_service_azure_blob_storage` - Add support for `connection_string_insecure`  [Gh-20494]
 * `azurerm_express_route_port` - support for the `billing_type` property [GH-20361]
-* `azurerm_kubernetes_cluster` - `web_app_routing.dns_zone_id` now accepts an empty string for BYO DNS [GH-20341]
-* `azurerm_linux_virtual_machine` - validating that the value for the `admin_username` field isn't a disallowed username [GH-20424]
-* `azurerm_windows_virtual_machine` - validating that the value for the `admin_username` field isn't a disallowed username [GH-20424]
+* `azurerm_kubernetes_cluster` - the `web_app_routing.dns_zone_id` property now accepts an empty string for BYO DNS [GH-20341]
+* `azurerm_linux_virtual_machine` - validating that the value for the `admin_username` property isn't a disallowed username [GH-20424]
+* `azurerm_windows_virtual_machine` - validating that the value for the `admin_username` property isn't a disallowed username [GH-20424]
 
 BUG FIXES:
 
@@ -70,14 +70,14 @@ BUG FIXES:
 * Data Source: `azurerm_storage_table_entity` - fixing a bug where the Data Source didn't return an error when the Table Entity was not found [GH-20479]
 * Data Source: `azurerm_vpn_gateway` - fixing a bug where the Data Source didn't return an error when the VPN Gateway was not found [GH-20479]
 * Data Source: `azurerm_web_pubsub` - fixing a bug where the Data Source didn't return an error when the Web PubSub was not found [GH-20479]
-* `azurerm_backup_protected_vm` - fix a bug during deletion [GH-20469]
+* `azurerm_backup_protected_vm` - will now correctly delete [GH-20469]
 * `azurerm_eventhub` - changing the `partition_count` property now works by creating a new resource [GH-20480]
-* `azurerm_eventgrid_domain_topic` - `name` can now be up to 128 characters [GH-20407]
+* `azurerm_eventgrid_domain_topic` - the `name` property can now be up to 128 characters [GH-20407]
 * `azurerm_kubernetes_cluster` - parsing the API response for the `log_analytics_workspace_id` field case-insensitively [GH-20484]
-* `azurerm_private_endpoint` - normalizing the `private_connection_resource_id` for a redis cache [GH-20418]
+* `azurerm_private_endpoint` - normalizing the `private_connection_resource_id` propety for a redis cache [GH-20418]
 * `azurerm_private_endpoint` - consistently normalizing the value returned from the API for `private_connection_resource_id` [GH-20452]
 * `azurerm_recovery_services_vault` - updating `cross_region_restore_enabled` to `false` recreates the resource since this operation isn't supported by the API [GH-20406]
-* `azurerm_storage_management_policy` - `rule.filters` is now Required since storage management policies fail if it's unspecified [GH-20448]
+* `azurerm_storage_management_policy` - the `rule.filters` property is now Required since storage management policies fail if it's unspecified [GH-20448]
 
 ## 3.43.0 (February 09, 2023)
 
