@@ -253,6 +253,9 @@ func expandDataConnectorGenericUIAvailabilityModel(input []DataConnectorGenericU
 
 func flattenDataConnectorGenericUIAvailabilityModel(input *securityinsight.Availability) []DataConnectorGenericUIAvailabilityModel {
 	output := DataConnectorGenericUIAvailabilityModel{}
+	if input == nil {
+		return []DataConnectorGenericUIAvailabilityModel{}
+	}
 	if input.Status != nil {
 		output.Enabled = *input.Status == 1
 	}
@@ -284,6 +287,9 @@ func expandDataConnectorGenericUIPermissionsModel(input []DataConnectorGenericUI
 
 func flattenDataConnectorGenericUIPermissionsModel(input *securityinsight.Permissions) []DataConnectorGenericUIPermissionsModel {
 	output := DataConnectorGenericUIPermissionsModel{}
+	if input == nil {
+		return []DataConnectorGenericUIPermissionsModel{}
+	}
 	if input.ResourceProvider != nil {
 		output.ResourceProviders = flattenDataConnectorGenericUIPermissionsResourceProviderModel(input.ResourceProvider)
 	}

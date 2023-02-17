@@ -73,5 +73,6 @@ func (r Registration) Resources() []sdk.Resource {
 		DataConnectorThreatIntelligenceTAXIIResource{},
 		DataConnectorMicrosoftThreatIntelligenceResource{},
 		DataConnectorApiPollingResource{},
+		DataConnectorGenericUIResource{},
 	}
 }
