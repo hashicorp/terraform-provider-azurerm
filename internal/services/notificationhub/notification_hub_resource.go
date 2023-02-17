@@ -21,7 +21,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var notificationHubResourceName = "azurerm_notification_hub"
+var (
+	notificationHubResourceName             = "azurerm_notification_hub"
+	notificationHubDefaultAuthorizationRule = "DefaultFullSharedAccessSignature"
+)
 
 const (
 	apnsProductionName     = "Production"
@@ -146,6 +149,30 @@ func resourceNotificationHub() *pluginsdk.Resource {
 				},
 			},
 
+			"default_primary_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"default_primary_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"default_secondary_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"default_secondary_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -266,8 +293,22 @@ func resourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+	}
 
-		return d.Set("tags", tags.Flatten(model.Tags))
+	authRuleId := notificationhubs.NewNotificationHubAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.NotificationHubName, notificationHubDefaultAuthorizationRule)
+	keys, err := client.ListKeys(ctx, authRuleId)
+	if err != nil {
+		log.Printf("[WARN] Unable to List default keys for EventHub Namespace %q: %+v", id.NamespaceName, err)
+	}
+
+	if model := keys.Model; model != nil {
+		d.Set("default_primary_connection_string", model.PrimaryConnectionString)
+		d.Set("default_secondary_connection_string", model.SecondaryConnectionString)
+		d.Set("default_primary_key", model.PrimaryKey)
+		d.Set("default_secondary_key", model.SecondaryKey)
 	}
 
 	return nil

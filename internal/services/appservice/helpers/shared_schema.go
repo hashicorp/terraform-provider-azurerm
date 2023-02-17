@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -1632,4 +1634,186 @@ func FlattenStickySettings(input *web.SlotConfigNames) []StickySettings {
 	}
 
 	return []StickySettings{result}
+}
+
+type PushSetting struct {
+	IsPushEnabled          bool     `tfschema:"is_push_enabled"`
+	TagsToWhitelist        []string `tfschema:"tags_to_whitelist"`
+	DynamicTagsToWhitelist []string `tfschema:"dynamic_tags_to_whitelist"`
+	RequiredAuthTags       []string `tfschema:"tags_requiring_auth"`
+}
+
+func PushSettingSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"is_push_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
+				"tags_to_whitelist": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"dynamic_tags_to_whitelist": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"tags_requiring_auth": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
+func ExpandPushSetting(input []PushSetting, isNotificationHubConnected bool) (*web.PushSettings, error) {
+	result := &web.PushSettings{}
+	if len(input) == 0 {
+		return result, nil
+	}
+	if !isNotificationHubConnected {
+		return result, fmt.Errorf("configuring push error: connecting to notification hub first")
+	}
+	var whitelistTags, whitelistDynamicsTags, tagsRequiringAuth []string
+
+	pushSettingData := input[0]
+	result.PushSettingsProperties = &web.PushSettingsProperties{
+		IsPushEnabled: pointer.To(pushSettingData.IsPushEnabled),
+	}
+
+	for _, v := range pushSettingData.TagsToWhitelist {
+		whitelistTags = append(whitelistTags, v)
+	}
+	tagsInJson, err := json.Marshal(whitelistTags)
+	if err != nil {
+		return nil, fmt.Errorf("serializing the tags to JSON: %+v", err)
+	}
+	result.PushSettingsProperties.TagWhitelistJSON = pointer.To(string(tagsInJson))
+
+	for _, v := range pushSettingData.DynamicTagsToWhitelist {
+		whitelistDynamicsTags = append(whitelistDynamicsTags, v)
+	}
+	dTagsInJson, err := json.Marshal(whitelistDynamicsTags)
+	if err != nil {
+		return nil, fmt.Errorf("serializing the dynamic tags to JSON: %+v", err)
+	}
+	result.PushSettingsProperties.DynamicTagsJSON = pointer.To(string(dTagsInJson))
+
+	for _, v := range pushSettingData.RequiredAuthTags {
+		tagsRequiringAuth = append(tagsRequiringAuth, v)
+	}
+	tagsRequiringAuthInJson, err := json.Marshal(tagsRequiringAuth)
+	if err != nil {
+		return nil, fmt.Errorf("serializing the dynamic tags to JSON: %+v", err)
+	}
+	result.PushSettingsProperties.TagsRequiringAuth = pointer.To(string(tagsRequiringAuthInJson))
+
+	return result, nil
+}
+
+func FlattenPushSetting(pushSettingData web.PushSettings) ([]PushSetting, error) {
+	result := make([]PushSetting, 0)
+	if pushSettingData.PushSettingsProperties == nil {
+		return result, nil
+	}
+
+	pushProps := *pushSettingData.PushSettingsProperties
+	push := PushSetting{}
+
+	if pushProps.IsPushEnabled != nil {
+		push.IsPushEnabled = pointer.From(pushProps.IsPushEnabled)
+	}
+
+	if pushProps.TagWhitelistJSON != nil {
+		var tagsToWhitelist interface{}
+		var whitelistTags []string
+		err := json.Unmarshal([]byte(*pushProps.TagWhitelistJSON), &tagsToWhitelist)
+		if err != nil {
+			return nil, err
+		}
+		for _, v := range tagsToWhitelist.([]interface{}) {
+			whitelistTags = append(whitelistTags, v.(string))
+		}
+		push.TagsToWhitelist = whitelistTags
+	}
+
+	if pushProps.DynamicTagsJSON != nil {
+		var dTagsToWhitelist interface{}
+		var whitelistDtags []string
+		err := json.Unmarshal([]byte(*pushProps.DynamicTagsJSON), &dTagsToWhitelist)
+		if err != nil {
+			return nil, err
+		}
+		for _, v := range dTagsToWhitelist.([]interface{}) {
+			whitelistDtags = append(whitelistDtags, v.(string))
+		}
+		push.DynamicTagsToWhitelist = whitelistDtags
+	}
+
+	if pushProps.TagsRequiringAuth != nil {
+		var tagsRequiringAuth interface{}
+		var authedTags []string
+		err := json.Unmarshal([]byte(*pushProps.TagsRequiringAuth), &tagsRequiringAuth)
+		if err != nil {
+			return nil, err
+		}
+		for _, v := range tagsRequiringAuth.([]interface{}) {
+			authedTags = append(authedTags, v.(string))
+		}
+		push.RequiredAuthTags = authedTags
+	}
+
+	result = append(result, push)
+
+	return result, nil
+}
+
+func IsNotificationHubConnectedForAppService(ctx context.Context, client *web.AppsClient, rg string, siteName string) (bool, error) {
+	isNotificationHubConnected := false
+	getAppSettings, err := client.ListApplicationSettings(ctx, rg, siteName)
+	if err != nil {
+		return isNotificationHubConnected, fmt.Errorf("reading App Settings for Windows %s: %+v", siteName, err)
+	}
+	getConnectionStrings, err := client.ListConnectionStrings(ctx, rg, siteName)
+	if err != nil {
+		return isNotificationHubConnected, fmt.Errorf("reading Connection Strings for windows %s: %+v", siteName, err)
+	}
+
+	if getConnectionStrings.Properties != nil {
+		for i, v := range getConnectionStrings.Properties {
+			if i == "MS_NotificationHubConnectionString" && v != nil && v.Value != nil {
+				isNotificationHubConnected = true
+				break
+			}
+		}
+	}
+	if getAppSettings.Properties != nil {
+		for i, v := range getAppSettings.Properties {
+			if isNotificationHubConnected && (i == "MS_NotificationHubId" && v != nil) || (i == "MS_NotificationHubName" && v != nil) {
+				isNotificationHubConnected = true
+				break
+			} else {
+				isNotificationHubConnected = false
+			}
+		}
+	}
+
+	return isNotificationHubConnected, nil
 }

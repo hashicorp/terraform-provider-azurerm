@@ -43,6 +43,7 @@ type WindowsFunctionAppModel struct {
 	StickySettings              []helpers.StickySettings               `tfschema:"sticky_settings"`
 	AuthSettings                []helpers.AuthSettings                 `tfschema:"auth_settings"`
 	Backup                      []helpers.Backup                       `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	PushSetting                 []helpers.PushSetting                  `tfschema:"push_settings"`
 	BuiltinLogging              bool                                   `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled           bool                                   `tfschema:"client_certificate_enabled"`
 	ClientCertMode              string                                 `tfschema:"client_certificate_mode"`
@@ -167,6 +168,8 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"auth_settings": helpers.AuthSettingsSchema(),
 
 		"backup": helpers.BackupSchema(),
+
+		"push_settings": helpers.PushSettingSchema(),
 
 		"builtin_logging_enabled": {
 			Type:        pluginsdk.TypeBool,
@@ -544,6 +547,14 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			// need to connect to notification hub before trying to enabled push
+			isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, id.ResourceGroup, id.SiteName)
+			pushSettings, err := helpers.ExpandPushSetting(functionApp.PushSetting, isNotificationHubConnected)
+			if err != nil {
+				return fmt.Errorf("expanding push setting for windows function app error: %+v", err)
+			}
+			client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings)
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -617,6 +628,11 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			pushSetting, err := client.ListSitePushSettings(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading push setting for Windows %s: %+v", id, err)
+			}
+
 			logs, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading logs configuration for Windows %s: %+v", id, err)
@@ -670,6 +686,12 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
+
+			pushes, err := helpers.FlattenPushSetting(pushSetting)
+			if err != nil {
+				return fmt.Errorf("reading push setting error: %+v", err)
+			}
+			state.PushSetting = pushes
 
 			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
 
@@ -934,6 +956,16 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, appServiceLogs); err != nil {
 					return fmt.Errorf("updating App Service Log Settings for %s: %+v", id, err)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("push_settings") {
+				// need to connect to notification hub before trying to enabled push
+				isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, id.ResourceGroup, id.SiteName)
+				pushSettings, err := helpers.ExpandPushSetting(state.PushSetting, isNotificationHubConnected)
+				if err != nil {
+					return fmt.Errorf("expanding push setting for windows function app error: %+v", err)
+				}
+				client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings)
 			}
 
 			return nil

@@ -40,6 +40,7 @@ type WindowsWebAppSlotModel struct {
 	HttpsOnly                     bool                                  `tfschema:"https_only"`
 	KeyVaultReferenceIdentityID   string                                `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig                  `tfschema:"logs"`
+	PushSetting                   []helpers.PushSetting                 `tfschema:"push_settings"`
 	SiteConfig                    []helpers.SiteConfigWindowsWebAppSlot `tfschema:"site_config"`
 	StorageAccounts               []helpers.StorageAccount              `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString            `tfschema:"connection_string"`
@@ -159,6 +160,8 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"logs": helpers.LogsConfigSchema(),
+
+		"push_settings": helpers.PushSettingSchema(),
 
 		"site_config": helpers.SiteConfigSchemaWindowsWebAppSlot(),
 
@@ -401,6 +404,14 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			// need to connect to notification hub before trying to enabled push
+			isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, id.ResourceGroup, id.SiteName)
+			pushSettings, err := helpers.ExpandPushSetting(webAppSlot.PushSetting, isNotificationHubConnected)
+			if err != nil {
+				return fmt.Errorf("expanding push setting for windows web app error: %+v", err)
+			}
+			client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings)
+
 			return nil
 		},
 
@@ -447,6 +458,11 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				if !utils.ResponseWasNotFound(backup.Response) {
 					return fmt.Errorf("reading Backup Settings for Windows %s: %+v", id, err)
 				}
+			}
+
+			pushSetting, err := client.ListSitePushSettings(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading push setting for Windows %s: %+v", id, err)
 			}
 
 			logsConfig, err := client.GetDiagnosticLogsConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
@@ -524,6 +540,12 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			if slotPlanId := props.ServerFarmID; slotPlanId != nil && parentAppFarmId.ID() != *slotPlanId {
 				state.ServicePlanID = *slotPlanId
 			}
+
+			pushes, err := helpers.FlattenPushSetting(pushSetting)
+			if err != nil {
+				return fmt.Errorf("reading push setting error: %+v", err)
+			}
+			state.PushSetting = pushes
 
 			if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
 				state.VirtualNetworkSubnetID = subnetId
@@ -744,6 +766,16 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating Connection Strings for Windows %s: %+v", id, err)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("push_settings") {
+				// need to connect to notification hub before trying to enabled push
+				isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, id.ResourceGroup, id.SiteName)
+				pushSettings, err := helpers.ExpandPushSetting(state.PushSetting, isNotificationHubConnected)
+				if err != nil {
+					return fmt.Errorf("expanding push setting for windows web app error: %+v", err)
+				}
+				client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings)
 			}
 
 			if metadata.ResourceData.HasChange("auth_settings") {

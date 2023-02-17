@@ -84,6 +84,17 @@ The following attributes are exported:
 
 * `id` - The ID of the Notification Hub.
 
+The following attributes are exported only if there is an authorization rule named
+`DefaultFullSharedAccessSignature` which is created automatically by Azure.
+
+* `default_primary_connection_string` - The primary connection string for the authorization rule `DefaultFullSharedAccessSignature`.
+
+* `default_primary_key` - The primary access key for the authorization rule `DefaultFullSharedAccessSignature`.
+
+* `default_secondary_connection_string` - The secondary connection string for the authorization rule `DefaultFullSharedAccessSignature`.
+
+* `default_secondary_key` - The secondary access key for the authorization rule `DefaultFullSharedAccessSignature`.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

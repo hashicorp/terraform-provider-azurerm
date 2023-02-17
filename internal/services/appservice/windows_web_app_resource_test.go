@@ -96,6 +96,21 @@ func TestAccWindowsWebApp_backup(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_push(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withPush(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsWebApp_backupUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
@@ -1350,6 +1365,56 @@ resource "azurerm_windows_web_app" "test" {
   site_config {}
 }
 `, r.templateWithStorageAccount(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) withPush(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_notification_hub_namespace" "test" {
+  name                = "acctestnhn-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  namespace_type      = "NotificationHub"
+  sku_name            = "Free"
+}
+
+resource "azurerm_notification_hub" "test" {
+  name                = "acctestnh-%d"
+  namespace_name      = azurerm_notification_hub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  push_settings {
+    is_push_enabled           = true
+    tags_to_whitelist         = ["tftest1", "tftest2"]
+    dynamic_tags_to_whitelist = ["dtags1", "dtags2"]
+    tags_requiring_auth       = ["dtags1"]
+  }
+  app_settings = {
+    "MS_NotificationHubName" = "${azurerm_notification_hub.test.name}"
+  }
+
+  connection_string {
+    name  = "MS_NotificationHubConnectionString"
+    value = azurerm_notification_hub.test.default_primary_connection_string
+    type  = "NotificationHub"
+  }
+
+  site_config {}
+}
+`, r.templateWithStorageAccount(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r WindowsWebAppResource) withConnectionStrings(data acceptance.TestData) string {
