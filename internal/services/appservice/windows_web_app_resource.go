@@ -439,11 +439,16 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 
 			// need to connect to notification hub before trying to enabled push
 			isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("checking required notification hub key error: %+v", err)
+			}
 			pushSettings, err := helpers.ExpandPushSetting(webApp.PushSetting, isNotificationHubConnected)
 			if err != nil {
 				return fmt.Errorf("expanding push setting for windows web app error: %+v", err)
 			}
-			client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings)
+			if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings); err != nil {
+				return fmt.Errorf("updating push setting error: %+v", err)
+			}
 
 			return nil
 		},
@@ -805,7 +810,9 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("expanding push setting for windows web app error: %+v", err)
 				}
-				client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings)
+				if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings); err != nil {
+					return fmt.Errorf("updating push setting error: %+v", err)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("sticky_settings") {

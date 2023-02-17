@@ -553,7 +553,9 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("expanding push setting for windows function app error: %+v", err)
 			}
-			client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings)
+			if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings); err != nil {
+				return fmt.Errorf("updating push setting error: %+v", err)
+			}
 
 			metadata.SetID(id)
 			return nil
@@ -961,11 +963,16 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("push_settings") {
 				// need to connect to notification hub before trying to enabled push
 				isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, id.ResourceGroup, id.SiteName)
+				if err != nil {
+					return fmt.Errorf("checking required notification hub key error: %+v", err)
+				}
 				pushSettings, err := helpers.ExpandPushSetting(state.PushSetting, isNotificationHubConnected)
 				if err != nil {
 					return fmt.Errorf("expanding push setting for windows function app error: %+v", err)
 				}
-				client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings)
+				if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings); err != nil {
+					return fmt.Errorf("updating push setting error: %+v", err)
+				}
 			}
 
 			return nil

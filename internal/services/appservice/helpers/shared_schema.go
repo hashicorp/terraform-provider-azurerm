@@ -1698,27 +1698,22 @@ func ExpandPushSetting(input []PushSetting, isNotificationHubConnected bool) (*w
 		IsPushEnabled: pointer.To(pushSettingData.IsPushEnabled),
 	}
 
-	for _, v := range pushSettingData.TagsToWhitelist {
-		whitelistTags = append(whitelistTags, v)
-	}
+	whitelistTags = append(whitelistTags, pushSettingData.TagsToWhitelist...)
+
 	tagsInJson, err := json.Marshal(whitelistTags)
 	if err != nil {
 		return nil, fmt.Errorf("serializing the tags to JSON: %+v", err)
 	}
 	result.PushSettingsProperties.TagWhitelistJSON = pointer.To(string(tagsInJson))
 
-	for _, v := range pushSettingData.DynamicTagsToWhitelist {
-		whitelistDynamicsTags = append(whitelistDynamicsTags, v)
-	}
+	whitelistDynamicsTags = append(whitelistDynamicsTags, pushSettingData.DynamicTagsToWhitelist...)
 	dTagsInJson, err := json.Marshal(whitelistDynamicsTags)
 	if err != nil {
 		return nil, fmt.Errorf("serializing the dynamic tags to JSON: %+v", err)
 	}
 	result.PushSettingsProperties.DynamicTagsJSON = pointer.To(string(dTagsInJson))
 
-	for _, v := range pushSettingData.RequiredAuthTags {
-		tagsRequiringAuth = append(tagsRequiringAuth, v)
-	}
+	tagsRequiringAuth = append(tagsRequiringAuth, pushSettingData.RequiredAuthTags...)
 	tagsRequiringAuthInJson, err := json.Marshal(tagsRequiringAuth)
 	if err != nil {
 		return nil, fmt.Errorf("serializing the dynamic tags to JSON: %+v", err)
