@@ -457,7 +457,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                        = "acctestlsblob%d"
+  name                       = "acctestlsblob%d"
   data_factory_id            = azurerm_data_factory.test.id
   connection_string_insecure = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
