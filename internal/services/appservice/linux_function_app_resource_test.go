@@ -1979,7 +1979,7 @@ resource "azurerm_linux_function_app" "test" {
 
   site_config {
     application_stack {
-      dotnet_version = "v6.0"
+      dotnet_version = "6.0"
     }
   }
   zip_deploy_file = "./testdata/functionapp-zipdeploy.zip"
