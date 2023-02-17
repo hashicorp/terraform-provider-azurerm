@@ -806,6 +806,9 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("push_settings") {
 				// need to connect to notification hub before trying to enabled push
 				isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, id.ResourceGroup, id.SiteName)
+				if err != nil {
+					return fmt.Errorf("checking required notification hub key error: %+v", err)
+				}
 				pushSettings, err := helpers.ExpandPushSetting(state.PushSetting, isNotificationHubConnected)
 				if err != nil {
 					return fmt.Errorf("expanding push setting for windows web app error: %+v", err)

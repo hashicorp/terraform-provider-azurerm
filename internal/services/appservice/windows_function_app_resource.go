@@ -549,6 +549,9 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 
 			// need to connect to notification hub before trying to enabled push
 			isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("checking required notification hub key error: %+v", err)
+			}
 			pushSettings, err := helpers.ExpandPushSetting(functionApp.PushSetting, isNotificationHubConnected)
 			if err != nil {
 				return fmt.Errorf("expanding push setting for windows function app error: %+v", err)
