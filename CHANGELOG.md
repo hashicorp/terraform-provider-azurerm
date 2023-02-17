@@ -1,3 +1,9 @@
+## 3.45.0 (Unreleased)
+
+BUG FIXES
+
+* `data.azurerm_redis_cache` : fix issue when no patch schedules can be found [GH-20516]
+
 ## 3.44.1 (February 17, 2023)
 
 ENHANCEMENTS
