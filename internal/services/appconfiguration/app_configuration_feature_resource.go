@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
@@ -48,7 +48,7 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
 		},
 		"description": {
 			Type:     pluginsdk.TypeString,
@@ -166,11 +166,11 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
-			if client == nil {
-				return fmt.Errorf("app configuration %q was not found", model.ConfigurationStoreId)
-			}
 			if err != nil {
 				return err
+			}
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", model.ConfigurationStoreId)
 			}
 
 			appCfgFeatureResourceID := parse.AppConfigurationFeatureId{
@@ -225,12 +225,12 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if err != nil {
+				return err
+			}
 			if client == nil {
 				// if the AppConfiguration is gone then all the data inside it is too
 				return metadata.MarkAsGone(resourceID)
-			}
-			if err != nil {
-				return err
 			}
 
 			kv, err := client.GetKeyValue(ctx, featureKey, resourceID.Label, "", "", "", []string{})
@@ -297,11 +297,11 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, resourceID.Name)
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
-			if client == nil {
-				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
-			}
 			if err != nil {
 				return err
+			}
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
 			}
 
 			var model FeatureResourceModel
