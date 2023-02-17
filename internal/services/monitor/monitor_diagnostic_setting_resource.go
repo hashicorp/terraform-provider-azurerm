@@ -100,8 +100,8 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				ForceNew: false,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"AzureDiagnostics",
-					"Dedicated", // Not documented in azure API, but some resource has skew. See: https://github.com/Azure/azure-rest-api-specs/issues/9281
+					"Dedicated",
+					"AzureDiagnostics", // Not documented in azure API, but some resource has skew. See: https://github.com/Azure/azure-rest-api-specs/issues/9281
 				}, false),
 			},
 

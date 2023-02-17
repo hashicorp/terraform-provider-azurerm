@@ -411,9 +411,9 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                           = "acctest-DS-%[1]d"
-  target_resource_id             = azurerm_key_vault.test.id
-  log_analytics_workspace_id     = azurerm_log_analytics_workspace.test.id
+  name                       = "acctest-DS-%[1]d"
+  target_resource_id         = azurerm_key_vault.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
   metric {
     category = "AllMetrics"
@@ -775,7 +775,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-  enabled_log { 
+  enabled_log {
     category = "AuditEvent"
 
     retention_policy {
@@ -784,7 +784,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  enabled_log { 
+  enabled_log {
     category = "AzurePolicyEvaluationDetails"
 
     retention_policy {
@@ -858,7 +858,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-  enabled_log { 
+  enabled_log {
     category = "AuditEvent"
 
     retention_policy {
