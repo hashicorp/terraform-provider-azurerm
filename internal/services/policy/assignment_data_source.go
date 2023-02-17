@@ -154,7 +154,7 @@ func (AssignmentDataSource) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, id.Scope, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}

@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -36,6 +38,29 @@ func dataSourceKeyVaultSecrets() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+
+			"secrets": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -64,6 +89,7 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.SetId(keyVaultId.ID())
 
 	var names []string
+	var secrets []map[string]interface{}
 
 	if secretList.Response().Value != nil {
 		for secretList.NotDone() {
@@ -73,6 +99,7 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 					return err
 				}
 				names = append(names, *name)
+				secrets = append(secrets, expandSecrets(*name, v))
 				err = secretList.NextWithContext(ctx)
 				if err != nil {
 					return fmt.Errorf("listing secrets on Azure KeyVault %q: %+v", *keyVaultId, err)
@@ -82,6 +109,7 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.Set("names", names)
+	d.Set("secrets", secrets)
 	d.Set("key_vault_id", keyVaultId.ID())
 
 	return nil
@@ -98,4 +126,15 @@ func parseNameFromSecretUrl(input string) (*string, error) {
 		return nil, fmt.Errorf("expected a Path in the format `/secrets/secret-name` but got %q", uri.Path)
 	}
 	return &segments[2], nil
+}
+
+func expandSecrets(name string, item keyvault.SecretItem) map[string]interface{} {
+	res := map[string]interface{}{
+		"id":   *item.ID,
+		"name": name,
+	}
+	if item.Attributes != nil && item.Attributes.Enabled != nil {
+		res["enabled"] = *item.Attributes.Enabled
+	}
+	return res
 }

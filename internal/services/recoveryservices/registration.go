@@ -27,6 +27,7 @@ func (r Registration) Resources() []sdk.Resource {
 		BackupProtectionPolicyVMWorkloadResource{},
 		SiteRecoveryReplicationRecoveryPlanResource{},
 		ReplicationPolicyHyperVResource{},
+		HyperVSiteResource{},
 	}
 }
 

@@ -10,14 +10,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string) (policy.Definition, error) {
+func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string,
+	builtInOnly bool) (policy.Definition, error) {
 	var policyDefinitions policy.DefinitionListResultIterator
 	var err error
 
 	if managementGroupName != "" {
 		policyDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupName, "", nil)
 	} else {
-		policyDefinitions, err = client.ListComplete(ctx, "", nil)
+		if builtInOnly {
+			policyDefinitions, err = client.ListBuiltInComplete(ctx, "", nil)
+		} else {
+			policyDefinitions, err = client.ListComplete(ctx, "", nil)
+		}
 	}
 	if err != nil {
 		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: %+v", err)
@@ -37,12 +42,12 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 
 	// we found none
 	if len(results) == 0 {
-		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: could not find policy '%s'", displayName)
+		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: could not find policy '%s'. has the policies name changed? list available with `az policy definition list`", displayName)
 	}
 
 	// we found more than one
 	if len(results) > 1 {
-		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: found more than one policy '%s'", displayName)
+		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: found more than one (%d) policy '%s'", len(results), displayName)
 	}
 
 	return results[0], nil

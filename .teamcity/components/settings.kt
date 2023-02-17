@@ -53,8 +53,8 @@ var serviceTestConfigurationOverrides = mapOf(
         //Confidential Ledger
         "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
 
-        // Container App Managed Environments are limited to 5 per location, using 3 as they can take some time to clear
-        "containerapps" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope","eastus","canadacentral", false)),
+        // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
+        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("westeurope","eastus","canadacentral", false)),
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), useDevTestSubscription = true),
@@ -110,7 +110,7 @@ var serviceTestConfigurationOverrides = mapOf(
         // MySQL has quota available in certain locations
         "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
-        // netapp has a max of 10 accounts per subscription so lets limit it to 1 to account for broken ones, run Monday, Wednesday, Friday
+        // netapp has a max of 10 accounts and the max capacity of pool is 25 TiB per subscription so lets limit it to 1 to account for broken ones, run Monday, Wednesday, Friday
         "netapp" to testConfiguration(parallelism = 1, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false), useDevTestSubscription = true),
 
         // Orbital is only available in certain locations

@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `client_certificate_enabled` - (Optional) Enforce a client certificate to be presented on each request to the gateway? This is only supported when SKU type is `Consumption`.
 
+* `delegation` - (Optional) A `delegation` block as defined below.
+
 * `gateway_disabled` - (Optional) Disable the gateway in main region? This is only supported when `additional_location` is set.
 
 * `min_api_version` - (Optional) The version which the control plane API calls to API Management service are limited with version equal to or newer than.
@@ -132,6 +134,18 @@ A `certificate` block supports the following:
 * `store_name` - (Required) The name of the Certificate Store where this certificate should be stored. Possible values are `CertificateAuthority` and `Root`.
 
 * `certificate_password` - (Optional) The password for the certificate.
+
+---
+
+A `delegation` block supports the following:
+
+* `subscriptions_enabled` - (Optional) Should subscription requests be delegated to an external url? Defaults to `false`.
+
+* `user_registration_enabled` - (Optional) Should user registration requests be delegated to an external url? Defaults to `false`.
+
+* `url` - (Optional) The delegation URL.
+
+* `validation_key` - (Optional) A base64-encoded validation key to validate, that a request is coming from Azure API Management.
 
 ---
 
