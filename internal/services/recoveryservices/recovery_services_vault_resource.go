@@ -142,10 +142,10 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"classic_vmware_replicate_enabled": {
+			"classic_vmware_replication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 				ForceNew: true,
 			},
 		},
@@ -333,7 +333,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
 	}
 
-	if d.Get("classic_vmware_replicate_enabled").(bool) {
+	if d.Get("classic_vmware_replication_enabled").(bool) {
 		settingsId := replicationvaultsetting.NewReplicationVaultSettingID(id.SubscriptionId, id.ResourceGroupName, id.VaultName, "default")
 		settingsInput := replicationvaultsetting.VaultSettingCreationInput{
 			Properties: replicationvaultsetting.VaultSettingCreationInputProperties{
@@ -662,7 +662,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	}
 	if vaultSetting.Model != nil && vaultSetting.Model.Properties != nil && vaultSetting.Model.Properties.VMwareToAzureProviderType != nil {
 		providerType := vaultSetting.Model.Properties.VMwareToAzureProviderType
-		d.Set("classic_vmware_replicate_enabled", strings.EqualFold(*providerType, "vmware"))
+		d.Set("classic_vmware_replication_enabled", strings.EqualFold(*providerType, "vmware"))
 	}
 
 	return tags.FlattenAndSet(d, model.Tags)
