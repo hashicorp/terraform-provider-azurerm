@@ -69,8 +69,7 @@ resource "azurerm_recovery_services_vault" "test" {
 }
 
 resource "azurerm_site_recovery_hyperv_replication_policy" "test" {
-  resource_group_name                                = azurerm_resource_group.test.name
-  recovery_vault_name                                = azurerm_recovery_services_vault.test.name
+  recovery_vault_id                                  = azurerm_recovery_services_vault.test.id
   name                                               = "acctest-policy-%d"
   recovery_point_retention_in_hours                  = %d
   application_consistent_snapshot_frequency_in_hours = %d
