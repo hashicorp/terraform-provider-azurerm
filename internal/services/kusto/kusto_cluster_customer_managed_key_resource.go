@@ -261,17 +261,13 @@ func resourceKustoClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceData, met
 	// "Delete" doesn't really make sense it should really be a "Revert to Default"
 	// So instead of the Delete func actually deleting the Kusto Cluster I am
 	// making it reset the Kusto cluster to its default state
-	props := cluster.Model
-	if props == nil {
-		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): cluster.Model is nil", clusterID.ClusterName, clusterID.ResourceGroupName)
+	props := clusters.ClusterUpdate{
+		Properties: &clusters.ClusterProperties{
+			KeyVaultProperties: &clusters.KeyVaultProperties{},
+		},
 	}
 
-	if props.Properties != nil && props.Properties.KeyVaultProperties != nil {
-		props.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{}
-	}
-
-	// Using PUT since PATCH is not supported and will return Internal Server Error.
-	err = client.CreateOrUpdateThenPoll(ctx, *clusterID, *props, clusters.CreateOrUpdateOperationOptions{})
+	err = client.UpdateThenPoll(ctx, *clusterID, props, clusters.UpdateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("removing Customer Managed Key for Kusto Cluster %q (Resource Group %q): %+v", clusterID.ClusterName, clusterID.ResourceGroupName, err)
 	}
