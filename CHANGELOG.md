@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_hybrid_compute_machine` [GH-20211]
+* **New Data Source:** `azurerm_policy_definition_built_in` [GH-19933]
 * **New Data Source:** `azurerm_mobile_network_service` [GH-20337]
 * **New Data Source:** `azurerm_mobile_network_site` [GH-20334]
 * **New Data Source:** `azurerm_mobile_network_slice` [GH-20336]
