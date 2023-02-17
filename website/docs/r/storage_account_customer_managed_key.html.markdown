@@ -132,8 +132,8 @@ The following arguments are supported:
 * `key_version` - (Optional) The version of Key Vault Key. Remove or omit this argument to enable Automatic Key Rotation.
 
 * `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
-//ClientId of the multi-tenant application to be used in conjunction with the user-assigned identity for cross-tenant customer-managed-keys server-side encryption on the storage account.
-* `federated_identity_client_id` - (Optional) The Client ID of the multi-tenant application for cross-tenant 
+
+* `federated_identity_client_id` - (Optional) The Client ID of the multi-tenant application to be used in conjunction with the user-assigned identity for cross-tenant customer-managed-keys server-side encryption on the storage account.
 
 ## Attributes Reference
 
