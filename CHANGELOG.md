@@ -6,7 +6,8 @@ ENHANCEMENTS
 
 BUG FIXES
 
-* authentication: fixing an issue when obtaining the auth token for Resource Manager in Azure Government [GH-20523]
+* authentication: fix an issue when obtaining the auth token for Resource Manager in Azure Government [GH-20523]
+* authentication: fix an issue where the default subscription ID was not detected when authenticating using Azure CLI [GH-20526]
 * `azurerm_kubernetes_cluster` - fix a crash when `securityProfile` is nil in the API Response [GH-20517]
 
 ## 3.44.0 (February 16, 2023)
