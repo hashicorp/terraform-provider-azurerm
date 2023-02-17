@@ -322,6 +322,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/d
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettingscategories
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-08-01/scheduledqueryrules
 github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps
+github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions
+github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/lab
 github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/labplan
