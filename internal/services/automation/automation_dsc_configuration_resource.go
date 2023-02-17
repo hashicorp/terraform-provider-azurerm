@@ -175,10 +175,13 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("state", props.State)
 		}
 
-		err := flattenAndSetTags(d, *model.Tags)
-		if err != nil {
-			return err
+		if model.Tags != nil {
+			err := flattenAndSetTags(d, *model.Tags)
+			if err != nil {
+				return err
+			}
 		}
+
 	}
 
 	contentResp, err := client.GetContent(ctx, *id)

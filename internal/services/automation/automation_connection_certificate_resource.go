@@ -156,7 +156,6 @@ func resourceAutomationConnectionCertificateRead(d *pluginsdk.ResourceData, meta
 					d.Set("subscription_id", v)
 				}
 			}
-
 			d.Set("description", props.Description)
 		}
 	}
