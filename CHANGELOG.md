@@ -15,6 +15,7 @@ FEATURES:
 * **New Resource:** `azurerm_mobile_network_site` [GH-20334]
 * **New Resource:** `azurerm_mobile_network_slice` [GH-20336]
 * **New Resource:** `azurerm_mobile_network_sim_group` [GH-20339
+* **New Resource:** `azurerm_site_recovery_services_vault_hyperv_site` [GH-204309
 
 ENHANCEMENTS:
 
