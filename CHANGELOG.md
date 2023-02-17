@@ -1,7 +1,12 @@
 ## 3.44.1 (Unreleased)
 
+ENHANCEMENTS
+
+* dependencies: updating to `v0.20230217.1092053` of `github.com/hashicorp/go-azure-sdk` [GH-20523]
+
 BUG FIXES
 
+* authentication: fixing an issue when obtaining the auth token for Resource Manager in Azure Government [GH-20523]
 * `azurerm_kubernetes_cluster` - fix a crash when `securityProfile` is nil in the API Response [GH-20517]
 
 ## 3.44.0 (February 16, 2023)
