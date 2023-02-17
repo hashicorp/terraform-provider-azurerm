@@ -2249,7 +2249,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("oidc_issuer_enabled", oidcIssuerEnabled)
 		d.Set("oidc_issuer_url", oidcIssuerUrl)
 
-		microsoftDefender := flattenKubernetesClusterMicrosoftDefender(props.SecurityProfile.Defender)
+		microsoftDefender := flattenKubernetesClusterMicrosoftDefender(props.SecurityProfile)
 		if err := d.Set("microsoft_defender", microsoftDefender); err != nil {
 			return fmt.Errorf("setting `microsoft_defender`: %+v", err)
 		}
@@ -3632,13 +3632,13 @@ func expandKubernetesClusterMicrosoftDefender(d *pluginsdk.ResourceData, input [
 	}
 }
 
-func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfileDefender) []interface{} {
-	if input == nil || (input.SecurityMonitoring != nil && input.SecurityMonitoring.Enabled != nil && !*input.SecurityMonitoring.Enabled) {
+func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
+	if input == nil || input.Defender == nil || input.Defender.SecurityMonitoring == nil || input.Defender.SecurityMonitoring.Enabled == nil || !*input.Defender.SecurityMonitoring.Enabled {
 		return []interface{}{}
 	}
 
 	logAnalyticsWorkspace := ""
-	if v := input.LogAnalyticsWorkspaceResourceId; v != nil {
+	if v := input.Defender.LogAnalyticsWorkspaceResourceId; v != nil {
 		logAnalyticsWorkspace = *v
 	}
 
