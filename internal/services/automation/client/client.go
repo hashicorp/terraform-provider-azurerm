@@ -5,7 +5,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/dscconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbookdraft"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/certificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/connection"
@@ -37,7 +36,7 @@ type Client struct {
 	ModuleClient                *module.ModuleClient
 	RunbookClient               *runbook.RunbookClient
 	RunbookClientHack           *automation.RunbookClient
-	RunbookDraftClient          *runbookdraft.RunbookDraftClient
+	RunbookDraftClient          *automation.RunbookDraftClient
 	RunBookWgClient             *hybridrunbookworkergroup.HybridRunbookWorkerGroupClient
 	RunbookWorkerClient         *hybridrunbookworker.HybridRunbookWorkerClient
 	ScheduleClient              *schedule.ScheduleClient
@@ -85,7 +84,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	runbookClient := runbook.NewRunbookClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&runbookClient.Client, o.ResourceManagerAuthorizer)
 
-	runbookDraftClient := runbookdraft.NewRunbookDraftClientWithBaseURI(o.ResourceManagerEndpoint)
+	runbookDraftClient := automation.NewRunbookDraftClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&runbookDraftClient.Client, o.ResourceManagerAuthorizer)
 
 	runbookWgClient := hybridrunbookworkergroup.NewHybridRunbookWorkerGroupClientWithBaseURI(o.ResourceManagerEndpoint)
