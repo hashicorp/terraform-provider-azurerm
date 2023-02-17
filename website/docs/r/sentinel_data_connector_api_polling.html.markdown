@@ -99,10 +99,10 @@ resource "azurerm_sentinel_data_connector_api_polling" "example" {
 
     permissions {
       resource_provider {
-        name                     = "Microsoft.OperationalInsights/workspaces"
+        name         = "Microsoft.OperationalInsights/workspaces"
         display_name = "read and write permissions are required."
         display_text = "Workspace"
-        scope                    = "Workspace"
+        scope        = "Workspace"
         required_permissions {
           read   = true
           write  = true
@@ -137,7 +137,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this API Polling Data Connector. Changing this forces a new API Polling Data Connector to be created.
 
-* `log_analytics_workspace_id` - (Required) The ID of the TODO. Changing this forces a new API Polling Data Connector to be created.
+* `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace that this API Polling Data Connector resides in. Changing this forces a new API Polling Data Connector to be created.
 
 * `auth` - (Required) An `auth` block as defined below.
 
@@ -182,6 +182,10 @@ A `auth` block supports the following:
 * `oauth2_token_endpoint_headers` - (Optional) The json map of headers endpoint used to authorize the user, used in Oauth 2.0 flow.
 
 * `oauth2_token_endpoint_query_parameters` - (Optional) The json map of query parameters used in authorization request, used in Oauth 2.0 flow.
+
+-> **NOTE:** If `type` is set to `APIKey`, `api_key_identifier`, `api_key_in_header_enabled` and `api_key_name` are required.
+
+-> **NOTE:** If `type` is set to `OAuth2`, `oauth2_authorization_endpoint`, `oauth2_authorization_endpoint_query_parameters`, `oauth2_client_secret_in_header_enabled`, `oauth2_flow_name`, `oauth2_redirection_endpoint`, `oauth2_scope`, `oauth2_token_endpoint`, `oauth2_token_endpoint_headers` and `oauth2_token_endpoint_query_parameters` are required.
 
 ---
 

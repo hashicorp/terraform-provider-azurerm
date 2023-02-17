@@ -501,8 +501,6 @@ func flattenDataConnectorGenericUIInstructionStepInstructionModel(input *[]secur
 	return output, nil
 }
 
-type DataConnectorGenericUIResource struct{}
-
 func DataConnectorGenericUIConfigSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"title": {

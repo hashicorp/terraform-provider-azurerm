@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
@@ -579,7 +579,7 @@ func (r DataConnectorApiPollingResource) Update() sdk.ResourceFunc {
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, params); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
