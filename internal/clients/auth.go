@@ -84,6 +84,45 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		tenantId = config.TenantID
 	}
 
+	// Finally, defer to Azure CLI to obtain tenant ID, subscription ID and client ID when not specified and missing from claims
+	realAuthorizer := authorizer
+	if cache, ok := authorizer.(*auth.CachedAuthorizer); ok {
+		realAuthorizer = cache.Source
+	}
+	if cli, ok := realAuthorizer.(*auth.AzureCliAuthorizer); ok {
+		// Use the tenant ID from Azure CLI when otherwise unknown
+		if tenantId == "" {
+			if cli.TenantID == "" {
+				return nil, fmt.Errorf("azure-cli could not determine tenant ID to use")
+			}
+			tenantId = cli.TenantID
+			log.Printf("[DEBUG] Using tenant ID from Azure CLI: %q", tenantId)
+		}
+
+		// Use the subscription ID from Azure CLI when otherwise unknown
+		if subscriptionId == "" {
+			if cli.DefaultSubscriptionID == "" {
+				return nil, fmt.Errorf("azure-cli could not determine subscription ID to use and no subscription was specified")
+			}
+
+			subscriptionId = cli.DefaultSubscriptionID
+			log.Printf("[DEBUG] Using default subscription ID from Azure CLI: %q", subscriptionId)
+		}
+
+		// Use the Azure CLI client ID
+		if id, ok := config.Environment.MicrosoftAzureCli.AppId(); ok {
+			clientId = *id
+			log.Printf("[DEBUG] Using client ID from Azure CLI: %q", clientId)
+		}
+	}
+
+	if tenantId == "" {
+		return nil, fmt.Errorf("unable to configure ResourceManagerAccount: tenant ID could not be determined and was not specified")
+	}
+	if subscriptionId == "" {
+		return nil, fmt.Errorf("unable to configure ResourceManagerAccount: subscription ID could not be determined and was not specified")
+	}
+
 	account := ResourceManagerAccount{
 		Environment: config.Environment,
 
