@@ -150,6 +150,13 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 				Required: true,
 			},
 
+			"ssl_minimal_tls_version_enforced": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(servers.MinimalTlsVersionEnumTLSOneTwo),
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForMinimalTlsVersionEnum(), false),
+			},
+
 			"storage_mb": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
@@ -215,6 +222,8 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		ssl = servers.SslEnforcementEnumDisabled
 	}
 
+	tlsMin := servers.MinimalTlsVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
+
 	storage := expandMariaDbStorageProfile(d)
 
 	var props servers.ServerPropertiesForCreate
@@ -237,6 +246,7 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		props = servers.ServerPropertiesForDefaultCreate{
 			AdministratorLogin:         admin,
 			AdministratorLoginPassword: pass,
+			MinimalTlsVersion:          &tlsMin,
 			PublicNetworkAccess:        &publicAccess,
 			SslEnforcement:             &ssl,
 			StorageProfile:             storage,
@@ -253,6 +263,7 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			SourceServerId:      source,
 			RestorePointInTime:  v.(string),
 			PublicNetworkAccess: &publicAccess,
+			MinimalTlsVersion:   &tlsMin,
 			SslEnforcement:      &ssl,
 			StorageProfile:      storage,
 			Version:             &version,
@@ -262,6 +273,7 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			SourceServerId:      source,
 			PublicNetworkAccess: &publicAccess,
 			SslEnforcement:      &ssl,
+			MinimalTlsVersion:   &tlsMin,
 			StorageProfile:      storage,
 			Version:             &version,
 		}
@@ -270,6 +282,7 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			SourceServerId:      source,
 			PublicNetworkAccess: &publicAccess,
 			SslEnforcement:      &ssl,
+			MinimalTlsVersion:   &tlsMin,
 			Version:             &version,
 		}
 	}
@@ -316,11 +329,14 @@ func resourceMariaDbServerUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		ssl = servers.SslEnforcementEnumDisabled
 	}
 
+	minTls := servers.MinimalTlsVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
+
 	storageProfile := expandMariaDbStorageProfile(d)
 	serverVersion := servers.ServerVersion(d.Get("version").(string))
 	properties := servers.ServerUpdateParameters{
 		Properties: &servers.ServerUpdateParametersProperties{
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
+			MinimalTlsVersion:          &minTls,
 			PublicNetworkAccess:        &publicAccess,
 			SslEnforcement:             &ssl,
 			StorageProfile:             storageProfile,
@@ -382,6 +398,8 @@ func resourceMariaDbServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				sslEnforcement = *props.SslEnforcement == servers.SslEnforcementEnumEnabled
 			}
 			d.Set("ssl_enforcement_enabled", sslEnforcement)
+
+			d.Set("ssl_minimal_tls_version_enforced", props.MinimalTlsVersion)
 
 			version := ""
 			if props.Version != nil {
