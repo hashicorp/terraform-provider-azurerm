@@ -600,6 +600,21 @@ func TestAccKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_virtualNetworkMultipleSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.virtualNetworkMultipleSubnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_windows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -1864,6 +1879,31 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vnet_subnet_id        = azurerm_subnet.test.id
 }
 `, r.templateVirtualNetworkConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) virtualNetworkMultipleSubnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestsubnet2%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.1.0/24"]
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  vnet_subnet_id        = azurerm_subnet.test2.id
+}
+`, r.templateVirtualNetworkConfig(data), data.RandomInteger)
 }
 
 func (r KubernetesClusterNodePoolResource) windowsConfig(data acceptance.TestData) string {

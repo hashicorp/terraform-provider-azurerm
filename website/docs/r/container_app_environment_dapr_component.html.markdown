@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `init_timeout` - The timeout for component initialisation as a `ISO8601` formatted string. e.g. `5s`, `2h`, `1m`. Defaults to `5s`
 
-* `metadata` - (Optional) A `metadata` block as detailed below.
+* `metadata` - (Optional) One or more `metadata` blocks as detailed below.
 
 * `scopes` - (Optional) A list of scopes to which this component applies.
 
@@ -106,5 +106,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 A Dapr Component for a Container App Environment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_container_app_environment_dapr_component.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/daprComponents/mydaprcomponent"
+terraform import azurerm_container_app_environment_dapr_component.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myenv/daprComponents/mydaprcomponent"
 ```

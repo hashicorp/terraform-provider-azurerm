@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -26,7 +26,7 @@ func (k KeyDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"configuration_store_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
 		},
 		"key": {
 			Type:         pluginsdk.TypeString,
@@ -100,11 +100,11 @@ func (k KeyDataSource) Read() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
-			if client == nil {
-				return fmt.Errorf("building data plane client: app configuration %q was not found", model.ConfigurationStoreId)
-			}
 			if err != nil {
 				return err
+			}
+			if client == nil {
+				return fmt.Errorf("building data plane client: app configuration %q was not found", model.ConfigurationStoreId)
 			}
 
 			kv, err := client.GetKeyValue(ctx, decodedKey, model.Label, "", "", "", []string{})

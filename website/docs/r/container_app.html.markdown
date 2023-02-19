@@ -67,6 +67,8 @@ The following arguments are supported:
 
 * `dapr` - (Optional) A `dapr` block as detailed below.
 
+* `identity` - (Optional) An `identity` block as detailed below.
+
 * `ingress` - (Optional) An `ingress` block as detailed below.
 
 * `registry` - (Optional) A `registry` block as detailed below.
@@ -89,7 +91,7 @@ A `secret` block supports the following:
 
 A `template` block supports the following:
 
-* `container` - (Required) A `container` block as detailed below.
+* `container` - (Required) One or more `container` blocks as detailed below.
 
 * `max_replicas` - (Optional) The maximum number of replicas for this container.
 
@@ -121,7 +123,7 @@ A `container` block supports the following:
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
-* `env` - (Optional) An `env` block as detailed below.
+* `env` - (Optional) One or more `env` blocks as detailed below.
 
 * `ephemeral_storage` - The amount of ephemeral storage available to the Container App. 
 
@@ -257,6 +259,14 @@ A `volume_mounts` block supports the following:
 
 ---
 
+An `identity` block supports the following:
+
+* `type` - (Required) The type of managed identity to assign. Possible values are `UserAssigned` and `SystemAssigned`
+
+* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`.
+
+---
+
 An `ingress` block supports the following:
 
 * `allow_insecure_connections` - (Optional) Should this ingress allow insecure connections?
@@ -305,11 +315,16 @@ A `dapr` block supports the following:
 
 A `registry` block supports the following:
 
-* `password_secret_name` - (Required) The name of the Secret Reference containing the password value for this user on the Container Registry.
-
 * `server` - (Required) The hostname for the Container Registry.
 
-* `username` - (Required) The username to use for this Container Registry.
+The authentication details must also be supplied, `identity` and `username`/`password_secret_name` are mutually exclusive.
+
+* `identity` - (Optional) Resource ID for the User Assigned Managed identity to use when pulling from the Container Registry.
+
+* `password_secret_name` - (Optional) The name of the Secret Reference containing the password value for this user on the Container Registry, `username` must also be supplied.
+
+* `username` - (Optional) The username to use for this Container Registry, `password_secret_name` must also be supplied..
+
 
 
 ## Attributes Reference

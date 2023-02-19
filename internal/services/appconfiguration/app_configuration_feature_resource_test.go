@@ -172,12 +172,12 @@ func (t AppConfigurationFeatureResource) Exists(ctx context.Context, clients *cl
 	}
 
 	client, err := clients.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+	if err != nil {
+		return nil, err
+	}
 	if client == nil {
 		// if the AppConfiguration is gone all the data is too
 		return utils.Bool(false), nil
-	}
-	if err != nil {
-		return nil, err
 	}
 
 	res, err := client.GetKeyValues(ctx, resourceID.Name, resourceID.Label, "", "", []string{})

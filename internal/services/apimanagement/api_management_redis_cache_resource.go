@@ -89,6 +89,11 @@ func resourceApiManagementRedisCacheCreateUpdate(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	resourceManagerEndpoint, ok := meta.(*clients.Client).Account.Environment.ResourceManager.Endpoint()
+	if !ok {
+		return fmt.Errorf("could not determine Resource Manager endpoint suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
+	}
+
 	name := d.Get("name").(string)
 	apimId, err := parse.ApiManagementID(d.Get("api_management_id").(string))
 	if err != nil {
@@ -119,11 +124,8 @@ func resourceApiManagementRedisCacheCreateUpdate(d *pluginsdk.ResourceData, meta
 		parameters.CacheContractProperties.Description = utils.String(v.(string))
 	}
 
-	// Remove the extra / in the ResourceID so the redis cache can be associated to the api mgmt service as expected,
-	// otherwise, the resourceId behave like
-	// "https://management.azure.com//subscriptions/xx/resourceGroups/xx/providers/Microsoft.Cache/Redis/xx"
 	if v, ok := d.GetOk("redis_cache_id"); ok && v.(string) != "" {
-		parameters.CacheContractProperties.ResourceID = utils.String(strings.TrimSuffix(meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint, "/") + v.(string))
+		parameters.CacheContractProperties.ResourceID = utils.String(*resourceManagerEndpoint + v.(string))
 	}
 
 	// here we use "PUT" for updating, because `description` is not allowed to be empty string, Then we could not update to remove `description` by `PATCH`
@@ -140,6 +142,11 @@ func resourceApiManagementRedisCacheRead(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).ApiManagement.CacheClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	resourceManagerEndpoint, ok := meta.(*clients.Client).Account.Environment.ResourceManager.Endpoint()
+	if !ok {
+		return fmt.Errorf("could not determine Resource Manager endpoint suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
+	}
 
 	id, err := parse.RedisCacheID(d.Id())
 	if err != nil {
@@ -163,7 +170,7 @@ func resourceApiManagementRedisCacheRead(d *pluginsdk.ResourceData, meta interfa
 		cacheId := ""
 		if props.ResourceID != nil {
 			// correct the resourceID issue: "https://management.azure.com//subscriptions/xx/resourceGroups/xx/providers/Microsoft.Cache/Redis/xx"
-			cacheId = strings.TrimPrefix(*props.ResourceID, strings.TrimSuffix(meta.(*clients.Client).Account.Environment.ResourceManagerEndpoint, "/"))
+			cacheId = strings.TrimPrefix(*props.ResourceID, *resourceManagerEndpoint)
 		}
 		d.Set("redis_cache_id", cacheId)
 		d.Set("cache_location", props.UseFromLocation)
