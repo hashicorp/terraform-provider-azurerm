@@ -356,15 +356,16 @@ func (r MariaDbServerResource) createReplica(data acceptance.TestData, version s
 %s
 
 resource "azurerm_mariadb_server" "replica" {
-  name                      = "acctestmariadbsvr-%d-replica"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  sku_name                  = "B_Gen5_2"
-  version                   = "%s"
-  create_mode               = "Replica"
-  creation_source_server_id = azurerm_mariadb_server.test.id
-  ssl_enforcement_enabled   = true
-  storage_mb                = 51200
+  name                             = "acctestmariadbsvr-%d-replica"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  sku_name                         = "B_Gen5_2"
+  version                          = "%s"
+  create_mode                      = "Replica"
+  creation_source_server_id        = azurerm_mariadb_server.test.id
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "TLS1_1"
+  storage_mb                       = 51200
 }
 `, r.basic(data, version), data.RandomInteger, version)
 }
@@ -374,16 +375,17 @@ func (r MariaDbServerResource) createPointInTimeRestore(data acceptance.TestData
 %s
 
 resource "azurerm_mariadb_server" "restore" {
-  name                      = "acctestmariadbsvr-%d-restore"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  sku_name                  = "B_Gen5_2"
-  version                   = "%s"
-  create_mode               = "PointInTimeRestore"
-  creation_source_server_id = azurerm_mariadb_server.test.id
-  restore_point_in_time     = "%s"
-  ssl_enforcement_enabled   = true
-  storage_mb                = 51200
+  name                             = "acctestmariadbsvr-%d-restore"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  sku_name                         = "B_Gen5_2"
+  version                          = "%s"
+  create_mode                      = "PointInTimeRestore"
+  creation_source_server_id        = azurerm_mariadb_server.test.id
+  restore_point_in_time            = "%s"
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "TLS1_1"
+  storage_mb                       = 51200
 }
 `, r.basic(data, version), data.RandomInteger, version, restoreTime)
 }
