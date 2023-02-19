@@ -651,7 +651,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			if functionApp.SiteProperties == nil || functionApp.SiteProperties.ServerFarmID == nil {
 				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
 			}
-			parentAppFarmId, err := parse.ServicePlanID(*functionApp.SiteProperties.ServerFarmID)
+			parentAppFarmId, err := parse.ServicePlanIDInsensitively(*functionApp.SiteProperties.ServerFarmID)
 			if err != nil {
 				return err
 			}

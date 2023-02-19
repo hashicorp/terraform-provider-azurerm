@@ -73,3 +73,59 @@ func ProductID(input string) (*ProductId, error) {
 
 	return &resourceId, nil
 }
+
+// ProductIDInsensitively parses an Product ID into an ProductId struct, insensitively
+// This should only be used to parse an ID for rewriting, the ProductID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func ProductIDInsensitively(input string) (*ProductId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := ProductId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'service' segment
+	serviceKey := "service"
+	for key := range id.Path {
+		if strings.EqualFold(key, serviceKey) {
+			serviceKey = key
+			break
+		}
+	}
+	if resourceId.ServiceName, err = id.PopSegment(serviceKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'products' segment
+	productsKey := "products"
+	for key := range id.Path {
+		if strings.EqualFold(key, productsKey) {
+			productsKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(productsKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
