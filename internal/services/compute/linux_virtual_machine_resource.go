@@ -98,6 +98,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ForceNew:         true,
 				Sensitive:        true,
 				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
+				ValidateFunc:     computeValidate.LinuxAdminPassword,
 			},
 
 			"admin_ssh_key": SSHKeysSchema(true),
