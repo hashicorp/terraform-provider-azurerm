@@ -551,9 +551,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice(func() (vs []string) {
-							for _, v := range softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses() {
-								vs = append(vs, v)
-							}
+							vs = append(vs, softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses()...)
 							return
 						}(), false),
 					},
@@ -594,9 +592,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 						AtLeastOneOf:  []string{"windows.0.classification_included", "windows.0.classifications_included"},
 						Deprecated:    "windows classification can be set as a list, use `classifications_included` instead.",
 						ValidateFunc: validation.StringInSlice(func() (vs []string) {
-							for _, v := range softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses() {
-								vs = append(vs, v)
-							}
+							vs = append(vs, softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses()...)
 							return
 						}(), false),
 					},
@@ -610,9 +606,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(func() (res []string) {
-								for _, v := range softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses() {
-									res = append(res, v)
-								}
+								res = append(res, softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses()...)
 								return
 							}(), false),
 						},
@@ -879,9 +873,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 									// not hardcode Enum values
 									ValidateFunc: func(i interface{}, s string) ([]string, []error) {
 										var vs []string
-										for _, v := range softwareupdateconfiguration.PossibleValuesForScheduleDay() {
-											vs = append(vs, v)
-										}
+										vs = append(vs, softwareupdateconfiguration.PossibleValuesForScheduleDay()...)
 										vf := validation.StringInSlice(vs, false)
 										return vf(i, s)
 									},
