@@ -46,8 +46,6 @@ The following arguments are supported:
 
 * `label` - (Optional) The label of the App Configuration Feature. Changing this forces a new resource to be created.
 
-~> **NOTE:** `label` property should not contain `/Label/` literal to avoid conflict in ID parsing.
-
 * `locked` - (Optional) Should this App Configuration Feature be Locked to prevent changes?
 
 * `name` - (Required) The name of the App Configuration Feature. Changing this forces a new resource to be created.
@@ -108,11 +106,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 App Configuration Features can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/label1
+terraform import azurerm_app_configuration_feature.test https://appconfname1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label=labelName
 ```
 
-If you wish to import a key with an empty label then sustitute the label's name with `%00`, like this:
+If you wish to import a key with an empty label then substitute the label's name with `%00`, like this:
 
 ```shell
-terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/%00
+terraform import azurerm_app_configuration_feature.test https://appconfname1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label=%00
 ```

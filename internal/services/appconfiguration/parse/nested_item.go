@@ -43,6 +43,8 @@ func (id NestedItemId) ID() string {
 
 	if id.Label != "" {
 		u.RawQuery = fmt.Sprintf("label=%s", url.QueryEscape(id.Label))
+	} else {
+		u.RawQuery = fmt.Sprintf("label=%s", url.QueryEscape("\000"))
 	}
 
 	return u.String()

@@ -43,7 +43,7 @@ func TestNewNestedItemID(t *testing.T) {
 			ConfigurationStoreEndpoint: "https://testappconf1.azconfig.io",
 			Key:                        "testKey",
 			Label:                      "",
-			Expected:                   "https://testappconf1.azconfig.io/kv/testKey",
+			Expected:                   "https://testappconf1.azconfig.io/kv/testKey?label=%00",
 			ExpectError:                false,
 		},
 		{
