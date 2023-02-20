@@ -42,13 +42,15 @@ func (c Client) DataPlaneClient(ctx context.Context, configurationStoreId string
 		return nil, fmt.Errorf("endpoint was nil")
 	}
 
-	api := environments.NewApiEndpoint("AppConfiguration", *appConfig.Model.Properties.Endpoint, nil)
+	endpoint := *appConfig.Model.Properties.Endpoint
+
+	api := environments.NewApiEndpoint("AppConfiguration", endpoint, nil)
 	appConfigAuth, err := c.authorizerFunc(api)
 	if err != nil {
-		return nil, fmt.Errorf("obtaining auth token for %q: %+v", *appConfig.Model.Properties.Endpoint, err)
+		return nil, fmt.Errorf("obtaining auth token for %q: %+v", endpoint, err)
 	}
 
-	client := appconfiguration.NewWithoutDefaults("", *appConfig.Model.Properties.Endpoint)
+	client := appconfiguration.NewWithoutDefaults("", endpoint)
 	c.configureClientFunc(&client.Client, authWrapper.AutorestAuthorizer(appConfigAuth))
 
 	return &client, nil

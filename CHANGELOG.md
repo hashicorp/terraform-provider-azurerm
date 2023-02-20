@@ -1,3 +1,32 @@
+## 3.45.0 (Unreleased)
+
+BUG FIXES
+
+* `data.azurerm_redis_cache` : fix issue when no patch schedules can be found [GH-20516]
+
+## 3.44.1 (February 17, 2023)
+
+ENHANCEMENTS
+
+* dependencies: updating to `v0.20230217.1150808` of `github.com/hashicorp/go-azure-sdk` ([#20539](https://github.com/hashicorp/terraform-provider-azurerm/issues/20539))
+
+BUG FIXES
+
+* authentication: fixing an issue when obtaining the auth token for Resource Manager in Azure Government ([#20523](https://github.com/hashicorp/terraform-provider-azurerm/issues/20523))
+* authentication: fixing an issue where the default subscription ID was not detected when authenticating using Azure CLI ([#20526](https://github.com/hashicorp/terraform-provider-azurerm/issues/20526))
+* authentication: fixing an issue where Managed Identity authentication would fail ([#20523](https://github.com/hashicorp/terraform-provider-azurerm/issues/20523))
+* Data Source: `azurerm_app_configuration_key` - fixing an issue where the App Configuration was misleadingly marked as gone when the data plane client couldn't be build ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* Data Source: `azurerm_app_configuration_key` - surfacing the error when a data plane client can't be built ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* Data Source: `azurerm_app_configuration_keys` - fixing an issue where the App Configuration was misleadingly marked as gone when the data plane client couldn't be build ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* Data Source: `azurerm_app_configuration_keys` - surfacing the error when a data plane client can't be built ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* `azurerm_app_configuration_feature` - fixing an issue where the App Configuration was misleadingly marked as gone when the data plane client couldn't be build ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* `azurerm_app_configuration_feature` - surfacing the error when a data plane client can't be built ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* `azurerm_app_configuration_key` - fixing an issue where the App Configuration was misleadingly marked as gone when the data plane client couldn't be build ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* `azurerm_app_configuration_key` - surfacing the error when a data plane client can't be built ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* `azurerm_kubernetes_cluster` - fix a crash when `securityProfile` is nil in the API Response ([#20517](https://github.com/hashicorp/terraform-provider-azurerm/issues/20517))
+* `azurerm_logic_app_standard` - fixing an issue where the `storage endpoint suffix` couldn't be found ([#20536](https://github.com/hashicorp/terraform-provider-azurerm/issues/20536))
+* `azurerm_synapse_role_assignment` - fixing an issue where the `Synapse domain suffix` couldn't be found ([#20536](https://github.com/hashicorp/terraform-provider-azurerm/issues/20536))
+
 ## 3.44.0 (February 16, 2023)
 
 FEATURES:
@@ -33,7 +62,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_policy_definition` - support for the `mode` property ([#20420](https://github.com/hashicorp/terraform-provider-azurerm/issues/20420))
 * Data Source: `azurerm_key_vault_certificates` - now exports the `certificates` block ([#20498](https://github.com/hashicorp/terraform-provider-azurerm/issues/20498))
 * Data Source: `azurerm_key_vault_secrets` - now exports the `secrets` block ([#20498](https://github.com/hashicorp/terraform-provider-azurerm/issues/20498))
-* `azurerm_api_management` - the field `sku_name` can now be set to `DC0` ([#20399](https://github.com/hashicorp/terraform-provider-azurerm/issues/20399))
+* `azurerm_api_management` - support for the `delegation` block ([#20399](https://github.com/hashicorp/terraform-provider-azurerm/issues/20399))
 * `azurerm_container_app` - now supports multiple `container` blocks ([#20423](https://github.com/hashicorp/terraform-provider-azurerm/issues/20423))
 * `azurerm_cognitive_account` - the field `sku_name` can now be set to `DC0` ([#20426](https://github.com/hashicorp/terraform-provider-azurerm/issues/20426))
 * `azurerm_container_app` - support for the `registry.identity` property ([#20466](https://github.com/hashicorp/terraform-provider-azurerm/issues/20466))
