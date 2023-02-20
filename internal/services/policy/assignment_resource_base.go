@@ -193,12 +193,9 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 				flattenedMetaData := flattenJSON(pointer.From(props.Metadata))
 				metadata.ResourceData.Set("metadata", flattenedMetaData)
 
-				var flattenedParameters string
-				if param := props.Parameters; param != nil {
-					flattenedParameters, err = flattenParameterValuesValueToString(*param)
-					if err != nil {
-						return fmt.Errorf("serializing JSON from `parameters`: %+v", err)
-					}
+				flattenedParameters, err := flattenParameterValuesValueToStringV2(props.Parameters)
+				if err != nil {
+					return fmt.Errorf("serializing JSON from `parameters`: %+v", err)
 				}
 				metadata.ResourceData.Set("parameters", flattenedParameters)
 			}

@@ -152,24 +152,26 @@ func expandParameterValuesValueFromString(jsonString string) (map[string]assignm
 	return result, err
 }
 
-// this function is used by both azure-go-sdk and azure-sdk-for-go. so change input to interface to accept
-// both kind of parameter value map
-func flattenParameterValuesValueToString(input interface{}) (string, error) {
+func flattenParameterValuesValueToString(input map[string]*policy.ParameterValuesValue) (string, error) {
 	if input == nil {
 		return "", nil
 	}
 
+	// no need to call `json.Compact` for the result of `json.Marshal`, it's compacted already
 	result, err := json.Marshal(input)
 	if err != nil {
 		return "", err
 	}
 
-	compactJson := bytes.Buffer{}
-	if err := json.Compact(&compactJson, result); err != nil {
-		return "", err
-	}
+	return string(result), err
+}
 
-	return compactJson.String(), nil
+func flattenParameterValuesValueToStringV2(input *map[string]assignments.ParameterValuesValue) (string, error) {
+	if input == nil || *input == nil {
+		return "", nil
+	}
+	bs, err := json.Marshal(input)
+	return string(bs), err
 }
 
 func getPolicyRoleDefinitionIDs(ruleStr string) (res []string, err error) {
