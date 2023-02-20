@@ -6,16 +6,28 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlManagedDatabaseModel struct {
-	Name              string `tfschema:"name"`
-	ManagedInstanceId string `tfschema:"managed_instance_id"`
+	Name                    string                    `tfschema:"name"`
+	ManagedInstanceId       string                    `tfschema:"managed_instance_id"`
+	LongTermRetentionPolicy []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
+	ShortTermRetentionDays  int32                     `tfschema:"short_term_retention_days"`
+}
+
+type LongTermRetentionPolicy struct {
+	WeeklyRetention  string `tfschema:"weekly_retention"`
+	MonthlyRetention string `tfschema:"monthly_retention"`
+	YearlyRetention  string `tfschema:"yearly_retention"`
+	WeekOfYear       int32  `tfschema:"week_of_year"`
 }
 
 var _ sdk.Resource = MsSqlManagedDatabaseResource{}
@@ -49,6 +61,14 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.ManagedInstanceID,
 		},
+
+		"long_term_retention_policy": helper.LongTermRetentionPolicySchema(),
+
+		"short_term_retention_days": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntBetween(1, 35),
+		},
 	}
 }
 
@@ -62,6 +82,8 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQL.ManagedDatabasesClient
 			instancesClient := metadata.Client.MSSQL.ManagedInstancesClient
+			longTermRetentionClient := metadata.Client.MSSQL.ManagedInstancesLongTermRetentionPoliciesClient
+			shortTermRetentionClient := metadata.Client.MSSQL.ManagedInstancesShortTermRetentionPoliciesClient
 
 			var model MsSqlManagedDatabaseModel
 			if err := metadata.Decode(&model); err != nil {
@@ -106,6 +128,36 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
+			if len(model.LongTermRetentionPolicy) > 0 {
+				longTermRetentionProps := expandLongTermRetentionPolicy(model.LongTermRetentionPolicy)
+
+				longTermRetentionPolicy := sql.ManagedInstanceLongTermRetentionPolicy{
+					BaseLongTermRetentionPolicyProperties: &longTermRetentionProps,
+				}
+
+				longTermRetentionFuture, err := longTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, longTermRetentionPolicy)
+				if err != nil {
+					return fmt.Errorf("setting Long Term Retention Policies for %s: %+v", id, err)
+				}
+
+				if err = longTermRetentionFuture.WaitForCompletionRef(ctx, longTermRetentionClient.Client); err != nil {
+					return fmt.Errorf("waiting for update of Long Term Retention Policies for %s: %+v", id, err)
+				}
+			}
+
+			if model.ShortTermRetentionDays > 0 {
+
+				shortTermRetentionPolicy := sql.ManagedBackupShortTermRetentionPolicy{
+					ManagedBackupShortTermRetentionPolicyProperties: &sql.ManagedBackupShortTermRetentionPolicyProperties{
+						RetentionDays: pointer.To(model.ShortTermRetentionDays),
+					},
+				}
+				_, err := shortTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, shortTermRetentionPolicy)
+				if err != nil {
+					return fmt.Errorf("setting Short Term Retention Policy for %s: %+v", id, err)
+				}
+			}
+
 			metadata.SetID(id)
 
 			return nil
@@ -118,6 +170,8 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQL.ManagedDatabasesClient
+			longTermRetentionClient := metadata.Client.MSSQL.ManagedInstancesLongTermRetentionPoliciesClient
+			shortTermRetentionClient := metadata.Client.MSSQL.ManagedInstancesShortTermRetentionPoliciesClient
 
 			id, err := parse.ManagedDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
@@ -135,7 +189,7 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 				if utils.ResponseWasNotFound(result.Response) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %v", id, err)
+				return fmt.Errorf("retrieving %s: %v", *id, err)
 			}
 
 			managedInstanceId := parse.NewManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
@@ -143,6 +197,22 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 			model := MsSqlManagedDatabaseModel{
 				Name:              id.DatabaseName,
 				ManagedInstanceId: managedInstanceId.ID(),
+			}
+
+			ltrResp, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName)
+			if err != nil {
+				return fmt.Errorf("retrieving Long Term Retention Policy for  %s: %v", *id, err)
+			}
+
+			model.LongTermRetentionPolicy = flattenLongTermRetentionPolicy(ltrResp)
+
+			shortTermRetentionResp, err := shortTermRetentionClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName)
+			if err != nil {
+				return fmt.Errorf("retrieving Short Term Retention Policy for  %s: %v", *id, err)
+			}
+
+			if shortTermRetentionResp.RetentionDays != nil {
+				model.ShortTermRetentionDays = *shortTermRetentionResp.RetentionDays
 			}
 
 			return metadata.Encode(&model)
@@ -173,4 +243,45 @@ func (r MsSqlManagedDatabaseResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) sql.BaseLongTermRetentionPolicyProperties {
+	return sql.BaseLongTermRetentionPolicyProperties{
+		WeeklyRetention:  &ltrPolicy[0].WeeklyRetention,
+		MonthlyRetention: &ltrPolicy[0].MonthlyRetention,
+		YearlyRetention:  &ltrPolicy[0].YearlyRetention,
+		WeekOfYear:       &ltrPolicy[0].WeekOfYear,
+	}
+}
+
+func flattenLongTermRetentionPolicy(ltrPolicy sql.ManagedInstanceLongTermRetentionPolicy) []LongTermRetentionPolicy {
+
+	var ltrModel []LongTermRetentionPolicy
+
+	weeklyRetention := ""
+	if ltrPolicy.WeeklyRetention != nil {
+		weeklyRetention = *ltrPolicy.WeeklyRetention
+	}
+
+	monthlyRetention := ""
+	if ltrPolicy.MonthlyRetention != nil {
+		monthlyRetention = *ltrPolicy.MonthlyRetention
+	}
+
+	yearlyRetention := ""
+	if ltrPolicy.YearlyRetention != nil {
+		yearlyRetention = *ltrPolicy.YearlyRetention
+	}
+
+	ltrModel[0] = LongTermRetentionPolicy{
+		WeeklyRetention:  weeklyRetention,
+		MonthlyRetention: monthlyRetention,
+		YearlyRetention:  yearlyRetention,
+	}
+
+	if ltrPolicy.WeekOfYear != nil {
+		ltrModel[0].WeekOfYear = *ltrPolicy.WeekOfYear
+	}
+
+	return ltrModel
 }

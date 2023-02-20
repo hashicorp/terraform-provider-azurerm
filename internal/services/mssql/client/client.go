@@ -23,6 +23,8 @@ type Client struct {
 	LongTermRetentionPoliciesClient                    *sql.LongTermRetentionPoliciesClient
 	ManagedDatabasesClient                             *sql.ManagedDatabasesClient
 	ManagedInstancesClient                             *sql.ManagedInstancesClient
+	ManagedInstancesLongTermRetentionPoliciesClient    *sql.ManagedInstanceLongTermRetentionPoliciesClient
+	ManagedInstancesShortTermRetentionPoliciesClient   *sql.ManagedBackupShortTermRetentionPoliciesClient
 	ManagedInstanceVulnerabilityAssessmentsClient      *sql.ManagedInstanceVulnerabilityAssessmentsClient
 	ManagedInstanceServerSecurityAlertPoliciesClient   *sql.ManagedServerSecurityAlertPoliciesClient
 	OutboundFirewallRulesClient                        *sql.OutboundFirewallRulesClient
@@ -95,6 +97,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	managedInstancesClient := sql.NewManagedInstancesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstancesClient.Client, o.ResourceManagerAuthorizer)
+
+	managedInstancesLongTermRetentionPoliciesClient := sql.NewManagedInstanceLongTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedInstancesLongTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	managedInstancesAdministratorsClient := sql.NewManagedInstanceAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstancesAdministratorsClient.Client, o.ResourceManagerAuthorizer)
