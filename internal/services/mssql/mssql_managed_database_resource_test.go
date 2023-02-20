@@ -41,6 +41,12 @@ func TestAccMsSqlManagedDatabase_withRetentionPolicies(t *testing.T) {
 			),
 		},
 		data.ImportStep(""),
+		{
+			Config: r.withRetentionPoliciesUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 	})
 }
 
@@ -88,6 +94,27 @@ resource "azurerm_mssql_managed_database" "test" {
   }
  
   short_term_retention_days = 3
+
+}
+`, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
+}
+
+func (r MsSqlManagedDatabase) withRetentionPoliciesUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_managed_database" "test" {
+  managed_instance_id = azurerm_mssql_managed_instance.test.id
+  name                = "acctest-%[2]d"
+
+  long_term_retention_policy {
+    weekly_retention = "P10D"
+    monthly_retention = "P1M"
+    yearly_retention  = "P1Y"
+    week_of_year      = 4
+  }
+ 
+  short_term_retention_days = 4
 
 }
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)

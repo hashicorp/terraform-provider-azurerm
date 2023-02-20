@@ -31,6 +31,7 @@ type LongTermRetentionPolicy struct {
 }
 
 var _ sdk.Resource = MsSqlManagedDatabaseResource{}
+var _ sdk.ResourceWithUpdate = MsSqlManagedDatabaseResource{}
 
 type MsSqlManagedDatabaseResource struct{}
 
@@ -160,6 +161,62 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
+			return nil
+		},
+	}
+}
+
+func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			longTermRetentionClient := metadata.Client.MSSQL.ManagedInstancesLongTermRetentionPoliciesClient
+			shortTermRetentionClient := metadata.Client.MSSQL.ManagedInstancesShortTermRetentionPoliciesClient
+
+			var model MsSqlManagedDatabaseModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			managedInstanceId, err := parse.ManagedInstanceID(model.ManagedInstanceId)
+			if err != nil {
+				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
+			}
+
+			id := parse.NewManagedDatabaseID(managedInstanceId.SubscriptionId,
+				managedInstanceId.ResourceGroup, managedInstanceId.Name, model.Name)
+
+			d := metadata.ResourceData
+
+			if d.HasChange("long_term_retention_policy") {
+				longTermRetentionProps := expandLongTermRetentionPolicy(model.LongTermRetentionPolicy)
+
+				longTermRetentionPolicy := sql.ManagedInstanceLongTermRetentionPolicy{
+					BaseLongTermRetentionPolicyProperties: &longTermRetentionProps,
+				}
+
+				longTermRetentionFuture, err := longTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, longTermRetentionPolicy)
+				if err != nil {
+					return fmt.Errorf("updating Long Term Retention Policies for %s: %+v", id, err)
+				}
+
+				if err = longTermRetentionFuture.WaitForCompletionRef(ctx, longTermRetentionClient.Client); err != nil {
+					return fmt.Errorf("waiting for update of Long Term Retention Policies for %s: %+v", id, err)
+				}
+			}
+
+			if d.HasChange("short_term_retention_days") {
+
+				shortTermRetentionPolicy := sql.ManagedBackupShortTermRetentionPolicy{
+					ManagedBackupShortTermRetentionPolicyProperties: &sql.ManagedBackupShortTermRetentionPolicyProperties{
+						RetentionDays: pointer.To(model.ShortTermRetentionDays),
+					},
+				}
+				_, err := shortTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, shortTermRetentionPolicy)
+				if err != nil {
+					return fmt.Errorf("updating Short Term Retention Policy for %s: %+v", id, err)
+				}
+			}
 			return nil
 		},
 	}
