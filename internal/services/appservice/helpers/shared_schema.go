@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -1731,8 +1731,9 @@ func FlattenPushSetting(pushSettingData web.PushSettings, metaData sdk.ResourceM
 	result := make([]PushSetting, 0)
 
 	// if user removes the push setting from config, api turns the enabled switch off but won't reset the whole block back to nil.
-	if _, ok := metaData.ResourceData.GetOk("push_settings"); !ok {
-		return nil, nil
+	if pushSettingData.PushSettingsProperties == nil ||
+		*pushSettingData.PushSettingsProperties.IsPushEnabled == false && len(metaData.ResourceData.Get("push_settings").([]interface{})) == 0 {
+		return result, nil
 	}
 
 	pushProps := *pushSettingData.PushSettingsProperties
