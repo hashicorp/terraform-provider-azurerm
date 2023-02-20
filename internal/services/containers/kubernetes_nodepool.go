@@ -1185,6 +1185,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 
 	name := agentPool.Name
 
+	// we pull this from the config, since the temporary node pool for cycling the system node pool won't exist if the operation is successful
 	temporaryName := d.Get("default_node_pool.0.temporary_name").(string)
 
 	var nodeLabels map[string]string
@@ -1667,18 +1668,7 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 		}
 	}
 
-	// check for temp node pool that may have been created when cycling node pools to resize the VMs
-	tempNodePoolName := d.Get("default_node_pool.0.temporary_name")
-	if agentPool == nil && tempNodePoolName != "" {
-		for _, v := range *input {
-			if v.Name == tempNodePoolName {
-				agentPool = &v
-				break
-			}
-		}
-	}
-
-	// fallback if neither default nor temp node pool were found
+	// fallback to the temp node pool or other system node pools that exist for the cluster
 	if agentPool == nil {
 		// otherwise we need to fall back to the name of the first agent pool
 		for _, v := range *input {

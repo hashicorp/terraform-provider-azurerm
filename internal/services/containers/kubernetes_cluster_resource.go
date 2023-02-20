@@ -73,14 +73,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return old != "" && new == ""
 			}),
 			pluginsdk.ForceNewIf("default_node_pool.0.name", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
-				temporaryNodePoolName := d.Get("default_node_pool.0.temporary_name").(string)
-				defaultNodePoolName := d.Get("default_node_pool.0.name").(string)
 				_, new := d.GetChange("default_node_pool.0.name")
-				if new == temporaryNodePoolName || new == defaultNodePoolName {
-					return false
-				}
-				//return defaultNodePoolName != temporaryNodePoolName
-				return true
+				tempNodePoolName := d.Get("default_node_pool.0.temporary_name")
+				return new != tempNodePoolName
 			}),
 		),
 
@@ -2013,6 +2008,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if d.HasChange("default_node_pool.0.vm_size") {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
+			// To provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
+			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
+			// bringing up the new one.
 
 			if v := d.Get("default_node_pool.0.temporary_name").(string); v == "" {
 				return fmt.Errorf("`temporary_name` must be specified when updating `vm_size`")
@@ -2039,10 +2037,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			// create the default node pool with the new vm size
-			if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
-				// if creation of the default node pool fails we can fall back on the temporary one
-				log.Printf("[DEBUG] Creation of resized default node pool failed, falling back to temporary node pool")
-			}
+			//if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
+			//	// if creation of the default node pool fails we automatically fall back to the temporary node pool (func findDefaultNodePool)
+			//	// but will require manual intervention from the user
+			//	log.Printf("[DEBUG] Creation of resized default node pool failed")
+			//}
 
 			// check whether both the temp node pool and resized default node pool exist before proceeding
 			tempExisting, err := nodePoolsClient.Get(ctx, tempNodePoolId)
