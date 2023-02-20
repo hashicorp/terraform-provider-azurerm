@@ -109,9 +109,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 	cert, err := client.GetCertificate(ctx, *keyVaultBaseUri, name, version)
 	if err != nil {
 		if utils.ResponseWasNotFound(cert.Response) {
-			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", name, *keyVaultBaseUri)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("the Certificate %q was not found in Key Vault at URI %q", name, *keyVaultBaseUri)
 		}
 
 		return fmt.Errorf("reading Key Vault Certificate: %+v", err)
@@ -121,12 +119,11 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("failure reading Key Vault Certificate ID for %q", name)
 	}
 
-	d.SetId(*cert.ID)
-
-	id, err := parse.ParseNestedItemID(d.Id())
+	id, err := parse.ParseNestedItemID(*cert.ID)
 	if err != nil {
 		return err
 	}
+	d.SetId(id.ID())
 
 	d.Set("name", id.Name)
 

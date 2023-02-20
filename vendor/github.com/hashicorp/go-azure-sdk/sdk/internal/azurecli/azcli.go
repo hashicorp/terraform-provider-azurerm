@@ -59,6 +59,19 @@ func CheckAzVersion(minVersion string, nextMajorVersion *string) error {
 	return nil
 }
 
+// GetDefaultSubscriptionID tries to determine the default subscription
+func GetDefaultSubscriptionID() (string, error) {
+	var account struct {
+		SubscriptionID string `json:"id"`
+	}
+	err := JSONUnmarshalAzCmd(&account, "account", "show")
+	if err != nil {
+		return "", fmt.Errorf("obtaining subscription ID: %s", err)
+	}
+
+	return account.SubscriptionID, nil
+}
+
 // CheckTenantID validates the supplied tenant ID, and tries to determine the default tenant if a valid one is not supplied.
 func CheckTenantID(tenantId string) (string, error) {
 	validTenantId, err := regexp.MatchString("^[a-zA-Z0-9._-]+$", tenantId)

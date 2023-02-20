@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -162,6 +163,9 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 			"recommendations_enabled": {},
 		},
 	}
+	if features.FourPointOhBeta() {
+		resourceFieldsWhichNeedToBeAddressed = map[string]map[string]struct{}{}
+	}
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
@@ -302,6 +306,9 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 			"name": {},
 		},
 	}
+	if features.FourPointOhBeta() {
+		resourceFieldsWhichNeedToBeAddressed = map[string]map[string]struct{}{}
+	}
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
@@ -376,6 +383,147 @@ func schemaContainsANameFieldWithADefaultValueOfDefault(input map[string]*schema
 }
 
 func runInputForValidateFunction(validateFunc pluginsdk.SchemaValidateFunc, input string) bool {
+	if validateFunc == nil {
+		return false
+	}
+
 	warnings, errs := validateFunc(input, input)
 	return len(warnings) == 0 && len(errs) == 0
+}
+
+func TestDataSourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
+	// This test validates that Data Sources do not contain an `encryption` block which is marked as Computed: true
+	// or a field named `enabled` or `key_source`.
+	//
+	// This hides the fact that encryption is enabled on this resource - and (rather than exposing an `encryption`
+	// block as Computed) should instead be exposed as a non-Computed block.
+	//
+	// In cases where the block contains `key_source`, this field should be removed and instead inferred based on
+	// the presence of the block, using a custom encryption key (and thus a `key_source` of {likely} `Microsoft.KeyVault`)
+	// when the block is specified - and the default value (generally the RP name) when the block is omitted.
+	provider := TestAzureProvider()
+
+	// intentionally sorting these so the output is consistent
+	dataSourceNames := make([]string, 0)
+	for dataSourceName := range provider.DataSourcesMap {
+		dataSourceNames = append(dataSourceNames, dataSourceName)
+	}
+	sort.Strings(dataSourceNames)
+
+	// TODO: 4.0 - work through this list
+	dataSourcesWhichNeedToBeAddressed := map[string]struct{}{
+		"azurerm_app_configuration": {},
+		"azurerm_batch_pool":        {},
+		"azurerm_managed_disk":      {},
+		"azurerm_snapshot":          {},
+	}
+	if features.FourPointOhBeta() {
+		dataSourcesWhichNeedToBeAddressed = map[string]struct{}{}
+	}
+
+	for _, dataSourceName := range dataSourceNames {
+		dataSource := provider.DataSourcesMap[dataSourceName]
+		if err := schemaContainsAnEncryptionBlock(dataSource.Schema); err != nil {
+			if _, ok := dataSourcesWhichNeedToBeAddressed[dataSourceName]; ok {
+				continue
+			}
+
+			t.Fatalf("the Data Source %q contains an `encryption` block marked as Computed - this should be marked as non-Computed (and the key source automatically inferred): %+v", dataSourceName, err)
+		}
+	}
+}
+
+func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
+	// This test validates that Resources do not contain an `encryption` block which is marked as Computed: true
+	// or a field named `enabled` or `key_source`.
+	//
+	// This hides the fact that encryption is enabled on this resource - and (rather than exposing an `encryption`
+	// block as Computed) should instead be exposed as a non-Computed block.
+	//
+	// In cases where the block contains `key_source`, this field should be removed and instead inferred based on
+	// the presence of the block, using a custom encryption key (and thus a `key_source` of {likely} `Microsoft.KeyVault`)
+	// when the block is specified - and the default value (generally the RP name) when the block is omitted.
+	provider := TestAzureProvider()
+
+	// intentionally sorting these so the output is consistent
+	resourceNames := make([]string, 0)
+	for resourceName := range provider.ResourcesMap {
+		resourceNames = append(resourceNames, resourceName)
+	}
+	sort.Strings(resourceNames)
+
+	// TODO: 4.0 - work through this list
+	resourcesWhichNeedToBeAddressed := map[string]struct{}{
+		"azurerm_automation_account":     {},
+		"azurerm_container_registry":     {},
+		"azurerm_managed_disk":           {},
+		"azurerm_media_services_account": {},
+		"azurerm_snapshot":               {},
+	}
+	if features.FourPointOhBeta() {
+		resourcesWhichNeedToBeAddressed = map[string]struct{}{}
+	}
+
+	for _, resourceName := range resourceNames {
+		resource := provider.ResourcesMap[resourceName]
+
+		if err := schemaContainsAnEncryptionBlock(resource.Schema); err != nil {
+			if _, ok := resourcesWhichNeedToBeAddressed[resourceName]; ok {
+				continue
+			}
+			t.Fatalf("the Resource %q contains an `encryption` block marked as Computed - this should be marked as non-Computed (and the key source automatically inferred): %+v", resourceName, err)
+		}
+	}
+}
+
+func schemaContainsAnEncryptionBlock(input map[string]*schema.Schema) error {
+	// intentionally sorting these so the output is consistent
+	fieldNames := make([]string, 0)
+	for fieldName := range input {
+		fieldNames = append(fieldNames, fieldName)
+	}
+	sort.Strings(fieldNames)
+
+	for _, fieldName := range fieldNames {
+		key := strings.ToLower(fieldName)
+		field := input[fieldName]
+
+		if field.Type == pluginsdk.TypeList && field.Elem != nil {
+			if strings.Contains(key, "encryption") {
+				if field.Computed {
+					return fmt.Errorf("the block %q is marked as Computed when it shouldn't be", fieldName)
+				}
+
+				if val, ok := field.Elem.(*pluginsdk.Resource); ok && val.Schema != nil {
+					for nestedKey, nestedField := range val.Schema {
+						lowered := strings.ToLower(nestedKey)
+						// check that no nested fields contain `_source`
+						if strings.Contains(lowered, "_source") {
+							return fmt.Errorf("field %q within the block %q appears to be a Key Source - this can instead be defaulted based on the presence of the containing block", nestedKey, fieldName)
+						}
+
+						// check if there's an `enabled` field when there shouldn't be
+						if strings.EqualFold(lowered, "enabled") {
+							return fmt.Errorf("field %q within the block %q controls whether the block is enabled/disabled - this field can be removed and implied based on the presence of the containing block", nestedKey, fieldName)
+						}
+
+						// check that none of the nested fields allow `Microsoft.KeyVault` as a value
+						if supportsKeyVaultAsAValue := runInputForValidateFunction(nestedField.ValidateFunc, "Microsoft.KeyVault"); supportsKeyVaultAsAValue {
+							return fmt.Errorf("field %q within the block %q appears to be a Key Source (supports `Microsoft.KeyVault` as a value) - this field can be removed and defaulted based on the presence of the containing block", nestedKey, fieldName)
+						}
+					}
+				}
+
+				continue
+			}
+
+			if val, ok := field.Elem.(*pluginsdk.Resource); ok && val.Schema != nil {
+				if err := schemaContainsAnEncryptionBlock(val.Schema); err != nil {
+					return fmt.Errorf("field %q: %+v", fieldName, err)
+				}
+			}
+		}
+	}
+
+	return nil
 }

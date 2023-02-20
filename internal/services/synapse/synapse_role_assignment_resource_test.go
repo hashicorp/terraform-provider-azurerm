@@ -71,9 +71,10 @@ func (r SynapseRoleAssignmentResource) Exists(ctx context.Context, client *clien
 		return nil, err
 	}
 
-	suffix, ok := client.Account.Environment.Synapse.DomainSuffix()
+	env := client.Account.Environment
+	suffix, ok := env.Synapse.DomainSuffix()
 	if !ok {
-		return nil, fmt.Errorf("could not determine Synapse domain suffix for environment %q", client.Account.Environment.Name)
+		return nil, fmt.Errorf("could not determine the domain suffix for synapse in environment %q: %+v", env.Name, env.Storage)
 	}
 
 	roleAssignmentsClient, err := client.Synapse.RoleAssignmentsClient(workspaceName, *suffix)

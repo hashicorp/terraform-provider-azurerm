@@ -39,6 +39,18 @@ In addition to the Argument listed above - the following Attributes are exported
 
 * `names` - List containing names of secrets that exist in this Key Vault.
 
+* `secrets` - One or more `secrets` blocks as defined below.
+
+---
+
+A `secrets` block supports following:
+
+* `name` - The name of secret.
+
+* `enabled` - Whether this secret is enabled.
+
+* `id` - The ID of this secret.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
