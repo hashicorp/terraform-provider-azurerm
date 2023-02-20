@@ -2,8 +2,7 @@ package eventsources
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
+	"encoding/json"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -60,16 +59,14 @@ func (c EventSourcesClient) preparerForUpdate(ctx context.Context, id EventSourc
 // responderForUpdate handles the response to the Update request. The method always
 // closes the http.Response Body.
 func (c EventSourcesClient) responderForUpdate(resp *http.Response) (result UpdateOperationResponse, err error) {
+	var respObj json.RawMessage
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&respObj),
 		autorest.ByClosing())
 	result.HttpResponse = resp
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return result, fmt.Errorf("reading response body for EventSourceResource: %+v", err)
-	}
-	model, err := unmarshalEventSourceResourceImplementation(b)
+	model, err := unmarshalEventSourceResourceImplementation(respObj)
 	if err != nil {
 		return
 	}
