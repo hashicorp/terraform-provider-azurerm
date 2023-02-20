@@ -1,10 +1,20 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"os"
 	"testing"
 	"time"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/auth"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 )
 
 func TestProvider(t *testing.T) {
@@ -106,4 +116,277 @@ func TestProvider_counts(t *testing.T) {
 	log.Printf("Resources:    %d", len(provider.ResourcesMap))
 	log.Printf("-----------------")
 	log.Printf("Total:        %d", len(provider.ResourcesMap)+len(provider.DataSourcesMap))
+}
+
+func TestAccProvider_cliAuth(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	// Support only Azure CLI authentication
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		envName := d.Get("environment").(string)
+		env, err := environments.FromName(envName)
+		if err != nil {
+			t.Fatalf("configuring environment %q: %v", envName, err)
+		}
+
+		authConfig := &auth.Credentials{
+			Environment:                       *env,
+			EnableAuthenticatingUsingAzureCLI: true,
+		}
+
+		return buildClient(ctx, provider, d, authConfig)
+	}
+
+	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+	if d != nil && d.HasError() {
+		t.Fatalf("err: %+v", d)
+	}
+
+	if errs := testCheckProvider(provider); len(errs) > 0 {
+		for _, err := range errs {
+			t.Error(err)
+		}
+	}
+}
+
+func TestAccProvider_clientCertificateAuth(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+	if os.Getenv("ARM_CLIENT_ID") == "" {
+		t.Skip("ARM_CLIENT_ID not set")
+	}
+	if os.Getenv("ARM_CLIENT_CERTIFICATE") == "" && os.Getenv("ARM_CLIENT_CERTIFICATE_PATH") == "" {
+		t.Skip("ARM_CLIENT_CERTIFICATE or ARM_CLIENT_CERTIFICATE_PATH not set")
+	}
+	if os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD") == "" {
+		t.Skip("ARM_CLIENT_CERTIFICATE_PASSWORD not set")
+	}
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	// Support only Client Certificate authentication
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		envName := d.Get("environment").(string)
+		env, err := environments.FromName(envName)
+		if err != nil {
+			t.Fatalf("configuring environment %q: %v", envName, err)
+		}
+
+		var certData []byte
+		if encodedCert := d.Get("client_certificate").(string); encodedCert != "" {
+			var err error
+			certData, err = decodeCertificate(encodedCert)
+			if err != nil {
+				return nil, diag.FromErr(err)
+			}
+		}
+
+		authConfig := &auth.Credentials{
+			Environment: *env,
+			TenantID:    d.Get("tenant_id").(string),
+			ClientID:    d.Get("client_id").(string),
+			EnableAuthenticatingUsingClientCertificate: true,
+			ClientCertificateData:                      certData,
+			ClientCertificatePath:                      d.Get("client_certificate_path").(string),
+			ClientCertificatePassword:                  d.Get("client_certificate_password").(string),
+		}
+
+		return buildClient(ctx, provider, d, authConfig)
+	}
+
+	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+	if d != nil && d.HasError() {
+		t.Fatalf("err: %+v", d)
+	}
+
+	if errs := testCheckProvider(provider); len(errs) > 0 {
+		for _, err := range errs {
+			t.Error(err)
+		}
+	}
+}
+
+func TestAccProvider_clientSecretAuth(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+	if os.Getenv("ARM_CLIENT_ID") == "" {
+		t.Skip("ARM_CLIENT_ID not set")
+	}
+	if os.Getenv("ARM_CLIENT_SECRET") == "" {
+		t.Skip("ARM_CLIENT_SECRET not set")
+	}
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	// Support only Client Certificate authentication
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		envName := d.Get("environment").(string)
+		env, err := environments.FromName(envName)
+		if err != nil {
+			t.Fatalf("configuring environment %q: %v", envName, err)
+		}
+
+		authConfig := &auth.Credentials{
+			Environment:                           *env,
+			TenantID:                              d.Get("tenant_id").(string),
+			ClientID:                              d.Get("client_id").(string),
+			EnableAuthenticatingUsingClientSecret: true,
+			ClientSecret:                          d.Get("client_secret").(string),
+		}
+
+		return buildClient(ctx, provider, d, authConfig)
+	}
+
+	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+	if d != nil && d.HasError() {
+		t.Fatalf("err: %+v", d)
+	}
+
+	if errs := testCheckProvider(provider); len(errs) > 0 {
+		for _, err := range errs {
+			t.Error(err)
+		}
+	}
+}
+
+func TestAccProvider_genericOidcAuth(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+	if os.Getenv("ARM_OIDC_TOKEN") == "" {
+		t.Skip("ARM_OIDC_TOKEN not set")
+	}
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	// Support only Client Certificate authentication
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		envName := d.Get("environment").(string)
+		env, err := environments.FromName(envName)
+		if err != nil {
+			t.Fatalf("configuring environment %q: %v", envName, err)
+		}
+
+		authConfig := &auth.Credentials{
+			Environment:                   *env,
+			TenantID:                      d.Get("tenant_id").(string),
+			ClientID:                      d.Get("client_id").(string),
+			EnableAuthenticationUsingOIDC: true,
+			OIDCAssertionToken:            d.Get("oidc_token").(string),
+		}
+
+		return buildClient(ctx, provider, d, authConfig)
+	}
+
+	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+	if d != nil && d.HasError() {
+		t.Fatalf("err: %+v", d)
+	}
+
+	if errs := testCheckProvider(provider); len(errs) > 0 {
+		for _, err := range errs {
+			t.Error(err)
+		}
+	}
+}
+
+func TestAccProvider_githubOidcAuth(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+	if os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN") == "" {
+		t.Skip("ACTIONS_ID_TOKEN_REQUEST_TOKEN not set")
+	}
+	if os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL") == "" {
+		t.Skip("ACTIONS_ID_TOKEN_REQUEST_URL not set")
+	}
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	// Support only Client Certificate authentication
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		envName := d.Get("environment").(string)
+		env, err := environments.FromName(envName)
+		if err != nil {
+			t.Fatalf("configuring environment %q: %v", envName, err)
+		}
+
+		authConfig := &auth.Credentials{
+			Environment:                         *env,
+			TenantID:                            d.Get("tenant_id").(string),
+			ClientID:                            d.Get("client_id").(string),
+			EnableAuthenticationUsingGitHubOIDC: true,
+			GitHubOIDCTokenRequestToken:         d.Get("oidc_request_token").(string),
+			GitHubOIDCTokenRequestURL:           d.Get("oidc_request_url").(string),
+		}
+
+		return buildClient(ctx, provider, d, authConfig)
+	}
+
+	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+	if d != nil && d.HasError() {
+		t.Fatalf("err: %+v", d)
+	}
+
+	if errs := testCheckProvider(provider); len(errs) > 0 {
+		for _, err := range errs {
+			t.Error(err)
+		}
+	}
+}
+
+func testCheckProvider(provider *schema.Provider) (errs []error) {
+	client := provider.Meta().(*clients.Client)
+
+	if endpoint, ok := client.Account.Environment.MicrosoftGraph.Endpoint(); !ok || *endpoint == "" {
+		errs = append(errs, fmt.Errorf("client.Account.Environment returned blank endpoint for Microsoft Graph"))
+	}
+
+	if endpoint, ok := client.Account.Environment.ResourceManager.Endpoint(); !ok || *endpoint == "" {
+		errs = append(errs, fmt.Errorf("client.Account.Environment returned blank endpoint for Microsoft Graph"))
+	}
+
+	if client.Account.ClientId == "" {
+		errs = append(errs, fmt.Errorf("client.Account.ClientId was empty"))
+	}
+
+	if client.Account.ObjectId == "" {
+		errs = append(errs, fmt.Errorf("client.Account.ObjectId was empty"))
+	}
+
+	if client.Account.SubscriptionId == "" {
+		errs = append(errs, fmt.Errorf("client.Account.SubscriptionId was empty"))
+	}
+
+	if client.Account.TenantId == "" {
+		errs = append(errs, fmt.Errorf("client.Account.TenantId was empty"))
+	}
+
+	return //nolint:nakedret
 }
