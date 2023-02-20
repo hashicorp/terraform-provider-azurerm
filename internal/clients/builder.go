@@ -130,8 +130,8 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		Environment: builder.AuthConfig.Environment,
 		Features:    builder.Features,
 
-		SubscriptionId:   builder.SubscriptionID,
-		TenantId:         builder.AuthConfig.TenantID,
+		SubscriptionId:   account.SubscriptionId,
+		TenantId:         account.TenantId,
 		PartnerId:        builder.PartnerID,
 		TerraformVersion: builder.TerraformVersion,
 

@@ -34,23 +34,24 @@ func (c *Authorizer) WithAuthorization() autorest.PrepareDecorator {
 
 				req, err = autorest.Prepare(req, autorest.WithHeader("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken)))
 				if err != nil {
-					return req, err
+					return nil, fmt.Errorf("preparing request: %+v", err)
 				}
 
 				auxTokens, err := c.AuxiliaryTokens(ctx, req)
 				if err != nil {
-					return req, err
+					return nil, fmt.Errorf("preparing auxiliary tokens for request: %+v", err)
 				}
-
-				auxTokenList := make([]string, 0)
-				for _, a := range auxTokens {
-					if a != nil && a.AccessToken != "" {
-						auxTokenList = append(auxTokenList, fmt.Sprintf("%s %s", a.TokenType, a.AccessToken))
+				if len(auxTokens) > 0 {
+					auxTokenList := make([]string, 0)
+					for _, a := range auxTokens {
+						if a != nil && a.AccessToken != "" {
+							auxTokenList = append(auxTokenList, fmt.Sprintf("%s %s", a.TokenType, a.AccessToken))
+						}
 					}
-				}
 
-				if len(auxTokenList) > 0 {
-					return autorest.Prepare(req, autorest.WithHeader("x-ms-authorization-auxiliary", strings.Join(auxTokenList, ", ")))
+					if len(auxTokenList) > 0 {
+						return autorest.Prepare(req, autorest.WithHeader("x-ms-authorization-auxiliary", strings.Join(auxTokenList, ", ")))
+					}
 				}
 
 				return req, nil
