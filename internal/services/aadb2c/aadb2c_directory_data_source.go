@@ -3,9 +3,9 @@ package aadb2c
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -104,11 +104,10 @@ func (r AadB2cDirectoryDataSource) Read() sdk.ResourceFunc {
 
 			id := tenants.NewB2CDirectoryID(subscriptionId, state.ResourceGroup, state.DomainName)
 
-			metadata.Logger.Infof("Reading %s", id)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
-				if resp.HttpResponse.StatusCode == http.StatusNotFound {
-					return metadata.MarkAsGone(id)
+				if response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}

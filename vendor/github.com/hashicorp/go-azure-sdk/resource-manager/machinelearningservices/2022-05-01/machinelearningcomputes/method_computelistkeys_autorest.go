@@ -2,8 +2,8 @@ package machinelearningcomputes
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -59,16 +59,14 @@ func (c MachineLearningComputesClient) preparerForComputeListKeys(ctx context.Co
 // responderForComputeListKeys handles the response to the ComputeListKeys request. The method always
 // closes the http.Response Body.
 func (c MachineLearningComputesClient) responderForComputeListKeys(resp *http.Response) (result ComputeListKeysOperationResponse, err error) {
+	var respObj json.RawMessage
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&respObj),
 		autorest.ByClosing())
 	result.HttpResponse = resp
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return result, fmt.Errorf("reading response body for ComputeSecrets: %+v", err)
-	}
-	model, err := unmarshalComputeSecretsImplementation(b)
+	model, err := unmarshalComputeSecretsImplementation(respObj)
 	if err != nil {
 		return
 	}

@@ -1,32 +1,112 @@
-## 3.44.0 (Unreleased)
+## 3.45.0 (Unreleased)
+
+BUG FIXES
+
+* `data.azurerm_redis_cache` : fix issue when no patch schedules can be found [GH-20516]
+
+## 3.44.1 (February 17, 2023)
+
+ENHANCEMENTS
+
+* dependencies: updating to `v0.20230217.1150808` of `github.com/hashicorp/go-azure-sdk` ([#20539](https://github.com/hashicorp/terraform-provider-azurerm/issues/20539))
+
+BUG FIXES
+
+* authentication: fixing an issue when obtaining the auth token for Resource Manager in Azure Government ([#20523](https://github.com/hashicorp/terraform-provider-azurerm/issues/20523))
+* authentication: fixing an issue where the default subscription ID was not detected when authenticating using Azure CLI ([#20526](https://github.com/hashicorp/terraform-provider-azurerm/issues/20526))
+* authentication: fixing an issue where Managed Identity authentication would fail ([#20523](https://github.com/hashicorp/terraform-provider-azurerm/issues/20523))
+* Data Source: `azurerm_app_configuration_key` - fixing an issue where the App Configuration was misleadingly marked as gone when the data plane client couldn't be build ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* Data Source: `azurerm_app_configuration_key` - surfacing the error when a data plane client can't be built ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* Data Source: `azurerm_app_configuration_keys` - fixing an issue where the App Configuration was misleadingly marked as gone when the data plane client couldn't be build ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* Data Source: `azurerm_app_configuration_keys` - surfacing the error when a data plane client can't be built ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* `azurerm_app_configuration_feature` - fixing an issue where the App Configuration was misleadingly marked as gone when the data plane client couldn't be build ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* `azurerm_app_configuration_feature` - surfacing the error when a data plane client can't be built ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* `azurerm_app_configuration_key` - fixing an issue where the App Configuration was misleadingly marked as gone when the data plane client couldn't be build ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* `azurerm_app_configuration_key` - surfacing the error when a data plane client can't be built ([#20533](https://github.com/hashicorp/terraform-provider-azurerm/issues/20533))
+* `azurerm_kubernetes_cluster` - fix a crash when `securityProfile` is nil in the API Response ([#20517](https://github.com/hashicorp/terraform-provider-azurerm/issues/20517))
+* `azurerm_logic_app_standard` - fixing an issue where the `storage endpoint suffix` couldn't be found ([#20536](https://github.com/hashicorp/terraform-provider-azurerm/issues/20536))
+* `azurerm_synapse_role_assignment` - fixing an issue where the `Synapse domain suffix` couldn't be found ([#20536](https://github.com/hashicorp/terraform-provider-azurerm/issues/20536))
+
+## 3.44.0 (February 16, 2023)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_mobile_network_site` [GH-20334]
-* **New Data Source:** `azurerm_hybrid_compute_machine` [GH-20211]
-* **New Resource:** `azurerm_network_manager_security_admin_configuration` [GH-20233]
-* **New Resource:** `azurerm_network_manager_admin_rule_collection` [GH-20233]
-* **New Resource:** `azurerm_network_manager_admin_rule` [GH-20233]
-* **New Resource:** `azurerm_mobile_network_site` [GH-20334]
+* **New Data Source:** `azurerm_hybrid_compute_machine` ([#20211](https://github.com/hashicorp/terraform-provider-azurerm/issues/20211))
+* **New Data Source:** `azurerm_policy_definition_built_in` ([#19933](https://github.com/hashicorp/terraform-provider-azurerm/issues/19933))
+* **New Data Source:** `azurerm_mobile_network_service` ([#20337](https://github.com/hashicorp/terraform-provider-azurerm/issues/20337))
+* **New Data Source:** `azurerm_mobile_network_site` ([#20334](https://github.com/hashicorp/terraform-provider-azurerm/issues/20334))
+* **New Data Source:** `azurerm_mobile_network_slice` ([#20336](https://github.com/hashicorp/terraform-provider-azurerm/issues/20336))
+* **New Data Source:** `azurerm_mobile_network_sim_group` ([#20339](https://github.com/hashicorp/terraform-provider-azurerm/issues/20339))
+* **New Data Source:** `azurerm_virtual_desktop_host_pool` ([#20505](https://github.com/hashicorp/terraform-provider-azurerm/issues/20505))
+* **New Resource:** `azurerm_network_manager_security_admin_configuration` ([#20233](https://github.com/hashicorp/terraform-provider-azurerm/issues/20233))
+* **New Resource:** `azurerm_network_manager_admin_rule_collection` ([#20233](https://github.com/hashicorp/terraform-provider-azurerm/issues/20233))
+* **New Resource:** `azurerm_network_manager_admin_rule` ([#20233](https://github.com/hashicorp/terraform-provider-azurerm/issues/20233))
+* **New Resource:** `azurerm_mobile_network_service` ([#20337](https://github.com/hashicorp/terraform-provider-azurerm/issues/20337))
+* **New Resource:** `azurerm_mobile_network_site` ([#20334](https://github.com/hashicorp/terraform-provider-azurerm/issues/20334))
+* **New Resource:** `azurerm_mobile_network_slice` ([#20336](https://github.com/hashicorp/terraform-provider-azurerm/issues/20336))
+* **New Resource:** `azurerm_mobile_network_sim_group` [GH-20339
+* **New Resource:** `azurerm_site_recovery_services_vault_hyperv_site` [GH-204309
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230213.1235936` of `github.com/hashicorp/go-azure-sdk` [GH-20444]
-* dependencies: no longer utilizing `github.com/manicminer/hamilton` [GH-20320]
-* **Provider:** support for the `client_certificate` provider property [GH-20320]
-* **Provider:** support for the `use_cli` provider property [GH-20320]
-* **Provider:** authentication now uses the `github.com/hashicorp/go-azure-sdk/sdk/auth` package [GH-20320]
-* **Provider:** cloud configuration now uses the `github.com/hashicorp/go-azure-sdk/sdk/environments` package [GH-20320]
-* `managementlocks`: refactoring to use `github.com/hashicorp/go-azure-sdk` [GH-20387]
-* `postgres` - updating API to `2022-12-01` [GH-20370]
-* Data Source: `azurerm_policy_definition` - support for th `mode` property [GH-20420]
-* `azurerm_cognitive_account` - the field `sku_name` can now be set to `DC0` [GH-20426]
-* `azurerm_express_route_port` - support for the `billing_type` property [GH-20361]
+* dependencies: updating to `v0.20230216.1112535` of `github.com/hashicorp/go-azure-sdk` ([#20465](https://github.com/hashicorp/terraform-provider-azurerm/issues/20465))
+* dependencies: no longer utilizing `github.com/manicminer/hamilton` ([#20320](https://github.com/hashicorp/terraform-provider-azurerm/issues/20320))
+* provider: support for the `client_certificate` provider property ([#20320](https://github.com/hashicorp/terraform-provider-azurerm/issues/20320))
+* provider: support for the `use_cli` provider property ([#20320](https://github.com/hashicorp/terraform-provider-azurerm/issues/20320))
+* provider: authentication now uses the `github.com/hashicorp/go-azure-sdk/sdk/auth` package ([#20320](https://github.com/hashicorp/terraform-provider-azurerm/issues/20320))
+* provider: cloud configuration now uses the `github.com/hashicorp/go-azure-sdk/sdk/environments` package ([#20320](https://github.com/hashicorp/terraform-provider-azurerm/issues/20320))
+* `datashare`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20501](https://github.com/hashicorp/terraform-provider-azurerm/issues/20501))
+* `managementlocks`: refactoring to use `github.com/hashicorp/go-azure-sdk` ([#20387](https://github.com/hashicorp/terraform-provider-azurerm/issues/20387))
+* `media`: refactoring `StreamingEndpoints` to use API Version `2022-08-01` ([#20457](https://github.com/hashicorp/terraform-provider-azurerm/issues/20457))
+* `postgres` - updating API to `2022-12-01` ([#20370](https://github.com/hashicorp/terraform-provider-azurerm/issues/20370))
+* Data Source: `azurerm_policy_definition` - support for the `mode` property ([#20420](https://github.com/hashicorp/terraform-provider-azurerm/issues/20420))
+* Data Source: `azurerm_key_vault_certificates` - now exports the `certificates` block ([#20498](https://github.com/hashicorp/terraform-provider-azurerm/issues/20498))
+* Data Source: `azurerm_key_vault_secrets` - now exports the `secrets` block ([#20498](https://github.com/hashicorp/terraform-provider-azurerm/issues/20498))
+* `azurerm_api_management` - support for the `delegation` block ([#20399](https://github.com/hashicorp/terraform-provider-azurerm/issues/20399))
+* `azurerm_container_app` - now supports multiple `container` blocks ([#20423](https://github.com/hashicorp/terraform-provider-azurerm/issues/20423))
+* `azurerm_cognitive_account` - the field `sku_name` can now be set to `DC0` ([#20426](https://github.com/hashicorp/terraform-provider-azurerm/issues/20426))
+* `azurerm_container_app` - support for the `registry.identity` property ([#20466](https://github.com/hashicorp/terraform-provider-azurerm/issues/20466))
+* `azurerm_data_factory_linked_service_azure_blob_storage` - Add support for `connection_string_insecure`  [Gh-20494]
+* `azurerm_express_route_port` - support for the `billing_type` property ([#20361](https://github.com/hashicorp/terraform-provider-azurerm/issues/20361))
+* `azurerm_kubernetes_cluster` - the `web_app_routing.dns_zone_id` property now accepts an empty string for BYO DNS ([#20341](https://github.com/hashicorp/terraform-provider-azurerm/issues/20341))
+* `azurerm_linux_virtual_machine` - validating that the value for the `admin_username` property isn't a disallowed username ([#20424](https://github.com/hashicorp/terraform-provider-azurerm/issues/20424))
+* `azurerm_windows_virtual_machine` - validating that the value for the `admin_username` property isn't a disallowed username ([#20424](https://github.com/hashicorp/terraform-provider-azurerm/issues/20424))
 
 BUG FIXES:
 
-* `azurerm_eventgrid_domain_topic` - `name` can now be up to 128 characters [GH-20407]
-* `azurerm_private_endpoint` - normalizing the `private_connection_resource_id` for a redis cache [GH-20418]
+* Data Source: `azurerm_aadb2c_directory` - fixing a bug where the Data Source didn't return an error when the AAD B2C was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_app_service_environment_v3` - fixing a bug where the Data Source didn't return an error when the App Service Environment was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_consumption_budget_resource_group` - using the correct timeout value ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_consumption_budget_resource_group` - fixing a bug where the Data Source didn't return an error when the Consumption Budget Resource Group was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_data_protection_backup_vault` - fixing a bug where the Data Source didn't return an error when the Data Protection Backup Vault was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_databox_edge_device` - fixing a bug where the Data Source didn't return an error when the DataBox Edge Device was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_healthcare_dicom` - fixing a bug where the Data Source didn't return an error when the HealthCare DICOM was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_healthcare_fhir` - fixing a bug where the Data Source didn't return an error when the HealthCare FHIR was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_healthcare_medtech_service` - fixing a bug where the Data Source didn't return an error when the HealthCare MedTech Service was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_key_vault_certificate_data` - fixing a bug where the Data Source didn't return an error when the KeyVault Certificate was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_key_vault_certificate` - fixing a bug where the Data Source didn't return an error when the KeyVault Certificate was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_lb_outbound_rule` - fixing a bug where the Data Source didn't return an error when the Load Balancer Outbound Rule was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_lb_rule` - fixing a bug where the Data Source didn't return an error when the Load Balancer Rule was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_local_network_gateway` - fixing a bug where the Data Source didn't return an error when the Local Network Gateway was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_mobile_network` - fixing a bug where the Data Source didn't return an error when the Mobile Network was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_monitor_data_collection_endpoint` - fixing a bug where the Data Source didn't return an error when the Monitor Data Collection Endpoint was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_mssql_managed_instance` - fixing a bug where the Data Source didn't return an error when the MSSQL Managed Instance was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_policy_assignment` - fixing a bug where the Data Source didn't return an error when the Policy Assignment was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_redis_enterprise_database` - fixing a bug where the Data Source didn't return an error when the Redis Enterprise Database was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_servicebus_namespace_disaster_recovery_config` - fixing a bug where the Data Source didn't return an error when the ServiceBus Namespace Disaster Recovery Config was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_site_recovery_replication_recovery_plan` - fixing a bug where the Data Source didn't return an error when the Site Recovery Replication Recovery Plan was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_storage_blob` - fixing a bug where the Data Source didn't return an error when the Blob was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_storage_table_entity` - fixing a bug where the Data Source didn't return an error when the Table Entity was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_vpn_gateway` - fixing a bug where the Data Source didn't return an error when the VPN Gateway was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* Data Source: `azurerm_web_pubsub` - fixing a bug where the Data Source didn't return an error when the Web PubSub was not found ([#20479](https://github.com/hashicorp/terraform-provider-azurerm/issues/20479))
+* `azurerm_backup_protected_vm` - will now correctly delete ([#20469](https://github.com/hashicorp/terraform-provider-azurerm/issues/20469))
+* `azurerm_eventhub` - changing the `partition_count` property now works by creating a new resource ([#20480](https://github.com/hashicorp/terraform-provider-azurerm/issues/20480))
+* `azurerm_eventgrid_domain_topic` - the `name` property can now be up to 128 characters ([#20407](https://github.com/hashicorp/terraform-provider-azurerm/issues/20407))
+* `azurerm_kubernetes_cluster` - parsing the API response for the `log_analytics_workspace_id` field case-insensitively ([#20484](https://github.com/hashicorp/terraform-provider-azurerm/issues/20484))
+* `azurerm_private_endpoint` - normalizing the `private_connection_resource_id` propety for a redis cache ([#20418](https://github.com/hashicorp/terraform-provider-azurerm/issues/20418))
+* `azurerm_private_endpoint` - consistently normalizing the value returned from the API for `private_connection_resource_id` ([#20452](https://github.com/hashicorp/terraform-provider-azurerm/issues/20452))
+* `azurerm_recovery_services_vault` - updating `cross_region_restore_enabled` to `false` recreates the resource since this operation isn't supported by the API ([#20406](https://github.com/hashicorp/terraform-provider-azurerm/issues/20406))
+* `azurerm_storage_management_policy` - the `rule.filters` property is now Required since storage management policies fail if it's unspecified ([#20448](https://github.com/hashicorp/terraform-provider-azurerm/issues/20448))
 
 ## 3.43.0 (February 09, 2023)
 

@@ -176,7 +176,7 @@ func (p provisioningStateOptions) ToOData() *odata.Query {
 }
 
 func (p provisioningStateOptions) ToQuery() *client.QueryParams {
-	return client.QueryParamsFromValues(map[string]string{
-		"api-version": p.apiVersion,
-	})
+	q := client.QueryParams{}
+	q.Append("api-version", p.apiVersion)
+	return &q
 }

@@ -88,5 +88,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 A Container App Environment Certificate can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_container_app_environment_certificate.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/certificates/mycertificate"
+terraform import azurerm_container_app_environment_certificate.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myenv/certificates/mycertificate"
 ```
