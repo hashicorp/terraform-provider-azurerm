@@ -556,8 +556,11 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("expanding push setting for windows function app error: %+v", err)
 			}
-			if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings); err != nil {
-				return fmt.Errorf("updating push setting error: %+v", err)
+
+			if pushSettings.PushSettingsProperties != nil {
+				if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, pushSettings); err != nil {
+					return fmt.Errorf("updating push setting error: %+v", err)
+				}
 			}
 
 			metadata.SetID(id)
@@ -692,7 +695,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
-			pushes, err := helpers.FlattenPushSetting(pushSetting)
+			pushes, err := helpers.FlattenPushSetting(pushSetting, metadata)
 			if err != nil {
 				return fmt.Errorf("reading push setting error: %+v", err)
 			}
@@ -973,7 +976,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("expanding push setting for windows function app error: %+v", err)
 				}
-				if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings); err != nil {
+				if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, pushSettings); err != nil {
 					return fmt.Errorf("updating push setting error: %+v", err)
 				}
 			}

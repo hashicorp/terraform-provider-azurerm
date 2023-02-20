@@ -258,7 +258,9 @@ A `push` block supports the following:
 
 * `dynamic_tags_to_whitelist` - (Optional)  A list of dynamic tags that will be evaluated from user claims in the push registration endpoint.
 
-* `tags_requiring_auth****` - (Optional) A list of tags that require user authentication to be used in the push registration endpoint.
+* `tags_requiring_auth` - (Optional) A list of tags that require user authentication to be used in the push registration endpoint.
+
+~> **NOTE:** Tags can consist of alphanumeric characters and the following:`_`, `@`, `#`, `.`, `:`, `-`. Validation should be performed at the PushRequestHandler."
 
 ---
 

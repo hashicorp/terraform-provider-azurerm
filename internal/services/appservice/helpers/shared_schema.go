@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
@@ -1683,11 +1684,14 @@ func PushSettingSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandPushSetting(input []PushSetting, isNotificationHubConnected bool) (*web.PushSettings, error) {
-	result := &web.PushSettings{}
+func ExpandPushSetting(input []PushSetting, isNotificationHubConnected bool) (web.PushSettings, error) {
+	result := web.PushSettings{
+		PushSettingsProperties: &web.PushSettingsProperties{},
+	}
 	if len(input) == 0 {
 		return result, nil
 	}
+
 	if !isNotificationHubConnected {
 		return result, fmt.Errorf("configuring push error: connecting to notification hub first")
 	}
@@ -1702,31 +1706,33 @@ func ExpandPushSetting(input []PushSetting, isNotificationHubConnected bool) (*w
 
 	tagsInJson, err := json.Marshal(whitelistTags)
 	if err != nil {
-		return nil, fmt.Errorf("serializing the tags to JSON: %+v", err)
+		return result, fmt.Errorf("serializing the tags to JSON: %+v", err)
 	}
 	result.PushSettingsProperties.TagWhitelistJSON = pointer.To(string(tagsInJson))
 
 	whitelistDynamicsTags = append(whitelistDynamicsTags, pushSettingData.DynamicTagsToWhitelist...)
 	dTagsInJson, err := json.Marshal(whitelistDynamicsTags)
 	if err != nil {
-		return nil, fmt.Errorf("serializing the dynamic tags to JSON: %+v", err)
+		return result, fmt.Errorf("serializing the dynamic tags to JSON: %+v", err)
 	}
 	result.PushSettingsProperties.DynamicTagsJSON = pointer.To(string(dTagsInJson))
 
 	tagsRequiringAuth = append(tagsRequiringAuth, pushSettingData.RequiredAuthTags...)
 	tagsRequiringAuthInJson, err := json.Marshal(tagsRequiringAuth)
 	if err != nil {
-		return nil, fmt.Errorf("serializing the dynamic tags to JSON: %+v", err)
+		return result, fmt.Errorf("serializing the dynamic tags to JSON: %+v", err)
 	}
 	result.PushSettingsProperties.TagsRequiringAuth = pointer.To(string(tagsRequiringAuthInJson))
 
 	return result, nil
 }
 
-func FlattenPushSetting(pushSettingData web.PushSettings) ([]PushSetting, error) {
+func FlattenPushSetting(pushSettingData web.PushSettings, metaData sdk.ResourceMetaData) ([]PushSetting, error) {
 	result := make([]PushSetting, 0)
-	if pushSettingData.PushSettingsProperties == nil {
-		return result, nil
+
+	// if user removes the push setting from config, api turns the enabled switch off but won't reset the whole block back to nil.
+	if _, ok := metaData.ResourceData.GetOk("push_settings"); !ok {
+		return nil, nil
 	}
 
 	pushProps := *pushSettingData.PushSettingsProperties

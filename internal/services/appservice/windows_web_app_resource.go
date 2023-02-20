@@ -442,14 +442,16 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("checking required notification hub key error: %+v", err)
 			}
+
 			pushSettings, err := helpers.ExpandPushSetting(webApp.PushSetting, isNotificationHubConnected)
 			if err != nil {
 				return fmt.Errorf("expanding push setting for windows web app error: %+v", err)
 			}
-			if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings); err != nil {
-				return fmt.Errorf("updating push setting error: %+v", err)
+			if pushSettings.PushSettingsProperties != nil {
+				if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, pushSettings); err != nil {
+					return fmt.Errorf("updating push setting error: %+v", err)
+				}
 			}
-
 			return nil
 		},
 
@@ -571,7 +573,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
 
-			pushes, err := helpers.FlattenPushSetting(pushSetting)
+			pushes, err := helpers.FlattenPushSetting(pushSetting, metadata)
 			if err != nil {
 				return fmt.Errorf("reading push setting error: %+v", err)
 			}
@@ -813,7 +815,8 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("expanding push setting for windows web app error: %+v", err)
 				}
-				if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, *pushSettings); err != nil {
+
+				if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, pushSettings); err != nil {
 					return fmt.Errorf("updating push setting error: %+v", err)
 				}
 			}
