@@ -21,7 +21,7 @@ func WindowsAdminPassword(i interface{}, k string) (warnings []string, errors []
 		return
 	}
 
-	// adminPassword Min-length is 6 characters and Max-length is 72 characters.
+	// adminPassword Min-length is 8 characters and Max-length is 123 characters.
 	if len(v) < 8 || len(v) > 123 {
 		errors = append(errors, fmt.Errorf("%q most be between %d and %d characters, got %d", k, 8, 123, len(v)))
 	}
