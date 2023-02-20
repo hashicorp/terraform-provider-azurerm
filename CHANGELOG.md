@@ -8,6 +8,12 @@ BUG FIXES
 
 * Data Source `azurerm_redis_cache`: fix issue when no patch schedules can be found [GH-20516]
 
+
+ENHANCEMENTS
+
+* `azurerm_linux_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
+* `azurerm_windows_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
+
 ## 3.44.1 (February 17, 2023)
 
 ENHANCEMENTS
