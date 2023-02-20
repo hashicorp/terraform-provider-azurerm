@@ -1,8 +1,12 @@
 ## 3.45.0 (Unreleased)
 
+ENHANCEMENTS
+
+* dependencies: updating to `v0.7.0` of `golang.org/x/net` [GH-20541]
+
 BUG FIXES
 
-* `data.azurerm_redis_cache` : fix issue when no patch schedules can be found [GH-20516]
+* Data Source `azurerm_redis_cache`: fix issue when no patch schedules can be found [GH-20516]
 
 ## 3.44.1 (February 17, 2023)
 
