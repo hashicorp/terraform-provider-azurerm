@@ -516,7 +516,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
 				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
 			}
-			parentAppFarmId, err := parse.ServicePlanID(*webApp.SiteProperties.ServerFarmID)
+			parentAppFarmId, err := parse.ServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
 			if err != nil {
 				return err
 			}
