@@ -273,7 +273,7 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 		}
 
 		if instantRPDetail := properties.InstantRPDetails; instantRPDetail != nil {
-			d.Set("instant_restore_resource_group", flattenBackupProtectionPolicyVMResourceGroup(instantRPDetail))
+			d.Set("instant_restore_resource_group", flattenBackupProtectionPolicyVMResourceGroup(*instantRPDetail))
 		}
 	}
 
@@ -538,20 +538,24 @@ func expandBackupProtectionPolicyVMRetentionWeeklyFormat(block map[string]interf
 	return &weekly
 }
 
-func flattenBackupProtectionPolicyVMResourceGroup(rpDetail *backup.InstantRPAdditionalDetails) []interface{} {
-	if rpDetail == nil || rpDetail.AzureBackupRGNamePrefix == nil {
+func flattenBackupProtectionPolicyVMResourceGroup(rpDetail backup.InstantRPAdditionalDetails) []interface{} {
+	if rpDetail.AzureBackupRGNamePrefix == nil {
 		return nil
 	}
 
 	block := map[string]interface{}{}
 
+	prefix := ""
 	if rpDetail.AzureBackupRGNamePrefix != nil {
-		block["prefix"] = *rpDetail.AzureBackupRGNamePrefix
+		prefix = *rpDetail.AzureBackupRGNamePrefix
 	}
+	block["prefix"] = prefix
 
+	suffix := ""
 	if rpDetail.AzureBackupRGNameSuffix != nil {
-		block["suffix"] = *rpDetail.AzureBackupRGNameSuffix
+		suffix = *rpDetail.AzureBackupRGNameSuffix
 	}
+	block["suffix"] = suffix
 
 	return []interface{}{block}
 }
