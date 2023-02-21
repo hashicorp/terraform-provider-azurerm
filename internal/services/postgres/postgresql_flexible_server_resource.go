@@ -70,7 +70,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.All(validation.StringIsNotWhiteSpace, validate.AdminUsernames),
 			},
 
@@ -288,7 +287,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			createModeVal := d.Get("create_mode").(string)
 
 			if createModeVal == string(servers.CreateModeUpdate) {
@@ -315,7 +314,14 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			d.ForceNew("version")
 
 			return nil
-		}),
+		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			oldLoginName, _ := diff.GetChange("administrator_login")
+			if oldLoginName != "" {
+				diff.ForceNew("administrator_login")
+			}
+			return nil
+		},
+		),
 	}
 }
 
@@ -362,12 +368,30 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if createMode == "" || servers.CreateMode(createMode) == servers.CreateModeDefault {
-		if _, ok := d.GetOk("administrator_login"); !ok {
-			return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default`")
+		_, adminLoginSet := d.GetOk("administrator_login")
+		_, adminPwdSet := d.GetOk("administrator_password")
+
+		pwdEnabled := true // it defaults to true
+		if authRaw, authExist := d.GetOk("authentication"); authExist {
+			authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
+			if authConfig.PasswordAuth != nil {
+				pwdEnabled = *authConfig.PasswordAuth == servers.PasswordAuthEnumEnabled
+			}
 		}
-		if _, ok := d.GetOk("administrator_password"); !ok {
-			return fmt.Errorf("`administrator_password` is required when `create_mode` is `Default`")
+
+		if pwdEnabled {
+			if !adminLoginSet {
+				return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
+			}
+			if !adminPwdSet {
+				return fmt.Errorf("`administrator_password` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
+			}
+		} else {
+			if adminLoginSet || adminPwdSet {
+				return fmt.Errorf("`administrator_login` and `administrator_password` cannot be set when `authentication.password_auth_enabled` is set to `false`")
+			}
 		}
+
 		if _, ok := d.GetOk("sku_name"); !ok {
 			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
 		}
@@ -432,12 +456,8 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.PointInTimeUTC = utils.String(v.Format(time.RFC3339))
 	}
 
-	// if create with `password_auth_enabled` set to `false`, the service will not accept `administrator_login`.
-	// so we create it with  `password_auth_enabled` set to `true`, then set it to `false` in an additional update.
 	if authRaw, ok := d.GetOk("authentication"); ok {
 		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
-		passwordAuthEnabled := servers.PasswordAuthEnumEnabled
-		authConfig.PasswordAuth = &passwordAuthEnabled
 		parameters.Properties.AuthConfig = authConfig
 	}
 
@@ -453,14 +473,6 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 
 	requireAdditionalUpdate := false
 	updateProperties := servers.ServerPropertiesForUpdate{}
-	if authRaw, ok := d.GetOk("authentication"); ok {
-		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
-		if authConfig != nil && authConfig.PasswordAuth != nil && *authConfig.PasswordAuth == servers.PasswordAuthEnumDisabled {
-			requireAdditionalUpdate = true
-			updateProperties.AuthConfig = authConfig
-		}
-	}
-
 	// `maintenance_window` could only be updated with, could not be created with
 	if v, ok := d.GetOk("maintenance_window"); ok {
 		requireAdditionalUpdate = true
@@ -596,6 +608,30 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		Properties: &servers.ServerPropertiesForUpdate{},
 	}
 
+	_, adminLoginSet := d.GetOk("administrator_login")
+	_, adminPwdSet := d.GetOk("administrator_password")
+
+	pwdEnabled := true // it defaults to true
+	if authRaw, authExist := d.GetOk("authentication"); authExist {
+		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
+		if authConfig.PasswordAuth != nil {
+			pwdEnabled = *authConfig.PasswordAuth == servers.PasswordAuthEnumEnabled
+		}
+	}
+
+	if pwdEnabled {
+		if !adminLoginSet {
+			return fmt.Errorf("`administrator_login` is required when `authentication.password_auth_enabled` is set to `true`")
+		}
+		if !adminPwdSet {
+			return fmt.Errorf("`administrator_password` is required when `authentication.password_auth_enabled` is set to `true`")
+		}
+	} else {
+		if adminLoginSet || adminPwdSet {
+			return fmt.Errorf("`administrator_login` and `administrator_password` cannot be set when `authentication.password_auth_enabled` is set to `false`")
+		}
+	}
+
 	var requireFailover bool
 	// failover is only supported when `zone` and `high_availability.0.standby_availability_zone` are exchanged with each other
 	if d.HasChanges("zone", "high_availability") {
@@ -655,6 +691,11 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
+	requireUpdateOnLogin := false // it's required to call Create with `createMode` set to `Update` to update login name.
+	if d.HasChange("administrator_login") {
+		requireUpdateOnLogin = true
+	}
+
 	if d.HasChange("administrator_password") {
 		parameters.Properties.AdministratorLoginPassword = utils.String(d.Get("administrator_password").(string))
 	}
@@ -711,6 +752,22 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("version") {
 		version := servers.ServerVersion(d.Get("version").(string))
 		parameters.Properties.Version = &version
+	}
+
+	if requireUpdateOnLogin {
+		updateMode := servers.CreateModeUpdate
+		loginParameters := servers.Server{
+			Properties: &servers.ServerProperties{
+				CreateMode:                 &updateMode,
+				AuthConfig:                 expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{})),
+				AdministratorLogin:         utils.String(d.Get("administrator_login").(string)),
+				AdministratorLoginPassword: utils.String(d.Get("administrator_password").(string)),
+				Network:                    expandArmServerNetwork(d),
+			},
+		}
+		if err = client.CreateThenPoll(ctx, *id, loginParameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
