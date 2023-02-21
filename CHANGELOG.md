@@ -9,12 +9,18 @@ ENHANCEMENTS
 * dependencies: updating to `v0.7.0` of `golang.org/x/net` [GH-20541]
 * `compute/capacityreservations` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
 * `compute/capacityreservationgroups` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
+* `azurerm_backup_policy_vm` - add support for `instant_restore_resource_group` [GH-20562]
 * `azurerm_linux_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
+* `azurerm_recovery_services_vault` - add support for `classic_vmware_replication_enabled` [GH-20473]
 * `azurerm_windows_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
 
 BUG FIXES
 
-* Data Source `azurerm_redis_cache`: fix issue when no patch schedules can be found [GH-20516]
+* Data Source: `azurerm_linux_web_app` - set `virtual_network_subnet_id` correctly [GH-20577]
+* Data Source: `azurerm_redis_cache` - fix issue when no patch schedules can be found [GH-20516]
+* Data Source: `azurerm_windows_web_app` - set `virtual_network_subnet_id` correctly [GH-20577]
+* `azurerm_batch_pool` - set user assigned id for `azure_blob_file_system` correctly [GH-20560]
+* `azurerm_kubernetes_cluster` - prevent crash when `SecurityProfile` is nil [GH-20584]
 
 ## 3.44.1 (February 17, 2023)
 
