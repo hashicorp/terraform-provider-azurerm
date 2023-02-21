@@ -28,7 +28,6 @@ type HyperVHostRegistrationKeyModel struct {
 	Name                        string `tfschema:"name"`
 	HyperVSiteId                string `tfschema:"site_recovery_services_vault_hyperv_site_id"`
 	ValidateInHours             int64  `tfschema:"validate_in_hours"`
-	RenewOnRead                 bool   `tfschema:"renew"`
 	XmlContent                  string `tfschema:"xml_content"`
 	ResourceId                  int64  `tfschema:"resource_id"`
 	ManagementCert              string `tfschema:"management_cert"`
@@ -41,15 +40,15 @@ type HyperVHostRegistrationKeyModel struct {
 	ValidateToDate              string `tfschema:"validate_to"`
 }
 
-type HyperVHostRegistrationKeyResource struct{}
+type HyperVHostRegistrationKeyDataSource struct{}
 
-var _ sdk.DataSource = HyperVHostRegistrationKeyResource{}
+var _ sdk.DataSource = HyperVHostRegistrationKeyDataSource{}
 
-func (h HyperVHostRegistrationKeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (h HyperVHostRegistrationKeyDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return vaultcertificates.ValidateCertificateID
 }
 
-func (h HyperVHostRegistrationKeyResource) Arguments() map[string]*schema.Schema {
+func (h HyperVHostRegistrationKeyDataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"site_recovery_services_vault_hyperv_site_id": {
 			Type:         schema.TypeString,
@@ -68,7 +67,7 @@ func (h HyperVHostRegistrationKeyResource) Arguments() map[string]*schema.Schema
 	}
 }
 
-func (h HyperVHostRegistrationKeyResource) Attributes() map[string]*schema.Schema {
+func (h HyperVHostRegistrationKeyDataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:     schema.TypeString,
@@ -117,15 +116,15 @@ func (h HyperVHostRegistrationKeyResource) Attributes() map[string]*schema.Schem
 	}
 }
 
-func (h HyperVHostRegistrationKeyResource) ModelObject() interface{} {
+func (h HyperVHostRegistrationKeyDataSource) ModelObject() interface{} {
 	return &HyperVHostRegistrationKeyModel{}
 }
 
-func (h HyperVHostRegistrationKeyResource) ResourceType() string {
+func (h HyperVHostRegistrationKeyDataSource) ResourceType() string {
 	return "azurerm_recovery_services_vault_hyperv_host_registration_key"
 }
 
-func (h HyperVHostRegistrationKeyResource) Read() sdk.ResourceFunc {
+func (h HyperVHostRegistrationKeyDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

@@ -11,7 +11,7 @@ import (
 type RecoveryServicesVaultHyperVHostRegistrationKeyDataSource struct{}
 
 func TestAccRecoveryServicesVaultHyperVHostRegistrationKey_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault_hyperv_host_registration_key", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_recovery_services_vault_hyperv_host_registration_key", "test")
 	r := RecoveryServicesVaultHyperVHostRegistrationKeyDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -31,12 +31,15 @@ func TestAccRecoveryServicesVaultHyperVHostRegistrationKey_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("validate_to").Exists(),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 
 func (RecoveryServicesVaultHyperVHostRegistrationKeyDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+%s
 
-`)
+data "azurerm_recovery_services_vault_hyperv_host_registration_key" "test" {
+	site_recovery_services_vault_hyperv_site_id = azurerm_site_recovery_services_vault_hyperv_site.test.id
+}
+`, HyperVSiteResource{}.basic(data))
 }
