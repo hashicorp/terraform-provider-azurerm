@@ -1732,7 +1732,7 @@ func FlattenPushSetting(pushSettingData web.PushSettings, metaData sdk.ResourceM
 
 	// if user removes the push setting from config, api turns the enabled switch off but won't reset the whole block back to nil.
 	if pushSettingData.PushSettingsProperties == nil ||
-		*pushSettingData.PushSettingsProperties.IsPushEnabled == false && len(metaData.ResourceData.Get("push_settings").([]interface{})) == 0 {
+		!*pushSettingData.PushSettingsProperties.IsPushEnabled && len(metaData.ResourceData.Get("push_settings").([]interface{})) == 0 {
 		return result, nil
 	}
 
