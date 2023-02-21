@@ -208,13 +208,6 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = data.azurerm_client_config.test.object_id
 }
 
-# https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
-resource "time_sleep" "wait_15_minutes" {
-  depends_on = [azurerm_role_assignment.test]
-
-  create_duration = "15m"
-}
-
 resource "azurerm_app_configuration" "test" {
   name                = "testacc-appconf%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -222,7 +215,7 @@ resource "azurerm_app_configuration" "test" {
   sku                 = "standard"
 
   depends_on = [
-    time_sleep.wait_15_minutes,
+	azurerm_role_assignment.test,
   ]
 }
 
