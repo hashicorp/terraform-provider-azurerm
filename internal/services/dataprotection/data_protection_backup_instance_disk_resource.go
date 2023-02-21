@@ -185,7 +185,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 				parameter := (*props.PolicyInfo.PolicyParameters.DataStoreParametersList)[0].(backupinstances.AzureOperationalStoreParameters)
 
 				if parameter.ResourceGroupId != nil {
-					resourceGroupId, err := resourceParse.ResourceGroupID(*parameter.ResourceGroupId)
+					resourceGroupId, err := resourceParse.ResourceGroupIDInsensitively(*parameter.ResourceGroupId)
 					if err != nil {
 						return err
 					}

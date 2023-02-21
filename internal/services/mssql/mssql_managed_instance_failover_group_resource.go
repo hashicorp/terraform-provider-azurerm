@@ -343,7 +343,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 
 				if instancePairs := props.ManagedInstancePairs; instancePairs != nil && len(*instancePairs) == 1 {
 					if primaryId := (*instancePairs)[0].PrimaryManagedInstanceID; primaryId != nil {
-						id, err := parse.ManagedInstanceID(*primaryId)
+						id, err := parse.ManagedInstanceIDInsensitively(*primaryId)
 						if err != nil {
 							return fmt.Errorf("parsing `PrimaryManagedInstanceID` from response: %v", err)
 						}
@@ -352,7 +352,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 					}
 
 					if partnerId := (*instancePairs)[0].PartnerManagedInstanceID; partnerId != nil {
-						id, err := parse.ManagedInstanceID(*partnerId)
+						id, err := parse.ManagedInstanceIDInsensitively(*partnerId)
 						if err != nil {
 							return fmt.Errorf("parsing `PrimaryManagedInstanceID` from response: %v", err)
 						}

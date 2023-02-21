@@ -1,8 +1,14 @@
 ## 3.45.0 (Unreleased)
 
+FEATURES
+
+* **New Resource:** azurerm_site_recovery_hyperv_replication_policy [GH-20454]
+
 ENHANCEMENTS
 
 * dependencies: updating to `v0.7.0` of `golang.org/x/net` [GH-20541]
+* `azurerm_linux_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
+* `azurerm_windows_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
 
 BUG FIXES
 

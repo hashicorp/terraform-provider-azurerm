@@ -224,9 +224,9 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 
 	synapseWorkspaceId := ""
 	synapseSparkPoolId := ""
-	if _, err := parse.WorkspaceID(id.Scope); err == nil {
+	if _, err := parse.WorkspaceIDInsensitively(id.Scope); err == nil {
 		synapseWorkspaceId = id.Scope
-	} else if _, err := parse.SparkPoolID(id.Scope); err == nil {
+	} else if _, err := parse.SparkPoolIDInsensitively(id.Scope); err == nil {
 		synapseSparkPoolId = id.Scope
 	}
 
