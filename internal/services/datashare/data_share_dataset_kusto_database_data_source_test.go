@@ -31,8 +31,8 @@ func (DataShareDatasetKustoDatabaseDataSource) basic(data acceptance.TestData) s
 %s
 
 data "azurerm_data_share_dataset_kusto_database" "test" {
- name     = azurerm_data_share_dataset_kusto_database.test.name
- share_id = azurerm_data_share_dataset_kusto_database.test.share_id
+  name     = azurerm_data_share_dataset_kusto_database.test.name
+  share_id = azurerm_data_share_dataset_kusto_database.test.share_id
 }
 `, DataShareDataSetKustoDatabaseResource{}.basic(data))
 }

@@ -71,6 +71,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew:         true,
 				Sensitive:        true,
 				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
+				ValidateFunc:     computeValidate.WindowsAdminPassword,
 			},
 
 			"admin_username": {

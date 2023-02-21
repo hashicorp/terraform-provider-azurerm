@@ -67,3 +67,47 @@ func WorkspaceID(input string) (*WorkspaceId, error) {
 
 	return &resourceId, nil
 }
+
+// WorkspaceIDInsensitively parses an Workspace ID into an WorkspaceId struct, insensitively
+// This should only be used to parse an ID for rewriting, the WorkspaceID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func WorkspaceIDInsensitively(input string) (*WorkspaceId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := WorkspaceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'workspaces' segment
+	workspacesKey := "workspaces"
+	for key := range id.Path {
+		if strings.EqualFold(key, workspacesKey) {
+			workspacesKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(workspacesKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
