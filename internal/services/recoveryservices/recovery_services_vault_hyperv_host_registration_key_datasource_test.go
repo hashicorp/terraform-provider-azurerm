@@ -27,7 +27,7 @@ func TestAccRecoveryServicesVaultHyperVHostRegistrationKey_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("service_principal_client_id").Exists(),
 				check.That(data.ResourceName).Key("aad_vault_audience").Exists(),
 				check.That(data.ResourceName).Key("aad_management_endpoint").Exists(),
-				check.That(data.ResourceName).Key("vault_private_endpoint_enabled").Exists(),
+				check.That(data.ResourceName).Key("vault_private_endpoint_state").Exists(),
 				check.That(data.ResourceName).Key("validate_to").Exists(),
 			),
 		},

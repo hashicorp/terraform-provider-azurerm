@@ -25,19 +25,19 @@ const vaultProviderNameSpace string = "Microsoft.RecoveryServices"
 const xmlContentVersion string = "2.0"
 
 type HyperVHostRegistrationKeyModel struct {
-	Name                        string `tfschema:"name"`
-	HyperVSiteId                string `tfschema:"site_recovery_services_vault_hyperv_site_id"`
-	ValidateInHours             int64  `tfschema:"validate_in_hours"`
-	XmlContent                  string `tfschema:"xml_content"`
-	ResourceId                  int64  `tfschema:"resource_id"`
-	ManagementCert              string `tfschema:"management_cert"`
-	AadTenantId                 string `tfschema:"aad_tenant_id"`
-	AadAuthority                string `tfschema:"aad_authority"`
-	ServicePrincipalClientId    string `tfschema:"service_principal_client_id"`
-	AadVaultAudience            string `tfschema:"aad_vault_audience"`
-	AadManagementEndpoint       string `tfschema:"aad_management_endpoint"`
-	VaultPrivateEndpointEnabled string `tfschema:"vault_private_endpoint_enabled"`
-	ValidateToDate              string `tfschema:"validate_to"`
+	Name                      string `tfschema:"name"`
+	HyperVSiteId              string `tfschema:"site_recovery_services_vault_hyperv_site_id"`
+	ValidateInHours           int64  `tfschema:"validate_in_hours"`
+	XmlContent                string `tfschema:"xml_content"`
+	ResourceId                int64  `tfschema:"resource_id"`
+	ManagementCert            string `tfschema:"management_cert"`
+	AadTenantId               string `tfschema:"aad_tenant_id"`
+	AadAuthority              string `tfschema:"aad_authority"`
+	ServicePrincipalClientId  string `tfschema:"service_principal_client_id"`
+	AadVaultAudience          string `tfschema:"aad_vault_audience"`
+	AadManagementEndpoint     string `tfschema:"aad_management_endpoint"`
+	VaultPrivateEndpointState string `tfschema:"vault_private_endpoint_state"`
+	ValidateToDate            string `tfschema:"validate_to"`
 }
 
 type HyperVHostRegistrationKeyDataSource struct{}
@@ -105,7 +105,7 @@ func (h HyperVHostRegistrationKeyDataSource) Attributes() map[string]*schema.Sch
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"vault_private_endpoint_enabled": {
+		"vault_private_endpoint_state": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
@@ -217,7 +217,7 @@ func resourceRecoveryServicesVaultHyperVHostRegistrationKeyCreateInternal(ctx co
 	}
 
 	if vault.Properties.PrivateEndpointStateForSiteRecovery != nil {
-		state.VaultPrivateEndpointEnabled = string(*vault.Properties.PrivateEndpointStateForSiteRecovery)
+		state.VaultPrivateEndpointState = string(*vault.Properties.PrivateEndpointStateForSiteRecovery)
 	}
 
 	fabric, err := fetchRecoveryServicesFabricDetails(ctx, metadata.Client.RecoveryServices.FabricClient, *FabricId)
