@@ -735,7 +735,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `agent_pool_profile`: %+v", err)
 			}
 
-			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile.AzureKeyVaultKms)
+			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
 			if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
 			}
@@ -849,17 +849,17 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.AzureKeyVaultKms) []interface{} {
+func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
 	azureKeyVaultKms := make([]interface{}, 0)
 
-	if input != nil && input.Enabled != nil && *input.Enabled {
+	if input != nil && input.AzureKeyVaultKms != nil && input.AzureKeyVaultKms.Enabled != nil && *input.AzureKeyVaultKms.Enabled {
 		keyId := ""
-		if v := input.KeyId; v != nil {
+		if v := input.AzureKeyVaultKms.KeyId; v != nil {
 			keyId = *v
 		}
 
 		networkAccess := ""
-		if v := input.KeyVaultNetworkAccess; v != nil {
+		if v := input.AzureKeyVaultKms.KeyVaultNetworkAccess; v != nil {
 			networkAccess = string(*v)
 		}
 
