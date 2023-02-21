@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/galleries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -52,7 +53,7 @@ func (r GalleryApplicationResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SharedImageGalleryID,
+			ValidateFunc: galleries.ValidateGalleryID,
 		},
 
 		"location": commonschema.Location(),
@@ -128,12 +129,12 @@ func (r GalleryApplicationResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Compute.GalleryApplicationsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			galleryId, err := parse.SharedImageGalleryID(state.GalleryId)
+			galleryId, err := galleries.ParseGalleryID(state.GalleryId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewGalleryApplicationID(subscriptionId, galleryId.ResourceGroup, galleryId.GalleryName, state.Name)
+			id := parse.NewGalleryApplicationID(subscriptionId, galleryId.ResourceGroupName, galleryId.GalleryName, state.Name)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ApplicationName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -209,11 +210,9 @@ func (r GalleryApplicationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			galleryId := parse.NewSharedImageGalleryID(id.SubscriptionId, id.ResourceGroup, id.GalleryName)
-
 			state := &GalleryApplicationModel{
 				Name:      id.ApplicationName,
-				GalleryId: galleryId.ID(),
+				GalleryId: galleries.NewGalleryID(id.SubscriptionId, id.ResourceGroup, id.GalleryName).ID(),
 				Location:  location.NormalizeNilable(resp.Location),
 				Tags:      tags.ToTypedObject(resp.Tags),
 			}
