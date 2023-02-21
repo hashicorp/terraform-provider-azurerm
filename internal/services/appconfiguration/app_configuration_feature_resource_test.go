@@ -215,7 +215,7 @@ resource "azurerm_app_configuration" "test" {
   sku                 = "standard"
 
   depends_on = [
-	azurerm_role_assignment.test,
+    azurerm_role_assignment.test,
   ]
 }
 
@@ -248,6 +248,8 @@ resource "azurerm_app_configuration_feature" "test" {
     }
   }
 }
+
+
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

@@ -192,7 +192,7 @@ resource "azurerm_app_configuration" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
   depends_on = [
-	azurerm_role_assignment.test,
+    azurerm_role_assignment.test,
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
