@@ -203,9 +203,6 @@ func (s *Schedule) LoadSDKModel(info *softwareupdateconfiguration.SUCSchedulePro
 
 // will keep old values encode from config
 func scheduleFromSDK(info softwareupdateconfiguration.SUCScheduleProperties, old []Schedule) []Schedule {
-	if &info == nil {
-		return old
-	}
 	if len(old) == 0 {
 		old = append(old, Schedule{})
 	}
