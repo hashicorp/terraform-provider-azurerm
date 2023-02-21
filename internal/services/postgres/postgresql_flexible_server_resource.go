@@ -606,26 +606,36 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		Properties: &servers.ServerPropertiesForUpdate{},
 	}
 
-	_, adminLoginSet := d.GetOk("administrator_login")
-	_, adminPwdSet := d.GetOk("administrator_password")
+	requireUpdateOnLogin := false // it's required to call Create with `createMode` set to `Update` to update login name.
 
-	pwdEnabled := true // it defaults to true
-	if authRaw, authExist := d.GetOk("authentication"); authExist {
-		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
-		if authConfig.PasswordAuth != nil {
-			pwdEnabled = *authConfig.PasswordAuth == servers.PasswordAuthEnumEnabled
-		}
-	}
+	createMode := d.Get("create_mode").(string)
+	if createMode == "" || servers.CreateMode(createMode) == servers.CreateModeDefault {
 
-	if pwdEnabled {
-		if !adminLoginSet {
-			return fmt.Errorf("`administrator_login` is required when `authentication.password_auth_enabled` is set to `true`")
+		_, adminLoginSet := d.GetOk("administrator_login")
+		_, adminPwdSet := d.GetOk("administrator_password")
+
+		pwdEnabled := true // it defaults to true
+		if authRaw, authExist := d.GetOk("authentication"); authExist {
+			authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
+			if authConfig.PasswordAuth != nil {
+				pwdEnabled = *authConfig.PasswordAuth == servers.PasswordAuthEnumEnabled
+			}
 		}
-		if !adminPwdSet {
-			return fmt.Errorf("`administrator_password` is required when `authentication.password_auth_enabled` is set to `true`")
+
+		if pwdEnabled {
+			if !adminLoginSet {
+				return fmt.Errorf("`administrator_login` is required when `authentication.password_auth_enabled` is set to `true`")
+			}
+			if !adminPwdSet {
+				return fmt.Errorf("`administrator_password` is required when `authentication.password_auth_enabled` is set to `true`")
+			}
+		} else if adminLoginSet || adminPwdSet {
+			return fmt.Errorf("`administrator_login` and `administrator_password` cannot be set when `authentication.password_auth_enabled` is set to `false`")
 		}
-	} else if adminLoginSet || adminPwdSet {
-		return fmt.Errorf("`administrator_login` and `administrator_password` cannot be set when `authentication.password_auth_enabled` is set to `false`")
+
+		if d.HasChange("administrator_login") {
+			requireUpdateOnLogin = true
+		}
 	}
 
 	var requireFailover bool
@@ -685,11 +695,6 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		} else {
 			return fmt.Errorf("`replication_role` only can be updated to `None` for replica server")
 		}
-	}
-
-	requireUpdateOnLogin := false // it's required to call Create with `createMode` set to `Update` to update login name.
-	if d.HasChange("administrator_login") {
-		requireUpdateOnLogin = true
 	}
 
 	if d.HasChange("administrator_password") {
