@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/galleryapplications"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -69,7 +70,7 @@ func (r GalleryApplicationVersionResource) Arguments() map[string]*pluginsdk.Sch
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.GalleryApplicationID,
+			ValidateFunc: galleryapplications.ValidateApplicationID,
 		},
 
 		"location": commonschema.Location(),
@@ -211,12 +212,12 @@ func (r GalleryApplicationVersionResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Compute.GalleryApplicationVersionsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			galleryApplicationId, err := parse.GalleryApplicationID(state.GalleryApplicationId)
+			galleryApplicationId, err := galleryapplications.ParseApplicationID(state.GalleryApplicationId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewGalleryApplicationVersionID(subscriptionId, galleryApplicationId.ResourceGroup, galleryApplicationId.GalleryName, galleryApplicationId.ApplicationName, state.Name)
+			id := parse.NewGalleryApplicationVersionID(subscriptionId, galleryApplicationId.ResourceGroupName, galleryApplicationId.GalleryName, galleryApplicationId.ApplicationName, state.Name)
 			existing, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ApplicationName, id.VersionName, "")
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for the presence of existing %q: %+v", id, err)
@@ -281,8 +282,7 @@ func (r GalleryApplicationVersionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			galleryApplicationId := parse.NewGalleryApplicationID(id.SubscriptionId, id.ResourceGroup, id.GalleryName, id.ApplicationName)
-
+			galleryApplicationId := galleryapplications.NewApplicationID(id.SubscriptionId, id.ResourceGroup, id.GalleryName, id.ApplicationName)
 			state := &GalleryApplicationVersionModel{
 				Name:                 id.VersionName,
 				GalleryApplicationId: galleryApplicationId.ID(),
