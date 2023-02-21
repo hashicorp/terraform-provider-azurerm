@@ -58,6 +58,13 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			"location": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "Global",
+				ForceNew: true,
+			},
+
 			"short_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -476,6 +483,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	tenantId := meta.(*clients.Client).Account.TenantId
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	location := d.Get("location").(string)
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -523,7 +531,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	expandedTags := tags.Expand(t)
 
 	parameters := insights.ActionGroupResource{
-		Location: utils.String(azure.NormalizeLocation("Global")),
+		Location: utils.String(location),
 		ActionGroup: &insights.ActionGroup{
 			GroupShortName:             utils.String(shortName),
 			Enabled:                    utils.Bool(enabled),
