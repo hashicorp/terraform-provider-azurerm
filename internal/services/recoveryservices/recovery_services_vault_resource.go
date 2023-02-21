@@ -145,7 +145,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			"classic_vmware_replication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // the service always return even if not set.
 				ForceNew: true,
 			},
 		},
@@ -340,8 +340,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 				VMwareToAzureProviderType: utils.String("Vmware"),
 			},
 		}
-		err := settingsClient.CreateThenPoll(ctx, settingsId, settingsInput)
-		if err != nil {
+		if err := settingsClient.CreateThenPoll(ctx, settingsId, settingsInput); err != nil {
 			return fmt.Errorf("creating %s: %+v", settingsId, err)
 		}
 	}
@@ -624,7 +623,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 
 	cfg, err := cfgsClient.Get(ctx, cfgId)
 	if err != nil {
-		return fmt.Errorf("reading Recovery Service Vault Cfg %s: %+v", id.String(), err)
+		return fmt.Errorf("retrieving %s: %+v", cfgId, err)
 	}
 
 	if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
@@ -660,9 +659,11 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return fmt.Errorf("reading Recovery Service Vault Setting %s: %+v", id.String(), err)
 	}
-	if vaultSetting.Model != nil && vaultSetting.Model.Properties != nil && vaultSetting.Model.Properties.VMwareToAzureProviderType != nil {
-		providerType := vaultSetting.Model.Properties.VMwareToAzureProviderType
-		d.Set("classic_vmware_replication_enabled", strings.EqualFold(*providerType, "vmware"))
+
+	if vaultSetting.Model != nil && vaultSetting.Model.Properties != nil {
+		if v := vaultSetting.Model.Properties.VMwareToAzureProviderType; v != nil {
+			d.Set("classic_vmware_replication_enabled", strings.EqualFold(*v, "vmware"))
+		}
 	}
 
 	return tags.FlattenAndSet(d, model.Tags)

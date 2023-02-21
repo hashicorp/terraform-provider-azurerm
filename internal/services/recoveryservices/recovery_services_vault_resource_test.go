@@ -1299,12 +1299,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                             = "acctest-Vault-%d"
-  location                         = azurerm_resource_group.test.location
-  resource_group_name              = azurerm_resource_group.test.name
-  sku                              = "Standard"
+  name                               = "acctest-Vault-%d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  sku                                = "Standard"
   classic_vmware_replication_enabled = true
-  soft_delete_enabled              = false
+  soft_delete_enabled                = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
