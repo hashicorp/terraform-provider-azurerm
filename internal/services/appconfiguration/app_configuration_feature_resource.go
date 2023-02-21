@@ -186,7 +186,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be done propagated", featureKey)
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{"Forbidden"},
-				Target:     []string{"Other"},
+				Target:     []string{"Error", "Exists"},
 				Refresh:    appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
 				MinTimeout: 15 * time.Second,
 				Timeout:    15 * time.Minute,

@@ -31,9 +31,9 @@ func appConfigurationGetKeyRefreshFunc(ctx context.Context, client *appconfigura
 					return "Forbidden", "Forbidden", nil
 				}
 			}
-			return nil, "Other", nil
+			return res, "Error", nil
 		}
 
-		return res, "Other", nil
+		return res, "Exists", nil
 	}
 }
