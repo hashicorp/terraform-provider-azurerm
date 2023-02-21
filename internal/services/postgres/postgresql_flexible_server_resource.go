@@ -757,6 +757,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	if requireUpdateOnLogin {
 		updateMode := servers.CreateModeUpdate
 		loginParameters := servers.Server{
+			Location: location.Normalize(d.Get("location").(string)),
 			Properties: &servers.ServerProperties{
 				CreateMode:                 &updateMode,
 				AuthConfig:                 expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{})),
