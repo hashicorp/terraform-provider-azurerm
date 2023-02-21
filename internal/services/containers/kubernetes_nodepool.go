@@ -31,11 +31,11 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: func() map[string]*pluginsdk.Schema {
 				s := map[string]*pluginsdk.Schema{
-					// Required
+					// Required and conditionally ForceNew updating `name` to `temporary_name`
+					// should be allowed and not force cluster recreation
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ForceNew:     true,
 						ValidateFunc: validate.KubernetesAgentPoolName,
 					},
 
@@ -1657,6 +1657,19 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 	// first try loading this from the Resource Data if possible (e.g. when Created)
 	defaultNodePoolName := d.Get("default_node_pool.0.name")
 
+	tempNodePoolName := d.Get("default_node_pool.0.temporary_name")
+
+	// in the read, we want to retrieve both the name and temp name from the config
+	// we then want to see which is available, if the temp name is provisioned but the name isn't
+	// then we are in a semi-failed state where the rotastion has started but failed
+	// in that case we'll want to flag that at plan/read time to highlight that the default node pool is now the temp one
+	// so that name becomes `name` -> `temp name` at plan time
+	//
+	// meanwhile if default node pool with name exists but the temp name doesn't, then all is hunky dorey ad we can continue as normal
+
+	// update:
+	//
+
 	var agentPool *managedclusters.ManagedClusterAgentPoolProfile
 	if defaultNodePoolName != "" {
 		// find it
@@ -1677,6 +1690,12 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 			}
 			if *v.Mode != managedclusters.AgentPoolModeSystem {
 				continue
+			}
+
+			if v.Name == tempNodePoolName {
+				defaultNodePoolName = v.Name
+				agentPool = &v
+				break
 			}
 
 			defaultNodePoolName = v.Name

@@ -73,9 +73,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return old != "" && new == ""
 			}),
 			pluginsdk.ForceNewIf("default_node_pool.0.name", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
-				_, new := d.GetChange("default_node_pool.0.name")
+				old, _ := d.GetChange("default_node_pool.0.name")
 				tempNodePoolName := d.Get("default_node_pool.0.temporary_name")
-				return new != tempNodePoolName
+				return old != tempNodePoolName
 			}),
 		),
 
@@ -2019,47 +2019,48 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			temporaryNodePoolName := d.Get("default_node_pool.0.temporary_name").(string)
 			tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, temporaryNodePoolName)
 
+			tempExisting, err := nodePoolsClient.Get(ctx, tempNodePoolId)
+			if !response.WasNotFound(tempExisting.HttpResponse) && err != nil {
+				return fmt.Errorf("checking for existing temporary %s: %+v", tempNodePoolId, err)
+			}
+
+			defaultExisting, err := nodePoolsClient.Get(ctx, defaultNodePoolId)
+			if !response.WasNotFound(defaultExisting.HttpResponse) && err != nil {
+				return fmt.Errorf("checking for existing default %s: %+v", defaultNodePoolId, err)
+			}
+
 			tempAgentProfile := agentProfile
 			tempAgentProfile.Name = &temporaryNodePoolName
-			// create the temporary default node pool with the new vm size
-			if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
-				return fmt.Errorf("creating Temporary Default Node Pool %s: %+v", tempNodePoolId, err)
+			// if the temp node pool already exists due to a previous failure, don;'t bother spinning it up
+			if tempExisting.Model == nil {
+				// create the temporary default node pool with the new vm size
+				if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
+					return fmt.Errorf("creating Temporary Node Pool %s: %+v", tempNodePoolId, err)
+				}
 			}
 
 			ignorePodDisruptionBudget := true
 			deleteOpts := agentpools.DeleteOperationOptions{
 				IgnorePodDisruptionBudget: &ignorePodDisruptionBudget,
 			}
-
-			// delete the old default node pool
-			if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, deleteOpts); err != nil {
-				return fmt.Errorf("deleting Default Node Pool %s: %+v", defaultNodePoolId, err)
-			}
-
-			// create the default node pool with the new vm size
-			//if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
-			//	// if creation of the default node pool fails we automatically fall back to the temporary node pool (func findDefaultNodePool)
-			//	// but will require manual intervention from the user
-			//	log.Printf("[DEBUG] Creation of resized default node pool failed")
-			//}
-
-			// check whether both the temp node pool and resized default node pool exist before proceeding
-			tempExisting, err := nodePoolsClient.Get(ctx, tempNodePoolId)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", tempNodePoolId, err)
-			}
-
-			defaultExisting, err := nodePoolsClient.Get(ctx, defaultNodePoolId)
-			if !response.WasNotFound(defaultExisting.HttpResponse) && err != nil {
-				return fmt.Errorf("retrieving %s: %+v", defaultNodePoolId, err)
-			}
-
-			// if the temp node pool and resized default node pool exist tear down the temp node pool
-			if tempExisting.Model != nil && defaultExisting.Model != nil {
-				if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, deleteOpts); err != nil {
-					return fmt.Errorf("deleting Temporary Default Node Pool %s: %+v", tempNodePoolId, err)
+			// delete the old default node pool if it exists
+			if defaultExisting.Model != nil {
+				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, deleteOpts); err != nil {
+					return fmt.Errorf("deleting Default Node Pool %s: %+v", defaultNodePoolId, err)
 				}
+
+				// create the default node pool with the new vm size
+				//if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
+				//	// if creation of the default node pool fails we automatically fall back to the temporary node pool (func findDefaultNodePool)
+				//	// but will require manual intervention from the user
+				//	log.Printf("[DEBUG] Creation of resized default node pool failed")
+				//	return fmt.Errorf("creating Default Node Pool %s: %+v", defaultNodePoolId, err)
+				//}
 			}
+
+			//if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, deleteOpts); err != nil {
+			//	return fmt.Errorf("deleting Temporary Node Pool %s: %+v", tempNodePoolId, err)
+			//}
 
 			log.Printf("[DEBUG] Cycled Default Node Pool.")
 		} else {

@@ -20,14 +20,37 @@ func TestAccKubernetesCluster_updateVmSize(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.updateVmSize2(data, "Standard_DS3_v2"),
-			Check:  acceptance.ComposeTestCheckFunc(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_updateVmSizeAfterFailure(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.updateVmSize2(data, "Standard_DS4_v2"),
-			Check:  acceptance.ComposeTestCheckFunc(),
+			// create ze node pool as we want with a system and no temp etc
+			Config: r.addAgentConfig(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
+			),
 		},
+		//data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		//	// in this case we can provision a temp node pool to fake the default node pool rotation being failed
+		//	//clients.Containers.AgentPoolsClient.
+		//	defaultNodePoolName := state.Attributes["default_node_pool.0.name"]
+		//	return nil
+		//}, data.ResourceName),
+		// check the apply rotats as expected
 	})
 }
 
