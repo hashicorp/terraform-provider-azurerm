@@ -89,6 +89,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_account` - A `storage_account` block as defined below.
 
+* `virtual_network_subnet_id` - The subnet id which the Linux Web App is vNet Integrated with.
+
 * `tags` - A mapping of tags assigned to the Linux Web App.
 
 ---

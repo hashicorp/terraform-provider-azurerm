@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainermappings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationrecoveryplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationvaultsetting"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/azuresdkhacks"
 )
@@ -28,6 +29,7 @@ type Client struct {
 	VaultsClient                              *vaults.VaultsClient
 	VaultsConfigsClient                       *backupresourcevaultconfigs.BackupResourceVaultConfigsClient
 	VaultCertificatesClient                   *azuresdkhacks.VaultCertificatesClient
+	VaultsSettingsClient                      *replicationvaultsetting.ReplicationVaultSettingClient
 	StorageConfigsClient                      *backupresourcestorageconfigsnoncrr.BackupResourceStorageConfigsNonCRRClient
 	FabricClient                              *replicationfabrics.ReplicationFabricsClient
 	ProtectionContainerClient                 *replicationprotectioncontainers.ReplicationProtectionContainersClient
@@ -41,6 +43,9 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	vaultConfigsClient := backupresourcevaultconfigs.NewBackupResourceVaultConfigsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&vaultConfigsClient.Client, o.ResourceManagerAuthorizer)
+
+	vaultSettingsClient := replicationvaultsetting.NewReplicationVaultSettingClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&vaultSettingsClient.Client, o.ResourceManagerAuthorizer)
 
 	storageConfigsClient := backupresourcestorageconfigsnoncrr.NewBackupResourceStorageConfigsNonCRRClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&storageConfigsClient.Client, o.ResourceManagerAuthorizer)
@@ -107,6 +112,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		BackupOperationResultsClient:              &backupOperationResultClient,
 		VaultsClient:                              &vaultsClient,
 		VaultsConfigsClient:                       &vaultConfigsClient,
+		VaultsSettingsClient:                      &vaultSettingsClient,
 		VaultCertificatesClient:                   &vaultCertificatesClient,
 		StorageConfigsClient:                      &storageConfigsClient,
 		FabricClient:                              &fabricClient,
