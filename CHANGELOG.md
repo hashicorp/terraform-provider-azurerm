@@ -21,6 +21,7 @@ BUG FIXES
 * Data Source: `azurerm_windows_web_app` - set `virtual_network_subnet_id` correctly [GH-20577]
 * `azurerm_batch_pool` - set user assigned id for `azure_blob_file_system` correctly [GH-20560]
 * `azurerm_kubernetes_cluster` - prevent crash when `SecurityProfile` is nil [GH-20584]
+* `azurerm_log_analytics_workspace` - prevent ForceNew when `sku` is `LACluster` [GH-19608]
 
 ## 3.44.1 (February 17, 2023)
 
