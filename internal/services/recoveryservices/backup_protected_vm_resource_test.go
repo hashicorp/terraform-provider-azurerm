@@ -361,6 +361,7 @@ resource "azurerm_virtual_machine" "test" {
     enabled     = true
     storage_uri = azurerm_storage_account.test.primary_blob_endpoint
   }
+
 }
 
 resource "azurerm_recovery_services_vault" "test" {
@@ -725,7 +726,7 @@ resource "azurerm_backup_protected_vm" "test" {
   recovery_vault_name = azurerm_recovery_services_vault.test.name
   source_vm_id        = azurerm_virtual_machine.test.id
 
-  include_disk_luns = [0]
+  include_disk_luns  = [0]
   protection_stopped = true
 }
 `, r.base(data))

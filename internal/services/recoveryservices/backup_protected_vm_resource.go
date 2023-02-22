@@ -70,6 +70,10 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	vmId := d.Get("source_vm_id").(string)
 	policyId := d.Get("backup_policy_id").(string)
 
+	if d.IsNewResource() && policyId == "" {
+		return fmt.Errorf("`backup_policy_id` must be specified when creating")
+	}
+
 	// get VM name from id
 	parsedVmId, err := vmParse.VirtualMachineID(vmId)
 	if err != nil {
@@ -106,18 +110,21 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		},
 	}
 
-	requireAdditionalUpdate := false
-	if d.Get("protection_stopped").(bool) && d.IsNewResource() { // it only needs an additional update for new resource.
-		requireAdditionalUpdate = true
-	}
+	requireAdditionalUpdate := d.Get("protection_stopped").(bool)
+	skipNormalUpdate := d.Get("protection_stopped").(bool) && !d.IsNewResource()
 
-	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
-		return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
-	}
+	if !skipNormalUpdate {
+		if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
+			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+		}
 
-	resp, err := resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, d)
-	if err != nil {
-		return err
+		resp, err := resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, d)
+		if err != nil {
+			return err
+		}
+
+		id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1) // This code is a workaround for this bug https://github.com/Azure/azure-sdk-for-go/issues/2824
+		d.SetId(id)
 	}
 
 	if requireAdditionalUpdate {
@@ -149,9 +156,6 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		}
 
 	}
-
-	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1) // This code is a workaround for this bug https://github.com/Azure/azure-sdk-for-go/issues/2824
-	d.SetId(id)
 
 	return resourceRecoveryServicesBackupProtectedVMRead(d, meta)
 }
