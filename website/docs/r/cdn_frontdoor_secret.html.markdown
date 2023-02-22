@@ -16,7 +16,7 @@ Manages a Front Door (standard/premium) Secret.
 
 This can be created by running Az Powershell command like this:
 
-```New-AzADServicePrincipal -ApplicationId "205478c0-bd83-4e1b-a9d6-db63a3e1e1c8"```
+```New-AzADServicePrincipal -ApplicationId "00000000-0000-0000-0000-000000000000"```
 
 | Object ID                                | Key Permissions | Secret Permissions   | Certificate Permissions                       |
 |:-----------------------------------------|:---------------:|:--------------------:|:---------------------------------------------:|
