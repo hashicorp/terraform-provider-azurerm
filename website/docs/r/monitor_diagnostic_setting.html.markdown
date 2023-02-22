@@ -19,20 +19,30 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-data "azurerm_storage_account" "example" {
-  name                = "examplestoracc"
-  resource_group_name = azurerm_resource_group.example.name
+resource "azurerm_storage_account" "example" {
+  name                     = "storageaccountname"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
-data "azurerm_key_vault" "example" {
-  name                = "example-vault"
-  resource_group_name = azurerm_resource_group.example.name
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "example" {
+  name                       = "examplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = false
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "example" {
   name               = "example"
-  target_resource_id = data.azurerm_key_vault.example.id
-  storage_account_id = data.azurerm_storage_account.example.id
+  target_resource_id = azurerm_key_vault.example.id
+  storage_account_id = azurerm_storage_account.example.id
 
   enabled_log {
     category = "AuditEvent"
