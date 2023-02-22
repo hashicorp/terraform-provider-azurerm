@@ -61,7 +61,7 @@ func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
 
 			"key_version": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
