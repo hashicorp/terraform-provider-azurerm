@@ -92,7 +92,7 @@ func TestAccKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_id").Exists(),
@@ -180,7 +180,6 @@ resource "azurerm_kusto_cluster_customer_managed_key" "import" {
   cluster_id   = azurerm_kusto_cluster_customer_managed_key.test.cluster_id
   key_vault_id = azurerm_kusto_cluster_customer_managed_key.test.key_vault_id
   key_name     = azurerm_kusto_cluster_customer_managed_key.test.key_name
-  key_version  = azurerm_kusto_cluster_customer_managed_key.test.key_version
 }
 `, template)
 }
