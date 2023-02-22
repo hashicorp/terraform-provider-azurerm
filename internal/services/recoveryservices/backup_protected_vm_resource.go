@@ -127,10 +127,15 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 				SourceResourceID: utils.String(vmId),
 			},
 		}
-		resp, err := client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, updateInput)
+
+		resp, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, updateInput)
+		if err != nil {
+			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+		}
+
 		locationURL, err := resp.Response.Location()
 		if err != nil || locationURL == nil {
-			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): Location header missing or empty", *resp.ID)
+			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): Location header missing or empty", protectedItemName, resourceGroup)
 		}
 
 		parsedLocation, err := azure.ParseAzureResourceID(handleAzureSdkForGoBug2824(locationURL.Path))
