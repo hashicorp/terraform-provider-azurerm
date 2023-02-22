@@ -238,7 +238,8 @@ resource "azurerm_voice_services_communications_gateway" "test" {
 func (r VoiceServicesCommunicationsGatewayTestResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+
+%s
 
 resource "azurerm_voice_services_communications_gateway" "test" {
   name                = "acctest-vscg-%s"

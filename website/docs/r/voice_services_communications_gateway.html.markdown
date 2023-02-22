@@ -1,5 +1,5 @@
 ---
-subcategory: "voiceservices"
+subcategory: "Voice Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_voice_services_communications_gateway"
 description: |-

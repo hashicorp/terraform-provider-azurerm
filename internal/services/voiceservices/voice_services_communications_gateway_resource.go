@@ -70,9 +70,9 @@ func (r CommunicationsGatewayResource) CustomizeDiff() sdk.ResourceFunc {
 
 			for _, v := range serviceLocations {
 				serviceLocations := v.(map[string]interface{})
-				if serviceLocations != nil && len(serviceLocations) > 0 {
+				if len(serviceLocations) > 0 {
 					properties := serviceLocations["primary_region_properties"].([]interface{})
-					if properties != nil && len(properties) > 0 {
+					if len(properties) > 0 {
 						p := properties[0].(map[string]interface{})
 						address := p["esrp_addresses"]
 						if e911type == string(communicationsgateways.E911TypeStandard) {
@@ -80,7 +80,7 @@ func (r CommunicationsGatewayResource) CustomizeDiff() sdk.ResourceFunc {
 								return fmt.Errorf("the esrp_addresses of %s must not be provided for each service_locations when e911_type is set to Standard", name)
 							}
 						} else {
-							if address == nil || (address != nil && len(address.([]interface{})) == 0) {
+							if address == nil || len(address.([]interface{})) == 0 {
 								return fmt.Errorf("the esrp_addresses of %s must be provided for each service_locations when e911_type is set to DirectToEsrp", name)
 							}
 						}
@@ -547,7 +547,7 @@ func expandPrimaryRegionPropertiesModel(inputList []PrimaryRegionPropertiesModel
 }
 
 func expandCommunicationsPlatformModel(input []string) []communicationsgateways.CommunicationsPlatform {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
@@ -606,7 +606,7 @@ func flattenPrimaryRegionPropertiesModel(input *communicationsgateways.PrimaryRe
 
 func flattenCommunicationsPlatformModel(input []communicationsgateways.CommunicationsPlatform) []string {
 	var output []string
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
