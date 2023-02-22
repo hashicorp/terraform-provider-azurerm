@@ -336,7 +336,7 @@ func resourceMediaStreamingEndpointUpdate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	if resp.Model == nil || resp.Model.Properties == nil {
-		return fmt.Errorf("unexpected null model of %s", *id)
+		return fmt.Errorf("retrieving %s: model was nil", *id)
 	}
 
 	existing := resp.Model
