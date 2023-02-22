@@ -362,7 +362,9 @@ A `default_node_pool` block supports the following:
 
 * `name` - (Required) The name which should be used for the default Kubernetes Node Pool. Changing this forces a new resource to be created.
 
-* `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`. Changing this forces a new resource to be created.
+* `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`.
+
+-> **Note:** Resizing the `default_node_pool` Virtual Machine is done by cycling the system node pool of the cluster. `temp_name_for_vm_resize` must be specified attempting a resize.
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
 
@@ -423,6 +425,8 @@ A `default_node_pool` block supports the following:
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group. Changing this forces a new resource to be created.
 
 * `scale_down_mode` - (Optional) Specifies the autoscaling behaviour of the Kubernetes Cluster. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
+
+* `temp_name_for_vm_resize` - (Optional) Specifies the name of the temporary node pool used to cycle the default node pool for VM resizing.
 
 * `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`. Changing this forces a new resource to be created.
 

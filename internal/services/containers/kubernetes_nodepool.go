@@ -31,7 +31,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: func() map[string]*pluginsdk.Schema {
 				s := map[string]*pluginsdk.Schema{
-					// Required and conditionally ForceNew updating `name` to `temporary_name`
+					// Required and conditionally ForceNew: updating `name` to `temp_name_for_vm_resize`
 					// should be allowed and not force cluster recreation
 					"name": {
 						Type:         pluginsdk.TypeString,
@@ -39,7 +39,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: validate.KubernetesAgentPoolName,
 					},
 
-					"temporary_name": {
+					"temp_name_for_vm_resize": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.KubernetesAgentPoolName,
@@ -1186,7 +1186,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	name := agentPool.Name
 
 	// we pull this from the config, since the temporary node pool for cycling the system node pool won't exist if the operation is successful
-	temporaryName := d.Get("default_node_pool.0.temporary_name").(string)
+	temporaryName := d.Get("default_node_pool.0.temp_name_for_vm_resize").(string)
 
 	var nodeLabels map[string]string
 	if agentPool.NodeLabels != nil {
@@ -1313,7 +1313,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"os_sku":                        osSKU,
 		"scale_down_mode":               string(scaleDownMode),
 		"tags":                          tags.Flatten(agentPool.Tags),
-		"temporary_name":                temporaryName,
+		"temp_name_for_vm_resize":       temporaryName,
 		"type":                          agentPoolType,
 		"ultra_ssd_enabled":             enableUltraSSD,
 		"vm_size":                       vmSize,
@@ -1657,7 +1657,7 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 	// first try loading this from the Resource Data if possible (e.g. when Created)
 	defaultNodePoolName := d.Get("default_node_pool.0.name")
 
-	tempNodePoolName := d.Get("default_node_pool.0.temporary_name")
+	tempNodePoolName := d.Get("default_node_pool.0.temp_name_for_vm_resize")
 
 	// in the read, we want to retrieve both the name and temp name from the config
 	// we then want to see which is available, if the temp name is provisioned but the name isn't

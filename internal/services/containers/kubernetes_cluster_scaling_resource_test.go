@@ -1,12 +1,18 @@
 package containers_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 )
 
 func TestAccKubernetesCluster_updateVmSize(t *testing.T) {
@@ -15,14 +21,14 @@ func TestAccKubernetesCluster_updateVmSize(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.updateVmSize(data, "Standard_DS2_v2"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateVmSize2(data, "Standard_DS3_v2"),
+			Config: r.updateVmSize(data, "Standard_DS3_v2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -31,27 +37,57 @@ func TestAccKubernetesCluster_updateVmSize(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_updateVmSizeAfterFailure(t *testing.T) {
+func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// create ze node pool as we want with a system and no temp etc
-			Config: r.addAgentConfig(data, 1),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
+				// create the temporary node pool to simulate the case where both old default node pool and temp node pool exist
+				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					client := clients.Containers.AgentPoolsClient
+
+					id, err := managedclusters.ParseManagedClusterID(state.Attributes["id"])
+					if err != nil {
+						return err
+					}
+
+					defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, state.Attributes["default_node_pool.0.name"])
+
+					resp, err := client.Get(ctx, defaultNodePoolId)
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %+v", defaultNodePoolId, err)
+					}
+					if resp.Model == nil {
+						return fmt.Errorf("retrieving %s: model was nil", defaultNodePoolId)
+					}
+
+					tempNodePoolName := "temp"
+					profile := resp.Model
+					profile.Name = &tempNodePoolName
+					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
+
+					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
+					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
+						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
+					}
+
+					return nil
+				}, data.ResourceName),
 			),
 		},
-		//data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
-		//	// in this case we can provision a temp node pool to fake the default node pool rotation being failed
-		//	//clients.Containers.AgentPoolsClient.
-		//	defaultNodePoolName := state.Attributes["default_node_pool.0.name"]
-		//	return nil
-		//}, data.ResourceName),
-		// check the apply rotats as expected
+		{
+			Config: r.updateVmSize(data, "Standard_DS3_v2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temp_name_for_vm_resize"),
 	})
+
 }
 
 func TestAccKubernetesCluster_addAgent(t *testing.T) {
@@ -288,6 +324,41 @@ func TestAccKubernetesCluster_autoScalingProfile(t *testing.T) {
 	})
 }
 
+func (KubernetesClusterResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) updateVmSize(data acceptance.TestData, vmSize string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -306,45 +377,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "%s"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  network_profile {
-    network_plugin    = "kubenet"
-    load_balancer_sku = "standard"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, vmSize)
-}
-
-func (KubernetesClusterResource) updateVmSize2(data acceptance.TestData, vmSize string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name       = "default"
-	temporary_name = "temp"
-    node_count = 1
-    vm_size    = "%s"
+    name                    = "default"
+    temp_name_for_vm_resize = "temp"
+    node_count              = 1
+    vm_size                 = "%s"
   }
 
   identity {
