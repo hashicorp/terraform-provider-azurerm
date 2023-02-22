@@ -142,11 +142,11 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			// allow up to 15 min for role permission to be done propagated
 			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be done propagated", model.Key)
 			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{"Forbidden"},
-				Target:     []string{"Error", "Exists"},
-				Refresh:    appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
-				MinTimeout: 15 * time.Second,
-				Timeout:    15 * time.Minute,
+				Pending:      []string{"Forbidden"},
+				Target:       []string{"Error", "Exists"},
+				Refresh:      appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
+				PollInterval: 20 * time.Second,
+				Timeout:      15 * time.Minute,
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
