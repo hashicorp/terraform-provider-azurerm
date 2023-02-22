@@ -408,7 +408,6 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 		"protection_stopped": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			Computed: true,
 		},
 	}
