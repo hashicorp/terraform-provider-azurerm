@@ -101,6 +101,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	managedInstancesLongTermRetentionPoliciesClient := sql.NewManagedInstanceLongTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstancesLongTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	managedInstancesShortTermRetentionPoliciesClient := sql.NewManagedBackupShortTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedInstancesShortTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	managedInstancesAdministratorsClient := sql.NewManagedInstanceAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstancesAdministratorsClient.Client, o.ResourceManagerAuthorizer)
 

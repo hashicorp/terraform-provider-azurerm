@@ -67,7 +67,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"short_term_retention_days": {
 			Type:         pluginsdk.TypeInt,
-			Required:     true,
+			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 35),
 		},
 	}

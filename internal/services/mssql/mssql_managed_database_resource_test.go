@@ -92,7 +92,7 @@ resource "azurerm_mssql_managed_database" "test" {
     yearly_retention  = "P1Y"
     week_of_year      = 1
   }
- 
+
   short_term_retention_days = 3
 
 }
@@ -108,12 +108,12 @@ resource "azurerm_mssql_managed_database" "test" {
   name                = "acctest-%[2]d"
 
   long_term_retention_policy {
-    weekly_retention = "P10D"
+    weekly_retention  = "P10D"
     monthly_retention = "P1M"
     yearly_retention  = "P1Y"
     week_of_year      = 4
   }
- 
+
   short_term_retention_days = 4
 
 }
