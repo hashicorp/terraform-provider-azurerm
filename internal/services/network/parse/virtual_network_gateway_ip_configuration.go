@@ -73,3 +73,59 @@ func VirtualNetworkGatewayIpConfigurationID(input string) (*VirtualNetworkGatewa
 
 	return &resourceId, nil
 }
+
+// VirtualNetworkGatewayIpConfigurationIDInsensitively parses an VirtualNetworkGatewayIpConfiguration ID into an VirtualNetworkGatewayIpConfigurationId struct, insensitively
+// This should only be used to parse an ID for rewriting, the VirtualNetworkGatewayIpConfigurationID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func VirtualNetworkGatewayIpConfigurationIDInsensitively(input string) (*VirtualNetworkGatewayIpConfigurationId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := VirtualNetworkGatewayIpConfigurationId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'virtualNetworkGateways' segment
+	virtualNetworkGatewaysKey := "virtualNetworkGateways"
+	for key := range id.Path {
+		if strings.EqualFold(key, virtualNetworkGatewaysKey) {
+			virtualNetworkGatewaysKey = key
+			break
+		}
+	}
+	if resourceId.VirtualNetworkGatewayName, err = id.PopSegment(virtualNetworkGatewaysKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'ipConfigurations' segment
+	ipConfigurationsKey := "ipConfigurations"
+	for key := range id.Path {
+		if strings.EqualFold(key, ipConfigurationsKey) {
+			ipConfigurationsKey = key
+			break
+		}
+	}
+	if resourceId.IpConfigurationName, err = id.PopSegment(ipConfigurationsKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
