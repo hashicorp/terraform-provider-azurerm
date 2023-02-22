@@ -106,6 +106,11 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		},
 	}
 
+	requireAdditionalupdate := false
+	if d.Get("protection_stopped").(bool) && d.IsNewResource() { // it only needs an additional update for new resource.
+		requireAdditionalupdate = true
+	}
+
 	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
 		return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
@@ -113,6 +118,13 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	resp, err := resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, d)
 	if err != nil {
 		return err
+	}
+
+	if requireAdditionalupdate {
+		item.Properties.(*backup.AzureIaaSComputeVMProtectedItem).ProtectionState = backup.ProtectionStateProtectionStopped
+		if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
+			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+		}
 	}
 
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1) // This code is a workaround for this bug https://github.com/Azure/azure-sdk-for-go/issues/2824
@@ -387,6 +399,12 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 				Type:         pluginsdk.TypeInt,
 				ValidateFunc: validation.IntAtLeast(0),
 			},
+		},
+
+		"protection_stopped": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 	}
 }

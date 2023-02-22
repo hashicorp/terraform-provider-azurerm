@@ -68,6 +68,8 @@ This allows the source vm to be deleted without having to remove the backup.
 
 * `include_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers(LUN) to be included for VM Protection.
 
+* `protection_stopped` - (Optional) Specifies whether to stop the protection. Defaults to `false`.
+
 ## Attributes Reference
 
 The following attributes are exported:
