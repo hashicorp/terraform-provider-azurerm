@@ -11,7 +11,9 @@ ENHANCEMENTS
 * `compute/capacityreservations` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
 * `compute/capacityreservationgroups` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
 * `azurerm_backup_policy_vm` - add support for `instant_restore_resource_group` [GH-20562]
+* `azurerm_kusto_cluster_customer_managed_key` - `key_version` is now Optional to allow for auto-rotation of key [GH-20583]
 * `azurerm_linux_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
+* `azurerm_media_streaming_endpoint` - add support for reading `sku` and increase limit for `scale_units` [GH-20585]
 * `azurerm_recovery_services_vault` - add support for `classic_vmware_replication_enabled` [GH-20473]
 * `azurerm_windows_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
 
@@ -23,6 +25,7 @@ BUG FIXES
 * `azurerm_batch_pool` - set user assigned id for `azure_blob_file_system` correctly [GH-20560]
 * `azurerm_kubernetes_cluster` - prevent crash when `SecurityProfile` is nil [GH-20584]
 * `azurerm_log_analytics_workspace` - prevent ForceNew when `sku` is `LACluster` [GH-19608]
+* `azurerm_media_streaming_endpoint` - set and update `tags` properly [GH-20585]
 
 ## 3.44.1 (February 17, 2023)
 
