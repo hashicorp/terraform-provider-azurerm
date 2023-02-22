@@ -56,6 +56,7 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
 	resourceGroup := d.Get("resource_group_name").(string)
 
@@ -82,14 +83,15 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 
 	protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, parsedVmId.Name)
 	containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, parsedVmId.Name)
+	id := parse.NewProtectedItemID(subscriptionId, resourceGroup, vaultName, "Azure", containerName, protectedItemName)
 
 	log.Printf("[DEBUG] Creating/updating Azure Backup Protected VM %s (resource group %q)", protectedItemName, resourceGroup)
 
 	if d.IsNewResource() {
-		existing, err2 := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
-		if err2 != nil {
+		existing, err := client.Get(ctx, id.VaultName, id.ResourceGroup, id.BackupFabricName, id.ProtectionContainerName, id.Name, "")
+		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err2)
+				return fmt.Errorf("checking for presence of existing Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 			}
 		}
 
@@ -114,17 +116,16 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	skipNormalUpdate := d.Get("protection_stopped").(bool) && !d.IsNewResource()
 
 	if !skipNormalUpdate {
-		if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
+		if _, err = client.CreateOrUpdate(ctx, id.VaultName, id.ResourceGroup, id.BackupFabricName, id.ProtectionContainerName, id.Name, item); err != nil {
 			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 		}
 
-		resp, err := resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, d)
+		_, err := resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, d)
 		if err != nil {
 			return err
 		}
 
-		id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1) // This code is a workaround for this bug https://github.com/Azure/azure-sdk-for-go/issues/2824
-		d.SetId(id)
+		d.SetId(id.ID())
 	}
 
 	if requireAdditionalUpdate {
@@ -135,7 +136,7 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 			},
 		}
 
-		resp, err := client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, updateInput)
+		resp, err := client.CreateOrUpdate(ctx, id.VaultName, id.ResourceGroup, id.BackupFabricName, id.ProtectionContainerName, id.Name, updateInput)
 		if err != nil {
 			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 		}
