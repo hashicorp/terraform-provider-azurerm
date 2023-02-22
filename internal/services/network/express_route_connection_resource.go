@@ -213,7 +213,7 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 		if v := props.ExpressRouteCircuitPeering; v != nil {
 			circuitPeeringID = *v.ID
 		}
-		peeringId, err := parse.ExpressRouteCircuitPeeringID(circuitPeeringID)
+		peeringId, err := parse.ExpressRouteCircuitPeeringIDInsensitively(circuitPeeringID)
 		if err != nil {
 			return err
 		}
@@ -341,7 +341,7 @@ func flattenExpressRouteConnectionRouting(input *network.RoutingConfiguration) (
 	if input.AssociatedRouteTable != nil && input.AssociatedRouteTable.ID != nil {
 		associatedRouteTableId = *input.AssociatedRouteTable.ID
 	}
-	routeTableId, err := parse.HubRouteTableID(associatedRouteTableId)
+	routeTableId, err := parse.HubRouteTableIDInsensitively(associatedRouteTableId)
 	if err != nil {
 		return nil, err
 	}
