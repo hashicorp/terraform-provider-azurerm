@@ -137,7 +137,7 @@ func resourceMediaStreamingEndpoint() *pluginsdk.Resource {
 				},
 			},
 
-			"current_sku": {
+			"sku": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
@@ -446,7 +446,7 @@ func resourceMediaStreamingEndpointRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("max_cache_age_seconds", maxCacheAge)
 		}
 
-		d.Set("current_sku", flattenEndpointSku(model.Sku))
+		d.Set("sku", flattenEndpointSku(model.Sku))
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)

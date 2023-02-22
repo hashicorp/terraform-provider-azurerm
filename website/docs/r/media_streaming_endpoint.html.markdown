@@ -186,11 +186,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `host_name` - The host name of the Streaming Endpoint.
 
-* `current_sku` - A `current_sku` block defined as below.
+* `sku` - A `sku` block defined as below.
 
 ---
 
-A `current_sku` block supports the following:
+A `sku` block supports the following:
 
 * `name` - The sku name of Streaming Endpoint.
 

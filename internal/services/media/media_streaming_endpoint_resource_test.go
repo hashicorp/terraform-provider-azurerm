@@ -71,8 +71,8 @@ func TestAccMediaStreamingEndpoint_shouldStopWhenStarted(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				data.CheckWithClient(r.Start),
-				check.That(data.ResourceName).Key("current_sku.0.name").HasValue("Premium"),
-				check.That(data.ResourceName).Key("current_sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Premium"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("host_name").Exists(),
 			),
 		},
@@ -110,8 +110,8 @@ func TestAccMediaStreamingEndpoint_standard(t *testing.T) {
 			Config: r.standard(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("scale_units").HasValue("0"),
-				check.That(data.ResourceName).Key("current_sku.0.name").HasValue("Standard"),
-				check.That(data.ResourceName).Key("current_sku.0.capacity").HasValue("0"),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
