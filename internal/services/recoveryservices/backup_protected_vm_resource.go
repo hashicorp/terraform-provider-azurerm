@@ -121,10 +121,28 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if requireAdditionalupdate {
-		item.Properties.(*backup.AzureIaaSComputeVMProtectedItem).ProtectionState = backup.ProtectionStateProtectionStopped
-		if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
+		updateInput := backup.ProtectedItemResource{
+			Properties: &backup.AzureIaaSComputeVMProtectedItem{
+				ProtectionState:  backup.ProtectionStateProtectionStopped,
+				SourceResourceID: utils.String(vmId),
+			},
+		}
+		resp, err := client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, updateInput)
+		locationURL, err := resp.Response.Location()
+		if err != nil || locationURL == nil {
+			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): Location header missing or empty", *resp.ID)
+		}
+
+		parsedLocation, err := azure.ParseAzureResourceID(handleAzureSdkForGoBug2824(locationURL.Path))
+		if err != nil {
+			return err
+		}
+
+		opState := resourceRecoveryServicesBackupProtectedVMOperationRefreshFunc(ctx, meta.(*clients.Client).RecoveryServices.BackupOperationResultsClient, d.Timeout(pluginsdk.TimeoutCreate), vaultName, resourceGroup, parsedLocation.Path["backupOperationResults"])
+		if _, err := opState.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 		}
+
 	}
 
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1) // This code is a workaround for this bug https://github.com/Azure/azure-sdk-for-go/issues/2824
@@ -284,7 +302,18 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 	}
 
 	// we should also wait for the operation to complete, or it will fail when creating a new backup vm with the same vm in different vault immediately.
-	opState := &pluginsdk.StateChangeConf{
+	opState := resourceRecoveryServicesBackupProtectedVMOperationRefreshFunc(ctx, opResultClient, d.Timeout(pluginsdk.TimeoutDelete), vaultName, resourceGroup, operationId)
+
+	_, err = opState.WaitForStateContext(ctx)
+	if err != nil {
+		return resp.(backup.ProtectedItemResource), fmt.Errorf("waiting for the Recovery Service Protected Item operation %q to be deleted (Resource Group %q): %+v", containerName, resourceGroup, err)
+	}
+
+	return resp.(backup.ProtectedItemResource), nil
+}
+
+func resourceRecoveryServicesBackupProtectedVMOperationRefreshFunc(ctx context.Context, opResultClient *backup.OperationResultsClient, timeout time.Duration, vaultName, resourceGroup, operationId string) pluginsdk.StateChangeConf {
+	return pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"202"},
@@ -297,15 +326,8 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 			return resp, strconv.Itoa(resp.StatusCode), err
 		},
 
-		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout: timeout,
 	}
-
-	_, err = opState.WaitForStateContext(ctx)
-	if err != nil {
-		return resp.(backup.ProtectedItemResource), fmt.Errorf("waiting for the Recovery Service Protected Item operation %q to be deleted (Resource Group %q): %+v", containerName, resourceGroup, err)
-	}
-
-	return resp.(backup.ProtectedItemResource), nil
 }
 
 func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string) pluginsdk.StateRefreshFunc {
