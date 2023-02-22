@@ -166,6 +166,10 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 				d.Set("backup_policy_id", strings.Replace(*v, "Subscriptions", "subscriptions", 1))
 			}
 
+			if v := vm.ProtectionStatus; v != nil {
+				d.Set("protection_stopped", strings.EqualFold(*v, string(backup.ProtectionStateProtectionStopped)))
+			}
+
 			if v := vm.ExtendedProperties; v != nil && v.DiskExclusionProperties != nil {
 				if *v.DiskExclusionProperties.IsInclusionList {
 					if err := d.Set("include_disk_luns", utils.FlattenInt32Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
@@ -405,6 +409,7 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
+			Computed: true,
 		},
 	}
 }
