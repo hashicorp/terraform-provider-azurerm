@@ -28,6 +28,7 @@ type MachineExtensionModel struct {
 	Publisher               string                              `tfschema:"publisher"`
 	Settings                string                              `tfschema:"settings"`
 	Tags                    map[string]string                   `tfschema:"tags"`
+	Type                    string                              `tfschema:"type"`
 	TypeHandlerVersion      string                              `tfschema:"type_handler_version"`
 }
 
@@ -94,76 +95,6 @@ func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"instance_view": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"status": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"code": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-
-								"display_status": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-
-								"level": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(machineextensions.StatusLevelTypesInfo),
-										string(machineextensions.StatusLevelTypesWarning),
-										string(machineextensions.StatusLevelTypesError),
-									}, false),
-								},
-
-								"message": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-
-								"time": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							},
-						},
-					},
-
-					"type": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"type_handler_version": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-		},
-
 		"location": commonschema.Location(),
 
 		"protected_settings": {
@@ -188,6 +119,12 @@ func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk
 
 		"tags": commonschema.Tags(),
 
+		"type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"type_handler_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -197,7 +134,63 @@ func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk
 }
 
 func (r HybridComputeMachineExtensionResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"instance_view": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"status": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"code": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"display_status": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"level": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"message": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"time": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"type_handler_version": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+	}
 }
 
 func (r HybridComputeMachineExtensionResource) Create() sdk.ResourceFunc {
@@ -238,13 +231,6 @@ func (r HybridComputeMachineExtensionResource) Create() sdk.ResourceFunc {
 				properties.Properties.ForceUpdateTag = &model.ForceUpdateTag
 			}
 
-			instanceViewValue, err := expandMachineExtensionInstanceViewModel(model.InstanceView)
-			if err != nil {
-				return err
-			}
-
-			properties.Properties.InstanceView = instanceViewValue
-
 			if model.ProtectedSettings != "" {
 				var protectedSettingsValue interface{}
 				err = json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue)
@@ -265,6 +251,10 @@ func (r HybridComputeMachineExtensionResource) Create() sdk.ResourceFunc {
 					return err
 				}
 				properties.Properties.Settings = &settingsValue
+			}
+
+			if model.Type != "" {
+				properties.Properties.Type = &model.Type
 			}
 
 			if model.TypeHandlerVersion != "" {
@@ -323,15 +313,6 @@ func (r HybridComputeMachineExtensionResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("instance_view") {
-				instanceViewValue, err := expandMachineExtensionInstanceViewModel(model.InstanceView)
-				if err != nil {
-					return err
-				}
-
-				properties.Properties.InstanceView = instanceViewValue
-			}
-
 			if metadata.ResourceData.HasChange("protected_settings") {
 				var protectedSettingsValue interface{}
 				err := json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue)
@@ -358,6 +339,14 @@ func (r HybridComputeMachineExtensionResource) Update() sdk.ResourceFunc {
 				}
 
 				properties.Properties.Settings = &settingsValue
+			}
+
+			if metadata.ResourceData.HasChange("type") {
+				if model.Type != "" {
+					properties.Properties.Type = &model.Type
+				} else {
+					properties.Properties.Type = nil
+				}
 			}
 
 			if metadata.ResourceData.HasChange("type_handler_version") {
@@ -458,6 +447,10 @@ func (r HybridComputeMachineExtensionResource) Read() sdk.ResourceFunc {
 					state.Settings = string(settingsValue)
 				}
 
+				if properties.Type != nil {
+					state.Type = *properties.Type
+				}
+
 				if properties.TypeHandlerVersion != nil {
 					state.TypeHandlerVersion = *properties.TypeHandlerVersion
 				}
@@ -489,62 +482,6 @@ func (r HybridComputeMachineExtensionResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func expandMachineExtensionInstanceViewModel(inputList []MachineExtensionInstanceViewModel) (*machineextensions.MachineExtensionInstanceView, error) {
-	if len(inputList) == 0 {
-		return nil, nil
-	}
-
-	input := &inputList[0]
-	output := machineextensions.MachineExtensionInstanceView{}
-
-	if input.Name != "" {
-		output.Name = &input.Name
-	}
-
-	statusValue, err := expandMachineExtensionInstanceViewStatusModel(input.Status)
-	if err != nil {
-		return nil, err
-	}
-
-	output.Status = statusValue
-
-	if input.Type != "" {
-		output.Type = &input.Type
-	}
-
-	if input.TypeHandlerVersion != "" {
-		output.TypeHandlerVersion = &input.TypeHandlerVersion
-	}
-
-	return &output, nil
-}
-
-func expandMachineExtensionInstanceViewStatusModel(inputList []MachineExtensionInstanceViewStatusModel) (*machineextensions.MachineExtensionInstanceViewStatus, error) {
-	if len(inputList) == 0 {
-		return nil, nil
-	}
-
-	input := &inputList[0]
-	output := machineextensions.MachineExtensionInstanceViewStatus{
-		Level: &input.Level,
-		Time:  &input.Time,
-	}
-
-	if input.Code != "" {
-		output.Code = &input.Code
-	}
-
-	if input.DisplayStatus != "" {
-		output.DisplayStatus = &input.DisplayStatus
-	}
-
-	if input.Message != "" {
-		output.Message = &input.Message
-	}
-
-	return &output, nil
 }
 
 func flattenMachineExtensionInstanceViewModel(input *machineextensions.MachineExtensionInstanceView) ([]MachineExtensionInstanceViewModel, error) {

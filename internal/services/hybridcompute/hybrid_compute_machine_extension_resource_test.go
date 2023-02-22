@@ -3,16 +3,16 @@ package hybridcompute_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-03-10/machineextensions"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-03-10/machineextensions"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HybridComputeMachineExtensionResource struct{}
@@ -88,30 +88,23 @@ func (r HybridComputeMachineExtensionResource) Exists(ctx context.Context, clien
 
 	client := clients.HybridCompute.MachineExtensionsClient
 	resp, err := client.Get(ctx, *id)
+	exists := false
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return &exists, nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	exists = resp.Model != nil
+	return &exists, nil
 }
 
 func (r HybridComputeMachineExtensionResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
-  location = "%s"
-}
-resource "azurerm_hybrid_compute_machine" "test" {
-  name                = "acctest-hcm-%d"
-  resource_group_name = azurerm_resource_group.test.name
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	d := HybridComputeMachineDataSource{}
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	randomUUID, _ := uuid.GenerateUUID()
+	password := generateRandomPassword(10)
+	return d.basic(data, clientSecret, randomUUID, password)
 }
 
 func (r HybridComputeMachineExtensionResource) basic(data acceptance.TestData) string {
@@ -121,7 +114,9 @@ func (r HybridComputeMachineExtensionResource) basic(data acceptance.TestData) s
 
 resource "azurerm_hybrid_compute_machine_extension" "test" {
   name                      = "acctest-hcme-%d"
-  hybrid_compute_machine_id = azurerm_hybrid_compute_machine.test.id
+  hybrid_compute_machine_id = data.azurerm_hybrid_compute_machine.test.id
+  publisher                 = "Microsoft.Compute"
+  type                      = "CustomScriptExtension"
   location                  = "%s"
 }
 `, template, data.RandomInteger, data.Locations.Primary)
@@ -134,7 +129,9 @@ func (r HybridComputeMachineExtensionResource) requiresImport(data acceptance.Te
 
 resource "azurerm_hybrid_compute_machine_extension" "import" {
   name                      = azurerm_hybrid_compute_machine_extension.test.name
-  hybrid_compute_machine_id = azurerm_hybrid_compute_machine.test.id
+  hybrid_compute_machine_id = data.azurerm_hybrid_compute_machine.test.id
+  publisher                 = "Microsoft.Compute"
+  type                      = "CustomScriptExtension"
   location                  = "%s"
 }
 `, config, data.Locations.Primary)
@@ -146,36 +143,20 @@ func (r HybridComputeMachineExtensionResource) complete(data acceptance.TestData
 			%s
 
 resource "azurerm_hybrid_compute_machine_extension" "test" {
-  name                       = "acctest-hcme-%d"
-  hybrid_compute_machine_id  = azurerm_hybrid_compute_machine.test.id
-  location                   = "%s"
+  name                               = "acctest-hcme-%d"
+  hybrid_compute_machine_id          = data.azurerm_hybrid_compute_machine.test.id
+  location                           = "%s"
   auto_upgrade_minor_version_enabled = false
-  automatic_upgrade_enabled   = false
-  force_update_tag           = ""
-  publisher                  = ""
-  type_handler_version       = ""
-  instance_view {
-    name                 = ""
-    type                 = ""
-    type_handler_version = ""
-    status {
-      code           = ""
-      display_status = ""
-      level          = ""
-      message        = ""
-      time           = ""
-    }
-  }
-  protected_settings = jsonencode({
-    "key" : "value"
-  })
+  automatic_upgrade_enabled          = false
+  publisher                          = "Microsoft.Compute"
+  type                               = "CustomScriptExtension"
+  type_handler_version               = "1.10"
   settings = jsonencode({
-    "key" : "value"
+    "commandToExecute" : "powershell.exe -c \"Get-Process | Where-Object { $_.CPU -gt 10000 }\""
   })
   tags = {
-    key = "value"
+    env = "Terraform_dev"
   }
-
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
@@ -186,36 +167,20 @@ func (r HybridComputeMachineExtensionResource) update(data acceptance.TestData) 
 			%s
 
 resource "azurerm_hybrid_compute_machine_extension" "test" {
-  name                       = "acctest-hcme-%d"
-  hybrid_compute_machine_id  = azurerm_hybrid_compute_machine.test.id
-  location                   = "%s"
-  auto_upgrade_minor_version_enabled = false
-  automatic_upgrade_enabled   = false
-  force_update_tag           = ""
-  publisher                  = ""
-  type_handler_version       = ""
-  instance_view {
-    name                 = ""
-    type                 = ""
-    type_handler_version = ""
-    status {
-      code           = ""
-      display_status = ""
-      level          = ""
-      message        = ""
-      time           = ""
-    }
-  }
-  protected_settings = jsonencode({
-    "key" : "value"
-  })
+  name                               = "acctest-hcme-%d"
+  hybrid_compute_machine_id          = data.azurerm_hybrid_compute_machine.test.id
+  location                           = "%s"
+  auto_upgrade_minor_version_enabled = true
+  automatic_upgrade_enabled          = true
+  publisher                          = "Microsoft.Compute"
+  type                               = "CustomScriptExtension"
+  type_handler_version               = "1.10"
   settings = jsonencode({
-    "key" : "value"
+    "commandToExecute" : "powershell.exe -c \"Get-Process | Where-Object { $_.CPU -gt 10000 }\""
   })
   tags = {
-    key = "value"
+    env = "Terraform_dev"
   }
-
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
