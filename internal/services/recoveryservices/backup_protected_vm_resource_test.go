@@ -207,6 +207,14 @@ func TestAccBackupProtectedVm_protectionStopped(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.protectionStopped(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -716,7 +724,6 @@ resource "azurerm_backup_protected_vm" "test" {
   resource_group_name = azurerm_resource_group.test.name
   recovery_vault_name = azurerm_recovery_services_vault.test.name
   source_vm_id        = azurerm_virtual_machine.test.id
-  backup_policy_id    = azurerm_backup_policy_vm.test.id
 
   include_disk_luns = [0]
   protection_stopped = true

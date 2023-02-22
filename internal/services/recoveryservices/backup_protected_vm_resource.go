@@ -106,9 +106,9 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		},
 	}
 
-	requireAdditionalupdate := false
+	requireAdditionalUpdate := false
 	if d.Get("protection_stopped").(bool) && d.IsNewResource() { // it only needs an additional update for new resource.
-		requireAdditionalupdate = true
+		requireAdditionalUpdate = true
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
@@ -120,7 +120,7 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		return err
 	}
 
-	if requireAdditionalupdate {
+	if requireAdditionalUpdate {
 		updateInput := backup.ProtectedItemResource{
 			Properties: &backup.AzureIaaSComputeVMProtectedItem{
 				ProtectionState:  backup.ProtectionStateProtectionStopped,
@@ -405,8 +405,9 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 
 		"backup_policy_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ValidateFunc: azure.ValidateResourceID,
+			ExactlyOneOf: []string{"backup_policy_id", "protection_stopped"},
 		},
 
 		"exclude_disk_luns": {
@@ -430,9 +431,10 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 		},
 
 		"protection_stopped": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			Computed:     true,
+			ExactlyOneOf: []string{"backup_policy_id", "protection_stopped"},
 		},
 	}
 }
