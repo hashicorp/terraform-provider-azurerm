@@ -692,6 +692,28 @@ func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsd
 	}
 }
 
+func OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"base_regular_priority_count": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Default: 0,
+				},
+				"regular_priority_percentage_above_base": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Default:  0,
+				},
+			},
+		},
+	}
+}
+
 func FlattenOrchestratedVirtualMachineScaleSetOSProfile(input *compute.VirtualMachineScaleSetOSProfile, d *pluginsdk.ResourceData) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -1420,6 +1442,19 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 	return extensionProfile, hasHealthExtension, nil
 }
 
+func ExpandVirtualMachineScaleSetPriorityMixPolicy(input []interface{}) *compute.PriorityMixPolicy {
+	if len(input == 0) {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	return &compute.PriorityMixPolicy{
+		BaseRegularPriorityCount: utils.Int32(raw["base_regular_priority_count"].(int32)),
+		RegularPriorityPercentageAboveBase: utils.int32(raw["regular_priority_percentage_above_base"].(int32)),
+	}
+}
+
 func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *pluginsdk.ResourceData) ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, 0)
 	if input == nil || input.Extensions == nil {
@@ -1935,6 +1970,26 @@ func FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input *comp
 		map[string]interface{}{
 			"enabled": enabled,
 			"timeout": timeout,
+		},
+	}
+}
+
+func FlattenVirtualMachineScaleSetPriorityMixPolicy(input *compute.PriorityMixPolicy) []interface{} {
+
+	baseRegularPriorityCount := 0
+	if input != nil && input.BaseRegularPriorityCount != nil{
+		baseRegularPriorityCount = *input.BaseRegularPriorityCount
+	}
+
+	regularPriorityPercentageAboveBase := 0
+	if input != nil && input.RegularPriorityPercentageAboveBase != nil{
+		regularPriorityPercentageAboveBase = *input.RegularPriorityPercentageAboveBase
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"base_regular_priority_count": baseRegularPriorityCount,
+			"regular_priority_percentage_above_base": regularPriorityPercentageAboveBase,
 		},
 	}
 }

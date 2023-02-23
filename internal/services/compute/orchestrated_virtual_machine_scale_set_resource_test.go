@@ -1932,3 +1932,77 @@ resource "azurerm_subnet_nat_gateway_association" "example" {
 }
 `, data.RandomInteger)
 }
+
+func (OrchestratedVirtualMachineScaleSetResource) priorityMixPolicy(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  priority        = "Spot"
+  eviction_policy = "Delete"
+
+  sku_name  = "Standard_D1_v2"
+  instances = 2
+
+  platform_fault_domain_count = 2
+
+  os_profile {
+    linux_configuration {
+      computer_name_prefix = "testvm-%[1]d"
+      admin_username       = "myadmin"
+      admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  priority_mix_policy {
+    baseRegularPriorityCount = 4,
+    regularPriorityPercentageAboveBase = 50
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
