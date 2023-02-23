@@ -59,10 +59,18 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "Global",
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          "global",
+				ValidateFunc:     validation.Any(
+					location.EnhancedValidate,
+					validation.StringInSlice([]string{
+						"global",
+					}, false),
+				),
+				StateFunc:        location.StateFunc,
+				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
 
 			"short_name": {
@@ -483,7 +491,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	tenantId := meta.(*clients.Client).Account.TenantId
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	location := d.Get("location").(string)
+	location := location.Normalize(d.Get("location").(string))
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
