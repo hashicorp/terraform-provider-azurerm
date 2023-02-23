@@ -68,7 +68,7 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"enabled_express_route_gateway_bypass": {
+			"express_route_gateway_bypass_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -179,7 +179,7 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 			EnableInternetSecurity:    utils.Bool(d.Get("enable_internet_security").(bool)),
 			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
 			RoutingWeight:             utils.Int32(int32(d.Get("routing_weight").(int))),
-			ExpressRouteGatewayBypass: utils.Bool(d.Get("enabled_express_route_gateway_bypass").(bool)),
+			ExpressRouteGatewayBypass: utils.Bool(d.Get("express_route_gateway_bypass_enabled").(bool)),
 		},
 	}
 
@@ -229,7 +229,7 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("enable_internet_security", props.EnableInternetSecurity)
 
 		if props.ExpressRouteGatewayBypass != nil {
-			d.Set("enabled_express_route_gateway_bypass", props.ExpressRouteGatewayBypass)
+			d.Set("express_route_gateway_bypass_enabled", props.ExpressRouteGatewayBypass)
 		}
 
 		circuitPeeringID := ""
@@ -273,7 +273,7 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 			EnableInternetSecurity:    utils.Bool(d.Get("enable_internet_security").(bool)),
 			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
 			RoutingWeight:             utils.Int32(int32(d.Get("routing_weight").(int))),
-			ExpressRouteGatewayBypass: utils.Bool(d.Get("enabled_express_route_gateway_bypass").(bool)),
+			ExpressRouteGatewayBypass: utils.Bool(d.Get("express_route_gateway_bypass_enabled").(bool)),
 		},
 	}
 

@@ -220,7 +220,7 @@ resource "azurerm_express_route_connection" "test" {
   routing_weight                       = 2
   authorization_key                    = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
   enable_internet_security             = true
-  enabled_express_route_gateway_bypass = true
+  express_route_gateway_bypass_enabled = true
 
   routing {
     associated_route_table_id = azurerm_virtual_hub.test.default_route_table_id

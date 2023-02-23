@@ -95,8 +95,8 @@ The following arguments are supported:
 * `authorization_key` - (Optional) The authorization key to establish the Express Route Connection.
 
 * `enable_internet_security` - (Optional) Is Internet security enabled for this Express Route Connection?
-  
-* `enabled_express_route_gateway_bypass` - (Optional) Indicates whether FastPath enabled for Virtual Wan Firewall Hub. Defaults to `false`.
+
+* `express_route_gateway_bypass_enabled` - (Optional) Specified whether Fast Path is enabled for Virtual Wan Firewall Hub. Defaults to `false`.
 
 * `routing` - (Optional) A `routing` block as defined below.
 
@@ -108,9 +108,9 @@ A `routing` block supports the following:
 
 * `associated_route_table_id` - (Optional) The ID of the Virtual Hub Route Table associated with this Express Route Connection.
 
-* `inbound_route_map_id` - (Optional) The ID of the RouteMap associated with this Express Route Connection for inbound learned routes.
-
-* `outbound_route_map_id` - (Optional) The ID of the RouteMap associated with this Express Route Connection for outbound advertised routes.
+* `inbound_route_map_id` - (Optional) The ID of the Route Map associated with this Express Route Connection for inbound routes.
+ 
+* `outbound_route_map_id` - (Optional) The ID of the Route Map associated with this Express Route Connection for outbound routes.
 
 * `propagated_route_table` - (Optional) A `propagated_route_table` block as defined below.
 
