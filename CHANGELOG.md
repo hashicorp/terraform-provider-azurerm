@@ -13,6 +13,7 @@ ENHANCEMENTS
 * `compute/capacityreservations` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
 * `compute/capacityreservationgroups` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
 * `azurerm_backup_policy_vm` - add support for `instant_restore_resource_group` [GH-20562]
+* `azurerm_express_route_connection` - support for the `inbound_route_map_id`, `outbound_route_map_id`, and `enabled_private_link_fast_path` properties [GH-20619]
 * `azurerm_kusto_cluster_customer_managed_key` - `key_version` is now Optional to allow for auto-rotation of key [GH-20583]
 * `azurerm_linux_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
 * `azurerm_media_streaming_endpoint` - add support for reading `sku` and increase limit for `scale_units` [GH-20585]
