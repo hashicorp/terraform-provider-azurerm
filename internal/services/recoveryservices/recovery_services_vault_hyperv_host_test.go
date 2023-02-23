@@ -72,7 +72,7 @@ func (HyperVHostTestResource) virtualMachineExists(ctx context.Context, client *
 			return fmt.Errorf("%s does not exist", *id)
 		}
 
-		return fmt.Errorf("Bad: Get on client: %+v", err)
+		return fmt.Errorf("retiring Virtual Machine: %+v", err)
 	}
 
 	return nil
@@ -109,7 +109,7 @@ func (r HyperVHostTestResource) PrepareHostTestSteps(data acceptance.TestData, a
 			),
 		},
 		{
-			Config: r.hyperVTemplate(data, adminPwd), // split complete template into two parts to reboot the server..
+			Config: r.hyperVTemplate(data, adminPwd), // split complete template into two parts to reboot the server.
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_windows_virtual_machine.host"),
 				data.CheckWithClientForResource(r.rebootVirtualMachine, "azurerm_windows_virtual_machine.host"),
@@ -155,8 +155,8 @@ resource "azurerm_resource_group" "hybrid" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (HyperVHostTestResource) keyVault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (HyperVHostTestResource) keyVault() string {
+	return `
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "hybird" {
@@ -269,11 +269,11 @@ resource "azurerm_key_vault_certificate" "winrm" {
   }
 }
 
-`)
+`
 }
 
-func (HyperVHostTestResource) securityGroup(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (HyperVHostTestResource) securityGroup() string {
+	return `
 resource "azurerm_network_security_group" "hybrid" {
   name                = local.nsg_name
   location            = azurerm_resource_group.hybrid.location
@@ -301,7 +301,7 @@ resource "azurerm_network_interface_security_group_association" "hybrid" {
   network_interface_id      = azurerm_network_interface.host.id
   network_security_group_id = azurerm_network_security_group.hybrid.id
 }
-`)
+`
 }
 
 func (r HyperVHostTestResource) recovery(data acceptance.TestData) string {
@@ -455,7 +455,7 @@ resource "azurerm_windows_virtual_machine" "host" {
 %[3]s
 
 %[4]s
-`, r.recovery(data), adminPwd, r.keyVault(data), r.securityGroup(data))
+`, r.recovery(data), adminPwd, r.keyVault(), r.securityGroup())
 }
 
 func (r HyperVHostTestResource) template(data acceptance.TestData, adminPwd string) string {
