@@ -232,11 +232,18 @@ func (s *Schedule) ToSDKModel() softwareupdateconfiguration.SUCSchedulePropertie
 	}
 
 	loc, _ := time.LoadLocation(timeZone)
-	startTime, _ := time.Parse(time.RFC3339, s.StartTime)
-	expiryTime, _ := time.Parse(time.RFC3339, s.ExpiryTime)
-
-	res.SetStartTimeAsTime(startTime.In(loc))
-	res.SetExpiryTimeAsTime(expiryTime.In(loc))
+	if s.StartTime != "" {
+		startTime, _ := time.Parse(time.RFC3339, s.StartTime)
+		res.SetStartTimeAsTime(startTime.In(loc))
+	} else {
+		res.StartTime = &s.StartTime
+	}
+	if s.ExpiryTime != "" {
+		expiryTime, _ := time.Parse(time.RFC3339, s.ExpiryTime)
+		res.SetExpiryTimeAsTime(expiryTime.In(loc))
+	} else {
+		res.ExpiryTime = &s.ExpiryTime
+	}
 
 	if len(s.AdvancedWeekDays) > 0 {
 		res.AdvancedSchedule.WeekDays = &s.AdvancedWeekDays

@@ -342,11 +342,8 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 				if itemProps.JobScheduleId == nil || *itemProps.JobScheduleId == "" {
 					return fmt.Errorf("job schedule Id is nil or empty listed by %s Job Schedule List: %+v", id, err)
 				}
-				jsId, err := jobschedule.ParseJobScheduleID(*itemProps.JobScheduleId)
-				if err != nil {
-					return fmt.Errorf("parsing job schedule Id listed by %s Job Schedule List:%v", id, err)
-				}
-				if resp, err := jsClient.Delete(ctx, *jsId); err != nil {
+				parsedId := jobschedule.NewJobScheduleID(subscriptionID, id.ResourceGroupName, id.AutomationAccountName, *itemProps.JobScheduleId)
+				if resp, err := jsClient.Delete(ctx, parsedId); err != nil {
 					if !response.WasNotFound(resp.HttpResponse) {
 						return fmt.Errorf("deleting job schedule Id listed by %s Job Schedule List:%v", id, err)
 					}
