@@ -104,10 +104,6 @@ package network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkProfile -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkProfiles/networkprofile1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkInterfaceIpConfiguration -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkInterfaces/networkInterface1/ipConfigurations/config1
 
-// Load balancer
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=InboundNatRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/inboundNatRules/natrule1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=LoadBalancerBackendAddressPool -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/backendAddressPools/backendAddressPool1
-
 // Virtual Machine Scale Set
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualMachineScaleSetPublicIPAddress -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleSet1/virtualMachines/virtualMachine1/networkInterfaces/networkInterface1/ipConfigurations/ipConfiguration1/publicIPAddresses/publicIpAddress1
 
