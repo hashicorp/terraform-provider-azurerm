@@ -26,6 +26,32 @@ func TestAccKustoClusterCustomerManagedKey_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_id").Exists(),
 				check.That(data.ResourceName).Key("key_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Delete the encryption settings resource and verify it is gone
+			Config: r.template(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				// Then ensure the encryption settings on the Kusto cluster
+				// have been reverted to their default state
+				check.That("azurerm_kusto_cluster.test").DoesNotExistInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccKustoClusterCustomerManagedKey_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
+	r := KustoClusterCustomerManagedKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_id").Exists(),
+				check.That(data.ResourceName).Key("key_name").Exists(),
 				check.That(data.ResourceName).Key("key_version").Exists(),
 			),
 		},
@@ -48,7 +74,7 @@ func TestAccKustoClusterCustomerManagedKey_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_id").Exists(),
@@ -66,7 +92,7 @@ func TestAccKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_id").Exists(),
@@ -127,6 +153,19 @@ resource "azurerm_kusto_cluster_customer_managed_key" "test" {
   cluster_id   = azurerm_kusto_cluster.test.id
   key_vault_id = azurerm_key_vault.test.id
   key_name     = azurerm_key_vault_key.first.name
+}
+`, template)
+}
+
+func (KustoClusterCustomerManagedKeyResource) complete(data acceptance.TestData) string {
+	template := KustoClusterCustomerManagedKeyResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kusto_cluster_customer_managed_key" "test" {
+  cluster_id   = azurerm_kusto_cluster.test.id
+  key_vault_id = azurerm_key_vault.test.id
+  key_name     = azurerm_key_vault_key.first.name
   key_version  = azurerm_key_vault_key.first.version
 }
 `, template)
@@ -141,7 +180,6 @@ resource "azurerm_kusto_cluster_customer_managed_key" "import" {
   cluster_id   = azurerm_kusto_cluster_customer_managed_key.test.cluster_id
   key_vault_id = azurerm_kusto_cluster_customer_managed_key.test.key_vault_id
   key_name     = azurerm_kusto_cluster_customer_managed_key.test.key_name
-  key_version  = azurerm_kusto_cluster_customer_managed_key.test.key_version
 }
 `, template)
 }

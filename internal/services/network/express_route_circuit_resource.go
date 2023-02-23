@@ -300,7 +300,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("bandwidth_in_gbps", resp.BandwidthInGbps)
 
 		if resp.ExpressRoutePort.ID != nil {
-			portID, err := parse.ExpressRoutePortID(*resp.ExpressRoutePort.ID)
+			portID, err := parse.ExpressRoutePortIDInsensitively(*resp.ExpressRoutePort.ID)
 			if err != nil {
 				return err
 			}

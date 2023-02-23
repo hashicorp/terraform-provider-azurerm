@@ -198,7 +198,7 @@ func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta i
 		d.Set("address_prefix_ipv6", addressPrefixIPv6)
 
 		if props.PeerExpressRouteCircuitPeering != nil && props.PeerExpressRouteCircuitPeering.ID != nil {
-			circuitPeerPeeringId, err := parse.ExpressRouteCircuitPeeringID(*props.PeerExpressRouteCircuitPeering.ID)
+			circuitPeerPeeringId, err := parse.ExpressRouteCircuitPeeringIDInsensitively(*props.PeerExpressRouteCircuitPeering.ID)
 			if err != nil {
 				return err
 			}

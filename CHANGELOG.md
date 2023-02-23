@@ -1,8 +1,31 @@
 ## 3.45.0 (Unreleased)
 
+FEATURES
+
+* **New Resource:** `azurerm_site_recovery_hyperv_replication_policy` [GH-20454]
+
+ENHANCEMENTS
+
+* dependencies: updating to `v0.20230222.1094703` of `github.com/hashicorp/go-azure-sdk` [GH-20610]
+* dependencies: updating to `v0.7.0` of `golang.org/x/net` [GH-20541]
+* `compute/capacityreservations` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
+* `compute/capacityreservationgroups` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
+* `azurerm_backup_policy_vm` - add support for `instant_restore_resource_group` [GH-20562]
+* `azurerm_kusto_cluster_customer_managed_key` - `key_version` is now Optional to allow for auto-rotation of key [GH-20583]
+* `azurerm_linux_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
+* `azurerm_media_streaming_endpoint` - add support for reading `sku` and increase limit for `scale_units` [GH-20585]
+* `azurerm_recovery_services_vault` - add support for `classic_vmware_replication_enabled` [GH-20473]
+* `azurerm_windows_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
+
 BUG FIXES
 
-* `data.azurerm_redis_cache` : fix issue when no patch schedules can be found [GH-20516]
+* Data Source: `azurerm_linux_web_app` - set `virtual_network_subnet_id` correctly [GH-20577]
+* Data Source: `azurerm_redis_cache` - fix issue when no patch schedules can be found [GH-20516]
+* Data Source: `azurerm_windows_web_app` - set `virtual_network_subnet_id` correctly [GH-20577]
+* `azurerm_batch_pool` - set user assigned id for `azure_blob_file_system` correctly [GH-20560]
+* `azurerm_kubernetes_cluster` - prevent crash when `SecurityProfile` is nil [GH-20584]
+* `azurerm_log_analytics_workspace` - prevent ForceNew when `sku` is `LACluster` [GH-19608]
+* `azurerm_media_streaming_endpoint` - set and update `tags` properly [GH-20585]
 
 ## 3.44.1 (February 17, 2023)
 

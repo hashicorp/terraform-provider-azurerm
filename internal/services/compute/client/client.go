@@ -8,7 +8,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
@@ -18,12 +21,12 @@ import (
 
 type Client struct {
 	AvailabilitySetsClient           *availabilitysets.AvailabilitySetsClient
-	CapacityReservationsClient       *compute.CapacityReservationsClient
-	CapacityReservationGroupsClient  *compute.CapacityReservationGroupsClient
+	CapacityReservationsClient       *capacityreservations.CapacityReservationsClient
+	CapacityReservationGroupsClient  *capacityreservationgroups.CapacityReservationGroupsClient
 	DedicatedHostsClient             *dedicatedhosts.DedicatedHostsClient
 	DedicatedHostGroupsClient        *dedicatedhostgroups.DedicatedHostGroupsClient
 	DisksClient                      *disks.DisksClient
-	DiskAccessClient                 *compute.DiskAccessesClient
+	DiskAccessClient                 *diskaccesses.DiskAccessesClient
 	DiskEncryptionSetsClient         *diskencryptionsets.DiskEncryptionSetsClient
 	GalleriesClient                  *compute.GalleriesClient
 	GalleryApplicationsClient        *compute.GalleryApplicationsClient
@@ -36,7 +39,6 @@ type Client struct {
 	SkusClient                       *skus.SkusClient
 	SSHPublicKeysClient              *sshpublickeys.SshPublicKeysClient
 	SnapshotsClient                  *snapshots.SnapshotsClient
-	UsageClient                      *compute.UsageClient
 	VirtualMachinesClient            *virtualmachines.VirtualMachinesClient
 	VMExtensionImageClient           *compute.VirtualMachineExtensionImagesClient
 	VMExtensionClient                *compute.VirtualMachineExtensionsClient
@@ -52,10 +54,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	availabilitySetsClient := availabilitysets.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&availabilitySetsClient.Client, o.ResourceManagerAuthorizer)
 
-	capacityReservationsClient := compute.NewCapacityReservationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	capacityReservationsClient := capacityreservations.NewCapacityReservationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&capacityReservationsClient.Client, o.ResourceManagerAuthorizer)
 
-	capacityReservationGroupsClient := compute.NewCapacityReservationGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	capacityReservationGroupsClient := capacityreservationgroups.NewCapacityReservationGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&capacityReservationGroupsClient.Client, o.ResourceManagerAuthorizer)
 
 	dedicatedHostsClient := dedicatedhosts.NewDedicatedHostsClientWithBaseURI(o.ResourceManagerEndpoint)
@@ -67,7 +69,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	disksClient := disks.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&disksClient.Client, o.ResourceManagerAuthorizer)
 
-	diskAccessClient := compute.NewDiskAccessesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	diskAccessClient := diskaccesses.NewDiskAccessesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&diskAccessClient.Client, o.ResourceManagerAuthorizer)
 
 	diskEncryptionSetsClient := diskencryptionsets.NewDiskEncryptionSetsClientWithBaseURI(o.ResourceManagerEndpoint)
@@ -156,7 +158,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		SkusClient:                       &skusClient,
 		SSHPublicKeysClient:              &sshPublicKeysClient,
 		SnapshotsClient:                  &snapshotsClient,
-		UsageClient:                      &usageClient,
 		VirtualMachinesClient:            &virtualMachinesClient,
 		VMExtensionImageClient:           &vmExtensionImageClient,
 		VMExtensionClient:                &vmExtensionClient,
