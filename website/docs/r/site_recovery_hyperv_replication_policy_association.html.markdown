@@ -40,9 +40,9 @@ resource "azurerm_site_recovery_hyperv_replication_policy" "policy" {
 }
 
 resource "azurerm_site_recovery_hyperv_replication_policy_association" "example" {
-  name = "example-association"
-  hyperv_site_id  = azurerm_site_recovery_services_vault_hyperv_site.example.id
-  policy_id = azurerm_site_recovery_hyperv_replication_policy.example.id
+  name           = "example-association"
+  hyperv_site_id = azurerm_site_recovery_services_vault_hyperv_site.example.id
+  policy_id      = azurerm_site_recovery_hyperv_replication_policy.example.id
 }
 ```
 
