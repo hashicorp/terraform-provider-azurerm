@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DataNetworkModel struct {
@@ -140,17 +139,13 @@ func (r DataNetworkResource) Update() sdk.ResourceFunc {
 			}
 
 			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
 			properties := *resp.Model
 
 			if metadata.ResourceData.HasChange("description") {
-				if model.Description != "" {
-					properties.Properties.Description = &model.Description
-				} else {
-					properties.Properties.Description = utils.String("")
-				}
+				properties.Properties.Description = &model.Description
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -186,25 +181,22 @@ func (r DataNetworkResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			model := *resp.Model
-
 			state := DataNetworkModel{
 				Name:                         id.DataNetworkName,
 				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
-				Location:                     location.Normalize(model.Location),
 			}
 
-			if properties := model.Properties; properties != nil {
-				if properties.Description != nil {
-					state.Description = *properties.Description
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+
+				if properties := model.Properties; properties != nil {
+					if properties.Description != nil {
+						state.Description = *properties.Description
+					}
 				}
-			}
-			if model.Tags != nil {
-				state.Tags = *model.Tags
+				if model.Tags != nil {
+					state.Tags = *model.Tags
+				}
 			}
 
 			return metadata.Encode(&state)
