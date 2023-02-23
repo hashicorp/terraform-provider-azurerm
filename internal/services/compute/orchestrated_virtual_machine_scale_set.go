@@ -702,7 +702,7 @@ func OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema() *pluginsdk.Sche
 				"base_regular_priority_count": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
-					Default: 0,
+					Default:  0,
 				},
 				"regular_priority_percentage_above_base": {
 					Type:     pluginsdk.TypeInt,
@@ -1443,15 +1443,15 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 }
 
 func ExpandVirtualMachineScaleSetPriorityMixPolicy(input []interface{}) *compute.PriorityMixPolicy {
-	if len(input == 0) {
+	if len(input) == 0 {
 		return nil
 	}
 
 	raw := input[0].(map[string]interface{})
 
 	return &compute.PriorityMixPolicy{
-		BaseRegularPriorityCount: utils.Int32(raw["base_regular_priority_count"].(int32)),
-		RegularPriorityPercentageAboveBase: utils.int32(raw["regular_priority_percentage_above_base"].(int32)),
+		BaseRegularPriorityCount:           utils.Int32(int32(raw["base_regular_priority_count"].(int))),
+		RegularPriorityPercentageAboveBase: utils.Int32(int32(raw["regular_priority_percentage_above_base"].(int))),
 	}
 }
 
@@ -1974,21 +1974,21 @@ func FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input *comp
 	}
 }
 
-func FlattenVirtualMachineScaleSetPriorityMixPolicy(input *compute.PriorityMixPolicy) []interface{} {
+func FlattenOrchestratedVirtualMachineScaleSetPriorityMixPolicy(input *compute.PriorityMixPolicy) []interface{} {
 
-	baseRegularPriorityCount := 0
-	if input != nil && input.BaseRegularPriorityCount != nil{
+	baseRegularPriorityCount := int32(0)
+	if input != nil && input.BaseRegularPriorityCount != nil {
 		baseRegularPriorityCount = *input.BaseRegularPriorityCount
 	}
 
-	regularPriorityPercentageAboveBase := 0
-	if input != nil && input.RegularPriorityPercentageAboveBase != nil{
+	regularPriorityPercentageAboveBase := int32(0)
+	if input != nil && input.RegularPriorityPercentageAboveBase != nil {
 		regularPriorityPercentageAboveBase = *input.RegularPriorityPercentageAboveBase
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"base_regular_priority_count": baseRegularPriorityCount,
+			"base_regular_priority_count":            baseRegularPriorityCount,
 			"regular_priority_percentage_above_base": regularPriorityPercentageAboveBase,
 		},
 	}

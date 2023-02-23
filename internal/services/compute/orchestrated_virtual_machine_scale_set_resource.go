@@ -1091,12 +1091,6 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		updateProps.VirtualMachineProfile.UserData = utils.String(d.Get("user_data_base64").(string))
 	}
 
-	if d.HasChange("priority_mix_policy") {
-		priorityMixPolicyRaw := d.Get("priority_mix_policy").([]interface{})
-		priorityMixPolicy := ExpandVirtualMachineScaleSetPriorityMixPolicy(priorityMixPolicyRaw)
-		updateProps.PriorityMixPolicy = priorityMixPolicy
-	}
-
 	update.VirtualMachineScaleSetUpdateProperties = &updateProps
 
 	if updateInstances {

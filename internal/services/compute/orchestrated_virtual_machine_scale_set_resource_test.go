@@ -366,6 +366,20 @@ func TestAccOrchestratedVirtualMachineScaleSet_importLinux(t *testing.T) {
 	})
 }
 
+func TestAccOrchestratedVirtualMachineScaleSet_priorityMixPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.priorityMixPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 // Not Supported yet
 // func TestAccOrchestratedVirtualMachineScaleSet_AutoUpdates(t *testing.T) {
 // 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
@@ -1948,7 +1962,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestOVMSS-%[1]d"
+  name                = "acctestOVMSS-spotPriorityMix-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1961,12 +1975,18 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   platform_fault_domain_count = 2
 
   os_profile {
-    linux_configuration {
-      computer_name_prefix = "testvm-%[1]d"
+    windows_configuration {
+      computer_name_prefix = "testvm"
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      disable_password_authentication = false
+      enable_automatic_updates = true
+      provision_vm_agent       = true
+      timezone                 = "W. Europe Standard Time"
+
+      winrm_listener {
+        protocol = "Http"
+      }
     }
   }
 
@@ -1993,15 +2013,15 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter-Server-Core"
     version   = "latest"
   }
 
   priority_mix_policy {
-    baseRegularPriorityCount = 4,
-    regularPriorityPercentageAboveBase = 50
+    base_regular_priority_count = 4
+    regular_priority_percentage_above_base = 50
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
