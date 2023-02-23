@@ -23,9 +23,11 @@ BUG FIXES
 * Data Source: `azurerm_redis_cache` - fix issue when no patch schedules can be found [GH-20516]
 * Data Source: `azurerm_windows_web_app` - set `virtual_network_subnet_id` correctly [GH-20577]
 * `azurerm_batch_pool` - set user assigned id for `azure_blob_file_system` correctly [GH-20560]
+* `azurerm_iot_dps` - allow older resources to update without having set `data_residency_enabled` [GH-20632]
 * `azurerm_kubernetes_cluster` - prevent crash when `SecurityProfile` is nil [GH-20584]
 * `azurerm_log_analytics_workspace` - prevent ForceNew when `sku` is `LACluster` [GH-19608]
 * `azurerm_media_streaming_endpoint` - set and update `tags` properly [GH-20585]
+* `azurerm_mobile_network_sim_group` - update `identity` to only support User Assigned Identities [GH-20474]
 
 ## 3.44.1 (February 17, 2023)
 
