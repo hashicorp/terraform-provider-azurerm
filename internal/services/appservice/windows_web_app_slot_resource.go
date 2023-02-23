@@ -784,7 +784,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 					updateLogs = true
 				}
 				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *authUpdate, id.SlotName); err != nil {
-					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating Auth Settings for Windows %s: %+v", id, err)
 				}
 			}
 
