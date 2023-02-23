@@ -839,7 +839,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 					updateLogs = true
 				}
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *authUpdate); err != nil {
-					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating Auth Settings for Windows %s: %+v", id, err)
 				}
 			}
 
