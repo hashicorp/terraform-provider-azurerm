@@ -486,7 +486,7 @@ A `key_vault_secrets_provider` block supports the following:
 
 * `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
 
--> **NOTE:** When `key_vault_secrets_provider` is set - One of `secret_rotation_enabled, secret_rotation_interval` must be specified.
+-> **NOTE:** To enable`key_vault_secrets_provider` either `secret_rotation_enabled` or `secret_rotation_interval` must be specified.
 
 ---
 
