@@ -2,6 +2,7 @@
 
 FEATURES
 
+* `App Service` - Add authV2 to Web Apps [GH-20449]
 * **New Resource:** `azurerm_site_recovery_hyperv_replication_policy` [GH-20454]
 
 ENHANCEMENTS
