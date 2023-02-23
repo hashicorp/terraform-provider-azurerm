@@ -73,9 +73,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return old != "" && new == ""
 			}),
 			pluginsdk.ForceNewIf("default_node_pool.0.name", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
-				old, _ := d.GetChange("default_node_pool.0.name")
-				tempNodePoolName := d.Get("default_node_pool.0.temp_name_for_vm_resize")
-				return old != tempNodePoolName
+				old, new := d.GetChange("default_node_pool.0.name")
+				defaultName := d.Get("default_node_pool.0.name")
+				tempName := d.Get("default_node_pool.0.temp_name_for_vm_resize")
+
+				// if the default node pool name has been set to temp_name_for_vm_resize it means resizing failed
+				// we should not try to recreate the cluster, another apply will attempt the resize again
+				if old != "" && old == tempName {
+					return new != defaultName
+				}
+				return true
 			}),
 		),
 
@@ -2006,7 +2013,8 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		if d.HasChange("default_node_pool.0.vm_size") {
+		// if the default node pool name has changed it means the initial attempt at resizing failed
+		if d.HasChange("default_node_pool.0.vm_size") || d.HasChange("default_node_pool.0.name") {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
 			// To provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
 			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
@@ -2047,14 +2055,14 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, deleteOpts); err != nil {
 					return fmt.Errorf("deleting Default Node Pool %s: %+v", defaultNodePoolId, err)
 				}
+			}
 
-				// create the default node pool with the new vm size
-				if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
-					// if creation of the default node pool fails we automatically fall back to the temporary node pool
-					// in func findDefaultNodePool
-					log.Printf("[DEBUG] Creation of resized default node pool failed")
-					return fmt.Errorf("creating Default Node Pool %s: %+v", defaultNodePoolId, err)
-				}
+			// create the default node pool with the new vm size
+			if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
+				// if creation of the default node pool fails we automatically fall back to the temporary node pool
+				// in func findDefaultNodePool
+				log.Printf("[DEBUG] Creation of resized default node pool failed")
+				return fmt.Errorf("creating Default Node Pool %s: %+v", defaultNodePoolId, err)
 			}
 
 			if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, deleteOpts); err != nil {

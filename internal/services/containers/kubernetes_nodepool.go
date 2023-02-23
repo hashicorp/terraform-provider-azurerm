@@ -3,6 +3,7 @@ package containers
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"regexp"
 	"strconv"
 	"strings"
@@ -37,6 +38,20 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.KubernetesAgentPoolName,
+					},
+					"location": {
+						Type:     schema.TypeString,
+						Optional: true,
+						ForceNew: true,
+						Default:  "global",
+						ValidateFunc: validation.Any(
+							location.EnhancedValidate,
+							validation.StringInSlice([]string{
+								"global",
+							}, false),
+						),
+						StateFunc:        location.StateFunc,
+						DiffSuppressFunc: location.DiffSuppressFunc,
 					},
 
 					"temp_name_for_vm_resize": {
@@ -1656,19 +1671,7 @@ func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]
 func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile, d *pluginsdk.ResourceData) (*managedclusters.ManagedClusterAgentPoolProfile, error) {
 	// first try loading this from the Resource Data if possible (e.g. when Created)
 	defaultNodePoolName := d.Get("default_node_pool.0.name")
-
 	tempNodePoolName := d.Get("default_node_pool.0.temp_name_for_vm_resize")
-
-	// in the read, we want to retrieve both the name and temp name from the config
-	// we then want to see which is available, if the temp name is provisioned but the name isn't
-	// then we are in a semi-failed state where the rotastion has started but failed
-	// in that case we'll want to flag that at plan/read time to highlight that the default node pool is now the temp one
-	// so that name becomes `name` -> `temp name` at plan time
-	//
-	// meanwhile if default node pool with name exists but the temp name doesn't, then all is hunky dorey ad we can continue as normal
-
-	// update:
-	//
 
 	var agentPool *managedclusters.ManagedClusterAgentPoolProfile
 	if defaultNodePoolName != "" {
