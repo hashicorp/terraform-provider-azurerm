@@ -18,37 +18,23 @@ type SiteRecoverHyperVReplicationPolicyAssociationResource struct{}
 func TestAccSiteRecoveryHyperVReplicationPolicyAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_hyperv_replication_policy_association", "test")
 	r := SiteRecoverHyperVReplicationPolicyAssociationResource{}
+	hostResource := HyperVHostTestResource{}
+	adminPwd := GenerateRandomPassword(10)
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, append(hostResource.PrepareHostTestSteps(data, adminPwd), []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, adminPwd),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
-	})
+	}...))
 }
 
-func (SiteRecoverHyperVReplicationPolicyAssociationResource) basic(data acceptance.TestData) string {
+func (SiteRecoverHyperVReplicationPolicyAssociationResource) basic(data acceptance.TestData, adminPwd string) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery-%d"
-  location = "%s"
-}
-
-resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-vault-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-
-  soft_delete_enabled = false
-}
+%s
 
 resource "azurerm_site_recovery_hyperv_replication_policy" "test" {
   recovery_vault_id                                  = azurerm_recovery_services_vault.test.id
@@ -58,17 +44,12 @@ resource "azurerm_site_recovery_hyperv_replication_policy" "test" {
   replication_interval_in_seconds                    = 300
 }
 
-resource "azurerm_site_recovery_services_vault_hyperv_site" "test" {
-  recovery_vault_id = azurerm_recovery_services_vault.test.id
-  name              = "acctest-site-%[1]d"
-}
-
 resource "azurerm_site_recovery_hyperv_replication_policy_association" "test" {
   name           = "test-association"
   hyperv_site_id = azurerm_site_recovery_services_vault_hyperv_site.test.id
   policy_id      = azurerm_site_recovery_hyperv_replication_policy.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, HyperVHostTestResource{}.template(data, adminPwd), data.RandomInteger)
 }
 
 func (t SiteRecoverHyperVReplicationPolicyAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

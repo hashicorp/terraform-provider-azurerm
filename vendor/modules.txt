@@ -434,6 +434,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/private
 github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/recordsets
 github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/virtualnetworklinks
 github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account
+github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaultcertificates
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaults
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2021-12-01/backupresourcestorageconfigsnoncrr
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2021-12-01/backupresourcevaultconfigs
@@ -444,6 +445,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainermappings
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainers
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationrecoveryplans
+github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationrecoveryservicesproviders
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationvaultsetting
 github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01
 github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01/firewallrules
