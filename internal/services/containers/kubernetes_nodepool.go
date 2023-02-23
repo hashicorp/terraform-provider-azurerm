@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
@@ -39,20 +38,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.KubernetesAgentPoolName,
-					},
-					"location": {
-						Type:     schema.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  "global",
-						ValidateFunc: validation.Any(
-							location.EnhancedValidate,
-							validation.StringInSlice([]string{
-								"global",
-							}, false),
-						),
-						StateFunc:        location.StateFunc,
-						DiffSuppressFunc: location.DiffSuppressFunc,
 					},
 
 					"temp_name_for_vm_resize": {
