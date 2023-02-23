@@ -19,6 +19,9 @@ import (
 
 const TargetContainerIdAzure = "Microsoft Azure"
 
+// we only support replicate to Azure as backup to customer-managed sites is being deprecated.
+// https://learn.microsoft.com/en-us/azure/site-recovery/site-to-site-deprecation
+
 type HyperVReplicationPolicyAssociationModel struct {
 	Name     string `tfschema:"name"`
 	FabricId string `tfschema:"hyperv_site_id"`
@@ -70,7 +73,7 @@ func (h HyperVReplicationPolicyAssociationResource) IDValidationFunc() pluginsdk
 
 func (h HyperVReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 120 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var plan HyperVReplicationPolicyAssociationModel
 			if err := metadata.Decode(&plan); err != nil {
@@ -155,7 +158,7 @@ func (h HyperVReplicationPolicyAssociationResource) Read() sdk.ResourceFunc {
 
 func (h HyperVReplicationPolicyAssociationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.RecoveryServices.ContainerMappingClient
 
@@ -192,5 +195,5 @@ func fetchHyperVReplicationPolicyAssociationContainerNameByHostName(ctx context.
 		return "", fmt.Errorf("container id is nil")
 	}
 
-	return *resp.Items[0].Id, nil
+	return handleAzureSdkForGoBug2824(*resp.Items[0].Id), nil
 }

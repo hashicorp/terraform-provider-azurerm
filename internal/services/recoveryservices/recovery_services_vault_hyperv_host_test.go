@@ -109,7 +109,7 @@ func (r HyperVHostTestResource) PrepareHostTestSteps(data acceptance.TestData, a
 			),
 		},
 		{
-			Config: r.hyperVTemplate(data, adminPwd),
+			Config: r.hyperVTemplate(data, adminPwd), // split complete template into two parts to reboot the server..
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_windows_virtual_machine.host"),
 				data.CheckWithClientForResource(r.rebootVirtualMachine, "azurerm_windows_virtual_machine.host"),
@@ -287,7 +287,7 @@ resource "azurerm_network_security_group" "hybrid" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "5986"
-    source_address_prefix      = "*
+    source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
 
@@ -329,7 +329,7 @@ func (r HyperVHostTestResource) hyperVTemplate(data acceptance.TestData, adminPw
 %[1]s
 
 variable "hyperv_host_registration_key" {
-	type = string
+  type = string
 }
 
 resource "azurerm_virtual_network" "hybrid" {
