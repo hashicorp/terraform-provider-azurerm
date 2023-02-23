@@ -399,7 +399,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			authv2 := helpers.ExpandAuthV2Settings(webApp.AuthV2Settings)
 			if authv2.SiteAuthSettingsV2Properties != nil {
 				if _, err = client.UpdateAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName, *authv2); err != nil {
-					return fmt.Errorf("updating AuthV2 settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating AuthV2 settings for Windows %s: %+v", id, err)
 				}
 			}
 
