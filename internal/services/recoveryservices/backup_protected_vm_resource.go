@@ -151,7 +151,11 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 			return err
 		}
 
-		opState := resourceRecoveryServicesBackupProtectedVMOperationRefreshFunc(ctx, meta.(*clients.Client).RecoveryServices.BackupOperationResultsClient, d.Timeout(pluginsdk.TimeoutCreate), vaultName, resourceGroup, parsedLocation.Path["operationResults"])
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
+		opState := resourceRecoveryServicesBackupProtectedVMOperationRefreshFunc(ctx, meta.(*clients.Client).RecoveryServices.BackupOperationResultsClient, deadline, vaultName, resourceGroup, parsedLocation.Path["operationResults"])
 		if _, err := opState.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 		}
@@ -308,8 +312,12 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 		return i, fmt.Errorf("waiting for the Azure Backup Protected VM %q to be deleted (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return resp.(backup.ProtectedItemResource), fmt.Errorf("internal-error: context had no deadline")
+	}
 	// we should also wait for the operation to complete, or it will fail when creating a new backup vm with the same vm in different vault immediately.
-	opState := resourceRecoveryServicesBackupProtectedVMOperationRefreshFunc(ctx, opResultClient, d.Timeout(pluginsdk.TimeoutDelete), vaultName, resourceGroup, operationId)
+	opState := resourceRecoveryServicesBackupProtectedVMOperationRefreshFunc(ctx, opResultClient, deadline, vaultName, resourceGroup, operationId)
 
 	_, err = opState.WaitForStateContext(ctx)
 	if err != nil {
@@ -319,7 +327,8 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 	return resp.(backup.ProtectedItemResource), nil
 }
 
-func resourceRecoveryServicesBackupProtectedVMOperationRefreshFunc(ctx context.Context, opResultClient *backup.OperationResultsClient, timeout time.Duration, vaultName, resourceGroup, operationId string) pluginsdk.StateChangeConf {
+// for LRO operation lack of definition in Swagger, tracked on https://github.com/Azure/azure-rest-api-specs/issues/22758
+func resourceRecoveryServicesBackupProtectedVMOperationRefreshFunc(ctx context.Context, opResultClient *backup.OperationResultsClient, timeout time.Time, vaultName, resourceGroup, operationId string) pluginsdk.StateChangeConf {
 	return pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
@@ -333,7 +342,7 @@ func resourceRecoveryServicesBackupProtectedVMOperationRefreshFunc(ctx context.C
 			return resp, strconv.Itoa(resp.StatusCode), err
 		},
 
-		Timeout: timeout,
+		Timeout: time.Until(timeout),
 	}
 }
 
@@ -411,7 +420,7 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 		"backup_policy_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: validate.BackupPolicyID,
 			ExactlyOneOf: []string{"backup_policy_id", "protection_stopped"},
 		},
 
