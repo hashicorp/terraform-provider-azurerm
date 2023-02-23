@@ -1014,9 +1014,9 @@ func expandBatchPoolAzureBlobFileSystemConfiguration(list []interface{}) (*pool.
 		RelativeMountPath: configMap["relative_mount_path"].(string),
 	}
 
-	if accountKey, ok := configMap["account_key"]; ok {
+	if accountKey, ok := configMap["account_key"]; ok && accountKey != "" {
 		result.AccountKey = utils.String(accountKey.(string))
-	} else if sasKey, ok := configMap["sas_key"]; ok {
+	} else if sasKey, ok := configMap["sas_key"]; ok && sasKey != "" {
 		result.SasKey = utils.String(sasKey.(string))
 	} else if computedIDRef, err := expandBatchPoolIdentityReference(configMap); err == nil {
 		result.IdentityReference = computedIDRef

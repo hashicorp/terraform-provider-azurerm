@@ -303,6 +303,9 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
 				webApp.PossibleOutboundIPAddresses = utils.NormalizeNilableString(props.PossibleOutboundIPAddresses)
 				webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
+				if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+					webApp.VirtualNetworkSubnetID = subnetId
+				}
 			}
 
 			webApp.AuthSettings = helpers.FlattenAuthSettings(auth)
