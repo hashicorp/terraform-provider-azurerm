@@ -174,6 +174,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 						string(kusto.LanguageExtensionNameR),
 					}, false),
 				},
+				DiffSuppressFunc: languageExtensionDiffSuppress,
 			},
 
 			"engine": {
@@ -261,6 +262,35 @@ func resourceKustoCluster() *pluginsdk.Resource {
 	}
 
 	return s
+}
+
+// using languageExtensionDiffSuppress to suppress diff caused by same extensions in different order
+func languageExtensionDiffSuppress(_, _, _ string, d *schema.ResourceData) bool {
+	if d.HasChange("language_extensions") {
+		oldValue, newValue := d.GetChange("language_extensions")
+		if oldValue != nil && newValue != nil {
+			oldList := oldValue.([]interface{})
+			newList := newValue.([]interface{})
+			diff := make(map[string]int, len(oldList))
+			for _, _o := range oldList {
+				oldItem := _o.(string)
+				diff[oldItem]++
+			}
+			for _, _n := range newList {
+				newItem := _n.(string)
+				if _, ok := diff[newItem]; !ok {
+					return false
+				}
+				diff[newItem] -= 1
+				if diff[newItem] == 0 {
+					delete(diff, newItem)
+				}
+			}
+			return len(diff) == 0
+		}
+		return false
+	}
+	return true
 }
 
 func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
