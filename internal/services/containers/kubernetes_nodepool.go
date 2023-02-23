@@ -32,8 +32,9 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: func() map[string]*pluginsdk.Schema {
 				s := map[string]*pluginsdk.Schema{
-					// Required and conditionally ForceNew: updating `name` to `temp_name_for_vm_resize`
-					// should be allowed and not force cluster recreation
+					// Required and conditionally ForceNew: updating `name` back to name when it's been set to the value
+					// of `temp_name_for_vm_resize` during the resizing of the default node pool should be allowed and
+					// not force cluster recreation
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,

@@ -2016,7 +2016,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		// if the default node pool name has changed it means the initial attempt at resizing failed
 		if d.HasChange("default_node_pool.0.vm_size") || d.HasChange("default_node_pool.0.name") {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
-			// To provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
+			// to provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
 			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
 			// bringing up the new one.
 
@@ -2042,7 +2042,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			// if the temp node pool already exists due to a previous failure, don't bother spinning it up
 			if tempExisting.Model == nil {
 				if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
-					return fmt.Errorf("creating Temporary Node Pool %s: %+v", tempNodePoolId, err)
+					return fmt.Errorf("creating temporary %s: %+v", tempNodePoolId, err)
 				}
 			}
 
@@ -2053,7 +2053,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			// delete the old default node pool if it exists
 			if defaultExisting.Model != nil {
 				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, deleteOpts); err != nil {
-					return fmt.Errorf("deleting Default Node Pool %s: %+v", defaultNodePoolId, err)
+					return fmt.Errorf("deleting default %s: %+v", defaultNodePoolId, err)
 				}
 			}
 
@@ -2062,14 +2062,14 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				// if creation of the default node pool fails we automatically fall back to the temporary node pool
 				// in func findDefaultNodePool
 				log.Printf("[DEBUG] Creation of resized default node pool failed")
-				return fmt.Errorf("creating Default Node Pool %s: %+v", defaultNodePoolId, err)
+				return fmt.Errorf("creating default %s: %+v", defaultNodePoolId, err)
 			}
 
 			if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, deleteOpts); err != nil {
-				return fmt.Errorf("deleting Temporary Node Pool %s: %+v", tempNodePoolId, err)
+				return fmt.Errorf("deleting temporary %s: %+v", tempNodePoolId, err)
 			}
 
-			log.Printf("[DEBUG] Cycled Default Node Pool.")
+			log.Printf("[DEBUG] Cycled Default Node Pool..")
 		} else {
 			log.Printf("[DEBUG] Updating of Default Node Pool..")
 

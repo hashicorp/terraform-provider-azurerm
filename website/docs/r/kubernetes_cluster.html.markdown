@@ -364,7 +364,7 @@ A `default_node_pool` block supports the following:
 
 * `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`.
 
--> **Note:** Resizing the `default_node_pool` Virtual Machine is done by cycling the system node pool of the cluster. `temp_name_for_vm_resize` must be specified attempting a resize.
+-> **Note:** Resizing the `default_node_pool` Virtual Machine is done by cycling the system node pool of the cluster. `temp_name_for_vm_resize` must be specified when attempting a resize.
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
 
