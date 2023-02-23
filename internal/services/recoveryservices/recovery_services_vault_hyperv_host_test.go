@@ -433,7 +433,7 @@ resource "azurerm_windows_virtual_machine" "host" {
     destination = "c:/temp/hyperv-credential"
   }
 
-  provisioner "remote-exec" {
+  provisioner "remote-exec" { # setup HyperV could only be done by provisioner because CustomScriptExtension does not allow reboot the server.
     inline = [
       "powershell -command \"Set-NetConnectionProfile -InterfaceAlias Ethernet -NetworkCategory Private\"",
       "mkdir c:\\Disks",
@@ -461,6 +461,7 @@ resource "azurerm_windows_virtual_machine" "host" {
 func (r HyperVHostTestResource) template(data acceptance.TestData, adminPwd string) string {
 	return fmt.Sprintf(`
 %s
+# register the server could only be done by CustomScriptExtension because it requires local admin to run.
 
 resource "azurerm_storage_account" "hybrid" {
   name                     = local.storage_account_name
