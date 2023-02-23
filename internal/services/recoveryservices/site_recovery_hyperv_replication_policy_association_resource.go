@@ -153,7 +153,7 @@ func (h HyperVReplicationPolicyAssociationResource) Read() sdk.ResourceFunc {
 
 			prop := resp.Model.Properties
 			if prop.PolicyId != nil {
-				state.PolicyId = *prop.PolicyId
+				state.PolicyId = handleAzureSdkForGoBug2824(*prop.PolicyId)
 			}
 
 			return metadata.Encode(&state)
