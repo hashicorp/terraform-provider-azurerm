@@ -488,7 +488,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 			if pointer.From(auth.ConfigVersion) == "v2" {
 				authV2, err = client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
 				if err != nil {
-					return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)
+					return fmt.Errorf("reading authV2 settings for Windows %s: %+v", *id, err)
 				}
 			}
 
