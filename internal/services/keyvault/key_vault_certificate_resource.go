@@ -652,7 +652,7 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 		// If another process starts a new certificate creation right after our
 		// operation was completed we might not observe the completed state. Also as
 		// soon someone started a new create operation there is no way to determine
-		// what happend to the previous operation. Because of that we return an error
+		// what happened to the previous operation. Because of that we return an error
 		// if there is a new operation (not the same request ID) running.
 		if *operation.RequestID != requestID {
 			return nil, "", fmt.Errorf("could not observe outcome of certificate creation because another process started a new creation")
