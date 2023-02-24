@@ -10,6 +10,7 @@ ENHANCEMENTS
 
 * dependencies: updating to `v0.20230222.1094703` of `github.com/hashicorp/go-azure-sdk` [GH-20610]
 * dependencies: updating to `v0.7.0` of `golang.org/x/net` [GH-20541]
+* `automation` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-2020568580]
 * `compute/capacityreservations` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
 * `compute/capacityreservationgroups` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
 * `azurerm_backup_policy_vm` - add support for `instant_restore_resource_group` [GH-20562]
