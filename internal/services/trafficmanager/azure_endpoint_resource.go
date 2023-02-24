@@ -185,13 +185,9 @@ func resourceAzureEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		params.Properties.Weight = utils.Int64(int64(weight))
 	}
 
-	inputMappings := d.Get("geo_mappings").([]interface{})
-	geoMappings := make([]string, 0)
-	for _, v := range inputMappings {
-		geoMappings = append(geoMappings, v.(string))
-	}
-	if len(geoMappings) > 0 {
-		params.Properties.GeoMapping = &geoMappings
+	geoMappings := utils.ExpandStringSlice(d.Get("geo_mappings").([]interface{}))
+	if len(*geoMappings) > 0 {
+		params.Properties.GeoMapping = geoMappings
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
@@ -252,14 +248,7 @@ func resourceAzureEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("geo_mappings") {
-		inputMappings := d.Get("geo_mappings").([]interface{})
-		geoMappings := make([]string, 0)
-		for _, v := range inputMappings {
-			geoMappings = append(geoMappings, v.(string))
-		}
-		if len(geoMappings) > 0 {
-			existing.Model.Properties.GeoMapping = &geoMappings
-		}
+		existing.Model.Properties.GeoMapping = utils.ExpandStringSlice(d.Get("geo_mappings").([]interface{}))
 	}
 
 	if _, err := client.Update(ctx, *id, *existing.Model); err != nil {
