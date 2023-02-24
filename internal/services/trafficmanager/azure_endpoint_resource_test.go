@@ -105,6 +105,35 @@ func TestAccAzureEndpoint_subnets(t *testing.T) {
 	})
 }
 
+func TestAccAzureEndpoint_customHeader(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_azure_endpoint", "test")
+	r := AzureEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customHeader(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customHeaderUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customHeader(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r AzureEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := endpoints.ParseEndpointTypeID(state.ID)
 	if err != nil {
@@ -293,6 +322,86 @@ resource "azurerm_traffic_manager_azure_endpoint" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r AzureEndpointResource) customHeader(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  domain_name_label   = "acctestpublicip-%[2]d"
+}
+
+resource "azurerm_traffic_manager_azure_endpoint" "test" {
+  name               = "acctestend-azure%[2]d"
+  target_resource_id = azurerm_public_ip.test.id
+  weight             = 5
+  profile_id         = azurerm_traffic_manager_profile.test.id
+  enabled            = false
+  priority           = 4
+
+  geo_mappings = ["WORLD"]
+
+  custom_header {
+    name  = "header"
+    value = "www.bing.com"
+  }
+  
+  custom_header {
+    name  = "test"
+    value = "www.example.com"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r AzureEndpointResource) customHeaderUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  domain_name_label   = "acctestpublicip-%[2]d"
+}
+
+resource "azurerm_traffic_manager_azure_endpoint" "test" {
+  name               = "acctestend-azure%[2]d"
+  target_resource_id = azurerm_public_ip.test.id
+  weight             = 5
+  profile_id         = azurerm_traffic_manager_profile.test.id
+  enabled            = false
+  priority           = 4
+
+  geo_mappings = ["WORLD"]
+
+  custom_header {
+    name  = "header1"
+    value = "www.bing.com"
+  }
+
+  custom_header {
+    name  = "test1"
+    value = "www.example.com"
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r AzureEndpointResource) template(data acceptance.TestData) string {
