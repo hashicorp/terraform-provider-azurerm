@@ -5,14 +5,15 @@ FEATURES
 * `App Service` - Add authV2 to Web Apps [GH-20449]
 * **New Resource:** `azurerm_site_recovery_hyperv_replication_policy` [GH-20454]
 * **New Resource:** `azurerm_site_recovery_hyperv_replication_policy_association` [GH-20630]
-
+Switching kusto RP from track1 sdk to pandora sdk #20563
 ENHANCEMENTS
 
 * dependencies: updating to `v0.20230222.1094703` of `github.com/hashicorp/go-azure-sdk` [GH-20610]
 * dependencies: updating to `v0.7.0` of `golang.org/x/net` [GH-20541]
-* `automation` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-2020568580]
+* `automation` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20568]
 * `compute/capacityreservations` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
 * `compute/capacityreservationgroups` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
+* `kusto` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20563]
 * `azurerm_backup_policy_vm` - add support for `instant_restore_resource_group` [GH-20562]
 * `azurerm_express_route_connection` - support for the `inbound_route_map_id`, `outbound_route_map_id`, and `enabled_private_link_fast_path` properties [GH-20619]
 * `azurerm_kusto_cluster_customer_managed_key` - `key_version` is now Optional to allow for auto-rotation of key [GH-20583]
