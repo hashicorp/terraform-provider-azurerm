@@ -153,9 +153,6 @@ resource "azurerm_hybrid_compute_machine_extension" "test" {
   publisher                          = "Microsoft.Azure.Monitor"
   type                               = "AzureMonitorLinuxAgent"
   type_handler_version               = "1.24"
-  tags = {
-    env = "Terraform_dev"
-  }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
@@ -174,9 +171,6 @@ resource "azurerm_hybrid_compute_machine_extension" "test" {
   publisher                          = "Microsoft.Azure.Monitor"
   type                               = "AzureMonitorLinuxAgent"
   type_handler_version               = "1.25"
-  tags = {
-    env = "Terraform_dev"
-  }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
