@@ -11,11 +11,12 @@ package keyvault
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // BaseClient is the base client for Keyvault.
@@ -1413,7 +1414,7 @@ func (client BaseClient) FullBackup(ctx context.Context, vaultBaseURL string, az
 
 	result, err = client.FullBackupSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "FullBackup", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "FullBackup", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1448,6 +1449,7 @@ func (client BaseClient) FullBackupPreparer(ctx context.Context, vaultBaseURL st
 // http.Response Body if it receives an error.
 func (client BaseClient) FullBackupSender(req *http.Request) (future FullBackupFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -1586,7 +1588,7 @@ func (client BaseClient) FullRestoreOperation(ctx context.Context, vaultBaseURL 
 
 	result, err = client.FullRestoreOperationSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "FullRestoreOperation", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "FullRestoreOperation", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -1621,6 +1623,7 @@ func (client BaseClient) FullRestoreOperationPreparer(ctx context.Context, vault
 // http.Response Body if it receives an error.
 func (client BaseClient) FullRestoreOperationSender(req *http.Request) (future FullRestoreOperationFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -2167,140 +2170,6 @@ func (client BaseClient) GetCertificatePolicyResponder(resp *http.Response) (res
 	return
 }
 
-// GetCertificates the GetCertificates operation returns the set of certificates resources in the specified key vault.
-// This operation requires the certificates/list permission.
-// Parameters:
-// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
-// maxresults - maximum number of results to return in a page. If not specified the service will return up to
-// 25 results.
-// includePending - specifies whether to include certificates which are not completely provisioned.
-func (client BaseClient) GetCertificates(ctx context.Context, vaultBaseURL string, maxresults *int32, includePending *bool) (result CertificateListResultPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetCertificates")
-		defer func() {
-			sc := -1
-			if result.clr.Response.Response != nil {
-				sc = result.clr.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: maxresults,
-			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
-				}}}}}); err != nil {
-		return result, validation.NewError("keyvault.BaseClient", "GetCertificates", err.Error())
-	}
-
-	result.fn = client.getCertificatesNextResults
-	req, err := client.GetCertificatesPreparer(ctx, vaultBaseURL, maxresults, includePending)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetCertificates", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetCertificatesSender(req)
-	if err != nil {
-		result.clr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetCertificates", resp, "Failure sending request")
-		return
-	}
-
-	result.clr, err = client.GetCertificatesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetCertificates", resp, "Failure responding to request")
-		return
-	}
-	if result.clr.hasNextLink() && result.clr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-		return
-	}
-
-	return
-}
-
-// GetCertificatesPreparer prepares the GetCertificates request.
-func (client BaseClient) GetCertificatesPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32, includePending *bool) (*http.Request, error) {
-	urlParameters := map[string]interface{}{
-		"vaultBaseUrl": vaultBaseURL,
-	}
-
-	const APIVersion = "7.4"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if maxresults != nil {
-		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
-	}
-	if includePending != nil {
-		queryParameters["includePending"] = autorest.Encode("query", *includePending)
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
-		autorest.WithPath("/certificates"),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetCertificatesSender sends the GetCertificates request. The method will close the
-// http.Response Body if it receives an error.
-func (client BaseClient) GetCertificatesSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-}
-
-// GetCertificatesResponder handles the response to the GetCertificates request. The method always
-// closes the http.Response Body.
-func (client BaseClient) GetCertificatesResponder(resp *http.Response) (result CertificateListResult, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// getCertificatesNextResults retrieves the next set of results, if any.
-func (client BaseClient) getCertificatesNextResults(ctx context.Context, lastResults CertificateListResult) (result CertificateListResult, err error) {
-	req, err := lastResults.certificateListResultPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getCertificatesNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.GetCertificatesSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getCertificatesNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.GetCertificatesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getCertificatesNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// GetCertificatesComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BaseClient) GetCertificatesComplete(ctx context.Context, vaultBaseURL string, maxresults *int32, includePending *bool) (result CertificateListResultIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetCertificates")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.GetCertificates(ctx, vaultBaseURL, maxresults, includePending)
-	return
-}
-
 // GetCertificateVersions the GetCertificateVersions operation returns the versions of a certificate in the specified
 // key vault. This operation requires the certificates/list permission.
 // Parameters:
@@ -2433,6 +2302,140 @@ func (client BaseClient) GetCertificateVersionsComplete(ctx context.Context, vau
 		}()
 	}
 	result.page, err = client.GetCertificateVersions(ctx, vaultBaseURL, certificateName, maxresults)
+	return
+}
+
+// GetCertificates the GetCertificates operation returns the set of certificates resources in the specified key vault.
+// This operation requires the certificates/list permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// maxresults - maximum number of results to return in a page. If not specified the service will return up to
+// 25 results.
+// includePending - specifies whether to include certificates which are not completely provisioned.
+func (client BaseClient) GetCertificates(ctx context.Context, vaultBaseURL string, maxresults *int32, includePending *bool) (result CertificateListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetCertificates")
+		defer func() {
+			sc := -1
+			if result.clr.Response.Response != nil {
+				sc = result.clr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: maxresults,
+			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "GetCertificates", err.Error())
+	}
+
+	result.fn = client.getCertificatesNextResults
+	req, err := client.GetCertificatesPreparer(ctx, vaultBaseURL, maxresults, includePending)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetCertificates", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetCertificatesSender(req)
+	if err != nil {
+		result.clr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetCertificates", resp, "Failure sending request")
+		return
+	}
+
+	result.clr, err = client.GetCertificatesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetCertificates", resp, "Failure responding to request")
+		return
+	}
+	if result.clr.hasNextLink() && result.clr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// GetCertificatesPreparer prepares the GetCertificates request.
+func (client BaseClient) GetCertificatesPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32, includePending *bool) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if maxresults != nil {
+		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
+	}
+	if includePending != nil {
+		queryParameters["includePending"] = autorest.Encode("query", *includePending)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPath("/certificates"),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetCertificatesSender sends the GetCertificates request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetCertificatesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetCertificatesResponder handles the response to the GetCertificates request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetCertificatesResponder(resp *http.Response) (result CertificateListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// getCertificatesNextResults retrieves the next set of results, if any.
+func (client BaseClient) getCertificatesNextResults(ctx context.Context, lastResults CertificateListResult) (result CertificateListResult, err error) {
+	req, err := lastResults.certificateListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getCertificatesNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.GetCertificatesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getCertificatesNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.GetCertificatesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getCertificatesNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// GetCertificatesComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BaseClient) GetCertificatesComplete(ctx context.Context, vaultBaseURL string, maxresults *int32, includePending *bool) (result CertificateListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetCertificates")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.GetCertificates(ctx, vaultBaseURL, maxresults, includePending)
 	return
 }
 
@@ -3675,138 +3678,6 @@ func (client BaseClient) GetKeyRotationPolicyResponder(resp *http.Response) (res
 	return
 }
 
-// GetKeys retrieves a list of the keys in the Key Vault as JSON Web Key structures that contain the public part of a
-// stored key. The LIST operation is applicable to all key types, however only the base key identifier, attributes, and
-// tags are provided in the response. Individual versions of a key are not listed in the response. This operation
-// requires the keys/list permission.
-// Parameters:
-// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
-// maxresults - maximum number of results to return in a page. If not specified the service will return up to
-// 25 results.
-func (client BaseClient) GetKeys(ctx context.Context, vaultBaseURL string, maxresults *int32) (result KeyListResultPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeys")
-		defer func() {
-			sc := -1
-			if result.klr.Response.Response != nil {
-				sc = result.klr.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: maxresults,
-			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
-				}}}}}); err != nil {
-		return result, validation.NewError("keyvault.BaseClient", "GetKeys", err.Error())
-	}
-
-	result.fn = client.getKeysNextResults
-	req, err := client.GetKeysPreparer(ctx, vaultBaseURL, maxresults)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeys", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetKeysSender(req)
-	if err != nil {
-		result.klr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeys", resp, "Failure sending request")
-		return
-	}
-
-	result.klr, err = client.GetKeysResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeys", resp, "Failure responding to request")
-		return
-	}
-	if result.klr.hasNextLink() && result.klr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-		return
-	}
-
-	return
-}
-
-// GetKeysPreparer prepares the GetKeys request.
-func (client BaseClient) GetKeysPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32) (*http.Request, error) {
-	urlParameters := map[string]interface{}{
-		"vaultBaseUrl": vaultBaseURL,
-	}
-
-	const APIVersion = "7.4"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if maxresults != nil {
-		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
-		autorest.WithPath("/keys"),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetKeysSender sends the GetKeys request. The method will close the
-// http.Response Body if it receives an error.
-func (client BaseClient) GetKeysSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-}
-
-// GetKeysResponder handles the response to the GetKeys request. The method always
-// closes the http.Response Body.
-func (client BaseClient) GetKeysResponder(resp *http.Response) (result KeyListResult, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// getKeysNextResults retrieves the next set of results, if any.
-func (client BaseClient) getKeysNextResults(ctx context.Context, lastResults KeyListResult) (result KeyListResult, err error) {
-	req, err := lastResults.keyListResultPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getKeysNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.GetKeysSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getKeysNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.GetKeysResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getKeysNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// GetKeysComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BaseClient) GetKeysComplete(ctx context.Context, vaultBaseURL string, maxresults *int32) (result KeyListResultIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeys")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.GetKeys(ctx, vaultBaseURL, maxresults)
-	return
-}
-
 // GetKeyVersions the full key identifier, attributes, and tags are provided in the response. This operation requires
 // the keys/list permission.
 // Parameters:
@@ -3939,6 +3810,138 @@ func (client BaseClient) GetKeyVersionsComplete(ctx context.Context, vaultBaseUR
 		}()
 	}
 	result.page, err = client.GetKeyVersions(ctx, vaultBaseURL, keyName, maxresults)
+	return
+}
+
+// GetKeys retrieves a list of the keys in the Key Vault as JSON Web Key structures that contain the public part of a
+// stored key. The LIST operation is applicable to all key types, however only the base key identifier, attributes, and
+// tags are provided in the response. Individual versions of a key are not listed in the response. This operation
+// requires the keys/list permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// maxresults - maximum number of results to return in a page. If not specified the service will return up to
+// 25 results.
+func (client BaseClient) GetKeys(ctx context.Context, vaultBaseURL string, maxresults *int32) (result KeyListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeys")
+		defer func() {
+			sc := -1
+			if result.klr.Response.Response != nil {
+				sc = result.klr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: maxresults,
+			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "GetKeys", err.Error())
+	}
+
+	result.fn = client.getKeysNextResults
+	req, err := client.GetKeysPreparer(ctx, vaultBaseURL, maxresults)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeys", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetKeysSender(req)
+	if err != nil {
+		result.klr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeys", resp, "Failure sending request")
+		return
+	}
+
+	result.klr, err = client.GetKeysResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeys", resp, "Failure responding to request")
+		return
+	}
+	if result.klr.hasNextLink() && result.klr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// GetKeysPreparer prepares the GetKeys request.
+func (client BaseClient) GetKeysPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if maxresults != nil {
+		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPath("/keys"),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetKeysSender sends the GetKeys request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetKeysSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetKeysResponder handles the response to the GetKeys request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetKeysResponder(resp *http.Response) (result KeyListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// getKeysNextResults retrieves the next set of results, if any.
+func (client BaseClient) getKeysNextResults(ctx context.Context, lastResults KeyListResult) (result KeyListResult, err error) {
+	req, err := lastResults.keyListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getKeysNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.GetKeysSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getKeysNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.GetKeysResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getKeysNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// GetKeysComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BaseClient) GetKeysComplete(ctx context.Context, vaultBaseURL string, maxresults *int32) (result KeyListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeys")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.GetKeys(ctx, vaultBaseURL, maxresults)
 	return
 }
 
@@ -4335,137 +4338,6 @@ func (client BaseClient) GetSecretResponder(resp *http.Response) (result SecretB
 	return
 }
 
-// GetSecrets the Get Secrets operation is applicable to the entire vault. However, only the base secret identifier and
-// its attributes are provided in the response. Individual secret versions are not listed in the response. This
-// operation requires the secrets/list permission.
-// Parameters:
-// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
-// maxresults - maximum number of results to return in a page. If not specified, the service will return up to
-// 25 results.
-func (client BaseClient) GetSecrets(ctx context.Context, vaultBaseURL string, maxresults *int32) (result SecretListResultPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSecrets")
-		defer func() {
-			sc := -1
-			if result.slr.Response.Response != nil {
-				sc = result.slr.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: maxresults,
-			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
-				}}}}}); err != nil {
-		return result, validation.NewError("keyvault.BaseClient", "GetSecrets", err.Error())
-	}
-
-	result.fn = client.getSecretsNextResults
-	req, err := client.GetSecretsPreparer(ctx, vaultBaseURL, maxresults)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSecrets", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetSecretsSender(req)
-	if err != nil {
-		result.slr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSecrets", resp, "Failure sending request")
-		return
-	}
-
-	result.slr, err = client.GetSecretsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSecrets", resp, "Failure responding to request")
-		return
-	}
-	if result.slr.hasNextLink() && result.slr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-		return
-	}
-
-	return
-}
-
-// GetSecretsPreparer prepares the GetSecrets request.
-func (client BaseClient) GetSecretsPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32) (*http.Request, error) {
-	urlParameters := map[string]interface{}{
-		"vaultBaseUrl": vaultBaseURL,
-	}
-
-	const APIVersion = "7.4"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if maxresults != nil {
-		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
-		autorest.WithPath("/secrets"),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetSecretsSender sends the GetSecrets request. The method will close the
-// http.Response Body if it receives an error.
-func (client BaseClient) GetSecretsSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-}
-
-// GetSecretsResponder handles the response to the GetSecrets request. The method always
-// closes the http.Response Body.
-func (client BaseClient) GetSecretsResponder(resp *http.Response) (result SecretListResult, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// getSecretsNextResults retrieves the next set of results, if any.
-func (client BaseClient) getSecretsNextResults(ctx context.Context, lastResults SecretListResult) (result SecretListResult, err error) {
-	req, err := lastResults.secretListResultPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getSecretsNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.GetSecretsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getSecretsNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.GetSecretsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getSecretsNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// GetSecretsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BaseClient) GetSecretsComplete(ctx context.Context, vaultBaseURL string, maxresults *int32) (result SecretListResultIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSecrets")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.GetSecrets(ctx, vaultBaseURL, maxresults)
-	return
-}
-
 // GetSecretVersions the full secret identifier and attributes are provided in the response. No values are returned for
 // the secrets. This operations requires the secrets/list permission.
 // Parameters:
@@ -4598,6 +4470,137 @@ func (client BaseClient) GetSecretVersionsComplete(ctx context.Context, vaultBas
 		}()
 	}
 	result.page, err = client.GetSecretVersions(ctx, vaultBaseURL, secretName, maxresults)
+	return
+}
+
+// GetSecrets the Get Secrets operation is applicable to the entire vault. However, only the base secret identifier and
+// its attributes are provided in the response. Individual secret versions are not listed in the response. This
+// operation requires the secrets/list permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// maxresults - maximum number of results to return in a page. If not specified, the service will return up to
+// 25 results.
+func (client BaseClient) GetSecrets(ctx context.Context, vaultBaseURL string, maxresults *int32) (result SecretListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSecrets")
+		defer func() {
+			sc := -1
+			if result.slr.Response.Response != nil {
+				sc = result.slr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: maxresults,
+			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "GetSecrets", err.Error())
+	}
+
+	result.fn = client.getSecretsNextResults
+	req, err := client.GetSecretsPreparer(ctx, vaultBaseURL, maxresults)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSecrets", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetSecretsSender(req)
+	if err != nil {
+		result.slr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSecrets", resp, "Failure sending request")
+		return
+	}
+
+	result.slr, err = client.GetSecretsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSecrets", resp, "Failure responding to request")
+		return
+	}
+	if result.slr.hasNextLink() && result.slr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// GetSecretsPreparer prepares the GetSecrets request.
+func (client BaseClient) GetSecretsPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if maxresults != nil {
+		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPath("/secrets"),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetSecretsSender sends the GetSecrets request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetSecretsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetSecretsResponder handles the response to the GetSecrets request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetSecretsResponder(resp *http.Response) (result SecretListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// getSecretsNextResults retrieves the next set of results, if any.
+func (client BaseClient) getSecretsNextResults(ctx context.Context, lastResults SecretListResult) (result SecretListResult, err error) {
+	req, err := lastResults.secretListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getSecretsNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.GetSecretsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getSecretsNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.GetSecretsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getSecretsNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// GetSecretsComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BaseClient) GetSecretsComplete(ctx context.Context, vaultBaseURL string, maxresults *int32) (result SecretListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSecrets")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.GetSecrets(ctx, vaultBaseURL, maxresults)
 	return
 }
 
@@ -6703,7 +6706,7 @@ func (client BaseClient) SelectiveKeyRestoreOperationMethod(ctx context.Context,
 
 	result, err = client.SelectiveKeyRestoreOperationMethodSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "SelectiveKeyRestoreOperationMethod", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "SelectiveKeyRestoreOperationMethod", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -6742,6 +6745,7 @@ func (client BaseClient) SelectiveKeyRestoreOperationMethodPreparer(ctx context.
 // http.Response Body if it receives an error.
 func (client BaseClient) SelectiveKeyRestoreOperationMethodSender(req *http.Request) (future SelectiveKeyRestoreOperationMethodFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return

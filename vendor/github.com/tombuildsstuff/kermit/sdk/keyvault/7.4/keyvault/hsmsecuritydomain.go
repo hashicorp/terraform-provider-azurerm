@@ -8,11 +8,12 @@ package keyvault
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // HSMSecurityDomainClient is the the key vault client performs cryptographic key operations and vault operations
@@ -65,7 +66,7 @@ func (client HSMSecurityDomainClient) Download(ctx context.Context, vaultBaseURL
 
 	result, err = client.DownloadSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.HSMSecurityDomainClient", "Download", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "keyvault.HSMSecurityDomainClient", "Download", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -97,6 +98,7 @@ func (client HSMSecurityDomainClient) DownloadPreparer(ctx context.Context, vaul
 // http.Response Body if it receives an error.
 func (client HSMSecurityDomainClient) DownloadSender(req *http.Request) (future HSMSecurityDomainDownloadFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return
@@ -289,7 +291,7 @@ func (client HSMSecurityDomainClient) Upload(ctx context.Context, vaultBaseURL s
 
 	result, err = client.UploadSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.HSMSecurityDomainClient", "Upload", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "keyvault.HSMSecurityDomainClient", "Upload", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -315,6 +317,7 @@ func (client HSMSecurityDomainClient) UploadPreparer(ctx context.Context, vaultB
 // http.Response Body if it receives an error.
 func (client HSMSecurityDomainClient) UploadSender(req *http.Request) (future HSMSecurityDomainUploadFuture, err error) {
 	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return

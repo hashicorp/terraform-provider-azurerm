@@ -9,20 +9,21 @@ package keyvault
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/"
+const fqdn = "home/runner/work/kermit/kermit/sdk/keyvault/7.4/keyvault"
 
 // Action the action that will be executed.
 type Action struct {
-	// ActionType - The type of the action. Possible values include: 'EmailContacts', 'AutoRenew'
+	// ActionType - The type of the action. Possible values include: 'CertificatePolicyActionEmailContacts', 'CertificatePolicyActionAutoRenew'
 	ActionType CertificatePolicyAction `json:"action_type,omitempty"`
 }
 
@@ -123,7 +124,7 @@ func (bsr BackupStorageResult) MarshalJSON() ([]byte, error) {
 type CertificateAttributes struct {
 	// RecoverableDays - READ-ONLY; softDelete data retention days. Value should be >=7 and <=90 when softDelete enabled, otherwise 0.
 	RecoverableDays *int32 `json:"recoverableDays,omitempty"`
-	// RecoveryLevel - READ-ONLY; Reflects the deletion recovery level currently in effect for certificates in the current vault. If it contains 'Purgeable', the certificate can be permanently deleted by a privileged user; otherwise, only the system can purge the certificate, at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription', 'CustomizedRecoverablePurgeable', 'CustomizedRecoverable', 'CustomizedRecoverableProtectedSubscription'
+	// RecoveryLevel - READ-ONLY; Reflects the deletion recovery level currently in effect for certificates in the current vault. If it contains 'Purgeable', the certificate can be permanently deleted by a privileged user; otherwise, only the system can purge the certificate, at the end of the retention interval. Possible values include: 'DeletionRecoveryLevelPurgeable', 'DeletionRecoveryLevelRecoverablePurgeable', 'DeletionRecoveryLevelRecoverable', 'DeletionRecoveryLevelRecoverableProtectedSubscription', 'DeletionRecoveryLevelCustomizedRecoverablePurgeable', 'DeletionRecoveryLevelCustomizedRecoverable', 'DeletionRecoveryLevelCustomizedRecoverableProtectedSubscription'
 	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
 	// Enabled - Determines whether the object is enabled.
 	Enabled *bool `json:"enabled,omitempty"`
@@ -1355,7 +1356,7 @@ type DeletedSasDefinitionBundle struct {
 	SecretID *string `json:"sid,omitempty"`
 	// TemplateURI - READ-ONLY; The SAS definition token template signed with an arbitrary key.  Tokens created according to the SAS definition will have the same properties as the template.
 	TemplateURI *string `json:"templateUri,omitempty"`
-	// SasType - READ-ONLY; The type of SAS token the SAS definition will create. Possible values include: 'Account', 'Service'
+	// SasType - READ-ONLY; The type of SAS token the SAS definition will create. Possible values include: 'SasTokenTypeAccount', 'SasTokenTypeService'
 	SasType SasTokenType `json:"sasType,omitempty"`
 	// ValidityPeriod - READ-ONLY; The validity period of SAS tokens created according to the SAS definition.
 	ValidityPeriod *string `json:"validityPeriod,omitempty"`
@@ -2351,7 +2352,7 @@ type IssuerParameters struct {
 type JSONWebKey struct {
 	// Kid - Key identifier.
 	Kid *string `json:"kid,omitempty"`
-	// Kty - JsonWebKey Key Type (kty), as defined in https://tools.ietf.org/html/draft-ietf-jose-json-web-algorithms-40. Possible values include: 'EC', 'ECHSM', 'RSA', 'RSAHSM', 'Oct', 'OctHSM'
+	// Kty - JsonWebKey Key Type (kty), as defined in https://tools.ietf.org/html/draft-ietf-jose-json-web-algorithms-40. Possible values include: 'JSONWebKeyTypeEC', 'JSONWebKeyTypeECHSM', 'JSONWebKeyTypeRSA', 'JSONWebKeyTypeRSAHSM', 'JSONWebKeyTypeOct', 'JSONWebKeyTypeOctHSM'
 	Kty    JSONWebKeyType `json:"kty,omitempty"`
 	KeyOps *[]string      `json:"key_ops,omitempty"`
 	// N - RSA modulus. (a URL-encoded base64 string)
@@ -2374,7 +2375,7 @@ type JSONWebKey struct {
 	K *string `json:"k,omitempty"`
 	// T - Protected Key, used with 'Bring Your Own Key'. (a URL-encoded base64 string)
 	T *string `json:"key_hsm,omitempty"`
-	// Crv - Elliptic curve name. For valid values, see JsonWebKeyCurveName. Possible values include: 'P256', 'P384', 'P521', 'P256K'
+	// Crv - Elliptic curve name. For valid values, see JsonWebKeyCurveName. Possible values include: 'JSONWebKeyCurveNameP256', 'JSONWebKeyCurveNameP384', 'JSONWebKeyCurveNameP521', 'JSONWebKeyCurveNameP256K'
 	Crv JSONWebKeyCurveName `json:"crv,omitempty"`
 	// X - X component of an EC public key. (a URL-encoded base64 string)
 	X *string `json:"x,omitempty"`
@@ -2386,7 +2387,7 @@ type JSONWebKey struct {
 type KeyAttributes struct {
 	// RecoverableDays - READ-ONLY; softDelete data retention days. Value should be >=7 and <=90 when softDelete enabled, otherwise 0.
 	RecoverableDays *int32 `json:"recoverableDays,omitempty"`
-	// RecoveryLevel - READ-ONLY; Reflects the deletion recovery level currently in effect for keys in the current vault. If it contains 'Purgeable' the key can be permanently deleted by a privileged user; otherwise, only the system can purge the key, at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription', 'CustomizedRecoverablePurgeable', 'CustomizedRecoverable', 'CustomizedRecoverableProtectedSubscription'
+	// RecoveryLevel - READ-ONLY; Reflects the deletion recovery level currently in effect for keys in the current vault. If it contains 'Purgeable' the key can be permanently deleted by a privileged user; otherwise, only the system can purge the key, at the end of the retention interval. Possible values include: 'DeletionRecoveryLevelPurgeable', 'DeletionRecoveryLevelRecoverablePurgeable', 'DeletionRecoveryLevelRecoverable', 'DeletionRecoveryLevelRecoverableProtectedSubscription', 'DeletionRecoveryLevelCustomizedRecoverablePurgeable', 'DeletionRecoveryLevelCustomizedRecoverable', 'DeletionRecoveryLevelCustomizedRecoverableProtectedSubscription'
 	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
 	// Exportable - Indicates if the private key can be exported. Release policy must be provided when creating the first version of an exportable key.
 	Exportable *bool `json:"exportable,omitempty"`
@@ -2455,7 +2456,7 @@ func (kb KeyBundle) MarshalJSON() ([]byte, error) {
 
 // KeyCreateParameters the key create parameters.
 type KeyCreateParameters struct {
-	// Kty - The type of key to create. For valid values, see JsonWebKeyType. Possible values include: 'EC', 'ECHSM', 'RSA', 'RSAHSM', 'Oct', 'OctHSM'
+	// Kty - The type of key to create. For valid values, see JsonWebKeyType. Possible values include: 'JSONWebKeyTypeEC', 'JSONWebKeyTypeECHSM', 'JSONWebKeyTypeRSA', 'JSONWebKeyTypeRSAHSM', 'JSONWebKeyTypeOct', 'JSONWebKeyTypeOctHSM'
 	Kty JSONWebKeyType `json:"kty,omitempty"`
 	// KeySize - The key size in bits. For example: 2048, 3072, or 4096 for RSA.
 	KeySize *int32 `json:"key_size,omitempty"`
@@ -2465,7 +2466,7 @@ type KeyCreateParameters struct {
 	KeyAttributes  *KeyAttributes         `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
 	Tags map[string]*string `json:"tags"`
-	// Curve - Elliptic curve name. For valid values, see JsonWebKeyCurveName. Possible values include: 'P256', 'P384', 'P521', 'P256K'
+	// Curve - Elliptic curve name. For valid values, see JsonWebKeyCurveName. Possible values include: 'JSONWebKeyCurveNameP256', 'JSONWebKeyCurveNameP384', 'JSONWebKeyCurveNameP521', 'JSONWebKeyCurveNameP256K'
 	Curve JSONWebKeyCurveName `json:"crv,omitempty"`
 	// ReleasePolicy - The policy rules under which the key can be exported.
 	ReleasePolicy *KeyReleasePolicy `json:"release_policy,omitempty"`
@@ -2507,7 +2508,7 @@ type KeyExportParameters struct {
 	WrappingKey *JSONWebKey `json:"wrappingKey,omitempty"`
 	// WrappingKid - The export key encryption key identifier. This key MUST be a RSA key that supports encryption.
 	WrappingKid *string `json:"wrappingKid,omitempty"`
-	// Enc - The encryption algorithm to use to protected the exported key material. Possible values include: 'CKMRSAAESKEYWRAP', 'RSAAESKEYWRAP256', 'RSAAESKEYWRAP384'
+	// Enc - The encryption algorithm to use to protected the exported key material. Possible values include: 'KeyEncryptionAlgorithmCKMRSAAESKEYWRAP', 'KeyEncryptionAlgorithmRSAAESKEYWRAP256', 'KeyEncryptionAlgorithmRSAAESKEYWRAP384'
 	Enc KeyEncryptionAlgorithm `json:"enc,omitempty"`
 }
 
@@ -2761,7 +2762,7 @@ func (kor KeyOperationResult) MarshalJSON() ([]byte, error) {
 
 // KeyOperationsParameters the key operations parameters.
 type KeyOperationsParameters struct {
-	// Algorithm - algorithm identifier. Possible values include: 'RSAOAEP', 'RSAOAEP256', 'RSA15', 'A128GCM', 'A192GCM', 'A256GCM', 'A128KW', 'A192KW', 'A256KW', 'A128CBC', 'A192CBC', 'A256CBC', 'A128CBCPAD', 'A192CBCPAD', 'A256CBCPAD'
+	// Algorithm - algorithm identifier. Possible values include: 'JSONWebKeyEncryptionAlgorithmRSAOAEP', 'JSONWebKeyEncryptionAlgorithmRSAOAEP256', 'JSONWebKeyEncryptionAlgorithmRSA15', 'JSONWebKeyEncryptionAlgorithmA128GCM', 'JSONWebKeyEncryptionAlgorithmA192GCM', 'JSONWebKeyEncryptionAlgorithmA256GCM', 'JSONWebKeyEncryptionAlgorithmA128KW', 'JSONWebKeyEncryptionAlgorithmA192KW', 'JSONWebKeyEncryptionAlgorithmA256KW', 'JSONWebKeyEncryptionAlgorithmA128CBC', 'JSONWebKeyEncryptionAlgorithmA192CBC', 'JSONWebKeyEncryptionAlgorithmA256CBC', 'JSONWebKeyEncryptionAlgorithmA128CBCPAD', 'JSONWebKeyEncryptionAlgorithmA192CBCPAD', 'JSONWebKeyEncryptionAlgorithmA256CBCPAD'
 	Algorithm JSONWebKeyEncryptionAlgorithm `json:"alg,omitempty"`
 	// Value - a URL-encoded base64 string
 	Value *string `json:"value,omitempty"`
@@ -2777,13 +2778,13 @@ type KeyOperationsParameters struct {
 type KeyProperties struct {
 	// Exportable - Indicates if the private key can be exported. Release policy must be provided when creating the first version of an exportable key.
 	Exportable *bool `json:"exportable,omitempty"`
-	// KeyType - The type of key pair to be used for the certificate. Possible values include: 'EC', 'ECHSM', 'RSA', 'RSAHSM', 'Oct', 'OctHSM'
+	// KeyType - The type of key pair to be used for the certificate. Possible values include: 'JSONWebKeyTypeEC', 'JSONWebKeyTypeECHSM', 'JSONWebKeyTypeRSA', 'JSONWebKeyTypeRSAHSM', 'JSONWebKeyTypeOct', 'JSONWebKeyTypeOctHSM'
 	KeyType JSONWebKeyType `json:"kty,omitempty"`
 	// KeySize - The key size in bits. For example: 2048, 3072, or 4096 for RSA.
 	KeySize *int32 `json:"key_size,omitempty"`
 	// ReuseKey - Indicates if the same key pair will be used on certificate renewal.
 	ReuseKey *bool `json:"reuse_key,omitempty"`
-	// Curve - Elliptic curve name. For valid values, see JsonWebKeyCurveName. Possible values include: 'P256', 'P384', 'P521', 'P256K'
+	// Curve - Elliptic curve name. For valid values, see JsonWebKeyCurveName. Possible values include: 'JSONWebKeyCurveNameP256', 'JSONWebKeyCurveNameP384', 'JSONWebKeyCurveNameP521', 'JSONWebKeyCurveNameP256K'
 	Curve JSONWebKeyCurveName `json:"crv,omitempty"`
 }
 
@@ -2793,7 +2794,7 @@ type KeyReleaseParameters struct {
 	TargetAttestationToken *string `json:"target,omitempty"`
 	// Nonce - A client provided nonce for freshness.
 	Nonce *string `json:"nonce,omitempty"`
-	// Enc - The encryption algorithm to use to protected the exported key material. Possible values include: 'CKMRSAAESKEYWRAP', 'RSAAESKEYWRAP256', 'RSAAESKEYWRAP384'
+	// Enc - The encryption algorithm to use to protected the exported key material. Possible values include: 'KeyEncryptionAlgorithmCKMRSAAESKEYWRAP', 'KeyEncryptionAlgorithmRSAAESKEYWRAP256', 'KeyEncryptionAlgorithmRSAAESKEYWRAP384'
 	Enc KeyEncryptionAlgorithm `json:"enc,omitempty"`
 }
 
@@ -2870,7 +2871,7 @@ func (krpa KeyRotationPolicyAttributes) MarshalJSON() ([]byte, error) {
 
 // KeySignParameters the key operations parameters.
 type KeySignParameters struct {
-	// Algorithm - The signing/verification algorithm identifier. For more information on possible algorithm types, see JsonWebKeySignatureAlgorithm. Possible values include: 'PS256', 'PS384', 'PS512', 'RS256', 'RS384', 'RS512', 'RSNULL', 'ES256', 'ES384', 'ES512', 'ES256K'
+	// Algorithm - The signing/verification algorithm identifier. For more information on possible algorithm types, see JsonWebKeySignatureAlgorithm. Possible values include: 'JSONWebKeySignatureAlgorithmPS256', 'JSONWebKeySignatureAlgorithmPS384', 'JSONWebKeySignatureAlgorithmPS512', 'JSONWebKeySignatureAlgorithmRS256', 'JSONWebKeySignatureAlgorithmRS384', 'JSONWebKeySignatureAlgorithmRS512', 'JSONWebKeySignatureAlgorithmRSNULL', 'JSONWebKeySignatureAlgorithmES256', 'JSONWebKeySignatureAlgorithmES384', 'JSONWebKeySignatureAlgorithmES512', 'JSONWebKeySignatureAlgorithmES256K'
 	Algorithm JSONWebKeySignatureAlgorithm `json:"alg,omitempty"`
 	// Value - a URL-encoded base64 string
 	Value *string `json:"value,omitempty"`
@@ -2907,7 +2908,7 @@ func (kup KeyUpdateParameters) MarshalJSON() ([]byte, error) {
 
 // KeyVerifyParameters the key verify parameters.
 type KeyVerifyParameters struct {
-	// Algorithm - The signing/verification algorithm. For more information on possible algorithm types, see JsonWebKeySignatureAlgorithm. Possible values include: 'PS256', 'PS384', 'PS512', 'RS256', 'RS384', 'RS512', 'RSNULL', 'ES256', 'ES384', 'ES512', 'ES256K'
+	// Algorithm - The signing/verification algorithm. For more information on possible algorithm types, see JsonWebKeySignatureAlgorithm. Possible values include: 'JSONWebKeySignatureAlgorithmPS256', 'JSONWebKeySignatureAlgorithmPS384', 'JSONWebKeySignatureAlgorithmPS512', 'JSONWebKeySignatureAlgorithmRS256', 'JSONWebKeySignatureAlgorithmRS384', 'JSONWebKeySignatureAlgorithmRS512', 'JSONWebKeySignatureAlgorithmRSNULL', 'JSONWebKeySignatureAlgorithmES256', 'JSONWebKeySignatureAlgorithmES384', 'JSONWebKeySignatureAlgorithmES512', 'JSONWebKeySignatureAlgorithmES256K'
 	Algorithm JSONWebKeySignatureAlgorithm `json:"alg,omitempty"`
 	// Digest - The digest used for signing. (a URL-encoded base64 string)
 	Digest *string `json:"digest,omitempty"`
@@ -2955,7 +2956,7 @@ type LifetimeActionsTrigger struct {
 
 // LifetimeActionsType the action that will be executed.
 type LifetimeActionsType struct {
-	// Type - The type of the action. Possible values include: 'Rotate', 'Notify'
+	// Type - The type of the action. Possible values include: 'KeyRotationPolicyActionRotate', 'KeyRotationPolicyActionNotify'
 	Type KeyRotationPolicyAction `json:"type,omitempty"`
 }
 
@@ -3225,7 +3226,7 @@ type RoleAssignmentProperties struct {
 
 // RoleAssignmentPropertiesWithScope role assignment properties with scope.
 type RoleAssignmentPropertiesWithScope struct {
-	// Scope - Possible values include: 'Global', 'Keys'
+	// Scope - Possible values include: 'RoleScopeGlobal', 'RoleScopeKeys'
 	Scope RoleScope `json:"scope,omitempty"`
 	// RoleDefinitionID - The role definition ID.
 	RoleDefinitionID *string `json:"roleDefinitionId,omitempty"`
@@ -3240,7 +3241,7 @@ type RoleDefinition struct {
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The role definition name.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The role definition type. Possible values include: 'MicrosoftAuthorizationroleDefinitions'
+	// Type - READ-ONLY; The role definition type. Possible values include: 'RoleDefinitionTypeMicrosoftAuthorizationroleDefinitions'
 	Type RoleDefinitionType `json:"type,omitempty"`
 	// RoleDefinitionProperties - Role definition properties.
 	*RoleDefinitionProperties `json:"properties,omitempty"`
@@ -3483,12 +3484,20 @@ type RoleDefinitionProperties struct {
 	RoleName *string `json:"roleName,omitempty"`
 	// Description - The role definition description.
 	Description *string `json:"description,omitempty"`
-	// RoleType - The role type. Possible values include: 'BuiltInRole', 'CustomRole'
+	// RoleType - The role type. Possible values include: 'RoleTypeBuiltInRole', 'RoleTypeCustomRole'
 	RoleType RoleType `json:"type,omitempty"`
 	// Permissions - Role definition permissions.
 	Permissions *[]Permission `json:"permissions,omitempty"`
 	// AssignableScopes - Role definition assignable scopes.
 	AssignableScopes *[]RoleScope `json:"assignableScopes,omitempty"`
+}
+
+// SASTokenParameter ...
+type SASTokenParameter struct {
+	// StorageResourceURI - Azure Blob storage container Uri
+	StorageResourceURI *string `json:"storageResourceUri,omitempty"`
+	// Token - The SAS token pointing to an Azure Blob storage container
+	Token *string `json:"token,omitempty"`
 }
 
 // SasDefinitionAttributes the SAS definition management attributes.
@@ -3501,7 +3510,7 @@ type SasDefinitionAttributes struct {
 	Updated *date.UnixTime `json:"updated,omitempty"`
 	// RecoverableDays - READ-ONLY; softDelete data retention days. Value should be >=7 and <=90 when softDelete enabled, otherwise 0.
 	RecoverableDays *int32 `json:"recoverableDays,omitempty"`
-	// RecoveryLevel - READ-ONLY; Reflects the deletion recovery level currently in effect for SAS definitions in the current vault. If it contains 'Purgeable' the SAS definition can be permanently deleted by a privileged user; otherwise, only the system can purge the SAS definition, at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription', 'CustomizedRecoverablePurgeable', 'CustomizedRecoverable', 'CustomizedRecoverableProtectedSubscription'
+	// RecoveryLevel - READ-ONLY; Reflects the deletion recovery level currently in effect for SAS definitions in the current vault. If it contains 'Purgeable' the SAS definition can be permanently deleted by a privileged user; otherwise, only the system can purge the SAS definition, at the end of the retention interval. Possible values include: 'DeletionRecoveryLevelPurgeable', 'DeletionRecoveryLevelRecoverablePurgeable', 'DeletionRecoveryLevelRecoverable', 'DeletionRecoveryLevelRecoverableProtectedSubscription', 'DeletionRecoveryLevelCustomizedRecoverablePurgeable', 'DeletionRecoveryLevelCustomizedRecoverable', 'DeletionRecoveryLevelCustomizedRecoverableProtectedSubscription'
 	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
 }
 
@@ -3524,7 +3533,7 @@ type SasDefinitionBundle struct {
 	SecretID *string `json:"sid,omitempty"`
 	// TemplateURI - READ-ONLY; The SAS definition token template signed with an arbitrary key.  Tokens created according to the SAS definition will have the same properties as the template.
 	TemplateURI *string `json:"templateUri,omitempty"`
-	// SasType - READ-ONLY; The type of SAS token the SAS definition will create. Possible values include: 'Account', 'Service'
+	// SasType - READ-ONLY; The type of SAS token the SAS definition will create. Possible values include: 'SasTokenTypeAccount', 'SasTokenTypeService'
 	SasType SasTokenType `json:"sasType,omitempty"`
 	// ValidityPeriod - READ-ONLY; The validity period of SAS tokens created according to the SAS definition.
 	ValidityPeriod *string `json:"validityPeriod,omitempty"`
@@ -3544,7 +3553,7 @@ func (sdb SasDefinitionBundle) MarshalJSON() ([]byte, error) {
 type SasDefinitionCreateParameters struct {
 	// TemplateURI - The SAS definition token template signed with an arbitrary key.  Tokens created according to the SAS definition will have the same properties as the template.
 	TemplateURI *string `json:"templateUri,omitempty"`
-	// SasType - The type of SAS token the SAS definition will create. Possible values include: 'Account', 'Service'
+	// SasType - The type of SAS token the SAS definition will create. Possible values include: 'SasTokenTypeAccount', 'SasTokenTypeService'
 	SasType SasTokenType `json:"sasType,omitempty"`
 	// ValidityPeriod - The validity period of SAS tokens created according to the SAS definition.
 	ValidityPeriod *string `json:"validityPeriod,omitempty"`
@@ -3762,7 +3771,7 @@ func NewSasDefinitionListResultPage(cur SasDefinitionListResult, getNextPage fun
 type SasDefinitionUpdateParameters struct {
 	// TemplateURI - The SAS definition token template signed with an arbitrary key.  Tokens created according to the SAS definition will have the same properties as the template.
 	TemplateURI *string `json:"templateUri,omitempty"`
-	// SasType - The type of SAS token the SAS definition will create. Possible values include: 'Account', 'Service'
+	// SasType - The type of SAS token the SAS definition will create. Possible values include: 'SasTokenTypeAccount', 'SasTokenTypeService'
 	SasType SasTokenType `json:"sasType,omitempty"`
 	// ValidityPeriod - The validity period of SAS tokens created according to the SAS definition.
 	ValidityPeriod *string `json:"validityPeriod,omitempty"`
@@ -3793,19 +3802,11 @@ func (sdup SasDefinitionUpdateParameters) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// SASTokenParameter ...
-type SASTokenParameter struct {
-	// StorageResourceURI - Azure Blob storage container Uri
-	StorageResourceURI *string `json:"storageResourceUri,omitempty"`
-	// Token - The SAS token pointing to an Azure Blob storage container
-	Token *string `json:"token,omitempty"`
-}
-
 // SecretAttributes the secret management attributes.
 type SecretAttributes struct {
 	// RecoverableDays - READ-ONLY; softDelete data retention days. Value should be >=7 and <=90 when softDelete enabled, otherwise 0.
 	RecoverableDays *int32 `json:"recoverableDays,omitempty"`
-	// RecoveryLevel - READ-ONLY; Reflects the deletion recovery level currently in effect for secrets in the current vault. If it contains 'Purgeable', the secret can be permanently deleted by a privileged user; otherwise, only the system can purge the secret, at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription', 'CustomizedRecoverablePurgeable', 'CustomizedRecoverable', 'CustomizedRecoverableProtectedSubscription'
+	// RecoveryLevel - READ-ONLY; Reflects the deletion recovery level currently in effect for secrets in the current vault. If it contains 'Purgeable', the secret can be permanently deleted by a privileged user; otherwise, only the system can purge the secret, at the end of the retention interval. Possible values include: 'DeletionRecoveryLevelPurgeable', 'DeletionRecoveryLevelRecoverablePurgeable', 'DeletionRecoveryLevelRecoverable', 'DeletionRecoveryLevelRecoverableProtectedSubscription', 'DeletionRecoveryLevelCustomizedRecoverablePurgeable', 'DeletionRecoveryLevelCustomizedRecoverable', 'DeletionRecoveryLevelCustomizedRecoverableProtectedSubscription'
 	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
 	// Enabled - Determines whether the object is enabled.
 	Enabled *bool `json:"enabled,omitempty"`
@@ -4171,7 +4172,7 @@ type SecurityDomainObject struct {
 // SecurityDomainOperationStatus ...
 type SecurityDomainOperationStatus struct {
 	autorest.Response `json:"-"`
-	// Status - operation status. Possible values include: 'Success', 'InProgress', 'Failed'
+	// Status - operation status. Possible values include: 'OperationStatusSuccess', 'OperationStatusInProgress', 'OperationStatusFailed'
 	Status        OperationStatus `json:"status,omitempty"`
 	StatusDetails *string         `json:"status_details,omitempty"`
 }
@@ -4250,7 +4251,7 @@ type Setting struct {
 	Name *string `json:"name,omitempty"`
 	// Value - The value of the pool setting.
 	Value *string `json:"value,omitempty"`
-	// Type - The type specifier of the value. Possible values include: 'Boolean'
+	// Type - The type specifier of the value. Possible values include: 'SettingTypeEnumBoolean'
 	Type SettingTypeEnum `json:"type,omitempty"`
 }
 
@@ -4277,7 +4278,7 @@ type StorageAccountAttributes struct {
 	Updated *date.UnixTime `json:"updated,omitempty"`
 	// RecoverableDays - READ-ONLY; softDelete data retention days. Value should be >=7 and <=90 when softDelete enabled, otherwise 0.
 	RecoverableDays *int32 `json:"recoverableDays,omitempty"`
-	// RecoveryLevel - READ-ONLY; Reflects the deletion recovery level currently in effect for storage accounts in the current vault. If it contains 'Purgeable' the storage account can be permanently deleted by a privileged user; otherwise, only the system can purge the storage account, at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription', 'CustomizedRecoverablePurgeable', 'CustomizedRecoverable', 'CustomizedRecoverableProtectedSubscription'
+	// RecoveryLevel - READ-ONLY; Reflects the deletion recovery level currently in effect for storage accounts in the current vault. If it contains 'Purgeable' the storage account can be permanently deleted by a privileged user; otherwise, only the system can purge the storage account, at the end of the retention interval. Possible values include: 'DeletionRecoveryLevelPurgeable', 'DeletionRecoveryLevelRecoverablePurgeable', 'DeletionRecoveryLevelRecoverable', 'DeletionRecoveryLevelRecoverableProtectedSubscription', 'DeletionRecoveryLevelCustomizedRecoverablePurgeable', 'DeletionRecoveryLevelCustomizedRecoverable', 'DeletionRecoveryLevelCustomizedRecoverableProtectedSubscription'
 	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
 }
 
