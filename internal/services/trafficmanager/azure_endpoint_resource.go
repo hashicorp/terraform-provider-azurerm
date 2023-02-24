@@ -248,7 +248,11 @@ func resourceAzureEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("geo_mappings") {
-		existing.Model.Properties.GeoMapping = utils.ExpandStringSlice(d.Get("geo_mappings").([]interface{}))
+		existing.Model.Properties.GeoMapping = nil
+		geoMappings := utils.ExpandStringSlice(d.Get("geo_mappings").([]interface{}))
+		if len(*geoMappings) > 0 {
+			existing.Model.Properties.GeoMapping = geoMappings
+		}
 	}
 
 	if _, err := client.Update(ctx, *id, *existing.Model); err != nil {
