@@ -71,5 +71,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Site Recovery Replication Policies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_site_recovery_replication_policy.mypolicy /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationPolicies/policy-name
+terraform import azurerm_site_recovery_hyperv_replication_policy.mypolicy /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationPolicies/policy-name
 ```
