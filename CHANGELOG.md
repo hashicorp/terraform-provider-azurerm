@@ -4,6 +4,7 @@ ENHANCEMENTS
 
 * dependencies: updating to `v0.20230224.1071134` of `github.com/hashicorp/go-azure-sdk` [GH-20649]
 * dependencies: updating to `v0.20230224.1120200` of `github.com/tombuildsstuff/kermit` [GH-20649]
+* `databoxedge` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
 * `azurerm_media_streaming_policy` - add support for `common_encryption_cbcs.clear_key_encryption`, `common_encryption_cenc.clear_key_encryption`, `common_encryption_cenc.clear_track`, `common_encryption_cenc.content_key_to_track_mapping` and `envelope_encryption` [GH-20524]
 * `azurerm_storage_management_policy` - add support for `enable_auto_tier_to_hot_from_cool` [GH-20641]
 
