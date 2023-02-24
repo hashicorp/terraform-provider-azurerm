@@ -133,17 +133,13 @@ resource "azurerm_voice_services_communications_gateway" "test" {
   on_prem_mcp_enabled = false
 
   service_locations {
-    name = "eastus"
-    primary_region_properties {
-      operator_addresses = ["198.51.100.1"]
-    }
+    location           = "eastus"
+    operator_addresses = ["198.51.100.1"]
   }
 
   service_locations {
-    name = "eastus2"
-    primary_region_properties {
-      operator_addresses = ["198.51.100.2"]
-    }
+    location           = "eastus2"
+    operator_addresses = ["198.51.100.2"]
   }
 }
 `, template, data.RandomString, data.Locations.Primary)
@@ -165,21 +161,17 @@ resource "azurerm_voice_services_communications_gateway" "import" {
   on_prem_mcp_enabled = azurerm_voice_services_communications_gateway.test.on_prem_mcp_enabled
 
   service_locations {
-    name = "useast"
-    primary_region_properties {
-      allowed_media_source_address_prefixes     = ["10.1.2.0/24"]
-      allowed_signaling_source_address_prefixes = ["10.1.1.0/24"]
-      operator_addresses                        = ["198.51.100.1"]
-    }
+    location                                  = "useast"
+    allowed_media_source_address_prefixes     = ["10.1.2.0/24"]
+    allowed_signaling_source_address_prefixes = ["10.1.1.0/24"]
+    operator_addresses                        = ["198.51.100.1"]
   }
 
   service_locations {
-    name = "eastus2"
-    primary_region_properties {
-      allowed_media_source_address_prefixes     = ["10.2.2.0/24"]
-      allowed_signaling_source_address_prefixes = ["10.2.1.0/24"]
-      operator_addresses                        = ["198.51.100.2"]
-    }
+    location                                  = "eastus2"
+    allowed_media_source_address_prefixes     = ["10.2.2.0/24"]
+    allowed_signaling_source_address_prefixes = ["10.2.1.0/24"]
+    operator_addresses                        = ["198.51.100.2"]
   }
 }
 `, config)
@@ -188,7 +180,6 @@ resource "azurerm_voice_services_communications_gateway" "import" {
 func (r VoiceServicesCommunicationsGatewayTestResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-
 
 %s
 
@@ -203,29 +194,25 @@ resource "azurerm_voice_services_communications_gateway" "test" {
   platforms    = ["OperatorConnect", "TeamsPhoneMobile"]
 
   service_locations {
-    name = "eastus"
-    primary_region_properties {
-      allowed_media_source_address_prefixes     = ["10.1.2.0/24"]
-      allowed_signaling_source_address_prefixes = ["10.1.1.0/24"]
-      esrp_addresses                            = ["198.51.100.3"]
-      operator_addresses                        = ["198.51.100.1"]
-    }
+    location                                  = "eastus"
+    allowed_media_source_address_prefixes     = ["10.1.2.0/24"]
+    allowed_signaling_source_address_prefixes = ["10.1.1.0/24"]
+    esrp_addresses                            = ["198.51.100.3"]
+    operator_addresses                        = ["198.51.100.1"]
   }
 
   service_locations {
-    name = "eastus2"
-    primary_region_properties {
-      allowed_media_source_address_prefixes     = ["10.2.2.0/24"]
-      allowed_signaling_source_address_prefixes = ["10.2.1.0/24"]
-      esrp_addresses                            = ["198.51.100.4"]
-      operator_addresses                        = ["198.51.100.2"]
-    }
+    location                                  = "eastus2"
+    allowed_media_source_address_prefixes     = ["10.2.2.0/24"]
+    allowed_signaling_source_address_prefixes = ["10.2.1.0/24"]
+    esrp_addresses                            = ["198.51.100.4"]
+    operator_addresses                        = ["198.51.100.2"]
   }
 
   api_bridge                             = jsonencode({})
   auto_generated_domain_name_label_scope = "SubscriptionReuse"
   on_prem_mcp_enabled                    = true
-  teams_voicemail_pilot_number           = "1"
+  microsoft_teams_voicemail_pilot_number = "1"
   emergency_dial_strings                 = ["911", "933"]
 
   tags = {
@@ -239,6 +226,7 @@ func (r VoiceServicesCommunicationsGatewayTestResource) update(data acceptance.T
 	template := r.template(data)
 	return fmt.Sprintf(`
 
+
 %s
 
 resource "azurerm_voice_services_communications_gateway" "test" {
@@ -251,26 +239,22 @@ resource "azurerm_voice_services_communications_gateway" "test" {
   platforms           = ["OperatorConnect"]
 
   service_locations {
-    name = "eastus2"
-    primary_region_properties {
-      allowed_media_source_address_prefixes     = ["10.1.2.0/24"]
-      allowed_signaling_source_address_prefixes = ["10.1.1.0/24"]
-      operator_addresses                        = ["198.51.100.1"]
-    }
+    location                                  = "eastus2"
+    allowed_media_source_address_prefixes     = ["10.1.2.0/24"]
+    allowed_signaling_source_address_prefixes = ["10.1.1.0/24"]
+    operator_addresses                        = ["198.51.100.1"]
   }
 
   service_locations {
-    name = "eastus"
-    primary_region_properties {
-      allowed_media_source_address_prefixes     = ["10.2.2.0/24"]
-      allowed_signaling_source_address_prefixes = ["10.2.1.0/24"]
-      operator_addresses                        = ["198.51.100.2"]
-    }
+    location                                  = "eastus"
+    allowed_media_source_address_prefixes     = ["10.2.2.0/24"]
+    allowed_signaling_source_address_prefixes = ["10.2.1.0/24"]
+    operator_addresses                        = ["198.51.100.2"]
   }
 
   auto_generated_domain_name_label_scope = "SubscriptionReuse"
   emergency_dial_strings                 = ["911"]
-  teams_voicemail_pilot_number           = "2"
+  microsoft_teams_voicemail_pilot_number = "2"
 
   tags = {
     Environment = "dev"

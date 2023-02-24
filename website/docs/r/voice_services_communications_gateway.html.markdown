@@ -32,25 +32,20 @@ resource "azurerm_voice_services_communications_gateway" "example" {
   platforms           = ["OperatorConnect", "TeamsPhoneMobile"]
 
   service_locations {
-    name = "eastus"
-    primary_region_properties {
-      allowed_media_source_address_prefixes     = ["10.1.2.0/24"]
-      allowed_signaling_source_address_prefixes = ["10.1.1.0/24"]
-      esrp_addresses                            = ["198.51.100.3"]
-      operator_addresses                        = ["198.51.100.1"]
-    }
+    location                                  = "eastus"
+    allowed_media_source_address_prefixes     = ["10.1.2.0/24"]
+    allowed_signaling_source_address_prefixes = ["10.1.1.0/24"]
+    esrp_addresses                            = ["198.51.100.3"]
+    operator_addresses                        = ["198.51.100.1"]
   }
 
   service_locations {
-    name = "eastus2"
-    primary_region_properties {
-      allowed_media_source_address_prefixes     = ["10.2.2.0/24"]
-      allowed_signaling_source_address_prefixes = ["10.2.1.0/24"]
-      esrp_addresses                            = ["198.51.100.4"]
-      operator_addresses                        = ["198.51.100.2"]
-    }
+    location                                  = "eastus2"
+    allowed_media_source_address_prefixes     = ["10.2.2.0/24"]
+    allowed_signaling_source_address_prefixes = ["10.2.1.0/24"]
+    esrp_addresses                            = ["198.51.100.4"]
+    operator_addresses                        = ["198.51.100.2"]
   }
-
   auto_generated_domain_name_label_scope = "SubscriptionReuse"
   api_bridge                             = jsonencode({})
   emergency_dial_strings                 = ["911", "933"]
@@ -60,7 +55,7 @@ resource "azurerm_voice_services_communications_gateway" "example" {
     key = "value"
   }
 
-  teams_voicemail_pilot_number = "1"
+  microsoft_teams_voicemail_pilot_number = "1"
 }
 ```
 
@@ -94,18 +89,12 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Voice Services Communications Gateways.
 
-* `teams_voicemail_pilot_number` - (Optional) This number is used in Teams Phone Mobile scenarios for access to the voicemail IVR from the native dialer.
+* `microsoft_teams_voicemail_pilot_number` - (Optional) This number is used in Teams Phone Mobile scenarios for access to the voicemail IVR from the native dialer.
 ---
 
 A `service_locations` block supports the following:
 
-* `name` - (Required) Specifies the name of the region in which the resources needed for Teams Calling will be deployed.
-
-* `primary_region_properties` - (Required) A `primary_region_properties` block as defined below.
-
----
-
-A `primary_region_properties` block supports the following:
+* `location` - (Required) Specifies the region in which the resources needed for Teams Calling will be deployed.
 
 * `operator_addresses` - (Required) IP address to use to contact the operator network from this region.
 
@@ -114,6 +103,8 @@ A `primary_region_properties` block supports the following:
 * `allowed_signaling_source_address_prefixes` - (Optional) Specifies the allowed source IP address or CIDR ranges for signaling.
 
 * `esrp_addresses` - (Optional) IP address to use to contact the ESRP from this region.
+
+!> **NOTE:** The `esrp_addresses` must be specified for each `service_locations` when the`e911_type` is set to `DirectToEsrp`.  The `esrp_addresses` must not be specified for each `service_locations` when the`e911_type` is set to `Standard`.
 
 ## Attributes Reference
 
