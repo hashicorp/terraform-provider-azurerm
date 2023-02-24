@@ -193,7 +193,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for App Configuration Key %q read permission to be done propagated: %+v", featureKey, err)
+				return fmt.Errorf("waiting for App Configuration Key %q read permission to be propagated: %+v", featureKey, err)
 			}
 
 			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []string{})
