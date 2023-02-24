@@ -9,7 +9,6 @@ github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb
-github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge
 github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory
 github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid
 github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor
@@ -247,6 +246,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-06-01-pre
 github.com/hashicorp/go-azure-sdk/resource-manager/customproviders/2018-09-01-preview/customresourceprovider
 github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2022-08-01/grafanaresource
 github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/devices
+github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/orders
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/accessconnector
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces
