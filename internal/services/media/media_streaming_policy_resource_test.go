@@ -184,7 +184,7 @@ resource "azurerm_media_streaming_policy" "test" {
       smooth_streaming = true
     }
 
-    clear_key_encryption_configuration {
+    clear_key_encryption {
       custom_keys_acquisition_url_template = "https://contoso.com/{AlternativeMediaId}/clearkey/"
     }
   }
@@ -305,7 +305,7 @@ resource "azurerm_media_streaming_policy" "test" {
       label       = "aesDefaultKey"
       policy_name = azurerm_media_content_key_policy.test.name
     }
-    custom_key_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/envelope/{ContentKeyId}"
+    custom_keys_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/envelope/{ContentKeyId}"
     enabled_protocols {
       dash             = true
       download         = false

@@ -128,7 +128,7 @@ The following arguments are supported:
 
 A `common_encryption_cbcs` block supports the following:
 
-* `clear_key_encryption_configuration` - (Optional) A `clear_key_encryption_configuration` block defined as below. Changing this forces a new Streaming Policy to be created.
+* `clear_key_encryption` - (Optional) A `clear_key_encryption` block as defined below. Changing this forces a new Streaming Policy to be created.
 
 * `default_content_key` - (Optional) A `default_content_key` block as defined below. Changing this forces a new Streaming Policy to be created.
 
@@ -140,53 +140,53 @@ A `common_encryption_cbcs` block supports the following:
 
 A `common_encryption_cenc` block supports the following:
 
-* `clear_key_encryption_configuration` - (Optional) A `clear_key_encryption_configuration` block defined as below. Changing this forces a new Streaming Policy to be created.
+* `clear_key_encryption` - (Optional) A `clear_key_encryption` block as defined below. Changing this forces a new Streaming Policy to be created.
 
-* `clear_track` - (Optional) One or more `clear_track` blocks defined as below. Changing this forces a new Streaming Policy to be created.
+* `clear_track` - (Optional) One or more `clear_track` blocks as defined below. Changing this forces a new Streaming Policy to be created.
 
-* `content_key_to_track_mapping` - (Optional) One or more `content_key_to_track_mapping` blocks defined as below. Changing this forces a new Streaming Policy to be created.
+* `content_key_to_track_mapping` - (Optional) One or more `content_key_to_track_mapping` blocks as defined below. Changing this forces a new Streaming Policy to be created.
 
 * `default_content_key` - (Optional) A `default_content_key` block as defined below. Changing this forces a new Streaming Policy to be created.
 
 * `drm_playready` - (Optional) A `drm_playready` block as defined below. Changing this forces a new Streaming Policy to be created.
 
-* `drm_widevine_custom_license_acquisition_url_template` - (Optional) Template for the URL of the custom service delivering licenses to end user players. Not required when using Azure Media Services for issuing licenses. The template supports replaceable tokens that the service will update at runtime with the value specific to the request. The currently supported token values are `{AlternativeMediaId}`, which is replaced with the value of `StreamingLocatorId.AlternativeMediaId`, and `{ContentKeyId}`, which is replaced with the value of identifier of the key being requested. Changing this forces a new Streaming Policy to be created.
+* `drm_widevine_custom_license_acquisition_url_template` - (Optional) The URL template for the custom service that delivers licenses to the end user. This is not required when using Azure Media Services for issuing licenses. Changing this forces a new Streaming Policy to be created.
 
 * `enabled_protocols` - (Optional) A `enabled_protocols` block as defined below. Changing this forces a new Streaming Policy to be created.
 
 ---
 
-A `clear_key_encryption_configuration` block supports the following:
+A `clear_key_encryption` block supports the following:
 
-* `custom_keys_acquisition_url_template` - (Required) Template for the URL of the custom service delivering content keys to end user players. Not required when using Azure Media Services for issuing licenses. The template supports replaceable tokens that the service will update at runtime with the value specific to the request. The currently supported token value is `{AlternativeMediaId}`, which is replaced with the value of `StreamingLocatorId.AlternativeMediaId`. Changing this forces a new Streaming Policy to be created.
+* `custom_keys_acquisition_url_template` - (Required) The URL template for the custom service that delivers content keys to the end user. This is not required when using Azure Media Services for issuing keys. Changing this forces a new Streaming Policy to be created.
 
--> **Note** Either `clear_key_encryption_configuration` or `drm` must be specified.
+-> **Note** Either `clear_key_encryption` or `drm` must be specified.
 
 ---
 
 A `clear_track` block supports the following:
 
-* `condition` - (Required) One or more `condition` blocks defined as below. Changing this forces a new Streaming Policy to be created. 
+* `condition` - (Required) One or more `condition` blocks as defined below. Changing this forces a new Streaming Policy to be created. 
 
 ---
 
 A `condition` block supports the following:
 
-* `operation` - (Required) Track property condition operation. Possible value is `Equal`. Changing this forces a new Streaming Policy to be created.
+* `operation` - (Required) The track property condition operation. Possible value is `Equal`. Changing this forces a new Streaming Policy to be created.
 
-* `property` - (Required) Track property type. Possible value is `FourCC`. Changing this forces a new Streaming Policy to be created.
+* `property` - (Required) The track property type. Possible value is `FourCC`. Changing this forces a new Streaming Policy to be created.
 
-* `value` - (Required) Track property value. Changing this forces a new Streaming Policy to be created.
+* `value` - (Required) The track property value. Changing this forces a new Streaming Policy to be created.
 
 ---
 
 A `content_key_to_track_mapping` block supports the following:
 
-* `label` - (Optional) Label can be used to specify Content Key when creating a Streaming Locator. Changing this forces a new Streaming Policy to be created.
+* `label` - (Optional) Specifies the content key when creating a Streaming Locator. Changing this forces a new Streaming Policy to be created.
 
-* `policy_name` - (Optional) Policy used by Default Key. Changing this forces a new Streaming Policy to be created.
+* `policy_name` - (Optional) The policy used by the default key. Changing this forces a new Streaming Policy to be created.
 
-* `track` - (Optional) One or more `track` blocks defined as below. Changing this forces a new Streaming Policy to be created.
+* `track` - (Optional) One or more `track` blocks as defined below. Changing this forces a new Streaming Policy to be created.
 
 ---
 
@@ -202,7 +202,7 @@ A `drm_fairplay` block supports the following:
 
 * `allow_persistent_license` - (Optional) All license to be persistent or not. Changing this forces a new Streaming Policy to be created.
 
-* `custom_license_acquisition_url_template` - (Optional) Template for the URL of the custom service delivering licenses to end user players. Not required when using Azure Media Services for issuing licenses. The template supports replaceable tokens that the service will update at runtime with the value specific to the request. The currently supported token values are `{AlternativeMediaId}`, which is replaced with the value of `StreamingLocatorId.AlternativeMediaId`, and `{ContentKeyId}`, which is replaced with the value of identifier of the key being requested. Changing this forces a new Streaming Policy to be created.
+* `custom_license_acquisition_url_template` - (Optional) The URL template for the custom service that delivers licenses to the end user. This is not required when using Azure Media Services for issuing licenses. Changing this forces a new Streaming Policy to be created.
 
 ---
 
@@ -210,7 +210,7 @@ A `drm_playready` block supports the following:
 
 * `custom_attributes` - (Optional) Custom attributes for PlayReady. Changing this forces a new Streaming Policy to be created.
 
-* `custom_license_acquisition_url_template` - (Optional) Template for the URL of the custom service delivering licenses to end user players. Not required when using Azure Media Services for issuing licenses. The template supports replaceable tokens that the service will update at runtime with the value specific to the request. The currently supported token values are `{AlternativeMediaId}`, which is replaced with the value of `StreamingLocatorId.AlternativeMediaId`, and `{ContentKeyId}`, which is replaced with the value of identifier of the key being requested. Changing this forces a new Streaming Policy to be created.
+* `custom_license_acquisition_url_template` - (Optional) The URL template for the custom service that delivers licenses to the end user. This is not required when using Azure Media Services for issuing licenses. Changing this forces a new Streaming Policy to be created.
 
 ---
 
@@ -228,7 +228,7 @@ A `enabled_protocols` block supports the following:
 
 A `envelope_encryption` block supports the following:
 
-* `custom_key_acquisition_url_template` - (Optional) Template for the URL of the custom service delivering keys to end user players. Not required when using Azure Media Services for issuing keys. The template supports replaceable tokens that the service will update at runtime with the value specific to the request. The currently supported token values are `{AlternativeMediaId}`, which is replaced with the value of `StreamingLocatorId.AlternativeMediaId`, and `{ContentKeyId}`, which is replaced with the value of identifier of the key being requested. Changing this forces a new Streaming Policy to be created.
+* `custom_keys_acquisition_url_template` - (Optional) The URL template for the custom service that delivers content keys to the end user. This is not required when using Azure Media Services for issuing keys. Changing this forces a new Streaming Policy to be created.
 
 * `default_content_key` - (Optional) A `default_content_key` block as defined above. Changing this forces a new Streaming Policy to be created.
 
@@ -250,7 +250,7 @@ A `no_encryption_enabled_protocols` block supports the following:
 
 A `track` block supports the following:
 
-* `condition` - (Required) One or more `condition` blocks defined as below. Changing this forces a new Streaming Policy to be created. 
+* `condition` - (Required) One or more `condition` blocks as defined below. Changing this forces a new Streaming Policy to be created. 
 
 
 ## Attributes Reference
