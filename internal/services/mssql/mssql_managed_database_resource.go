@@ -313,7 +313,7 @@ func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) sql.Base
 
 func flattenLongTermRetentionPolicy(ltrPolicy sql.ManagedInstanceLongTermRetentionPolicy) []LongTermRetentionPolicy {
 
-	var ltrModel []LongTermRetentionPolicy
+	ltrModel := LongTermRetentionPolicy{}
 
 	weeklyRetention := ""
 	if ltrPolicy.WeeklyRetention != nil {
@@ -330,15 +330,15 @@ func flattenLongTermRetentionPolicy(ltrPolicy sql.ManagedInstanceLongTermRetenti
 		yearlyRetention = *ltrPolicy.YearlyRetention
 	}
 
-	ltrModel[0] = LongTermRetentionPolicy{
+	ltrModel = LongTermRetentionPolicy{
 		WeeklyRetention:  weeklyRetention,
 		MonthlyRetention: monthlyRetention,
 		YearlyRetention:  yearlyRetention,
 	}
 
 	if ltrPolicy.WeekOfYear != nil {
-		ltrModel[0].WeekOfYear = *ltrPolicy.WeekOfYear
+		ltrModel.WeekOfYear = *ltrPolicy.WeekOfYear
 	}
 
-	return ltrModel
+	return []LongTermRetentionPolicy{ltrModel}
 }
