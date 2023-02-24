@@ -5494,9 +5494,9 @@ func (agrrpf ApplicationGatewayRoutingRulePropertiesFormat) MarshalJSON() ([]byt
 
 // ApplicationGatewaySku SKU of an application gateway.
 type ApplicationGatewaySku struct {
-	// Name - Name of an application gateway SKU. Possible values include: 'ApplicationGatewaySkuNameStandardSmall', 'ApplicationGatewaySkuNameStandardMedium', 'ApplicationGatewaySkuNameStandardLarge', 'ApplicationGatewaySkuNameWAFMedium', 'ApplicationGatewaySkuNameWAFLarge', 'ApplicationGatewaySkuNameStandardV2', 'ApplicationGatewaySkuNameStandardBasic', 'ApplicationGatewaySkuNameWAFV2'
+	// Name - Name of an application gateway SKU. Possible values include: 'ApplicationGatewaySkuNameStandardSmall', 'ApplicationGatewaySkuNameStandardMedium', 'ApplicationGatewaySkuNameStandardLarge', 'ApplicationGatewaySkuNameWAFMedium', 'ApplicationGatewaySkuNameWAFLarge', 'ApplicationGatewaySkuNameStandardV2', 'ApplicationGatewaySkuNameWAFV2'
 	Name ApplicationGatewaySkuName `json:"name,omitempty"`
-	// Tier - Tier of an application gateway. Possible values include: 'ApplicationGatewayTierStandard', 'ApplicationGatewayTierWAF', 'ApplicationGatewayTierStandardV2', 'ApplicationGatewayTierWAFV2', 'ApplicationGatewayTierStandardBasic'
+	// Tier - Tier of an application gateway. Possible values include: 'ApplicationGatewayTierStandard', 'ApplicationGatewayTierWAF', 'ApplicationGatewayTierStandardV2', 'ApplicationGatewayTierWAFV2'
 	Tier ApplicationGatewayTier `json:"tier,omitempty"`
 	// Capacity - Capacity (instance count) of an application gateway.
 	Capacity *int32 `json:"capacity,omitempty"`

@@ -742,7 +742,7 @@ github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/endpoints
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 github.com/tombuildsstuff/giovanni/version
-# github.com/tombuildsstuff/kermit v0.20230208.1135849
+# github.com/tombuildsstuff/kermit v0.20230224.1120200
 ## explicit; go 1.18
 github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform
 github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice

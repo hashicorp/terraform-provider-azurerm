@@ -25,7 +25,7 @@ require (
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
 	github.com/tombuildsstuff/giovanni v0.20.0
-	github.com/tombuildsstuff/kermit v0.20230208.1135849
+	github.com/tombuildsstuff/kermit v0.20230224.1120200
 	golang.org/x/crypto v0.5.0
 	golang.org/x/net v0.7.0
 	gopkg.in/yaml.v3 v3.0.1
