@@ -325,7 +325,7 @@ func TestAccMonitorActionGroup_locationBasic(t *testing.T) {
 			Config: r.locationBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("global"),
+				check.That(data.ResourceName).Key("location").HasValue("global"),
 			),
 		},
 		data.ImportStep(),
