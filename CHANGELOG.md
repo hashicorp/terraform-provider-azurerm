@@ -1,3 +1,10 @@
+## 3.46.0 (Unreleased)
+
+ENHANCEMENTS
+
+* `azurerm_media_streaming_policy` - add support for `common_encryption_cbcs.clear_key_encryption`, `common_encryption_cenc.clear_key_encryption`, `common_encryption_cenc.clear_track`, `common_encryption_cenc.content_key_to_track_mapping` and `envelope_encryption` [GH-20524]
+
+
 ## 3.45.0 (February 23, 2023)
 
 FEATURES
