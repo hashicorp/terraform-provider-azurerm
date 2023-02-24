@@ -5,7 +5,7 @@ FEATURES
 * `App Service` - Add authV2 to Web Apps [GH-20449]
 * **New Resource:** `azurerm_site_recovery_hyperv_replication_policy` [GH-20454]
 * **New Resource:** `azurerm_site_recovery_hyperv_replication_policy_association` [GH-20630]
-Switching kusto RP from track1 sdk to pandora sdk #20563
+
 ENHANCEMENTS
 
 * dependencies: updating to `v0.20230222.1094703` of `github.com/hashicorp/go-azure-sdk` [GH-20610]
@@ -34,6 +34,7 @@ BUG FIXES
 * `azurerm_log_analytics_workspace` - prevent ForceNew when `sku` is `LACluster` [GH-19608]
 * `azurerm_media_streaming_endpoint` - set and update `tags` properly [GH-20585]
 * `azurerm_mobile_network_sim_group` - update `identity` to only support User Assigned Identities [GH-20474]
+* `azurerm_monitor_diagnostic_setting` - the `log_analytics_destination_type` property is nto computer rather then defaulting to `AzureDiagnostics` on new resources [GH-20203]
 
 ## 3.44.1 (February 17, 2023)
 
