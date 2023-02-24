@@ -272,26 +272,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-  log {
-    category = "AuditEvent"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  log {
-    category = "AzurePolicyEvaluationDetails"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
   metric {
     category = "AllMetrics"
     enabled  = true
@@ -357,19 +337,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-  log {
+  enabled_log {
     category_group = "Audit"
-    enabled        = true
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  log {
-    category_group = "allLogs"
-    enabled        = false
 
     retention_policy {
       days    = 0
@@ -398,16 +367,6 @@ resource "azurerm_monitor_diagnostic_setting" "import" {
   target_resource_id             = azurerm_monitor_diagnostic_setting.test.target_resource_id
   eventhub_authorization_rule_id = azurerm_monitor_diagnostic_setting.test.eventhub_authorization_rule_id
   eventhub_name                  = azurerm_monitor_diagnostic_setting.test.eventhub_name
-
-  log {
-    category = "AuditEvent"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
 
   metric {
     category = "AllMetrics"
@@ -452,30 +411,9 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                           = "acctest-DS-%[1]d"
-  target_resource_id             = azurerm_key_vault.test.id
-  log_analytics_workspace_id     = azurerm_log_analytics_workspace.test.id
-  log_analytics_destination_type = "AzureDiagnostics"
-
-  log {
-    category = "AuditEvent"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  log {
-    category = "AzurePolicyEvaluationDetails"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
+  name                       = "acctest-DS-%[1]d"
+  target_resource_id         = azurerm_key_vault.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
   metric {
     category = "AllMetrics"
@@ -524,7 +462,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   log_analytics_destination_type = "Dedicated"
 
-  log {
+  enabled_log {
     category = "ActivityRuns"
     retention_policy {
       enabled = false
@@ -532,7 +470,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "PipelineRuns"
     retention_policy {
       enabled = false
@@ -540,7 +478,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "TriggerRuns"
     retention_policy {
       days    = 0
@@ -548,7 +486,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISIntegrationRuntimeLogs"
     retention_policy {
       days    = 0
@@ -556,7 +494,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageEventMessageContext"
     retention_policy {
       days    = 0
@@ -564,7 +502,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageEventMessages"
     retention_policy {
       days    = 0
@@ -572,7 +510,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageExecutableStatistics"
     retention_policy {
       days    = 0
@@ -580,7 +518,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageExecutionComponentPhases"
     retention_policy {
       days    = 0
@@ -588,7 +526,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageExecutionDataStatistics"
     retention_policy {
       days    = 0
@@ -596,7 +534,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SandboxActivityRuns"
     retention_policy {
       days    = 0
@@ -604,7 +542,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SandboxPipelineRuns"
     retention_policy {
       days    = 0
@@ -658,26 +596,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id  = azurerm_key_vault.test.id
   partner_solution_id = azurerm_elastic_cloud_elasticsearch.test.id
 
-  log {
-    category = "AuditEvent"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  log {
-    category = "AzurePolicyEvaluationDetails"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
   metric {
     category = "AllMetrics"
 
@@ -725,26 +643,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id = azurerm_key_vault.test.id
   storage_account_id = azurerm_storage_account.test.id
 
-  log {
-    category = "AuditEvent"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  log {
-    category = "AzurePolicyEvaluationDetails"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
   metric {
     category = "AllMetrics"
 
@@ -790,44 +688,36 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id = data.azurerm_subscription.current.id
   storage_account_id = azurerm_storage_account.test.id
 
-  log {
+  enabled_log {
     category = "Administrative"
-    enabled  = true
   }
 
-  log {
+  enabled_log {
     category = "Alert"
-    enabled  = true
   }
 
-  log {
+  enabled_log {
     category = "Autoscale"
-    enabled  = true
   }
 
-  log {
+  enabled_log {
     category = "Policy"
-    enabled  = true
   }
 
-  log {
+  enabled_log {
     category = "Recommendation"
-    enabled  = true
   }
 
-  log {
+  enabled_log {
     category = "ResourceHealth"
-    enabled  = true
   }
 
-  log {
+  enabled_log {
     category = "Security"
-    enabled  = true
   }
 
-  log {
+  enabled_log {
     category = "ServiceHealth"
-    enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -884,7 +774,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id             = azurerm_key_vault.test.id
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
-  log_analytics_destination_type = "AzureDiagnostics"
 
   enabled_log {
     category = "AuditEvent"
@@ -968,7 +857,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id             = azurerm_key_vault.test.id
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
-  log_analytics_destination_type = "AzureDiagnostics"
 
   enabled_log {
     category = "AuditEvent"
@@ -1025,7 +913,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id         = azurerm_data_factory.test.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
-  log {
+  enabled_log {
     category = "ActivityRuns"
     retention_policy {
       enabled = false
@@ -1033,7 +921,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "PipelineRuns"
     retention_policy {
       enabled = false
@@ -1041,7 +929,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "TriggerRuns"
     retention_policy {
       days    = 0
@@ -1049,7 +937,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISIntegrationRuntimeLogs"
     retention_policy {
       days    = 0
@@ -1057,7 +945,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageEventMessageContext"
     retention_policy {
       days    = 0
@@ -1065,7 +953,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageEventMessages"
     retention_policy {
       days    = 0
@@ -1073,7 +961,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageExecutableStatistics"
     retention_policy {
       days    = 0
@@ -1081,7 +969,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageExecutionComponentPhases"
     retention_policy {
       days    = 0
@@ -1089,7 +977,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageExecutionDataStatistics"
     retention_policy {
       days    = 0
@@ -1097,7 +985,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SandboxActivityRuns"
     retention_policy {
       days    = 0
@@ -1105,7 +993,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SandboxPipelineRuns"
     retention_policy {
       days    = 0
@@ -1160,7 +1048,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   log_analytics_destination_type = "Dedicated"
 
-  log {
+  enabled_log {
     category = "ActivityRuns"
     retention_policy {
       enabled = false
@@ -1168,7 +1056,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "PipelineRuns"
     retention_policy {
       enabled = false
@@ -1176,7 +1064,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "TriggerRuns"
     retention_policy {
       days    = 0
@@ -1184,7 +1072,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISIntegrationRuntimeLogs"
     retention_policy {
       days    = 0
@@ -1192,7 +1080,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageEventMessageContext"
     retention_policy {
       days    = 0
@@ -1200,7 +1088,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageEventMessages"
     retention_policy {
       days    = 0
@@ -1208,7 +1096,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageExecutableStatistics"
     retention_policy {
       days    = 0
@@ -1216,7 +1104,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageExecutionComponentPhases"
     retention_policy {
       days    = 0
@@ -1224,7 +1112,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SSISPackageExecutionDataStatistics"
     retention_policy {
       days    = 0
@@ -1232,7 +1120,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SandboxActivityRuns"
     retention_policy {
       days    = 0
@@ -1240,7 +1128,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  log {
+  enabled_log {
     category = "SandboxPipelineRuns"
     retention_policy {
       days    = 0
