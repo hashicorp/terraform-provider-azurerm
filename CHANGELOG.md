@@ -16,6 +16,7 @@ ENHANCEMENTS
 * `azurerm_express_route_connection` - support for the `inbound_route_map_id`, `outbound_route_map_id`, and `enabled_private_link_fast_path` properties [GH-20619]
 * `azurerm_kusto_cluster_customer_managed_key` - `key_version` is now Optional to allow for auto-rotation of key [GH-20583]
 * `azurerm_linux_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
+* `azurerm_postgresql_flexible_server` - a server can now be created without enabling password authtication [GH-20578]
 * `azurerm_media_streaming_endpoint` - add support for reading `sku` and increase limit for `scale_units` [GH-20585]
 * `azurerm_recovery_services_vault` - add support for `classic_vmware_replication_enabled` [GH-20473]
 * `azurerm_windows_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
