@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -82,11 +84,13 @@ func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk
 		"auto_upgrade_minor_version_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			Computed: true,
 		},
 
 		"automatic_upgrade_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			Computed: true,
 		},
 
 		"force_update_tag": {
@@ -128,7 +132,17 @@ func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk
 		"type_handler_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+				if value, ok := d.GetOk("automatic_upgrade_enabled"); ok && value.(bool) {
+					return true
+				}
+				if strings.HasPrefix(newValue, oldValue) {
+					return true
+				}
+				return false
+			},
 		},
 	}
 }

@@ -25,6 +25,8 @@ func TestAccHybridComputeMachineExtension_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("publisher").HasValue("Microsoft.Azure.Monitor"),
+				check.That(data.ResourceName).Key("type").HasValue("AzureMonitorLinuxAgent"),
 			),
 		},
 		data.ImportStep(),
@@ -115,8 +117,8 @@ func (r HybridComputeMachineExtensionResource) basic(data acceptance.TestData) s
 resource "azurerm_hybrid_compute_machine_extension" "test" {
   name                      = "acctest-hcme-%d"
   hybrid_compute_machine_id = data.azurerm_hybrid_compute_machine.test.id
-  publisher                 = "Microsoft.Compute"
-  type                      = "CustomScriptExtension"
+  publisher                 = "Microsoft.Azure.Monitor"
+  type                      = "AzureMonitorLinuxAgent"
   location                  = "%s"
 }
 `, template, data.RandomInteger, data.Locations.Primary)
@@ -146,14 +148,11 @@ resource "azurerm_hybrid_compute_machine_extension" "test" {
   name                               = "acctest-hcme-%d"
   hybrid_compute_machine_id          = data.azurerm_hybrid_compute_machine.test.id
   location                           = "%s"
-  auto_upgrade_minor_version_enabled = false
-  automatic_upgrade_enabled          = false
-  publisher                          = "Microsoft.Compute"
-  type                               = "CustomScriptExtension"
-  type_handler_version               = "1.10"
-  settings = jsonencode({
-    "commandToExecute" : "powershell.exe -c \"Get-Process | Where-Object { $_.CPU -gt 10000 }\""
-  })
+  auto_upgrade_minor_version_enabled = true
+  automatic_upgrade_enabled          = true
+  publisher                          = "Microsoft.Azure.Monitor"
+  type                               = "AzureMonitorLinuxAgent"
+  type_handler_version               = "1.24"
   tags = {
     env = "Terraform_dev"
   }
@@ -170,14 +169,11 @@ resource "azurerm_hybrid_compute_machine_extension" "test" {
   name                               = "acctest-hcme-%d"
   hybrid_compute_machine_id          = data.azurerm_hybrid_compute_machine.test.id
   location                           = "%s"
-  auto_upgrade_minor_version_enabled = true
+  auto_upgrade_minor_version_enabled = false
   automatic_upgrade_enabled          = true
-  publisher                          = "Microsoft.Compute"
-  type                               = "CustomScriptExtension"
-  type_handler_version               = "1.10"
-  settings = jsonencode({
-    "commandToExecute" : "powershell.exe -c \"Get-Process | Where-Object { $_.CPU -gt 10000 }\""
-  })
+  publisher                          = "Microsoft.Azure.Monitor"
+  type                               = "AzureMonitorLinuxAgent"
+  type_handler_version               = "1.25"
   tags = {
     env = "Terraform_dev"
   }
