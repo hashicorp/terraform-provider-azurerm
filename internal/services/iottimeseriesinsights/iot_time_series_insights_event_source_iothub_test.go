@@ -73,6 +73,12 @@ func (IoTTimeSeriesInsightsEventSourceIoTHubResource) Exists(ctx context.Context
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	// @tombuildsstuff: the API returns a 404 but this doesn't get surfaced as an error with the Track1 base layer
+	// re-evaluate once using `hashicorp/go-azure-sdk`'s base layer, since this should be raised as an error/caught above
+	if response.WasNotFound(resp.HttpResponse) {
+		return pointer.To(false), nil
+	}
+
 	return pointer.To(resp.Model != nil), nil
 }
 
