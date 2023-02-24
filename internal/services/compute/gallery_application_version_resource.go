@@ -322,14 +322,7 @@ func (r GalleryApplicationVersionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.Get(ctx, *id, galleryapplicationversions.DefaultGetOperationOptions())
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: model is nil", *id)
-			}
-			payload := *existing.Model
+			payload := galleryapplicationversions.GalleryApplicationVersionUpdate{}
 
 			if metadata.ResourceData.HasChanges("enable_health_check", "end_of_life_date", "exclude_from_latest", "manage_actions", "source", "target_region") {
 				if payload.Properties == nil {
@@ -366,7 +359,7 @@ func (r GalleryApplicationVersionResource) Update() sdk.ResourceFunc {
 				payload.Tags = pointer.To(state.Tags)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
