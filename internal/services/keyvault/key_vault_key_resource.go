@@ -72,10 +72,10 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				// turns out Azure's *really* sensitive about the casing of these
 				// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 				ValidateFunc: validation.StringInSlice([]string{
-					string(keyvault.EC),
-					string(keyvault.ECHSM),
-					string(keyvault.RSA),
-					string(keyvault.RSAHSM),
+					string(keyvault.JSONWebKeyTypeEC),
+					string(keyvault.JSONWebKeyTypeECHSM),
+					string(keyvault.JSONWebKeyTypeRSA),
+					string(keyvault.JSONWebKeyTypeRSAHSM),
 				}, false),
 			},
 
@@ -94,12 +94,12 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 					// turns out Azure's *really* sensitive about the casing of these
 					// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 					ValidateFunc: validation.StringInSlice([]string{
-						string(keyvault.Decrypt),
-						string(keyvault.Encrypt),
-						string(keyvault.Sign),
-						string(keyvault.UnwrapKey),
-						string(keyvault.Verify),
-						string(keyvault.WrapKey),
+						string(keyvault.JSONWebKeyOperationDecrypt),
+						string(keyvault.JSONWebKeyOperationEncrypt),
+						string(keyvault.JSONWebKeyOperationSign),
+						string(keyvault.JSONWebKeyOperationUnwrapKey),
+						string(keyvault.JSONWebKeyOperationVerify),
+						string(keyvault.JSONWebKeyOperationWrapKey),
 					}, false),
 				},
 			},
@@ -110,14 +110,14 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-					return old == "SECP256K1" && new == string(keyvault.P256K)
+					return old == "SECP256K1" && new == string(keyvault.JSONWebKeyCurveNameP256K)
 				},
 				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 					out := []string{
-						string(keyvault.P256),
-						string(keyvault.P256K),
-						string(keyvault.P384),
-						string(keyvault.P521),
+						string(keyvault.JSONWebKeyCurveNameP256),
+						string(keyvault.JSONWebKeyCurveNameP256K),
+						string(keyvault.JSONWebKeyCurveNameP384),
+						string(keyvault.JSONWebKeyCurveNameP521),
 					}
 					return validation.StringInSlice(out, false)
 				}(),
@@ -303,10 +303,10 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Tags: tags.Expand(t),
 	}
 
-	if parameters.Kty == keyvault.EC || parameters.Kty == keyvault.ECHSM {
+	if parameters.Kty == keyvault.JSONWebKeyTypeEC || parameters.Kty == keyvault.JSONWebKeyTypeECHSM {
 		curveName := d.Get("curve").(string)
 		parameters.Curve = keyvault.JSONWebKeyCurveName(curveName)
-	} else if parameters.Kty == keyvault.RSA || parameters.Kty == keyvault.RSAHSM {
+	} else if parameters.Kty == keyvault.JSONWebKeyTypeRSA || parameters.Kty == keyvault.JSONWebKeyTypeRSAHSM {
 		keySize, ok := d.GetOk("key_size")
 		if !ok {
 			return fmt.Errorf("Key size is required when creating an RSA key")
@@ -536,7 +536,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("version", id.Version)
 	d.Set("versionless_id", id.VersionlessID())
 	if key := resp.Key; key != nil {
-		if key.Kty == keyvault.RSA || key.Kty == keyvault.RSAHSM {
+		if key.Kty == keyvault.JSONWebKeyTypeRSA || key.Kty == keyvault.JSONWebKeyTypeRSAHSM {
 			nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 			if err != nil {
 				return fmt.Errorf("failed to decode N: %+v", err)
@@ -553,7 +553,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if err != nil {
 				return fmt.Errorf("failed to read public key: %+v", err)
 			}
-		} else if key.Kty == keyvault.EC || key.Kty == keyvault.ECHSM {
+		} else if key.Kty == keyvault.JSONWebKeyTypeEC || key.Kty == keyvault.JSONWebKeyTypeECHSM {
 			// do ec keys
 			xBytes, err := base64.RawURLEncoding.DecodeString(*key.X)
 			if err != nil {
@@ -568,11 +568,11 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				Y: big.NewInt(0).SetBytes(yBytes),
 			}
 			switch key.Crv {
-			case keyvault.P256:
+			case keyvault.JSONWebKeyCurveNameP256:
 				publicKey.Curve = elliptic.P256()
-			case keyvault.P384:
+			case keyvault.JSONWebKeyCurveNameP384:
 				publicKey.Curve = elliptic.P384()
-			case keyvault.P521:
+			case keyvault.JSONWebKeyCurveNameP521:
 				publicKey.Curve = elliptic.P521()
 			}
 			if publicKey.Curve != nil {
@@ -715,7 +715,7 @@ func expandKeyVaultKeyRotationPolicy(v interface{}) keyvault.KeyRotationPolicy {
 				TimeBeforeExpiry: utils.String(rawNotificationTime.(string)), // for Type: keyvault.Notify always TimeBeforeExpiry
 			},
 			Action: &keyvault.LifetimeActionsType{
-				Type: keyvault.Notify,
+				Type: keyvault.KeyRotationPolicyActionNotify,
 			},
 		}
 		lifetimeActions = append(lifetimeActions, lifetimeActionNotify)
@@ -724,7 +724,7 @@ func expandKeyVaultKeyRotationPolicy(v interface{}) keyvault.KeyRotationPolicy {
 	if autoRotationList := policy["automatic"].([]interface{}); len(autoRotationList) == 1 && autoRotationList[0] != nil {
 		lifetimeActionRotate := keyvault.LifetimeActions{
 			Action: &keyvault.LifetimeActionsType{
-				Type: keyvault.Rotate,
+				Type: keyvault.KeyRotationPolicyActionRotate,
 			},
 			Trigger: &keyvault.LifetimeActionsTrigger{},
 		}
@@ -776,11 +776,11 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 			action := ltAction.Action
 			trigger := ltAction.Trigger
 
-			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.Notify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
+			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.KeyRotationPolicyActionNotify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
 				policy["notify_before_expiry"] = *trigger.TimeBeforeExpiry
 			}
 
-			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.Rotate)) {
+			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.KeyRotationPolicyActionRotate)) {
 				autoRotation := make(map[string]interface{}, 0)
 				if timeAfterCreate := trigger.TimeAfterCreate; timeAfterCreate != nil {
 					autoRotation["time_after_creation"] = *timeAfterCreate

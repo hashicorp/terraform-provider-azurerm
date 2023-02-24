@@ -170,7 +170,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("curve", key.Crv)
 
 		if key := resp.Key; key != nil {
-			if key.Kty == keyvault.RSA || key.Kty == keyvault.RSAHSM {
+			if key.Kty == keyvault.JSONWebKeyTypeRSA || key.Kty == keyvault.JSONWebKeyTypeRSAHSM {
 				nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 				if err != nil {
 					return fmt.Errorf("failed to decode N: %+v", err)
@@ -187,7 +187,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				if err != nil {
 					return fmt.Errorf("failed to read public key: %+v", err)
 				}
-			} else if key.Kty == keyvault.EC || key.Kty == keyvault.ECHSM {
+			} else if key.Kty == keyvault.JSONWebKeyTypeEC || key.Kty == keyvault.JSONWebKeyTypeECHSM {
 				// do ec keys
 				xBytes, err := base64.RawURLEncoding.DecodeString(*key.X)
 				if err != nil {
@@ -202,11 +202,11 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 					Y: big.NewInt(0).SetBytes(yBytes),
 				}
 				switch key.Crv {
-				case keyvault.P256:
+				case keyvault.JSONWebKeyCurveNameP256:
 					publicKey.Curve = elliptic.P256()
-				case keyvault.P384:
+				case keyvault.JSONWebKeyCurveNameP384:
 					publicKey.Curve = elliptic.P384()
-				case keyvault.P521:
+				case keyvault.JSONWebKeyCurveNameP521:
 					publicKey.Curve = elliptic.P521()
 				}
 				if publicKey.Curve != nil {

@@ -37,9 +37,9 @@ func (EncryptedValueDataSource) Arguments() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(keyvault.RSA15),
-				string(keyvault.RSAOAEP),
-				string(keyvault.RSAOAEP256),
+				string(keyvault.JSONWebKeyEncryptionAlgorithmRSA15),
+				string(keyvault.JSONWebKeyEncryptionAlgorithmRSAOAEP),
+				string(keyvault.JSONWebKeyEncryptionAlgorithmRSAOAEP256),
 			}, false),
 		},
 		"encrypted_data": {
