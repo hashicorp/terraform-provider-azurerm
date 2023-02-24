@@ -1573,12 +1573,17 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 			e["provision_after_extensions"] = pluginsdk.NewSet(pluginsdk.HashString, provisionAfterExtensions)
 
 			if settings := properties.Settings; settings != nil {
-				settingsVal := settings.(map[string]interface{})
-				settingsJson, err := pluginsdk.FlattenJsonToString(settingsVal)
-				if err != nil {
-					return nil, err
+				// the settings can be a string or a map
+				switch t := settings.(type) {
+				case map[string]interface{}:
+					settingsJson, err := pluginsdk.FlattenJsonToString(t)
+					if err != nil {
+						return nil, err
+					}
+					e["settings"] = settingsJson
+				default:
+					e["settings"] = t
 				}
-				e["settings"] = settingsJson
 			}
 		}
 
