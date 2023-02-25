@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type SentinelAlertRuleNrtResource struct{}
@@ -128,22 +127,26 @@ func TestAccSentinelAlertRuleNrt_updateEventGroupingSetting(t *testing.T) {
 }
 
 func (t SentinelAlertRuleNrtResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AlertRuleID(state.ID)
+	id, err := alertrules.ParseAlertRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := clients.Sentinel.AlertRulesClient.AlertRulesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %q: %v", id, err)
 	}
 
-	rule, ok := resp.Value.(securityinsight.NrtAlertRule)
-	if !ok {
-		return nil, fmt.Errorf("the Alert Rule %q is not a NRT Alert Rule", id)
+	if model := resp.Model; model != nil {
+		modelPtr := *model
+		rule, ok := modelPtr.(alertrules.NrtAlertRule)
+		if !ok {
+			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
+		}
+		return utils.Bool(rule.Id != nil), nil
 	}
 
-	return utils.Bool(rule.ID != nil), nil
+	return utils.Bool(false), nil
 }
 
 func (r SentinelAlertRuleNrtResource) basic(data acceptance.TestData) string {
