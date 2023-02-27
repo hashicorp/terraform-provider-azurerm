@@ -237,16 +237,14 @@ func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{},
 
 func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*clients.Client).Automation.VariableClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := variable.ParseVariableID(d.Id())
-	if err != nil {
-		return err
-	}
+	id := variable.NewVariableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 	varTypeLower := strings.ToLower(varType)
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Automation %s Variable %q does not exist - removing from state", varType, d.Id())
