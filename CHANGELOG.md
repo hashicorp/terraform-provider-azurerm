@@ -1,31 +1,54 @@
-## 3.45.0 (Unreleased)
-
-FEATURES
-
-* **New Resource:** `azurerm_site_recovery_hyperv_replication_policy` [GH-20454]
+## 3.46.0 (Unreleased)
 
 ENHANCEMENTS
 
-* dependencies: updating to `v0.20230222.1094703` of `github.com/hashicorp/go-azure-sdk` [GH-20610]
-* dependencies: updating to `v0.7.0` of `golang.org/x/net` [GH-20541]
-* `compute/capacityreservations` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
-* `compute/capacityreservationgroups` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20580]
-* `azurerm_backup_policy_vm` - add support for `instant_restore_resource_group` [GH-20562]
-* `azurerm_kusto_cluster_customer_managed_key` - `key_version` is now Optional to allow for auto-rotation of key [GH-20583]
-* `azurerm_linux_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
-* `azurerm_media_streaming_endpoint` - add support for reading `sku` and increase limit for `scale_units` [GH-20585]
-* `azurerm_recovery_services_vault` - add support for `classic_vmware_replication_enabled` [GH-20473]
-* `azurerm_windows_virtual_machine` - strengthen validation for `admin_password` [GH-20558]
+* dependencies: updating to `v0.20230224.1071134` of `github.com/hashicorp/go-azure-sdk` [GH-20649]
+* dependencies: updating to `v0.20230224.1120200` of `github.com/tombuildsstuff/kermit` [GH-20649]
+* `databoxedge` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
+* `compute/shared_image_gallery` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20599]
+* `compute/gallery_application` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20599]
+* `compute/gallery_application_version` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20599]
+* `iottimeseriesinsights` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20416]
+* `azurerm_media_streaming_policy` - add support for `common_encryption_cbcs.clear_key_encryption`, `common_encryption_cenc.clear_key_encryption`, `common_encryption_cenc.clear_track`, `common_encryption_cenc.content_key_to_track_mapping` and `envelope_encryption` [GH-20524]
+* `azurerm_storage_management_policy` - add support for `auto_tier_to_hot_from_cool_enabled` [GH-20641]
+
+## 3.45.0 (February 23, 2023)
+
+FEATURES
+
+* `App Service` - Add authV2 to Web Apps ([#20449](https://github.com/hashicorp/terraform-provider-azurerm/issues/20449))
+* **New Resource:** `azurerm_site_recovery_hyperv_replication_policy` ([#20454](https://github.com/hashicorp/terraform-provider-azurerm/issues/20454))
+* **New Resource:** `azurerm_site_recovery_hyperv_replication_policy_association` ([#20630](https://github.com/hashicorp/terraform-provider-azurerm/issues/20630))
+
+ENHANCEMENTS
+
+* dependencies: updating to `v0.20230222.1094703` of `github.com/hashicorp/go-azure-sdk` ([#20610](https://github.com/hashicorp/terraform-provider-azurerm/issues/20610))
+* dependencies: updating to `v0.7.0` of `golang.org/x/net` ([#20541](https://github.com/hashicorp/terraform-provider-azurerm/issues/20541))
+* `automation` - switching to use `github.com/hashicorp/go-azure-sdk` ([#20568](https://github.com/hashicorp/terraform-provider-azurerm/issues/20568))
+* `compute/capacityreservations` - switching to use `github.com/hashicorp/go-azure-sdk` ([#20580](https://github.com/hashicorp/terraform-provider-azurerm/issues/20580))
+* `compute/capacityreservationgroups` - switching to use `github.com/hashicorp/go-azure-sdk` ([#20580](https://github.com/hashicorp/terraform-provider-azurerm/issues/20580))
+* `kusto` - switching to use `github.com/hashicorp/go-azure-sdk` ([#20563](https://github.com/hashicorp/terraform-provider-azurerm/issues/20563))
+* `azurerm_backup_policy_vm` - add support for `instant_restore_resource_group` ([#20562](https://github.com/hashicorp/terraform-provider-azurerm/issues/20562))
+* `azurerm_express_route_connection` - support for the `inbound_route_map_id`, `outbound_route_map_id`, and `enabled_private_link_fast_path` properties ([#20619](https://github.com/hashicorp/terraform-provider-azurerm/issues/20619))
+* `azurerm_kusto_cluster_customer_managed_key` - `key_version` is now Optional to allow for auto-rotation of key ([#20583](https://github.com/hashicorp/terraform-provider-azurerm/issues/20583))
+* `azurerm_linux_virtual_machine` - strengthen validation for `admin_password` ([#20558](https://github.com/hashicorp/terraform-provider-azurerm/issues/20558))
+* `azurerm_postgresql_flexible_server` - a server can now be created without enabling password authtication ([#20578](https://github.com/hashicorp/terraform-provider-azurerm/issues/20578))
+* `azurerm_media_streaming_endpoint` - add support for reading `sku` and increase limit for `scale_units` ([#20585](https://github.com/hashicorp/terraform-provider-azurerm/issues/20585))
+* `azurerm_recovery_services_vault` - add support for `classic_vmware_replication_enabled` ([#20473](https://github.com/hashicorp/terraform-provider-azurerm/issues/20473))
+* `azurerm_windows_virtual_machine` - strengthen validation for `admin_password` ([#20558](https://github.com/hashicorp/terraform-provider-azurerm/issues/20558))
 
 BUG FIXES
 
-* Data Source: `azurerm_linux_web_app` - set `virtual_network_subnet_id` correctly [GH-20577]
-* Data Source: `azurerm_redis_cache` - fix issue when no patch schedules can be found [GH-20516]
-* Data Source: `azurerm_windows_web_app` - set `virtual_network_subnet_id` correctly [GH-20577]
-* `azurerm_batch_pool` - set user assigned id for `azure_blob_file_system` correctly [GH-20560]
-* `azurerm_kubernetes_cluster` - prevent crash when `SecurityProfile` is nil [GH-20584]
-* `azurerm_log_analytics_workspace` - prevent ForceNew when `sku` is `LACluster` [GH-19608]
-* `azurerm_media_streaming_endpoint` - set and update `tags` properly [GH-20585]
+* Data Source: `azurerm_linux_web_app` - set `virtual_network_subnet_id` correctly ([#20577](https://github.com/hashicorp/terraform-provider-azurerm/issues/20577))
+* Data Source: `azurerm_redis_cache` - fix issue when no patch schedules can be found ([#20516](https://github.com/hashicorp/terraform-provider-azurerm/issues/20516))
+* Data Source: `azurerm_windows_web_app` - set `virtual_network_subnet_id` correctly ([#20577](https://github.com/hashicorp/terraform-provider-azurerm/issues/20577))
+* `azurerm_batch_pool` - set user assigned id for `azure_blob_file_system` correctly ([#20560](https://github.com/hashicorp/terraform-provider-azurerm/issues/20560))
+* `azurerm_iot_dps` - allow older resources to update without having set `data_residency_enabled` ([#20632](https://github.com/hashicorp/terraform-provider-azurerm/issues/20632))
+* `azurerm_kubernetes_cluster` - prevent crash when `SecurityProfile` is nil ([#20584](https://github.com/hashicorp/terraform-provider-azurerm/issues/20584))
+* `azurerm_log_analytics_workspace` - prevent ForceNew when `sku` is `LACluster` ([#19608](https://github.com/hashicorp/terraform-provider-azurerm/issues/19608))
+* `azurerm_media_streaming_endpoint` - set and update `tags` properly ([#20585](https://github.com/hashicorp/terraform-provider-azurerm/issues/20585))
+* `azurerm_mobile_network_sim_group` - update `identity` to only support User Assigned Identities ([#20474](https://github.com/hashicorp/terraform-provider-azurerm/issues/20474))
+* `azurerm_monitor_diagnostic_setting` - the `log_analytics_destination_type` property is nto computer rather then defaulting to `AzureDiagnostics` on new resources ([#20203](https://github.com/hashicorp/terraform-provider-azurerm/issues/20203))
 
 ## 3.44.1 (February 17, 2023)
 

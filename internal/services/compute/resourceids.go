@@ -1,11 +1,8 @@
 package compute
 
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DiskEncryptionSet -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/diskEncryptionSets/set1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=GalleryApplication -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/galleries/gallery1/applications/galleryApplication1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=GalleryApplicationVersion -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/galleries/gallery1/applications/galleryApplication1/versions/galleryApplicationVersion1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Image -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/images/image1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SharedImage -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/galleries/gallery1/images/image1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SharedImageGallery -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/galleries/gallery1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SharedImageVersion -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/galleries/gallery1/images/image1/versions/version1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualMachine -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/machine1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualMachineExtension -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/machine1/extensions/extension1

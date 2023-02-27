@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -32,6 +33,7 @@ type LinuxWebAppModel struct {
 	AppSettings                   map[string]string          `tfschema:"app_settings"`
 	StickySettings                []helpers.StickySettings   `tfschema:"sticky_settings"`
 	AuthSettings                  []helpers.AuthSettings     `tfschema:"auth_settings"`
+	AuthV2Settings                []helpers.AuthV2Settings   `tfschema:"auth_settings_v2"`
 	Backup                        []helpers.Backup           `tfschema:"backup"`
 	ClientAffinityEnabled         bool                       `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                       `tfschema:"client_certificate_enabled"`
@@ -91,6 +93,8 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
+
+		"auth_settings_v2": helpers.AuthV2SettingsSchema(),
 
 		"backup": helpers.BackupSchema(),
 
@@ -256,7 +260,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			}
 
 			availabilityRequest := web.ResourceNameAvailabilityRequest{
-				Name: utils.String(webApp.Name),
+				Name: pointer.To(webApp.Name),
 				Type: web.CheckNameResourceTypesMicrosoftWebsites,
 			}
 
@@ -289,8 +293,8 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 					}
 				}
 
-				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s", webApp.Name, nameSuffix))
-				availabilityRequest.IsFqdn = utils.Bool(true)
+				availabilityRequest.Name = pointer.To(fmt.Sprintf("%s.%s", webApp.Name, nameSuffix))
+				availabilityRequest.IsFqdn = pointer.To(true)
 			}
 
 			checkName, err := client.CheckNameAvailability(ctx, availabilityRequest)
@@ -312,30 +316,30 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			}
 
 			siteEnvelope := web.Site{
-				Location: utils.String(webApp.Location),
+				Location: pointer.To(webApp.Location),
 				Identity: expandedIdentity,
 				Tags:     tags.FromTypedObject(webApp.Tags),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:          utils.String(webApp.ServicePlanId),
-					Enabled:               utils.Bool(webApp.Enabled),
-					HTTPSOnly:             utils.Bool(webApp.HttpsOnly),
+					ServerFarmID:          pointer.To(webApp.ServicePlanId),
+					Enabled:               pointer.To(webApp.Enabled),
+					HTTPSOnly:             pointer.To(webApp.HttpsOnly),
 					SiteConfig:            siteConfig,
-					ClientAffinityEnabled: utils.Bool(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
+					ClientAffinityEnabled: pointer.To(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:     pointer.To(webApp.ClientCertEnabled),
 					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
 				},
 			}
 
 			if webApp.VirtualNetworkSubnetID != "" {
-				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webApp.VirtualNetworkSubnetID)
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = pointer.To(webApp.VirtualNetworkSubnetID)
 			}
 
 			if webApp.KeyVaultReferenceIdentityID != "" {
-				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webApp.KeyVaultReferenceIdentityID)
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = pointer.To(webApp.KeyVaultReferenceIdentityID)
 			}
 
 			if webApp.ClientCertExclusionPaths != "" {
-				siteEnvelope.ClientCertExclusionPaths = utils.String(webApp.ClientCertExclusionPaths)
+				siteEnvelope.ClientCertExclusionPaths = pointer.To(webApp.ClientCertExclusionPaths)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
@@ -351,7 +355,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			appSettings := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = utils.String(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
+				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
 			}
 
 			if appSettings.Properties != nil {
@@ -375,6 +379,13 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			if auth.SiteAuthSettingsProperties != nil {
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *auth); err != nil {
 					return fmt.Errorf("setting Authorisation Settings for Linux %s: %+v", id, err)
+				}
+			}
+
+			authv2 := helpers.ExpandAuthV2Settings(webApp.AuthV2Settings)
+			if authv2.SiteAuthSettingsV2Properties != nil {
+				if _, err = client.UpdateAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName, *authv2); err != nil {
+					return fmt.Errorf("updating AuthV2 settings for Linux %s: %+v", id, err)
 				}
 			}
 
@@ -457,6 +468,14 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Auth Settings for Linux %s: %+v", id, err)
 			}
 
+			var authV2 web.SiteAuthSettingsV2
+			if pointer.From(auth.ConfigVersion) == "v2" {
+				authV2, err = client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
+				if err != nil {
+					return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)
+				}
+			}
+
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(backup.Response) {
@@ -506,22 +525,22 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				Name:                        id.SiteName,
 				ResourceGroup:               id.ResourceGroup,
 				Location:                    location.NormalizeNilable(webApp.Location),
-				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
-				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
-				ClientCertEnabled:           utils.NormaliseNilableBool(props.ClientCertEnabled),
+				ServicePlanId:               pointer.From(props.ServerFarmID),
+				ClientAffinityEnabled:       pointer.From(props.ClientAffinityEnabled),
+				ClientCertEnabled:           pointer.From(props.ClientCertEnabled),
 				ClientCertMode:              string(props.ClientCertMode),
-				ClientCertExclusionPaths:    utils.NormalizeNilableString(props.ClientCertExclusionPaths),
-				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
-				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
-				Kind:                        utils.NormalizeNilableString(webApp.Kind),
-				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
-				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
-				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
+				ClientCertExclusionPaths:    pointer.From(props.ClientCertExclusionPaths),
+				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
+				DefaultHostname:             pointer.From(props.DefaultHostName),
+				Kind:                        pointer.From(webApp.Kind),
+				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
+				Enabled:                     pointer.From(props.Enabled),
+				HttpsOnly:                   pointer.From(props.HTTPSOnly),
 				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
 
-			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+			if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
 				state.VirtualNetworkSubnetID = subnetId
 			}
 
@@ -542,6 +561,8 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
+
+			state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
@@ -634,7 +655,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 			if metadata.ResourceData.HasChange("service_plan_id") {
 				serviceFarmId = state.ServicePlanId
-				existing.SiteProperties.ServerFarmID = utils.String(serviceFarmId)
+				existing.SiteProperties.ServerFarmID = pointer.To(serviceFarmId)
 				servicePlanChange = true
 			}
 			servicePlanId, err := parse.ServicePlanID(serviceFarmId)
@@ -648,22 +669,22 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
-				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
+				existing.SiteProperties.Enabled = pointer.To(state.Enabled)
 			}
 			if metadata.ResourceData.HasChange("https_only") {
-				existing.SiteProperties.HTTPSOnly = utils.Bool(state.HttpsOnly)
+				existing.SiteProperties.HTTPSOnly = pointer.To(state.HttpsOnly)
 			}
 			if metadata.ResourceData.HasChange("client_affinity_enabled") {
-				existing.SiteProperties.ClientAffinityEnabled = utils.Bool(state.ClientAffinityEnabled)
+				existing.SiteProperties.ClientAffinityEnabled = pointer.To(state.ClientAffinityEnabled)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
-				existing.SiteProperties.ClientCertEnabled = utils.Bool(state.ClientCertEnabled)
+				existing.SiteProperties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
-				existing.SiteProperties.ClientCertExclusionPaths = utils.String(state.ClientCertExclusionPaths)
+				existing.SiteProperties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -675,7 +696,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
-				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
+				existing.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityID)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -699,7 +720,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 					var empty *string
 					existing.SiteProperties.VirtualNetworkSubnetID = empty
 				} else {
-					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+					existing.SiteProperties.VirtualNetworkSubnetID = pointer.To(subnetId)
 				}
 			}
 
@@ -714,7 +735,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
-				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
+				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
 
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
 					return fmt.Errorf("updating App Settings for Linux %s: %+v", id, err)
@@ -755,11 +776,36 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			updateLogs := false
+
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
+				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
+				if authUpdate.SiteAuthSettingsProperties == nil {
+					authUpdate.SiteAuthSettingsProperties = &web.SiteAuthSettingsProperties{
+						Enabled:                           pointer.To(false),
+						ClientSecret:                      pointer.To(""),
+						ClientSecretSettingName:           pointer.To(""),
+						ClientSecretCertificateThumbprint: pointer.To(""),
+						GoogleClientSecret:                pointer.To(""),
+						FacebookAppSecret:                 pointer.To(""),
+						GitHubClientSecret:                pointer.To(""),
+						TwitterConsumerSecret:             pointer.To(""),
+						MicrosoftAccountClientSecret:      pointer.To(""),
+					}
+					updateLogs = true
+				}
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *authUpdate); err != nil {
 					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("auth_settings_v2") {
+				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				if _, err := client.UpdateAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName, *authV2Update); err != nil {
+					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
+				}
+				updateLogs = true
 			}
 
 			if metadata.ResourceData.HasChange("backup") {
@@ -778,7 +824,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("logs") {
+			if metadata.ResourceData.HasChange("logs") || updateLogs {
 				logsUpdate := helpers.ExpandLogsConfig(state.LogsConfig)
 				if logsUpdate.SiteLogsConfigProperties == nil {
 					logsUpdate = helpers.DisabledLogsConfig() // The API is update only, so we need to send an update with everything switched of when a user removes the "logs" block

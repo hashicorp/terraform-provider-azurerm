@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -126,23 +126,24 @@ func datasourceAutomationVariableCommonSchema(attType pluginsdk.ValueType) map[s
 
 func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*clients.Client).Automation.VariableClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	varTypeLower := strings.ToLower(varType)
 
-	id := parse.NewVariableID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
+	id := variable.NewVariableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for present of existing Automation %s Variable %s: %+v", varType, id, err)
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing Automation %s Variable %s: %+v", varType, id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), *resp.ID)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), id.ID())
 		}
 	}
 
@@ -165,19 +166,19 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		value = strconv.Quote(d.Get("value").(string))
 	}
 
-	parameters := automation.VariableCreateOrUpdateParameters{
-		Name: utils.String(id.Name),
-		VariableCreateOrUpdateProperties: &automation.VariableCreateOrUpdateProperties{
+	parameters := variable.VariableCreateOrUpdateParameters{
+		Name: id.VariableName,
+		Properties: variable.VariableCreateOrUpdateProperties{
 			Description: utils.String(description),
 			IsEncrypted: utils.Bool(encrypted),
 		},
 	}
 
 	if varTypeLower != "null" {
-		parameters.VariableCreateOrUpdateProperties.Value = utils.String(value)
+		parameters.Properties.Value = utils.String(value)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating Automation %s Variable %s: %+v", varType, id, err)
 	}
 
@@ -191,39 +192,42 @@ func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{},
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VariableID(d.Id())
+	id, err := variable.ParseVariableID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	varTypeLower := strings.ToLower(varType)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Automation %s Variable %q does not exist - removing from state", varType, d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, id.Name, id.AutomationAccountName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, id.VariableName, id.AutomationAccountName, id.ResourceGroupName, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.VariableName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("automation_account_name", id.AutomationAccountName)
-	if properties := resp.VariableProperties; properties != nil {
-		d.Set("description", properties.Description)
-		d.Set("encrypted", properties.IsEncrypted)
-		if !d.Get("encrypted").(bool) {
-			value, err := ParseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), properties.Value)
-			if err != nil {
-				return err
-			}
 
-			if varTypeLower == "datetime" {
-				d.Set("value", value.(time.Time).Format("2006-01-02T15:04:05.999Z"))
-			} else if varTypeLower != "null" {
-				d.Set("value", value)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", props.Description)
+			d.Set("encrypted", props.IsEncrypted)
+			if !d.Get("encrypted").(bool) {
+				value, err := ParseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), props.Value)
+				if err != nil {
+					return err
+				}
+
+				if varTypeLower == "datetime" {
+					d.Set("value", value.(time.Time).Format("2006-01-02T15:04:05.999Z"))
+				} else if varTypeLower != "null" {
+					d.Set("value", value)
+				}
 			}
 		}
 	}
@@ -236,12 +240,15 @@ func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVariableID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
+	id, err := variable.ParseVariableID(d.Id())
+	if err != nil {
+		return err
+	}
 	varTypeLower := strings.ToLower(varType)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Automation %s Variable %q does not exist - removing from state", varType, d.Id())
 			d.SetId("")
 			return nil
@@ -251,22 +258,25 @@ func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.VariableName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("automation_account_name", id.AutomationAccountName)
-	if properties := resp.VariableProperties; properties != nil {
-		d.Set("description", properties.Description)
-		d.Set("encrypted", properties.IsEncrypted)
-		if !d.Get("encrypted").(bool) {
-			value, err := ParseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), properties.Value)
-			if err != nil {
-				return err
-			}
 
-			if varTypeLower == "datetime" {
-				d.Set("value", value.(time.Time).Format("2006-01-02T15:04:05.999Z"))
-			} else if varTypeLower != "null" {
-				d.Set("value", value)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", props.Description)
+			d.Set("encrypted", props.IsEncrypted)
+			if !d.Get("encrypted").(bool) {
+				value, err := ParseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), props.Value)
+				if err != nil {
+					return err
+				}
+
+				if varTypeLower == "datetime" {
+					d.Set("value", value.(time.Time).Format("2006-01-02T15:04:05.999Z"))
+				} else if varTypeLower != "null" {
+					d.Set("value", value)
+				}
 			}
 		}
 	}
@@ -279,13 +289,13 @@ func resourceAutomationVariableDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VariableID(d.Id())
+	id, err := variable.ParseVariableID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name); err != nil {
-		return fmt.Errorf("deleting Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, id.Name, id.AutomationAccountName, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, id.VariableName, id.AutomationAccountName, id.ResourceGroupName, err)
 	}
 
 	return nil

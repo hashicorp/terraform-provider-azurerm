@@ -144,6 +144,21 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
+			// allow up to 15 min for role permission to be done propagated
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be done propagated", model.Key)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:      []string{"Forbidden"},
+				Target:       []string{"Error", "Exists"},
+				Refresh:      appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
+				PollInterval: 20 * time.Second,
+				Timeout:      15 * time.Minute,
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Key %q read permission to be propagated: %+v", model.Key, err)
+			}
+
 			kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
@@ -190,7 +205,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			metadata.SetID(nestedItemId)
 			return nil
 		},
-		Timeout: 30 * time.Minute,
+		Timeout: 45 * time.Minute,
 	}
 }
 
