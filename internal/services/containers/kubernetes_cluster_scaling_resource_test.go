@@ -33,7 +33,7 @@ func TestAccKubernetesCluster_updateVmSize(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("default_node_pool.0.temp_name_for_vm_resize"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_vm_resize"),
 	})
 }
 
@@ -85,7 +85,7 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("default_node_pool.0.temp_name_for_vm_resize"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_vm_resize"),
 	})
 
 }
@@ -149,7 +149,7 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("default_node_pool.0.temp_name_for_vm_resize"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_vm_resize"),
 	})
 }
 
@@ -440,10 +440,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    temp_name_for_vm_resize = "temp"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name                         = "default"
+    temporary_name_for_vm_resize = "temp"
+    node_count                   = 1
+    vm_size                      = "Standard_DS2_v2"
   }
 
   identity {
@@ -476,10 +476,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                    = "default"
-    temp_name_for_vm_resize = "temp"
-    node_count              = 1
-    vm_size                 = "%s"
+    name                         = "default"
+    temporary_name_for_vm_resize = "temp"
+    node_count                   = 1
+    vm_size                      = "%s"
   }
 
   identity {

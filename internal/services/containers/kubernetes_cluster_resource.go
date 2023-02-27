@@ -75,9 +75,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIf("default_node_pool.0.name", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
 				old, new := d.GetChange("default_node_pool.0.name")
 				defaultName := d.Get("default_node_pool.0.name")
-				tempName := d.Get("default_node_pool.0.temp_name_for_vm_resize")
+				tempName := d.Get("default_node_pool.0.temporary_name_for_vm_resize")
 
-				// if the default node pool name has been set to temp_name_for_vm_resize it means resizing failed
+				// if the default node pool name has been set to temporary_name_for_vm_resize it means resizing failed
 				// we should not try to recreate the cluster, another apply will attempt the resize again
 				if old != "" && old == tempName {
 					return new != defaultName
@@ -2020,11 +2020,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
 			// bringing up the new one.
 
-			if v := d.Get("default_node_pool.0.temp_name_for_vm_resize").(string); v == "" {
-				return fmt.Errorf("`temp_name_for_vm_resize` must be specified when updating `vm_size`")
+			if v := d.Get("default_node_pool.0.temporary_name_for_vm_resize").(string); v == "" {
+				return fmt.Errorf("`temporary_name_for_vm_resize` must be specified when updating `vm_size`")
 			}
 
-			temporaryNodePoolName := d.Get("default_node_pool.0.temp_name_for_vm_resize").(string)
+			temporaryNodePoolName := d.Get("default_node_pool.0.temporary_name_for_vm_resize").(string)
 			tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, temporaryNodePoolName)
 
 			tempExisting, err := nodePoolsClient.Get(ctx, tempNodePoolId)
@@ -3861,19 +3861,12 @@ func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedC
 
 func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
 	// retries the creation of a system node pool 3 times
-	retries := 3
-	attempt := 0
-	for attempt < retries {
-		if err := client.CreateOrUpdateThenPoll(ctx, id, profile); err == nil {
-			break
-		} else {
-			// only return the error on the final retry
-			if attempt == 2 {
-				return err
-			}
-
-			attempt++
+	var err error
+	for attempt := 0; attempt < 3; attempt++ {
+		if err = client.CreateOrUpdateThenPoll(ctx, id, profile); err == nil {
+			return nil
 		}
 	}
-	return nil
+
+	return err
 }

@@ -32,7 +32,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 			Schema: func() map[string]*pluginsdk.Schema {
 				s := map[string]*pluginsdk.Schema{
 					// Required and conditionally ForceNew: updating `name` back to name when it's been set to the value
-					// of `temp_name_for_vm_resize` during the resizing of the default node pool should be allowed and
+					// of `temporary_name_for_vm_resize` during the resizing of the default node pool should be allowed and
 					// not force cluster recreation
 					"name": {
 						Type:         pluginsdk.TypeString,
@@ -40,7 +40,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: validate.KubernetesAgentPoolName,
 					},
 
-					"temp_name_for_vm_resize": {
+					"temporary_name_for_vm_resize": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.KubernetesAgentPoolName,
@@ -1187,7 +1187,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	name := agentPool.Name
 
 	// we pull this from the config, since the temporary node pool for cycling the system node pool won't exist if the operation is successful
-	temporaryName := d.Get("default_node_pool.0.temp_name_for_vm_resize").(string)
+	temporaryName := d.Get("default_node_pool.0.temporary_name_for_vm_resize").(string)
 
 	var nodeLabels map[string]string
 	if agentPool.NodeLabels != nil {
@@ -1314,7 +1314,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"os_sku":                        osSKU,
 		"scale_down_mode":               string(scaleDownMode),
 		"tags":                          tags.Flatten(agentPool.Tags),
-		"temp_name_for_vm_resize":       temporaryName,
+		"temporary_name_for_vm_resize":  temporaryName,
 		"type":                          agentPoolType,
 		"ultra_ssd_enabled":             enableUltraSSD,
 		"vm_size":                       vmSize,
@@ -1657,7 +1657,7 @@ func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]
 func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile, d *pluginsdk.ResourceData) (*managedclusters.ManagedClusterAgentPoolProfile, error) {
 	// first try loading this from the Resource Data if possible (e.g. when Created)
 	defaultNodePoolName := d.Get("default_node_pool.0.name")
-	tempNodePoolName := d.Get("default_node_pool.0.temp_name_for_vm_resize")
+	tempNodePoolName := d.Get("default_node_pool.0.temporary_name_for_vm_resize")
 
 	var agentPool *managedclusters.ManagedClusterAgentPoolProfile
 	if defaultNodePoolName != "" {
