@@ -80,7 +80,7 @@ func TestAccDataSourceStorageAccount_withEncryptionKey_Account(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceStorageAccount_withInfrastructureEncryption(t *testing.T) {
+func TestAccDataSourceStorageAccount_withInfrastructureEncryptionEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -90,6 +90,13 @@ func TestAccDataSourceStorageAccount_withInfrastructureEncryption(t *testing.T) 
 				check.That(data.ResourceName).Key("infrastructure_encryption_enabled").HasValue("true"),
 			),
 		},
+	})
+}
+
+func TestAccDataSourceStorageAccount_withInfrastructureEncryptionDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: StorageAccountDataSource{}.infrastructureEncryptionWithDataSource(data, "false"),
 			Check: acceptance.ComposeTestCheckFunc(
