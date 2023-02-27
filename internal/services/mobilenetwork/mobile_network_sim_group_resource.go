@@ -64,7 +64,7 @@ func (r SimGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"location": commonschema.Location(),
 

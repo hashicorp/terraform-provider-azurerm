@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/managedprivateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -27,7 +27,8 @@ func TestAccKustoClusterManagedPrivateEndpoint_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("group_id").HasValue("blob"),
 			),
 		},
-		data.ImportStep()},
+		data.ImportStep(),
+	},
 	)
 }
 
@@ -44,22 +45,26 @@ func TestAccKustoClusterManagedPrivateEndpoint_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("request_message").HasValue("Please Approve"),
 			),
 		},
-		data.ImportStep()},
+		data.ImportStep(),
+	},
 	)
 }
 
 func (KustoClusterManagedPrivateEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ManagedPrivateEndpointsID(state.ID)
+	id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Kusto.ClusterManagedPrivateEndpointClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.ManagedPrivateEndpointName)
+	resp, err := clients.Kusto.ClusterManagedPrivateEndpointClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ManagedPrivateEndpointProperties != nil), nil
+	if resp.Model == nil {
+		return nil, fmt.Errorf("response model is empty")
+	}
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (r KustoClusterManagedPrivateEndpointResource) basic(data acceptance.TestData) string {

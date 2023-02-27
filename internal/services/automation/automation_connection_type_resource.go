@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/connectiontype"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -24,7 +23,7 @@ type Field struct {
 }
 
 type AutomationConnectionTypeModel struct {
-	ResourceGrup          string  `json:"resource_grup" tfschema:"resource_group_name"`
+	ResourceGroup         string  `json:"resource_group" tfschema:"resource_group_name"`
 	AutomationAccountName string  `json:"automation_account_name" tfschema:"automation_account_name"`
 	Name                  string  `json:"name" tfschema:"name"`
 	IsGlobal              bool    `json:"is_global" tfschema:"is_global"`
@@ -112,38 +111,38 @@ func (m AutomationConnectionTypeResource) Create() sdk.ResourceFunc {
 			}
 			subscriptionID := meta.Client.Account.SubscriptionId
 
-			accountID := automationaccount.NewAutomationAccountID(subscriptionID, model.ResourceGrup, model.AutomationAccountName)
+			accountID := automationaccount.NewAutomationAccountID(subscriptionID, model.ResourceGroup, model.AutomationAccountName)
 			account, err := connClient.Get(ctx, accountID)
 			if err != nil {
-				return fmt.Errorf("retrieving automation account %q: %+v", accountID, err)
+				return fmt.Errorf("retrieving %s: %+v", accountID, err)
 			}
 			if response.WasNotFound(account.HttpResponse) {
-				return fmt.Errorf("automation account %q was not found", accountID)
+				return fmt.Errorf("%s was not found", accountID)
 			}
 
-			id := parse.NewConnectionTypeID(accountID.SubscriptionId, model.ResourceGrup, model.AutomationAccountName, model.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, model.AutomationAccountName, model.Name)
-			if !utils.ResponseWasNotFound(existing.Response) {
+			id := connectiontype.NewConnectionTypeID(accountID.SubscriptionId, model.ResourceGroup, model.AutomationAccountName, model.Name)
+			existing, err := client.Get(ctx, id)
+			if !response.WasNotFound(existing.HttpResponse) {
 				if err != nil {
-					return fmt.Errorf("retreiving %s: %v", id, err)
+					return fmt.Errorf("retrieving %s: %v", id, err)
 				}
 				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
-			param := automation.ConnectionTypeCreateOrUpdateParameters{
-				Name: utils.String(model.Name),
-				ConnectionTypeCreateOrUpdateProperties: &automation.ConnectionTypeCreateOrUpdateProperties{
+			param := connectiontype.ConnectionTypeCreateOrUpdateParameters{
+				Name: model.Name,
+				Properties: connectiontype.ConnectionTypeCreateOrUpdateProperties{
 					IsGlobal:         utils.Bool(model.IsGlobal),
-					FieldDefinitions: map[string]*automation.FieldDefinition{},
+					FieldDefinitions: map[string]connectiontype.FieldDefinition{},
 				},
 			}
 			for _, field := range model.Field {
-				param.ConnectionTypeCreateOrUpdateProperties.FieldDefinitions[field.Name] = &automation.FieldDefinition{
+				param.Properties.FieldDefinitions[field.Name] = connectiontype.FieldDefinition{
 					IsEncrypted: utils.Bool(field.IsEncrypted),
 					IsOptional:  utils.Bool(field.IsOptional),
-					Type:        utils.String(field.Type),
+					Type:        field.Type,
 				}
 			}
-			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, param)
+			_, err = client.CreateOrUpdate(ctx, id, param)
 			if err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
@@ -158,31 +157,37 @@ func (m AutomationConnectionTypeResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			id, err := parse.ConnectionTypeID(meta.ResourceData.Id())
+			id, err := connectiontype.ParseConnectionTypeID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			client := meta.Client.Automation.ConnectionTypeClient
-			result, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				return err
 			}
 
 			var output AutomationConnectionTypeModel
-			output.IsGlobal = utils.NormaliseNilableBool(result.IsGlobal)
-			output.Name = utils.NormalizeNilableString(result.Name)
+			output.Name = id.ConnectionTypeName
 			output.AutomationAccountName = id.AutomationAccountName
-			output.ResourceGrup = id.ResourceGroup
-			for name, prop := range result.FieldDefinitions {
-				output.Field = append(output.Field, Field{
-					Name:        name,
-					Type:        utils.NormalizeNilableString(prop.Type),
-					IsEncrypted: utils.NormaliseNilableBool(prop.IsEncrypted),
-					IsOptional:  utils.NormaliseNilableBool(prop.IsOptional),
-				})
-			}
+			output.ResourceGroup = id.ResourceGroupName
 
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					output.IsGlobal = utils.NormaliseNilableBool(props.IsGlobal)
+					if props.FieldDefinitions != nil {
+						for name, field := range *props.FieldDefinitions {
+							output.Field = append(output.Field, Field{
+								Name:        name,
+								Type:        field.Type,
+								IsEncrypted: utils.NormaliseNilableBool(field.IsEncrypted),
+								IsOptional:  utils.NormaliseNilableBool(field.IsOptional),
+							})
+						}
+					}
+				}
+			}
 			return meta.Encode(&output)
 		},
 	}
@@ -192,14 +197,14 @@ func (m AutomationConnectionTypeResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			id, err := parse.ConnectionTypeID(meta.ResourceData.Id())
+			id, err := connectiontype.ParseConnectionTypeID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			client := meta.Client.Automation.ConnectionTypeClient
-			if _, err = client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name); err != nil {
-				return fmt.Errorf("deleting %s: %v", id, err)
+			if _, err = client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %v", *id, err)
 			}
 			return nil
 		},
@@ -207,5 +212,5 @@ func (m AutomationConnectionTypeResource) Delete() sdk.ResourceFunc {
 }
 
 func (m AutomationConnectionTypeResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ConnectionTypeID
+	return connectiontype.ValidateConnectionTypeID
 }

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KustoDatabaseResource struct{}
@@ -332,20 +331,26 @@ resource "azurerm_kusto_database" "test" {
 }
 
 func (KustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DatabaseID(state.ID)
+	id, err := databases.ParseDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Kusto.DatabasesClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	resp, err := clients.Kusto.DatabasesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	value, ok := resp.Value.AsReadWriteDatabase()
-	if !ok {
-		return nil, fmt.Errorf("%s is not a ReadWriteDatabase", id.String())
-	}
+	if resp.Model != nil {
+		value, ok := (*resp.Model).(databases.ReadWriteDatabase)
+		if !ok {
+			return nil, fmt.Errorf("%s is not a ReadWriteDatabase", id.String())
+		}
 
-	return utils.Bool(value.ReadWriteDatabaseProperties != nil), nil
+		exists := value.Properties != nil
+
+		return &exists, nil
+	} else {
+		return nil, fmt.Errorf("response model is empty")
+	}
 }

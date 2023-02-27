@@ -29,9 +29,9 @@ import (
 
 func resourceIotHubDPS() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIotHubDPSCreateUpdate,
+		Create: resourceIotHubDPSCreate,
 		Read:   resourceIotHubDPSRead,
-		Update: resourceIotHubDPSCreateUpdate,
+		Update: resourceIotHubDPSUpdate,
 		Delete: resourceIotHubDPSDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -204,7 +204,7 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubDPSCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -212,17 +212,15 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	id := commonids.NewProvisioningServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_iothub_dps", id.ID())
+			return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_iothub_dps", id.ID())
 	}
 
 	publicNetworkAccess := iotdpsresource.PublicNetworkAccessEnabled
@@ -246,7 +244,7 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, iotdps); err != nil {
-		return fmt.Errorf("creating/updating IoT Device Provisioning Service %s: %+v", id, err)
+		return fmt.Errorf("creating IoT Device Provisioning Service %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -320,6 +318,60 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+func resourceIotHubDPSUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).IoTHub.DPSResourceClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := commonids.NewProvisioningServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	iotdps := resp.Model
+	if iotdps == nil {
+		return fmt.Errorf("retrieving model of %s: %+v", id, err)
+	}
+
+	if d.HasChanges("allocation_policy") {
+		allocationPolicy := iotdpsresource.AllocationPolicy(d.Get("allocation_policy").(string))
+		iotdps.Properties.AllocationPolicy = &allocationPolicy
+	}
+
+	if d.HasChanges("public_network_access_enabled") {
+		publicNetworkAccess := iotdpsresource.PublicNetworkAccessEnabled
+		if !d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = iotdpsresource.PublicNetworkAccessDisabled
+		}
+		iotdps.Properties.PublicNetworkAccess = &publicNetworkAccess
+	}
+
+	if d.HasChanges("ip_filter_rule") {
+		iotdps.Properties.IPFilterRules = expandDpsIPFilterRules(d)
+	}
+
+	if d.HasChanges("linked_hub") {
+		iotdps.Properties.IotHubs = expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{}))
+	}
+
+	if d.HasChanges("sku") {
+		iotdps.Sku = expandIoTHubDPSSku(d)
+	}
+
+	if d.HasChanges("tags") {
+		iotdps.Tags = expandTags(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, id, *iotdps); err != nil {
+		return fmt.Errorf("updating IoT Device Provisioning Service %s: %+v", id, err)
+	}
+
+	return resourceIotHubDPSRead(d, meta)
 }
 
 func resourceIotHubDPSDelete(d *pluginsdk.ResourceData, meta interface{}) error {

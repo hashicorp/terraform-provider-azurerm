@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -72,7 +72,7 @@ func (s AutomationWebhookV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (s AutomationWebhookV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := parse.WebhookIDInsensitively(oldId)
+		newId, err := webhook.ParseWebHookIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}
