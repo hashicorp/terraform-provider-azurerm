@@ -138,6 +138,9 @@ func (r IotHubFileUploadResource) Create() sdk.ResourceFunc {
 			}
 
 			id, err := parse.IotHubID(state.IotHubId)
+			if err != nil {
+				return err
+			}
 
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
