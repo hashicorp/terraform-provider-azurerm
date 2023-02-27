@@ -271,6 +271,9 @@ func languageExtensionDiffSuppress(_, _, _ string, d *schema.ResourceData) bool 
 		if oldValue != nil && newValue != nil {
 			oldList := oldValue.([]interface{})
 			newList := newValue.([]interface{})
+			if len(oldList) != len(newList) {
+				return false
+			}
 			diff := make(map[string]int, len(oldList))
 			for _, _o := range oldList {
 				oldItem := _o.(string)

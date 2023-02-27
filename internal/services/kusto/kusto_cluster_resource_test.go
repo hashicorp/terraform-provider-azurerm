@@ -252,8 +252,8 @@ func TestAccKustoCluster_languageExtensions(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("language_extensions.#").HasValue("2"),
-				check.That(data.ResourceName).Key("language_extensions.0").HasValue("PYTHON"),
-				check.That(data.ResourceName).Key("language_extensions.1").HasValue("R"),
+				check.That(data.ResourceName).Key("language_extensions.0").Exists(),
+				check.That(data.ResourceName).Key("language_extensions.1").Exists(),
 			),
 		},
 		data.ImportStep(),
