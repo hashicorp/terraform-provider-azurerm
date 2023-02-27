@@ -26,21 +26,23 @@ const (
 )
 
 type ApplicationStackWindows struct {
-	CurrentStack            string `tfschema:"current_stack"`
-	DockerContainerName     string `tfschema:"docker_container_name"`
-	DockerContainerRegistry string `tfschema:"docker_container_registry"`
-	DockerContainerTag      string `tfschema:"docker_container_tag"`
-	JavaContainer           string `tfschema:"java_container"`
-	JavaContainerVersion    string `tfschema:"java_container_version"`
-	JavaEmbeddedServer      bool   `tfschema:"java_embedded_server_enabled"`
-	JavaVersion             string `tfschema:"java_version"`
-	NetFrameworkVersion     string `tfschema:"dotnet_version"`
-	NetCoreVersion          string `tfschema:"dotnet_core_version"`
-	NodeVersion             string `tfschema:"node_version"`
-	PhpVersion              string `tfschema:"php_version"`
-	PythonVersion           string `tfschema:"python_version"`
-	Python                  bool   `tfschema:"python"`
-	TomcatVersion           string `tfschema:"tomcat_version"`
+	CurrentStack                    string `tfschema:"current_stack"`
+	DockerContainerRegistryURL      string `tfschema:"docker_container_registry"`
+	DockerContainerRegistryUsername string `tfschema:"docker_container_registry_username"`
+	DockerContainerRegistryPassword string `tfschema:"docker_container_registry_password"`
+	DockerContainerName             string `tfschema:"docker_container_name"`
+	DockerContainerTag              string `tfschema:"docker_container_tag"`
+	JavaContainer                   string `tfschema:"java_container"`
+	JavaContainerVersion            string `tfschema:"java_container_version"`
+	JavaEmbeddedServer              bool   `tfschema:"java_embedded_server_enabled"`
+	JavaVersion                     string `tfschema:"java_version"`
+	NetFrameworkVersion             string `tfschema:"dotnet_version"`
+	NetCoreVersion                  string `tfschema:"dotnet_core_version"`
+	NodeVersion                     string `tfschema:"node_version"`
+	PhpVersion                      string `tfschema:"php_version"`
+	PythonVersion                   string `tfschema:"python_version"`
+	Python                          bool   `tfschema:"python"`
+	TomcatVersion                   string `tfschema:"tomcat_version"`
 }
 
 func windowsApplicationStackSchema() *pluginsdk.Schema {
@@ -260,12 +262,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					},
 				},
 
-				"docker_container_registry": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
 				"docker_container_tag": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -273,6 +269,27 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 					},
+				},
+
+				"docker_container_registry": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"docker_container_registry_username": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The username to use for connections to the registry.",
+				},
+
+				"docker_container_registry_password": {
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Sensitive:   true, // Note: whilst it's not a good idea, this _can_ be blank...
+					Description: "The password for the account to use to connect to the registry.",
 				},
 
 				"current_stack": {
@@ -359,12 +376,22 @@ func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"docker_container_tag": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
 				"docker_container_registry": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
-				"docker_container_tag": {
+				"docker_container_registry_username": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"docker_container_registry_password": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
