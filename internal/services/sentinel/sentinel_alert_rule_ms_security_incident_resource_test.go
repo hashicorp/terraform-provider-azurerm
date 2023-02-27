@@ -160,11 +160,11 @@ func (r SentinelAlertRuleMsSecurityIncidentResource) basic(data acceptance.TestD
 resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   name                       = "acctest-SentinelAlertRule-MSI-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  product_filter             = "Microsoft Cloud App Security"
+  display_name               = "some rule"
+  severity_filter            = ["High"]
 
-  depends_on      = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
-  product_filter  = "Microsoft Cloud App Security"
-  display_name    = "some rule"
-  severity_filter = ["High"]
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
