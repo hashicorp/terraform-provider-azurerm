@@ -488,6 +488,22 @@ func TestAccRecoveryServicesVault_TogglePublicNetworkAccessEnabled(t *testing.T)
 	})
 }
 
+func TestAccRecoveryServicesVault_basicWithClassicVmwareReplicateEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithClassicVmwareReplicateEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("classic_vmware_replication_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (RecoveryServicesVaultResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1269,4 +1285,26 @@ resource "azurerm_recovery_services_vault" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, sku)
+}
+
+func (RecoveryServicesVaultResource) basicWithClassicVmwareReplicateEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                               = "acctest-Vault-%d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  sku                                = "Standard"
+  classic_vmware_replication_enabled = true
+  soft_delete_enabled                = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

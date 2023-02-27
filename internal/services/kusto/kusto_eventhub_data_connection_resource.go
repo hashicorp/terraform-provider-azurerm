@@ -5,16 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -35,9 +36,9 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.DataConnectionID(id)
+			_, err := dataconnections.ParseDataConnectionID(id)
 			return err
-		}, importDataConnection(kusto.KindBasicDataConnectionKindEventHub)),
+		}, importDataConnection("EventHub")),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -66,14 +67,11 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 			},
 
 			"compression": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  kusto.CompressionNone,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(kusto.CompressionGZip),
-					string(kusto.CompressionNone),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      dataconnections.CompressionNone,
+				ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForCompression(), false),
 			},
 
 			"database_name": {
@@ -119,7 +117,7 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.Any(
-					validate.ClusterID,
+					clusters.ValidateClusterID,
 					commonids.ValidateUserAssignedIdentityID,
 				),
 			},
@@ -131,33 +129,17 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 			},
 
 			"data_format": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(kusto.EventHubDataFormatAPACHEAVRO),
-					string(kusto.EventHubDataFormatAVRO),
-					string(kusto.EventHubDataFormatCSV),
-					string(kusto.EventHubDataFormatJSON),
-					string(kusto.EventHubDataFormatMULTIJSON),
-					string(kusto.EventHubDataFormatPSV),
-					string(kusto.EventHubDataFormatRAW),
-					string(kusto.EventHubDataFormatSCSV),
-					string(kusto.EventHubDataFormatSINGLEJSON),
-					string(kusto.EventHubDataFormatSOHSV),
-					string(kusto.EventHubDataFormatTSV),
-					string(kusto.EventHubDataFormatTXT),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForEventHubDataFormat(), false),
 			},
 
 			"database_routing_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(kusto.DatabaseRoutingSingle),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(kusto.DatabaseRoutingSingle),
-					string(kusto.DatabaseRoutingMulti),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(dataconnections.DatabaseRoutingSingle),
+				ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForDatabaseRouting(), false),
 			},
 		},
 	}
@@ -171,19 +153,19 @@ func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, 
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Event Hub Data Connection creation.")
 
-	id := parse.NewDataConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("database_name").(string), d.Get("name").(string))
+	id := dataconnections.NewDataConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		connectionModel, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
+		connectionModel, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(connectionModel.Response) {
+			if !response.WasNotFound(connectionModel.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if dataConnection, ok := connectionModel.Value.(kusto.EventHubDataConnection); ok {
-			if dataConnection.ID != nil && *dataConnection.ID != "" {
-				return tf.ImportAsExistsError("azurerm_kusto_eventhub_data_connection", *dataConnection.ID)
+		if dataConnection, ok := (*connectionModel.Model).(dataconnections.EventHubDataConnection); ok {
+			if dataConnection.Id != nil && *dataConnection.Id != "" {
+				return tf.ImportAsExistsError("azurerm_kusto_eventhub_data_connection", *dataConnection.Id)
 			}
 		}
 	}
@@ -192,23 +174,20 @@ func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, 
 
 	eventHubDataConnectionProperties := expandKustoEventHubDataConnectionProperties(d)
 
-	dataConnection1 := kusto.EventHubDataConnection{
-		Name:                         &id.Name,
-		Location:                     &location,
-		EventHubConnectionProperties: eventHubDataConnectionProperties,
+	dataConnection1 := dataconnections.EventHubDataConnection{
+		Name:       &id.DataConnectionName,
+		Location:   &location,
+		Properties: eventHubDataConnectionProperties,
 	}
 
 	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
-		dataConnection1.DatabaseRouting = kusto.DatabaseRouting(databaseRouting.(string))
+		dbRouting := dataconnections.DatabaseRouting(databaseRouting.(string))
+		dataConnection1.Properties.DatabaseRouting = &dbRouting
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, dataConnection1)
+	err := client.CreateOrUpdateThenPoll(ctx, id, dataConnection1)
 	if err != nil {
 		return fmt.Errorf("creating or updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -221,40 +200,42 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataConnectionID(d.Id())
+	id, err := dataconnections.ParseDataConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	connectionModel, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(connectionModel.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("retrieving Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.DataConnectionName, id.ResourceGroupName, id.ClusterName, id.DatabaseName, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.DataConnectionName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("cluster_name", id.ClusterName)
 	d.Set("database_name", id.DatabaseName)
 
-	if dataConnection, ok := connectionModel.Value.(kusto.EventHubDataConnection); ok {
-		if location := dataConnection.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
-		}
+	if resp.Model != nil {
+		if dataConnection, ok := (*resp.Model).(dataconnections.EventHubDataConnection); ok {
+			if location := dataConnection.Location; location != nil {
+				d.Set("location", azure.NormalizeLocation(*location))
+			}
 
-		if props := dataConnection.EventHubConnectionProperties; props != nil {
-			d.Set("eventhub_id", props.EventHubResourceID)
-			d.Set("consumer_group", props.ConsumerGroup)
-			d.Set("table_name", props.TableName)
-			d.Set("mapping_rule_name", props.MappingRuleName)
-			d.Set("data_format", props.DataFormat)
-			d.Set("database_routing_type", props.DatabaseRouting)
-			d.Set("compression", props.Compression)
-			d.Set("event_system_properties", props.EventSystemProperties)
-			d.Set("identity_id", props.ManagedIdentityResourceID)
+			if props := dataConnection.Properties; props != nil {
+				d.Set("eventhub_id", props.EventHubResourceId)
+				d.Set("consumer_group", props.ConsumerGroup)
+				d.Set("table_name", props.TableName)
+				d.Set("mapping_rule_name", props.MappingRuleName)
+				d.Set("data_format", props.DataFormat)
+				d.Set("database_routing_type", props.DatabaseRouting)
+				d.Set("compression", props.Compression)
+				d.Set("event_system_properties", props.EventSystemProperties)
+				d.Set("identity_id", props.ManagedIdentityResourceId)
+			}
 		}
 	}
 
@@ -266,32 +247,28 @@ func resourceKustoEventHubDataConnectionDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataConnectionID(d.Id())
+	id, err := dataconnections.ParseDataConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("deleting Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("deleting Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.DataConnectionName, id.ResourceGroupName, id.ClusterName, id.DatabaseName, err)
 	}
 
 	return nil
 }
 
-func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *kusto.EventHubConnectionProperties {
-	eventHubConnectionProperties := &kusto.EventHubConnectionProperties{}
+func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *dataconnections.EventHubConnectionProperties {
+	eventHubConnectionProperties := &dataconnections.EventHubConnectionProperties{}
 
 	if eventhubResourceID, ok := d.GetOk("eventhub_id"); ok {
-		eventHubConnectionProperties.EventHubResourceID = utils.String(eventhubResourceID.(string))
+		eventHubConnectionProperties.EventHubResourceId = eventhubResourceID.(string)
 	}
 
 	if consumerGroup, ok := d.GetOk("consumer_group"); ok {
-		eventHubConnectionProperties.ConsumerGroup = utils.String(consumerGroup.(string))
+		eventHubConnectionProperties.ConsumerGroup = consumerGroup.(string)
 	}
 
 	if tableName, ok := d.GetOk("table_name"); ok {
@@ -303,11 +280,13 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *kus
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
-		eventHubConnectionProperties.DataFormat = kusto.EventHubDataFormat(df.(string))
+		dataFormat := dataconnections.EventHubDataFormat(df.(string))
+		eventHubConnectionProperties.DataFormat = &dataFormat
 	}
 
 	if compression, ok := d.GetOk("compression"); ok {
-		eventHubConnectionProperties.Compression = kusto.Compression(compression.(string))
+		comp := dataconnections.Compression(compression.(string))
+		eventHubConnectionProperties.Compression = &comp
 	}
 
 	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {
@@ -319,7 +298,7 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *kus
 	}
 
 	if identityId, ok := d.GetOk("identity_id"); ok {
-		eventHubConnectionProperties.ManagedIdentityResourceID = utils.String(identityId.(string))
+		eventHubConnectionProperties.ManagedIdentityResourceId = utils.String(identityId.(string))
 	}
 
 	return eventHubConnectionProperties

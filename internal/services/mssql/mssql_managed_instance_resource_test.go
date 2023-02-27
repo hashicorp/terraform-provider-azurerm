@@ -928,6 +928,18 @@ const managedInstanceStaticRoutes = `
   }
 
   route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.francecentral"
+    address_prefix = "Storage.francecentral"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.francesouth"
+    address_prefix = "Storage.francesouth"
+    next_hop_type  = "Internet"
+  }
+
+  route {
     name           = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westeurope"
     address_prefix = "EventHub.westeurope"
     next_hop_type  = "Internet"
