@@ -651,7 +651,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-				state.HostingEnvId = utils.NormalizeNilableString(hostingEnv.ID)
+				state.HostingEnvId = pointer.From(hostingEnv.ID)
 			}
 
 			functionApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)

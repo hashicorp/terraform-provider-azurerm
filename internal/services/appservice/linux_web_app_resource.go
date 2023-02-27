@@ -546,12 +546,11 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
 
-			if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-				state.HostingEnvId = utils.NormalizeNilableString(hostingEnv.ID)
+				state.HostingEnvId = pointer.From(hostingEnv.ID)
 			}
 
-			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+			if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
 				state.VirtualNetworkSubnetID = subnetId
 			}
 

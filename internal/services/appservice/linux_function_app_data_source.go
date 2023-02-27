@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"strconv"
 	"strings"
 	"time"
@@ -330,7 +331,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-				state.HostingEnvId = utils.NormalizeNilableString(hostingEnv.ID)
+				state.HostingEnvId = pointer.From(hostingEnv.ID)
 			}
 
 			if v := props.OutboundIPAddresses; v != nil {

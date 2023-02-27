@@ -199,6 +199,11 @@ func (r LinuxWebAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"hosting_environment_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"kind": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -514,7 +519,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-				state.HostingEnvId = utils.NormalizeNilableString(hostingEnv.ID)
+				state.HostingEnvId = pointer.From(hostingEnv.ID)
 			}
 
 			webApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
