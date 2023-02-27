@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationnetworkmappings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectableitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainermappings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainers"
@@ -38,6 +39,7 @@ type Client struct {
 	ReplicationPoliciesClient                 *replicationpolicies.ReplicationPoliciesClient
 	ContainerMappingClient                    *replicationprotectioncontainermappings.ReplicationProtectionContainerMappingsClient
 	NetworkMappingClient                      *replicationnetworkmappings.ReplicationNetworkMappingsClient
+	ReplicationProtectableItemsClient         *replicationprotectableitems.ReplicationProtectableItemsClient
 	ReplicationProtectedItemsClient           *replicationprotecteditems.ReplicationProtectedItemsClient
 	ReplicationRecoveryPlansClient            *replicationrecoveryplans.ReplicationRecoveryPlansClient
 }
@@ -97,6 +99,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	networkMappingClient := replicationnetworkmappings.NewReplicationNetworkMappingsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&networkMappingClient.Client, o.ResourceManagerAuthorizer)
 
+	replicationProtectableItemsCLient := replicationprotectableitems.NewReplicationProtectableItemsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&replicationProtectableItemsCLient.Client, o.ResourceManagerAuthorizer)
+
 	replicationMigrationItemsClient := replicationprotecteditems.NewReplicationProtectedItemsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&replicationMigrationItemsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -122,6 +127,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ReplicationPoliciesClient:                 &replicationPoliciesClient,
 		ContainerMappingClient:                    &containerMappingClient,
 		NetworkMappingClient:                      &networkMappingClient,
+		ReplicationProtectableItemsClient:         &replicationProtectableItemsCLient,
 		ReplicationProtectedItemsClient:           &replicationMigrationItemsClient,
 		ReplicationRecoveryPlansClient:            &replicationRecoveryPlanClient,
 	}

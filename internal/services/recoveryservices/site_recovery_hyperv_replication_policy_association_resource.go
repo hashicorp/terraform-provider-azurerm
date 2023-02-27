@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainermappings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -88,7 +87,7 @@ func (h HyperVReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.RecoveryServices.ContainerMappingClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			containerId, err := fetchHyperVReplicationPolicyAssociationContainerNameByHostName(ctx, metadata.Client.RecoveryServices.ProtectionContainerClient, *parsedFabricId)
+			containerId, err := fetchHyperVContainerIdByFabricId(ctx, metadata.Client.RecoveryServices.ProtectionContainerClient, *parsedFabricId)
 			if err != nil {
 				return fmt.Errorf("fetching container id: %+v", err)
 			}
@@ -179,26 +178,4 @@ func (h HyperVReplicationPolicyAssociationResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func fetchHyperVReplicationPolicyAssociationContainerNameByHostName(ctx context.Context, containerClient *replicationprotectioncontainers.ReplicationProtectionContainersClient, fabricId replicationfabrics.ReplicationFabricId) (string, error) {
-	id, err := replicationprotectioncontainers.ParseReplicationFabricID(fabricId.ID())
-	if err != nil {
-		return "", fmt.Errorf("parsing %s: %+v", fabricId.ID(), err)
-	}
-
-	resp, err := containerClient.ListByReplicationFabricsComplete(ctx, *id)
-	if err != nil {
-		return "", fmt.Errorf("listing containers: %+v", err)
-	}
-
-	if len(resp.Items) == 0 || len(resp.Items) > 1 {
-		return "", fmt.Errorf("expected one container but got %d", len(resp.Items))
-	}
-
-	if resp.Items[0].Id == nil {
-		return "", fmt.Errorf("container id is nil")
-	}
-
-	return handleAzureSdkForGoBug2824(*resp.Items[0].Id), nil
 }
