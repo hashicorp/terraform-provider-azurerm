@@ -40,10 +40,16 @@ ENHANCEMENTS
 * `azurerm_express_route_connection` - support for the `inbound_route_map_id`, `outbound_route_map_id`, and `enabled_private_link_fast_path` properties ([#20619](https://github.com/hashicorp/terraform-provider-azurerm/issues/20619))
 * `azurerm_kusto_cluster_customer_managed_key` - `key_version` is now Optional to allow for auto-rotation of key ([#20583](https://github.com/hashicorp/terraform-provider-azurerm/issues/20583))
 * `azurerm_linux_virtual_machine` - strengthen validation for `admin_password` ([#20558](https://github.com/hashicorp/terraform-provider-azurerm/issues/20558))
+* `azurerm_linux_web_app` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` ([#20449](https://github.com/hashicorp/terraform-provider-azurerm/issues/20449))
+* `azurerm_linux_web_app_slot` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` ([#20449](https://github.com/hashicorp/terraform-provider-azurerm/issues/20449))
 * `azurerm_postgresql_flexible_server` - a server can now be created without enabling password authtication ([#20578](https://github.com/hashicorp/terraform-provider-azurerm/issues/20578))
 * `azurerm_media_streaming_endpoint` - add support for reading `sku` and increase limit for `scale_units` ([#20585](https://github.com/hashicorp/terraform-provider-azurerm/issues/20585))
 * `azurerm_recovery_services_vault` - add support for `classic_vmware_replication_enabled` ([#20473](https://github.com/hashicorp/terraform-provider-azurerm/issues/20473))
 * `azurerm_windows_virtual_machine` - strengthen validation for `admin_password` ([#20558](https://github.com/hashicorp/terraform-provider-azurerm/issues/20558))
+* `azurerm_windows_web_app` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` ([#20449](https://github.com/hashicorp/terraform-provider-azurerm/issues/20449))
+* `azurerm_windows_web_app_slot` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` ([#20449](https://github.com/hashicorp/terraform-provider-azurerm/issues/20449))
+* **Data Source:** `azurerm_linux_web_app` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` ([#20449](https://github.com/hashicorp/terraform-provider-azurerm/issues/20449))
+* **Data Source:**`azurerm_windows_web_app` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` ([#20449](https://github.com/hashicorp/terraform-provider-azurerm/issues/20449))
 
 BUG FIXES
 
