@@ -19,7 +19,8 @@ BUG FIXES
 * Data Source: `azurerm_automation_variable_datetime` - fixed a regression in read [GH-20665]
 * Data Source: `azurerm_automation_variable_int` - fixed a regression in read [GH-20665]
 * Data Source: `azurerm_automation_variable_string` - fixed a regression in read [GH-20665]
-
+* `azurerm_storage_object_replication` - now functions when cross tenant replication is disabled [GH-20132]
+ 
 ## 3.45.0 (February 23, 2023)
 
 FEATURES
