@@ -43,7 +43,11 @@ func importSentinelAlertRule(expectKind alertrules.AlertRuleKind) pluginsdk.Impo
 			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 		}
 
-		if err := assertAlertRuleKind(resp.Model, expectKind); err != nil {
+		if resp.Model == nil {
+			return nil, fmt.Errorf("retrieving %q: model was nil", id)
+		}
+
+		if err = assertAlertRuleKind(*resp.Model, expectKind); err != nil {
 			return nil, err
 		}
 		return []*pluginsdk.ResourceData{d}, nil
