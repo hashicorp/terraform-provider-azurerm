@@ -121,7 +121,7 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "%s"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
   depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
