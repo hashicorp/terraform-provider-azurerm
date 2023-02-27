@@ -163,7 +163,7 @@ func resourceHealthbotServiceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if resp, err := client.BotsUpdate(ctx, *id, payload); err != nil {
-		// update check logic once the issue https://github.com/Azure/azure-rest-api-specs/issues/19603 is fixed
+		// update check logic once the issue https://github.com/Azure/azure-rest-api-specs/issues/22791 is fixed
 		if !response.WasStatusCode(resp.HttpResponse, http.StatusCreated) {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
