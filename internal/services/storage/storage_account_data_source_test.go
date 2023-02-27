@@ -52,7 +52,7 @@ func TestAccDataSourceStorageAccount_withWriteLock(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceStorageAccount_withEncryptionKey(t *testing.T) {
+func TestAccDataSourceStorageAccount_withEncryptionKey_Service(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -63,6 +63,13 @@ func TestAccDataSourceStorageAccount_withEncryptionKey(t *testing.T) {
 				check.That(data.ResourceName).Key("queue_encryption_key_type").HasValue("Service"),
 			),
 		},
+	})
+}
+
+func TestAccDataSourceStorageAccount_withEncryptionKey_Account(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: StorageAccountDataSource{}.encryptionKeyWithDataSource(data, "Account"),
 			Check: acceptance.ComposeTestCheckFunc(
