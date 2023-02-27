@@ -15,6 +15,10 @@ ENHANCEMENTS
 BUG FIXES
 
 * `azurerm_azurerm_netapp_volume` - Fix potential nil panic in resource read [GH-20662]
+* Data Source: `azurerm_automation_variable_bool` - fixed a regression in read [GH-20665]
+* Data Source: `azurerm_automation_variable_datetime` - fixed a regression in read [GH-20665]
+* Data Source: `azurerm_automation_variable_int` - fixed a regression in read [GH-20665]
+* Data Source: `azurerm_automation_variable_string` - fixed a regression in read [GH-20665]
 
 ## 3.45.0 (February 23, 2023)
 
