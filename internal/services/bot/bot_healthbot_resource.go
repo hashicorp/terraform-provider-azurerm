@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -161,8 +162,11 @@ func resourceHealthbotServiceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.BotsUpdate(ctx, *id, payload); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+	if resp, err := client.BotsUpdate(ctx, *id, payload); err != nil {
+		// update check logic once the issue https://github.com/Azure/azure-rest-api-specs/issues/19603 is fixed
+		if !response.WasStatusCode(resp.HttpResponse, http.StatusCreated) {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 	return resourceHealthbotServiceRead(d, meta)
 }
