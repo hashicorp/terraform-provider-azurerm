@@ -43,20 +43,21 @@ func importSentinelAlertRule(expectKind alertrules.AlertRuleKind) pluginsdk.Impo
 			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 		}
 
-		if resp.Model == nil {
-			return nil, fmt.Errorf("retrieving %q: model was nil", id)
-		}
-
-		if err = assertAlertRuleKind(*resp.Model, expectKind); err != nil {
+		if err = assertAlertRuleKind(resp.Model, expectKind); err != nil {
 			return nil, err
 		}
 		return []*pluginsdk.ResourceData{d}, nil
 	}
 }
 
-func assertAlertRuleKind(rule alertrules.AlertRule, expectKind alertrules.AlertRuleKind) error {
+func assertAlertRuleKind(rule *alertrules.AlertRule, expectKind alertrules.AlertRuleKind) error {
+	if rule == nil {
+		return fmt.Errorf("model was nil")
+	}
+
+	rulePtr := *rule
 	var kind alertrules.AlertRuleKind
-	switch rule.(type) {
+	switch rulePtr.(type) {
 	case alertrules.MLBehaviorAnalyticsAlertRule:
 		kind = alertrules.AlertRuleKindMLBehaviorAnalytics
 	case alertrules.FusionAlertRule:
