@@ -188,6 +188,29 @@ func TestAccCdnFrontDoorOrigin_privateLinkLoadBalancer(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorOrigin_removeOriginHostHeaderName(t *testing.T) {
+	// regression test case for issue 20617
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
+	r := CdnFrontDoorOriginResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.removeOriginHostHeader(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("origin_host_header").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CdnFrontDoorOriginResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontDoorOriginID(state.ID)
 	if err != nil {
@@ -685,4 +708,28 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, loadBalancerDependsOn, data.RandomInteger, profileSku, data.RandomInteger)
+}
+
+func (r CdnFrontDoorOriginResource) removeOriginHostHeader(data acceptance.TestData) string {
+	template := r.template(data, "Standard_AzureFrontDoor", false)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name                          = "acctest-cdnfdorigin-%d"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
+
+  certificate_name_check_enabled = false
+  host_name                      = "contoso.com"
+  http_port                      = 80
+  https_port                     = 443
+  priority                       = 1
+  weight                         = 1
+}
+`, template, data.RandomInteger)
 }
