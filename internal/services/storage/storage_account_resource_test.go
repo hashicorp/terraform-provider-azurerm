@@ -246,6 +246,14 @@ func TestAccStorageAccount_isHnsEnabled(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_isHnsDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.isHnsEnabledFalse(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -253,6 +261,7 @@ func TestAccStorageAccount_isHnsEnabled(t *testing.T) {
 				check.That(data.ResourceName).Key("is_hns_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1103,7 +1112,7 @@ func TestAccStorageAccount_defaultToOAuthAuthentication(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_encryptionKeyType(t *testing.T) {
+func TestAccStorageAccount_encryptionKeyType_Account(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1115,6 +1124,14 @@ func TestAccStorageAccount_encryptionKeyType(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_encryptionKeyType_Service(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.encryptionKeyType(data, "Service"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -3969,6 +3986,7 @@ resource "azurerm_storage_account" "test" {
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
+  infrastructure_encryption_enabled = true
   table_encryption_key_type = "Account"
   queue_encryption_key_type = "Account"
 
