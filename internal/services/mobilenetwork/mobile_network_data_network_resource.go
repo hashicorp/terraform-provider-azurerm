@@ -119,7 +119,7 @@ func (r DataNetworkResource) Create() sdk.ResourceFunc {
 
 func (r DataNetworkResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 180 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.DataNetworkClient
 
