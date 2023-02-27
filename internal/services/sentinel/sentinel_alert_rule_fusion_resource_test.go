@@ -126,13 +126,17 @@ func (r SentinelAlertRuleFusionResource) basic(data acceptance.TestData) string 
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "Advanced Multistage Attack Detection"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
   name                       = "acctest-SentinelAlertRule-Fusion-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -143,14 +147,18 @@ func (r SentinelAlertRuleFusionResource) disabled(data acceptance.TestData) stri
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "Advanced Multistage Attack Detection"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
   name                       = "acctest-SentinelAlertRule-Fusion-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
   enabled                    = false
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -161,13 +169,16 @@ func (r SentinelAlertRuleFusionResource) sourceSetting(data acceptance.TestData,
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "Advanced Multistage Attack Detection"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
   name                       = "acctest-SentinelAlertRule-Fusion-%[2]d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
-  alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  alert_rule_template_guid = data.azurerm_sentinel_alert_rule_template.test.name
   source {
     name    = "Anomalies"
     enabled = %[3]t
@@ -226,6 +237,8 @@ resource "azurerm_sentinel_alert_rule_fusion" "test" {
       enabled            = %[3]t
     }
   }
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger, enabled)
 }
@@ -260,17 +273,9 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_name      = azurerm_log_analytics_workspace.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

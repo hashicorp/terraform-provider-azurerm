@@ -87,7 +87,7 @@ func (r SentinelDataConnectorThreatIntelligenceResource) basic(data acceptance.T
 resource "azurerm_sentinel_data_connector_threat_intelligence" "test" {
   name                       = "accTestDC-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  depends_on                 = [azurerm_log_analytics_solution.test]
+  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, template, data.RandomInteger)
 }
@@ -103,7 +103,7 @@ resource "azurerm_sentinel_data_connector_threat_intelligence" "test" {
   name                       = "accTestDC-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   tenant_id                  = data.azurerm_client_config.test.tenant_id
-  depends_on                 = [azurerm_log_analytics_solution.test]
+  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
   lookback_date              = "1990-01-01T00:00:00Z"
 }
 `, template, data.RandomInteger)
@@ -139,17 +139,9 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_name      = azurerm_log_analytics_workspace.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

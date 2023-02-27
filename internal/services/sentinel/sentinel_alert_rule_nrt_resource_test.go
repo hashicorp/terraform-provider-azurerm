@@ -152,7 +152,7 @@ func (r SentinelAlertRuleNrtResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   display_name               = "Some Rule"
   severity                   = "High"
   query                      = <<QUERY
@@ -161,6 +161,8 @@ AzureActivity |
   where ActivityStatus == "Succeeded" |
   make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
 QUERY
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -171,7 +173,7 @@ func (r SentinelAlertRuleNrtResource) complete(data acceptance.TestData) string 
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   display_name               = "Complete Rule"
   description                = "Some Description"
   tactics                    = ["Collection", "CommandAndControl"]
@@ -224,6 +226,8 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
     OperatingSystemName = "OSName"
     OperatingSystemType = "OSType"
   }
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -234,7 +238,7 @@ func (r SentinelAlertRuleNrtResource) completeUpdate(data acceptance.TestData) s
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   display_name               = "Updated Complete Rule"
   severity                   = "High"
   query                      = "Heartbeat"
@@ -242,6 +246,8 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
     OperatingSystemName = "OSName"
     OperatingSystemType = "OSType"
   }
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -266,16 +272,20 @@ func (r SentinelAlertRuleNrtResource) alertRuleTemplateGuid(data acceptance.Test
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "NRT Base64 encoded Windows process command-lines"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   display_name               = "Some Rule"
   severity                   = "Low"
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
   query                      = "Heartbeat"
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -286,7 +296,7 @@ func (r SentinelAlertRuleNrtResource) eventGroupingSetting(data acceptance.TestD
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   display_name               = "Some Rule"
   severity                   = "High"
   query                      = <<QUERY
@@ -299,6 +309,8 @@ QUERY
   event_grouping {
     aggregation_method = "SingleAlert"
   }
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -309,7 +321,7 @@ func (r SentinelAlertRuleNrtResource) updateEventGroupingSetting(data acceptance
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   display_name               = "Some Rule"
   severity                   = "High"
   query                      = <<QUERY
@@ -322,6 +334,7 @@ QUERY
   event_grouping {
     aggregation_method = "AlertPerResult"
   }
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -344,17 +357,9 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_name      = azurerm_log_analytics_workspace.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

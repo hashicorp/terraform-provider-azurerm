@@ -136,7 +136,7 @@ func (r SentinelDataConnectorOffice365Resource) basic(data acceptance.TestData) 
 resource "azurerm_sentinel_data_connector_office_365" "test" {
   name                       = "accTestDC-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  depends_on                 = [azurerm_log_analytics_solution.test]
+  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, template, data.RandomInteger)
 }
@@ -155,7 +155,7 @@ resource "azurerm_sentinel_data_connector_office_365" "test" {
   exchange_enabled           = %t
   sharepoint_enabled         = %t
   teams_enabled              = %t
-  depends_on                 = [azurerm_log_analytics_solution.test]
+  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, template, data.RandomInteger, exchangeEnabled, sharePointEnabled, teamsEnabled)
 }
@@ -190,17 +190,9 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_name      = azurerm_log_analytics_workspace.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

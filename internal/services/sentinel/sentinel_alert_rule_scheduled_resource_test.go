@@ -152,7 +152,7 @@ func (r SentinelAlertRuleScheduledResource) basic(data acceptance.TestData) stri
 
 resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   name                       = "acctest-SentinelAlertRule-Sche-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   display_name               = "Some Rule"
   severity                   = "High"
   query                      = <<QUERY
@@ -161,6 +161,8 @@ AzureActivity |
   where ActivityStatus == "Succeeded" |
   make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
 QUERY
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -171,7 +173,7 @@ func (r SentinelAlertRuleScheduledResource) complete(data acceptance.TestData) s
 
 resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   name                       = "acctest-SentinelAlertRule-Sche-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   display_name               = "Complete Rule"
   description                = "Some Description"
   tactics                    = ["Collection", "CommandAndControl"]
@@ -228,6 +230,8 @@ resource "azurerm_sentinel_alert_rule_scheduled" "test" {
     OperatingSystemName = "OSName"
     OperatingSystemType = "OSType"
   }
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -238,7 +242,7 @@ func (r SentinelAlertRuleScheduledResource) completeUpdate(data acceptance.TestD
 
 resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   name                       = "acctest-SentinelAlertRule-Sche-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   display_name               = "Updated Complete Rule"
   severity                   = "High"
   query                      = "Heartbeat"
@@ -246,6 +250,9 @@ resource "azurerm_sentinel_alert_rule_scheduled" "test" {
     OperatingSystemName = "OSName"
     OperatingSystemType = "OSType"
   }
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -270,12 +277,14 @@ func (r SentinelAlertRuleScheduledResource) alertRuleTemplateGuid(data acceptanc
 
 resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   name                        = "acctest-SentinelAlertRule-Sche-%d"
-  log_analytics_workspace_id  = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id  = azurerm_log_analytics_workspace.test.id
   display_name                = "Some Rule"
   severity                    = "Low"
   alert_rule_template_guid    = "09ec8fa2-b25f-4696-bfae-05a7b85d7b9e"
   alert_rule_template_version = "1.2.1"
   query                       = "Heartbeat"
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -286,7 +295,7 @@ func (r SentinelAlertRuleScheduledResource) eventGroupingSetting(data acceptance
 
 resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   name                       = "acctest-SentinelAlertRule-Sche-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   display_name               = "Some Rule"
   severity                   = "Low"
   alert_rule_template_guid   = "65360bb0-8986-4ade-a89d-af3cf44d28aa"
@@ -300,6 +309,8 @@ QUERY
   event_grouping {
     aggregation_method = "SingleAlert"
   }
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -310,7 +321,7 @@ func (r SentinelAlertRuleScheduledResource) updateEventGroupingSetting(data acce
 
 resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   name                       = "acctest-SentinelAlertRule-Sche-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   display_name               = "Some Rule"
   severity                   = "Low"
   alert_rule_template_guid   = "65360bb0-8986-4ade-a89d-af3cf44d28aa"
@@ -324,6 +335,9 @@ QUERY
   event_grouping {
     aggregation_method = "AlertPerResult"
   }
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -357,6 +371,11 @@ resource "azurerm_log_analytics_solution" "test" {
     publisher = "Microsoft"
     product   = "OMSGallery/SecurityInsights"
   }
+}
+
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_name      = azurerm_log_analytics_workspace.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

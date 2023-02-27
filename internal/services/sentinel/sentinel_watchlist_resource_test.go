@@ -85,9 +85,11 @@ func (r WatchlistResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_sentinel_watchlist" "test" {
   name                       = "accTestWL-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   display_name               = "test"
   item_search_key            = "Key"
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, template, data.RandomInteger)
 }
@@ -99,12 +101,14 @@ func (r WatchlistResource) complete(data acceptance.TestData) string {
 
 resource "azurerm_sentinel_watchlist" "test" {
   name                       = "accTestWL-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   display_name               = "test"
   description                = "description"
   labels                     = ["label1", "laebl2"]
   default_duration           = "P2DT3H"
   item_search_key            = "Key"
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, template, data.RandomInteger)
 }
@@ -141,17 +145,10 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "sentinel" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_name      = azurerm_log_analytics_workspace.test.name
 }
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -29,22 +29,14 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "example" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  workspace_resource_id = azurerm_log_analytics_workspace.example.id
-  workspace_name        = azurerm_log_analytics_workspace.example.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
+  resource_group_name = azurerm_resource_group.example.name
+  workspace_name      = azurerm_log_analytics_workspace.example.name
 }
 
 resource "azurerm_sentinel_alert_rule_scheduled" "example" {
   name                       = "example"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.example.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
   display_name               = "example"
   severity                   = "High"
   query                      = <<QUERY
@@ -53,6 +45,8 @@ AzureActivity |
   where ActivityStatus == "Succeeded" |
   make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
 QUERY
+
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.example]
 }
 ```
 

@@ -170,7 +170,7 @@ resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "test" {
   collection_id              = "%s"
   user_name                  = "%s"
   password                   = "%s"
-  depends_on                 = [azurerm_log_analytics_solution.test]
+  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, template, data.RandomInteger, r.taxiiInfo.APIRootURL, r.taxiiInfo.CollectionID, r.taxiiInfo.UserName, r.taxiiInfo.Password)
 }
@@ -190,7 +190,7 @@ resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "test" {
   password                   = "%s"
   polling_frequency          = "OnceADay"
   lookback_date              = "1990-01-01T00:00:00Z"
-  depends_on                 = [azurerm_log_analytics_solution.test]
+  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, template, data.RandomInteger, r.taxiiInfo.APIRootURL, r.taxiiInfo.CollectionID, r.taxiiInfo.UserName, r.taxiiInfo.Password)
 }
@@ -210,7 +210,7 @@ resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "test" {
   password                   = "%s"
   polling_frequency          = "OnceADay"
   lookback_date              = "1990-01-01T00:00:00Z"
-  depends_on                 = [azurerm_log_analytics_solution.test]
+  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, template, data.RandomInteger, r.taxiiInfoAlt.APIRootURL, r.taxiiInfoAlt.CollectionID, r.taxiiInfoAlt.UserName, r.taxiiInfoAlt.Password)
 }
@@ -248,17 +248,9 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_name      = azurerm_log_analytics_workspace.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
