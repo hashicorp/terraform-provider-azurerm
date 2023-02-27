@@ -26,6 +26,7 @@ type WindowsWebAppDataSourceModel struct {
 	ServicePlanId                 string                      `tfschema:"service_plan_id"`
 	AppSettings                   map[string]string           `tfschema:"app_settings"`
 	AuthSettings                  []helpers.AuthSettings      `tfschema:"auth_settings"`
+	AuthV2Settings                []helpers.AuthV2Settings    `tfschema:"auth_settings_v2"`
 	Backup                        []helpers.Backup            `tfschema:"backup"`
 	ClientAffinityEnabled         bool                        `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                        `tfschema:"client_certificate_enabled"`
@@ -91,6 +92,8 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
+
+		"auth_settings_v2": helpers.AuthV2SettingsComputedSchema(),
 
 		"backup": helpers.BackupSchemaComputed(),
 
@@ -227,6 +230,11 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
 			}
 
+			authV2, err := client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading authV2 settings for Linux %s: %+v", id, err)
+			}
+
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(backup.Response) {
@@ -309,12 +317,17 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
 				webApp.PossibleOutboundIPAddresses = utils.NormalizeNilableString(props.PossibleOutboundIPAddresses)
 				webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
+				if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+					webApp.VirtualNetworkSubnetID = subnetId
+				}
 				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 					webApp.HostingEnvId = utils.NormalizeNilableString(hostingEnv.ID)
 				}
 			}
 
 			webApp.AuthSettings = helpers.FlattenAuthSettings(auth)
+
+			webApp.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
 			webApp.Backup = helpers.FlattenBackupConfig(backup)
 

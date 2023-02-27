@@ -13,6 +13,7 @@ import (
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
 	redis_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01"
+	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -190,7 +191,7 @@ type Client struct {
 	HealthCare            *healthcare.Client
 	IoTCentral            *iotcentral.Client
 	IoTHub                *iothub.Client
-	IoTTimeSeriesInsights *timeseriesinsights.Client
+	IoTTimeSeriesInsights *timeseriesinsights_v2020_05_15.Client
 	KeyVault              *keyvault.Client
 	Kusto                 *kusto.Client
 	LabService            *labservice.Client

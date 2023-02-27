@@ -486,6 +486,8 @@ A `key_vault_secrets_provider` block supports the following:
 
 * `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
 
+-> **NOTE:** To enable`key_vault_secrets_provider` either `secret_rotation_enabled` or `secret_rotation_interval` must be specified.
+
 ---
 
 A `kubelet_config` block supports the following:
@@ -792,7 +794,7 @@ A `sysctl_config` block supports the following:
 
 A `web_app_routing` block supports the following:
 
-* `dns_zone_id` - (Required) Specifies the ID of the DNS Zone in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled.
+* `dns_zone_id` - (Required) Specifies the ID of the DNS Zone in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled. For Bring-Your-Own DNS zones this property should be set to an empty string `""`.
 
 ---
 

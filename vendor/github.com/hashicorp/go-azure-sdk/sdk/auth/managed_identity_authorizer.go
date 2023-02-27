@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -114,7 +115,8 @@ func (a *ManagedIdentityAuthorizer) Token(ctx context.Context, _ *http.Request) 
 
 // AuxiliaryTokens returns additional tokens for auxiliary tenant IDs, for use in multi-tenant scenarios
 func (a *ManagedIdentityAuthorizer) AuxiliaryTokens(_ context.Context, _ *http.Request) ([]*oauth2.Token, error) {
-	return nil, fmt.Errorf("auxiliary tokens are not supported with MSI authentication")
+	// auxiliary tokens are not supported with MSI authentication, so just return an empty slice
+	return []*oauth2.Token{}, nil
 }
 
 // managedIdentityConfig configures an ManagedIdentityAuthorizer.
@@ -149,15 +151,18 @@ func newManagedIdentityConfig(resource, clientId, customManagedIdentityEndpoint 
 }
 
 // TokenSource provides a source for obtaining access tokens using ManagedIdentityAuthorizer.
-func (c *managedIdentityConfig) TokenSource(ctx context.Context) (Authorizer, error) {
+func (c *managedIdentityConfig) TokenSource(_ context.Context) (Authorizer, error) {
 	return NewCachedAuthorizer(&ManagedIdentityAuthorizer{
 		conf: c,
 	})
 }
 
 func azureMetadata(ctx context.Context, url string) (body []byte, err error) {
+	ctx2, cancel := context.WithDeadline(ctx, time.Now().Add(time.Second*30))
+	defer cancel()
+
 	var req *http.Request
-	req, err = http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
+	req, err = http.NewRequestWithContext(ctx2, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return
 	}
@@ -165,13 +170,16 @@ func azureMetadata(ctx context.Context, url string) (body []byte, err error) {
 		"Metadata": []string{"true"},
 	}
 	client := &http.Client{
-		Timeout: msiDefaultTimeout,
+		Transport: http.DefaultTransport,
+		Timeout:   msiDefaultTimeout,
 	}
 	var resp *http.Response
+	log.Printf("[DEBUG] Performing %s Request to %q", req.Method, url)
 	resp, err = client.Do(req)
 	if err != nil {
 		return
 	}
+	log.Printf("[DEBUG] Reading Body from %s %q", req.Method, url)
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return

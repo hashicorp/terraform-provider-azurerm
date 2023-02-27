@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	kustoValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceKustoDatabase() *pluginsdk.Resource {
@@ -68,34 +69,34 @@ func dataSourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
+	id := databases.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.Value == nil {
+	if resp.Model == nil {
 		return fmt.Errorf("retrieving %s: response was nil", id)
 	}
 
-	database, ok := resp.Value.AsReadWriteDatabase()
+	database, ok := (*resp.Model).(databases.ReadWriteDatabase)
 	if !ok {
 		return fmt.Errorf("%s was not a Read/Write Database", id)
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.DatabaseName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("cluster_name", id.ClusterName)
 	d.Set("location", location.NormalizeNilable(database.Location))
 
-	if props := database.ReadWriteDatabaseProperties; props != nil {
+	if props := database.Properties; props != nil {
 		d.Set("hot_cache_period", props.HotCachePeriod)
 		d.Set("soft_delete_period", props.SoftDeletePeriod)
 

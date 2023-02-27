@@ -599,7 +599,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("sku", sku.Name)
 		}
 
-		managedResourceGroupID, err := resourcesParse.ResourceGroupID(model.Properties.ManagedResourceGroupId)
+		managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(model.Properties.ManagedResourceGroupId)
 		if err != nil {
 			return err
 		}
@@ -820,7 +820,7 @@ func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameter
 		parameters["virtual_network_id"] = v.Value
 	}
 
-	lbId, err := loadBalancerParse.LoadBalancerID(loadBalancerId)
+	lbId, err := loadBalancerParse.LoadBalancerIDInsensitively(loadBalancerId)
 
 	if err == nil {
 		backendId := loadBalancerParse.NewLoadBalancerBackendAddressPoolID(lbId.SubscriptionId, lbId.ResourceGroup, lbId.Name, backendName)

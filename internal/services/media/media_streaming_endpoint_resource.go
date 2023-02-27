@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingendpoints"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -75,7 +75,7 @@ func resourceMediaStreamingEndpoint() *pluginsdk.Resource {
 			"scale_units": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(0, 10),
+				ValidateFunc: validation.IntBetween(0, 50),
 			},
 
 			"access_control": {
@@ -132,6 +132,23 @@ func resourceMediaStreamingEndpoint() *pluginsdk.Resource {
 								},
 							},
 							AtLeastOneOf: []string{"access_control.0.akamai_signature_header_authentication_key", "access_control.0.ip_allow"},
+						},
+					},
+				},
+			},
+
+			"sku": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"capacity": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
 						},
 					},
 				},
@@ -212,14 +229,14 @@ func resourceMediaStreamingEndpoint() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceMediaStreamingEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Media.V20200501Client.StreamingEndpoints
+	client := meta.(*clients.Client).Media.V20220801Client.StreamingEndpoints
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -239,6 +256,7 @@ func resourceMediaStreamingEndpointCreate(d *pluginsdk.ResourceData, meta interf
 			ScaleUnits: int64(d.Get("scale_units").(int)),
 		},
 		Location: location.Normalize(d.Get("location").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	autoStart := utils.Bool(false)
@@ -294,7 +312,7 @@ func resourceMediaStreamingEndpointCreate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceMediaStreamingEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.StreamingEndpoints
+	client := meta.(*clients.Client).Media.V20220801Client.StreamingEndpoints
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -303,15 +321,6 @@ func resourceMediaStreamingEndpointUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 	scaleUnits := d.Get("scale_units").(int)
-
-	// TODO: refactor to retrieve the existing and use d.HasChanges consistently once the Update operation has been moved
-	// https://github.com/Azure/azure-rest-api-specs/pull/21581
-	payload := streamingendpoints.StreamingEndpoint{
-		Properties: &streamingendpoints.StreamingEndpointProperties{
-			ScaleUnits: int64(scaleUnits),
-		},
-		Location: location.Normalize(d.Get("location").(string)),
-	}
 
 	if d.HasChange("scale_units") {
 		scaleParameters := streamingendpoints.StreamingEntityScaleUnit{
@@ -322,44 +331,57 @@ func resourceMediaStreamingEndpointUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	if _, ok := d.GetOk("access_control"); ok {
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	if resp.Model == nil || resp.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: model was nil", *id)
+	}
+
+	existing := resp.Model
+
+	if d.HasChange("access_control") {
 		accessControl, err := expandAccessControl(d)
 		if err != nil {
 			return err
 		}
-		payload.Properties.AccessControl = accessControl
+		existing.Properties.AccessControl = accessControl
 	}
 
-	if cdnEnabled, ok := d.GetOk("cdn_enabled"); ok {
-		payload.Properties.CdnEnabled = utils.Bool(cdnEnabled.(bool))
+	if d.HasChange("cdn_enabled") {
+		existing.Properties.CdnEnabled = utils.Bool(d.Get("cdn_enabled").(bool))
 	}
 
-	if cdnProfile, ok := d.GetOk("cdn_profile"); ok {
-		payload.Properties.CdnProfile = utils.String(cdnProfile.(string))
+	if d.HasChange("cdn_profile") {
+		existing.Properties.CdnProfile = utils.String(d.Get("cdn_profile").(string))
 	}
 
-	if cdnProvider, ok := d.GetOk("cdn_provider"); ok {
-		payload.Properties.CdnProvider = utils.String(cdnProvider.(string))
+	if d.HasChange("cdn_provider") {
+		existing.Properties.CdnProvider = utils.String(d.Get("cdn_provider").(string))
 	}
 
-	if crossSitePolicies, ok := d.GetOk("cross_site_access_policy"); ok {
-		payload.Properties.CrossSiteAccessPolicies = expandStreamingEndpointCrossSiteAccessPolicies(crossSitePolicies.([]interface{}))
+	if d.HasChange("cross_site_access_policy") {
+		existing.Properties.CrossSiteAccessPolicies = expandStreamingEndpointCrossSiteAccessPolicies(d.Get("cross_site_access_policy").([]interface{}))
 	}
 
-	if _, ok := d.GetOk("custom_host_names"); ok {
-		customHostNames := d.Get("custom_host_names").([]interface{})
-		payload.Properties.CustomHostNames = utils.ExpandStringSlice(customHostNames)
+	if d.HasChange("custom_host_names") {
+		existing.Properties.CustomHostNames = utils.ExpandStringSlice(d.Get("custom_host_names").([]interface{}))
 	}
 
-	if description, ok := d.GetOk("description"); ok {
-		payload.Properties.Description = utils.String(description.(string))
+	if d.HasChange("description") {
+		existing.Properties.Description = utils.String(d.Get("description").(string))
 	}
 
-	if maxCacheAge, ok := d.GetOk("max_cache_age_seconds"); ok {
-		payload.Properties.MaxCacheAge = utils.Int64(int64(maxCacheAge.(int)))
+	if d.HasChange("max_cache_age_seconds") {
+		existing.Properties.MaxCacheAge = utils.Int64(int64(d.Get("max_cache_age_seconds").(int)))
 	}
 
-	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+	if d.HasChange("tags") {
+		existing.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.UpdateThenPoll(ctx, *id, *existing); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -367,7 +389,7 @@ func resourceMediaStreamingEndpointUpdate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceMediaStreamingEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.StreamingEndpoints
+	client := meta.(*clients.Client).Media.V20220801Client.StreamingEndpoints
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -423,13 +445,19 @@ func resourceMediaStreamingEndpointRead(d *pluginsdk.ResourceData, meta interfac
 			}
 			d.Set("max_cache_age_seconds", maxCacheAge)
 		}
+
+		d.Set("sku", flattenEndpointSku(model.Sku))
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
 
 	return nil
 }
 
 func resourceMediaStreamingEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.StreamingEndpoints
+	client := meta.(*clients.Client).Media.V20220801Client.StreamingEndpoints
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -523,6 +551,30 @@ func expandAccessControl(d *pluginsdk.ResourceData) (*streamingendpoints.Streami
 	}
 
 	return accessControlResult, nil
+}
+
+func flattenEndpointSku(input *streamingendpoints.ArmStreamingEndpointCurrentSku) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	skuName := ""
+	if input.Name != nil {
+		skuName = *input.Name
+	}
+
+	skuCapacity := 0
+	if input.Capacity != nil {
+		skuCapacity = int(*input.Capacity)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"name":     skuName,
+			"capacity": skuCapacity,
+		},
+	}
+
 }
 
 func flattenAccessControl(input *streamingendpoints.StreamingEndpointAccessControl) (*[]interface{}, error) {
