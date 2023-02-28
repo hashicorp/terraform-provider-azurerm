@@ -1216,6 +1216,46 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"vertical_pod_autoscaler_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"vertical_pod_autoscaler_update_mode": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"vertical_pod_autoscaler_controlled_values": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						//"vertical_pod_autoscaler": {
+						//	Type:     pluginsdk.TypeList,
+						//	Optional: true,
+						//	MaxItems: 1,
+						//	Elem: &pluginsdk.Resource{
+						//		Schema: map[string]*pluginsdk.Schema{
+						//			"update_mode": {
+						//				Type:     pluginsdk.TypeString,
+						//				Required: true,
+						//				ValidateFunc: validation.StringInSlice([]string{
+						//					string(managedclusters.UpdateModeAuto),
+						//					string(managedclusters.UpdateModeInitial),
+						//					string(managedclusters.UpdateModeOff),
+						//					string(managedclusters.UpdateModeRecreate),
+						//				}, false),
+						//			},
+						//			"controlled_values": {
+						//				Type:     pluginsdk.TypeString,
+						//				Required: true,
+						//				ValidateFunc: validation.StringInSlice([]string{
+						//					string(managedclusters.ControlledValuesRequestsAndLimits),
+						//					string(managedclusters.ControlledValuesRequestsOnly),
+						//				}, false),
+						//			},
+						//		},
+						//	},
+						//},
 					},
 				},
 			},
@@ -1329,7 +1369,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
 
 	workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
-	workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw)
+	workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw, d)
 
 	apiAccessProfile := expandKubernetesClusterAPIAccessProfile(d)
 	if !(*apiAccessProfile.EnablePrivateCluster) && dnsPrefix == "" {
@@ -1892,7 +1932,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("workload_autoscaler_profile") {
 		updateCluster = true
 		workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
-		workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw)
+		workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw, d)
 		if workloadAutoscalerProfile == nil {
 			existing.Model.Properties.WorkloadAutoScalerProfile = &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
 				Keda: &managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{
@@ -2216,7 +2256,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `windows_profile`: %+v", err)
 		}
 
-		workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile, d)
+		workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
 		if err := d.Set("workload_autoscaler_profile", workloadAutoscalerProfile); err != nil {
 			return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
 		}
@@ -2588,20 +2628,28 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 	}
 }
 
-func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
+func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}, d *pluginsdk.ResourceData) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
 	config := input[0].(map[string]interface{})
-	kedaEnabled := managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{}
-	if v := config["keda_enabled"].(bool); v {
-		kedaEnabled.Enabled = v
+
+	var workloadAutoscalerProfile managedclusters.ManagedClusterWorkloadAutoScalerProfile
+
+	if v := config["keda_enabled"].(bool); v || d.HasChange("workload_autoscaler_profile.0.keda_enabled") {
+		workloadAutoscalerProfile.Keda = &managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{
+			Enabled: v,
+		}
 	}
 
-	return &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
-		Keda: &kedaEnabled,
+	if v := config["vertical_pod_autoscaler_enabled"].(bool); v || d.HasChange("workload_autoscaler_profile.0.vertical_pod_autoscaler_enabled") {
+		workloadAutoscalerProfile.VerticalPodAutoscaler = &managedclusters.ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler{
+			Enabled: v,
+		}
 	}
+
+	return &workloadAutoscalerProfile
 }
 
 func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile {
@@ -2647,21 +2695,27 @@ func flattenKubernetesClusterWindowsProfile(profile *managedclusters.ManagedClus
 	}
 }
 
-func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.ManagedClusterWorkloadAutoScalerProfile, d *pluginsdk.ResourceData) []interface{} {
-	if profile == nil || len(d.Get("workload_autoscaler_profile").([]interface{})) == 0 {
+func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.ManagedClusterWorkloadAutoScalerProfile) []interface{} {
+	if profile == nil {
 		return []interface{}{}
 	}
 
+	workloadAutoscaler := make(map[string]interface{}, 0)
 	kedaEnabled := false
-	if v := profile.Keda; v != nil {
-		kedaEnabled = profile.Keda.Enabled
+	if v := profile.Keda; v != nil && v.Enabled {
+		kedaEnabled = v.Enabled
 	}
+	workloadAutoscaler["keda_enabled"] = kedaEnabled
 
-	return []interface{}{
-		map[string]interface{}{
-			"keda_enabled": kedaEnabled,
-		},
+	vpaEnabled := false
+	if v := profile.VerticalPodAutoscaler; v != nil && v.Enabled {
+		vpaEnabled = v.Enabled
+		workloadAutoscaler["vertical_pod_autoscaler_update_mode"] = string(v.UpdateMode)
+		workloadAutoscaler["vertical_pod_autoscaler_controlled_values"] = string(v.ControlledValues)
 	}
+	workloadAutoscaler["vertical_pod_autoscaler_enabled"] = vpaEnabled
+
+	return []interface{}{workloadAutoscaler}
 }
 
 func flattenGmsaProfile(profile *managedclusters.WindowsGmsaProfile) []interface{} {
