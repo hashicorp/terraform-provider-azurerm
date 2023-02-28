@@ -304,7 +304,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DigitalTwins = digitaltwins.NewClient(o)
 	client.Disks = disks.NewClient(o)
 	if client.Dns, err = dns.NewClient(o); err != nil {
-		return fmt.Errorf("buliding clients for Dns: %+v", err)
+		return fmt.Errorf("building clients for Dns: %+v", err)
 	}
 	client.DomainServices = domainservices.NewClient(o)
 	client.Elastic = elastic.NewClient(o)
@@ -335,7 +335,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.ManagedApplication = managedapplication.NewClient(o)
 	client.ManagementGroups = managementgroup.NewClient(o)
 	if client.Maps, err = maps.NewClient(o); err != nil {
-		return fmt.Errorf("buliding clients for Maps: %+v", err)
+		return fmt.Errorf("building clients for Maps: %+v", err)
 	}
 	client.MariaDB = mariadb.NewClient(o)
 	client.Media = media.NewClient(o)
