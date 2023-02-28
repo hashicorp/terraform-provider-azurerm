@@ -6,6 +6,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 type Client struct {
 	AnalysisServices *analysisservices.AnalysisServicesClient
 	Servers          *servers.ServersClient
