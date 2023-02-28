@@ -28,15 +28,13 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  workspace_name      = azurerm_log_analytics_workspace.example.name
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 resource "azurerm_sentinel_watchlist" "example" {
   name                       = "example-watchlist"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   display_name               = "example-wl"
   item_search_key            = "Key"
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.example]
 }
 ```
 

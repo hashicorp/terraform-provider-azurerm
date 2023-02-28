@@ -85,8 +85,7 @@ func (r SentinelDataConnectorAzureSecurityCenterResource) basic(data acceptance.
 
 resource "azurerm_sentinel_data_connector_azure_security_center" "test" {
   name                       = "accTestDC-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
 }
 `, template, data.RandomInteger)
 }
@@ -100,9 +99,8 @@ data "azurerm_client_config" "test" {}
 
 resource "azurerm_sentinel_data_connector_azure_security_center" "test" {
   name                       = "accTestDC-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
   subscription_id            = data.azurerm_client_config.test.subscription_id
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, template, data.RandomInteger)
 }
@@ -114,7 +112,7 @@ func (r SentinelDataConnectorAzureSecurityCenterResource) requiresImport(data ac
 
 resource "azurerm_sentinel_data_connector_azure_security_center" "import" {
   name                       = azurerm_sentinel_data_connector_azure_security_center.test.name
-  log_analytics_workspace_id = azurerm_sentinel_data_connector_azure_security_center.test.log_analytics_workspace_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
 }
 `, template)
 }
@@ -138,8 +136,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_log_analytics_workspace.test.name
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

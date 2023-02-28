@@ -30,18 +30,15 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  workspace_name      = azurerm_log_analytics_workspace.example.name
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_sentinel_alert_rule_ms_security_incident" "example" {
   name                       = "example-ms-security-incident-alert-rule"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   product_filter             = "Microsoft Cloud App Security"
   display_name               = "example rule"
   severity_filter            = ["High"]
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.example]
 }
 ```
 

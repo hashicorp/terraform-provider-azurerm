@@ -159,12 +159,10 @@ func (r SentinelAlertRuleMsSecurityIncidentResource) basic(data acceptance.TestD
 
 resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   name                       = "acctest-SentinelAlertRule-MSI-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
   product_filter             = "Microsoft Cloud App Security"
   display_name               = "some rule"
   severity_filter            = ["High"]
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -175,14 +173,12 @@ func (r SentinelAlertRuleMsSecurityIncidentResource) complete(data acceptance.Te
 
 resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   name                       = "acctest-SentinelAlertRule-MSI-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
   product_filter             = "Azure Security Center"
   display_name               = "updated rule"
   severity_filter            = ["High", "Low"]
   description                = "this is a alert rule"
   display_name_filter        = ["alert"]
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -207,13 +203,11 @@ func (r SentinelAlertRuleMsSecurityIncidentResource) alertRuleTemplateGuid(data 
 
 resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   name                       = "acctest-SentinelAlertRule-MSI-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
   product_filter             = "Microsoft Cloud App Security"
   display_name               = "some rule"
   severity_filter            = ["High"]
   alert_rule_template_guid   = "b3cfc7c0-092c-481c-a55b-34a3979758cb"
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -224,14 +218,12 @@ func (r SentinelAlertRuleMsSecurityIncidentResource) displayNameExcludeFilter(da
 
 resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   name                        = "acctest-SentinelAlertRule-MSI-%d"
-  log_analytics_workspace_id  = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id  = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
   product_filter              = "Microsoft Cloud App Security"
   display_name                = "some rule"
   severity_filter             = ["High"]
   display_name_filter         = ["alert1"]
   display_name_exclude_filter = ["%s"]
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), data.RandomInteger, displayNameExcludeFilter)
 }
@@ -256,8 +248,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_log_analytics_workspace.test.name
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

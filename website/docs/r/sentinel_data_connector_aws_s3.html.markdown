@@ -26,18 +26,15 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  workspace_name      = azurerm_log_analytics_workspace.example.name
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_sentinel_data_connector_aws_s3" "example" {
   name                       = "example"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   aws_role_arn               = "arn:aws:iam::000000000000:role/role1"
   destination_table          = "AWSGuardDuty"
   sqs_urls                   = ["https://sqs.us-east-1.amazonaws.com/000000000000/example"]
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.example]
 }
 ```
 

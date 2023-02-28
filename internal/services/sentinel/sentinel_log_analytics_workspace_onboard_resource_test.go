@@ -101,8 +101,31 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  workspace_id = azurerm_log_analytics_workspace.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r SecurityInsightsSentinelOnboardingStateResource) basicWithName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%[1]d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_log_analytics_workspace.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -232,13 +255,11 @@ resource "azurerm_log_analytics_linked_service" "test" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
-  resource_group_name          = azurerm_resource_group.test.name
-  workspace_name               = azurerm_log_analytics_workspace.test.name
+  workspace_id                 = azurerm_log_analytics_workspace.test.id
   customer_managed_key_enabled = true
 
   depends_on = [azurerm_log_analytics_linked_service.test]
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
@@ -248,8 +269,7 @@ func (r SecurityInsightsSentinelOnboardingStateResource) requiresImport(data acc
 			%s
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "import" {
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_log_analytics_workspace.test.name
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_workspace_id
 }
 `, config)
 }

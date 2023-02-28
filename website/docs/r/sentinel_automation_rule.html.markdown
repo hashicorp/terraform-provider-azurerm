@@ -30,21 +30,18 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  workspace_name      = azurerm_log_analytics_workspace.example.name
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_sentinel_automation_rule" "example" {
   name                       = "56094f72-ac3f-40e7-a0c0-47bd95f70336"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   display_name               = "automation_rule1"
   order                      = 1
   action_incident {
     order  = 1
     status = "Active"
   }
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.example]
 }
 ```
 

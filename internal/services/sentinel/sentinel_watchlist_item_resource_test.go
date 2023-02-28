@@ -153,8 +153,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_log_analytics_workspace.test.name
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_sentinel_watchlist" "test" {
@@ -163,7 +162,6 @@ resource "azurerm_sentinel_watchlist" "test" {
   display_name               = "test"
   item_search_key            = "k1"
 
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

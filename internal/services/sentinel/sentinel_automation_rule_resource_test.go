@@ -175,7 +175,7 @@ func (r SentinelAutomationRuleResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_sentinel_automation_rule" "test" {
   name                       = "%s"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
   display_name               = "acctest-SentinelAutoRule-%d"
   order                      = 1
 
@@ -183,9 +183,6 @@ resource "azurerm_sentinel_automation_rule" "test" {
     order  = 1
     status = "Active"
   }
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
-
 }
 `, template, r.uuid, data.RandomInteger)
 }
@@ -200,7 +197,7 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_sentinel_automation_rule" "test" {
   name                       = "%s"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
   display_name               = "acctest-SentinelAutoRule-%d-update"
   order                      = 2
   enabled                    = false
@@ -239,7 +236,6 @@ resource "azurerm_sentinel_automation_rule" "test" {
     owner_id = data.azurerm_client_config.current.object_id
   }
 
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, template, r.uuid, data.RandomInteger, expDate)
 }
@@ -254,7 +250,7 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_sentinel_automation_rule" "test" {
   name                       = "%s"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
   display_name               = "acctest-SentinelAutoRule-%d-update"
   order                      = 2
   enabled                    = false
@@ -309,7 +305,6 @@ resource "azurerm_sentinel_automation_rule" "test" {
     owner_id = data.azurerm_client_config.current.object_id
   }
 
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, template, r.uuid, data.RandomInteger, expDate)
 }
@@ -323,7 +318,7 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_sentinel_automation_rule" "test" {
   name                       = "%s"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
   display_name               = "acctest-SentinelAutoRule-%d-update"
   order                      = 1
   condition_json = jsonencode([
@@ -344,8 +339,6 @@ resource "azurerm_sentinel_automation_rule" "test" {
     order    = 1
     owner_id = data.azurerm_client_config.current.object_id
   }
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, template, r.uuid, data.RandomInteger)
 }
@@ -440,7 +433,7 @@ resource "azurerm_role_assignment" "test" {
 
 resource "azurerm_sentinel_automation_rule" "test" {
   name                       = "%[3]s"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
   display_name               = "acctest-SentinelAutoRule-%[2]d-update"
   order                      = 1
   triggers_on                = "Alerts"
@@ -450,7 +443,7 @@ resource "azurerm_sentinel_automation_rule" "test" {
   }
   condition_json = "[]"
 
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test, azurerm_logic_app_trigger_custom.test, azurerm_role_assignment.test]
+  depends_on = [azurerm_logic_app_trigger_custom.test, azurerm_role_assignment.test]
 }
 
 
@@ -495,9 +488,9 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_log_analytics_workspace.test.name
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
