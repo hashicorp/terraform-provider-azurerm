@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 var _ sdk.DataSource = EncryptedValueDataSource{}
@@ -37,9 +37,9 @@ func (EncryptedValueDataSource) Arguments() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(keyvault.RSA15),
-				string(keyvault.RSAOAEP),
-				string(keyvault.RSAOAEP256),
+				string(keyvault.JSONWebKeyEncryptionAlgorithmRSA15),
+				string(keyvault.JSONWebKeyEncryptionAlgorithmRSAOAEP),
+				string(keyvault.JSONWebKeyEncryptionAlgorithmRSAOAEP256),
 			}, false),
 		},
 		"encrypted_data": {
