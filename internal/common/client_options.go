@@ -62,6 +62,7 @@ type ClientOptions struct {
 func (o ClientOptions) Configure(c *resourcemanager.Client, authorizer auth.Authorizer) {
 	c.Authorizer = authorizer
 	c.UserAgent = userAgent(c.UserAgent, o.TerraformVersion, o.PartnerId, o.DisableTerraformPartnerID)
+	// TODO: configure logging
 }
 
 // ConfigureClient sets up an autorest.Client using an autorest.Authorizer
