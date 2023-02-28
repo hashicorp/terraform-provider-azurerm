@@ -640,7 +640,7 @@ func (br assignmentBaseResource) flattenOverrides(overrides *[]policyassignments
 	var res []interface{}
 	for _, o := range *overrides {
 		item := map[string]interface{}{
-			"value":     string(pointer.From(o.Value)),
+			"value":     pointer.From(o.Value),
 			"selectors": br.flattenSelectors(o.Selectors),
 		}
 		res = append(res, item)
