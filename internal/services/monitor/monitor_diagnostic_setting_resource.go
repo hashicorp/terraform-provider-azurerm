@@ -413,52 +413,6 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("at least one type of Log or Metric must be enabled")
 	}
 
-	if d.HasChange("enabled_log") {
-		oldEnabledLogs, newEnabledLogs := d.GetChange("enabled_log")
-
-		for _, oldLog := range oldEnabledLogs.(*pluginsdk.Set).List() {
-			logRemoved := true
-			oldLogMap := oldLog.(map[string]interface{})
-
-			for _, newLog := range newEnabledLogs.(*pluginsdk.Set).List() {
-				newLogMap := newLog.(map[string]interface{})
-
-				// check if an enabled_log has been removed from config and if so, set to disabled
-				if (oldLogMap["category"].(string) != "" && strings.EqualFold(oldLogMap["category"].(string), newLogMap["category"].(string))) || (oldLogMap["category_group"].(string) != "" && strings.EqualFold(oldLogMap["category_group"].(string), newLogMap["category_group"].(string))) {
-					logRemoved = false
-					break
-				}
-			}
-
-			if logRemoved {
-
-				disabledLog := diagnosticsettings.LogSettings{
-					Category:      utils.String(oldLogMap["category"].(string)),
-					CategoryGroup: utils.String(oldLogMap["category_group"].(string)),
-					Enabled:       false,
-				}
-
-				retentionPolicy := diagnosticsettings.RetentionPolicy{}
-				if v, ok := oldLogMap["retention_policy"].([]interface{}); ok {
-					if len(v) > 0 {
-
-						policyMap := v[0].(map[string]interface{})
-						if days, ok := policyMap["days"].(int); ok {
-							retentionPolicy.Days = int64(days)
-						}
-
-						if enabled, ok := policyMap["enabled"].(bool); ok {
-							retentionPolicy.Enabled = enabled
-						}
-					}
-				}
-				disabledLog.RetentionPolicy = &retentionPolicy
-
-				logs = append(logs, disabledLog)
-			}
-		}
-	}
-
 	parameters := diagnosticsettings.DiagnosticSettingsResource{
 		Properties: &diagnosticsettings.DiagnosticSettings{
 			Logs:    &logs,

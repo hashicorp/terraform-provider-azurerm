@@ -1,13 +1,39 @@
 ## 3.46.0 (Unreleased)
+FEATURES
+
+* **New Data Source:** `azurerm_mobile_network_data_network` [GH-20338]
+* **New Resource:** `azurerm_mobile_network_data_network` [GH-20338]
 
 ENHANCEMENTS
 
-* dependencies: updating to `v0.20230224.1071134` of `github.com/hashicorp/go-azure-sdk` [GH-20649]
+* dependencies: updating to `v0.20230228.1160358` of `github.com/hashicorp/go-azure-sdk` [GH-20688]
 * dependencies: updating to `v0.20230224.1120200` of `github.com/tombuildsstuff/kermit` [GH-20649]
+* `databoxedge` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
+* `dns`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20688]
+* `maps`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20688]
+* `signalr`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20688]
+* `compute/shared_image_gallery` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20599]
+* `compute/gallery_application` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20599]
+* `compute/gallery_application_version` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20599]
+* `iottimeseriesinsights` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20416]
+* `policy/assignment` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
+* `azurerm_app_service_connection` - support for the `secret_store` block [GH-20613]
+* `azurerm_container_app` - the `traffic_weight` block is now optional [GH-20574]
+* `azurerm_key_vault_key` - support for the `rotation_policy` block [GH-19113]
 * `azurerm_media_streaming_policy` - add support for `common_encryption_cbcs.clear_key_encryption`, `common_encryption_cenc.clear_key_encryption`, `common_encryption_cenc.clear_track`, `common_encryption_cenc.content_key_to_track_mapping` and `envelope_encryption` [GH-20524]
-* `azurerm_storage_management_policy` - add support for `enable_auto_tier_to_hot_from_cool` [GH-20641]
+* `azurerm_storage_management_policy` - add support for `auto_tier_to_hot_from_cool_enabled` [GH-20641]
+* `azurerm_spring_cloud_connection` - support for the `secret_store` block [GH-20613]
 
+BUG FIXES
 
+* `azurerm_netapp_volume` - Fix potential nil panic in resource read [GH-20662]
+* Data Source: `azurerm_automation_variable_bool` - fixed a regression in read [GH-20665]
+* Data Source: `azurerm_automation_variable_datetime` - fixed a regression in read [GH-20665]
+* Data Source: `azurerm_automation_variable_int` - fixed a regression in read [GH-20665]
+* Data Source: `azurerm_automation_variable_string` - fixed a regression in read [GH-20665]
+* `azurerm_cdn_frontdoor_origin` - `origin_host_header` can now be cleared once it has been set [GH-20679]
+* `azurerm_storage_object_replication` - now functions when cross tenant replication is disabled [GH-20132]
+ 
 ## 3.45.0 (February 23, 2023)
 
 FEATURES
@@ -28,10 +54,16 @@ ENHANCEMENTS
 * `azurerm_express_route_connection` - support for the `inbound_route_map_id`, `outbound_route_map_id`, and `enabled_private_link_fast_path` properties ([#20619](https://github.com/hashicorp/terraform-provider-azurerm/issues/20619))
 * `azurerm_kusto_cluster_customer_managed_key` - `key_version` is now Optional to allow for auto-rotation of key ([#20583](https://github.com/hashicorp/terraform-provider-azurerm/issues/20583))
 * `azurerm_linux_virtual_machine` - strengthen validation for `admin_password` ([#20558](https://github.com/hashicorp/terraform-provider-azurerm/issues/20558))
+* `azurerm_linux_web_app` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` ([#20449](https://github.com/hashicorp/terraform-provider-azurerm/issues/20449))
+* `azurerm_linux_web_app_slot` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` ([#20449](https://github.com/hashicorp/terraform-provider-azurerm/issues/20449))
 * `azurerm_postgresql_flexible_server` - a server can now be created without enabling password authtication ([#20578](https://github.com/hashicorp/terraform-provider-azurerm/issues/20578))
 * `azurerm_media_streaming_endpoint` - add support for reading `sku` and increase limit for `scale_units` ([#20585](https://github.com/hashicorp/terraform-provider-azurerm/issues/20585))
 * `azurerm_recovery_services_vault` - add support for `classic_vmware_replication_enabled` ([#20473](https://github.com/hashicorp/terraform-provider-azurerm/issues/20473))
 * `azurerm_windows_virtual_machine` - strengthen validation for `admin_password` ([#20558](https://github.com/hashicorp/terraform-provider-azurerm/issues/20558))
+* `azurerm_windows_web_app` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` ([#20449](https://github.com/hashicorp/terraform-provider-azurerm/issues/20449))
+* `azurerm_windows_web_app_slot` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` ([#20449](https://github.com/hashicorp/terraform-provider-azurerm/issues/20449))
+* **Data Source:** `azurerm_linux_web_app` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` ([#20449](https://github.com/hashicorp/terraform-provider-azurerm/issues/20449))
+* **Data Source:**`azurerm_windows_web_app` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` ([#20449](https://github.com/hashicorp/terraform-provider-azurerm/issues/20449))
 
 BUG FIXES
 

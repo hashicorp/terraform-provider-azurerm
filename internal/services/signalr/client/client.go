@@ -12,16 +12,19 @@ type Client struct {
 	WebPubSubClient *webpubsub_v2021_10_01.Client
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	signalRClient := signalr.NewSignalRClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&signalRClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	signalRClient, err := signalr.NewSignalRClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, err
+	}
+	o.Configure(signalRClient.Client, o.Authorizers.ResourceManager)
 
 	webPubSubClient := webpubsub_v2021_10_01.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
 		c.Authorizer = o.ResourceManagerAuthorizer
 	})
 
 	return &Client{
-		SignalRClient:   &signalRClient,
+		SignalRClient:   signalRClient,
 		WebPubSubClient: &webPubSubClient,
-	}
+	}, nil
 }

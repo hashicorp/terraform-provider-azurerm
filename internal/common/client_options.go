@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/meta"
@@ -62,6 +63,21 @@ type ClientOptions struct {
 func (o ClientOptions) Configure(c *resourcemanager.Client, authorizer auth.Authorizer) {
 	c.Authorizer = authorizer
 	c.UserAgent = userAgent(c.UserAgent, o.TerraformVersion, o.PartnerId, o.DisableTerraformPartnerID)
+
+	requestMiddlewares := make([]client.RequestMiddleware, 0)
+	if !o.DisableCorrelationRequestID {
+		id := o.CustomCorrelationRequestID
+		if id == "" {
+			id = correlationRequestID()
+		}
+		requestMiddlewares = append(requestMiddlewares, correlationRequestIDMiddleware(id))
+	}
+	requestMiddlewares = append(requestMiddlewares, requestLoggerMiddleware("AzureRM"))
+	c.RequestMiddlewares = &requestMiddlewares
+
+	c.ResponseMiddlewares = &[]client.ResponseMiddleware{
+		responseLoggerMiddleware("AzureRM"),
+	}
 }
 
 // ConfigureClient sets up an autorest.Client using an autorest.Authorizer

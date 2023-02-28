@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	identity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/galleryapplicationversions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -196,7 +197,7 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.GalleryApplicationVersionID,
+					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
 				},
 
 				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
@@ -241,7 +242,7 @@ func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.GalleryApplicationVersionID,
+					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
 					Deprecated:   "`package_reference_id` has been renamed to `version_id` and will be deprecated in 4.0",
 				},
 

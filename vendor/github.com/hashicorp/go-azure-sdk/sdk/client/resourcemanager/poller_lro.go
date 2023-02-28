@@ -52,9 +52,6 @@ func longRunningOperationPollerFromResponse(resp *client.Response, client *clien
 		return nil, fmt.Errorf("invalid polling URL %q in response: URL was not absolute", pollingUrl)
 	}
 	poller.pollingUrl = u
-	if endpoint, err := url.Parse(string(client.BaseUri)); err == nil && u.Host != endpoint.Host {
-		return nil, fmt.Errorf("unsupported polling URL %q: client endpoint is different", pollingUrl)
-	}
 
 	if resp.Request != nil {
 		poller.originalUrl = resp.Request.URL
@@ -100,7 +97,9 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 	// Custom RetryFunc to inspect the operation payload and check the status
 	req.RetryFunc = client.RequestRetryAny(defaultRetryFunctions...)
 
-	result = &pollers.PollResult{}
+	result = &pollers.PollResult{
+		PollInterval: p.initialRetryDuration,
+	}
 	result.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
 		return nil, err
@@ -114,6 +113,13 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return
 		}
 		result.HttpResponse.Body.Close()
+
+		// update the poll interval if a Retry-After header is returned
+		if s, ok := result.HttpResponse.Header["Retry-After"]; ok {
+			if sleep, err := strconv.ParseInt(s[0], 10, 64); err == nil {
+				result.PollInterval = time.Second * time.Duration(sleep)
+			}
+		}
 
 		// 202's don't necessarily return a body, so there's nothing to deserialize
 		if result.HttpResponse.StatusCode == http.StatusAccepted {
@@ -145,6 +151,10 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			statusFailed:     pollers.PollingStatusFailed,
 			statusInProgress: pollers.PollingStatusInProgress,
 			statusSucceeded:  pollers.PollingStatusSucceeded,
+
+			// whilst the standard set above should be sufficient, some APIs differ from the spec and should be documented below:
+			// SignalR@2022-02-01 returns `Running` rather than `InProgress` during creation
+			"Running": pollers.PollingStatusInProgress,
 		}
 		for k, v := range statuses {
 			if strings.EqualFold(string(op.Properties.ProvisioningState), string(k)) {
@@ -155,6 +165,10 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 				result.Status = v
 				return
 			}
+		}
+
+		if result.Status == "" {
+			err = fmt.Errorf("`result.Status` was nil/empty - `op.Status` was %q / `op.Properties.ProvisioningState` was %q", string(op.Status), string(op.Properties.ProvisioningState))
 		}
 	}
 

@@ -11,12 +11,13 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -25,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -70,10 +72,10 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				// turns out Azure's *really* sensitive about the casing of these
 				// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 				ValidateFunc: validation.StringInSlice([]string{
-					string(keyvault.EC),
-					string(keyvault.ECHSM),
-					string(keyvault.RSA),
-					string(keyvault.RSAHSM),
+					string(keyvault.JSONWebKeyTypeEC),
+					string(keyvault.JSONWebKeyTypeECHSM),
+					string(keyvault.JSONWebKeyTypeRSA),
+					string(keyvault.JSONWebKeyTypeRSAHSM),
 				}, false),
 			},
 
@@ -92,12 +94,12 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 					// turns out Azure's *really* sensitive about the casing of these
 					// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 					ValidateFunc: validation.StringInSlice([]string{
-						string(keyvault.Decrypt),
-						string(keyvault.Encrypt),
-						string(keyvault.Sign),
-						string(keyvault.UnwrapKey),
-						string(keyvault.Verify),
-						string(keyvault.WrapKey),
+						string(keyvault.JSONWebKeyOperationDecrypt),
+						string(keyvault.JSONWebKeyOperationEncrypt),
+						string(keyvault.JSONWebKeyOperationSign),
+						string(keyvault.JSONWebKeyOperationUnwrapKey),
+						string(keyvault.JSONWebKeyOperationVerify),
+						string(keyvault.JSONWebKeyOperationWrapKey),
 					}, false),
 				},
 			},
@@ -108,14 +110,14 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-					return old == "SECP256K1" && new == string(keyvault.P256K)
+					return old == "SECP256K1" && new == string(keyvault.JSONWebKeyCurveNameP256K)
 				},
 				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 					out := []string{
-						string(keyvault.P256),
-						string(keyvault.P256K),
-						string(keyvault.P384),
-						string(keyvault.P521),
+						string(keyvault.JSONWebKeyCurveNameP256),
+						string(keyvault.JSONWebKeyCurveNameP256K),
+						string(keyvault.JSONWebKeyCurveNameP384),
+						string(keyvault.JSONWebKeyCurveNameP521),
 					}
 					return validation.StringInSlice(out, false)
 				}(),
@@ -135,6 +137,69 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsRFC3339Time,
+			},
+
+			"rotation_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"expire_after": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.ISO8601DurationBetween("P28D", "P100Y"),
+							AtLeastOneOf: []string{
+								"rotation_policy.0.expire_after",
+								"rotation_policy.0.automatic",
+							},
+							RequiredWith: []string{
+								"rotation_policy.0.expire_after",
+								"rotation_policy.0.notify_before_expiry",
+							},
+						},
+
+						// <= expiry_time - 7, >=7
+						"notify_before_expiry": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.ISO8601DurationBetween("P7D", "P36493D"),
+							RequiredWith: []string{
+								"rotation_policy.0.expire_after",
+								"rotation_policy.0.notify_before_expiry",
+							},
+						},
+
+						"automatic": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"time_after_creation": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.ISO8601Duration,
+										AtLeastOneOf: []string{
+											"rotation_policy.0.automatic.0.time_after_creation",
+											"rotation_policy.0.automatic.0.time_before_expiry",
+										},
+									},
+									"time_before_expiry": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.ISO8601Duration,
+										AtLeastOneOf: []string{
+											"rotation_policy.0.automatic.0.time_after_creation",
+											"rotation_policy.0.automatic.0.time_before_expiry",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 
 			// Computed
@@ -238,10 +303,10 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Tags: tags.Expand(t),
 	}
 
-	if parameters.Kty == keyvault.EC || parameters.Kty == keyvault.ECHSM {
+	if parameters.Kty == keyvault.JSONWebKeyTypeEC || parameters.Kty == keyvault.JSONWebKeyTypeECHSM {
 		curveName := d.Get("curve").(string)
 		parameters.Curve = keyvault.JSONWebKeyCurveName(curveName)
-	} else if parameters.Kty == keyvault.RSA || parameters.Kty == keyvault.RSAHSM {
+	} else if parameters.Kty == keyvault.JSONWebKeyTypeRSA || parameters.Kty == keyvault.JSONWebKeyTypeRSAHSM {
 		keySize, ok := d.GetOk("key_size")
 		if !ok {
 			return fmt.Errorf("Key size is required when creating an RSA key")
@@ -288,6 +353,15 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		} else {
 			return fmt.Errorf("Creating Key: %+v", err)
+		}
+	}
+
+	if v, ok := d.GetOk("rotation_policy"); ok {
+		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, *keyVaultBaseUri, name, expandKeyVaultKeyRotationPolicy(v)); err != nil {
+			if utils.ResponseWasForbidden(respPolicy.Response) {
+				return fmt.Errorf("current client lacks permissions to create Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", name, *keyVaultId, *keyVaultBaseUri, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
+			}
+			return fmt.Errorf("creating Key Rotation Policy: %+v", err)
 		}
 	}
 
@@ -362,6 +436,15 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if _, err = client.UpdateKey(ctx, id.KeyVaultBaseUrl, id.Name, "", parameters); err != nil {
 		return err
+	}
+
+	if v, ok := d.GetOk("rotation_policy"); ok {
+		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name, expandKeyVaultKeyRotationPolicy(v)); err != nil {
+			if utils.ResponseWasForbidden(respPolicy.Response) {
+				return fmt.Errorf("current client lacks permissions to update Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
+			}
+			return fmt.Errorf("Creating Key Rotation Policy: %+v", err)
+		}
 	}
 
 	return resourceKeyVaultKeyRead(d, meta)
@@ -453,7 +536,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("version", id.Version)
 	d.Set("versionless_id", id.VersionlessID())
 	if key := resp.Key; key != nil {
-		if key.Kty == keyvault.RSA || key.Kty == keyvault.RSAHSM {
+		if key.Kty == keyvault.JSONWebKeyTypeRSA || key.Kty == keyvault.JSONWebKeyTypeRSAHSM {
 			nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 			if err != nil {
 				return fmt.Errorf("failed to decode N: %+v", err)
@@ -470,7 +553,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if err != nil {
 				return fmt.Errorf("failed to read public key: %+v", err)
 			}
-		} else if key.Kty == keyvault.EC || key.Kty == keyvault.ECHSM {
+		} else if key.Kty == keyvault.JSONWebKeyTypeEC || key.Kty == keyvault.JSONWebKeyTypeECHSM {
 			// do ec keys
 			xBytes, err := base64.RawURLEncoding.DecodeString(*key.X)
 			if err != nil {
@@ -485,11 +568,11 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				Y: big.NewInt(0).SetBytes(yBytes),
 			}
 			switch key.Crv {
-			case keyvault.P256:
+			case keyvault.JSONWebKeyCurveNameP256:
 				publicKey.Curve = elliptic.P256()
-			case keyvault.P384:
+			case keyvault.JSONWebKeyCurveNameP384:
 				publicKey.Curve = elliptic.P384()
-			case keyvault.P521:
+			case keyvault.JSONWebKeyCurveNameP521:
 				publicKey.Curve = elliptic.P521()
 			}
 			if publicKey.Curve != nil {
@@ -503,6 +586,24 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name, id.Version).ID())
 	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
+
+	respPolicy, err := client.GetKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name)
+	if err != nil {
+		switch {
+		case utils.ResponseWasForbidden(respPolicy.Response):
+			// If client is not authorized to access the policy:
+			return fmt.Errorf("current client lacks permissions to read Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
+		case utils.ResponseWasNotFound(respPolicy.Response):
+			return tags.FlattenAndSet(d, resp.Tags)
+		default:
+			return err
+		}
+	}
+
+	rotationPolicy := flattenKeyVaultKeyRotationPolicy(respPolicy)
+	if err := d.Set("rotation_policy", rotationPolicy); err != nil {
+		return fmt.Errorf("setting Key Vault Key Rotation Policy: %+v", err)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -598,6 +699,58 @@ func expandKeyVaultKeyOptions(d *pluginsdk.ResourceData) *[]keyvault.JSONWebKeyO
 	return &results
 }
 
+func expandKeyVaultKeyRotationPolicy(v interface{}) keyvault.KeyRotationPolicy {
+	policies := v.([]interface{})
+	policy := policies[0].(map[string]interface{})
+
+	var expiryTime *string = nil // needs to be set to nil if not set
+	if rawExpiryTime := policy["expire_after"]; rawExpiryTime != nil && rawExpiryTime.(string) != "" {
+		expiryTime = utils.String(rawExpiryTime.(string))
+	}
+
+	lifetimeActions := make([]keyvault.LifetimeActions, 0)
+	if rawNotificationTime := policy["notify_before_expiry"]; rawNotificationTime != nil && rawNotificationTime.(string) != "" {
+		lifetimeActionNotify := keyvault.LifetimeActions{
+			Trigger: &keyvault.LifetimeActionsTrigger{
+				TimeBeforeExpiry: utils.String(rawNotificationTime.(string)), // for Type: keyvault.Notify always TimeBeforeExpiry
+			},
+			Action: &keyvault.LifetimeActionsType{
+				Type: keyvault.KeyRotationPolicyActionNotify,
+			},
+		}
+		lifetimeActions = append(lifetimeActions, lifetimeActionNotify)
+	}
+
+	if autoRotationList := policy["automatic"].([]interface{}); len(autoRotationList) == 1 && autoRotationList[0] != nil {
+		lifetimeActionRotate := keyvault.LifetimeActions{
+			Action: &keyvault.LifetimeActionsType{
+				Type: keyvault.KeyRotationPolicyActionRotate,
+			},
+			Trigger: &keyvault.LifetimeActionsTrigger{},
+		}
+		autoRotationRaw := autoRotationList[0].(map[string]interface{})
+
+		if v := autoRotationRaw["time_after_creation"]; v != nil && v.(string) != "" {
+			timeAfterCreate := v.(string)
+			lifetimeActionRotate.Trigger.TimeAfterCreate = &timeAfterCreate
+		}
+
+		if v := autoRotationRaw["time_before_expiry"]; v != nil && v.(string) != "" {
+			timeBeforeExpiry := v.(string)
+			lifetimeActionRotate.Trigger.TimeBeforeExpiry = &timeBeforeExpiry
+		}
+
+		lifetimeActions = append(lifetimeActions, lifetimeActionRotate)
+	}
+
+	return keyvault.KeyRotationPolicy{
+		LifetimeActions: &lifetimeActions,
+		Attributes: &keyvault.KeyRotationPolicyAttributes{
+			ExpiryTime: expiryTime,
+		},
+	}
+}
+
 func flattenKeyVaultKeyOptions(input *[]string) []interface{} {
 	results := make([]interface{}, 0, len(*input))
 
@@ -606,6 +759,47 @@ func flattenKeyVaultKeyOptions(input *[]string) []interface{} {
 	}
 
 	return results
+}
+
+func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interface{} {
+	if input.LifetimeActions == nil && input.Attributes == nil {
+		return []interface{}{}
+	}
+
+	policy := make(map[string]interface{})
+	if input.Attributes != nil && input.Attributes.ExpiryTime != nil && *input.Attributes.ExpiryTime != "" {
+		policy["expire_after"] = *input.Attributes.ExpiryTime
+	}
+
+	if input.LifetimeActions != nil {
+		for _, ltAction := range *input.LifetimeActions {
+			action := ltAction.Action
+			trigger := ltAction.Trigger
+
+			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.KeyRotationPolicyActionNotify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
+				policy["notify_before_expiry"] = *trigger.TimeBeforeExpiry
+			}
+
+			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.KeyRotationPolicyActionRotate)) {
+				autoRotation := make(map[string]interface{}, 0)
+				if timeAfterCreate := trigger.TimeAfterCreate; timeAfterCreate != nil {
+					autoRotation["time_after_creation"] = *timeAfterCreate
+				}
+				if timeBeforeExpiry := trigger.TimeBeforeExpiry; timeBeforeExpiry != nil {
+					autoRotation["time_before_expiry"] = *timeBeforeExpiry
+				}
+				policy["automatic"] = []map[string]interface{}{autoRotation}
+			}
+		}
+	}
+
+	// Somehow a default is set after creation for notify_before_expiry
+	// Submitting this set value in the next run will not work though..
+	if policy["expire_after"] == nil {
+		policy["notify_before_expiry"] = nil
+	}
+
+	return []interface{}{policy}
 }
 
 // Credit to Hashicorp modified from https://github.com/hashicorp/terraform-provider-tls/blob/v3.1.0/internal/provider/util.go#L79-L105
