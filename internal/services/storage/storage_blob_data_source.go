@@ -97,9 +97,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	props, err := blobsClient.GetProperties(ctx, accountName, containerName, name, input)
 	if err != nil {
 		if utils.ResponseWasNotFound(props.Response) {
-			log.Printf("[INFO] Blob %q was not found in Container %q / Account %q - assuming removed & removing from state...", name, containerName, accountName)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("the Blob %q was not found in Container %q / Account %q", name, containerName, accountName)
 		}
 
 		return fmt.Errorf("retrieving properties for Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)

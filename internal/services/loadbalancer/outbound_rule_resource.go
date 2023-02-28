@@ -218,7 +218,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta int
 
 		backendAddressPoolId := ""
 		if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
-			bapid, err := parse.LoadBalancerBackendAddressPoolID(*props.BackendAddressPool.ID)
+			bapid, err := parse.LoadBalancerBackendAddressPoolIDInsensitively(*props.BackendAddressPool.ID)
 			if err != nil {
 				return err
 			}
@@ -234,7 +234,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta int
 				if feConfig.ID == nil {
 					continue
 				}
-				feid, err := parse.LoadBalancerFrontendIpConfigurationID(*feConfig.ID)
+				feid, err := parse.LoadBalancerFrontendIpConfigurationIDInsensitively(*feConfig.ID)
 				if err != nil {
 					return err
 				}

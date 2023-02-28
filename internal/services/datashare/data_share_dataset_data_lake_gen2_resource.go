@@ -5,18 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/helper"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	storageParsers "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataShareDataSetDataLakeGen2() *pluginsdk.Resource {
@@ -32,7 +31,7 @@ func resourceDataShareDataSetDataLakeGen2() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DataSetID(id)
+			_, err := dataset.ParseDataSetID(id)
 			return err
 		}),
 
@@ -48,7 +47,7 @@ func resourceDataShareDataSetDataLakeGen2() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ShareID,
+				ValidateFunc: share.ValidateShareID,
 			},
 
 			"storage_account_id": {
@@ -94,21 +93,20 @@ func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	shareId, err := parse.ShareID(d.Get("share_id").(string))
+	shareId, err := share.ParseShareID(d.Get("share_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroup, shareId.AccountName, shareId.Name, d.Get("name").(string))
+	id := dataset.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroupName, shareId.AccountName, shareId.ShareName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 	}
-	existingId := helper.GetAzurermDataShareDataSetId(existing.Value)
-	if existingId != nil && *existingId != "" {
-		return tf.ImportAsExistsError("azurerm_data_share_dataset_data_lake_gen2", *existingId)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_data_share_dataset_data_lake_gen2", id.ID())
 	}
 
 	strId, err := storageParsers.StorageAccountID(d.Get("storage_account_id").(string))
@@ -116,43 +114,40 @@ func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	var dataSet datashare.BasicDataSet
+	var dataSet dataset.DataSet
 
 	if filePath, ok := d.GetOk("file_path"); ok {
-		dataSet = datashare.ADLSGen2FileDataSet{
-			Kind: datashare.KindAdlsGen2File,
-			ADLSGen2FileProperties: &datashare.ADLSGen2FileProperties{
-				StorageAccountName: utils.String(strId.Name),
-				ResourceGroup:      utils.String(strId.ResourceGroup),
-				SubscriptionID:     utils.String(strId.SubscriptionId),
-				FileSystem:         utils.String(d.Get("file_system_name").(string)),
-				FilePath:           utils.String(filePath.(string)),
+		dataSet = dataset.ADLSGen2FileDataSet{
+			Properties: dataset.ADLSGen2FileProperties{
+				StorageAccountName: strId.Name,
+				ResourceGroup:      strId.ResourceGroup,
+				SubscriptionId:     strId.SubscriptionId,
+				FileSystem:         d.Get("file_system_name").(string),
+				FilePath:           filePath.(string),
 			},
 		}
 	} else if folderPath, ok := d.GetOk("folder_path"); ok {
-		dataSet = datashare.ADLSGen2FolderDataSet{
-			Kind: datashare.KindAdlsGen2Folder,
-			ADLSGen2FolderProperties: &datashare.ADLSGen2FolderProperties{
-				StorageAccountName: utils.String(strId.Name),
-				ResourceGroup:      utils.String(strId.ResourceGroup),
-				SubscriptionID:     utils.String(strId.SubscriptionId),
-				FileSystem:         utils.String(d.Get("file_system_name").(string)),
-				FolderPath:         utils.String(folderPath.(string)),
+		dataSet = dataset.ADLSGen2FolderDataSet{
+			Properties: dataset.ADLSGen2FolderProperties{
+				StorageAccountName: strId.Name,
+				ResourceGroup:      strId.ResourceGroup,
+				SubscriptionId:     strId.SubscriptionId,
+				FileSystem:         d.Get("file_system_name").(string),
+				FolderPath:         folderPath.(string),
 			},
 		}
 	} else {
-		dataSet = datashare.ADLSGen2FileSystemDataSet{
-			Kind: datashare.KindAdlsGen2FileSystem,
-			ADLSGen2FileSystemProperties: &datashare.ADLSGen2FileSystemProperties{
-				StorageAccountName: utils.String(strId.Name),
-				ResourceGroup:      utils.String(strId.ResourceGroup),
-				SubscriptionID:     utils.String(strId.SubscriptionId),
-				FileSystem:         utils.String(d.Get("file_system_name").(string)),
+		dataSet = dataset.ADLSGen2FileSystemDataSet{
+			Properties: dataset.ADLSGen2FileSystemProperties{
+				StorageAccountName: strId.Name,
+				ResourceGroup:      strId.ResourceGroup,
+				SubscriptionId:     strId.SubscriptionId,
+				FileSystem:         d.Get("file_system_name").(string),
 			},
 		}
 	}
 
-	if _, err := client.Create(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name, dataSet); err != nil {
+	if _, err := client.Create(ctx, id, dataSet); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -162,62 +157,51 @@ func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta 
 
 func resourceDataShareDataSetDataLakeGen2Read(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
-	shareClient := meta.(*clients.Client).DataShare.SharesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataSetID(d.Id())
+	id, err := dataset.ParseDataSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] DataShare %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving DataShare DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	d.Set("name", id.Name)
-	shareResp, err := shareClient.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName)
-	if err != nil {
-		return fmt.Errorf("retrieving DataShare %q (Resource Group %q / accountName %q): %+v", id.ShareName, id.ResourceGroup, id.AccountName, err)
-	}
-	if shareResp.ID == nil || *shareResp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for DataShare %q (Resource Group %q / accountName %q)", id.ShareName, id.ResourceGroup, id.AccountName)
-	}
-	d.Set("share_id", shareResp.ID)
+	d.Set("name", id.DataSetName)
 
-	switch resp := resp.Value.(type) {
-	case datashare.ADLSGen2FileDataSet:
-		if props := resp.ADLSGen2FileProperties; props != nil {
-			d.Set("storage_account_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s", *props.SubscriptionID, *props.ResourceGroup, *props.StorageAccountName))
+	shareId := share.NewShareID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ShareName)
+	d.Set("share_id", shareId.ID())
+
+	if model := resp.Model; model != nil {
+		m := *model
+		if ds, ok := m.(dataset.ADLSGen2FileDataSet); ok {
+			props := ds.Properties
+			d.Set("storage_account_id", storageParsers.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
 			d.Set("file_path", props.FilePath)
-			d.Set("display_name", props.DataSetID)
-		}
-
-	case datashare.ADLSGen2FolderDataSet:
-		if props := resp.ADLSGen2FolderProperties; props != nil {
-			d.Set("storage_account_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s", *props.SubscriptionID, *props.ResourceGroup, *props.StorageAccountName))
+			d.Set("display_name", props.DataSetId)
+		} else if ds, ok := m.(dataset.ADLSGen2FolderDataSet); ok {
+			props := ds.Properties
+			d.Set("storage_account_id", storageParsers.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
 			d.Set("folder_path", props.FolderPath)
-			d.Set("display_name", props.DataSetID)
-		}
-
-	case datashare.ADLSGen2FileSystemDataSet:
-		if props := resp.ADLSGen2FileSystemProperties; props != nil {
-			d.Set("storage_account_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s", *props.SubscriptionID, *props.ResourceGroup, *props.StorageAccountName))
+			d.Set("display_name", props.DataSetId)
+		} else if ds, ok := m.(dataset.ADLSGen2FileSystemDataSet); ok {
+			props := ds.Properties
+			d.Set("storage_account_id", storageParsers.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
-			d.Set("display_name", props.DataSetID)
+			d.Set("display_name", props.DataSetId)
+		} else {
+			return fmt.Errorf("%s is not a datalake store gen2 dataset", *id)
 		}
-
-	default:
-		return fmt.Errorf("data share dataset %q (Resource Group %q / accountName %q / shareName %q) is not a datalake store gen2 dataset", id.Name, id.ResourceGroup, id.AccountName, id.ShareName)
 	}
-
 	return nil
 }
 
@@ -226,18 +210,13 @@ func resourceDataShareDataSetDataLakeGen2Delete(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataSetID(d.Id())
+	id, err := dataset.ParseDataSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting DataShare DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of DataShare Data Lake Gen2 DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

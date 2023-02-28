@@ -39,9 +39,9 @@ resource "azurerm_network_manager_network_group" "example" {
 }
 
 resource "azurerm_network_manager_static_member" "example" {
-  name              = "example-nmsm"
-  network_group_id  = azurerm_network_manager_network_group.example.id
-  target_network_id = azurerm_virtual_network.example.id
+  name                      = "example-nmsm"
+  network_group_id          = azurerm_network_manager_network_group.example.id
+  target_virtual_network_id = azurerm_virtual_network.example.id
 }
 ```
 
@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `network_group_id` - (Required) Specifies the ID of the Network Manager Group. Changing this forces a new Network Manager Static Member to be created.
 
-* `target_network_id` - (Required) Specifies the Resource ID of the Virtual Network using as the Static Member. Changing this forces a new Network Manager Static Member to be created.
+* `target_virtual_network_id` - (Required) Specifies the Resource ID of the Virtual Network using as the Static Member. Changing this forces a new Network Manager Static Member to be created.
 
 ## Attributes Reference
 

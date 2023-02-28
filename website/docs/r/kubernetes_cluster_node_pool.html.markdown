@@ -150,8 +150,6 @@ The following arguments are supported:
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist. Changing this forces a new resource to be created.
 
--> **NOTE:** At this time the `vnet_subnet_id` must be the same for all node pools in the cluster
-
 ~> **NOTE:** A route table must be configured on this Subnet.
 
 * `windows_profile` - (Optional) A `windows_profile` block as documented below. Changing this forces a new resource to be created.
@@ -218,7 +216,7 @@ A `linux_os_config` block supports the following:
 
 A `node_network_profile` block supports the following:
 
-* `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs.
+* `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered.
 ---

@@ -1161,7 +1161,7 @@ func flattenNetAppVolumeDataProtectionReplication(input *volumes.VolumePropertie
 }
 
 func flattenNetAppVolumeDataProtectionSnapshotPolicy(input *volumes.VolumePropertiesDataProtection) []interface{} {
-	if input == nil || input.Snapshot == nil || *input.Snapshot.SnapshotPolicyId == "" {
+	if input == nil || input.Snapshot == nil || input.Snapshot.SnapshotPolicyId == nil || *input.Snapshot.SnapshotPolicyId == "" {
 		return []interface{}{}
 	}
 

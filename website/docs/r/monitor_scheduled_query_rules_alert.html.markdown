@@ -119,7 +119,7 @@ The following arguments are supported:
 -> **NOTE** `auto_mitigation_enabled` and `throttling` are mutually exclusive and cannot both be set.
 * `description` - (Optional) The description of the scheduled query rule.
 * `enabled` - (Optional) Whether this scheduled query rule is enabled. Default is `true`.
-* `query_type` - (Optional) The type of query results. Possible values are `ResultCount` and `Number`. Default is `ResultCount`.
+* `query_type` - (Optional) The type of query results. Possible values are `ResultCount` and `Number`. Default is `ResultCount`. If set to `Number`, `query` must include an `AggregatedValue` column of a numeric type, for example, `Heartbeat | summarize AggregatedValue = count() by bin(TimeGenerated, 5m)`.
 * `severity` - (Optional) Severity of the alert. Possible values include: 0, 1, 2, 3, or 4.
 * `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed. Values must be between 0 and 10000 (inclusive).
 * `tags` - (Optional) A mapping of tags to assign to the resource.

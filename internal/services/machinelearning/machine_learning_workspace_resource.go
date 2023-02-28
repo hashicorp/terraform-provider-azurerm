@@ -123,7 +123,6 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"image_build_compute_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"description": {

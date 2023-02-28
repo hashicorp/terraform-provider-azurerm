@@ -307,7 +307,7 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if nsgIdLit := prop.TargetResourceID; nsgIdLit != nil {
-			id, err := parse.NetworkSecurityGroupID(*nsgIdLit)
+			id, err := parse.NetworkSecurityGroupIDInsensitively(*nsgIdLit)
 			if err != nil {
 				return err
 			}

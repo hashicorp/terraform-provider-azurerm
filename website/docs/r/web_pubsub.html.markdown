@@ -100,7 +100,7 @@ The following attributes are exported:
 
 * `identity` - An `identity` block as defined below.
 
-* `ip_address` - The publicly accessible IP of the Web PubSub service.
+* `external_ip` - The publicly accessible IP of the Web PubSub service.
 
 * `public_port` - The publicly accessible port of the Web PubSub service which is designed for browser/client use.
 

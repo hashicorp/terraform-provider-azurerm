@@ -58,7 +58,7 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 						},
 						"filters": {
 							Type:     pluginsdk.TypeList,
-							Optional: true,
+							Required: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -136,6 +136,10 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													Optional:     true,
 													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
+												},
+												"auto_tier_to_hot_from_cool_enabled": {
+													Type:     pluginsdk.TypeBool,
+													Optional: true,
 												},
 												"tier_to_cool_after_days_since_creation_greater_than": {
 													Type:         pluginsdk.TypeInt,
@@ -430,6 +434,11 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 			sinceCreate = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_cool_after_days_since_creation_greater_than", ruleIndex))
 			sinceCreateOK = sinceCreate != -1
 
+			autoTierToHotOK := d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.auto_tier_to_hot_from_cool_enabled", ruleIndex)).(bool)
+			if autoTierToHotOK && !sinceAccessOK {
+				return nil, fmt.Errorf("`auto_tier_to_hot_from_cool_enabled` must be used together with `tier_to_cool_after_days_since_last_access_time_greater_than`")
+			}
+
 			var cnt int
 			if sinceModOK {
 				cnt++
@@ -454,6 +463,9 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 				}
 				if sinceCreateOK {
 					baseBlob.TierToCool.DaysAfterCreationGreaterThan = utils.Float(float64(sinceCreate.(int)))
+				}
+				if autoTierToHotOK {
+					baseBlob.EnableAutoTierToHotFromCool = utils.Bool(autoTierToHotOK)
 				}
 			}
 
@@ -635,6 +647,7 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 						tierToCoolSinceMod               = -1
 						tierToCoolSinceAccess            = -1
 						tierToCoolSinceCreate            = -1
+						autoTierToHotOK                  = false
 						tierToArchiveSinceMod            = -1
 						tierToArchiveSinceAccess         = -1
 						tierToArchiveSinceCreate         = -1
@@ -644,6 +657,9 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 						deleteSinceCreate                = -1
 					)
 
+					if v := armActionBaseBlob.EnableAutoTierToHotFromCool; v != nil {
+						autoTierToHotOK = *v
+					}
 					if props := armActionBaseBlob.TierToCool; props != nil {
 						if props.DaysAfterModificationGreaterThan != nil {
 							tierToCoolSinceMod = int(*props.DaysAfterModificationGreaterThan)
@@ -682,6 +698,7 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 					}
 					action["base_blob"] = []interface{}{
 						map[string]interface{}{
+							"auto_tier_to_hot_from_cool_enabled":                             autoTierToHotOK,
 							"tier_to_cool_after_days_since_modification_greater_than":        tierToCoolSinceMod,
 							"tier_to_cool_after_days_since_last_access_time_greater_than":    tierToCoolSinceAccess,
 							"tier_to_cool_after_days_since_creation_greater_than":            tierToCoolSinceCreate,

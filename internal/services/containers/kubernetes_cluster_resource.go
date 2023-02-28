@@ -458,9 +458,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"dns_zone_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: dnsValidate.ValidateDnsZoneID,
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.Any(
+								dnsValidate.ValidateDnsZoneID,
+								validation.StringIsEmpty,
+							),
 						},
 					},
 				},
@@ -1630,7 +1633,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("key_vault_secrets_provider") {
+	if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("confidential_computing") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("key_vault_secrets_provider") {
 		updateCluster = true
 		addOns := collectKubernetesAddons(d)
 		addonProfiles, err := expandKubernetesAddOns(d, addOns, env)
@@ -2141,6 +2144,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			addOns := flattenKubernetesAddOns(*props.AddonProfiles)
 			d.Set("aci_connector_linux", addOns["aci_connector_linux"])
 			d.Set("azure_policy_enabled", addOns["azure_policy_enabled"].(bool))
+			d.Set("confidential_computing", addOns["confidential_computing"])
 			d.Set("http_application_routing_enabled", addOns["http_application_routing_enabled"].(bool))
 			d.Set("http_application_routing_zone_name", addOns["http_application_routing_zone_name"])
 			d.Set("oms_agent", addOns["oms_agent"])
@@ -2245,7 +2249,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("oidc_issuer_enabled", oidcIssuerEnabled)
 		d.Set("oidc_issuer_url", oidcIssuerUrl)
 
-		microsoftDefender := flattenKubernetesClusterMicrosoftDefender(props.SecurityProfile.Defender)
+		microsoftDefender := flattenKubernetesClusterMicrosoftDefender(props.SecurityProfile)
 		if err := d.Set("microsoft_defender", microsoftDefender); err != nil {
 			return fmt.Errorf("setting `microsoft_defender`: %+v", err)
 		}
@@ -2261,7 +2265,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		d.Set("workload_identity_enabled", workloadIdentity)
 
-		azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile.AzureKeyVaultKms)
+		azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
 		if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
 			return fmt.Errorf("setting `key_management_service`: %+v", err)
 		}
@@ -3628,13 +3632,13 @@ func expandKubernetesClusterMicrosoftDefender(d *pluginsdk.ResourceData, input [
 	}
 }
 
-func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfileDefender) []interface{} {
-	if input == nil || (input.SecurityMonitoring != nil && input.SecurityMonitoring.Enabled != nil && !*input.SecurityMonitoring.Enabled) {
+func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
+	if input == nil || input.Defender == nil || input.Defender.SecurityMonitoring == nil || input.Defender.SecurityMonitoring.Enabled == nil || !*input.Defender.SecurityMonitoring.Enabled {
 		return []interface{}{}
 	}
 
 	logAnalyticsWorkspace := ""
-	if v := input.LogAnalyticsWorkspaceResourceId; v != nil {
+	if v := input.Defender.LogAnalyticsWorkspaceResourceId; v != nil {
 		logAnalyticsWorkspace = *v
 	}
 
@@ -3704,23 +3708,29 @@ func base64IsEncoded(data string) bool {
 }
 
 func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ManagedClusterIngressProfile {
-	if (len(input) == 0 || input[0] == nil) && d.HasChange("web_app_routing") {
+	if len(input) == 0 && d.HasChange("web_app_routing") {
 		return &managedclusters.ManagedClusterIngressProfile{
 			WebAppRouting: &managedclusters.ManagedClusterIngressProfileWebAppRouting{
 				Enabled: utils.Bool(false),
 			},
 		}
-	} else if len(input) == 0 || input[0] == nil {
+	} else if len(input) == 0 {
 		return nil
 	}
 
-	config := input[0].(map[string]interface{})
-	return &managedclusters.ManagedClusterIngressProfile{
+	out := managedclusters.ManagedClusterIngressProfile{
 		WebAppRouting: &managedclusters.ManagedClusterIngressProfileWebAppRouting{
-			Enabled:           utils.Bool(true),
-			DnsZoneResourceId: utils.String(config["dns_zone_id"].(string)),
+			Enabled: utils.Bool(true),
 		},
 	}
+	if input[0] != nil {
+		config := input[0].(map[string]interface{})
+		dnsZoneResourceId := config["dns_zone_id"].(string)
+		if dnsZoneResourceId != "" {
+			out.WebAppRouting.DnsZoneResourceId = utils.String(dnsZoneResourceId)
+		}
+	}
+	return &out
 }
 
 func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedClusterIngressProfile) []interface{} {

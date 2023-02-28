@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -197,7 +197,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 							"interval": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: validate.AutoHealInterval, // TODO should be hh:mm:ss - This is too loose, need to improve
+								ValidateFunc: validate.TimeInterval, // TODO should be hh:mm:ss - This is too loose, need to improve
 							},
 						},
 					},
@@ -229,7 +229,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 							"interval": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: validate.AutoHealInterval,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"sub_status": {
@@ -260,13 +260,13 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 							"time_taken": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: validate.AutoHealInterval,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"interval": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: validate.AutoHealInterval,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"count": {

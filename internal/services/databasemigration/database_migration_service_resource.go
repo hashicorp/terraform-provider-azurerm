@@ -5,16 +5,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2018-04-19/serviceresource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -29,7 +28,7 @@ func resourceDatabaseMigrationService() *pluginsdk.Resource {
 		Delete: resourceDatabaseMigrationServiceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ServiceID(id)
+			_, err := serviceresource.ParseServiceID(id)
 			return err
 		}),
 
@@ -73,7 +72,7 @@ func resourceDatabaseMigrationService() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -84,30 +83,26 @@ func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := serviceresource.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.ServicesGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_database_migration_service", id.ID())
 		}
 	}
 
-	skuName := d.Get("sku_name").(string)
-	subnetID := d.Get("subnet_id").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
-	parameters := datamigration.Service{
-		Location: utils.String(location),
-		ServiceProperties: &datamigration.ServiceProperties{
-			VirtualSubnetID: utils.String(subnetID),
+	parameters := serviceresource.DataMigrationService{
+		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Properties: &serviceresource.DataMigrationServiceProperties{
+			VirtualSubnetId: d.Get("subnet_id").(string),
 		},
-		Sku: &datamigration.ServiceSku{
-			Name: utils.String(skuName),
+		Sku: &serviceresource.ServiceSku{
+			Name: utils.String(d.Get("sku_name").(string)),
 		},
 		Kind: utils.String("Cloud"), // currently only "Cloud" is supported, hence hardcode here
 	}
@@ -115,12 +110,8 @@ func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta inte
 		parameters.Tags = tags.Expand(t.(map[string]interface{}))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, parameters, id.ResourceGroup, id.Name)
-	if err != nil {
+	if err := client.ServicesCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -132,14 +123,14 @@ func resourceDatabaseMigrationServiceRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceID(d.Id())
+	id, err := serviceresource.ParseServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.ServicesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -147,17 +138,19 @@ func resourceDatabaseMigrationServiceRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	if serviceProperties := resp.ServiceProperties; serviceProperties != nil {
-		d.Set("subnet_id", serviceProperties.VirtualSubnetID)
-	}
-	if resp.Sku != nil {
-		d.Set("sku_name", resp.Sku.Name)
-	}
+	d.Set("name", id.ServiceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		if props := model.Properties; props != nil {
+			d.Set("subnet_id", props.VirtualSubnetId)
+		}
+		d.Set("sku_name", model.Sku.Name)
+
+		return tags.FlattenAndSet(d, model.Tags)
+	}
+	return nil
 }
 
 func resourceDatabaseMigrationServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -165,21 +158,19 @@ func resourceDatabaseMigrationServiceUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceID(d.Id())
+	id, err := serviceresource.ParseServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	parameters := datamigration.Service{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	parameters := serviceresource.DataMigrationService{
+		// location isn't update-able but if we don't supply the current value the SDK sends an empty string instead which errors on the API side
+		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Update(ctx, parameters, id.ResourceGroup, id.Name)
-	if err != nil {
+	if err := client.ServicesUpdateThenPoll(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return resourceDatabaseMigrationServiceRead(d, meta)
@@ -190,20 +181,16 @@ func resourceDatabaseMigrationServiceDelete(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceID(d.Id())
+	id, err := serviceresource.ParseServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, utils.Bool(true))
-	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+	opts := serviceresource.ServicesDeleteOperationOptions{
+		DeleteRunningTasks: utils.Bool(false),
 	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
-		}
+	if err := client.ServicesDeleteThenPoll(ctx, *id, opts); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

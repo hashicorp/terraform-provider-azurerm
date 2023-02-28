@@ -46,17 +46,21 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Is it enabled to access the vault from public networks. Defaults to `true`.
 
-* `immutability` - (Optional)  Immutability Settings of vault, possible values include: `Locked`, `Unlocked` and `Disabled`.
+* `immutability` - (Optional) Immutability Settings of vault, possible values include: `Locked`, `Unlocked` and `Disabled`.
 
 * `storage_mode_type` - (Optional) The storage type of the Recovery Services Vault. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Defaults to `GeoRedundant`.
 
 * `cross_region_restore_enabled` - (Optional) Is cross region restore enabled for this Vault? Only can be `true`, when `storage_mode_type` is `GeoRedundant`. Defaults to `false`.
+
+-> **Note:** Once `cross_region_restore_enabled` is set to `true`, changing it back to `false` forces a new Recovery Service Vault to be created.
 
 * `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
 
 * `encryption` - (Optional) An `encryption` block as defined below. Required with `identity`.
 
 !> **Note:** Once Encryption with your own key has been Enabled it's not possible to Disable it.
+
+* `classic_vmware_replication_enabled` - (Optional) Whether to enable the Classic experience for VMware replication. If set to `false` VMware machines will be protected using the new stateless ASR replication appliance. Changing this forces a new resource to be created.
 
 ---
 
@@ -75,6 +79,8 @@ An `encryption` block supports the following:
 * `key_id` - (Required) The Key Vault key id used to encrypt this vault. Key managed by Vault Managed Hardware Security Module is also supported.
 
 * `infrastructure_encryption_enabled` - (Required) Enabling/Disabling the Double Encryption state.
+
+* `user_assigned_identity_id` - (Optional) Specifies the user assigned identity ID to be used.
 
 * `use_system_assigned_identity` - (Optional) Indicate that system assigned identity should be used or not. Defaults to `true`.
 
@@ -104,7 +110,7 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Recovery Services Vault.
+* `create` - (Defaults to 2 hours) Used when creating the Recovery Services Vault.
 * `update` - (Defaults to 60 minutes) Used when updating the Recovery Services Vault.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services Vault.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Recovery Services Vault.

@@ -1,34 +1,14 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2021-06-01/redis" // nolint: staticcheck
+	"github.com/Azure/go-autorest/autorest"
+	redis_2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-type Client struct {
-	Client               *redis.Client
-	FirewallRulesClient  *redis.FirewallRulesClient
-	PatchSchedulesClient *redis.PatchSchedulesClient
-	LinkedServerClient   *redis.LinkedServerClient
-}
-
-func NewClient(o *common.ClientOptions) *Client {
-	client := redis.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
-
-	FirewallRulesClient := redis.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
-
-	PatchSchedulesClient := redis.NewPatchSchedulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&PatchSchedulesClient.Client, o.ResourceManagerAuthorizer)
-
-	LinkedServerClient := redis.NewLinkedServerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&LinkedServerClient.Client, o.ResourceManagerAuthorizer)
-
-	return &Client{
-		Client:               &client,
-		FirewallRulesClient:  &FirewallRulesClient,
-		PatchSchedulesClient: &PatchSchedulesClient,
-		LinkedServerClient:   &LinkedServerClient,
-	}
+func NewClient(o *common.ClientOptions) *redis_2021_06_01.Client {
+	client := redis_2021_06_01.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
+		c.Authorizer = o.ResourceManagerAuthorizer
+	})
+	return &client
 }
