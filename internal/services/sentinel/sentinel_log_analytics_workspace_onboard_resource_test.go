@@ -269,7 +269,7 @@ func (r SecurityInsightsSentinelOnboardingStateResource) requiresImport(data acc
 			%s
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "import" {
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_workspace_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 `, config)
 }

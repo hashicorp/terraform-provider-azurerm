@@ -128,7 +128,7 @@ func (r SentinelDataConnectorMicrosoftCloudAppSecurityResource) basic(data accep
 
 resource "azurerm_sentinel_data_connector_microsoft_cloud_app_security" "test" {
   name                       = "accTestDC-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 `, template, data.RandomInteger)
 }
@@ -142,7 +142,7 @@ data "azurerm_client_config" "test" {}
 
 resource "azurerm_sentinel_data_connector_microsoft_cloud_app_security" "test" {
   name                       = "accTestDC-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   tenant_id                  = data.azurerm_client_config.test.tenant_id
   alerts_enabled             = %t
   discovery_logs_enabled     = %t

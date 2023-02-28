@@ -85,7 +85,7 @@ func (r WatchlistResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_sentinel_watchlist" "test" {
   name                       = "accTestWL-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "test"
   item_search_key            = "Key"
 }
@@ -99,7 +99,7 @@ func (r WatchlistResource) complete(data acceptance.TestData) string {
 
 resource "azurerm_sentinel_watchlist" "test" {
   name                       = "accTestWL-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "test"
   description                = "description"
   labels                     = ["label1", "laebl2"]

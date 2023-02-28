@@ -152,7 +152,7 @@ func (r SentinelAlertRuleNrtResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "Some Rule"
   severity                   = "High"
   query                      = <<QUERY
@@ -171,7 +171,7 @@ func (r SentinelAlertRuleNrtResource) complete(data acceptance.TestData) string 
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "Complete Rule"
   description                = "Some Description"
   tactics                    = ["Collection", "CommandAndControl"]
@@ -235,7 +235,7 @@ func (r SentinelAlertRuleNrtResource) completeUpdate(data acceptance.TestData) s
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "Updated Complete Rule"
   severity                   = "High"
   query                      = "Heartbeat"
@@ -268,12 +268,12 @@ func (r SentinelAlertRuleNrtResource) alertRuleTemplateGuid(data acceptance.Test
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "NRT Base64 encoded Windows process command-lines"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "Some Rule"
   severity                   = "Low"
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
@@ -288,7 +288,7 @@ func (r SentinelAlertRuleNrtResource) eventGroupingSetting(data acceptance.TestD
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "Some Rule"
   severity                   = "High"
   query                      = <<QUERY
@@ -311,7 +311,7 @@ func (r SentinelAlertRuleNrtResource) updateEventGroupingSetting(data acceptance
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "Some Rule"
   severity                   = "High"
   query                      = <<QUERY

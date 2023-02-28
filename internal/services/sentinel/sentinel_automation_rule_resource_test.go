@@ -175,7 +175,7 @@ func (r SentinelAutomationRuleResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_sentinel_automation_rule" "test" {
   name                       = "%s"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "acctest-SentinelAutoRule-%d"
   order                      = 1
 
@@ -197,7 +197,7 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_sentinel_automation_rule" "test" {
   name                       = "%s"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "acctest-SentinelAutoRule-%d-update"
   order                      = 2
   enabled                    = false
@@ -250,7 +250,7 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_sentinel_automation_rule" "test" {
   name                       = "%s"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "acctest-SentinelAutoRule-%d-update"
   order                      = 2
   enabled                    = false
@@ -318,7 +318,7 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_sentinel_automation_rule" "test" {
   name                       = "%s"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "acctest-SentinelAutoRule-%d-update"
   order                      = 1
   condition_json = jsonencode([
@@ -433,7 +433,7 @@ resource "azurerm_role_assignment" "test" {
 
 resource "azurerm_sentinel_automation_rule" "test" {
   name                       = "%[3]s"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "acctest-SentinelAutoRule-%[2]d-update"
   order                      = 1
   triggers_on                = "Alerts"

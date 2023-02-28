@@ -164,7 +164,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) basic(data acceptance.Test
 
 resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "test" {
   name                       = "acctestDC-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "test"
   api_root_url               = "%s"
   collection_id              = "%s"
@@ -181,7 +181,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) complete(data acceptance.T
 
 resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "test" {
   name                       = "acctestDC-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "test_update"
   api_root_url               = "%s"
   collection_id              = "%s"
@@ -200,7 +200,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) update(data acceptance.Tes
 
 resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "test" {
   name                       = "acctestDC-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "test_update"
   api_root_url               = "%s"
   collection_id              = "%s"

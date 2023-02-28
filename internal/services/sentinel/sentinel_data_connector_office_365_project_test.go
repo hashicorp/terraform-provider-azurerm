@@ -85,7 +85,7 @@ func (r SentinelDataConnectorOffice365ProjectResource) basic(data acceptance.Tes
 
 resource "azurerm_sentinel_data_connector_office_365_project" "test" {
   name                       = "accTestDC-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 `, template, data.RandomInteger)
 }
@@ -99,7 +99,7 @@ data "azurerm_client_config" "test" {}
 
 resource "azurerm_sentinel_data_connector_office_365_project" "test" {
   name                       = "accTestDC-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   tenant_id                  = data.azurerm_client_config.test.tenant_id
 }
 `, template, data.RandomInteger)

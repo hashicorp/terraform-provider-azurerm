@@ -120,7 +120,7 @@ func (r SentinelAlertRuleMLBehaviorAnalyticsResource) basic(data acceptance.Test
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "(Preview) Anomalous SSH Login Detection"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 
 resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "test" {
@@ -138,24 +138,24 @@ func (r SentinelAlertRuleMLBehaviorAnalyticsResource) complete(data acceptance.T
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "(Preview) Anomalous SSH Login Detection"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 
 resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "test" {
   name                       = "acctest-SentinelAlertRule-MLBehaviorAnalytics-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
   enabled                    = false
 }
 
 data "azurerm_sentinel_alert_rule_template" "test2" {
   display_name               = "(Preview) Anomalous RDP Login Detections"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 
 resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "test2" {
   name                       = "acctest-SentinelAlertRule-MLBehaviorAnalytics-2-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test2.name
   enabled                    = false
 }

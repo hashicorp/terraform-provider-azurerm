@@ -159,7 +159,7 @@ func (r SentinelAlertRuleMsSecurityIncidentResource) basic(data acceptance.TestD
 
 resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   name                       = "acctest-SentinelAlertRule-MSI-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   product_filter             = "Microsoft Cloud App Security"
   display_name               = "some rule"
   severity_filter            = ["High"]
@@ -173,7 +173,7 @@ func (r SentinelAlertRuleMsSecurityIncidentResource) complete(data acceptance.Te
 
 resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   name                       = "acctest-SentinelAlertRule-MSI-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   product_filter             = "Azure Security Center"
   display_name               = "updated rule"
   severity_filter            = ["High", "Low"]
@@ -203,7 +203,7 @@ func (r SentinelAlertRuleMsSecurityIncidentResource) alertRuleTemplateGuid(data 
 
 resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   name                       = "acctest-SentinelAlertRule-MSI-%d"
-  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   product_filter             = "Microsoft Cloud App Security"
   display_name               = "some rule"
   severity_filter            = ["High"]
@@ -218,7 +218,7 @@ func (r SentinelAlertRuleMsSecurityIncidentResource) displayNameExcludeFilter(da
 
 resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   name                        = "acctest-SentinelAlertRule-MSI-%d"
-  log_analytics_workspace_id  = azurerm_sentinel_log_analytics_workspace_onboarding.test.log_analytics_space_id
+  log_analytics_workspace_id  = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   product_filter              = "Microsoft Cloud App Security"
   display_name                = "some rule"
   severity_filter             = ["High"]
