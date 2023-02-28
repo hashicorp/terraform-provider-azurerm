@@ -10,7 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/encodings"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -96,6 +98,55 @@ func resourceMediaTransform() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForEncoderNamedPreset(), false),
 									},
+									"preset_configurations": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"complexity": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForComplexity(), false),
+												},
+												"interleave_output": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForInterleaveOutput(), false),
+												},
+												"key_frame_interval_in_seconds": {
+													Type:         pluginsdk.TypeFloat,
+													Optional:     true,
+													ValidateFunc: validation.FloatAtLeast(0),
+												},
+												"max_bitrate_bps": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+												"max_height": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+												"max_layers": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+												"min_bitrate_bps": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+												"min_height": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -107,31 +158,21 @@ func resourceMediaTransform() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"audio_language": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"ar-EG",
-											"ar-SY",
-											"de-DE",
-											"en-AU",
-											"en-GB",
-											"en-US",
-											"es-ES",
-											"es-MX",
-											"fr-FR",
-											"hi-IN",
-											"it-IT",
-											"ja-JP",
-											"ko-KR",
-											"pt-BR",
-											"ru-RU",
-											"zh-CN",
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"audio_analysis_mode": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAudioAnalysisMode(), false),
+									},
+									"experimental_options": {
+										Type:     pluginsdk.TypeMap,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
 									},
 								},
 							},
@@ -144,26 +185,9 @@ func resourceMediaTransform() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"audio_language": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"ar-EG",
-											"ar-SY",
-											"de-DE",
-											"en-AU",
-											"en-GB",
-											"en-US",
-											"es-ES",
-											"es-MX",
-											"fr-FR",
-											"hi-IN",
-											"it-IT",
-											"ja-JP",
-											"ko-KR",
-											"pt-BR",
-											"ru-RU",
-											"zh-CN",
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"audio_analysis_mode": {
 										Type:         pluginsdk.TypeString,
@@ -174,6 +198,13 @@ func resourceMediaTransform() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForInsightsType(), false),
+									},
+									"experimental_options": {
+										Type:     pluginsdk.TypeMap,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
 									},
 								},
 							},
@@ -189,6 +220,811 @@ func resourceMediaTransform() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAnalysisResolution(), false),
+									},
+									"blur_type": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForBlurType(), false),
+									},
+									"experimental_options": {
+										Type:     pluginsdk.TypeMap,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+									"face_detector_mode": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForFaceRedactorMode(), false),
+									},
+								},
+							},
+						},
+						"custom_preset": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"codecs": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MinItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*schema.Schema{
+												"aac_audio": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"bitrate": {
+																Type:     pluginsdk.TypeInt,
+																Optional: true,
+															},
+															"channels": {
+																Type:     pluginsdk.TypeInt,
+																Optional: true,
+															},
+															"label": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"profile": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAacAudioProfile(), false),
+															},
+															"sampling_rate": {
+																Type:     pluginsdk.TypeInt,
+																Optional: true,
+															},
+														},
+													},
+												},
+												"copy_audio": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"label": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+														},
+													},
+												},
+												"copy_video": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"label": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+														},
+													},
+												},
+												"dd_audio": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"bitrate": {
+																Type:     pluginsdk.TypeInt,
+																Optional: true,
+															},
+															"channels": {
+																Type:     pluginsdk.TypeInt,
+																Optional: true,
+															},
+															"label": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"sampling_rate": {
+																Type:     pluginsdk.TypeInt,
+																Optional: true,
+															},
+														},
+													},
+												},
+												"h264_video": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"complexity": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForH264Complexity(), false),
+															},
+															"key_frame_interval": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validate.ISO8601Duration,
+															},
+															"label": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"layer": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																MinItems: 1,
+																Elem: &pluginsdk.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"bitrate": {
+																			Type:     pluginsdk.TypeInt,
+																			Required: true,
+																		},
+																		"adaptive_b_frame_enabled": {
+																			Type:     pluginsdk.TypeBool,
+																			Optional: true,
+																		},
+																		"b_frames": {
+																			Type:     pluginsdk.TypeInt,
+																			Optional: true,
+																		},
+																		"buffer_window": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validate.ISO8601Duration,
+																		},
+																		"crf": {
+																			Type:     pluginsdk.TypeFloat,
+																			Optional: true,
+																		},
+																		"entropy_mode": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForEntropyMode(), false),
+																		},
+																		"frame_rate": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																		"height": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																		"label": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																		"level": {
+																			Type:     pluginsdk.TypeString,
+																			Optional: true,
+																		},
+																		"max_bitrate": {
+																			Type:     pluginsdk.TypeInt,
+																			Optional: true,
+																		},
+																		"profile": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForH264VideoProfile(), false),
+																		},
+																		"reference_frames": {
+																			Type:     pluginsdk.TypeInt,
+																			Optional: true,
+																		},
+																		"slices": {
+																			Type:     pluginsdk.TypeInt,
+																			Optional: true,
+																		},
+																		"width": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																	},
+																},
+															},
+															"rate_control_mode": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForH264RateControlMode(), false),
+															},
+															"scene_change_detection_enabled": {
+																Type:     pluginsdk.TypeBool,
+																Optional: true,
+															},
+															"stretch_mode": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForStretchMode(), false),
+															},
+															"sync_mode": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForVideoSyncMode(), false),
+															},
+														},
+													},
+												},
+												"h265_video": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"complexity": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForH265Complexity(), false),
+															},
+															"key_frame_interval": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validate.ISO8601Duration,
+															},
+															"label": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"layer": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																MinItems: 1,
+																Elem: &pluginsdk.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"bitrate": {
+																			Type:     pluginsdk.TypeInt,
+																			Required: true,
+																		},
+																		"adaptive_b_frame_enabled": {
+																			Type:     pluginsdk.TypeBool,
+																			Optional: true,
+																		},
+																		"b_frames": {
+																			Type:     pluginsdk.TypeInt,
+																			Optional: true,
+																		},
+																		"buffer_window": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validate.ISO8601Duration,
+																		},
+																		"crf": {
+																			Type:     pluginsdk.TypeFloat,
+																			Optional: true,
+																		},
+																		"frame_rate": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																		"height": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																		"label": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																		"level": {
+																			Type:     pluginsdk.TypeString,
+																			Optional: true,
+																		},
+																		"max_bitrate": {
+																			Type:     pluginsdk.TypeInt,
+																			Optional: true,
+																		},
+																		"profile": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForH265VideoProfile(), false),
+																		},
+																		"reference_frames": {
+																			Type:     pluginsdk.TypeInt,
+																			Optional: true,
+																		},
+																		"slices": {
+																			Type:     pluginsdk.TypeInt,
+																			Optional: true,
+																		},
+																		"width": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																	},
+																},
+															},
+															"scene_change_detection_enabled": {
+																Type:     pluginsdk.TypeBool,
+																Optional: true,
+															},
+															"stretch_mode": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForStretchMode(), false),
+															},
+															"sync_mode": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForVideoSyncMode(), false),
+															},
+														},
+													},
+												},
+												"jpg_image": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"key_frame_interval": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validate.ISO8601Duration,
+															},
+															"label": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"layer": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																MinItems: 1,
+																Elem: &pluginsdk.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"height": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																		"label": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																		"quality": {
+																			Type:         pluginsdk.TypeInt,
+																			Optional:     true,
+																			Default:      70,
+																			ValidateFunc: validation.IntBetween(0, 100),
+																		},
+																		"width": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																	},
+																},
+															},
+															"range": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"splite_column": {
+																Type:     pluginsdk.TypeInt,
+																Optional: true,
+															},
+															"start": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"step": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"stretch_mode": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForStretchMode(), false),
+															},
+															"sync_mode": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForVideoSyncMode(), false),
+															},
+														},
+													},
+												},
+												"png_image": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"key_frame_interval": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validate.ISO8601Duration,
+															},
+															"label": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"layer": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																MinItems: 1,
+																Elem: &pluginsdk.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"height": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																		"label": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																		"width": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																	},
+																},
+															},
+															"range": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"start": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"step": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"stretch_mode": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForStretchMode(), false),
+															},
+															"sync_mode": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForVideoSyncMode(), false),
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+									"filter": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*schema.Schema{
+												"crop": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"height": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"left": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"top": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"width": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+														},
+													},
+												},
+												"deinterlace": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"parity": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForDeinterlaceParity(), false),
+															},
+															"mode": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForDeinterlaceMode(), false),
+															},
+														},
+													},
+												},
+												"overlays": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MinItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"audio": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																Elem: &pluginsdk.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"audio_gain_level": {
+																			Type:     pluginsdk.TypeFloat,
+																			Optional: true,
+																		},
+																		"end": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validate.ISO8601Duration,
+																		},
+																		"fade_in_duration": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validate.ISO8601Duration,
+																		},
+																		"fade_out_duration": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validate.ISO8601Duration,
+																		},
+																		"inputLabel": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																		"start": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validate.ISO8601Duration,
+																		},
+																	},
+																},
+															},
+															"video": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																MaxItems: 1,
+																Elem: &pluginsdk.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"audio_gain_level": {
+																			Type:     pluginsdk.TypeFloat,
+																			Optional: true,
+																		},
+																		"end": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validate.ISO8601Duration,
+																		},
+																		"fade_in_duration": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validate.ISO8601Duration,
+																		},
+																		"fade_out_duration": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validate.ISO8601Duration,
+																		},
+																		"inputLabel": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
+																		"start": {
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validate.ISO8601Duration,
+																		},
+																		"position": {
+																			Type:     pluginsdk.TypeList,
+																			Optional: true,
+																			MaxItems: 1,
+																			Elem: &pluginsdk.Resource{
+																				Schema: map[string]*schema.Schema{
+																					"height": {
+																						Type:         pluginsdk.TypeString,
+																						Optional:     true,
+																						ValidateFunc: validation.StringIsNotEmpty,
+																					},
+																					"left": {
+																						Type:         pluginsdk.TypeString,
+																						Optional:     true,
+																						ValidateFunc: validation.StringIsNotEmpty,
+																					},
+																					"top": {
+																						Type:         pluginsdk.TypeString,
+																						Optional:     true,
+																						ValidateFunc: validation.StringIsNotEmpty,
+																					},
+																					"width": {
+																						Type:         pluginsdk.TypeString,
+																						Optional:     true,
+																						ValidateFunc: validation.StringIsNotEmpty,
+																					},
+																				},
+																			},
+																		},
+																		"opacity": {
+																			Type:         pluginsdk.TypeFloat,
+																			Optional:     true,
+																			ValidateFunc: validation.FloatBetween(0, 1.0),
+																		},
+																		"crop_rectangle": {
+																			Type:     pluginsdk.TypeList,
+																			Optional: true,
+																			MaxItems: 1,
+																			Elem: &pluginsdk.Resource{
+																				Schema: map[string]*schema.Schema{
+																					"height": {
+																						Type:         pluginsdk.TypeString,
+																						Optional:     true,
+																						ValidateFunc: validation.StringIsNotEmpty,
+																					},
+																					"left": {
+																						Type:         pluginsdk.TypeString,
+																						Optional:     true,
+																						ValidateFunc: validation.StringIsNotEmpty,
+																					},
+																					"top": {
+																						Type:         pluginsdk.TypeString,
+																						Optional:     true,
+																						ValidateFunc: validation.StringIsNotEmpty,
+																					},
+																					"width": {
+																						Type:         pluginsdk.TypeString,
+																						Optional:     true,
+																						ValidateFunc: validation.StringIsNotEmpty,
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+												"rotation": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForRotation(), false),
+												},
+											},
+										},
+									},
+									"format": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*schema.Schema{
+												"jpg": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"filename_pattern": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+														},
+													},
+												},
+												"mp4": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"filename_pattern": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"output_files": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																MinItems: 1,
+																Elem: &pluginsdk.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"labels": {
+																			Type:     pluginsdk.TypeList,
+																			Required: true,
+																			MaxItems: 1,
+																			Elem: &pluginsdk.Schema{
+																				Type:         pluginsdk.TypeString,
+																				ValidateFunc: validation.StringIsNotEmpty,
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+												"png": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"filename_pattern": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+														},
+													},
+												},
+												"transport_stream": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"filename_pattern": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"output_files": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																MinItems: 1,
+																Elem: &pluginsdk.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"labels": {
+																			Type:     pluginsdk.TypeList,
+																			Required: true,
+																			MaxItems: 1,
+																			Elem: &pluginsdk.Schema{
+																				Type:         pluginsdk.TypeString,
+																				ValidateFunc: validation.StringIsNotEmpty,
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
 									},
 								},
 							},
