@@ -10,26 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func alertRuleID(rule alertrules.AlertRule) *string {
-	if rule == nil {
-		return nil
-	}
-	switch rule := rule.(type) {
-	case alertrules.FusionAlertRule:
-		return rule.Id
-	case alertrules.MicrosoftSecurityIncidentCreationAlertRule:
-		return rule.Id
-	case alertrules.ScheduledAlertRule:
-		return rule.Id
-	case alertrules.MLBehaviorAnalyticsAlertRule:
-		return rule.Id
-	case alertrules.NrtAlertRule:
-		return rule.Id
-	default:
-		return nil
-	}
-}
-
 func importSentinelAlertRule(expectKind alertrules.AlertRuleKind) pluginsdk.ImporterFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
 		id, err := alertrules.ParseAlertRuleID(d.Id())
