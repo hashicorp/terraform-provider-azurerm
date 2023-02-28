@@ -17,6 +17,7 @@ ENHANCEMENTS
 * `compute/gallery_application_version` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20599]
 * `iottimeseriesinsights` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20416]
 * `policy/assignment` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
+* `sentinel/alert_rule` - switching to use github.com/hashicorp/go-azure-sdk [GH-20680]
 * `azurerm_app_service_connection` - support for the `secret_store` block [GH-20613]
 * `azurerm_container_app` - the `traffic_weight` block is now optional [GH-20574]
 * `azurerm_key_vault_key` - support for the `rotation_policy` block [GH-19113]
