@@ -1145,7 +1145,7 @@ func TestAccStorageAccount_encryptionKeyType_Service(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_infrastructureEncryptionStorageV2(t *testing.T) {
+func TestAccStorageAccount_infrastructureEncryptionStorageV2_Enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1158,19 +1158,19 @@ func TestAccStorageAccount_infrastructureEncryptionStorageV2(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_infrastructureEncryptionStorageV2_Disabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.infrastructureEncryptionDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("infrastructure_encryption_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.infrastructureEncryption(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("infrastructure_encryption_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
