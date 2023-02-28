@@ -48,7 +48,7 @@ func (r LogAnalyticsWorkspaceOnboardResource) Arguments() map[string]*pluginsdk.
 			Optional:      true,
 			Computed:      true,
 			ForceNew:      true,
-			ConflictsWith: []string{"log_analytics_workspace_id"},
+			ConflictsWith: []string{"workspace_id"},
 			ValidateFunc:  resourcegroups.ValidateName,
 		},
 
@@ -58,18 +58,17 @@ func (r LogAnalyticsWorkspaceOnboardResource) Arguments() map[string]*pluginsdk.
 			Optional:      true,
 			Computed:      true,
 			ForceNew:      true,
-			ConflictsWith: []string{"log_analytics_workspace_id"},
+			ConflictsWith: []string{"workspace_id"},
 			ValidateFunc:  validation.StringIsNotEmpty,
 		},
 
 		"workspace_id": {
-			Type:          pluginsdk.TypeString,
-			Required:      features.FourPointOhBeta(),
-			Optional:      !features.FourPointOhBeta(),
-			Computed:      !features.FourPointOhBeta(),
-			ForceNew:      true,
-			ConflictsWith: []string{"resource_group_name", "workspace_name"},
-			ValidateFunc:  workspaces.ValidateWorkspaceID,
+			Type:         pluginsdk.TypeString,
+			Required:     features.FourPointOhBeta(),
+			Optional:     !features.FourPointOhBeta(),
+			Computed:     !features.FourPointOhBeta(),
+			ForceNew:     true,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
 		},
 
 		"customer_managed_key_enabled": {
@@ -83,6 +82,8 @@ func (r LogAnalyticsWorkspaceOnboardResource) Arguments() map[string]*pluginsdk.
 	if features.FourPointOhBeta() {
 		delete(out, "resource_group_name")
 		delete(out, "workspace_name")
+	} else {
+		out["workspace_id"].ConflictsWith = []string{"resource_group_name", "workspace_name"}
 	}
 
 	return out
