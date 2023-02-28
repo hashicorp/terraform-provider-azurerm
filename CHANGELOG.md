@@ -4,12 +4,12 @@ FEATURES
 * **New Data Source:** `azurerm_mobile_network_data_network` [GH-20338]
 * **New Resource:** `azurerm_mobile_network_data_network` [GH-20338]
 
-
 ENHANCEMENTS
 
 * dependencies: updating to `v0.20230224.1071134` of `github.com/hashicorp/go-azure-sdk` [GH-20649]
 * dependencies: updating to `v0.20230224.1120200` of `github.com/tombuildsstuff/kermit` [GH-20649]
 * `databoxedge` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
+* `policy/assignment` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
 * `compute/shared_image_gallery` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20599]
 * `compute/gallery_application` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20599]
 * `compute/gallery_application_version` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20599]
