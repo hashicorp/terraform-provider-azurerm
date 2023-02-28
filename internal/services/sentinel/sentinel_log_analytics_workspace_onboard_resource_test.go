@@ -31,6 +31,20 @@ func TestAccSecurityInsightsSentinelOnboardingState_basic(t *testing.T) {
 	})
 }
 
+func TestAccSecurityInsightsSentinelOnboardingState_basicWithName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboarding", "test")
+	r := SecurityInsightsSentinelOnboardingStateResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSecurityInsightsSentinelOnboardingState_ToggleCmkEnabled(t *testing.T) {
 
 	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
@@ -125,7 +139,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
-  workspace_id = azurerm_log_analytics_workspace.test.id
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_name      = azurerm_log_analytics_workspace.test.name
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
