@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
-const DefaultProvisioningStatePollingInterval = 2 * time.Second
+const DefaultPollingInterval = 10 * time.Second
 
 var _ pollers.PollerType = &provisioningStatePoller{}
 
