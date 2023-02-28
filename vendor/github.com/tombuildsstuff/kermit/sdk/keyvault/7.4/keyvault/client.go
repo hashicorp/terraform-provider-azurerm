@@ -1,4 +1,4 @@
-// Package keyvault implements the Azure ARM Keyvault service API version 7.1.
+// Package keyvault implements the Azure ARM Keyvault service API version 7.4.
 //
 // The key vault client performs cryptographic key operations and vault operations against the Key Vault service.
 package keyvault
@@ -11,11 +11,12 @@ package keyvault
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // BaseClient is the base client for Keyvault.
@@ -83,7 +84,7 @@ func (client BaseClient) BackupCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -169,7 +170,7 @@ func (client BaseClient) BackupKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -248,7 +249,7 @@ func (client BaseClient) BackupSecretPreparer(ctx context.Context, vaultBaseURL 
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -327,7 +328,7 @@ func (client BaseClient) BackupStorageAccountPreparer(ctx context.Context, vault
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -362,7 +363,9 @@ func (client BaseClient) BackupStorageAccountResponder(resp *http.Response) (res
 // certificates/create permission.
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
-// certificateName - the name of the certificate.
+// certificateName - the name of the certificate. The value you provide may be copied globally for the purpose
+// of running the service. The value provided should not include personally identifiable or sensitive
+// information.
 // parameters - the parameters to create a certificate.
 func (client BaseClient) CreateCertificate(ctx context.Context, vaultBaseURL string, certificateName string, parameters CertificateCreateParameters) (result CertificateOperation, err error) {
 	if tracing.IsEnabled() {
@@ -420,7 +423,7 @@ func (client BaseClient) CreateCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -457,7 +460,9 @@ func (client BaseClient) CreateCertificateResponder(resp *http.Response) (result
 // exists, Azure Key Vault creates a new version of the key. It requires the keys/create permission.
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
-// keyName - the name for the new key. The system will generate the version name for the new key.
+// keyName - the name for the new key. The system will generate the version name for the new key. The value you
+// provide may be copied globally for the purpose of running the service. The value provided should not include
+// personally identifiable or sensitive information.
 // parameters - the parameters to create a key.
 func (client BaseClient) CreateKey(ctx context.Context, vaultBaseURL string, keyName string, parameters KeyCreateParameters) (result KeyBundle, err error) {
 	if tracing.IsEnabled() {
@@ -508,7 +513,7 @@ func (client BaseClient) CreateKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -545,7 +550,9 @@ func (client BaseClient) CreateKeyResponder(resp *http.Response) (result KeyBund
 // specified algorithm. This operation is the reverse of the ENCRYPT operation; only a single block of data may be
 // decrypted, the size of this block is dependent on the target key and the algorithm to be used. The DECRYPT operation
 // applies to asymmetric and symmetric keys stored in Azure Key Vault since it uses the private portion of the key.
-// This operation requires the keys/decrypt permission.
+// This operation requires the keys/decrypt permission. Microsoft recommends not to use CBC algorithms for decryption
+// without first ensuring the integrity of the ciphertext using an HMAC, for example. See
+// https://docs.microsoft.com/dotnet/standard/security/vulnerabilities-cbc-mode for more information.
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
 // keyName - the name of the key.
@@ -601,7 +608,7 @@ func (client BaseClient) DecryptPreparer(ctx context.Context, vaultBaseURL strin
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -683,7 +690,7 @@ func (client BaseClient) DeleteCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -757,7 +764,7 @@ func (client BaseClient) DeleteCertificateContactsPreparer(ctx context.Context, 
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -836,7 +843,7 @@ func (client BaseClient) DeleteCertificateIssuerPreparer(ctx context.Context, va
 		"issuer-name": autorest.Encode("path", issuerName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -915,7 +922,7 @@ func (client BaseClient) DeleteCertificateOperationPreparer(ctx context.Context,
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -995,7 +1002,7 @@ func (client BaseClient) DeleteKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1084,7 +1091,7 @@ func (client BaseClient) DeleteSasDefinitionPreparer(ctx context.Context, vaultB
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1163,7 +1170,7 @@ func (client BaseClient) DeleteSecretPreparer(ctx context.Context, vaultBaseURL 
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1247,7 +1254,7 @@ func (client BaseClient) DeleteStorageAccountPreparer(ctx context.Context, vault
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1340,7 +1347,7 @@ func (client BaseClient) EncryptPreparer(ctx context.Context, vaultBaseURL strin
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1367,6 +1374,273 @@ func (client BaseClient) EncryptResponder(resp *http.Response) (result KeyOperat
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// FullBackup creates a full backup using a user-provided SAS token to an Azure blob storage container.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// azureStorageBlobContainerURI - azure blob shared access signature token pointing to a valid Azure blob
+// container where full backup needs to be stored. This token needs to be valid for at least next 24 hours from
+// the time of making this call
+func (client BaseClient) FullBackup(ctx context.Context, vaultBaseURL string, azureStorageBlobContainerURI *SASTokenParameter) (result FullBackupFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.FullBackup")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: azureStorageBlobContainerURI,
+			Constraints: []validation.Constraint{{Target: "azureStorageBlobContainerURI", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "azureStorageBlobContainerURI.StorageResourceURI", Name: validation.Null, Rule: true, Chain: nil},
+					{Target: "azureStorageBlobContainerURI.Token", Name: validation.Null, Rule: true, Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "FullBackup", err.Error())
+	}
+
+	req, err := client.FullBackupPreparer(ctx, vaultBaseURL, azureStorageBlobContainerURI)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "FullBackup", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.FullBackupSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "FullBackup", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// FullBackupPreparer prepares the FullBackup request.
+func (client BaseClient) FullBackupPreparer(ctx context.Context, vaultBaseURL string, azureStorageBlobContainerURI *SASTokenParameter) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPath("/backup"),
+		autorest.WithQueryParameters(queryParameters))
+	if azureStorageBlobContainerURI != nil {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithJSON(azureStorageBlobContainerURI))
+	}
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// FullBackupSender sends the FullBackup request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) FullBackupSender(req *http.Request) (future FullBackupFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// FullBackupResponder handles the response to the FullBackup request. The method always
+// closes the http.Response Body.
+func (client BaseClient) FullBackupResponder(resp *http.Response) (result FullBackupOperation, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// FullBackupStatus returns the status of full backup operation
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// jobID - the id returned as part of the backup request
+func (client BaseClient) FullBackupStatus(ctx context.Context, vaultBaseURL string, jobID string) (result FullBackupOperation, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.FullBackupStatus")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.FullBackupStatusPreparer(ctx, vaultBaseURL, jobID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "FullBackupStatus", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.FullBackupStatusSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "FullBackupStatus", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.FullBackupStatusResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "FullBackupStatus", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// FullBackupStatusPreparer prepares the FullBackupStatus request.
+func (client BaseClient) FullBackupStatusPreparer(ctx context.Context, vaultBaseURL string, jobID string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"jobId": autorest.Encode("path", jobID),
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/backup/{jobId}/pending", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// FullBackupStatusSender sends the FullBackupStatus request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) FullBackupStatusSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// FullBackupStatusResponder handles the response to the FullBackupStatus request. The method always
+// closes the http.Response Body.
+func (client BaseClient) FullBackupStatusResponder(resp *http.Response) (result FullBackupOperation, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// FullRestoreOperation restores all key materials using the SAS token pointing to a previously stored Azure Blob
+// storage backup folder
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// restoreBlobDetails - the Azure blob SAS token pointing to a folder where the previous successful full backup
+// was stored
+func (client BaseClient) FullRestoreOperation(ctx context.Context, vaultBaseURL string, restoreBlobDetails *RestoreOperationParameters) (result FullRestoreOperationFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.FullRestoreOperation")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: restoreBlobDetails,
+			Constraints: []validation.Constraint{{Target: "restoreBlobDetails", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "restoreBlobDetails.SasTokenParameters", Name: validation.Null, Rule: true,
+					Chain: []validation.Constraint{{Target: "restoreBlobDetails.SasTokenParameters.StorageResourceURI", Name: validation.Null, Rule: true, Chain: nil},
+						{Target: "restoreBlobDetails.SasTokenParameters.Token", Name: validation.Null, Rule: true, Chain: nil},
+					}},
+					{Target: "restoreBlobDetails.FolderToRestore", Name: validation.Null, Rule: true, Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "FullRestoreOperation", err.Error())
+	}
+
+	req, err := client.FullRestoreOperationPreparer(ctx, vaultBaseURL, restoreBlobDetails)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "FullRestoreOperation", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.FullRestoreOperationSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "FullRestoreOperation", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// FullRestoreOperationPreparer prepares the FullRestoreOperation request.
+func (client BaseClient) FullRestoreOperationPreparer(ctx context.Context, vaultBaseURL string, restoreBlobDetails *RestoreOperationParameters) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPath("/restore"),
+		autorest.WithQueryParameters(queryParameters))
+	if restoreBlobDetails != nil {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithJSON(restoreBlobDetails))
+	}
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// FullRestoreOperationSender sends the FullRestoreOperation request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) FullRestoreOperationSender(req *http.Request) (future FullRestoreOperationFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// FullRestoreOperationResponder handles the response to the FullRestoreOperation request. The method always
+// closes the http.Response Body.
+func (client BaseClient) FullRestoreOperationResponder(resp *http.Response) (result RestoreOperation, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -1424,7 +1698,7 @@ func (client BaseClient) GetCertificatePreparer(ctx context.Context, vaultBaseUR
 		"certificate-version": autorest.Encode("path", certificateVersion),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1498,7 +1772,7 @@ func (client BaseClient) GetCertificateContactsPreparer(ctx context.Context, vau
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1577,7 +1851,7 @@ func (client BaseClient) GetCertificateIssuerPreparer(ctx context.Context, vault
 		"issuer-name": autorest.Encode("path", issuerName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1667,7 +1941,7 @@ func (client BaseClient) GetCertificateIssuersPreparer(ctx context.Context, vaul
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1786,7 +2060,7 @@ func (client BaseClient) GetCertificateOperationPreparer(ctx context.Context, va
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1865,7 +2139,7 @@ func (client BaseClient) GetCertificatePolicyPreparer(ctx context.Context, vault
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1893,6 +2167,141 @@ func (client BaseClient) GetCertificatePolicyResponder(resp *http.Response) (res
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetCertificateVersions the GetCertificateVersions operation returns the versions of a certificate in the specified
+// key vault. This operation requires the certificates/list permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// certificateName - the name of the certificate.
+// maxresults - maximum number of results to return in a page. If not specified the service will return up to
+// 25 results.
+func (client BaseClient) GetCertificateVersions(ctx context.Context, vaultBaseURL string, certificateName string, maxresults *int32) (result CertificateListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetCertificateVersions")
+		defer func() {
+			sc := -1
+			if result.clr.Response.Response != nil {
+				sc = result.clr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: maxresults,
+			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "GetCertificateVersions", err.Error())
+	}
+
+	result.fn = client.getCertificateVersionsNextResults
+	req, err := client.GetCertificateVersionsPreparer(ctx, vaultBaseURL, certificateName, maxresults)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetCertificateVersions", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetCertificateVersionsSender(req)
+	if err != nil {
+		result.clr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetCertificateVersions", resp, "Failure sending request")
+		return
+	}
+
+	result.clr, err = client.GetCertificateVersionsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetCertificateVersions", resp, "Failure responding to request")
+		return
+	}
+	if result.clr.hasNextLink() && result.clr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// GetCertificateVersionsPreparer prepares the GetCertificateVersions request.
+func (client BaseClient) GetCertificateVersionsPreparer(ctx context.Context, vaultBaseURL string, certificateName string, maxresults *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"certificate-name": autorest.Encode("path", certificateName),
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if maxresults != nil {
+		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/certificates/{certificate-name}/versions", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetCertificateVersionsSender sends the GetCertificateVersions request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetCertificateVersionsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetCertificateVersionsResponder handles the response to the GetCertificateVersions request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetCertificateVersionsResponder(resp *http.Response) (result CertificateListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// getCertificateVersionsNextResults retrieves the next set of results, if any.
+func (client BaseClient) getCertificateVersionsNextResults(ctx context.Context, lastResults CertificateListResult) (result CertificateListResult, err error) {
+	req, err := lastResults.certificateListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getCertificateVersionsNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.GetCertificateVersionsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getCertificateVersionsNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.GetCertificateVersionsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getCertificateVersionsNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// GetCertificateVersionsComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BaseClient) GetCertificateVersionsComplete(ctx context.Context, vaultBaseURL string, certificateName string, maxresults *int32) (result CertificateListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetCertificateVersions")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.GetCertificateVersions(ctx, vaultBaseURL, certificateName, maxresults)
 	return
 }
 
@@ -1956,7 +2365,7 @@ func (client BaseClient) GetCertificatesPreparer(ctx context.Context, vaultBaseU
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2030,141 +2439,6 @@ func (client BaseClient) GetCertificatesComplete(ctx context.Context, vaultBaseU
 	return
 }
 
-// GetCertificateVersions the GetCertificateVersions operation returns the versions of a certificate in the specified
-// key vault. This operation requires the certificates/list permission.
-// Parameters:
-// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
-// certificateName - the name of the certificate.
-// maxresults - maximum number of results to return in a page. If not specified the service will return up to
-// 25 results.
-func (client BaseClient) GetCertificateVersions(ctx context.Context, vaultBaseURL string, certificateName string, maxresults *int32) (result CertificateListResultPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetCertificateVersions")
-		defer func() {
-			sc := -1
-			if result.clr.Response.Response != nil {
-				sc = result.clr.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: maxresults,
-			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
-				}}}}}); err != nil {
-		return result, validation.NewError("keyvault.BaseClient", "GetCertificateVersions", err.Error())
-	}
-
-	result.fn = client.getCertificateVersionsNextResults
-	req, err := client.GetCertificateVersionsPreparer(ctx, vaultBaseURL, certificateName, maxresults)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetCertificateVersions", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetCertificateVersionsSender(req)
-	if err != nil {
-		result.clr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetCertificateVersions", resp, "Failure sending request")
-		return
-	}
-
-	result.clr, err = client.GetCertificateVersionsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetCertificateVersions", resp, "Failure responding to request")
-		return
-	}
-	if result.clr.hasNextLink() && result.clr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-		return
-	}
-
-	return
-}
-
-// GetCertificateVersionsPreparer prepares the GetCertificateVersions request.
-func (client BaseClient) GetCertificateVersionsPreparer(ctx context.Context, vaultBaseURL string, certificateName string, maxresults *int32) (*http.Request, error) {
-	urlParameters := map[string]interface{}{
-		"vaultBaseUrl": vaultBaseURL,
-	}
-
-	pathParameters := map[string]interface{}{
-		"certificate-name": autorest.Encode("path", certificateName),
-	}
-
-	const APIVersion = "7.1"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if maxresults != nil {
-		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
-		autorest.WithPathParameters("/certificates/{certificate-name}/versions", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetCertificateVersionsSender sends the GetCertificateVersions request. The method will close the
-// http.Response Body if it receives an error.
-func (client BaseClient) GetCertificateVersionsSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-}
-
-// GetCertificateVersionsResponder handles the response to the GetCertificateVersions request. The method always
-// closes the http.Response Body.
-func (client BaseClient) GetCertificateVersionsResponder(resp *http.Response) (result CertificateListResult, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// getCertificateVersionsNextResults retrieves the next set of results, if any.
-func (client BaseClient) getCertificateVersionsNextResults(ctx context.Context, lastResults CertificateListResult) (result CertificateListResult, err error) {
-	req, err := lastResults.certificateListResultPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getCertificateVersionsNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.GetCertificateVersionsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getCertificateVersionsNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.GetCertificateVersionsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getCertificateVersionsNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// GetCertificateVersionsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BaseClient) GetCertificateVersionsComplete(ctx context.Context, vaultBaseURL string, certificateName string, maxresults *int32) (result CertificateListResultIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetCertificateVersions")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.GetCertificateVersions(ctx, vaultBaseURL, certificateName, maxresults)
-	return
-}
-
 // GetDeletedCertificate the GetDeletedCertificate operation retrieves the deleted certificate information plus its
 // attributes, such as retention interval, scheduled permanent deletion and the current deletion recovery level. This
 // operation requires the certificates/get permission.
@@ -2214,7 +2488,7 @@ func (client BaseClient) GetDeletedCertificatePreparer(ctx context.Context, vaul
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2307,7 +2581,7 @@ func (client BaseClient) GetDeletedCertificatesPreparer(ctx context.Context, vau
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2430,7 +2704,7 @@ func (client BaseClient) GetDeletedKeyPreparer(ctx context.Context, vaultBaseURL
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2522,7 +2796,7 @@ func (client BaseClient) GetDeletedKeysPreparer(ctx context.Context, vaultBaseUR
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2651,7 +2925,7 @@ func (client BaseClient) GetDeletedSasDefinitionPreparer(ctx context.Context, va
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2748,7 +3022,7 @@ func (client BaseClient) GetDeletedSasDefinitionsPreparer(ctx context.Context, v
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2867,7 +3141,7 @@ func (client BaseClient) GetDeletedSecretPreparer(ctx context.Context, vaultBase
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2957,7 +3231,7 @@ func (client BaseClient) GetDeletedSecretsPreparer(ctx context.Context, vaultBas
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3082,7 +3356,7 @@ func (client BaseClient) GetDeletedStorageAccountPreparer(ctx context.Context, v
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3172,7 +3446,7 @@ func (client BaseClient) GetDeletedStorageAccountsPreparer(ctx context.Context, 
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3294,7 +3568,7 @@ func (client BaseClient) GetKeyPreparer(ctx context.Context, vaultBaseURL string
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3325,135 +3599,82 @@ func (client BaseClient) GetKeyResponder(resp *http.Response) (result KeyBundle,
 	return
 }
 
-// GetKeys retrieves a list of the keys in the Key Vault as JSON Web Key structures that contain the public part of a
-// stored key. The LIST operation is applicable to all key types, however only the base key identifier, attributes, and
-// tags are provided in the response. Individual versions of a key are not listed in the response. This operation
-// requires the keys/list permission.
+// GetKeyRotationPolicy the GetKeyRotationPolicy operation returns the specified key policy resources in the specified
+// key vault. This operation requires the keys/get permission.
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
-// maxresults - maximum number of results to return in a page. If not specified the service will return up to
-// 25 results.
-func (client BaseClient) GetKeys(ctx context.Context, vaultBaseURL string, maxresults *int32) (result KeyListResultPage, err error) {
+// keyName - the name of the key in a given key vault.
+func (client BaseClient) GetKeyRotationPolicy(ctx context.Context, vaultBaseURL string, keyName string) (result KeyRotationPolicy, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeys")
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeyRotationPolicy")
 		defer func() {
 			sc := -1
-			if result.klr.Response.Response != nil {
-				sc = result.klr.Response.Response.StatusCode
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: maxresults,
-			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
-				}}}}}); err != nil {
-		return result, validation.NewError("keyvault.BaseClient", "GetKeys", err.Error())
-	}
-
-	result.fn = client.getKeysNextResults
-	req, err := client.GetKeysPreparer(ctx, vaultBaseURL, maxresults)
+	req, err := client.GetKeyRotationPolicyPreparer(ctx, vaultBaseURL, keyName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeys", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeyRotationPolicy", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.GetKeysSender(req)
+	resp, err := client.GetKeyRotationPolicySender(req)
 	if err != nil {
-		result.klr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeys", resp, "Failure sending request")
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeyRotationPolicy", resp, "Failure sending request")
 		return
 	}
 
-	result.klr, err = client.GetKeysResponder(resp)
+	result, err = client.GetKeyRotationPolicyResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeys", resp, "Failure responding to request")
-		return
-	}
-	if result.klr.hasNextLink() && result.klr.IsEmpty() {
-		err = result.NextWithContext(ctx)
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeyRotationPolicy", resp, "Failure responding to request")
 		return
 	}
 
 	return
 }
 
-// GetKeysPreparer prepares the GetKeys request.
-func (client BaseClient) GetKeysPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32) (*http.Request, error) {
+// GetKeyRotationPolicyPreparer prepares the GetKeyRotationPolicy request.
+func (client BaseClient) GetKeyRotationPolicyPreparer(ctx context.Context, vaultBaseURL string, keyName string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	pathParameters := map[string]interface{}{
+		"key-name": autorest.Encode("path", keyName),
+	}
+
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
-	}
-	if maxresults != nil {
-		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
 	}
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
-		autorest.WithPath("/keys"),
+		autorest.WithPathParameters("/keys/{key-name}/rotationpolicy", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// GetKeysSender sends the GetKeys request. The method will close the
+// GetKeyRotationPolicySender sends the GetKeyRotationPolicy request. The method will close the
 // http.Response Body if it receives an error.
-func (client BaseClient) GetKeysSender(req *http.Request) (*http.Response, error) {
+func (client BaseClient) GetKeyRotationPolicySender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
-// GetKeysResponder handles the response to the GetKeys request. The method always
+// GetKeyRotationPolicyResponder handles the response to the GetKeyRotationPolicy request. The method always
 // closes the http.Response Body.
-func (client BaseClient) GetKeysResponder(resp *http.Response) (result KeyListResult, err error) {
+func (client BaseClient) GetKeyRotationPolicyResponder(resp *http.Response) (result KeyRotationPolicy, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// getKeysNextResults retrieves the next set of results, if any.
-func (client BaseClient) getKeysNextResults(ctx context.Context, lastResults KeyListResult) (result KeyListResult, err error) {
-	req, err := lastResults.keyListResultPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getKeysNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.GetKeysSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getKeysNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.GetKeysResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getKeysNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// GetKeysComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BaseClient) GetKeysComplete(ctx context.Context, vaultBaseURL string, maxresults *int32) (result KeyListResultIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeys")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.GetKeys(ctx, vaultBaseURL, maxresults)
 	return
 }
 
@@ -3521,7 +3742,7 @@ func (client BaseClient) GetKeyVersionsPreparer(ctx context.Context, vaultBaseUR
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3592,6 +3813,223 @@ func (client BaseClient) GetKeyVersionsComplete(ctx context.Context, vaultBaseUR
 	return
 }
 
+// GetKeys retrieves a list of the keys in the Key Vault as JSON Web Key structures that contain the public part of a
+// stored key. The LIST operation is applicable to all key types, however only the base key identifier, attributes, and
+// tags are provided in the response. Individual versions of a key are not listed in the response. This operation
+// requires the keys/list permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// maxresults - maximum number of results to return in a page. If not specified the service will return up to
+// 25 results.
+func (client BaseClient) GetKeys(ctx context.Context, vaultBaseURL string, maxresults *int32) (result KeyListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeys")
+		defer func() {
+			sc := -1
+			if result.klr.Response.Response != nil {
+				sc = result.klr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: maxresults,
+			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "GetKeys", err.Error())
+	}
+
+	result.fn = client.getKeysNextResults
+	req, err := client.GetKeysPreparer(ctx, vaultBaseURL, maxresults)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeys", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetKeysSender(req)
+	if err != nil {
+		result.klr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeys", resp, "Failure sending request")
+		return
+	}
+
+	result.klr, err = client.GetKeysResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetKeys", resp, "Failure responding to request")
+		return
+	}
+	if result.klr.hasNextLink() && result.klr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// GetKeysPreparer prepares the GetKeys request.
+func (client BaseClient) GetKeysPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if maxresults != nil {
+		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPath("/keys"),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetKeysSender sends the GetKeys request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetKeysSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetKeysResponder handles the response to the GetKeys request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetKeysResponder(resp *http.Response) (result KeyListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// getKeysNextResults retrieves the next set of results, if any.
+func (client BaseClient) getKeysNextResults(ctx context.Context, lastResults KeyListResult) (result KeyListResult, err error) {
+	req, err := lastResults.keyListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getKeysNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.GetKeysSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getKeysNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.GetKeysResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getKeysNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// GetKeysComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BaseClient) GetKeysComplete(ctx context.Context, vaultBaseURL string, maxresults *int32) (result KeyListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeys")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.GetKeys(ctx, vaultBaseURL, maxresults)
+	return
+}
+
+// GetRandomBytes get the requested number of bytes containing random values from a managed HSM.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// parameters - the request object to get random bytes.
+func (client BaseClient) GetRandomBytes(ctx context.Context, vaultBaseURL string, parameters GetRandomBytesRequest) (result RandomBytes, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetRandomBytes")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.Count", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{{Target: "parameters.Count", Name: validation.InclusiveMaximum, Rule: int64(128), Chain: nil},
+					{Target: "parameters.Count", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "GetRandomBytes", err.Error())
+	}
+
+	req, err := client.GetRandomBytesPreparer(ctx, vaultBaseURL, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetRandomBytes", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetRandomBytesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetRandomBytes", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetRandomBytesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetRandomBytes", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetRandomBytesPreparer prepares the GetRandomBytes request.
+func (client BaseClient) GetRandomBytesPreparer(ctx context.Context, vaultBaseURL string, parameters GetRandomBytesRequest) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPath("/rng"),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetRandomBytesSender sends the GetRandomBytes request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetRandomBytesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetRandomBytesResponder handles the response to the GetRandomBytes request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetRandomBytesResponder(resp *http.Response) (result RandomBytes, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // GetSasDefinition gets information about a SAS definition for the specified storage account. This operation requires
 // the storage/getsas permission.
 // Parameters:
@@ -3650,7 +4088,7 @@ func (client BaseClient) GetSasDefinitionPreparer(ctx context.Context, vaultBase
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3747,7 +4185,7 @@ func (client BaseClient) GetSasDefinitionsPreparer(ctx context.Context, vaultBas
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3869,7 +4307,7 @@ func (client BaseClient) GetSecretPreparer(ctx context.Context, vaultBaseURL str
 		"secret-version": autorest.Encode("path", secretVersion),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3897,137 +4335,6 @@ func (client BaseClient) GetSecretResponder(resp *http.Response) (result SecretB
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// GetSecrets the Get Secrets operation is applicable to the entire vault. However, only the base secret identifier and
-// its attributes are provided in the response. Individual secret versions are not listed in the response. This
-// operation requires the secrets/list permission.
-// Parameters:
-// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
-// maxresults - maximum number of results to return in a page. If not specified, the service will return up to
-// 25 results.
-func (client BaseClient) GetSecrets(ctx context.Context, vaultBaseURL string, maxresults *int32) (result SecretListResultPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSecrets")
-		defer func() {
-			sc := -1
-			if result.slr.Response.Response != nil {
-				sc = result.slr.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: maxresults,
-			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
-				}}}}}); err != nil {
-		return result, validation.NewError("keyvault.BaseClient", "GetSecrets", err.Error())
-	}
-
-	result.fn = client.getSecretsNextResults
-	req, err := client.GetSecretsPreparer(ctx, vaultBaseURL, maxresults)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSecrets", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetSecretsSender(req)
-	if err != nil {
-		result.slr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSecrets", resp, "Failure sending request")
-		return
-	}
-
-	result.slr, err = client.GetSecretsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSecrets", resp, "Failure responding to request")
-		return
-	}
-	if result.slr.hasNextLink() && result.slr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-		return
-	}
-
-	return
-}
-
-// GetSecretsPreparer prepares the GetSecrets request.
-func (client BaseClient) GetSecretsPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32) (*http.Request, error) {
-	urlParameters := map[string]interface{}{
-		"vaultBaseUrl": vaultBaseURL,
-	}
-
-	const APIVersion = "7.1"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if maxresults != nil {
-		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
-		autorest.WithPath("/secrets"),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetSecretsSender sends the GetSecrets request. The method will close the
-// http.Response Body if it receives an error.
-func (client BaseClient) GetSecretsSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-}
-
-// GetSecretsResponder handles the response to the GetSecrets request. The method always
-// closes the http.Response Body.
-func (client BaseClient) GetSecretsResponder(resp *http.Response) (result SecretListResult, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// getSecretsNextResults retrieves the next set of results, if any.
-func (client BaseClient) getSecretsNextResults(ctx context.Context, lastResults SecretListResult) (result SecretListResult, err error) {
-	req, err := lastResults.secretListResultPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getSecretsNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.GetSecretsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getSecretsNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.GetSecretsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getSecretsNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// GetSecretsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BaseClient) GetSecretsComplete(ctx context.Context, vaultBaseURL string, maxresults *int32) (result SecretListResultIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSecrets")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.GetSecrets(ctx, vaultBaseURL, maxresults)
 	return
 }
 
@@ -4095,7 +4402,7 @@ func (client BaseClient) GetSecretVersionsPreparer(ctx context.Context, vaultBas
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4166,6 +4473,288 @@ func (client BaseClient) GetSecretVersionsComplete(ctx context.Context, vaultBas
 	return
 }
 
+// GetSecrets the Get Secrets operation is applicable to the entire vault. However, only the base secret identifier and
+// its attributes are provided in the response. Individual secret versions are not listed in the response. This
+// operation requires the secrets/list permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// maxresults - maximum number of results to return in a page. If not specified, the service will return up to
+// 25 results.
+func (client BaseClient) GetSecrets(ctx context.Context, vaultBaseURL string, maxresults *int32) (result SecretListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSecrets")
+		defer func() {
+			sc := -1
+			if result.slr.Response.Response != nil {
+				sc = result.slr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: maxresults,
+			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "GetSecrets", err.Error())
+	}
+
+	result.fn = client.getSecretsNextResults
+	req, err := client.GetSecretsPreparer(ctx, vaultBaseURL, maxresults)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSecrets", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetSecretsSender(req)
+	if err != nil {
+		result.slr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSecrets", resp, "Failure sending request")
+		return
+	}
+
+	result.slr, err = client.GetSecretsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSecrets", resp, "Failure responding to request")
+		return
+	}
+	if result.slr.hasNextLink() && result.slr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// GetSecretsPreparer prepares the GetSecrets request.
+func (client BaseClient) GetSecretsPreparer(ctx context.Context, vaultBaseURL string, maxresults *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if maxresults != nil {
+		queryParameters["maxresults"] = autorest.Encode("query", *maxresults)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPath("/secrets"),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetSecretsSender sends the GetSecrets request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetSecretsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetSecretsResponder handles the response to the GetSecrets request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetSecretsResponder(resp *http.Response) (result SecretListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// getSecretsNextResults retrieves the next set of results, if any.
+func (client BaseClient) getSecretsNextResults(ctx context.Context, lastResults SecretListResult) (result SecretListResult, err error) {
+	req, err := lastResults.secretListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getSecretsNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.GetSecretsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "keyvault.BaseClient", "getSecretsNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.GetSecretsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "getSecretsNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// GetSecretsComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BaseClient) GetSecretsComplete(ctx context.Context, vaultBaseURL string, maxresults *int32) (result SecretListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSecrets")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.GetSecrets(ctx, vaultBaseURL, maxresults)
+	return
+}
+
+// GetSetting retrieves the setting object of a specified setting name.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// settingName - the name of the account setting. Must be a valid settings option.
+func (client BaseClient) GetSetting(ctx context.Context, vaultBaseURL string, settingName string) (result Setting, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSetting")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetSettingPreparer(ctx, vaultBaseURL, settingName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSetting", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetSettingSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSetting", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetSettingResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSetting", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetSettingPreparer prepares the GetSetting request.
+func (client BaseClient) GetSettingPreparer(ctx context.Context, vaultBaseURL string, settingName string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"setting-name": autorest.Encode("path", settingName),
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/settings/{setting-name}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetSettingSender sends the GetSetting request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetSettingSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetSettingResponder handles the response to the GetSetting request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetSettingResponder(resp *http.Response) (result Setting, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetSettings retrieves a list of all the available account settings that can be configured.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+func (client BaseClient) GetSettings(ctx context.Context, vaultBaseURL string) (result SettingsListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSettings")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetSettingsPreparer(ctx, vaultBaseURL)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSettings", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetSettingsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSettings", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetSettingsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "GetSettings", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetSettingsPreparer prepares the GetSettings request.
+func (client BaseClient) GetSettingsPreparer(ctx context.Context, vaultBaseURL string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPath("/settings"),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetSettingsSender sends the GetSettings request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetSettingsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetSettingsResponder handles the response to the GetSettings request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetSettingsResponder(resp *http.Response) (result SettingsListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // GetStorageAccount gets information about a specified storage account. This operation requires the storage/get
 // permission.
 // Parameters:
@@ -4220,7 +4809,7 @@ func (client BaseClient) GetStorageAccountPreparer(ctx context.Context, vaultBas
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4310,7 +4899,7 @@ func (client BaseClient) GetStorageAccountsPreparer(ctx context.Context, vaultBa
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4381,12 +4970,15 @@ func (client BaseClient) GetStorageAccountsComplete(ctx context.Context, vaultBa
 	return
 }
 
-// ImportCertificate imports an existing valid certificate, containing a private key, into Azure Key Vault. The
-// certificate to be imported can be in either PFX or PEM format. If the certificate is in PEM format the PEM file must
-// contain the key as well as x509 certificates. This operation requires the certificates/import permission.
+// ImportCertificate imports an existing valid certificate, containing a private key, into Azure Key Vault. This
+// operation requires the certificates/import permission. The certificate to be imported can be in either PFX or PEM
+// format. If the certificate is in PEM format the PEM file must contain the key as well as x509 certificates. Key
+// Vault will only accept a key in PKCS#8 format.
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
-// certificateName - the name of the certificate.
+// certificateName - the name of the certificate. The value you provide may be copied globally for the purpose
+// of running the service. The value provided should not include personally identifiable or sensitive
+// information.
 // parameters - the parameters to import the certificate.
 func (client BaseClient) ImportCertificate(ctx context.Context, vaultBaseURL string, certificateName string, parameters CertificateImportParameters) (result CertificateBundle, err error) {
 	if tracing.IsEnabled() {
@@ -4445,7 +5037,7 @@ func (client BaseClient) ImportCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4483,7 +5075,8 @@ func (client BaseClient) ImportCertificateResponder(resp *http.Response) (result
 // permission.
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
-// keyName - name for the imported key.
+// keyName - name for the imported key. The value you provide may be copied globally for the purpose of running
+// the service. The value provided should not include personally identifiable or sensitive information.
 // parameters - the parameters to import a key.
 func (client BaseClient) ImportKey(ctx context.Context, vaultBaseURL string, keyName string, parameters KeyImportParameters) (result KeyBundle, err error) {
 	if tracing.IsEnabled() {
@@ -4536,7 +5129,7 @@ func (client BaseClient) ImportKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4624,7 +5217,7 @@ func (client BaseClient) MergeCertificatePreparer(ctx context.Context, vaultBase
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4706,7 +5299,7 @@ func (client BaseClient) PurgeDeletedCertificatePreparer(ctx context.Context, va
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4785,7 +5378,7 @@ func (client BaseClient) PurgeDeletedKeyPreparer(ctx context.Context, vaultBaseU
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4864,7 +5457,7 @@ func (client BaseClient) PurgeDeletedSecretPreparer(ctx context.Context, vaultBa
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4949,7 +5542,7 @@ func (client BaseClient) PurgeDeletedStorageAccountPreparer(ctx context.Context,
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5028,7 +5621,7 @@ func (client BaseClient) RecoverDeletedCertificatePreparer(ctx context.Context, 
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5109,7 +5702,7 @@ func (client BaseClient) RecoverDeletedKeyPreparer(ctx context.Context, vaultBas
 		"key-name": autorest.Encode("path", keyName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5198,7 +5791,7 @@ func (client BaseClient) RecoverDeletedSasDefinitionPreparer(ctx context.Context
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5277,7 +5870,7 @@ func (client BaseClient) RecoverDeletedSecretPreparer(ctx context.Context, vault
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5362,7 +5955,7 @@ func (client BaseClient) RecoverDeletedStorageAccountPreparer(ctx context.Contex
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5450,7 +6043,7 @@ func (client BaseClient) RegenerateStorageAccountKeyPreparer(ctx context.Context
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5474,6 +6067,97 @@ func (client BaseClient) RegenerateStorageAccountKeySender(req *http.Request) (*
 // RegenerateStorageAccountKeyResponder handles the response to the RegenerateStorageAccountKey request. The method always
 // closes the http.Response Body.
 func (client BaseClient) RegenerateStorageAccountKeyResponder(resp *http.Response) (result StorageBundle, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// Release the release key operation is applicable to all key types. The target key must be marked exportable. This
+// operation requires the keys/release permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// keyName - the name of the key to get.
+// keyVersion - adding the version parameter retrieves a specific version of a key.
+// parameters - the parameters for the key release operation.
+func (client BaseClient) Release(ctx context.Context, vaultBaseURL string, keyName string, keyVersion string, parameters KeyReleaseParameters) (result KeyReleaseResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.Release")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.TargetAttestationToken", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{{Target: "parameters.TargetAttestationToken", Name: validation.MinLength, Rule: 1, Chain: nil}}}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "Release", err.Error())
+	}
+
+	req, err := client.ReleasePreparer(ctx, vaultBaseURL, keyName, keyVersion, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "Release", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ReleaseSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "Release", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ReleaseResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "Release", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ReleasePreparer prepares the Release request.
+func (client BaseClient) ReleasePreparer(ctx context.Context, vaultBaseURL string, keyName string, keyVersion string, parameters KeyReleaseParameters) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"key-name":    autorest.Encode("path", keyName),
+		"key-version": autorest.Encode("path", keyVersion),
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/keys/{key-name}/{key-version}/release", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ReleaseSender sends the Release request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) ReleaseSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// ReleaseResponder handles the response to the Release request. The method always
+// closes the http.Response Body.
+func (client BaseClient) ReleaseResponder(resp *http.Response) (result KeyReleaseResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -5533,7 +6217,7 @@ func (client BaseClient) RestoreCertificatePreparer(ctx context.Context, vaultBa
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5623,7 +6307,7 @@ func (client BaseClient) RestoreKeyPreparer(ctx context.Context, vaultBaseURL st
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5706,7 +6390,7 @@ func (client BaseClient) RestoreSecretPreparer(ctx context.Context, vaultBaseURL
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5730,6 +6414,84 @@ func (client BaseClient) RestoreSecretSender(req *http.Request) (*http.Response,
 // RestoreSecretResponder handles the response to the RestoreSecret request. The method always
 // closes the http.Response Body.
 func (client BaseClient) RestoreSecretResponder(resp *http.Response) (result SecretBundle, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// RestoreStatus returns the status of restore operation
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// jobID - the Job Id returned part of the restore operation
+func (client BaseClient) RestoreStatus(ctx context.Context, vaultBaseURL string, jobID string) (result RestoreOperation, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.RestoreStatus")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.RestoreStatusPreparer(ctx, vaultBaseURL, jobID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RestoreStatus", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.RestoreStatusSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RestoreStatus", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.RestoreStatusResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RestoreStatus", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// RestoreStatusPreparer prepares the RestoreStatus request.
+func (client BaseClient) RestoreStatusPreparer(ctx context.Context, vaultBaseURL string, jobID string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"jobId": autorest.Encode("path", jobID),
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/restore/{jobId}/pending", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RestoreStatusSender sends the RestoreStatus request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) RestoreStatusSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// RestoreStatusResponder handles the response to the RestoreStatus request. The method always
+// closes the http.Response Body.
+func (client BaseClient) RestoreStatusResponder(resp *http.Response) (result RestoreOperation, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -5789,7 +6551,7 @@ func (client BaseClient) RestoreStorageAccountPreparer(ctx context.Context, vaul
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5816,6 +6578,191 @@ func (client BaseClient) RestoreStorageAccountResponder(resp *http.Response) (re
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// RotateKey the operation will rotate the key based on the key policy. It requires the keys/rotate permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// keyName - the name of key to be rotated. The system will generate a new version in the specified key.
+func (client BaseClient) RotateKey(ctx context.Context, vaultBaseURL string, keyName string) (result KeyBundle, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.RotateKey")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: keyName,
+			Constraints: []validation.Constraint{{Target: "keyName", Name: validation.Pattern, Rule: `^[0-9a-zA-Z-]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "RotateKey", err.Error())
+	}
+
+	req, err := client.RotateKeyPreparer(ctx, vaultBaseURL, keyName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RotateKey", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.RotateKeySender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RotateKey", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.RotateKeyResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "RotateKey", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// RotateKeyPreparer prepares the RotateKey request.
+func (client BaseClient) RotateKeyPreparer(ctx context.Context, vaultBaseURL string, keyName string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"key-name": autorest.Encode("path", keyName),
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/keys/{key-name}/rotate", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RotateKeySender sends the RotateKey request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) RotateKeySender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// RotateKeyResponder handles the response to the RotateKey request. The method always
+// closes the http.Response Body.
+func (client BaseClient) RotateKeyResponder(resp *http.Response) (result KeyBundle, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// SelectiveKeyRestoreOperationMethod restores all key versions of a given key using user supplied SAS token pointing
+// to a previously stored Azure Blob storage backup folder
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// keyName - the name of the key to be restored from the user supplied backup
+// restoreBlobDetails - the Azure blob SAS token pointing to a folder where the previous successful full backup
+// was stored
+func (client BaseClient) SelectiveKeyRestoreOperationMethod(ctx context.Context, vaultBaseURL string, keyName string, restoreBlobDetails *SelectiveKeyRestoreOperationParameters) (result SelectiveKeyRestoreOperationMethodFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.SelectiveKeyRestoreOperationMethod")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: restoreBlobDetails,
+			Constraints: []validation.Constraint{{Target: "restoreBlobDetails", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "restoreBlobDetails.SasTokenParameters", Name: validation.Null, Rule: true,
+					Chain: []validation.Constraint{{Target: "restoreBlobDetails.SasTokenParameters.StorageResourceURI", Name: validation.Null, Rule: true, Chain: nil},
+						{Target: "restoreBlobDetails.SasTokenParameters.Token", Name: validation.Null, Rule: true, Chain: nil},
+					}},
+					{Target: "restoreBlobDetails.Folder", Name: validation.Null, Rule: true, Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("keyvault.BaseClient", "SelectiveKeyRestoreOperationMethod", err.Error())
+	}
+
+	req, err := client.SelectiveKeyRestoreOperationMethodPreparer(ctx, vaultBaseURL, keyName, restoreBlobDetails)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "SelectiveKeyRestoreOperationMethod", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.SelectiveKeyRestoreOperationMethodSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "SelectiveKeyRestoreOperationMethod", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// SelectiveKeyRestoreOperationMethodPreparer prepares the SelectiveKeyRestoreOperationMethod request.
+func (client BaseClient) SelectiveKeyRestoreOperationMethodPreparer(ctx context.Context, vaultBaseURL string, keyName string, restoreBlobDetails *SelectiveKeyRestoreOperationParameters) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"keyName": autorest.Encode("path", keyName),
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/keys/{keyName}/restore", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	if restoreBlobDetails != nil {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithJSON(restoreBlobDetails))
+	}
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// SelectiveKeyRestoreOperationMethodSender sends the SelectiveKeyRestoreOperationMethod request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) SelectiveKeyRestoreOperationMethodSender(req *http.Request) (future SelectiveKeyRestoreOperationMethodFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// SelectiveKeyRestoreOperationMethodResponder handles the response to the SelectiveKeyRestoreOperationMethod request. The method always
+// closes the http.Response Body.
+func (client BaseClient) SelectiveKeyRestoreOperationMethodResponder(resp *http.Response) (result SelectiveKeyRestoreOperation, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -5866,7 +6813,7 @@ func (client BaseClient) SetCertificateContactsPreparer(ctx context.Context, vau
 		"vaultBaseUrl": vaultBaseURL,
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5904,7 +6851,8 @@ func (client BaseClient) SetCertificateContactsResponder(resp *http.Response) (r
 // operation requires the certificates/setissuers permission.
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
-// issuerName - the name of the issuer.
+// issuerName - the name of the issuer. The value you provide may be copied globally for the purpose of running
+// the service. The value provided should not include personally identifiable or sensitive information.
 // parameter - certificate issuer set parameter.
 func (client BaseClient) SetCertificateIssuer(ctx context.Context, vaultBaseURL string, issuerName string, parameter CertificateIssuerSetParameters) (result IssuerBundle, err error) {
 	if tracing.IsEnabled() {
@@ -5955,7 +6903,7 @@ func (client BaseClient) SetCertificateIssuerPreparer(ctx context.Context, vault
 		"issuer-name": autorest.Encode("path", issuerName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5993,7 +6941,9 @@ func (client BaseClient) SetCertificateIssuerResponder(resp *http.Response) (res
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
 // storageAccountName - the name of the storage account.
-// sasDefinitionName - the name of the SAS definition.
+// sasDefinitionName - the name of the SAS definition. The value you provide may be copied globally for the
+// purpose of running the service. The value provided should not include personally identifiable or sensitive
+// information.
 // parameters - the parameters to create a SAS definition.
 func (client BaseClient) SetSasDefinition(ctx context.Context, vaultBaseURL string, storageAccountName string, sasDefinitionName string, parameters SasDefinitionCreateParameters) (result SasDefinitionBundle, err error) {
 	if tracing.IsEnabled() {
@@ -6050,7 +7000,7 @@ func (client BaseClient) SetSasDefinitionPreparer(ctx context.Context, vaultBase
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6087,7 +7037,8 @@ func (client BaseClient) SetSasDefinitionResponder(resp *http.Response) (result 
 // Vault creates a new version of that secret. This operation requires the secrets/set permission.
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
-// secretName - the name of the secret.
+// secretName - the name of the secret. The value you provide may be copied globally for the purpose of running
+// the service. The value provided should not include personally identifiable or sensitive information.
 // parameters - the parameters for setting the secret.
 func (client BaseClient) SetSecret(ctx context.Context, vaultBaseURL string, secretName string, parameters SecretSetParameters) (result SecretBundle, err error) {
 	if tracing.IsEnabled() {
@@ -6140,7 +7091,7 @@ func (client BaseClient) SetSecretPreparer(ctx context.Context, vaultBaseURL str
 		"secret-name": autorest.Encode("path", secretName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6176,7 +7127,9 @@ func (client BaseClient) SetSecretResponder(resp *http.Response) (result SecretB
 // SetStorageAccount creates or updates a new storage account. This operation requires the storage/set permission.
 // Parameters:
 // vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
-// storageAccountName - the name of the storage account.
+// storageAccountName - the name of the storage account. The value you provide may be copied globally for the
+// purpose of running the service. The value provided should not include personally identifiable or sensitive
+// information.
 // parameters - the parameters to create a storage account.
 func (client BaseClient) SetStorageAccount(ctx context.Context, vaultBaseURL string, storageAccountName string, parameters StorageAccountCreateParameters) (result StorageBundle, err error) {
 	if tracing.IsEnabled() {
@@ -6231,7 +7184,7 @@ func (client BaseClient) SetStorageAccountPreparer(ctx context.Context, vaultBas
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6321,7 +7274,7 @@ func (client BaseClient) SignPreparer(ctx context.Context, vaultBaseURL string, 
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6413,7 +7366,7 @@ func (client BaseClient) UnwrapKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6497,7 +7450,7 @@ func (client BaseClient) UpdateCertificatePreparer(ctx context.Context, vaultBas
 		"certificate-version": autorest.Encode("path", certificateVersion),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6579,7 +7532,7 @@ func (client BaseClient) UpdateCertificateIssuerPreparer(ctx context.Context, va
 		"issuer-name": autorest.Encode("path", issuerName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6661,7 +7614,7 @@ func (client BaseClient) UpdateCertificateOperationPreparer(ctx context.Context,
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6743,7 +7696,7 @@ func (client BaseClient) UpdateCertificatePolicyPreparer(ctx context.Context, va
 		"certificate-name": autorest.Encode("path", certificateName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6828,7 +7781,7 @@ func (client BaseClient) UpdateKeyPreparer(ctx context.Context, vaultBaseURL str
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6852,6 +7805,89 @@ func (client BaseClient) UpdateKeySender(req *http.Request) (*http.Response, err
 // UpdateKeyResponder handles the response to the UpdateKey request. The method always
 // closes the http.Response Body.
 func (client BaseClient) UpdateKeyResponder(resp *http.Response) (result KeyBundle, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// UpdateKeyRotationPolicy set specified members in the key policy. Leave others as undefined. This operation requires
+// the keys/update permission.
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// keyName - the name of the key in the given vault.
+// keyRotationPolicy - the policy for the key.
+func (client BaseClient) UpdateKeyRotationPolicy(ctx context.Context, vaultBaseURL string, keyName string, keyRotationPolicy KeyRotationPolicy) (result KeyRotationPolicy, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.UpdateKeyRotationPolicy")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.UpdateKeyRotationPolicyPreparer(ctx, vaultBaseURL, keyName, keyRotationPolicy)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "UpdateKeyRotationPolicy", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateKeyRotationPolicySender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "UpdateKeyRotationPolicy", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateKeyRotationPolicyResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "UpdateKeyRotationPolicy", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// UpdateKeyRotationPolicyPreparer prepares the UpdateKeyRotationPolicy request.
+func (client BaseClient) UpdateKeyRotationPolicyPreparer(ctx context.Context, vaultBaseURL string, keyName string, keyRotationPolicy KeyRotationPolicy) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"key-name": autorest.Encode("path", keyName),
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	keyRotationPolicy.ID = nil
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/keys/{key-name}/rotationpolicy", pathParameters),
+		autorest.WithJSON(keyRotationPolicy),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateKeyRotationPolicySender sends the UpdateKeyRotationPolicy request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) UpdateKeyRotationPolicySender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// UpdateKeyRotationPolicyResponder handles the response to the UpdateKeyRotationPolicy request. The method always
+// closes the http.Response Body.
+func (client BaseClient) UpdateKeyRotationPolicyResponder(resp *http.Response) (result KeyRotationPolicy, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -6920,7 +7956,7 @@ func (client BaseClient) UpdateSasDefinitionPreparer(ctx context.Context, vaultB
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7005,7 +8041,7 @@ func (client BaseClient) UpdateSecretPreparer(ctx context.Context, vaultBaseURL 
 		"secret-version": autorest.Encode("path", secretVersion),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7029,6 +8065,87 @@ func (client BaseClient) UpdateSecretSender(req *http.Request) (*http.Response, 
 // UpdateSecretResponder handles the response to the UpdateSecret request. The method always
 // closes the http.Response Body.
 func (client BaseClient) UpdateSecretResponder(resp *http.Response) (result SecretBundle, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// UpdateSetting description of the pool setting to be updated
+// Parameters:
+// vaultBaseURL - the vault name, for example https://myvault.vault.azure.net.
+// settingName - the name of the account setting. Must be a valid settings option.
+// parameters - the parameters to update an account setting.
+func (client BaseClient) UpdateSetting(ctx context.Context, vaultBaseURL string, settingName string, parameters UpdateSettingRequest) (result Setting, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.UpdateSetting")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.UpdateSettingPreparer(ctx, vaultBaseURL, settingName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "UpdateSetting", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateSettingSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "UpdateSetting", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateSettingResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.BaseClient", "UpdateSetting", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// UpdateSettingPreparer prepares the UpdateSetting request.
+func (client BaseClient) UpdateSettingPreparer(ctx context.Context, vaultBaseURL string, settingName string, parameters UpdateSettingRequest) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"vaultBaseUrl": vaultBaseURL,
+	}
+
+	pathParameters := map[string]interface{}{
+		"setting-name": autorest.Encode("path", settingName),
+	}
+
+	const APIVersion = "7.4"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPatch(),
+		autorest.WithCustomBaseURL("{vaultBaseUrl}", urlParameters),
+		autorest.WithPathParameters("/settings/{setting-name}", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateSettingSender sends the UpdateSetting request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) UpdateSettingSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// UpdateSettingResponder handles the response to the UpdateSetting request. The method always
+// closes the http.Response Body.
+func (client BaseClient) UpdateSettingResponder(resp *http.Response) (result Setting, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -7093,7 +8210,7 @@ func (client BaseClient) UpdateStorageAccountPreparer(ctx context.Context, vault
 		"storage-account-name": autorest.Encode("path", storageAccountName),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7186,7 +8303,7 @@ func (client BaseClient) VerifyPreparer(ctx context.Context, vaultBaseURL string
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7279,7 +8396,7 @@ func (client BaseClient) WrapKeyPreparer(ctx context.Context, vaultBaseURL strin
 		"key-version": autorest.Encode("path", keyVersion),
 	}
 
-	const APIVersion = "7.1"
+	const APIVersion = "7.4"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -279,7 +279,7 @@ An `ingress` block supports the following:
 
 * `target_port` - (Required) The target port on the container for the Ingress traffic.
 
-* `traffic_weight` - (Required) A `traffic_weight` block as detailed below.
+* `traffic_weight` - (Optional) A `traffic_weight` block as detailed below.
 
 ~> **Note:** `traffic_weight` can only be specified when `revision_mode` is set to `Multiple`.
 

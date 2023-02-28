@@ -119,6 +119,15 @@ An `authentication` block supports the following:
 
 * `vnet_solution` - (Optional) The type of the VNet solution. Possible values are `serviceEndpoint`, `privateLink`.
 
+* `secret_store` - (Optional) An option to store secret value in secure place. An `secret_store` block as defined below.
+
+---
+
+An `secret_store` block supports the following:
+
+* `key_vault_id` - (required) The key vault id to store secret.
+
+
 ## Attribute Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

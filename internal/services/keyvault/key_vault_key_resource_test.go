@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultKeyResource struct{}
@@ -280,6 +280,70 @@ func TestAccKeyVaultKey_purge(t *testing.T) {
 		{
 			Config:  r.basicEC(data),
 			Destroy: true,
+		},
+	})
+}
+
+func TestAccKeyVaultKey_RotationPolicyWithoutAutoRotation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.rotationPolicyWithoutAutoRotation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+	})
+}
+
+func TestAccKeyVaultKey_RotationPolicyWithOnlyAutoRotation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.rotationPolicyWithOnlyAutoRotation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+	})
+}
+
+func TestAccKeyVaultKey_RotationPolicyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.rotationPolicyBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+		{
+			Config: r.rotationPolicyBasicUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+	})
+}
+
+func TestAccKeyVaultKey_RotationPolicyUnauthorized(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.rotationPolicyUnauthorized(data),
+			ExpectError: regexp.MustCompile("current client lacks permissions to create Key Rotation Policy for Key"),
 		},
 	})
 }
@@ -674,6 +738,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Purge",
     "Recover",
     "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
@@ -739,6 +804,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Purge",
     "Recover",
     "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
@@ -800,6 +866,9 @@ resource "azurerm_key_vault" "test" {
       "Purge",
       "Recover",
       "Update",
+      "SetRotationPolicy",
+      "GetRotationPolicy",
+      "Rotate",
     ]
 
     secret_permissions = [
@@ -814,4 +883,187 @@ resource "azurerm_key_vault" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, sku)
+}
+
+func (r KeyVaultKeyResource) rotationPolicyWithoutAutoRotation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  rotation_policy {
+    expire_after         = "P60D"
+    notify_before_expiry = "P7D"
+  }
+}
+`, r.template(data, "standard"), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) rotationPolicyWithOnlyAutoRotation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  rotation_policy {
+    automatic {
+      time_after_creation = "P31D"
+    }
+  }
+}
+`, r.template(data, "standard"), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) rotationPolicyUnauthorized(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "%s"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
+    ]
+
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  rotation_policy {
+    automatic {
+      time_after_creation = "P31D"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, "standard", data.RandomString)
+}
+
+func (r KeyVaultKeyResource) rotationPolicyBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  rotation_policy {
+    automatic {
+      time_before_expiry = "P30D"
+    }
+
+    expire_after         = "P60D"
+    notify_before_expiry = "P7D"
+  }
+}
+`, r.template(data, "standard"), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) rotationPolicyBasicUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  rotation_policy {
+    automatic {
+      time_before_expiry = "P31D"
+    }
+
+    expire_after         = "P61D"
+    notify_before_expiry = "P8D"
+  }
+}
+`, r.template(data, "standard"), data.RandomString)
 }
