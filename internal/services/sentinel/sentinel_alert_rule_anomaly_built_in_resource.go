@@ -64,6 +64,7 @@ func (r AlertRuleAnomalyBuiltInResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 			ExactlyOneOf: []string{"name", "display_name"},
 		},
+
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -71,16 +72,19 @@ func (r AlertRuleAnomalyBuiltInResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 			ExactlyOneOf: []string{"name", "display_name"},
 		},
+
 		"log_analytics_workspace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
 		},
+
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
 			Required: true,
 		},
+
 		"mode": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -98,22 +102,27 @@ func (r AlertRuleAnomalyBuiltInResource) Attributes() map[string]*schema.Schema 
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"anomaly_settings_version": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"description": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"frequency": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"is_default_settings": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
+
 		"required_data_connector": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -123,6 +132,7 @@ func (r AlertRuleAnomalyBuiltInResource) Attributes() map[string]*schema.Schema 
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"data_types": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -133,10 +143,12 @@ func (r AlertRuleAnomalyBuiltInResource) Attributes() map[string]*schema.Schema 
 				},
 			},
 		},
+
 		"settings_definition_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"tactics": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -144,6 +156,7 @@ func (r AlertRuleAnomalyBuiltInResource) Attributes() map[string]*schema.Schema 
 				Type: pluginsdk.TypeString,
 			},
 		},
+
 		"techniques": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -151,10 +164,14 @@ func (r AlertRuleAnomalyBuiltInResource) Attributes() map[string]*schema.Schema 
 				Type: pluginsdk.TypeString,
 			},
 		},
-		"multi_select_observation":        AnomalyRuleMultiSelectSchema(),
-		"single_select_observation":       AnomalyRuleSingleSelectSchema(),
+
+		"multi_select_observation": AnomalyRuleMultiSelectSchema(),
+
+		"single_select_observation": AnomalyRuleSingleSelectSchema(),
+
 		"prioritized_exclude_observation": AnomalyRulePrioritySchema(),
-		"threshold_observation":           AnomalyRuleThresholdSchema(),
+
+		"threshold_observation": AnomalyRuleThresholdSchema(),
 	}
 }
 
