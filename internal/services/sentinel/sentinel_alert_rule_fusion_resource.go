@@ -141,11 +141,8 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *pluginsdk.ResourceData, meta
 			}
 		}
 
-		if resp.Model != nil {
-			id := alertRuleID(resp.Model)
-			if id != nil && *id != "" {
-				return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_fusion", *id)
-			}
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_fusion", id.ID())
 		}
 	}
 

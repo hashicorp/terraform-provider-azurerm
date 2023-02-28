@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 func resourceSentinelAlertRuleMLBehaviorAnalytics() *pluginsdk.Resource {
@@ -145,14 +144,14 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsRead(d *pluginsdk.ResourceData,
 	}
 	if model := resp.Model; model != nil {
 		modelPtr := *model
-		rule := modelPtr.(securityinsight.MLBehaviorAnalyticsAlertRule)
+		rule := modelPtr.(alertrules.MLBehaviorAnalyticsAlertRule)
 
 		d.Set("name", id.RuleId)
 
 		workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 		d.Set("log_analytics_workspace_id", workspaceId.ID())
 
-		if prop := rule.MLBehaviorAnalyticsAlertRuleProperties; prop != nil {
+		if prop := rule.Properties; prop != nil {
 			d.Set("enabled", prop.Enabled)
 			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 		}
