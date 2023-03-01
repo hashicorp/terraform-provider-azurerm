@@ -375,6 +375,35 @@ func TestAccOrchestratedVirtualMachineScaleSet_priorityMixPolicy(t *testing.T) {
 			Config: r.priorityMixPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("priority_mix.0.base_regular_count").HasValue("1"),
+				check.That(data.ResourceName).Key("priority_mix.0.regular_percentage_above_base").HasValue("50"),
+			),
+		},
+	})
+}
+
+// currently the priority_mix property cannot be updated since it is not in the VMSS PATCH object
+// leaving this test in for when we add the property
+func TestAccOrchestratedVirtualMachineScaleSet_updatePriorityMixPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.priorityMixPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("priority_mix.0.base_regular_count").HasValue("1"),
+				check.That(data.ResourceName).Key("priority_mix.0.regular_percentage_above_base").HasValue("50"),
+			),
+		},
+		{
+			Config: r.updatePriorityMixPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				// TODO: validate the updated priority mix properties once functionality to update the property is introduced
+				check.That(data.ResourceName).Key("priority_mix.0.base_regular_count").HasValue("1"),
+				check.That(data.ResourceName).Key("priority_mix.0.regular_percentage_above_base").HasValue("50"),
 			),
 		},
 	})
@@ -1951,7 +1980,11 @@ func (OrchestratedVirtualMachineScaleSetResource) priorityMixPolicy(data accepta
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1962,7 +1995,7 @@ resource "azurerm_resource_group" "test" {
 %[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestOVMSS-spotPriorityMix-%[1]d"
+  name                = "acctestOVMSS-spotPriorityMixVMSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1970,7 +2003,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   eviction_policy = "Delete"
 
   sku_name  = "Standard_D1_v2"
-  instances = 2
+  instances = 3
+  
+  tags = {
+    "SkipASMAzSecPack" = "true",
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
+    "prevent_deletion_if_contains_resources" = "false" 
+  }
 
   platform_fault_domain_count = 2
 
@@ -2019,9 +2058,99 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 
-  priority_mix_policy {
-    base_regular_priority_count = 4
-    regular_priority_percentage_above_base = 50
+  priority_mix {
+    base_regular_count = 1
+    regular_percentage_above_base = 50
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) updatePriorityMixPolicy(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-spotPriorityMixVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  priority        = "Spot"
+  eviction_policy = "Delete"
+
+  sku_name  = "Standard_D1_v2"
+  instances = 3
+  
+  tags = {
+    "SkipASMAzSecPack" = "true",
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
+    "prevent_deletion_if_contains_resources" = "false" 
+  }
+
+  platform_fault_domain_count = 2
+
+  os_profile {
+    windows_configuration {
+      computer_name_prefix = "testvm"
+      admin_username       = "myadmin"
+      admin_password       = "Passwword1234"
+
+      enable_automatic_updates = true
+      provision_vm_agent       = true
+      timezone                 = "W. Europe Standard Time"
+
+      winrm_listener {
+        protocol = "Http"
+      }
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter-Server-Core"
+    version   = "latest"
+  }
+
+  priority_mix {
+    base_regular_count = 1
+    regular_percentage_above_base = 50
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))

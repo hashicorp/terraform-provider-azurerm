@@ -119,7 +119,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Orchestrated Virtual Machine Scale Set.
 
-* `priority_mix_policy` - (Optional) a `priority_mix_policy` block as defined below
+* `priority_mix` - (Optional) a `priority_mix` block as defined below
 
 ---
 
@@ -467,11 +467,11 @@ A `source_image_reference` block supports the following:
 
 ---
 
-A `priority_mix_policy` block supports the following:
+A `priority_mix` block supports the following:
 
-* `base_regular_priority_count` - (Optional) Specifies the base number of VMs of `Regular` priority that will be created before any VMs of priority `Spot` are created. Defaults to `0`.
+* `base_regular_count` - (Optional) Specifies the base number of VMs of `Regular` priority that will be created before any VMs of priority `Spot` are created. Possible values are integers between `0` and `1000`. Defaults to `0`.
 
-* `regular_priority_percentage_above_base` - (Optional) Specifies the desired percentage of VM instances that are of `Regular` priority after the base count has been reached. Defaults to `0`.
+* `regular_percentage_above_base` - (Optional) Specifies the desired percentage of VM instances that are of `Regular` priority after the base count has been reached. Possible values are integers between `0` and `100`. Defaults to `0`.
 
 ---
 

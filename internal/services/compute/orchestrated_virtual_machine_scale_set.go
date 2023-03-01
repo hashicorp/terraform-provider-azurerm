@@ -699,15 +699,17 @@ func OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema() *pluginsdk.Sche
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"base_regular_priority_count": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  0,
+				"base_regular_count": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 1000),
+					Default:      0,
 				},
-				"regular_priority_percentage_above_base": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  0,
+				"regular_percentage_above_base": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+					Default:      0,
 				},
 			},
 		},
@@ -1450,8 +1452,8 @@ func ExpandVirtualMachineScaleSetPriorityMixPolicy(input []interface{}) *compute
 	raw := input[0].(map[string]interface{})
 
 	return &compute.PriorityMixPolicy{
-		BaseRegularPriorityCount:           utils.Int32(int32(raw["base_regular_priority_count"].(int))),
-		RegularPriorityPercentageAboveBase: utils.Int32(int32(raw["regular_priority_percentage_above_base"].(int))),
+		BaseRegularPriorityCount:           utils.Int32(int32(raw["base_regular_count"].(int))),
+		RegularPriorityPercentageAboveBase: utils.Int32(int32(raw["regular_percentage_above_base"].(int))),
 	}
 }
 
@@ -1988,8 +1990,8 @@ func FlattenOrchestratedVirtualMachineScaleSetPriorityMixPolicy(input *compute.P
 
 	return []interface{}{
 		map[string]interface{}{
-			"base_regular_priority_count":            baseRegularPriorityCount,
-			"regular_priority_percentage_above_base": regularPriorityPercentageAboveBase,
+			"base_regular_count":            baseRegularPriorityCount,
+			"regular_percentage_above_base": regularPriorityPercentageAboveBase,
 		},
 	}
 }

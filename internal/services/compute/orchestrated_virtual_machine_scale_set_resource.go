@@ -260,7 +260,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsBase64,
 			},
 
-			"priority_mix_policy": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
+			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
 		},
 	}
 }
@@ -624,9 +624,9 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			props.VirtualMachineScaleSetProperties.ZoneBalance = utils.Bool(v.(bool))
 		}
 
-		if v, ok := d.GetOk("priority_mix_policy"); ok {
+		if v, ok := d.GetOk("priority_mix"); ok {
 			if virtualMachineProfile.Priority != compute.VirtualMachinePriorityTypesSpot {
-				return fmt.Errorf("a `priority_mix_policy` can only be specified when `priority` is set to `Spot`")
+				return fmt.Errorf("a `priority_mix` can only be specified when `priority` is set to `Spot`")
 			}
 			props.VirtualMachineScaleSetProperties.PriorityMixPolicy = ExpandVirtualMachineScaleSetPriorityMixPolicy(v.([]interface{}))
 		}
@@ -1299,8 +1299,8 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	}
 
 	if priorityMixPolicy := props.PriorityMixPolicy; priorityMixPolicy != nil {
-		if err := d.Set("priority_mix_policy", FlattenOrchestratedVirtualMachineScaleSetPriorityMixPolicy(priorityMixPolicy)); err != nil {
-			return fmt.Errorf("setting `priority_mix_policy`: %+v", err)
+		if err := d.Set("priority_mix", FlattenOrchestratedVirtualMachineScaleSetPriorityMixPolicy(priorityMixPolicy)); err != nil {
+			return fmt.Errorf("setting `priority_mix`: %+v", err)
 		}
 	}
 
