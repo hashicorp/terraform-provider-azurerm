@@ -84,6 +84,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 						"on_error_action": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Default:      string(encodings.OnErrorTypeStopProcessingJob),
 							ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForOnErrorType(), false),
 						},
 						// lintignore:XS003
@@ -157,6 +158,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
+									// https://go.microsoft.com/fwlink/?linkid=2109463
 									"audio_language": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
@@ -165,6 +167,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 									"audio_analysis_mode": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
+										Default:      string(encodings.AudioAnalysisModeStandard),
 										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAudioAnalysisMode(), false),
 									},
 									"experimental_options": {
@@ -184,6 +187,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
+									// https://go.microsoft.com/fwlink/?linkid=2109463
 									"audio_language": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
@@ -192,11 +196,13 @@ func resourceMediaTransform() *pluginsdk.Resource {
 									"audio_analysis_mode": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
+										Default:      string(encodings.AudioAnalysisModeStandard),
 										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAudioAnalysisMode(), false),
 									},
 									"insights_type": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
+										Default:      string(encodings.InsightsTypeAllInsights),
 										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForInsightsType(), false),
 									},
 									"experimental_options": {
@@ -249,7 +255,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"codecs": {
 										Type:     pluginsdk.TypeList,
-										Optional: true,
+										Required: true,
 										MinItems: 1,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*schema.Schema{
@@ -260,12 +266,16 @@ func resourceMediaTransform() *pluginsdk.Resource {
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*schema.Schema{
 															"bitrate": {
-																Type:     pluginsdk.TypeInt,
-																Optional: true,
+																Type:         pluginsdk.TypeInt,
+																Optional:     true,
+																Default:      128000,
+																ValidateFunc: validation.IntAtLeast(1),
 															},
 															"channels": {
-																Type:     pluginsdk.TypeInt,
-																Optional: true,
+																Type:         pluginsdk.TypeInt,
+																Optional:     true,
+																Default:      2,
+																ValidateFunc: validation.IntBetween(1, 6),
 															},
 															"label": {
 																Type:         pluginsdk.TypeString,
@@ -275,11 +285,14 @@ func resourceMediaTransform() *pluginsdk.Resource {
 															"profile": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.AacAudioProfileAacLc),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAacAudioProfile(), false),
 															},
 															"sampling_rate": {
-																Type:     pluginsdk.TypeInt,
-																Optional: true,
+																Type:         pluginsdk.TypeInt,
+																Optional:     true,
+																Default:      48000,
+																ValidateFunc: validation.IntBetween(11025, 96000),
 															},
 														},
 													},
@@ -319,12 +332,16 @@ func resourceMediaTransform() *pluginsdk.Resource {
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*schema.Schema{
 															"bitrate": {
-																Type:     pluginsdk.TypeInt,
-																Optional: true,
+																Type:         pluginsdk.TypeInt,
+																Optional:     true,
+																Default:      192000,
+																ValidateFunc: validation.IntAtLeast(1),
 															},
 															"channels": {
-																Type:     pluginsdk.TypeInt,
-																Optional: true,
+																Type:         pluginsdk.TypeInt,
+																Default:      2,
+																Optional:     true,
+																ValidateFunc: validation.IntBetween(1, 6),
 															},
 															"label": {
 																Type:         pluginsdk.TypeString,
@@ -332,8 +349,10 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																ValidateFunc: validation.StringIsNotEmpty,
 															},
 															"sampling_rate": {
-																Type:     pluginsdk.TypeInt,
-																Optional: true,
+																Type:         pluginsdk.TypeInt,
+																Default:      48000,
+																Optional:     true,
+																ValidateFunc: validation.IntBetween(32000, 48000),
 															},
 														},
 													},
@@ -347,12 +366,14 @@ func resourceMediaTransform() *pluginsdk.Resource {
 															"complexity": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.H264ComplexityBalanced),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForH264Complexity(), false),
 															},
 															"key_frame_interval": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
-																ValidateFunc: validate.ISO8601Duration,
+																Default:      "PT2S",
+																ValidateFunc: validate.ISO8601DurationBetween("PT0.5S", "PT20S"),
 															},
 															"label": {
 																Type:         pluginsdk.TypeString,
@@ -366,29 +387,37 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																Elem: &pluginsdk.Resource{
 																	Schema: map[string]*schema.Schema{
 																		"bitrate": {
-																			Type:     pluginsdk.TypeInt,
-																			Required: true,
+																			Type:         pluginsdk.TypeInt,
+																			Required:     true,
+																			ValidateFunc: validation.IntAtLeast(1),
 																		},
 																		"adaptive_b_frame_enabled": {
 																			Type:     pluginsdk.TypeBool,
 																			Optional: true,
+																			Default:  true,
 																		},
 																		"b_frames": {
-																			Type:     pluginsdk.TypeInt,
-																			Optional: true,
+																			Type:         pluginsdk.TypeInt,
+																			Optional:     true,
+																			Computed:     true,
+																			ValidateFunc: validation.IntAtLeast(0),
 																		},
 																		"buffer_window": {
 																			Type:         pluginsdk.TypeString,
 																			Optional:     true,
-																			ValidateFunc: validate.ISO8601Duration,
+																			Default:      "PT5S",
+																			ValidateFunc: validate.ISO8601DurationBetween("PT0.1S", "PT100S"),
 																		},
 																		"crf": {
-																			Type:     pluginsdk.TypeFloat,
-																			Optional: true,
+																			Type:         pluginsdk.TypeFloat,
+																			Optional:     true,
+																			Default:      23,
+																			ValidateFunc: validation.FloatBetween(0, 51),
 																		},
 																		"entropy_mode": {
 																			Type:         pluginsdk.TypeString,
 																			Optional:     true,
+																			Computed:     true,
 																			ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForEntropyMode(), false),
 																		},
 																		"frame_rate": {
@@ -399,6 +428,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																		"height": {
 																			Type:         pluginsdk.TypeString,
 																			Optional:     true,
+																			Computed:     true,
 																			ValidateFunc: validation.StringIsNotEmpty,
 																		},
 																		"label": {
@@ -407,29 +437,38 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																			ValidateFunc: validation.StringIsNotEmpty,
 																		},
 																		"level": {
-																			Type:     pluginsdk.TypeString,
-																			Optional: true,
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			Default:      "auto",
+																			ValidateFunc: validation.StringIsNotEmpty,
 																		},
 																		"max_bitrate": {
 																			Type:     pluginsdk.TypeInt,
 																			Optional: true,
+																			Computed: true,
 																		},
 																		"profile": {
 																			Type:         pluginsdk.TypeString,
 																			Optional:     true,
+																			Default:      string(encodings.H264VideoProfileAuto),
 																			ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForH264VideoProfile(), false),
 																		},
 																		"reference_frames": {
-																			Type:     pluginsdk.TypeInt,
-																			Optional: true,
+																			Type:         pluginsdk.TypeInt,
+																			Optional:     true,
+																			Computed:     true,
+																			ValidateFunc: validation.IntAtLeast(0),
 																		},
 																		"slices": {
-																			Type:     pluginsdk.TypeInt,
-																			Optional: true,
+																			Type:         pluginsdk.TypeInt,
+																			Optional:     true,
+																			Default:      0,
+																			ValidateFunc: validation.IntAtLeast(0),
 																		},
 																		"width": {
 																			Type:         pluginsdk.TypeString,
 																			Optional:     true,
+																			Computed:     true,
 																			ValidateFunc: validation.StringIsNotEmpty,
 																		},
 																	},
@@ -438,20 +477,24 @@ func resourceMediaTransform() *pluginsdk.Resource {
 															"rate_control_mode": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.H264RateControlModeABR),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForH264RateControlMode(), false),
 															},
 															"scene_change_detection_enabled": {
 																Type:     pluginsdk.TypeBool,
 																Optional: true,
+																Default:  false,
 															},
 															"stretch_mode": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.StretchModeAutoSize),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForStretchMode(), false),
 															},
 															"sync_mode": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.VideoSyncModeAuto),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForVideoSyncMode(), false),
 															},
 														},
@@ -466,12 +509,14 @@ func resourceMediaTransform() *pluginsdk.Resource {
 															"complexity": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.H265ComplexityBalanced),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForH265Complexity(), false),
 															},
 															"key_frame_interval": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
-																ValidateFunc: validate.ISO8601Duration,
+																Default:      "PT2S",
+																ValidateFunc: validate.ISO8601DurationBetween("PT0.5S", "PT20S"),
 															},
 															"label": {
 																Type:         pluginsdk.TypeString,
@@ -485,25 +530,32 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																Elem: &pluginsdk.Resource{
 																	Schema: map[string]*schema.Schema{
 																		"bitrate": {
-																			Type:     pluginsdk.TypeInt,
-																			Required: true,
+																			Type:         pluginsdk.TypeInt,
+																			Required:     true,
+																			ValidateFunc: validation.IntAtLeast(1),
 																		},
 																		"adaptive_b_frame_enabled": {
 																			Type:     pluginsdk.TypeBool,
 																			Optional: true,
+																			Default:  true,
 																		},
 																		"b_frames": {
-																			Type:     pluginsdk.TypeInt,
-																			Optional: true,
+																			Type:         pluginsdk.TypeInt,
+																			Optional:     true,
+																			Computed:     true,
+																			ValidateFunc: validation.IntAtLeast(0),
 																		},
 																		"buffer_window": {
 																			Type:         pluginsdk.TypeString,
 																			Optional:     true,
-																			ValidateFunc: validate.ISO8601Duration,
+																			Default:      "PT5S",
+																			ValidateFunc: validate.ISO8601DurationBetween("PT0.1S", "PT100S"),
 																		},
 																		"crf": {
-																			Type:     pluginsdk.TypeFloat,
-																			Optional: true,
+																			Type:         pluginsdk.TypeFloat,
+																			Optional:     true,
+																			Default:      28,
+																			ValidateFunc: validation.FloatBetween(0, 51),
 																		},
 																		"frame_rate": {
 																			Type:         pluginsdk.TypeString,
@@ -513,6 +565,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																		"height": {
 																			Type:         pluginsdk.TypeString,
 																			Optional:     true,
+																			Computed:     true,
 																			ValidateFunc: validation.StringIsNotEmpty,
 																		},
 																		"label": {
@@ -521,29 +574,38 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																			ValidateFunc: validation.StringIsNotEmpty,
 																		},
 																		"level": {
-																			Type:     pluginsdk.TypeString,
-																			Optional: true,
+																			Type:         pluginsdk.TypeString,
+																			Optional:     true,
+																			Default:      "auto",
+																			ValidateFunc: validation.StringIsNotEmpty,
 																		},
 																		"max_bitrate": {
 																			Type:     pluginsdk.TypeInt,
 																			Optional: true,
+																			Computed: true,
 																		},
 																		"profile": {
 																			Type:         pluginsdk.TypeString,
 																			Optional:     true,
+																			Default:      string(encodings.H265VideoProfileAuto),
 																			ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForH265VideoProfile(), false),
 																		},
 																		"reference_frames": {
-																			Type:     pluginsdk.TypeInt,
-																			Optional: true,
+																			Type:         pluginsdk.TypeInt,
+																			Optional:     true,
+																			Computed:     true,
+																			ValidateFunc: validation.IntAtLeast(0),
 																		},
 																		"slices": {
-																			Type:     pluginsdk.TypeInt,
-																			Optional: true,
+																			Type:         pluginsdk.TypeInt,
+																			Optional:     true,
+																			Default:      0,
+																			ValidateFunc: validation.IntAtLeast(0),
 																		},
 																		"width": {
 																			Type:         pluginsdk.TypeString,
 																			Optional:     true,
+																			Computed:     true,
 																			ValidateFunc: validation.StringIsNotEmpty,
 																		},
 																	},
@@ -552,15 +614,18 @@ func resourceMediaTransform() *pluginsdk.Resource {
 															"scene_change_detection_enabled": {
 																Type:     pluginsdk.TypeBool,
 																Optional: true,
+																Default:  false,
 															},
 															"stretch_mode": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.StretchModeAutoSize),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForStretchMode(), false),
 															},
 															"sync_mode": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.VideoSyncModeAuto),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForVideoSyncMode(), false),
 															},
 														},
@@ -572,10 +637,16 @@ func resourceMediaTransform() *pluginsdk.Resource {
 													MaxItems: 1,
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*schema.Schema{
+															"start": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
 															"key_frame_interval": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
-																ValidateFunc: validate.ISO8601Duration,
+																Default:      "PT2S",
+																ValidateFunc: validate.ISO8601DurationBetween("PT0.5S", "PT20S"),
 															},
 															"label": {
 																Type:         pluginsdk.TypeString,
@@ -615,16 +686,14 @@ func resourceMediaTransform() *pluginsdk.Resource {
 															"range": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      "100%",
 																ValidateFunc: validation.StringIsNotEmpty,
 															},
 															"splite_column": {
-																Type:     pluginsdk.TypeInt,
-																Optional: true,
-															},
-															"start": {
-																Type:         pluginsdk.TypeString,
+																Type:         pluginsdk.TypeInt,
 																Optional:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
+																Default:      0,
+																ValidateFunc: validation.IntAtLeast(0),
 															},
 															"step": {
 																Type:         pluginsdk.TypeString,
@@ -634,11 +703,13 @@ func resourceMediaTransform() *pluginsdk.Resource {
 															"stretch_mode": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.StretchModeAutoSize),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForStretchMode(), false),
 															},
 															"sync_mode": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.VideoSyncModeAuto),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForVideoSyncMode(), false),
 															},
 														},
@@ -650,9 +721,15 @@ func resourceMediaTransform() *pluginsdk.Resource {
 													MaxItems: 1,
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*schema.Schema{
+															"start": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
 															"key_frame_interval": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      "PT2S",
 																ValidateFunc: validate.ISO8601Duration,
 															},
 															"label": {
@@ -687,11 +764,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 															"range": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"start": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
+																Default:      "100%",
 																ValidateFunc: validation.StringIsNotEmpty,
 															},
 															"step": {
@@ -702,11 +775,13 @@ func resourceMediaTransform() *pluginsdk.Resource {
 															"stretch_mode": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.StretchModeAutoSize),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForStretchMode(), false),
 															},
 															"sync_mode": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.VideoSyncModeAuto),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForVideoSyncMode(), false),
 															},
 														},
@@ -759,12 +834,64 @@ func resourceMediaTransform() *pluginsdk.Resource {
 															"parity": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.DeinterlaceParityAuto),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForDeinterlaceParity(), false),
 															},
 															"mode": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
+																Default:      string(encodings.DeinterlaceModeAutoPixelAdaptive),
 																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForDeinterlaceMode(), false),
+															},
+														},
+													},
+												},
+												"fade_in": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"duration": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"fate_color": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"start": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																Default:      "0",
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+														},
+													},
+												},
+												"fade_out": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"duration": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"fate_color": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"start": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																Default:      "0",
+																ValidateFunc: validation.StringIsNotEmpty,
 															},
 														},
 													},
@@ -781,9 +908,16 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																MaxItems: 1,
 																Elem: &pluginsdk.Resource{
 																	Schema: map[string]*schema.Schema{
+																		"inputLabel": {
+																			Type:         pluginsdk.TypeString,
+																			Required:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
 																		"audio_gain_level": {
-																			Type:     pluginsdk.TypeFloat,
-																			Optional: true,
+																			Type:         pluginsdk.TypeFloat,
+																			Optional:     true,
+																			Default:      1.0,
+																			ValidateFunc: validation.FloatBetween(0, 1.0),
 																		},
 																		"end": {
 																			Type:         pluginsdk.TypeString,
@@ -799,11 +933,6 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																			Type:         pluginsdk.TypeString,
 																			Optional:     true,
 																			ValidateFunc: validate.ISO8601Duration,
-																		},
-																		"inputLabel": {
-																			Type:         pluginsdk.TypeString,
-																			Optional:     true,
-																			ValidateFunc: validation.StringIsNotEmpty,
 																		},
 																		"start": {
 																			Type:         pluginsdk.TypeString,
@@ -819,9 +948,16 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																MaxItems: 1,
 																Elem: &pluginsdk.Resource{
 																	Schema: map[string]*schema.Schema{
+																		"inputLabel": {
+																			Type:         pluginsdk.TypeString,
+																			Required:     true,
+																			ValidateFunc: validation.StringIsNotEmpty,
+																		},
 																		"audio_gain_level": {
-																			Type:     pluginsdk.TypeFloat,
-																			Optional: true,
+																			Type:         pluginsdk.TypeFloat,
+																			Optional:     true,
+																			Default:      1.0,
+																			ValidateFunc: validation.FloatBetween(0, 1.0),
 																		},
 																		"end": {
 																			Type:         pluginsdk.TypeString,
@@ -837,11 +973,6 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																			Type:         pluginsdk.TypeString,
 																			Optional:     true,
 																			ValidateFunc: validate.ISO8601Duration,
-																		},
-																		"inputLabel": {
-																			Type:         pluginsdk.TypeString,
-																			Optional:     true,
-																			ValidateFunc: validation.StringIsNotEmpty,
 																		},
 																		"start": {
 																			Type:         pluginsdk.TypeString,
@@ -880,6 +1011,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																		"opacity": {
 																			Type:         pluginsdk.TypeFloat,
 																			Optional:     true,
+																			Default:      1.0,
 																			ValidateFunc: validation.FloatBetween(0, 1.0),
 																		},
 																		"crop_rectangle": {
@@ -920,6 +1052,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 												"rotation": {
 													Type:         pluginsdk.TypeString,
 													Optional:     true,
+													Default:      string(encodings.RotationAuto),
 													ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForRotation(), false),
 												},
 											},
@@ -928,7 +1061,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 									"format": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										MaxItems: 1,
+										MinItems: 1,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*schema.Schema{
 												"jpg": {
@@ -1032,6 +1165,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 						"relative_priority": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Default:      string(encodings.PriorityNormal),
 							ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForPriority(), false),
 						},
 					},
