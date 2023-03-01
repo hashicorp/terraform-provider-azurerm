@@ -54,9 +54,9 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) Specifies the Cluster Name. Changing this forces a new Kubernetes Cluster Extension to be created.
 
-* `cluster_resource_name` - (Required) Specifies the Cluster Resource Name. Possible values are `managedClusters` and `connectedClusters`. Changing this forces a new Kubernetes Cluster Extension to be created.
+* `cluster_resource_name` - (Required) Specifies the Cluster Resource Name. Possible values are `managedClusters`, `connectedClusters` and `provisionedClusters`. Changing this forces a new Kubernetes Cluster Extension to be created.
 
-* `extension_type` - (Required) Type of the Extension, of which this resource is an instance of. It must be one of the Extension Types registered with Microsoft.KubernetesConfiguration by the Extension publisher. For more information, please refer to [Available Extensions for AKS](https://learn.microsoft.com/en-us/azure/aks/cluster-extensions?tabs=azure-cli#currently-available-extensions). Changing this forces a new Kubernetes Cluster Extension to be created.
+* `extension_type` - (Required) Type of the Extension, of which this resource is an instance of. It must be one of the Extension Types registered with Microsoft.KubernetesConfiguration by the Extension publisher. For more information, please refer to [Available Extensions for AKS](https://learn.microsoft.com/en-us/azure/aks/cluster-extensions?tabs=azure-cli#currently-available-extensions) and [Available Extensions for Arc-enabled Kubernetes clusters](https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/extensions-release). Changing this forces a new Kubernetes Cluster Extension to be created.
 
 * `configuration_protected_settings` - (Optional) Configuration settings that are sensitive, as name-value pairs for configuring this extension.
 
