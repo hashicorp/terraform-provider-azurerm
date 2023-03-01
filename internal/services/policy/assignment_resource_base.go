@@ -7,12 +7,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	// nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -28,7 +27,7 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
-			id := assignments.NewScopedPolicyAssignmentID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
+			id := policyassignments.NewScopedPolicyAssignmentID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -40,8 +39,8 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 				return tf.ImportAsExistsError(resourceName, id.ID())
 			}
 
-			assignment := assignments.PolicyAssignment{
-				Properties: &assignments.PolicyAssignmentProperties{
+			assignment := policyassignments.PolicyAssignment{
+				Properties: &policyassignments.PolicyAssignmentProperties{
 					PolicyDefinitionId: utils.String(metadata.ResourceData.Get("policy_definition_id").(string)),
 					DisplayName:        utils.String(metadata.ResourceData.Get("display_name").(string)),
 					Scope:              utils.String(id.Scope),
@@ -120,7 +119,7 @@ func (br assignmentBaseResource) deleteFunc() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
 
-			id, err := assignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
+			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -146,7 +145,7 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
 
-			id, err := assignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
+			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -182,7 +181,7 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 				metadata.ResourceData.Set("display_name", props.DisplayName)
 				var enforce bool
 				if mode := props.EnforcementMode; mode != nil {
-					enforce = (*props.EnforcementMode) == assignments.EnforcementModeDefault
+					enforce = (*props.EnforcementMode) == policyassignments.EnforcementModeDefault
 				}
 				metadata.ResourceData.Set("enforce", enforce)
 				metadata.ResourceData.Set("not_scopes", props.NotScopes)
@@ -211,7 +210,7 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
 
-			id, err := assignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
+			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -226,7 +225,7 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
-			update := assignments.PolicyAssignment{
+			update := policyassignments.PolicyAssignment{
 				Location:   existing.Location,
 				Properties: existing.Properties,
 			}
@@ -284,7 +283,7 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("parameters") {
-				m := map[string]assignments.ParameterValuesValue{}
+				m := map[string]policyassignments.ParameterValuesValue{}
 
 				if v := metadata.ResourceData.Get("parameters").(string); v != "" {
 					m, err = expandParameterValuesValueFromString(v)
@@ -394,7 +393,7 @@ func (br assignmentBaseResource) attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (br assignmentBaseResource) flattenNonComplianceMessages(input *[]assignments.NonComplianceMessage) []interface{} {
+func (br assignmentBaseResource) flattenNonComplianceMessages(input *[]policyassignments.NonComplianceMessage) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -410,15 +409,15 @@ func (br assignmentBaseResource) flattenNonComplianceMessages(input *[]assignmen
 	return results
 }
 
-func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}) *[]assignments.NonComplianceMessage {
+func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}) *[]policyassignments.NonComplianceMessage {
 	if len(input) == 0 {
 		return nil
 	}
 
-	output := make([]assignments.NonComplianceMessage, 0)
+	output := make([]policyassignments.NonComplianceMessage, 0)
 	for _, v := range input {
 		if m, ok := v.(map[string]interface{}); ok {
-			ncm := assignments.NonComplianceMessage{
+			ncm := policyassignments.NonComplianceMessage{
 				Message: m["content"].(string),
 			}
 			if id := m["policy_definition_reference_id"].(string); id != "" {
