@@ -3,8 +3,9 @@ package containers_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
@@ -222,7 +223,7 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 			return fmt.Errorf("Bad: Get on agentPoolsClient: %+v", err)
 		}
 
-		if nodePool.HttpResponse.StatusCode == http.StatusNotFound {
+		if response.WasNotFound(nodePool.HttpResponse) {
 			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", nodePoolName, clusterName, resourceGroup)
 		}
 
