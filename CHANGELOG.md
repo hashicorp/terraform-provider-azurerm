@@ -35,6 +35,7 @@ BUG FIXES
 * `azurerm_aadb2c_directory` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_cdn_frontdoor_origin` - `origin_host_header` can now be cleared once it has been set [GH-20679]
 * `azurerm_container_app` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_communication_service` - changing the `data_location` property now creates a new resource [GH-20711]
 * `azurerm_eventhub_cluster` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_eventhub_namespace` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_eventhub_namespace_disaster_recovery_config` - fixing a crash when the connection dropped [GH-20670]
