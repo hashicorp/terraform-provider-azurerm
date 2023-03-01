@@ -62,6 +62,10 @@ The following arguments are supported:
 
 * `configuration_settings` - (Optional) Configuration settings, as name-value pairs for configuring this extension.
 
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Kubernetes Cluster Extension to be created.
+
+* `plan` - (Optional) A `plan` block as defined below.
+
 * `release_train` - (Optional) The release train which is used by this extension. Possible values include but not limited to `Stable`, `Preview`. Changing this forces a new Kubernetes Cluster Extension to be created.
 
 * `release_namespace` - (Optional) Namespace where the extension Release must be placed, for a Cluster scoped extension.  If this namespace does not exist, it will be created. Changing this forces a new Kubernetes Cluster Extension to be created.
@@ -69,6 +73,26 @@ The following arguments are supported:
 * `target_namespace` - (Optional) Namespace where the extension will be created for a Namespace scoped extension.  If this namespace does not exist, it will be created. Changing this forces a new Kubernetes Cluster Extension to be created.
 
 * `version` - (Optional) User-specified version of the extension for this extension to 'pin'. If it is not set, Azure will use the latest version and auto upgrade it. Changing this forces a new Kubernetes Cluster Extension to be created.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity. Possible values are `SystemAssigned`.
+
+---
+
+A `plan` block supports the following:
+
+* `name` - (Required) A user defined name of the 3rd Party Artifact that is being procured. Changing this forces a new Kubernetes Cluster Extension to be created.
+
+* `product` - (Required) Specifies the 3rd Party artifact that is being procured. It maps to the OfferID of Data Market. Changing this forces a new Kubernetes Cluster Extension to be created.
+
+* `publisher` - (Required) Specifies the publisher of the 3rd Party Artifact that is being bought. Changing this forces a new Kubernetes Cluster Extension to be created.
+
+* `promotion_code` - (Optional) A publisher provided promotion code as provisioned in Data Market for the said product/artifact. Changing this forces a new Kubernetes Cluster Extension to be created.
+
+* `version` - (Optional) Specifies the version of the desired product/artifact. Changing this forces a new Kubernetes Cluster Extension to be created.
 
 ## Attributes Reference
 
@@ -80,6 +104,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `current_version` - Currently installed version of the extension.
 
+* `identity` - An `identity` block as defined below.
+
 ---
 
 An `aks_assigned_identity` block exports the following:
@@ -89,6 +115,14 @@ An `aks_assigned_identity` block exports the following:
 * `principal_id` - The principal ID of resource identity.
 
 * `tenant_id` - The tenant ID of resource.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 

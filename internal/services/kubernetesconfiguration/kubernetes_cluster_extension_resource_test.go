@@ -82,6 +82,20 @@ func TestAccKubernetesClusterExtension_update(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterExtension_plan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_extension", "test")
+	r := KubernetesClusterExtensionResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.plan(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterExtension_arc(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_extension", "test")
 	r := KubernetesClusterExtensionResource{}
@@ -218,6 +232,31 @@ resource "azurerm_kubernetes_cluster_extension" "test" {
 
   configuration_settings = {
     "omsagent.env.clusterName" = "clusterName2"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r KubernetesClusterExtensionResource) plan(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_kubernetes_cluster_extension" "test" {
+  name                  = "acctest-kce-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  cluster_name          = azurerm_kubernetes_cluster.test.name
+  cluster_resource_name = "managedClusters"
+  extension_type        = "cognosys.nodejs-on-alpine"
+
+  configuration_settings = {
+    "title" = "Title",
+  }
+
+  plan {
+    name           = "nodejs-18-alpine-container"
+    product        = "nodejs18-alpine-container"
+    publisher      = "cognosys"
   }
 }
 `, template, data.RandomInteger)

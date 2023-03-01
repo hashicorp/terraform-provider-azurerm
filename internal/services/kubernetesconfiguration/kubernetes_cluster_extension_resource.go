@@ -39,6 +39,7 @@ type KubernetesClusterExtensionModel struct {
 	ConfigurationProtectedSettings map[string]string                             `tfschema:"configuration_protected_settings"`
 	ConfigurationSettings          map[string]string                             `tfschema:"configuration_settings"`
 	ExtensionType                  string                                        `tfschema:"extension_type"`
+	Plan                           []PlanModel                                   `tfschema:"plan"`
 	ReleaseNamespace               string                                        `tfschema:"release_namespace"`
 	ReleaseTrain                   string                                        `tfschema:"release_train"`
 	TargetNamespace                string                                        `tfschema:"target_namespace"`
@@ -50,6 +51,14 @@ type ExtensionPropertiesAksAssignedIdentityModel struct {
 	PrincipalId string                     `tfschema:"principal_id"`
 	TenantId    string                     `tfschema:"tenant_id"`
 	Type        extensions.AKSIdentityType `tfschema:"type"`
+}
+
+type PlanModel struct {
+	Name          string `tfschema:"name"`
+	Product       string `tfschema:"product"`
+	PromotionCode string `tfschema:"promotion_code"`
+	Publisher     string `tfschema:"publisher"`
+	Version       string `tfschema:"version"`
 }
 
 type KubernetesClusterExtensionResource struct{}
@@ -126,6 +135,51 @@ func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"identity": commonschema.SystemAssignedIdentityOptionalForceNew(),
+
+		"plan": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"product": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"publisher": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"promotion_code": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"version": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
 
 		"release_train": {
 			Type:          pluginsdk.TypeString,
@@ -207,6 +261,7 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			properties := &extensions.Extension{
+				Plan: expandPlanModel(model.Plan),
 				Properties: &extensions.ExtensionProperties{
 					AutoUpgradeMinorVersion:        &autoUpgradeMinorVersion,
 					ConfigurationProtectedSettings: &model.ConfigurationProtectedSettings,
@@ -342,6 +397,7 @@ func (r KubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 				ResourceGroupName:   id.ResourceGroupName,
 				ClusterName:         id.ClusterName,
 				ClusterResourceName: id.ClusterResourceName,
+				Plan:                flattenPlanModel(model.Plan),
 			}
 
 			if properties := model.Properties; properties != nil {
@@ -409,6 +465,27 @@ func (r KubernetesClusterExtensionResource) Delete() sdk.ResourceFunc {
 	}
 }
 
+func expandPlanModel(inputList []PlanModel) *extensions.Plan {
+	if len(inputList) == 0 {
+		return nil
+	}
+	input := &inputList[0]
+	output := extensions.Plan{
+		Name:      input.Name,
+		Product:   input.Product,
+		Publisher: input.Publisher,
+	}
+	if input.PromotionCode != "" {
+		output.PromotionCode = &input.PromotionCode
+	}
+
+	if input.Version != "" {
+		output.Version = &input.Version
+	}
+
+	return &output
+}
+
 func flattenExtensionPropertiesAksAssignedIdentityModel(input *extensions.ExtensionPropertiesAksAssignedIdentity) []ExtensionPropertiesAksAssignedIdentityModel {
 	var outputList []ExtensionPropertiesAksAssignedIdentityModel
 	if input == nil {
@@ -425,6 +502,27 @@ func flattenExtensionPropertiesAksAssignedIdentityModel(input *extensions.Extens
 
 	if input.Type != nil {
 		output.Type = *input.Type
+	}
+
+	return append(outputList, output)
+}
+
+func flattenPlanModel(input *extensions.Plan) []PlanModel {
+	var outputList []PlanModel
+	if input == nil {
+		return outputList
+	}
+	output := PlanModel{
+		Name:      input.Name,
+		Product:   input.Product,
+		Publisher: input.Publisher,
+	}
+	if input.PromotionCode != nil {
+		output.PromotionCode = *input.PromotionCode
+	}
+
+	if input.Version != nil {
+		output.Version = *input.Version
 	}
 
 	return append(outputList, output)
