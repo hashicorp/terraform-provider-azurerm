@@ -2629,6 +2629,21 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 }
 
 func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}, d *pluginsdk.ResourceData) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
+	//if len(input) == 0 {
+	//	return nil
+	//}
+
+	//if len(input) == 0 && d.HasChange("workload_autoscaler_profile") {
+	//	return &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
+	//		Keda: &managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{
+	//			Enabled: false,
+	//		},
+	//		VerticalPodAutoscaler: &managedclusters.ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler{
+	//			Enabled: false,
+	//		},
+	//	}
+	//}
+
 	if len(input) == 0 {
 		return nil
 	}
@@ -2700,22 +2715,34 @@ func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.
 		return []interface{}{}
 	}
 
-	workloadAutoscaler := make(map[string]interface{}, 0)
+	//workloadAutoscaler := make(map[string]interface{}, 0)
 	kedaEnabled := false
 	if v := profile.Keda; v != nil && v.Enabled {
 		kedaEnabled = v.Enabled
 	}
-	workloadAutoscaler["keda_enabled"] = kedaEnabled
+	//workloadAutoscaler["keda_enabled"] = kedaEnabled
 
 	vpaEnabled := false
+	controlledValues := ""
+	updateMode := ""
 	if v := profile.VerticalPodAutoscaler; v != nil && v.Enabled {
 		vpaEnabled = v.Enabled
-		workloadAutoscaler["vertical_pod_autoscaler_update_mode"] = string(v.UpdateMode)
-		workloadAutoscaler["vertical_pod_autoscaler_controlled_values"] = string(v.ControlledValues)
+		//workloadAutoscaler["vertical_pod_autoscaler_update_mode"] = string(v.UpdateMode)
+		//workloadAutoscaler["vertical_pod_autoscaler_controlled_values"] = string(v.ControlledValues)
+		controlledValues = string(v.ControlledValues)
+		updateMode = string(v.UpdateMode)
 	}
-	workloadAutoscaler["vertical_pod_autoscaler_enabled"] = vpaEnabled
+	//workloadAutoscaler["vertical_pod_autoscaler_enabled"] = vpaEnabled
 
-	return []interface{}{workloadAutoscaler}
+	//return []interface{}{workloadAutoscaler}
+	return []interface{}{
+		map[string]interface{}{
+			"keda_enabled":                              kedaEnabled,
+			"vertical_pod_autoscaler_enabled":           vpaEnabled,
+			"vertical_pod_autoscaler_update_mode":       updateMode,
+			"vertical_pod_autoscaler_controlled_values": controlledValues,
+		},
+	}
 }
 
 func flattenGmsaProfile(profile *managedclusters.WindowsGmsaProfile) []interface{} {

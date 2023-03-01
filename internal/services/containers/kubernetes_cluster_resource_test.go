@@ -109,7 +109,7 @@ func TestAccKubernetesCluster_storageProfile(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_workloadAutoscalerProfileKedaOnOff(t *testing.T) {
+func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -133,7 +133,7 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKedaOnOff(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_imageCleanerSecurityProfileOnOff(t *testing.T) {
+func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -179,7 +179,7 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKedaOnAbsent(t *testing.T
 	})
 }
 
-func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscaler(t *testing.T) {
+func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscalerToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -198,6 +198,13 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscaler(t *
 			),
 		},
 		data.ImportStep(),
+		//{
+		//	Config: r.basicVMSSConfig(data),
+		//	Check: acceptance.ComposeTestCheckFunc(
+		//		check.That(data.ResourceName).ExistsInAzure(r),
+		//	),
+		//},
+		//data.ImportStep(),
 	})
 }
 

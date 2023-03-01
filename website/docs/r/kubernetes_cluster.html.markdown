@@ -826,7 +826,7 @@ A `workload_autoscaler_profile` block supports the following:
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-KedaPreview` is enabled and the Resource Provider is re-registered, see [the documentation]([Microsoft.ContainerService/AKS-KedaPreview](https://docs.microsoft.com/azure/aks/keda-deploy-add-on-arm#register-the-aks-kedapreview-feature-flag) for more information.
 
-* `vertical_pod_autoscaler` - (Optional) A `vertical_pod_autoscaler` block as defined below.
+* `vertical_pod_autoscaler_enabled` - (Optional) Specifies whether Vertical Pod Autoscaler should be enabled.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-VPAPreview` is enabled and the Resource Provider is re-registered, see [the documentation]([Microsoft.ContainerService/AKS-VPAPreview](https://learn.microsoft.com/en-us/azure/aks/vertical-pod-autoscaler#register-the-aks-vpapreview-feature-flag) for more information.
 
@@ -1008,6 +1008,14 @@ The `secret_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity used by the Secret Provider.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Secret Provider.
+
+---
+
+A `workload_autoscaler_profile` block exports the following:
+
+* `vertical_pod_autoscaler_controlled_values` - Which resources values should be controlled.
+
+* `vertical_pod_autoscaler_update_mode` - How the autoscaler applies changes to pod resources.
 
 ---
 
