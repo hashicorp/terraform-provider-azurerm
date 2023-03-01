@@ -1,7 +1,0 @@
-#!/bin/bash
-
-# delete arc kubernetes
-export KUBECONFIG="${working_dir}/kind-config"
-az login --identity --username ${user_id}
-az account set --subscription ${subscription_id}
-az connectedk8s delete --force --name ${cluster_name} --resource-group ${resource_group_name} --yes

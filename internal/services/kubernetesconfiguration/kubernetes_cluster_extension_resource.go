@@ -273,7 +273,7 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, ok := metadata.ResourceData.GetOk("identity"); ok {
-				if model.ClusterResourceName == string(AksResource) {
+				if model.ClusterResourceName != string(ArcResource) {
 					return fmt.Errorf("`identity` should not be set when `cluster_resource_name` is `%s`", model.ClusterResourceName)
 				}
 
@@ -284,7 +284,7 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 
 				properties.Identity = identityValue
 			} else {
-				if model.ClusterResourceName != string(AksResource) {
+				if model.ClusterResourceName == string(ArcResource) {
 					return fmt.Errorf("`identity` must be set when `cluster_resource_name` is `%s`", model.ClusterResourceName)
 				}
 			}
