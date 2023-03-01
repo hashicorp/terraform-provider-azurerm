@@ -23,7 +23,7 @@ ENHANCEMENTS
 * `azurerm_container_app` - the `traffic_weight` block is now optional [GH-20574]
 * `azurerm_key_vault_key` - support for the `rotation_policy` block [GH-19113]
 * `azurerm_media_streaming_policy` - add support for `common_encryption_cbcs.clear_key_encryption`, `common_encryption_cenc.clear_key_encryption`, `common_encryption_cenc.clear_track`, `common_encryption_cenc.content_key_to_track_mapping` and `envelope_encryption` [GH-20524]
-* `azurerm_orchestrated_virtual_machine_scale_set` - Add `Priority_Mix` property [GH-20618]
+* `azurerm_orchestrated_virtual_machine_scale_set` - Add `priority_mix` property [GH-20618]
 * `azurerm_storage_management_policy` - add support for `auto_tier_to_hot_from_cool_enabled` [GH-20641]
 * `azurerm_spring_cloud_connection` - support for the `secret_store` block [GH-20613]
 
