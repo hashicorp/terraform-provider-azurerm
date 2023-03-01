@@ -511,6 +511,7 @@ func (r MsSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 		Timeout: 24 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQL.ManagedInstancesClient
+			virtualCluster := metadata.Client.MSSQL.VirtualClusterClient
 
 			id, err := parse.ManagedInstanceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -524,6 +525,29 @@ func (r MsSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+			}
+
+			// Remove the following check after API issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/22870
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:    []string{"Deleting"},
+				Target:     []string{"NotFound"},
+				MinTimeout: 30 * time.Second,
+				Timeout:    metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete),
+				Refresh: func() (interface{}, string, error) {
+					resp, err := virtualCluster.ListByResourceGroup(ctx, id.ResourceGroup)
+					if err != nil {
+						return nil, "", err
+					}
+					if v := resp.Values(); len(v) > 0 {
+						return resp, "Deleting", nil
+					} else {
+						return resp, "NotFound", nil
+					}
+				},
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for virtual cluster (Resource Group %q) to be deleted: %+v", id.ResourceGroup, err)
 			}
 
 			return nil
