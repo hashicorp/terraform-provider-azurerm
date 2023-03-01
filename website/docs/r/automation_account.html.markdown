@@ -60,7 +60,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) The type of identity used for this Automation Account. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
-* `identity_ids` - (Optional) The ID of the User Assigned Identity which should be assigned to this Automation Account.
+* `identity_ids` - (Optional) The Principal ID of the User Assigned Identity which should be assigned to this Automation Account.
 
 -> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
