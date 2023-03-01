@@ -1,6 +1,7 @@
 package batch
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -861,7 +862,11 @@ func expandBatchPoolExtension(ref map[string]interface{}) (*pool.VmExtension, er
 	}
 
 	if settings, ok := ref["settings_json"]; ok {
-		result.Settings = pointer.To(settings)
+		settingJson, err := expandJsonFromString(settings.(string))
+		if err != nil {
+			return nil, err
+		}
+		result.Settings = pointer.To(settingJson)
 	}
 
 	if protectedSettings, ok := ref["protected_settings"]; ok {
@@ -1363,4 +1368,22 @@ func expandBatchPoolUserAccount(ref map[string]interface{}) pool.UserAccount {
 	}
 
 	return result
+}
+
+func expandJsonFromString(jsonString string) (interface{}, error) {
+	var result interface{}
+
+	err := json.Unmarshal([]byte(jsonString), &result)
+
+	return result, err
+}
+
+func flattenJsonToString(input interface{}) (string, error) {
+
+	result, err := json.Marshal(input)
+	if err != nil {
+		return "", err
+	}
+
+	return string(result), nil
 }
