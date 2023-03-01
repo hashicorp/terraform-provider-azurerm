@@ -1,4 +1,5 @@
 ## 3.46.0 (Unreleased)
+
 FEATURES
 
 * **New Data Source:** `azurerm_mobile_network_data_network` [GH-20338]
@@ -27,14 +28,30 @@ ENHANCEMENTS
 
 BUG FIXES
 
-* `azurerm_netapp_volume` - Fix potential nil panic in resource read [GH-20662]
 * Data Source: `azurerm_automation_variable_bool` - fixed a regression in read [GH-20665]
 * Data Source: `azurerm_automation_variable_datetime` - fixed a regression in read [GH-20665]
 * Data Source: `azurerm_automation_variable_int` - fixed a regression in read [GH-20665]
 * Data Source: `azurerm_automation_variable_string` - fixed a regression in read [GH-20665]
+* `azurerm_aadb2c_directory` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_cdn_frontdoor_origin` - `origin_host_header` can now be cleared once it has been set [GH-20679]
+* `azurerm_container_app` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_eventhub_cluster` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_eventhub_namespace` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_eventhub_namespace_disaster_recovery_config` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_kubernetes_cluster_node_pool` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_iothub_dps` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_netapp_account` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_netapp_pool` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_netapp_snapshot` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_netapp_snapshot_policy` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_netapp_volume` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_netapp_volume` - Fix potential nil panic in resource read [GH-20662]
+* `azurerm_notification_hub` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_notification_hub_namespace` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_sentinel_log_analytics_workspace_onboard` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_servicebus_namespace_disaster_recovery_config` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_storage_object_replication` - now functions when cross tenant replication is disabled [GH-20132]
- 
+
 ## 3.45.0 (February 23, 2023)
 
 FEATURES
