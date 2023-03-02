@@ -25,10 +25,17 @@ ENHANCEMENTS
 * `express_route_circuit_peering_resource` - support for the `advertised_communities` property [GH-20708]
 * `azurerm_key_vault_key` - support for the `rotation_policy` block [GH-19113]
 * `azurerm_kubernetes_cluster` - add support for the `Standard` `sku_tier` [GH-20734]
+* `azurerm_linux_function_app` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` [GH-20722]
+* `azurerm_linux_function_app_slot` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` [GH-20722]
 * `azurerm_media_streaming_policy` - add support for `common_encryption_cbcs.clear_key_encryption`, `common_encryption_cenc.clear_key_encryption`, `common_encryption_cenc.clear_track`, `common_encryption_cenc.content_key_to_track_mapping` and `envelope_encryption` [GH-20524]
 * `azurerm_orchestrated_virtual_machine_scale_set` - add `priority_mix` property [GH-20618]
 * `azurerm_storage_management_policy` - add support for `auto_tier_to_hot_from_cool_enabled` [GH-20641]
 * `azurerm_spring_cloud_connection` - support for the `secret_store` block [GH-20613]
+* `azurerm_windows_function_app` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` [GH-20722]
+* `azurerm_windows_function_app_slot` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` [GH-20722]
+* **Data Source:** `azurerm_linux_function_app` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` [GH-20722]
+* **Data Source:**`azurerm_windows_function_app` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` [GH-20722]
+
 
 BUG FIXES
 
