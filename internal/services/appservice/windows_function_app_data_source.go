@@ -298,7 +298,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+				return fmt.Errorf("reading Sticky Settings for Windows %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
@@ -321,7 +321,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			authV2, err := client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading authV2 settings for Linux %s: %+v", id, err)
+				return fmt.Errorf("reading authV2 settings for Windows %s: %+v", id, err)
 			}
 
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
