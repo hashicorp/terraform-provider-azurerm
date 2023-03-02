@@ -37,7 +37,7 @@ func TestAccSentinelAutomationRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccSentinelAutomationRule_completeDperecatedCondition(t *testing.T) {
+func TestAccSentinelAutomationRule_completeDeprecatedCondition(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
 	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
 

@@ -295,7 +295,7 @@ func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, met
 
 	if expiration := d.Get("expiration").(string); expiration != "" {
 		t, _ := time.Parse(time.RFC3339, expiration)
-		params.Properties.TriggeringLogic.ExpirationTimeUtc = utils.String(t.String())
+		params.Properties.TriggeringLogic.SetExpirationTimeUtcAsTime(t)
 	}
 
 	_, err = client.CreateOrUpdate(ctx, id, params)
