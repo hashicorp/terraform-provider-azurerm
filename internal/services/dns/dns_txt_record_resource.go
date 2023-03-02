@@ -229,10 +229,7 @@ func flattenAzureRmDnsTxtRecords(records *[]recordsets.TxtRecord) []map[string]i
 				}
 
 				var values []string
-				for _, v := range *recordValue {
-					values = append(values, v)
-				}
-				record["values"] = values
+				record["values"] = append(values, *recordValue...)
 			}
 
 			results = append(results, record)
