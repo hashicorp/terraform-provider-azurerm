@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"log"
 	"strconv"
 	"strings"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -1229,33 +1229,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
-						//"vertical_pod_autoscaler": {
-						//	Type:     pluginsdk.TypeList,
-						//	Optional: true,
-						//	MaxItems: 1,
-						//	Elem: &pluginsdk.Resource{
-						//		Schema: map[string]*pluginsdk.Schema{
-						//			"update_mode": {
-						//				Type:     pluginsdk.TypeString,
-						//				Required: true,
-						//				ValidateFunc: validation.StringInSlice([]string{
-						//					string(managedclusters.UpdateModeAuto),
-						//					string(managedclusters.UpdateModeInitial),
-						//					string(managedclusters.UpdateModeOff),
-						//					string(managedclusters.UpdateModeRecreate),
-						//				}, false),
-						//			},
-						//			"controlled_values": {
-						//				Type:     pluginsdk.TypeString,
-						//				Required: true,
-						//				ValidateFunc: validation.StringInSlice([]string{
-						//					string(managedclusters.ControlledValuesRequestsAndLimits),
-						//					string(managedclusters.ControlledValuesRequestsOnly),
-						//				}, false),
-						//			},
-						//		},
-						//	},
-						//},
 					},
 				},
 			},
@@ -2629,21 +2602,6 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 }
 
 func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}, d *pluginsdk.ResourceData) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
-	//if len(input) == 0 {
-	//	return nil
-	//}
-
-	//if len(input) == 0 && d.HasChange("workload_autoscaler_profile") {
-	//	return &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
-	//		Keda: &managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{
-	//			Enabled: false,
-	//		},
-	//		VerticalPodAutoscaler: &managedclusters.ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler{
-	//			Enabled: false,
-	//		},
-	//	}
-	//}
-
 	if len(input) == 0 {
 		return nil
 	}
@@ -2715,26 +2673,20 @@ func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.
 		return []interface{}{}
 	}
 
-	//workloadAutoscaler := make(map[string]interface{}, 0)
 	kedaEnabled := false
 	if v := profile.Keda; v != nil && v.Enabled {
 		kedaEnabled = v.Enabled
 	}
-	//workloadAutoscaler["keda_enabled"] = kedaEnabled
 
 	vpaEnabled := false
 	controlledValues := ""
 	updateMode := ""
 	if v := profile.VerticalPodAutoscaler; v != nil && v.Enabled {
 		vpaEnabled = v.Enabled
-		//workloadAutoscaler["vertical_pod_autoscaler_update_mode"] = string(v.UpdateMode)
-		//workloadAutoscaler["vertical_pod_autoscaler_controlled_values"] = string(v.ControlledValues)
 		controlledValues = string(v.ControlledValues)
 		updateMode = string(v.UpdateMode)
 	}
-	//workloadAutoscaler["vertical_pod_autoscaler_enabled"] = vpaEnabled
 
-	//return []interface{}{workloadAutoscaler}
 	return []interface{}{
 		map[string]interface{}{
 			"keda_enabled":                              kedaEnabled,

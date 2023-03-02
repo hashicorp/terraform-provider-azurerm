@@ -175,13 +175,6 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscalerTogg
 			),
 		},
 		data.ImportStep(),
-		//{
-		//	Config: r.basicVMSSConfig(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep(),
 	})
 }
 
