@@ -19,17 +19,15 @@ import (
 type ClusterResourceType string
 
 const (
-	AksResource       ClusterResourceType = "managedClusters"
-	ArcResource       ClusterResourceType = "connectedClusters"
-	AksHybridResource ClusterResourceType = "provisionedClusters"
+	AksResource ClusterResourceType = "managedClusters"
+	ArcResource ClusterResourceType = "connectedClusters"
 )
 
 type ClusterProviderType string
 
 const (
-	AksProvider       ClusterProviderType = "Microsoft.ContainerService"
-	ArcProvider       ClusterProviderType = "Microsoft.Kubernetes"
-	AksHybridProvider ClusterProviderType = "Microsoft.HybridContainerService"
+	AksProvider ClusterProviderType = "Microsoft.ContainerService"
+	ArcProvider ClusterProviderType = "Microsoft.Kubernetes"
 )
 
 type KubernetesClusterExtensionModel struct {
@@ -107,7 +105,6 @@ func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.StringInSlice([]string{
 				string(AksResource),
 				string(ArcResource),
-				string(AksHybridResource),
 			}, false),
 		},
 
@@ -538,10 +535,6 @@ func getProviderName(clusterResourceName string) (string, error) {
 
 	if clusterResourceName == string(ArcResource) {
 		return string(ArcProvider), nil
-	}
-
-	if clusterResourceName == string(AksHybridResource) {
-		return string(AksHybridProvider), nil
 	}
 
 	return "", fmt.Errorf("provider name not found for cluster resource: `%s`", clusterResourceName)
