@@ -357,6 +357,8 @@ resource "azurerm_key_vault_access_policy" "client" {
     "List",
     "Purge",
     "Recover",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
   ]
 }
 

@@ -684,18 +684,20 @@ func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *namespaces
 func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
+		status := "dropped connection"
 		if res.HttpResponse != nil {
-			log.Printf("Retrieving %s returned Status %d", id, res.HttpResponse.StatusCode)
+			status = strconv.Itoa(res.HttpResponse.StatusCode)
 		}
+		log.Printf("Retrieving %s returned Status %q", id, status)
 
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {
-				return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+				return res, status, nil
 			}
 			return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
 		}
 
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+		return res, status, nil
 	}
 }
 

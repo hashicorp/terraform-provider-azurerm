@@ -1,4 +1,5 @@
 ## 3.46.0 (Unreleased)
+
 FEATURES
 
 * **New Data Source:** `azurerm_mobile_network_data_network` [GH-20338]
@@ -6,31 +7,54 @@ FEATURES
 
 ENHANCEMENTS
 
-* dependencies: updating to `v0.20230224.1071134` of `github.com/hashicorp/go-azure-sdk` [GH-20649]
+* dependencies: updating to `v0.20230228.1160358` of `github.com/hashicorp/go-azure-sdk` [GH-20688]
 * dependencies: updating to `v0.20230224.1120200` of `github.com/tombuildsstuff/kermit` [GH-20649]
 * `databoxedge` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
-* `policy/assignment` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
+* `dns`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20688]
+* `maps`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20688]
+* `signalr`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20688]
 * `compute/shared_image_gallery` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20599]
 * `compute/gallery_application` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20599]
 * `compute/gallery_application_version` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20599]
 * `iottimeseriesinsights` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20416]
+* `policy/assignment` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
+* `sentinel/alert_rule` - switching to use github.com/hashicorp/go-azure-sdk [GH-20680]
 * `azurerm_app_service_connection` - support for the `secret_store` block [GH-20613]
 * `azurerm_container_app` - the `traffic_weight` block is now optional [GH-20574]
+* `express_route_circuit_peering_resource` - support for the `advertised_communities` property [GH-20708]
 * `azurerm_key_vault_key` - support for the `rotation_policy` block [GH-19113]
 * `azurerm_media_streaming_policy` - add support for `common_encryption_cbcs.clear_key_encryption`, `common_encryption_cenc.clear_key_encryption`, `common_encryption_cenc.clear_track`, `common_encryption_cenc.content_key_to_track_mapping` and `envelope_encryption` [GH-20524]
+* `azurerm_orchestrated_virtual_machine_scale_set` - add `priority_mix` property [GH-20618]
 * `azurerm_storage_management_policy` - add support for `auto_tier_to_hot_from_cool_enabled` [GH-20641]
 * `azurerm_spring_cloud_connection` - support for the `secret_store` block [GH-20613]
 
 BUG FIXES
 
-* `azurerm_netapp_volume` - Fix potential nil panic in resource read [GH-20662]
 * Data Source: `azurerm_automation_variable_bool` - fixed a regression in read [GH-20665]
 * Data Source: `azurerm_automation_variable_datetime` - fixed a regression in read [GH-20665]
 * Data Source: `azurerm_automation_variable_int` - fixed a regression in read [GH-20665]
 * Data Source: `azurerm_automation_variable_string` - fixed a regression in read [GH-20665]
+* `azurerm_aadb2c_directory` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_cdn_frontdoor_origin` - `origin_host_header` can now be cleared once it has been set [GH-20679]
+* `azurerm_container_app` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_communication_service` - changing the `data_location` property now creates a new resource [GH-20711]
+* `azurerm_eventhub_cluster` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_eventhub_namespace` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_eventhub_namespace_disaster_recovery_config` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_kubernetes_cluster_node_pool` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_iothub_dps` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_netapp_account` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_netapp_pool` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_netapp_snapshot` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_netapp_snapshot_policy` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_netapp_volume` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_netapp_volume` - Fix potential nil panic in resource read [GH-20662]
+* `azurerm_notification_hub` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_notification_hub_namespace` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_sentinel_log_analytics_workspace_onboard` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_servicebus_namespace_disaster_recovery_config` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_storage_object_replication` - now functions when cross tenant replication is disabled [GH-20132]
- 
+
 ## 3.45.0 (February 23, 2023)
 
 FEATURES

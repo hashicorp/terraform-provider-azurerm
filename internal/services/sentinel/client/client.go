@@ -2,13 +2,14 @@ package client
 
 import (
 	alertruletemplates "github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/sentinelonboardingstates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type Client struct {
-	AlertRulesClient         *securityinsight.AlertRulesClient
+	AlertRulesClient         *alertrules.AlertRulesClient
 	AlertRuleTemplatesClient *alertruletemplates.AlertRuleTemplatesClient
 	AutomationRulesClient    *securityinsight.AutomationRulesClient
 	DataConnectorsClient     *securityinsight.DataConnectorsClient
@@ -18,7 +19,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	alertRulesClient := securityinsight.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	alertRulesClient := alertrules.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&alertRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	alertRuleTemplatesClient := alertruletemplates.NewAlertRuleTemplatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

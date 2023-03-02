@@ -78,84 +78,7 @@ func TestAccCommunicationService_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data, "Australia"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data, "Africa"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data, "Brazil"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data, "Canada"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data, "France"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data, "Germany"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data, "India"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data, "Japan"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data, "Korea"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data, "Norway"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data, "Switzerland"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data, "UAE"),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -223,20 +146,20 @@ resource "azurerm_communication_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CommunicationServiceResource) update(data acceptance.TestData, dataLocation string) string {
+func (r CommunicationServiceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_communication_service" "test" {
   name                = "acctest-CommunicationService-%d"
   resource_group_name = azurerm_resource_group.test.name
-  data_location       = "%s"
+  data_location       = "United States"
 
   tags = {
     env = "Test2"
   }
 }
-`, r.template(data), data.RandomInteger, dataLocation)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CommunicationServiceResource) template(data acceptance.TestData) string {
