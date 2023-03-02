@@ -539,7 +539,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			authv2 := helpers.ExpandAuthV2Settings(functionAppSlot.AuthV2Settings)
 			if authv2.SiteAuthSettingsV2Properties != nil {
 				if _, err = client.UpdateAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, *authv2, id.SlotName); err != nil {
-					return fmt.Errorf("updating AuthV2 settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating AuthV2 settings for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -632,7 +632,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			if strings.EqualFold(pointer.From(auth.ConfigVersion), "v2") {
 				authV2, err = client.GetAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 				if err != nil {
-					return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)
+					return fmt.Errorf("reading authV2 settings for Windows %s: %+v", *id, err)
 				}
 			}
 
@@ -664,10 +664,10 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 			functionApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading parent Function App for Linux %s: %+v", *id, err)
+				return fmt.Errorf("reading parent Function App for Windows %s: %+v", *id, err)
 			}
 			if functionApp.SiteProperties == nil || functionApp.SiteProperties.ServerFarmID == nil {
-				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
+				return fmt.Errorf("reading parent Function App Service Plan information for Windows %s: %+v", *id, err)
 			}
 			parentAppFarmId, err := parse.ServicePlanIDInsensitively(*functionApp.SiteProperties.ServerFarmID)
 			if err != nil {
@@ -798,7 +798,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				locks.ByID(newPlan.ID())
 				defer locks.UnlockByID(newPlan.ID())
 				if existing.SiteProperties == nil {
-					return fmt.Errorf("updating Service Plan for Linux %s: Slot SiteProperties was nil", *id)
+					return fmt.Errorf("updating Service Plan for Windows %s: Slot SiteProperties was nil", *id)
 				}
 				existing.SiteProperties.ServerFarmID = pointer.To(newPlan.ID())
 			}
@@ -944,14 +944,14 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					}
 				}
 				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *authUpdate, id.SlotName); err != nil {
-					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating Auth Settings for Windows %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
 				if _, err := client.UpdateAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, *authV2Update, id.SlotName); err != nil {
-					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating AuthV2 Settings for Windows %s: %+v", id, err)
 				}
 			}
 

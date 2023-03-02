@@ -527,7 +527,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 			authv2 := helpers.ExpandAuthV2Settings(functionApp.AuthV2Settings)
 			if authv2.SiteAuthSettingsV2Properties != nil {
 				if _, err = client.UpdateAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName, *authv2); err != nil {
-					return fmt.Errorf("updating AuthV2 settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating AuthV2 settings for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -624,7 +624,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 			if strings.EqualFold(pointer.From(auth.ConfigVersion), "v2") {
 				authV2, err = client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
 				if err != nil {
-					return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)
+					return fmt.Errorf("reading authV2 settings for Windows %s: %+v", *id, err)
 				}
 			}
 
@@ -945,7 +945,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 					updateLogs = true
 				}
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *authUpdate); err != nil {
-					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating Auth Settings for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -1013,7 +1013,7 @@ func (r WindowsFunctionAppResource) CustomImporter() sdk.ResourceRunFunc {
 			return fmt.Errorf("reading Service Plan for Windows %s: %+v", id, err)
 		}
 
-		if strings.Contains(strings.ToLower(*sp.Kind), "linux") {
+		if strings.Contains(strings.ToLower(*sp.Kind), "Windows") {
 			return fmt.Errorf("specified Service Plan is not a Windows Functionapp plan")
 		}
 
