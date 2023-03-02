@@ -526,10 +526,8 @@ func expandMediaServicesAccountKeyDelivery(input []interface{}) *accounts.KeyDel
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	keyDelivery, ok := input[0].(map[string]interface{})
-	if !ok {
-		return nil
-	}
+	
+	keyDelivery := input[0].(map[string]interface{})
 	defaultAction := keyDelivery["default_action"].(string)
 
 	var ipAllowList *[]string
