@@ -5,6 +5,7 @@ package machineextensions
 
 type MachineExtensionUpdateProperties struct {
 	AutoUpgradeMinorVersion *bool        `json:"autoUpgradeMinorVersion,omitempty"`
+	EnableAutomaticUpgrade  *bool        `json:"enableAutomaticUpgrade,omitempty"`
 	ForceUpdateTag          *string      `json:"forceUpdateTag,omitempty"`
 	ProtectedSettings       *interface{} `json:"protectedSettings,omitempty"`
 	Publisher               *string      `json:"publisher,omitempty"`

@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-03-10/privateendpointconnections` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privateendpointconnections` Documentation
 
-The `privateendpointconnections` SDK allows for interaction with the Azure Resource Manager Service `hybridcompute` (API Version `2022-03-10`).
+The `privateendpointconnections` SDK allows for interaction with the Azure Resource Manager Service `hybridcompute` (API Version `2022-11-10`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-03-10/privateendpointconnections"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privateendpointconnections"
 ```
 
 
