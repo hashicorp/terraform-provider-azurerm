@@ -97,12 +97,6 @@ func TestAccKubernetesClusterExtension_plan(t *testing.T) {
 }
 
 func TestAccKubernetesClusterExtension_arc(t *testing.T) {
-	// follow https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/quickstart-connect-cluster?tabs=azure-cli%2Cazure-cloud to create an arc Kubernetes cluster
-	if os.Getenv("ARM_TEST_ARC_K8S_RG") == "" || os.Getenv("ARM_TEST_ARC_K8S_CLUSTER") == "" {
-		t.Skip("Skipping as ARM_TEST_ARC_K8S_RG and ARM_TEST_ARC_K8S_CLUSTER are not specified")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_extension", "test")
 	r := KubernetesClusterExtensionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
