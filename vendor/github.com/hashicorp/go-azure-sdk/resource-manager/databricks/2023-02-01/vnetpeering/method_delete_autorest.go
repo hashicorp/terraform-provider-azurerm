@@ -1,4 +1,4 @@
-package tenants
+package vnetpeering
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/polling"
 )
 
-// Copyright (c) HashiCorp Inc. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DeleteOperationResponse struct {
@@ -19,16 +19,16 @@ type DeleteOperationResponse struct {
 }
 
 // Delete ...
-func (c TenantsClient) Delete(ctx context.Context, id B2CDirectoryId) (result DeleteOperationResponse, err error) {
+func (c VNetPeeringClient) Delete(ctx context.Context, id VirtualNetworkPeeringId) (result DeleteOperationResponse, err error) {
 	req, err := c.preparerForDelete(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "tenants.TenantsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "vnetpeering.VNetPeeringClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = c.senderForDelete(ctx, req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "tenants.TenantsClient", "Delete", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "vnetpeering.VNetPeeringClient", "Delete", result.HttpResponse, "Failure sending request")
 		return
 	}
 
@@ -36,7 +36,7 @@ func (c TenantsClient) Delete(ctx context.Context, id B2CDirectoryId) (result De
 }
 
 // DeleteThenPoll performs Delete then polls until it's completed
-func (c TenantsClient) DeleteThenPoll(ctx context.Context, id B2CDirectoryId) error {
+func (c VNetPeeringClient) DeleteThenPoll(ctx context.Context, id VirtualNetworkPeeringId) error {
 	result, err := c.Delete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Delete: %+v", err)
@@ -50,7 +50,7 @@ func (c TenantsClient) DeleteThenPoll(ctx context.Context, id B2CDirectoryId) er
 }
 
 // preparerForDelete prepares the Delete request.
-func (c TenantsClient) preparerForDelete(ctx context.Context, id B2CDirectoryId) (*http.Request, error) {
+func (c VNetPeeringClient) preparerForDelete(ctx context.Context, id VirtualNetworkPeeringId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -66,7 +66,7 @@ func (c TenantsClient) preparerForDelete(ctx context.Context, id B2CDirectoryId)
 
 // senderForDelete sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (c TenantsClient) senderForDelete(ctx context.Context, req *http.Request) (future DeleteOperationResponse, err error) {
+func (c VNetPeeringClient) senderForDelete(ctx context.Context, req *http.Request) (future DeleteOperationResponse, err error) {
 	var resp *http.Response
 	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {

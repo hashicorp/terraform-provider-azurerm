@@ -1,4 +1,4 @@
-package tenants
+package vnetpeering
 
 import (
 	"context"
@@ -8,31 +8,31 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-// Copyright (c) HashiCorp Inc. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type GetOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *Tenant
+	Model        *VirtualNetworkPeering
 }
 
 // Get ...
-func (c TenantsClient) Get(ctx context.Context, id B2CDirectoryId) (result GetOperationResponse, err error) {
+func (c VNetPeeringClient) Get(ctx context.Context, id VirtualNetworkPeeringId) (result GetOperationResponse, err error) {
 	req, err := c.preparerForGet(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "tenants.TenantsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "vnetpeering.VNetPeeringClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "tenants.TenantsClient", "Get", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "vnetpeering.VNetPeeringClient", "Get", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForGet(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "tenants.TenantsClient", "Get", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "vnetpeering.VNetPeeringClient", "Get", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -40,7 +40,7 @@ func (c TenantsClient) Get(ctx context.Context, id B2CDirectoryId) (result GetOp
 }
 
 // preparerForGet prepares the Get request.
-func (c TenantsClient) preparerForGet(ctx context.Context, id B2CDirectoryId) (*http.Request, error) {
+func (c VNetPeeringClient) preparerForGet(ctx context.Context, id VirtualNetworkPeeringId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -56,10 +56,10 @@ func (c TenantsClient) preparerForGet(ctx context.Context, id B2CDirectoryId) (*
 
 // responderForGet handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (c TenantsClient) responderForGet(resp *http.Response) (result GetOperationResponse, err error) {
+func (c VNetPeeringClient) responderForGet(resp *http.Response) (result GetOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
