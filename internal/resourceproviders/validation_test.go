@@ -1,6 +1,8 @@
 package resourceproviders
 
 import (
+	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -68,7 +70,7 @@ func TestEnhancedValidationEnabled(t *testing.T) {
 		},
 	}
 	enhancedEnabled = true
-	cachedResourceProviders = &[]string{"Microsoft.Compute"}
+	cachedResourceProviders = &[]resources.Provider{{Namespace: utils.String("Microsoft.Compute")}}
 	defer func() {
 		enhancedEnabled = features.EnhancedValidationEnabled()
 		cachedResourceProviders = nil
