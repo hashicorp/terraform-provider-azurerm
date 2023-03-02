@@ -246,7 +246,6 @@ func expandAzureRmDnsTxtRecords(d *pluginsdk.ResourceData) (*[]recordsets.TxtRec
 	recordStrings := d.Get("record").([]interface{})
 	records := make([]recordsets.TxtRecord, len(recordStrings))
 
-	var recordValuesLength int
 	for i, v := range recordStrings {
 		record := v.(map[string]interface{})
 
@@ -278,19 +277,13 @@ func expandAzureRmDnsTxtRecords(d *pluginsdk.ResourceData) (*[]recordsets.TxtRec
 			recordValues := record["values"].([]interface{})
 
 			for _, recordVal := range recordValues {
-				recordValString := recordVal.(string)
-				recordValuesLength += len(recordValString)
-				values = append(values, recordValString)
+				values = append(values, recordVal.(string))
 			}
 		}
 
 		records[i] = recordsets.TxtRecord{
 			Value: &values,
 		}
-	}
-
-	if recordValuesLength > 1024 {
-		return nil, fmt.Errorf("max length of all record values cannot exceed 1024 characters")
 	}
 
 	return &records, nil

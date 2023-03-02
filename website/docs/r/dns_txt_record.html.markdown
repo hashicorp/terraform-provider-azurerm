@@ -69,9 +69,9 @@ The `record` block supports:
 
 ~> **NOTE:** `value` is deprecated and will be removed in favour of the property `values` in version 4.0 of the AzureRM Provider.
 
-* `values` - (Optional) A list of the record values. Max length: 255 characters for each value.
+* `values` - (Optional) A list of the record values.
 
-~> **NOTE:** The max length of each value is 255 characters. The max length of all record values is 1024 characters.
+~> **NOTE:** The max length of each value is 255 characters. The combined length of all values in all records of a record set must not exceed 1024 characters.
 
 ## Attributes Reference
 

@@ -278,7 +278,7 @@ resource "azurerm_dns_txt_record" "test" {
   }
 
   record {
-    values = ["A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text"]
+    values = ["A long text......A long text", "A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text", "A long text......A long text"]
   }
 
   record {
