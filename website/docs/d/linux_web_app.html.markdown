@@ -127,7 +127,17 @@ An `application_logs` block exports the following:
 
 An `application_stack` block exports the following:
 
-* `docker_image` - The Docker image reference, including repository.
+* `registry_url` - (Optional) The Docker container registry url.
+
+* `registry_username` - (Optional) The Docker container registry username.
+
+~> **NOTE:** This value is required if `container_registry_use_managed_identity` is not set to `true`.
+
+* `registry_password` - (Optional) The Docker container registry password.
+
+~> **NOTE:** This value is required if `container_registry_use_managed_identity` is not set to `true`.
+
+* `docker_image` - The Docker image reference.
 
 * `docker_image_tag` - The image Tag.
 

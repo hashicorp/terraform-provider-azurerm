@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -26,23 +27,21 @@ const (
 )
 
 type ApplicationStackWindows struct {
-	CurrentStack                    string `tfschema:"current_stack"`
-	DockerContainerRegistryURL      string `tfschema:"docker_container_registry"`
-	DockerContainerRegistryUsername string `tfschema:"docker_container_registry_username"`
-	DockerContainerRegistryPassword string `tfschema:"docker_container_registry_password"`
-	DockerContainerName             string `tfschema:"docker_container_name"`
-	DockerContainerTag              string `tfschema:"docker_container_tag"`
-	JavaContainer                   string `tfschema:"java_container"`
-	JavaContainerVersion            string `tfschema:"java_container_version"`
-	JavaEmbeddedServer              bool   `tfschema:"java_embedded_server_enabled"`
-	JavaVersion                     string `tfschema:"java_version"`
-	NetFrameworkVersion             string `tfschema:"dotnet_version"`
-	NetCoreVersion                  string `tfschema:"dotnet_core_version"`
-	NodeVersion                     string `tfschema:"node_version"`
-	PhpVersion                      string `tfschema:"php_version"`
-	PythonVersion                   string `tfschema:"python_version"`
-	Python                          bool   `tfschema:"python"`
-	TomcatVersion                   string `tfschema:"tomcat_version"`
+	CurrentStack            string `tfschema:"current_stack"`
+	DockerContainerName     string `tfschema:"docker_container_name"`
+	DockerContainerRegistry string `tfschema:"docker_container_registry"`
+	DockerContainerTag      string `tfschema:"docker_container_tag"`
+	JavaContainer           string `tfschema:"java_container"`
+	JavaContainerVersion    string `tfschema:"java_container_version"`
+	JavaEmbeddedServer      bool   `tfschema:"java_embedded_server_enabled"`
+	JavaVersion             string `tfschema:"java_version"`
+	NetFrameworkVersion     string `tfschema:"dotnet_version"`
+	NetCoreVersion          string `tfschema:"dotnet_core_version"`
+	NodeVersion             string `tfschema:"node_version"`
+	PhpVersion              string `tfschema:"php_version"`
+	PythonVersion           string `tfschema:"python_version"`
+	Python                  bool   `tfschema:"python"`
+	TomcatVersion           string `tfschema:"tomcat_version"`
 }
 
 func windowsApplicationStackSchema() *pluginsdk.Schema {
@@ -262,6 +261,12 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					},
 				},
 
+				"docker_container_registry": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
 				"docker_container_tag": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -269,27 +274,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 					},
-				},
-
-				"docker_container_registry": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"docker_container_registry_username": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Sensitive:    true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The username to use for connections to the registry.",
-				},
-
-				"docker_container_registry_password": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Sensitive:   true, // Note: whilst it's not a good idea, this _can_ be blank...
-					Description: "The password for the account to use to connect to the registry.",
 				},
 
 				"current_stack": {
@@ -376,22 +360,12 @@ func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"docker_container_tag": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
 				"docker_container_registry": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
-				"docker_container_registry_username": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"docker_container_registry_password": {
+				"docker_container_tag": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -406,21 +380,24 @@ func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
 }
 
 type ApplicationStackLinux struct {
-	NetFrameworkVersion string `tfschema:"dotnet_version"`
-	GoVersion           string `tfschema:"go_version"`
-	PhpVersion          string `tfschema:"php_version"`
-	PythonVersion       string `tfschema:"python_version"`
-	NodeVersion         string `tfschema:"node_version"`
-	JavaVersion         string `tfschema:"java_version"`
-	JavaServer          string `tfschema:"java_server"`
-	JavaServerVersion   string `tfschema:"java_server_version"`
-	DockerImageTag      string `tfschema:"docker_image_tag"`
-	DockerImage         string `tfschema:"docker_image"`
-	RubyVersion         string `tfschema:"ruby_version"`
+	NetFrameworkVersion                 string `tfschema:"dotnet_version"`
+	GoVersion                           string `tfschema:"go_version"`
+	PhpVersion                          string `tfschema:"php_version"`
+	PythonVersion                       string `tfschema:"python_version"`
+	NodeVersion                         string `tfschema:"node_version"`
+	JavaVersion                         string `tfschema:"java_version"`
+	JavaServer                          string `tfschema:"java_server"`
+	JavaServerVersion                   string `tfschema:"java_server_version"`
+	DockerContainerRegistry             string `tfschema:"registry_url"`
+	DockerContainerRegistryUserName     string `tfschema:"registry_username"`
+	DockerContainerRegistryUserPassword string `tfschema:"registry_password"`
+	DockerImageTag                      string `tfschema:"docker_image_tag"`
+	DockerImage                         string `tfschema:"docker_image"`
+	RubyVersion                         string `tfschema:"ruby_version"`
 }
 
 func linuxApplicationStackSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
@@ -590,12 +567,13 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					},
 				},
 
-				"docker_image": {
+				"registry_url": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The URL of the docker registry.",
 					ExactlyOneOf: []string{
-						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.registry_url",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -605,7 +583,30 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.go_version",
 					},
 					RequiredWith: []string{
-						"site_config.0.application_stack.0.docker_image_tag",
+						"site_config.0.application_stack.0.docker_image",
+					},
+				},
+
+				"registry_username": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The username to use for connections to the registry.",
+				},
+
+				"registry_password": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The password for the account to use to connect to the registry.",
+				},
+
+				"docker_image": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					RequiredWith: []string{
+						"site_config.0.application_stack.0.registry_url",
 					},
 				},
 
@@ -620,6 +621,35 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		s.Elem.(*pluginsdk.Resource).Schema["registry_url"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "The URL of the docker registry.",
+		}
+
+		s.Elem.(*pluginsdk.Resource).Schema["docker_image"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			ExactlyOneOf: []string{
+				"site_config.0.application_stack.0.docker_image",
+				"site_config.0.application_stack.0.dotnet_version",
+				"site_config.0.application_stack.0.java_version",
+				"site_config.0.application_stack.0.node_version",
+				"site_config.0.application_stack.0.php_version",
+				"site_config.0.application_stack.0.python_version",
+				"site_config.0.application_stack.0.ruby_version",
+				"site_config.0.application_stack.0.go_version",
+			},
+			RequiredWith: []string{
+				"site_config.0.application_stack.0.docker_image_tag",
+			},
+		}
+	}
+	return s
 }
 
 func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {

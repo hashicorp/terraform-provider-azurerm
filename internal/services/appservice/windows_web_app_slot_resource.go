@@ -549,7 +549,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
+			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings, metadata)
 			if err != nil {
 				return fmt.Errorf("flattening app settings for Windows %s: %+v", id, err)
 			}

@@ -140,7 +140,17 @@ An `application_logs` block supports the following:
 
 An `application_stack` block supports the following:
 
-* `docker_image` - (Optional) The Docker image reference, including repository host as needed.
+* `registry_url` - (Optional) The Docker container registry url.
+
+* `registry_username` - (Optional) The Docker container registry username.
+
+~> **NOTE:** This value is required if `container_registry_use_managed_identity` is not set to `true`.
+
+* `registry_password` - (Optional) The Docker container registry password.
+
+~> **NOTE:** This value is required if `container_registry_use_managed_identity` is not set to `true`.
+
+* `docker_image` - (Optional) The Docker image reference.
 
 * `docker_image_tag` - (Optional) The image Tag to use. e.g. `latest`.
 

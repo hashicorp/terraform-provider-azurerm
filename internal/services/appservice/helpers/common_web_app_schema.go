@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -1242,7 +1243,7 @@ func ExpandAppSettingsForCreate(settings map[string]string) *[]web.NameValuePair
 	return nil
 }
 
-func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int, error) {
+func FlattenAppSettings(input web.StringDictionary, metadata sdk.ResourceMetaData) (map[string]string, *int, error) {
 	maxPingFailures := "WEBSITE_HEALTHCHECK_MAXPINGFAILURES"
 	unmanagedSettings := []string{
 		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
@@ -1254,6 +1255,12 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int, er
 		"spring.datasource.url",
 		"spring.datasource.username",
 		maxPingFailures,
+	}
+
+	dockerSetting := []string{
+		"DOCKER_REGISTRY_SERVER_URL",
+		"DOCKER_REGISTRY_SERVER_USERNAME",
+		"DOCKER_REGISTRY_SERVER_PASSWORD",
 	}
 
 	var healthCheckCount *int
@@ -1269,6 +1276,14 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int, er
 	// Remove the settings the service adds for legacy reasons.
 	for _, v := range unmanagedSettings { //nolint:typecheck
 		delete(appSettings, v)
+	}
+
+	for _, v := range dockerSetting {
+		if userSetAppSettings := metadata.ResourceData.Get("app_settings").(map[string]interface{}); userSetAppSettings != nil {
+			if _, ok := userSetAppSettings[v]; !ok {
+				delete(appSettings, v)
+			}
+		}
 	}
 
 	return appSettings, healthCheckCount, nil

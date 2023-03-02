@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -15,7 +16,15 @@ var urlSchemes = []string{
 	"HTTP://",
 }
 
-func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
+type DockerParts struct {
+	registryURL      string
+	registryUsername string
+	registryPassword string
+	imageName        string
+	imageTag         string
+}
+
+func decodeApplicationStackLinux(fxString string, appSettings web.StringDictionary) ApplicationStackLinux {
 	parts := strings.Split(fxString, "|")
 	result := ApplicationStackLinux{}
 	if len(parts) != 2 {
@@ -76,10 +85,12 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 		result.RubyVersion = parts[1]
 
 	default: // DOCKER is the expected default here as "custom" images require it
-		if dockerParts := strings.Split(parts[1], ":"); len(dockerParts) == 2 {
-			result.DockerImage = dockerParts[0]
-			result.DockerImageTag = dockerParts[1]
-		}
+		dockerSetting := DecodeLinuxWebAppDockerFxString(parts[1], appSettings)
+		result.DockerImage = dockerSetting.imageName
+		result.DockerImageTag = dockerSetting.imageTag
+		result.DockerContainerRegistry = dockerSetting.registryURL
+		result.DockerContainerRegistryUserName = dockerSetting.registryUsername
+		result.DockerContainerRegistryUserPassword = dockerSetting.registryPassword
 	}
 
 	return result
@@ -212,6 +223,46 @@ func DecodeFunctionAppDockerFxString(input string, partial ApplicationStackDocke
 
 	return []ApplicationStackDocker{partial}, nil
 }
+
+func DecodeLinuxWebAppDockerFxString(input string, dockerAppSetting web.StringDictionary) DockerParts {
+	dockerValue := strings.Split(input, ":")
+	imagePart := dockerValue[0]
+	result := DockerParts{
+		imageName: imagePart,
+		imageTag:  dockerValue[1],
+	}
+	urlIndex := strings.Index(imagePart, "/")
+	if dockerAppSetting.Properties == nil || dockerAppSetting.Properties["DOCKER_REGISTRY_SERVER_URL"] == nil {
+		return result
+	}
+	var registryURL string
+	for k, v := range dockerAppSetting.Properties {
+		if k == "DOCKER_REGISTRY_SERVER_URL" {
+			registryURL = pointer.From(v)
+			result.registryURL = registryURL
+		}
+		if k == "DOCKER_REGISTRY_SERVER_USERNAME" {
+			result.registryUsername = pointer.From(v)
+		}
+		if k == "DOCKER_REGISTRY_SERVER_PASSWORD" {
+			result.registryPassword = pointer.From(v)
+		}
+	}
+	for _, v := range urlSchemes {
+		if strings.Contains(registryURL, v) {
+			registryURL = strings.TrimPrefix(registryURL, v)
+			break
+		}
+	}
+
+	if strings.Contains(imagePart, registryURL) {
+		result.imageName = imagePart[urlIndex+1:]
+	} else {
+		result.registryURL = ""
+	}
+	return result
+}
+
 func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion string) (*string, error) {
 	switch javaMajorVersion {
 	case "8":

@@ -290,7 +290,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			webApp.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
+			webApp.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings, metadata)
 			if err != nil {
 				return fmt.Errorf("flattening app settings for Linux %s: %+v", id, err)
 			}
@@ -332,7 +332,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 
 			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			webApp.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount)
+			webApp.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount, appSettings)
 
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 

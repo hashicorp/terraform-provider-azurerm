@@ -7,10 +7,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteConfigLinux struct {
@@ -734,6 +736,11 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 
 	linuxSiteConfig := siteConfig[0]
 
+	appSettings := make([]web.NameValuePair, 0)
+	if existing != nil && existing.AppSettings != nil {
+		appSettings = *existing.AppSettings
+	}
+
 	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
 		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
 			if linuxSiteConfig.AlwaysOn {
@@ -797,8 +804,22 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 				expanded.LinuxFxVersion = javaString
 			}
 
-			if linuxAppStack.DockerImage != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+			if linuxAppStack.DockerContainerRegistry != "" {
+				appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", linuxAppStack.DockerContainerRegistry, false)
+				appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_USERNAME", linuxAppStack.DockerContainerRegistryUserName, false)
+				appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", linuxAppStack.DockerContainerRegistryUserPassword, false)
+				dockerUrl := linuxAppStack.DockerContainerRegistry
+				for _, prefix := range urlSchemes {
+					if strings.HasPrefix(linuxAppStack.DockerContainerRegistry, prefix) {
+						dockerUrl = strings.TrimPrefix(linuxAppStack.DockerContainerRegistry, prefix)
+						continue
+					}
+				}
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerUrl, linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+			}
+
+			if !features.FourPointOhBeta() && linuxAppStack.DockerContainerRegistry == "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
 			}
 		} else {
 			expanded.LinuxFxVersion = pointer.To("")
@@ -895,10 +916,12 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.VnetRouteAllEnabled = pointer.To(linuxSiteConfig.VnetRouteAllEnabled)
 	}
 
+	expanded.AppSettings = &appSettings
+
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinux {
+func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int, appSettings web.StringDictionary) []SiteConfigLinux {
 	if appSiteConfig == nil {
 		return nil
 	}
@@ -948,7 +971,7 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 		var linuxAppStack ApplicationStackLinux
 		siteConfig.LinuxFxVersion = *appSiteConfig.LinuxFxVersion
 		// Decode the string to docker values
-		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion)
+		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion, appSettings)
 		siteConfig.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 	}
 

@@ -353,6 +353,19 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
+			if siteConfigAppSetting := siteConfig.AppSettings; siteConfigAppSetting != nil && len(*siteConfigAppSetting) > 0 {
+				for _, pair := range *siteConfigAppSetting {
+					if pair.Name == nil || pair.Value == nil {
+						continue
+					}
+					if *pair.Name == "DOCKER_REGISTRY_SERVER_URL" ||
+						*pair.Name == "DOCKER_REGISTRY_SERVER_USERNAME" ||
+						*pair.Name == "DOCKER_REGISTRY_SERVER_PASSWORD" {
+						webApp.AppSettings[*pair.Name] = *pair.Value
+					}
+				}
+			}
+
 			appSettings := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
@@ -545,7 +558,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
+			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings, metadata)
 			if err != nil {
 				return fmt.Errorf("flattening app settings for Linux %s: %+v", id, err)
 			}
@@ -568,7 +581,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 
 			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			state.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount)
+			state.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount, appSettings)
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
@@ -733,7 +746,19 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") || metadata.ResourceData.HasChanges("site_config.0.application_stack") {
+				if siteConfigAppSetting := existing.SiteConfig.AppSettings; siteConfigAppSetting != nil && len(*siteConfigAppSetting) > 0 {
+					for _, pair := range *siteConfigAppSetting {
+						if pair.Name == nil || pair.Value == nil {
+							continue
+						}
+						if *pair.Name == "DOCKER_REGISTRY_SERVER_URL" ||
+							*pair.Name == "DOCKER_REGISTRY_SERVER_USERNAME" ||
+							*pair.Name == "DOCKER_REGISTRY_SERVER_PASSWORD" {
+							state.AppSettings[*pair.Name] = *pair.Value
+						}
+					}
+				}
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
 				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
 

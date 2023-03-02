@@ -10,6 +10,7 @@ import (
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteConfigLinuxWebAppSlot struct {
@@ -549,6 +550,11 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 
 	linuxSlotSiteConfig := siteConfig[0]
 
+	appSettings := make([]web.NameValuePair, 0)
+	if existing != nil && existing.AppSettings != nil {
+		appSettings = *existing.AppSettings
+	}
+
 	if metadata.ResourceData.HasChange("site_config.0.always_on") {
 		expanded.AlwaysOn = pointer.To(linuxSlotSiteConfig.AlwaysOn)
 	}
@@ -600,8 +606,18 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 				expanded.LinuxFxVersion = javaString
 			}
 
-			if linuxAppStack.DockerImage != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+			if linuxAppStack.DockerContainerRegistry != "" {
+				appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", linuxAppStack.DockerContainerRegistry, false)
+				appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_USERNAME", linuxAppStack.DockerContainerRegistryUserName, false)
+				appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", linuxAppStack.DockerContainerRegistryUserPassword, false)
+				dockerUrl := linuxAppStack.DockerContainerRegistry
+				for _, prefix := range urlSchemes {
+					if strings.HasPrefix(linuxAppStack.DockerContainerRegistry, prefix) {
+						dockerUrl = strings.TrimPrefix(linuxAppStack.DockerContainerRegistry, prefix)
+						continue
+					}
+				}
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerUrl, linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
 			}
 		} else {
 			expanded.LinuxFxVersion = pointer.To("")
@@ -715,7 +731,7 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinuxWebAppSlot {
+func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthCheckCount *int, appSettings web.StringDictionary) []SiteConfigLinuxWebAppSlot {
 	if appSiteSlotConfig == nil {
 		return nil
 	}
@@ -766,7 +782,7 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 		var linuxAppStack ApplicationStackLinux
 		siteConfig.LinuxFxVersion = *appSiteSlotConfig.LinuxFxVersion
 		// Decode the string to docker values
-		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion)
+		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion, appSettings)
 		siteConfig.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 	}
 

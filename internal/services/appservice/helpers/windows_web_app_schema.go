@@ -541,9 +541,9 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 					currentStack = CurrentStackJava
 				}
 			}
-			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistryURL != "" || winAppStack.DockerContainerTag != "" {
-				if winAppStack.DockerContainerRegistryURL != "" {
-					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistryURL, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
+				if winAppStack.DockerContainerRegistry != "" {
+					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
 				} else {
 					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
 				}
@@ -738,7 +738,7 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 			winAppStack.DockerContainerTag = parts[1]
 			path := strings.Split(parts[0], "/")
 			if len(path) > 1 {
-				winAppStack.DockerContainerRegistryURL = path[0]
+				winAppStack.DockerContainerRegistry = path[0]
 				winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
 			} else {
 				winAppStack.DockerContainerName = path[0]
