@@ -256,14 +256,14 @@ func expandAzureRmDnsTxtRecords(d *pluginsdk.ResourceData) (*[]recordsets.TxtRec
 		var values []string
 
 		if !features.FourPointOhBeta() {
-			recordValue := record["value"].(string)
-
 			if isRecordValueSet && isRecordValuesSet {
 				return nil, fmt.Errorf("`record.value` and `record.values` cannot be set together")
 			}
 
 			if isRecordValueSet {
+				recordValue := record["value"].(string)
 				segmentLen := 255
+
 				for len(recordValue) > segmentLen {
 					values = append(values, recordValue[:segmentLen])
 					recordValue = recordValue[segmentLen:]
