@@ -313,6 +313,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2020-12-08/healthbo
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-03-10/machineextensions
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-03-10/machines
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-03-10/privateendpointconnections
+github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machineextensions
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionruleassociations
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionrules
