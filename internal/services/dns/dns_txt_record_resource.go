@@ -224,8 +224,7 @@ func flattenAzureRmDnsTxtRecords(records *[]recordsets.TxtRecord) []map[string]i
 
 			if recordValue := recordItem.Value; recordValue != nil {
 				if !features.FourPointOhBeta() {
-					value := strings.Join(*recordValue, "")
-					record["value"] = value
+					record["value"] = strings.Join(*recordValue, "")
 				}
 
 				var values []string

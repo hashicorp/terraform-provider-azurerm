@@ -168,7 +168,7 @@ resource "azurerm_dns_txt_record" "test" {
   }
 
   record {
-    values = ["A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text"]
+    values = ["A long text....A long text....A long text....A long text....A long text....A long text....A long text....A long text...."]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -209,7 +209,7 @@ resource "azurerm_dns_txt_record" "import" {
   }
 
   record {
-    values = ["A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text"]
+    values = ["A long text....A long text....A long text....A long text....A long text....A long text....A long text....A long text...."]
   }
 }
 `, r.basic(data))
@@ -278,7 +278,7 @@ resource "azurerm_dns_txt_record" "test" {
   }
 
   record {
-    values = ["A long text......A long text", "A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text", "A long text......A long text"]
+    values = ["A long text......A long text", "A long text....A long text....A long text....A long text....A long text....A long text....A long text....A long text....", "A long text......A long text"]
   }
 
   record {
