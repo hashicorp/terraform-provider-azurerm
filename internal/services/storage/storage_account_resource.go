@@ -2225,7 +2225,13 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.Name)
 		if err != nil {
-			return fmt.Errorf("reading static website for AzureRM Storage Account %q: %+v", id.Name, err)
+			// TODO 4.0 - Remove following if check.
+			// In most cases, the error that has no response returned indicates context deadline exceeded, which in most cases happens during DNS resolving.
+			// This happens when using private endpoint and private dns zone, where users didn't add the A record for the blob endpoint.
+			// We tolerate this error for now.
+			if staticWebsiteProps.Response.Response != nil {
+				return fmt.Errorf("reading static website for AzureRM Storage Account %q: %+v", id.Name, err)
+			}
 		}
 		staticWebsite := flattenStaticWebsiteProperties(staticWebsiteProps)
 		if err := d.Set("static_website", staticWebsite); err != nil {
