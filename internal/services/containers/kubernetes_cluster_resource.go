@@ -1114,6 +1114,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(managedclusters.ManagedClusterSKUTierFree),
 					string(managedclusters.ManagedClusterSKUTierPaid),
+					string(managedclusters.ManagedClusterSKUTierStandard),
 				}, false),
 			},
 
