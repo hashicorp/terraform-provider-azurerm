@@ -8,16 +8,13 @@ import (
 	alertruletemplates "github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type AlertRuleThreatIntelligenceModel struct {
@@ -41,11 +38,11 @@ func (a AlertRuleThreatIntelligenceResource) ResourceType() string {
 }
 
 func (a AlertRuleThreatIntelligenceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AlertRuleID
+	return alertrules.ValidateAlertRuleID
 }
 
 func (a AlertRuleThreatIntelligenceResource) CustomImporter() sdk.ResourceRunFunc {
-	return importSentinelAlertRuleForTypedSdk(securityinsight.AlertRuleKindThreatIntelligence)
+	return importSentinelAlertRuleForTypedSdk(alertrules.AlertRuleKindThreatIntelligence)
 }
 
 func (a AlertRuleThreatIntelligenceResource) Arguments() map[string]*schema.Schema {
@@ -99,18 +96,17 @@ func (a AlertRuleThreatIntelligenceResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := parse.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, metaModel.Name)
+			id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, metaModel.Name)
 
-			resp, err := client.Get(ctx, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, id.Name)
+			resp, err := client.AlertRulesGet(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(resp.Response) {
+				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("checking for existing %q: %+v", id, err)
 				}
 			}
 
-			existingId := alertRuleID(resp.Value)
-			if existingId != nil && *existingId != "" {
-				return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_threat_intelligence", *existingId)
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_threat_intelligence", id.ID())
 			}
 
 			template, err := fetchAlertRuleThreatIntelligenceTemplate(ctx, metadata.Client.Sentinel.AlertRuleTemplatesClient, *workspaceID, metaModel.TemplateName)
@@ -118,26 +114,26 @@ func (a AlertRuleThreatIntelligenceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("fetching severity from template: %+v", err)
 			}
 
-			tactics := make([]securityinsight.AttackTactic, 0)
+			tactics := make([]alertrules.AttackTactic, 0)
 			if template.Tactics != nil {
 				for _, t := range *template.Tactics {
-					tactics = append(tactics, securityinsight.AttackTactic(t))
+					tactics = append(tactics, alertrules.AttackTactic(t))
 				}
 			}
 
-			param := azuresdkhacks.ThreatIntelligenceAlertRule{
-				Kind: securityinsight.KindBasicAlertRuleKindThreatIntelligence,
-				ThreatIntelligenceAlertRuleProperties: &azuresdkhacks.ThreatIntelligenceAlertRuleProperties{
-					Enabled:               utils.Bool(metaModel.Enabled),
-					AlertRuleTemplateName: utils.String(metaModel.TemplateName),
-					Severity:              securityinsight.AlertSeverity(template.Severity),
+			severity := alertrules.AlertSeverity(template.Severity)
+			param := alertrules.ThreatIntelligenceAlertRule{
+				Properties: &alertrules.ThreatIntelligenceAlertRuleProperties{
+					Enabled:               metaModel.Enabled,
+					AlertRuleTemplateName: metaModel.TemplateName,
+					Severity:              &severity,
 					DisplayName:           template.DisplayName,
 					Description:           template.Description,
 					Tactics:               &tactics,
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, param); err != nil {
+			if _, err := client.AlertRulesCreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %q: %+v", id, err)
 			}
 
@@ -153,38 +149,34 @@ func (a AlertRuleThreatIntelligenceResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.AlertRulesClient
 
-			id, err := parse.AlertRuleID(metadata.ResourceData.Id())
+			id, err := alertrules.ParseAlertRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("parsing %+v", err)
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			resp, err := client.AlertRulesGet(ctx, *id)
 			if err != nil {
-				if response.WasNotFound(resp.Response.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading %+v", err)
 			}
 
-			if err := assertAlertRuleKind(resp.Value, securityinsight.AlertRuleKindThreatIntelligence); err != nil {
+			if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindThreatIntelligence); err != nil {
 				return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 			}
-			rule := resp.Value.(securityinsight.ThreatIntelligenceAlertRule)
+			rule := (*resp.Model).(alertrules.ThreatIntelligenceAlertRule)
 
-			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
 			state := AlertRuleThreatIntelligenceModel{
-				Name:        id.Name,
+				Name:        id.RuleId,
 				WorkspaceId: workspaceId.ID(),
 			}
 
-			if prop := rule.ThreatIntelligenceAlertRuleProperties; prop != nil {
-				if prop.Enabled != nil {
-					state.Enabled = *prop.Enabled
-				}
-				if prop.AlertRuleTemplateName != nil {
-					state.TemplateName = *prop.AlertRuleTemplateName
-				}
+			if prop := rule.Properties; prop != nil {
+				state.Enabled = prop.Enabled
+				state.TemplateName = prop.AlertRuleTemplateName
 			}
 
 			return metadata.Encode(&state)
@@ -198,12 +190,12 @@ func (a AlertRuleThreatIntelligenceResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.AlertRulesClient
 
-			id, err := parse.AlertRuleID(metadata.ResourceData.Id())
+			id, err := alertrules.ParseAlertRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("parsing %+v", err)
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+			if _, err := client.AlertRulesDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %+v", err)
 			}
 
@@ -223,39 +215,38 @@ func (a AlertRuleThreatIntelligenceResource) Update() sdk.ResourceFunc {
 
 			client := metadata.Client.Sentinel.AlertRulesClient
 
-			id, err := parse.AlertRuleID(metadata.ResourceData.Id())
+			id, err := alertrules.ParseAlertRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("parsing %+v", err)
 			}
-			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			resp, err := client.AlertRulesGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading %+v", err)
 			}
-			if err := assertAlertRuleKind(resp.Value, securityinsight.AlertRuleKindThreatIntelligence); err != nil {
+			if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindThreatIntelligence); err != nil {
 				return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 			}
-			rule := resp.Value.(securityinsight.ThreatIntelligenceAlertRule)
+			rule := (*resp.Model).(alertrules.ThreatIntelligenceAlertRule)
 
 			if metadata.ResourceData.HasChange("enabled") {
-				rule.ThreatIntelligenceAlertRuleProperties.Enabled = utils.Bool(metaModel.Enabled)
+				rule.Properties.Enabled = metaModel.Enabled
 			}
 			if metadata.ResourceData.HasChange("template_name") {
-				rule.ThreatIntelligenceAlertRuleProperties.AlertRuleTemplateName = utils.String(metaModel.TemplateName)
+				rule.Properties.AlertRuleTemplateName = metaModel.TemplateName
 			}
 
-			param := azuresdkhacks.ThreatIntelligenceAlertRule{
-				Kind: rule.Kind,
-				ThreatIntelligenceAlertRuleProperties: &azuresdkhacks.ThreatIntelligenceAlertRuleProperties{
-					Enabled:               rule.ThreatIntelligenceAlertRuleProperties.Enabled,
-					AlertRuleTemplateName: rule.ThreatIntelligenceAlertRuleProperties.AlertRuleTemplateName,
-					Severity:              rule.ThreatIntelligenceAlertRuleProperties.Severity,
-					DisplayName:           rule.ThreatIntelligenceAlertRuleProperties.DisplayName,
-					Description:           rule.ThreatIntelligenceAlertRuleProperties.Description,
-					Tactics:               rule.ThreatIntelligenceAlertRuleProperties.Tactics,
+			param := alertrules.ThreatIntelligenceAlertRule{
+				Properties: &alertrules.ThreatIntelligenceAlertRuleProperties{
+					Enabled:               rule.Properties.Enabled,
+					AlertRuleTemplateName: rule.Properties.AlertRuleTemplateName,
+					Severity:              rule.Properties.Severity,
+					DisplayName:           rule.Properties.DisplayName,
+					Description:           rule.Properties.Description,
+					Tactics:               rule.Properties.Tactics,
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, param); err != nil {
+			if _, err := client.AlertRulesCreateOrUpdate(ctx, *id, param); err != nil {
 				return fmt.Errorf("updating %q: %+v", id, err)
 			}
 

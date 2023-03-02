@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -30,20 +31,20 @@ func importSentinelAlertRule(expectKind alertrules.AlertRuleKind) pluginsdk.Impo
 	}
 }
 
-func importSentinelAlertRuleForTypedSdk(expectKind securityinsight.AlertRuleKind) sdk.ResourceRunFunc {
+func importSentinelAlertRuleForTypedSdk(expectKind alertrules.AlertRuleKind) sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := parse.AlertRuleID(metadata.ResourceData.Id())
+		id, err := alertrules.ParseAlertRuleID(metadata.ResourceData.Id())
 		if err != nil {
 			return err
 		}
 
 		client := metadata.Client.Sentinel.AlertRulesClient
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+		resp, err := client.AlertRulesGet(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 		}
 
-		if err := assertAlertRuleKind(resp.Value, expectKind); err != nil {
+		if err := assertAlertRuleKind(resp.Model, expectKind); err != nil {
 			return err
 		}
 		return nil
@@ -68,8 +69,8 @@ func assertAlertRuleKind(rule *alertrules.AlertRule, expectKind alertrules.Alert
 		kind = alertrules.AlertRuleKindScheduled
 	case alertrules.NrtAlertRule:
 		kind = alertrules.AlertRuleKindNRT
-	case securityinsight.ThreatIntelligenceAlertRule:
-		kind = securityinsight.AlertRuleKindThreatIntelligence
+	case alertrules.ThreatIntelligenceAlertRule:
+		kind = alertrules.AlertRuleKindThreatIntelligence
 	}
 	if expectKind != kind {
 		return fmt.Errorf("Sentinel Alert Rule has mismatched kind, expected: %q, got %q", expectKind, kind)
