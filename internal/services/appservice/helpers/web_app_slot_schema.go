@@ -728,6 +728,8 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 		expanded.VnetRouteAllEnabled = pointer.To(linuxSlotSiteConfig.VnetRouteAllEnabled)
 	}
 
+	expanded.AppSettings = &appSettings
+
 	return expanded, nil
 }
 
