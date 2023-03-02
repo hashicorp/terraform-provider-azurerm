@@ -68,10 +68,13 @@ func (r HybridComputeMachineExtensionResource) IDValidationFunc() pluginsdk.Sche
 func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringIsNotEmpty,
+				validation.StringDoesNotContainAny("/"),
+			),
 		},
 
 		"hybrid_compute_machine_id": {
@@ -110,7 +113,8 @@ func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk
 
 		"publisher": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -121,11 +125,9 @@ func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 
-		"tags": commonschema.Tags(),
-
 		"type": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -144,6 +146,8 @@ func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk
 				return false
 			},
 		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 

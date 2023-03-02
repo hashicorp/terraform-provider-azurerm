@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -55,6 +56,9 @@ func TestAccHybridComputeMachineExtension_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("publisher").HasValue("Microsoft.Azure.Monitor"),
+				check.That(data.ResourceName).Key("type").HasValue("AzureMonitorLinuxAgent"),
+				check.That(data.ResourceName).Key("type_handler_version").MatchesRegex(regexp.MustCompile("^1[.]24.*$")),
 			),
 		},
 		data.ImportStep(),
@@ -148,8 +152,8 @@ resource "azurerm_hybrid_compute_machine_extension" "test" {
   name                               = "acctest-hcme-%d"
   hybrid_compute_machine_id          = data.azurerm_hybrid_compute_machine.test.id
   location                           = "%s"
-  auto_upgrade_minor_version_enabled = true
-  automatic_upgrade_enabled          = true
+  auto_upgrade_minor_version_enabled = false
+  automatic_upgrade_enabled          = false
   publisher                          = "Microsoft.Azure.Monitor"
   type                               = "AzureMonitorLinuxAgent"
   type_handler_version               = "1.24"
