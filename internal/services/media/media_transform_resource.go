@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -99,7 +100,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForEncoderNamedPreset(), false),
 									},
-									"preset_configurations": {
+									"preset_configuration": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										MaxItems: 1,
@@ -225,6 +226,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 									"analysis_resolution": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
+										Default:      string(encodings.AnalysisResolutionSourceResolution),
 										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForAnalysisResolution(), false),
 									},
 									"blur_type": {
@@ -239,9 +241,10 @@ func resourceMediaTransform() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 										},
 									},
-									"face_detector_mode": {
+									"mode": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
+										Default:      string(encodings.FaceRedactorModeAnalyze),
 										ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForFaceRedactorMode(), false),
 									},
 								},
@@ -253,7 +256,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"codecs": {
+									"codec": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
 										MinItems: 1,
@@ -790,6 +793,107 @@ func resourceMediaTransform() *pluginsdk.Resource {
 											},
 										},
 									},
+									"format": {
+										Type:     pluginsdk.TypeList,
+										Required: true,
+										MinItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*schema.Schema{
+												"jpg": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"filename_pattern": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+														},
+													},
+												},
+												"mp4": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"filename_pattern": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"output_files": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																MinItems: 1,
+																Elem: &pluginsdk.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"labels": {
+																			Type:     pluginsdk.TypeList,
+																			Required: true,
+																			MinItems: 1,
+																			Elem: &pluginsdk.Schema{
+																				Type:         pluginsdk.TypeString,
+																				ValidateFunc: validation.StringIsNotEmpty,
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+												"png": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"filename_pattern": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+														},
+													},
+												},
+												"transport_stream": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"filename_pattern": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"output_files": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																MinItems: 1,
+																Elem: &pluginsdk.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"labels": {
+																			Type:     pluginsdk.TypeList,
+																			Required: true,
+																			MinItems: 1,
+																			Elem: &pluginsdk.Schema{
+																				Type:         pluginsdk.TypeString,
+																				ValidateFunc: validation.StringIsNotEmpty,
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
 									"filter": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -1058,107 +1162,6 @@ func resourceMediaTransform() *pluginsdk.Resource {
 											},
 										},
 									},
-									"format": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										MinItems: 1,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*schema.Schema{
-												"jpg": {
-													Type:     pluginsdk.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*schema.Schema{
-															"filename_pattern": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-														},
-													},
-												},
-												"mp4": {
-													Type:     pluginsdk.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*schema.Schema{
-															"filename_pattern": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"output_files": {
-																Type:     pluginsdk.TypeList,
-																Optional: true,
-																MinItems: 1,
-																Elem: &pluginsdk.Resource{
-																	Schema: map[string]*schema.Schema{
-																		"labels": {
-																			Type:     pluginsdk.TypeList,
-																			Required: true,
-																			MaxItems: 1,
-																			Elem: &pluginsdk.Schema{
-																				Type:         pluginsdk.TypeString,
-																				ValidateFunc: validation.StringIsNotEmpty,
-																			},
-																		},
-																	},
-																},
-															},
-														},
-													},
-												},
-												"png": {
-													Type:     pluginsdk.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*schema.Schema{
-															"filename_pattern": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-														},
-													},
-												},
-												"transport_stream": {
-													Type:     pluginsdk.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*schema.Schema{
-															"filename_pattern": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"output_files": {
-																Type:     pluginsdk.TypeList,
-																Optional: true,
-																MinItems: 1,
-																Elem: &pluginsdk.Resource{
-																	Schema: map[string]*schema.Schema{
-																		"labels": {
-																			Type:     pluginsdk.TypeList,
-																			Required: true,
-																			MaxItems: 1,
-																			Elem: &pluginsdk.Schema{
-																				Type:         pluginsdk.TypeString,
-																				ValidateFunc: validation.StringIsNotEmpty,
-																			},
-																		},
-																	},
-																},
-															},
-														},
-													},
-												},
-											},
-										},
-									},
 								},
 							},
 						},
@@ -1291,12 +1294,12 @@ func expandTransformOutputs(input []interface{}) (*[]encodings.TransformOutput, 
 			Preset: preset,
 		}
 
-		if transform["on_error_action"] != nil {
-			transformOutput.OnError = pointer.To(encodings.OnErrorType(transform["on_error_action"].(string)))
+		if v := transform["on_error_action"].(string); v != "" {
+			transformOutput.OnError = pointer.To(encodings.OnErrorType(v))
 		}
 
-		if transform["relative_priority"] != nil {
-			transformOutput.RelativePriority = pointer.To(encodings.Priority(transform["relative_priority"].(string)))
+		if v := transform["relative_priority"].(string); v != "" {
+			transformOutput.RelativePriority = pointer.To(encodings.Priority(v))
 		}
 
 		results = append(results, transformOutput)
@@ -1335,6 +1338,7 @@ func flattenTransformOutputs(input []encodings.TransformOutput) []interface{} {
 func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 	audioAnalyzerPresets := transform["audio_analyzer_preset"].([]interface{})
 	builtInPresets := transform["builtin_preset"].([]interface{})
+	customPresets := transform["custom_preset"].([]interface{})
 	faceDetectorPresets := transform["face_detector_preset"].([]interface{})
 	videoAnalyzerPresets := transform["video_analyzer_preset"].([]interface{})
 
@@ -1345,6 +1349,9 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 	if len(builtInPresets) > 0 {
 		presetsCount++
 	}
+	if len(customPresets) > 0 {
+		presetsCount++
+	}
 	if len(faceDetectorPresets) > 0 {
 		presetsCount++
 	}
@@ -1352,20 +1359,29 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 		presetsCount++
 	}
 	if presetsCount == 0 {
-		return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset,face_detector_preset,video_analyzer_preset or audio_analyzer_preset.")
+		return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset,face_detector_preset,video_analyzer_preset or audio_analyzer_preset")
 	}
 	if presetsCount > 1 {
-		return nil, fmt.Errorf("more than one type of preset in the same output is not allowed.")
+		return nil, fmt.Errorf("more than one type of preset in the same output is not allowed")
 	}
 
 	if len(audioAnalyzerPresets) > 0 {
 		preset := audioAnalyzerPresets[0].(map[string]interface{})
-		audioAnalyzerPreset := &encodings.AudioAnalyzerPreset{}
-		if preset["audio_language"] != nil && preset["audio_language"].(string) != "" {
-			audioAnalyzerPreset.AudioLanguage = utils.String(preset["audio_language"].(string))
+
+		options, err := expandExperimentalOptions(preset["experimental_options"].(map[string]interface{}))
+		if err != nil {
+			return nil, err
 		}
-		if preset["audio_analysis_mode"] != nil {
-			audioAnalyzerPreset.Mode = pointer.To(encodings.AudioAnalysisMode(preset["audio_analysis_mode"].(string)))
+
+		audioAnalyzerPreset := &encodings.AudioAnalyzerPreset{
+			ExperimentalOptions: options,
+		}
+
+		if v := preset["audio_language"].(string); v != "" {
+			audioAnalyzerPreset.AudioLanguage = utils.String(v)
+		}
+		if v := preset["audio_analysis_mode"].(string); v != "" {
+			audioAnalyzerPreset.Mode = pointer.To(encodings.AudioAnalysisMode(v))
 		}
 		return audioAnalyzerPreset, nil
 	}
@@ -1374,32 +1390,85 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 		preset := builtInPresets[0].(map[string]interface{})
 		presetName := preset["preset_name"].(string)
 		builtInPreset := &encodings.BuiltInStandardEncoderPreset{
-			PresetName: encodings.EncoderNamedPreset(presetName),
+			PresetName:     encodings.EncoderNamedPreset(presetName),
+			Configurations: expandBuiltInPresetConfiguration(preset["preset_configuration"].([]interface{})),
+		}
+		return builtInPreset, nil
+	}
+
+	if len(customPresets) > 0 {
+		preset := customPresets[0].(map[string]interface{})
+
+		codecs, err := expandCustomPresetCodecs(preset["codec"].([]interface{}))
+		if err != nil {
+			return nil, err
+		}
+
+		filters, err := expandCustomPresetFilters(preset["filter"].([]interface{}))
+		if err != nil {
+			return nil, err
+		}
+
+		formats, err := expandCustomPresetFormats(preset["format"].([]interface{}))
+		if err != nil {
+			return nil, err
+		}
+		builtInPreset := &encodings.StandardEncoderPreset{
+			Codecs:  codecs,
+			Filters: filters,
+			Formats: formats,
 		}
 		return builtInPreset, nil
 	}
 
 	if len(faceDetectorPresets) > 0 {
 		preset := faceDetectorPresets[0].(map[string]interface{})
-		faceDetectorPreset := &encodings.FaceDetectorPreset{}
-		if preset["analysis_resolution"] != nil {
-			faceDetectorPreset.Resolution = pointer.To(encodings.AnalysisResolution(preset["analysis_resolution"].(string)))
+
+		options, err := expandExperimentalOptions(preset["experimental_options"].(map[string]interface{}))
+		if err != nil {
+			return nil, err
 		}
+
+		faceDetectorPreset := &encodings.FaceDetectorPreset{
+			ExperimentalOptions: options,
+		}
+
+		if v := preset["analysis_resolution"].(string); v != "" {
+			faceDetectorPreset.Resolution = pointer.To(encodings.AnalysisResolution(v))
+		}
+
+		if v := preset["blur_type"].(string); v != "" {
+			faceDetectorPreset.BlurType = pointer.To(encodings.BlurType(v))
+		}
+
+		if v := preset["mode"].(string); v != "" {
+			faceDetectorPreset.Mode = pointer.To(encodings.FaceRedactorMode(v))
+		}
+
 		return faceDetectorPreset, nil
 	}
 
 	if len(videoAnalyzerPresets) > 0 {
 		presets := transform["video_analyzer_preset"].([]interface{})
 		preset := presets[0].(map[string]interface{})
-		videoAnalyzerPreset := &encodings.VideoAnalyzerPreset{}
-		if preset["audio_language"] != nil {
-			videoAnalyzerPreset.AudioLanguage = utils.String(preset["audio_language"].(string))
+
+		options, err := expandExperimentalOptions(preset["experimental_options"].(map[string]interface{}))
+		if err != nil {
+			return nil, err
 		}
-		if preset["audio_analysis_mode"] != nil {
-			videoAnalyzerPreset.Mode = pointer.To(encodings.AudioAnalysisMode(preset["audio_analysis_mode"].(string)))
+
+		videoAnalyzerPreset := &encodings.VideoAnalyzerPreset{
+			ExperimentalOptions: options,
 		}
-		if preset["insights_type"] != nil {
-			videoAnalyzerPreset.InsightsToExtract = pointer.To(encodings.InsightsType(preset["insights_type"].(string)))
+
+		if v := preset["audio_language"].(string); v != "" {
+			videoAnalyzerPreset.AudioLanguage = utils.String(v)
+		}
+		if v := preset["audio_analysis_mode"].(string); v != "" {
+			videoAnalyzerPreset.Mode = pointer.To(encodings.AudioAnalysisMode(v))
+		}
+		if v := preset["insights_type"].(string); v != "" {
+			videoAnalyzerPreset.InsightsToExtract = pointer.To(encodings.InsightsType(v))
 		}
 		return videoAnalyzerPreset, nil
 	}
@@ -1435,14 +1504,16 @@ func flattenPreset(input encodings.Preset) flattenedPresets {
 			mode = string(*v.Mode)
 		}
 		out.audioAnalyzerPresets = append(out.audioAnalyzerPresets, map[string]interface{}{
-			"audio_analysis_mode": mode,
-			"audio_language":      language,
+			"audio_analysis_mode":  mode,
+			"audio_language":       language,
+			"experimental_options": flattenExperimentalOptions(v.ExperimentalOptions),
 		})
 	}
 
 	if v, ok := input.(encodings.BuiltInStandardEncoderPreset); ok {
 		out.builtInPresets = append(out.builtInPresets, map[string]interface{}{
-			"preset_name": string(v.PresetName),
+			"preset_name":          string(v.PresetName),
+			"preset_configuration": flattenBuiltInPresetConfiguration(v.Configurations),
 		})
 	}
 
@@ -1451,8 +1522,22 @@ func flattenPreset(input encodings.Preset) flattenedPresets {
 		if v.Resolution != nil {
 			resolution = string(*v.Resolution)
 		}
+
+		blurType := ""
+		if v.BlurType != nil {
+			blurType = string(*v.BlurType)
+		}
+
+		mode := ""
+		if v.Mode != nil {
+			mode = string(*v.Mode)
+		}
+
 		out.faceDetectorPresets = append(out.faceDetectorPresets, map[string]interface{}{
-			"analysis_resolution": resolution,
+			"analysis_resolution":  resolution,
+			"blur_type":            blurType,
+			"experimental_options": flattenExperimentalOptions(v.ExperimentalOptions),
+			"mode":                 mode,
 		})
 	}
 
@@ -1470,11 +1555,170 @@ func flattenPreset(input encodings.Preset) flattenedPresets {
 			mode = string(*v.Mode)
 		}
 		out.videoAnalyzerPresets = append(out.videoAnalyzerPresets, map[string]interface{}{
-			"audio_analysis_mode": mode,
-			"audio_language":      audioLanguage,
-			"insights_type":       insightsType,
+			"audio_analysis_mode":  mode,
+			"audio_language":       audioLanguage,
+			"insights_type":        insightsType,
+			"experimental_options": flattenExperimentalOptions(v.ExperimentalOptions),
 		})
 	}
 
 	return out
+}
+
+func expandBuiltInPresetConfiguration(input []interface{}) *encodings.PresetConfigurations {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	configuration := input[0].(map[string]interface{})
+	result := encodings.PresetConfigurations{}
+
+	if v := configuration["complexity"].(string); v != "" {
+		result.Complexity = pointer.To(encodings.Complexity(v))
+	}
+
+	if v := configuration["interleave_output"].(string); v != "" {
+		result.InterleaveOutput = pointer.To(encodings.InterleaveOutput(v))
+	}
+
+	if v := configuration["key_frame_interval_in_seconds"].(float64); v != 0 {
+		result.KeyFrameIntervalInSeconds = utils.Float(v)
+	}
+
+	if v := configuration["max_bitrate_bps"].(int); v != 0 {
+		result.MaxBitrateBps = utils.Int64(int64(v))
+	}
+
+	if v := configuration["max_height"].(int); v != 0 {
+		result.MaxHeight = utils.Int64(int64(v))
+	}
+
+	if v := configuration["max_layers"].(int); v != 0 {
+		result.MaxLayers = utils.Int64(int64(v))
+	}
+
+	if v := configuration["min_bitrate_bps"].(int); v != 0 {
+		result.MinBitrateBps = utils.Int64(int64(v))
+	}
+
+	if v := configuration["min_height"].(int); v != 0 {
+		result.MinHeight = utils.Int64(int64(v))
+	}
+
+	return &result
+}
+
+func flattenBuiltInPresetConfiguration(input *encodings.PresetConfigurations) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	complexity := ""
+	if input.Complexity != nil {
+		complexity = string(*input.Complexity)
+	}
+
+	interleaveOutput := ""
+	if input.InterleaveOutput != nil {
+		interleaveOutput = string(*input.InterleaveOutput)
+	}
+
+	keyFrameIntervalInSeconds := 0.0
+	if input.KeyFrameIntervalInSeconds != nil {
+		keyFrameIntervalInSeconds = *input.KeyFrameIntervalInSeconds
+	}
+
+	maxBitrateBps := 0
+	if input.MaxBitrateBps != nil {
+		maxBitrateBps = int(*input.MaxBitrateBps)
+	}
+
+	maxHeight := 0
+	if input.MaxHeight != nil {
+		maxHeight = int(*input.MaxHeight)
+	}
+
+	maxLayers := 0
+	if input.MaxLayers != nil {
+		maxLayers = int(*input.MaxLayers)
+	}
+
+	minBitrateBps := 0
+	if input.MinBitrateBps != nil {
+		minBitrateBps = int(*input.MinBitrateBps)
+	}
+
+	minHeight := 0
+	if input.MinHeight != nil {
+		minHeight = int(*input.MinHeight)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"complexity":                    complexity,
+			"interleave_output":             interleaveOutput,
+			"key_frame_interval_in_seconds": keyFrameIntervalInSeconds,
+			"max_bitrate_bps":               maxBitrateBps,
+			"max_height":                    maxHeight,
+			"max_layers":                    maxLayers,
+			"min_bitrate_bps":               minBitrateBps,
+			"min_height":                    minHeight,
+		},
+	}
+}
+
+func expandExperimentalOptions(input map[string]interface{}) (*map[string]string, error) {
+	output := make(map[string]string, len(input))
+
+	for i, v := range input {
+		value, err := tags.TagValueToString(v)
+		if err != nil {
+			return nil, err
+		}
+		output[i] = value
+	}
+
+	return &output, nil
+}
+
+func flattenExperimentalOptions(input *map[string]string) map[string]interface{} {
+	result := make(map[string]interface{}, 0)
+	if input == nil {
+		return result
+	}
+	for i, v := range *input {
+		result[i] = v
+	}
+
+	return result
+}
+
+func expandCustomPresetCodecs(input []interface{}) ([]encodings.Codec, error) {
+	if len(input) == 0 || input[0] == nil {
+		return make([]encodings.Codec, 0), nil
+	}
+
+	result := make([]encodings.Codec, 0)
+
+	return result, nil
+}
+
+func expandCustomPresetFilters(input []interface{}) (*encodings.Filters, error) {
+	if len(input) == 0 || input[0] == nil {
+		return nil, nil
+	}
+
+	result := encodings.Filters{}
+
+	return &result, nil
+}
+
+func expandCustomPresetFormats(input []interface{}) ([]encodings.Format, error) {
+	if len(input) == 0 || input[0] == nil {
+		return make([]encodings.Format, 0), nil
+	}
+
+	result := make([]encodings.Format, 0)
+
+	return result, nil
 }
