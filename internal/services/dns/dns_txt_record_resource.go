@@ -249,18 +249,21 @@ func expandAzureRmDnsTxtRecords(d *pluginsdk.ResourceData) (*[]recordsets.TxtRec
 	var recordValuesLength int
 	for i, v := range recordStrings {
 		record := v.(map[string]interface{})
-		recordValues := record["values"].([]interface{})
+
+		// When `Compute: true` is added, d.GetOk() always returns the value of previous apply. So it has to use `d.GetRawConfig()` to check if the property is set in tf config
+		isRecordValueSet := !d.GetRawConfig().AsValueMap()["record"].AsValueSlice()[i].AsValueMap()["value"].IsNull()
+		isRecordValuesSet := !d.GetRawConfig().AsValueMap()["record"].AsValueSlice()[i].AsValueMap()["values"].IsNull()
 
 		var values []string
 
 		if !features.FourPointOhBeta() {
 			recordValue := record["value"].(string)
 
-			if recordValue != "" && len(recordValues) > 0 {
+			if isRecordValueSet && isRecordValuesSet {
 				return nil, fmt.Errorf("`record.value` and `record.values` cannot be set together")
 			}
 
-			if recordValue != "" {
+			if isRecordValueSet {
 				segmentLen := 255
 				for len(recordValue) > segmentLen {
 					values = append(values, recordValue[:segmentLen])
@@ -271,7 +274,9 @@ func expandAzureRmDnsTxtRecords(d *pluginsdk.ResourceData) (*[]recordsets.TxtRec
 			}
 		}
 
-		if len(recordValues) > 0 {
+		if isRecordValuesSet {
+			recordValues := record["values"].([]interface{})
+
 			for _, recordVal := range recordValues {
 				recordValString := recordVal.(string)
 				recordValuesLength += len(recordValString)
