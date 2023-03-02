@@ -23,9 +23,9 @@ data "azurerm_mobile_network_packet_core_control_plane" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Mobile Network Packet Core Control Plane. 
+* `name` - The name which should be used for this Mobile Network Packet Core Control Plane. 
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Mobile Network Packet Core Control Plane should exist. 
+* `resource_group_name` - The name of the Resource Group where the Mobile Network Packet Core Control Plane should exist. 
 
 ---
 
