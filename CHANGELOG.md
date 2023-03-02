@@ -9,6 +9,7 @@ ENHANCEMENTS
 
 * dependencies: updating to `v0.20230228.1160358` of `github.com/hashicorp/go-azure-sdk` [GH-20688]
 * dependencies: updating to `v0.20230224.1120200` of `github.com/tombuildsstuff/kermit` [GH-20649]
+* dependences: updating `containerservice/2022-09-02-preview` to `2023-01-02-preview` [GH-20734]
 * `aadb2c`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20715]
 * `databoxedge` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
 * `dns`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20688]
@@ -23,6 +24,7 @@ ENHANCEMENTS
 * `azurerm_app_service_connection` - support for the `secret_store` block [GH-20613]
 * `express_route_circuit_peering_resource` - support for the `advertised_communities` property [GH-20708]
 * `azurerm_key_vault_key` - support for the `rotation_policy` block [GH-19113]
+* `azurerm_kubernetes_cluster` - add support for the `Standard` `sku_tier` [GH-20734]
 * `azurerm_media_streaming_policy` - add support for `common_encryption_cbcs.clear_key_encryption`, `common_encryption_cenc.clear_key_encryption`, `common_encryption_cenc.clear_track`, `common_encryption_cenc.content_key_to_track_mapping` and `envelope_encryption` [GH-20524]
 * `azurerm_orchestrated_virtual_machine_scale_set` - add `priority_mix` property [GH-20618]
 * `azurerm_storage_management_policy` - add support for `auto_tier_to_hot_from_cool_enabled` [GH-20641]
