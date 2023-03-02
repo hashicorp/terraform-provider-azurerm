@@ -11,9 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	mariaDB "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
+	mariadbServers "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
+	postgresqlServers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01/redis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -856,28 +857,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
 				attrs["private_connection_resource_alias"] = privateConnectionId
 			} else {
-				// There is a bug from service, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
-				// and for Mysql and MariaDB
-				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
-					if serverId, err := servers.ParseServerID(privateConnectionId); err == nil {
-						privateConnectionId = serverId.ID()
-					}
-				}
-				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformysql") {
-					if serverId, err := mysqlParse.ServerID(privateConnectionId); err == nil {
-						privateConnectionId = serverId.ID()
-					}
-				}
-				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
-					if serverId, err := mariaDB.ParseServerID(privateConnectionId); err == nil {
-						privateConnectionId = serverId.ID()
-					}
-				}
-				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.signalrservice") {
-					if serviceId, err := signalr.ParseSignalRIDInsensitively(privateConnectionId); err == nil {
-						privateConnectionId = serviceId.ID()
-					}
-				}
+				privateConnectionId = normalizePrivateConnectionId(privateConnectionId)
 				attrs["private_connection_resource_id"] = privateConnectionId
 			}
 
@@ -918,23 +898,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
 				attrs["private_connection_resource_alias"] = privateConnectionId
 			} else {
-				// There is a bug from service, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
-				// and for Mysql and MariaDB
-				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
-					if serverId, err := servers.ParseServerID(privateConnectionId); err == nil {
-						privateConnectionId = serverId.ID()
-					}
-				}
-				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformysql") {
-					if serverId, err := mysqlParse.ServerID(privateConnectionId); err == nil {
-						privateConnectionId = serverId.ID()
-					}
-				}
-				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
-					if serverId, err := mariaDB.ParseServerID(privateConnectionId); err == nil {
-						privateConnectionId = serverId.ID()
-					}
-				}
+				privateConnectionId = normalizePrivateConnectionId(privateConnectionId)
 				attrs["private_connection_resource_id"] = privateConnectionId
 			}
 
@@ -1164,4 +1128,35 @@ func validatePrivateEndpointSettings(d *pluginsdk.ResourceData) error {
 	}
 
 	return nil
+}
+
+// normalize the PrivateConnectionId due to the casing change at service side
+func normalizePrivateConnectionId(privateConnectionId string) string {
+	// intentionally including the extra segment to handle Redis vs Redis Enterprise (which is within the same RP)
+	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.cache/redis/") {
+		if cacheId, err := redis.ParseRediIDInsensitively(privateConnectionId); err == nil {
+			privateConnectionId = cacheId.ID()
+		}
+	}
+	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
+		if serverId, err := postgresqlServers.ParseServerIDInsensitively(privateConnectionId); err == nil {
+			privateConnectionId = serverId.ID()
+		}
+	}
+	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformysql") {
+		if serverId, err := mysqlParse.ServerIDInsensitively(privateConnectionId); err == nil {
+			privateConnectionId = serverId.ID()
+		}
+	}
+	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
+		if serverId, err := mariadbServers.ParseServerIDInsensitively(privateConnectionId); err == nil {
+			privateConnectionId = serverId.ID()
+		}
+	}
+	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.signalrservice") {
+		if serviceId, err := signalr.ParseSignalRIDInsensitively(privateConnectionId); err == nil {
+			privateConnectionId = serviceId.ID()
+		}
+	}
+	return privateConnectionId
 }

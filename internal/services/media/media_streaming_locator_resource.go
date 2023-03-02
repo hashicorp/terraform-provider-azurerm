@@ -151,6 +151,16 @@ func resourceMediaStreamingLocator() *pluginsdk.Resource {
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
+			"filter_names": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"start_time": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -216,6 +226,10 @@ func resourceMediaStreamingLocatorCreate(d *pluginsdk.ResourceData, meta interfa
 			}
 			payload.Properties.SetEndTimeAsTime(endTime)
 		}
+	}
+
+	if filters, ok := d.GetOk("filter_names"); ok {
+		payload.Properties.Filters = utils.ExpandStringSlice(filters.([]interface{}))
 	}
 
 	if startTimeRaw, ok := d.GetOk("start_time"); ok {
@@ -287,6 +301,7 @@ func resourceMediaStreamingLocatorRead(d *pluginsdk.ResourceData, meta interface
 				endTime = t.Format(time.RFC3339)
 			}
 			d.Set("end_time", endTime)
+			d.Set("filter_names", utils.FlattenStringSlice(props.Filters))
 
 			startTime := ""
 			if props.StartTime != nil {

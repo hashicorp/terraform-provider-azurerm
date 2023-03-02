@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/streamingendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -71,8 +71,33 @@ func TestAccMediaStreamingEndpoint_shouldStopWhenStarted(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				data.CheckWithClient(r.Start),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Premium"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("host_name").Exists(),
 			),
 		},
+	})
+}
+
+func TestAccMediaStreamingEndpoint_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
+	r := MediaStreamingEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -85,6 +110,8 @@ func TestAccMediaStreamingEndpoint_standard(t *testing.T) {
 			Config: r.standard(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("scale_units").HasValue("0"),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -97,7 +124,7 @@ func (r MediaStreamingEndpointResource) Start(ctx context.Context, client *clien
 		return err
 	}
 
-	if err := client.Media.V20200501Client.StreamingEndpoints.StartThenPoll(ctx, *id); err != nil {
+	if err := client.Media.V20220801Client.StreamingEndpoints.StartThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("starting %s: %+v", id, err)
 	}
 
@@ -110,7 +137,7 @@ func (MediaStreamingEndpointResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.Media.V20200501Client.StreamingEndpoints.Get(ctx, *id)
+	resp, err := clients.Media.V20220801Client.StreamingEndpoints.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
@@ -127,6 +154,49 @@ resource "azurerm_media_streaming_endpoint" "test" {
   location                    = azurerm_resource_group.test.location
   media_services_account_name = azurerm_media_services_account.test.name
   scale_units                 = 1
+  tags = {
+    env = "test"
+  }
+}
+`, r.template(data))
+}
+
+func (r MediaStreamingEndpointResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_media_streaming_endpoint" "test" {
+  name                        = "endpoint1"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  media_services_account_name = azurerm_media_services_account.test.name
+  scale_units                 = 1
+  access_control {
+    ip_allow {
+      name    = "AllowedIP"
+      address = "192.168.1.1"
+    }
+
+    ip_allow {
+      name    = "AnotherIp"
+      address = "192.168.1.2"
+    }
+
+    akamai_signature_header_authentication_key {
+      identifier = "id1"
+      expiration = "2030-12-31T16:00:00Z"
+      base64_key = "dGVzdGlkMQ=="
+    }
+
+    akamai_signature_header_authentication_key {
+      identifier = "id2"
+      expiration = "2032-01-28T16:00:00Z"
+      base64_key = "dGVzdGlkMQ=="
+    }
+  }
+  max_cache_age_seconds = 60
+  tags = {
+    env = "ppe"
+  }
 }
 `, r.template(data))
 }

@@ -45,6 +45,27 @@ func TestAccLiveEvent_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccLiveEvent_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_live_event", "test")
+	r := LiveEventResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccLiveEvent_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_live_event", "test")
 	r := LiveEventResource{}
@@ -121,6 +142,53 @@ resource "azurerm_media_live_event" "import" {
 `, r.basic(data))
 }
 
+func (r LiveEventResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_media_live_event" "test" {
+  name                        = "Event-1"
+  resource_group_name         = azurerm_resource_group.test.name
+  media_services_account_name = azurerm_media_services_account.test.name
+  location                    = azurerm_resource_group.test.location
+  description                 = "Updated Description"
+
+  input {
+    streaming_protocol = "RTMP"
+    ip_access_control_allow {
+      name                 = "Test"
+      address              = "0.0.0.0"
+      subnet_prefix_length = 4
+    }
+  }
+
+  encoding {
+    type               = "Standard"
+    preset_name        = "Default720p"
+    stretch_mode       = "AutoSize"
+    key_frame_interval = "PT2S"
+  }
+
+  preview {
+    ip_access_control_allow {
+      name                 = "Allow"
+      address              = "0.0.0.0"
+      subnet_prefix_length = 4
+    }
+  }
+
+  use_static_hostname     = true
+  hostname_prefix         = "special-event-update"
+  stream_options          = ["LowLatency"]
+  transcription_languages = ["en-GB"]
+
+  tags = {
+    env = "test"
+  }
+}
+`, r.template(data))
+}
+
 func (r LiveEventResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -158,6 +226,7 @@ resource "azurerm_media_live_event" "test" {
 
   use_static_hostname     = true
   hostname_prefix         = "special-event"
+  stream_options          = ["LowLatency"]
   transcription_languages = ["en-US"]
 }
 `, r.template(data))

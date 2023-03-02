@@ -8,16 +8,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -41,7 +41,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.PoolID(id)
+			_, err := pool.ParsePoolID(id)
 			return err
 		}),
 		Schema: map[string]*pluginsdk.Schema{
@@ -92,10 +92,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(batch.ComputeNodeDeallocationOptionRequeue),
-								string(batch.ComputeNodeDeallocationOptionRetainedData),
-								string(batch.ComputeNodeDeallocationOptionTaskCompletion),
-								string(batch.ComputeNodeDeallocationOptionTerminate),
+								string(pool.ComputeNodeDeallocationOptionRequeue),
+								string(pool.ComputeNodeDeallocationOptionRetainedData),
+								string(pool.ComputeNodeDeallocationOptionTaskCompletion),
+								string(pool.ComputeNodeDeallocationOptionTerminate),
 							}, false),
 						},
 						"target_dedicated_nodes": {
@@ -453,11 +453,11 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							ForceNew:         true,
-							Default:          string(batch.DynamicVNetAssignmentScopeNone),
+							Default:          string(pool.DynamicVNetAssignmentScopeNone),
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(batch.DynamicVNetAssignmentScopeNone),
-								string(batch.DynamicVNetAssignmentScopeJob),
+								string(pool.DynamicVNetAssignmentScopeNone),
+								string(pool.DynamicVNetAssignmentScopeJob),
 							}, false),
 						},
 						"subnet_id": {
@@ -479,9 +479,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(batch.IPAddressProvisioningTypeBatchManaged),
-								string(batch.IPAddressProvisioningTypeUserManaged),
-								string(batch.IPAddressProvisioningTypeNoPublicIPAddresses),
+								string(pool.IPAddressProvisioningTypeBatchManaged),
+								string(pool.IPAddressProvisioningTypeUserManaged),
+								string(pool.IPAddressProvisioningTypeNoPublicIPAddresses),
 							}, false),
 						},
 						"endpoint_configuration": {
@@ -501,8 +501,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 										Required: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(batch.InboundEndpointProtocolTCP),
-											string(batch.InboundEndpointProtocolUDP),
+											string(pool.InboundEndpointProtocolTCP),
+											string(pool.InboundEndpointProtocolUDP),
 										}, false),
 									},
 									"backend_port": {
@@ -537,8 +537,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 													Required: true,
 													ForceNew: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(batch.NetworkSecurityGroupRuleAccessAllow),
-														string(batch.NetworkSecurityGroupRuleAccessDeny),
+														string(pool.NetworkSecurityGroupRuleAccessAllow),
+														string(pool.NetworkSecurityGroupRuleAccessDeny),
 													}, false),
 												},
 												"source_address_prefix": {
@@ -580,11 +580,11 @@ func resourceBatchPool() *pluginsdk.Resource {
 						"caching": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(batch.CachingTypeReadOnly),
+							Default:  string(pool.CachingTypeReadOnly),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(batch.CachingTypeNone),
-								string(batch.CachingTypeReadOnly),
-								string(batch.CachingTypeReadWrite),
+								string(pool.CachingTypeNone),
+								string(pool.CachingTypeReadOnly),
+								string(pool.CachingTypeReadWrite),
 							}, false),
 						},
 						"disk_size_gb": {
@@ -595,10 +595,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 						"storage_account_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  batch.StorageAccountTypeStandardLRS,
+							Default:  pool.StorageAccountTypeStandardLRS,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(batch.StorageAccountTypeStandardLRS),
-								string(batch.StorageAccountTypePremiumLRS),
+								string(pool.StorageAccountTypeStandardLRS),
+								string(pool.StorageAccountTypePremiumLRS),
 							}, false),
 						},
 					},
@@ -613,8 +613,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(batch.DiskEncryptionTargetTemporaryDisk),
-								string(batch.DiskEncryptionTargetOsDisk),
+								string(pool.DiskEncryptionTargetTemporaryDisk),
+								string(pool.DiskEncryptionTargetOsDisk),
 							}, false),
 						},
 					},
@@ -678,10 +678,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 						"policy": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(batch.NodePlacementPolicyTypeRegional),
+							Default:  string(pool.NodePlacementPolicyTypeRegional),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(batch.NodePlacementPolicyTypeZonal),
-								string(batch.NodePlacementPolicyTypeRegional),
+								string(pool.NodePlacementPolicyTypeZonal),
+								string(pool.NodePlacementPolicyTypeRegional),
 							}, false),
 						},
 					},
@@ -697,16 +697,16 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Optional: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
-						string(batch.DiffDiskPlacementCacheDisk),
+						string(pool.DiffDiskPlacementCacheDisk),
 					}, false),
 			},
 			"inter_node_communication": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(batch.InterNodeCommunicationStateEnabled),
+				Default:  string(pool.InterNodeCommunicationStateEnabled),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(batch.InterNodeCommunicationStateEnabled),
-					string(batch.InterNodeCommunicationStateDisabled),
+					string(pool.InterNodeCommunicationStateEnabled),
+					string(pool.InterNodeCommunicationStateDisabled),
 				}, false),
 			},
 			"task_scheduling_policy": {
@@ -720,8 +720,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(batch.ComputeNodeFillTypeSpread),
-								string(batch.ComputeNodeFillTypePack),
+								string(pool.ComputeNodeFillTypeSpread),
+								string(pool.ComputeNodeFillTypePack),
 							}, false),
 						},
 					},
@@ -747,8 +747,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(batch.ElevationLevelNonAdmin),
-								string(batch.ElevationLevelAdmin),
+								string(pool.ElevationLevelNonAdmin),
+								string(pool.ElevationLevelAdmin),
 							}, false),
 						},
 						"linux_user_configuration": {
@@ -781,8 +781,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(batch.LoginModeBatch),
-											string(batch.LoginModeInteractive),
+											string(pool.LoginModeBatch),
+											string(pool.LoginModeInteractive),
 										}, false),
 									},
 								},
@@ -814,27 +814,27 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	id := pool.NewPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_batch_pool", id.ID())
 		}
 	}
 
-	parameters := batch.Pool{
-		PoolProperties: &batch.PoolProperties{
+	parameters := pool.Pool{
+		Properties: &pool.PoolProperties{
 			VMSize:                 utils.String(d.Get("vm_size").(string)),
 			DisplayName:            utils.String(d.Get("display_name").(string)),
-			InterNodeCommunication: batch.InterNodeCommunicationState(d.Get("inter_node_communication").(string)),
-			TaskSlotsPerNode:       utils.Int32(int32(d.Get("max_tasks_per_node").(int))),
+			InterNodeCommunication: pointer.To(pool.InterNodeCommunicationState(d.Get("inter_node_communication").(string))),
+			TaskSlotsPerNode:       utils.Int64(int64(d.Get("max_tasks_per_node").(int))),
 		},
 	}
 
@@ -842,15 +842,15 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	if err != nil {
 		log.Printf(`[DEBUG] expanding "user_accounts": %v`, err)
 	}
-	parameters.PoolProperties.UserAccounts = userAccounts
+	parameters.Properties.UserAccounts = userAccounts
 
 	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
 	if err != nil {
 		log.Printf(`[DEBUG] expanding "task_scheduling_policy": %v`, err)
 	}
-	parameters.PoolProperties.TaskSchedulingPolicy = taskSchedulingPolicy
+	parameters.Properties.TaskSchedulingPolicy = taskSchedulingPolicy
 
-	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
@@ -861,7 +861,7 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("expanding scale settings: %+v", err)
 	}
 
-	parameters.PoolProperties.ScaleSettings = scaleSettings
+	parameters.Properties.ScaleSettings = scaleSettings
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
 		startTaskList := startTaskValue.([]interface{})
@@ -877,11 +877,11 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("creating %s: %+v", id, userIdentityError)
 		}
 
-		parameters.PoolProperties.StartTask = startTask
+		parameters.Properties.StartTask = startTask
 	}
 
 	if vmDeploymentConfiguration, deploymentErr := expandBatchPoolVirtualMachineConfig(d); deploymentErr == nil {
-		parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
+		parameters.Properties.DeploymentConfiguration = &pool.DeploymentConfiguration{
 			VirtualMachineConfiguration: vmDeploymentConfiguration,
 		}
 	}
@@ -891,33 +891,33 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("expanding `certificate`: %+v", err)
 	}
-	parameters.PoolProperties.Certificates = certificateReferences
+	parameters.Properties.Certificates = certificateReferences
 
-	if err := validateBatchPoolCrossFieldRules(&parameters); err != nil {
+	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
 		return err
 	}
 
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	parameters.PoolProperties.Metadata = ExpandBatchMetaData(metaDataRaw)
+	parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
 
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
 	if err != nil {
 		log.Printf(`[DEBUG] expanding "mount": %v`, err)
 	}
-	parameters.PoolProperties.MountConfiguration = mountConfiguration
+	parameters.Properties.MountConfiguration = mountConfiguration
 
 	networkConfiguration := d.Get("network_configuration").([]interface{})
-	parameters.PoolProperties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
+	parameters.Properties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
 	if err != nil {
 		return fmt.Errorf("expanding `network_configuration`: %+v", err)
 	}
 
-	_, err = client.Create(ctx, id.ResourceGroup, id.BatchAccountName, id.Name, parameters, "", "")
+	_, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
+	read, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -925,9 +925,11 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.SetId(id.ID())
 
 	// if the pool is not Steady after the create operation, wait for it to be Steady
-	if props := read.PoolProperties; props != nil && props.AllocationState != batch.AllocationStateSteady {
-		if err = waitForBatchPoolPendingResizeOperation(ctx, client, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
-			return fmt.Errorf("waiting for %s", id)
+	if model := read.Model; model != nil {
+		if props := model.Properties; props != nil && props.AllocationState != nil && *props.AllocationState != pool.AllocationStateSteady {
+			if err = waitForBatchPoolPendingResizeOperation(ctx, client, id); err != nil {
+				return fmt.Errorf("waiting for %s", id)
+			}
 		}
 	}
 
@@ -939,39 +941,41 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PoolID(d.Id())
+	id, err := pool.ParsePoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if resp.PoolProperties.AllocationState != batch.AllocationStateSteady {
-		log.Printf("[INFO] there is a pending resize operation on this pool...")
-		stopPendingResizeOperation := d.Get("stop_pending_resize_operation").(bool)
-		if !stopPendingResizeOperation {
-			return fmt.Errorf("updating %s because of pending resize operation. Set flag `stop_pending_resize_operation` to true to force update", *id)
-		}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil && props.AllocationState != nil && *props.AllocationState != pool.AllocationStateSteady {
+			log.Printf("[INFO] there is a pending resize operation on this pool...")
+			stopPendingResizeOperation := d.Get("stop_pending_resize_operation").(bool)
+			if !stopPendingResizeOperation {
+				return fmt.Errorf("updating %s because of pending resize operation. Set flag `stop_pending_resize_operation` to true to force update", *id)
+			}
 
-		log.Printf("[INFO] stopping the pending resize operation on this pool...")
-		if _, err = client.StopResize(ctx, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
-			return fmt.Errorf("stopping resize operation for %s: %+v", *id, err)
-		}
+			log.Printf("[INFO] stopping the pending resize operation on this pool...")
+			if _, err = client.StopResize(ctx, *id); err != nil {
+				return fmt.Errorf("stopping resize operation for %s: %+v", *id, err)
+			}
 
-		// waiting for the pool to be in steady state
-		if err = waitForBatchPoolPendingResizeOperation(ctx, client, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
-			return fmt.Errorf("waiting for %s", *id)
+			// waiting for the pool to be in steady state
+			if err = waitForBatchPoolPendingResizeOperation(ctx, client, *id); err != nil {
+				return fmt.Errorf("waiting for %s", *id)
+			}
 		}
 	}
 
-	parameters := batch.Pool{
-		PoolProperties: &batch.PoolProperties{},
+	parameters := pool.Pool{
+		Properties: &pool.PoolProperties{},
 	}
 
-	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
@@ -982,19 +986,19 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("expanding scale settings: %+v", err)
 	}
 
-	parameters.PoolProperties.ScaleSettings = scaleSettings
+	parameters.Properties.ScaleSettings = scaleSettings
 
 	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
 	if err != nil {
 		log.Printf(`[DEBUG] expanding "task_scheduling_policy": %v`, err)
 	}
-	parameters.PoolProperties.TaskSchedulingPolicy = taskSchedulingPolicy
+	parameters.Properties.TaskSchedulingPolicy = taskSchedulingPolicy
 
 	userAccounts, err := ExpandBatchPoolUserAccounts(d)
 	if err != nil {
 		log.Printf(`[DEBUG] expanding "user_accounts": %v`, err)
 	}
-	parameters.PoolProperties.UserAccounts = userAccounts
+	parameters.Properties.UserAccounts = userAccounts
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
 		startTaskList := startTaskValue.([]interface{})
@@ -1010,16 +1014,16 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("creating %s: %+v", *id, userIdentityError)
 		}
 
-		parameters.PoolProperties.StartTask = startTask
+		parameters.Properties.StartTask = startTask
 	}
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
 	if err != nil {
 		return fmt.Errorf("expanding `certificate`: %+v", err)
 	}
-	parameters.PoolProperties.Certificates = certificateReferences
+	parameters.Properties.Certificates = certificateReferences
 
-	if err := validateBatchPoolCrossFieldRules(&parameters); err != nil {
+	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
 		return err
 	}
 
@@ -1027,24 +1031,26 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		log.Printf("[DEBUG] Updating the MetaData for %s", *id)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 
-		parameters.PoolProperties.Metadata = ExpandBatchMetaData(metaDataRaw)
+		parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
 	}
 
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
 	if err != nil {
 		log.Printf(`[DEBUG] expanding "mount": %v`, err)
 	}
-	parameters.PoolProperties.MountConfiguration = mountConfiguration
+	parameters.Properties.MountConfiguration = mountConfiguration
 
-	result, err := client.Update(ctx, id.ResourceGroup, id.BatchAccountName, id.Name, parameters, "")
+	result, err := client.Update(ctx, *id, parameters, pool.UpdateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	// if the pool is not Steady after the update, wait for it to be Steady
-	if props := result.PoolProperties; props != nil && props.AllocationState != batch.AllocationStateSteady {
-		if err := waitForBatchPoolPendingResizeOperation(ctx, client, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
-			return fmt.Errorf("waiting for %s", *id)
+	if model := result.Model; model != nil {
+		if props := model.Properties; props != nil && props.AllocationState != nil && *props.AllocationState != pool.AllocationStateSteady {
+			if err := waitForBatchPoolPendingResizeOperation(ctx, client, *id); err != nil {
+				return fmt.Errorf("waiting for %s", *id)
+			}
 		}
 	}
 
@@ -1056,14 +1062,14 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PoolID(d.Id())
+	id, err := pool.ParsePoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -1071,158 +1077,173 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.PoolName)
 	d.Set("account_name", id.BatchAccountName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	identity, err := flattenBatchPoolIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	if props := resp.PoolProperties; props != nil {
-		d.Set("display_name", props.DisplayName)
-		d.Set("vm_size", props.VMSize)
-		d.Set("inter_node_communication", string(props.InterNodeCommunication))
-
-		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
-			if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
-				return fmt.Errorf("flattening `auto_scale`: %+v", err)
-			}
-			if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(d, scaleSettings.FixedScale)); err != nil {
-				return fmt.Errorf("flattening `fixed_scale `: %+v", err)
-			}
+	if model := resp.Model; model != nil {
+		identity, err := identity.FlattenUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		if props.TaskSchedulingPolicy != nil && props.TaskSchedulingPolicy.NodeFillType != "" {
-			taskSchedulingPolicy := make([]interface{}, 0)
-			nodeFillType := make(map[string]interface{})
-			nodeFillType["node_fill_type"] = string(props.TaskSchedulingPolicy.NodeFillType)
-			taskSchedulingPolicy = append(taskSchedulingPolicy, nodeFillType)
-			d.Set("task_scheduling_policy", taskSchedulingPolicy)
-		}
+		if props := model.Properties; props != nil {
+			d.Set("display_name", props.DisplayName)
+			d.Set("vm_size", props.VMSize)
+			d.Set("inter_node_communication", props.InterNodeCommunication)
 
-		if props.UserAccounts != nil {
-			userAccounts := make([]interface{}, 0)
-			for _, userAccount := range *props.UserAccounts {
-				userAccounts = append(userAccounts, flattenBatchPoolUserAccount(d, &userAccount))
-			}
-			d.Set("user_accounts", userAccounts)
-		}
-
-		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
-
-		if props.DeploymentConfiguration != nil {
-			if props.DeploymentConfiguration.VirtualMachineConfiguration != nil {
-				config := props.DeploymentConfiguration.VirtualMachineConfiguration
-				if config.ContainerConfiguration != nil {
-					d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, config.ContainerConfiguration))
+			if scaleSettings := props.ScaleSettings; scaleSettings != nil {
+				if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
+					return fmt.Errorf("flattening `auto_scale`: %+v", err)
 				}
-				if config.DataDisks != nil {
-					dataDisks := make([]interface{}, 0)
-					for _, item := range *config.DataDisks {
-						dataDisk := make(map[string]interface{})
-						dataDisk["lun"] = *item.Lun
-						dataDisk["disk_size_gb"] = *item.DiskSizeGB
-						dataDisk["caching"] = string(item.Caching)
-						dataDisk["storage_account_type"] = string(item.StorageAccountType)
-						dataDisks = append(dataDisks, dataDisk)
+				if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(d, scaleSettings.FixedScale)); err != nil {
+					return fmt.Errorf("flattening `fixed_scale `: %+v", err)
+				}
+			}
+
+			if props.TaskSchedulingPolicy != nil && props.TaskSchedulingPolicy.NodeFillType != "" {
+				taskSchedulingPolicy := make([]interface{}, 0)
+				nodeFillType := make(map[string]interface{})
+				nodeFillType["node_fill_type"] = string(props.TaskSchedulingPolicy.NodeFillType)
+				taskSchedulingPolicy = append(taskSchedulingPolicy, nodeFillType)
+				d.Set("task_scheduling_policy", taskSchedulingPolicy)
+			}
+
+			if props.UserAccounts != nil {
+				userAccounts := make([]interface{}, 0)
+				for _, userAccount := range *props.UserAccounts {
+					userAccounts = append(userAccounts, flattenBatchPoolUserAccount(d, &userAccount))
+				}
+				d.Set("user_accounts", userAccounts)
+			}
+
+			d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
+
+			if props.DeploymentConfiguration != nil {
+				if props.DeploymentConfiguration.VirtualMachineConfiguration != nil {
+					config := props.DeploymentConfiguration.VirtualMachineConfiguration
+					if config.ContainerConfiguration != nil {
+						d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, config.ContainerConfiguration))
 					}
-					d.Set("data_disks", dataDisks)
-				}
-				if config.DiskEncryptionConfiguration != nil {
-					diskEncryptionConfiguration := make([]interface{}, 0)
-					if config.DiskEncryptionConfiguration.Targets != nil {
-						for _, item := range *config.DiskEncryptionConfiguration.Targets {
-							target := make(map[string]interface{})
-							target["disk_encryption_target"] = string(item)
-							diskEncryptionConfiguration = append(diskEncryptionConfiguration, target)
-						}
-					}
-					d.Set("disk_encryption", diskEncryptionConfiguration)
-				}
-				if config.Extensions != nil {
-					extensions := make([]interface{}, 0)
-					n := len(*config.Extensions)
-					for _, item := range *config.Extensions {
-						extension := make(map[string]interface{})
-						extension["name"] = *item.Name
-						extension["publisher"] = *item.Publisher
-						extension["type"] = *item.Type
-						if item.TypeHandlerVersion != nil {
-							extension["type_handler_version"] = *item.TypeHandlerVersion
-						}
-						if item.AutoUpgradeMinorVersion != nil {
-							extension["auto_upgrade_minor_version"] = *item.AutoUpgradeMinorVersion
-						}
-						if item.Settings != nil {
-							extension["settings_json"] = item.Settings
-						}
+					if config.DataDisks != nil {
+						dataDisks := make([]interface{}, 0)
+						for _, item := range *config.DataDisks {
+							dataDisk := make(map[string]interface{})
+							dataDisk["lun"] = item.Lun
+							dataDisk["disk_size_gb"] = item.DiskSizeGB
 
-						for i := 0; i < n; i++ {
-							if v, ok := d.GetOk(fmt.Sprintf("extensions.%d.name", i)); ok && v == *item.Name {
-								extension["protected_settings"] = d.Get(fmt.Sprintf("extensions.%d.protected_settings", i))
-								break
+							caching := ""
+							if item.Caching != nil {
+								caching = string(*item.Caching)
+							}
+							dataDisk["caching"] = caching
+
+							storageAccountType := ""
+							if item.StorageAccountType != nil {
+								storageAccountType = string(*item.StorageAccountType)
+							}
+							dataDisk["storage_account_type"] = storageAccountType
+
+							dataDisks = append(dataDisks, dataDisk)
+						}
+						d.Set("data_disks", dataDisks)
+					}
+					if config.DiskEncryptionConfiguration != nil {
+						diskEncryptionConfiguration := make([]interface{}, 0)
+						if config.DiskEncryptionConfiguration.Targets != nil {
+							for _, item := range *config.DiskEncryptionConfiguration.Targets {
+								target := make(map[string]interface{})
+								target["disk_encryption_target"] = string(item)
+								diskEncryptionConfiguration = append(diskEncryptionConfiguration, target)
 							}
 						}
+						d.Set("disk_encryption", diskEncryptionConfiguration)
+					}
+					if config.Extensions != nil {
+						extensions := make([]interface{}, 0)
+						n := len(*config.Extensions)
+						for _, item := range *config.Extensions {
+							extension := make(map[string]interface{})
+							extension["name"] = item.Name
+							extension["publisher"] = item.Publisher
+							extension["type"] = item.Type
+							if item.TypeHandlerVersion != nil {
+								extension["type_handler_version"] = *item.TypeHandlerVersion
+							}
+							if item.AutoUpgradeMinorVersion != nil {
+								extension["auto_upgrade_minor_version"] = *item.AutoUpgradeMinorVersion
+							}
+							if item.Settings != nil {
+								extension["settings_json"] = item.Settings
+							}
 
-						if item.ProvisionAfterExtensions != nil {
-							extension["provision_after_extensions"] = *item.ProvisionAfterExtensions
+							for i := 0; i < n; i++ {
+								if v, ok := d.GetOk(fmt.Sprintf("extensions.%d.name", i)); ok && v == item.Name {
+									extension["protected_settings"] = d.Get(fmt.Sprintf("extensions.%d.protected_settings", i))
+									break
+								}
+							}
+
+							if item.ProvisionAfterExtensions != nil {
+								extension["provision_after_extensions"] = *item.ProvisionAfterExtensions
+							}
+							extensions = append(extensions, extension)
 						}
-						extensions = append(extensions, extension)
+						d.Set("extensions", extensions)
 					}
-					d.Set("extensions", extensions)
-				}
-				if config.ImageReference != nil {
-					d.Set("storage_image_reference", flattenBatchPoolImageReference(config.ImageReference))
-				}
-				if config.LicenseType != nil {
-					d.Set("license_type", *config.LicenseType)
-				}
-				if config.NodeAgentSkuID != nil {
-					d.Set("node_agent_sku_id", *config.NodeAgentSkuID)
-				}
-				if config.NodePlacementConfiguration != nil {
-					nodePlacementConfiguration := make([]interface{}, 0)
-					nodePlacementConfig := make(map[string]interface{})
-					nodePlacementConfig["policy"] = string(config.NodePlacementConfiguration.Policy)
-					nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
-					d.Set("node_placement", nodePlacementConfiguration)
-				}
-				if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil {
-					d.Set("os_disk_placement", string(config.OsDisk.EphemeralOSDiskSettings.Placement))
-				}
-				if config.WindowsConfiguration != nil {
-					windowsConfig := []interface{}{
-						map[string]interface{}{
-							"enable_automatic_updates": *config.WindowsConfiguration.EnableAutomaticUpdates,
-						},
+
+					d.Set("storage_image_reference", flattenBatchPoolImageReference(&config.ImageReference))
+
+					if config.LicenseType != nil {
+						d.Set("license_type", *config.LicenseType)
 					}
-					d.Set("windows", windowsConfig)
+
+					d.Set("node_agent_sku_id", config.NodeAgentSkuId)
+
+					if config.NodePlacementConfiguration != nil {
+						nodePlacementConfiguration := make([]interface{}, 0)
+						nodePlacementConfig := make(map[string]interface{})
+						nodePlacementConfig["policy"] = string(*config.NodePlacementConfiguration.Policy)
+						nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
+						d.Set("node_placement", nodePlacementConfiguration)
+					}
+					osDiskPlacement := ""
+					if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil && config.OsDisk.EphemeralOSDiskSettings.Placement != nil {
+						osDiskPlacement = string(*config.OsDisk.EphemeralOSDiskSettings.Placement)
+					}
+					d.Set("os_disk_placement", osDiskPlacement)
+					if config.WindowsConfiguration != nil {
+						windowsConfig := []interface{}{
+							map[string]interface{}{
+								"enable_automatic_updates": *config.WindowsConfiguration.EnableAutomaticUpdates,
+							},
+						}
+						d.Set("windows", windowsConfig)
+					}
 				}
 			}
-		}
 
-		if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
-			return fmt.Errorf("flattening `certificate`: %+v", err)
-		}
-
-		d.Set("start_task", flattenBatchPoolStartTask(d, props.StartTask))
-		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
-
-		if props.MountConfiguration != nil {
-			mountConfigs := make([]interface{}, 0)
-			for _, mountConfig := range *props.MountConfiguration {
-				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
+			if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
+				return fmt.Errorf("flattening `certificate`: %+v", err)
 			}
-			d.Set("mount", mountConfigs)
-		}
 
-		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
-			return fmt.Errorf("setting `network_configuration`: %v", err)
+			d.Set("start_task", flattenBatchPoolStartTask(d, props.StartTask))
+			d.Set("metadata", FlattenBatchMetaData(props.Metadata))
+
+			if props.MountConfiguration != nil {
+				mountConfigs := make([]interface{}, 0)
+				for _, mountConfig := range *props.MountConfiguration {
+					mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
+				}
+				d.Set("mount", mountConfigs)
+			}
+
+			if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
+				return fmt.Errorf("setting `network_configuration`: %v", err)
+			}
 		}
 	}
 
@@ -1234,26 +1255,20 @@ func resourceBatchPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PoolID(d.Id())
+	id, err := pool.ParsePoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-		}
-	}
 	return nil
 }
 
-func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettings, error) {
-	scaleSettings := &batch.ScaleSettings{}
+func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSettings, error) {
+	scaleSettings := &pool.ScaleSettings{}
 
 	autoScaleValue, autoScaleOk := d.GetOk("auto_scale")
 	fixedScaleValue, fixedScaleOk := d.GetOk("fixed_scale")
@@ -1277,9 +1292,9 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettin
 		autoScaleEvaluationInterval := autoScaleSettings["evaluation_interval"].(string)
 		autoScaleFormula := autoScaleSettings["formula"].(string)
 
-		scaleSettings.AutoScale = &batch.AutoScaleSettings{
+		scaleSettings.AutoScale = &pool.AutoScaleSettings{
 			EvaluationInterval: &autoScaleEvaluationInterval,
-			Formula:            &autoScaleFormula,
+			Formula:            autoScaleFormula,
 		}
 	} else if fixedScaleOk {
 		fixedScale := fixedScaleValue.([]interface{})
@@ -1288,43 +1303,47 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettin
 		}
 
 		fixedScaleSettings := fixedScale[0].(map[string]interface{})
-		nodeDeallocationOption := batch.ComputeNodeDeallocationOption(fixedScaleSettings["node_deallocation_method"].(string))
+		nodeDeallocationOption := pool.ComputeNodeDeallocationOption(fixedScaleSettings["node_deallocation_method"].(string))
 		targetDedicatedNodes := int32(fixedScaleSettings["target_dedicated_nodes"].(int))
 		targetLowPriorityNodes := int32(fixedScaleSettings["target_low_priority_nodes"].(int))
 		resizeTimeout := fixedScaleSettings["resize_timeout"].(string)
 
-		scaleSettings.FixedScale = &batch.FixedScaleSettings{
-			NodeDeallocationOption: nodeDeallocationOption,
+		scaleSettings.FixedScale = &pool.FixedScaleSettings{
+			NodeDeallocationOption: &nodeDeallocationOption,
 			ResizeTimeout:          &resizeTimeout,
-			TargetDedicatedNodes:   &targetDedicatedNodes,
-			TargetLowPriorityNodes: &targetLowPriorityNodes,
+			TargetDedicatedNodes:   utils.Int64(int64(targetDedicatedNodes)),
+			TargetLowPriorityNodes: utils.Int64(int64(targetLowPriorityNodes)),
 		}
 	}
 
 	return scaleSettings, nil
 }
 
-func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *batch.PoolClient, resourceGroup string, accountName string, poolName string) error {
+func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *pool.PoolClient, id pool.PoolId) error {
 	// waiting for the pool to be in steady state
 	log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped...")
 	isSteady := false
 	for !isSteady {
-		resp, err := client.Get(ctx, resourceGroup, accountName, poolName)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			return fmt.Errorf("retrieving the Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		isSteady = resp.PoolProperties.AllocationState == batch.AllocationStateSteady
+		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.AllocationState != nil {
+			isSteady = *resp.Model.Properties.AllocationState == pool.AllocationStateSteady
+			if isSteady {
+				break
+			}
+		}
 		time.Sleep(time.Second * 30)
 		log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped... New try in 30 seconds...")
 	}
-
 	return nil
 }
 
 // validateUserIdentity validates that the user identity for a start task has been well specified
 // it should have a auto_user block or a user_name defined, but not both at the same time.
-func validateUserIdentity(userIdentity *batch.UserIdentity) error {
+func validateUserIdentity(userIdentity *pool.UserIdentity) error {
 	if userIdentity == nil {
 		return errors.New("user_identity block needs to be specified")
 	}
@@ -1340,7 +1359,7 @@ func validateUserIdentity(userIdentity *batch.UserIdentity) error {
 	return nil
 }
 
-func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
+func validateBatchPoolCrossFieldRules(pool *pool.PoolProperties) error {
 	// Perform validation across multiple fields as per https://docs.microsoft.com/en-us/rest/api/batchmanagement/pool/create#resourcefile
 
 	if pool.StartTask != nil {
@@ -1352,10 +1371,10 @@ func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
 				if referenceFile.AutoStorageContainerName != nil {
 					sourceCount++
 				}
-				if referenceFile.StorageContainerURL != nil {
+				if referenceFile.StorageContainerUrl != nil {
 					sourceCount++
 				}
-				if referenceFile.HTTPURL != nil {
+				if referenceFile.HTTPUrl != nil {
 					sourceCount++
 				}
 				if sourceCount != 1 {
@@ -1363,12 +1382,12 @@ func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
 				}
 
 				if referenceFile.BlobPrefix != nil {
-					if referenceFile.AutoStorageContainerName == nil && referenceFile.StorageContainerURL == nil {
+					if referenceFile.AutoStorageContainerName == nil && referenceFile.StorageContainerUrl == nil {
 						return fmt.Errorf("auto_storage_container_name or storage_container_url must be specified when using blob_prefix")
 					}
 				}
 
-				if referenceFile.HTTPURL != nil {
+				if referenceFile.HTTPUrl != nil {
 					if referenceFile.FilePath == nil {
 						return fmt.Errorf("file_path must be specified when using http_url")
 					}
@@ -1378,46 +1397,6 @@ func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
 	}
 
 	return nil
-}
-
-func expandBatchPoolIdentity(input []interface{}) (*batch.PoolIdentity, error) {
-	expanded, err := identity.ExpandUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	out := batch.PoolIdentity{
-		Type: batch.PoolIdentityType(string(expanded.Type)),
-	}
-	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*batch.UserAssignedIdentities)
-		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &batch.UserAssignedIdentities{
-				// intentionally empty
-			}
-		}
-	}
-
-	return &out, nil
-}
-
-func flattenBatchPoolIdentity(input *batch.PoolIdentity) (*[]interface{}, error) {
-	var transform *identity.UserAssignedMap
-
-	if input != nil {
-		transform = &identity.UserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-		for k, v := range input.UserAssignedIdentities {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-				ClientId:    v.ClientID,
-				PrincipalId: v.PrincipalID,
-			}
-		}
-	}
-
-	return identity.FlattenUserAssignedMap(transform)
 }
 
 func startTaskSchema() map[string]*pluginsdk.Schema {
@@ -1454,8 +1433,8 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(batch.ContainerWorkingDirectoryTaskWorkingDirectory),
-							string(batch.ContainerWorkingDirectoryContainerImageDefault),
+							string(pool.ContainerWorkingDirectoryTaskWorkingDirectory),
+							string(pool.ContainerWorkingDirectoryContainerImageDefault),
 						}, false),
 					},
 				},
@@ -1501,19 +1480,19 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 								"elevation_level": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									Default:  string(batch.ElevationLevelNonAdmin),
+									Default:  string(pool.ElevationLevelNonAdmin),
 									ValidateFunc: validation.StringInSlice([]string{
-										string(batch.ElevationLevelNonAdmin),
-										string(batch.ElevationLevelAdmin),
+										string(pool.ElevationLevelNonAdmin),
+										string(pool.ElevationLevelAdmin),
 									}, false),
 								},
 								"scope": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									Default:  string(batch.AutoUserScopeTask),
+									Default:  string(pool.AutoUserScopeTask),
 									ValidateFunc: validation.StringInSlice([]string{
-										string(batch.AutoUserScopeTask),
-										string(batch.AutoUserScopePool),
+										string(pool.AutoUserScopeTask),
+										string(pool.AutoUserScopePool),
 									}, false),
 								},
 							},

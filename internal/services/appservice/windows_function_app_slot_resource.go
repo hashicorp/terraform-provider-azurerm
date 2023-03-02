@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -313,6 +313,11 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
+
 			var functionAppSlot WindowsFunctionAppSlotModel
 
 			if err := metadata.Decode(&functionAppSlot); err != nil {
@@ -420,7 +425,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				if functionAppSlot.StorageKeyVaultSecretID != "" {
 					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, functionAppSlot.StorageKeyVaultSecretID)
 				} else {
-					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionAppSlot.StorageAccountName, functionAppSlot.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionAppSlot.StorageAccountName, functionAppSlot.StorageAccountKey, *storageDomainSuffix)
 				}
 			}
 			siteConfig, err := helpers.ExpandSiteConfigWindowsFunctionAppSlot(functionAppSlot.SiteConfig, nil, metadata, functionAppSlot.FunctionExtensionsVersion, storageString, functionAppSlot.StorageUsesMSI)
@@ -646,7 +651,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			if functionApp.SiteProperties == nil || functionApp.SiteProperties.ServerFarmID == nil {
 				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
 			}
-			parentAppFarmId, err := parse.ServicePlanID(*functionApp.SiteProperties.ServerFarmID)
+			parentAppFarmId, err := parse.ServicePlanIDInsensitively(*functionApp.SiteProperties.ServerFarmID)
 			if err != nil {
 				return err
 			}
@@ -731,6 +736,11 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
+
+			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
 
 			id, err := parse.FunctionAppSlotID(metadata.ResourceData.Id())
 			if err != nil {
@@ -838,7 +848,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				if state.StorageKeyVaultSecretID != "" {
 					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
 				} else {
-					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, *storageDomainSuffix)
 				}
 			}
 

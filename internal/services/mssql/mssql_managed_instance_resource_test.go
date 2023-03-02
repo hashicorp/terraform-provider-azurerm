@@ -17,6 +17,11 @@ type MsSqlManagedInstanceResource struct{}
 
 const managedInstanceStaticRoutes = `
   route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-OneDsCollector"
+    address_prefix = "OneDsCollector"
+    next_hop_type  = "Internet"
+  }
+  route {
     name           = "mi-13-64-11-nexthop-internet"
     address_prefix = "13.64.0.0/11"
     next_hop_type  = "Internet"
@@ -923,6 +928,18 @@ const managedInstanceStaticRoutes = `
   }
 
   route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.francecentral"
+    address_prefix = "Storage.francecentral"
+    next_hop_type  = "Internet"
+  }
+
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-Storage.francesouth"
+    address_prefix = "Storage.francesouth"
+    next_hop_type  = "Internet"
+  }
+
+  route {
     name           = "Microsoft.Sql-managedInstances_UseOnly_mi-EventHub.westeurope"
     address_prefix = "EventHub.westeurope"
     next_hop_type  = "Internet"
@@ -1767,7 +1784,7 @@ resource "azurerm_network_security_rule" "deny_all_inbound_1" {
 
 resource "azurerm_network_security_rule" "allow_management_outbound_1" {
   name                        = "allow_management_outbound"
-  priority                    = 102
+  priority                    = 110
   direction                   = "Outbound"
   access                      = "Allow"
   protocol                    = "Tcp"
@@ -2002,7 +2019,7 @@ resource "azurerm_network_security_rule" "deny_all_inbound_2" {
 
 resource "azurerm_network_security_rule" "allow_management_outbound_2" {
   name                        = "allow_management_outbound"
-  priority                    = 102
+  priority                    = 110
   direction                   = "Outbound"
   access                      = "Allow"
   protocol                    = "Tcp"
@@ -2237,7 +2254,7 @@ resource "azurerm_network_security_rule" "deny_all_inbound_3" {
 
 resource "azurerm_network_security_rule" "allow_management_outbound_3" {
   name                        = "allow_management_outbound"
-  priority                    = 102
+  priority                    = 110
   direction                   = "Outbound"
   access                      = "Allow"
   protocol                    = "Tcp"

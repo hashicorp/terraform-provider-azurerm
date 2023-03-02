@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -22,11 +23,12 @@ func TestAccEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	builder := clients.ClientBuilder{
 		AuthConfig:                  config,
 		TerraformVersion:            "0.0.0",
-		PartnerId:                   "",
+		PartnerID:                   "",
 		DisableCorrelationRequestID: true,
 		DisableTerraformPartnerID:   false,
 		// this test intentionally checks all the RP's are registered - so this is intentional
 		SkipProviderRegistration: true,
+		SubscriptionID:           os.Getenv("ARM_SUBSCRIPTION_ID"),
 	}
 	armClient, err := clients.Build(context.Background(), builder)
 	if err != nil {

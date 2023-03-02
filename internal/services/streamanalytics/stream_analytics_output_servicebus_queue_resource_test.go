@@ -445,7 +445,7 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
   queue_name                = azurerm_servicebus_queue.test.name
   servicebus_namespace      = azurerm_servicebus_namespace.test.name
-  authentication_mode 		= "Msi"
+  authentication_mode       = "Msi"
 
   serialization {
     type     = "Json"

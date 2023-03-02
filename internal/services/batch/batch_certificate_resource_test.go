@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/certificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -83,17 +83,17 @@ func TestAccBatchCertificate_CerWithPassword(t *testing.T) {
 }
 
 func (t BatchCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CertificateID(state.ID)
+	id, err := certificate.ParseCertificateID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Batch.CertificateClient.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
+	resp, err := clients.Batch.CertificateClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Batch Certificate %q (Account Name %q / Resource Group %q) does not exist", id.Name, id.BatchAccountName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s", *id)
 	}
 
-	return utils.Bool(resp.CertificateProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (BatchCertificateResource) pfxWithPassword(data acceptance.TestData) string {

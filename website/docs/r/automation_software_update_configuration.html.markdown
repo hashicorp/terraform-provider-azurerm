@@ -35,10 +35,10 @@ resource "azurerm_automation_software_update_configuration" "example" {
   operating_system      = "Linux"
 
   linux {
-    classification    = "Security"
-    excluded_packages = ["apt"]
-    included_packages = ["vim"]
-    reboot            = "IfRequired"
+    classification_included = "Security"
+    excluded_packages       = ["apt"]
+    included_packages       = ["vim"]
+    reboot                  = "IfRequired"
   }
 
   duration = "PT2H2M2S"
@@ -175,7 +175,7 @@ A `schedule` block supports the following:
 
 * `advanced_month_days` - (Optional) List of days of the month that the job should execute on. Must be between `1` and `31`. `-1` for last day of the month. Only valid when frequency is `Month`.
 
-* `monthly_occurrence` - (Optional) List of occurrences of days within a month. Only valid when frequency is `Month`. The `monthly_occurrence` block supports fields as defined below.
+* `monthly_occurrence` - (Optional) List of `monthly_occurrence` blocks as defined below to specifies occurrences of days within a month. Only valid when frequency is `Month`. The `monthly_occurrence` block supports fields as defined below.
 
 ---
 

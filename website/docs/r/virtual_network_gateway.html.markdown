@@ -232,15 +232,7 @@ The `revoked_certificate` block supports:
 
 * `name` - (Required) Specifies the name of the certificate resource.
 
-* `public_cert_data` - (Required) Specifies the public data of the certificate.
-
----
-
-The `root_revoked_certificate` block supports:
-
-* `name` - (Required) A user-defined name of the revoked certificate. Changing this forces a new resource to be created.
-
-* `public_cert_data` - (Required) The SHA1 thumbprint of the certificate to be revoked.
+* `thumbprint` - (Required) Specifies the public data of the certificate.
 
 ## Attributes Reference
 

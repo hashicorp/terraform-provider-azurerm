@@ -2891,6 +2891,18 @@ resource "azurerm_cosmosdb_account" "test" {
     name = "EnableMongo16MBDocumentSupport"
   }
 
+  capabilities {
+    name = "EnableMongoRetryableWrites"
+  }
+
+  capabilities {
+    name = "EnableMongoRoleBasedAccessControl"
+  }
+
+  capabilities {
+    name = "EnableUniqueCompoundNestedDocs"
+  }
+
   consistency_policy {
     consistency_level = "%s"
   }

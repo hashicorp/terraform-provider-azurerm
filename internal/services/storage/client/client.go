@@ -54,10 +54,10 @@ func NewClient(options *common.ClientOptions) *Client {
 	localUsersClient := localusers.NewLocalUsersClientWithBaseURI(options.ResourceManagerEndpoint)
 	localUsersClient.Client.Authorizer = options.ResourceManagerAuthorizer
 
-	fileSystemsClient := filesystems.NewWithEnvironment(options.Environment)
+	fileSystemsClient := filesystems.NewWithEnvironment(options.AzureEnvironment)
 	options.ConfigureClient(&fileSystemsClient.Client, options.StorageAuthorizer)
 
-	adlsGen2PathsClient := paths.NewWithEnvironment(options.Environment)
+	adlsGen2PathsClient := paths.NewWithEnvironment(options.AzureEnvironment)
 	options.ConfigureClient(&adlsGen2PathsClient.Client, options.StorageAuthorizer)
 
 	managementPoliciesClient := storage.NewManagementPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
@@ -101,7 +101,7 @@ func NewClient(options *common.ClientOptions) *Client {
 		BlobInventoryPoliciesClient: &blobInventoryPoliciesClient,
 		CloudEndpointsClient:        &cloudEndpointsClient,
 		EncryptionScopesClient:      &encryptionScopesClient,
-		Environment:                 options.Environment,
+		Environment:                 options.AzureEnvironment,
 		FileServicesClient:          &fileServicesClient,
 		ResourceManager:             &resourceManager,
 		SubscriptionId:              options.SubscriptionId,

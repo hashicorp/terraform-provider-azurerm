@@ -221,9 +221,24 @@ func resourceSharedImage() *pluginsdk.Resource {
 			},
 
 			"trusted_launch_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"confidential_vm_supported", "confidential_vm_enabled"},
+			},
+
+			"confidential_vm_supported": {
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"trusted_launch_enabled", "confidential_vm_enabled"},
+			},
+
+			"confidential_vm_enabled": {
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"trusted_launch_enabled", "confidential_vm_supported"},
 			},
 
 			"accelerated_network_support_enabled": {
@@ -265,20 +280,6 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	var features []compute.GalleryImageFeature
-	if d.Get("trusted_launch_enabled").(bool) {
-		features = append(features, compute.GalleryImageFeature{
-			Name:  utils.String("SecurityType"),
-			Value: utils.String("TrustedLaunch"),
-		})
-	}
-	if d.Get("accelerated_network_support_enabled").(bool) {
-		features = append(features, compute.GalleryImageFeature{
-			Name:  utils.String("IsAcceleratedNetworkSupported"),
-			Value: utils.String("true"),
-		})
-	}
-
 	recommended, err := expandGalleryImageRecommended(d)
 	if err != nil {
 		return err
@@ -296,7 +297,7 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			OsType:              compute.OperatingSystemTypes(d.Get("os_type").(string)),
 			HyperVGeneration:    compute.HyperVGeneration(d.Get("hyper_v_generation").(string)),
 			PurchasePlan:        expandGalleryImagePurchasePlan(d.Get("purchase_plan").([]interface{})),
-			Features:            &features,
+			Features:            expandSharedImageFeatures(d),
 			Recommended:         recommended,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -427,6 +428,8 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		trustedLaunchEnabled := false
+		cvmEnabled := false
+		cvmSupported := false
 		acceleratedNetworkSupportEnabled := false
 		if features := props.Features; features != nil {
 			for _, feature := range *features {
@@ -436,6 +439,8 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 				if strings.EqualFold(*feature.Name, "SecurityType") {
 					trustedLaunchEnabled = strings.EqualFold(*feature.Value, "TrustedLaunch")
+					cvmSupported = strings.EqualFold(*feature.Value, "ConfidentialVmSupported")
+					cvmEnabled = strings.EqualFold(*feature.Value, "ConfidentialVm")
 				}
 
 				if strings.EqualFold(*feature.Name, "IsAcceleratedNetworkSupported") {
@@ -443,6 +448,8 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				}
 			}
 		}
+		d.Set("confidential_vm_supported", cvmSupported)
+		d.Set("confidential_vm_enabled", cvmEnabled)
 		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 		d.Set("accelerated_network_support_enabled", acceleratedNetworkSupportEnabled)
 	}
@@ -643,4 +650,37 @@ func expandGalleryImageRecommended(d *pluginsdk.ResourceData) (*compute.Recommen
 	}
 
 	return result, nil
+}
+
+func expandSharedImageFeatures(d *pluginsdk.ResourceData) *[]compute.GalleryImageFeature {
+	var features []compute.GalleryImageFeature
+	if d.Get("accelerated_network_support_enabled").(bool) {
+		features = append(features, compute.GalleryImageFeature{
+			Name:  utils.String("IsAcceleratedNetworkSupported"),
+			Value: utils.String("true"),
+		})
+	}
+
+	if tvmEnabled := d.Get("trusted_launch_enabled").(bool); tvmEnabled {
+		features = append(features, compute.GalleryImageFeature{
+			Name:  utils.String("SecurityType"),
+			Value: utils.String("TrustedLaunch"),
+		})
+	}
+
+	if cvmSupported := d.Get("confidential_vm_supported").(bool); cvmSupported {
+		features = append(features, compute.GalleryImageFeature{
+			Name:  utils.String("SecurityType"),
+			Value: utils.String("ConfidentialVmSupported"),
+		})
+	}
+
+	if cvmEnabled := d.Get("confidential_vm_enabled").(bool); cvmEnabled {
+		features = append(features, compute.GalleryImageFeature{
+			Name:  utils.String("SecurityType"),
+			Value: utils.String("ConfidentialVM"),
+		})
+	}
+
+	return &features
 }

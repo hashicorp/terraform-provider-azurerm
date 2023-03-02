@@ -7,14 +7,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,7 +29,7 @@ func resourceIoTTimeSeriesInsightsStandardEnvironment() *pluginsdk.Resource {
 		Update: resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate,
 		Delete: resourceIoTTimeSeriesInsightsStandardEnvironmentDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.EnvironmentID(id)
+			_, err := environments.ParseEnvironmentID(id)
 			return err
 		}),
 
@@ -86,91 +87,77 @@ func resourceIoTTimeSeriesInsightsStandardEnvironment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azValidate.ISO8601Duration,
+				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"storage_limit_exceeded_behavior": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(timeseriesinsights.PurgeOldData),
+				Default:  string(environments.StorageLimitExceededBehaviorPurgeOldData),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(timeseriesinsights.PurgeOldData),
-					string(timeseriesinsights.PauseIngress),
+					string(environments.StorageLimitExceededBehaviorPurgeOldData),
+					string(environments.StorageLimitExceededBehaviorPauseIngress),
 				}, false),
 			},
 
 			"partition_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.NoZeroValues,
 				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
+	client := meta.(*clients.Client).IoTTimeSeriesInsights.Environments
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewEnvironmentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+	id := environments.NewEnvironmentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id, environments.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_iot_time_series_insights_environment", id.ID())
+		}
+	}
+
 	sku, err := expandEnvironmentSkuName(d.Get("sku_name").(string))
 	if err != nil {
 		return fmt.Errorf("expanding sku: %+v", err)
 	}
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
-		if existing.Value != nil {
-			environment, ok := existing.Value.AsGen1EnvironmentResource()
-			if !ok {
-				return fmt.Errorf("exisiting resource was not a %s", id)
-			}
-
-			if environment.ID != nil && *environment.ID != "" {
-				return tf.ImportAsExistsError("azurerm_iot_time_series_insights_environment", *environment.ID)
-			}
-		}
-	}
-
-	environment := timeseriesinsights.Gen1EnvironmentCreateOrUpdateParameters{
-		Location: &location,
-		Tags:     tags.Expand(t),
-		Sku:      sku,
-		Gen1EnvironmentCreationProperties: &timeseriesinsights.Gen1EnvironmentCreationProperties{
-			StorageLimitExceededBehavior: timeseriesinsights.StorageLimitExceededBehavior(d.Get("storage_limit_exceeded_behavior").(string)),
-			DataRetentionTime:            utils.String(d.Get("data_retention_time").(string)),
+	environment := environments.Gen1EnvironmentCreateOrUpdateParameters{
+		Location: location.Normalize(d.Get("location").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Sku:      *sku,
+		Properties: environments.Gen1EnvironmentCreationProperties{
+			StorageLimitExceededBehavior: pointer.To(environments.StorageLimitExceededBehavior(d.Get("storage_limit_exceeded_behavior").(string))),
+			DataRetentionTime:            d.Get("data_retention_time").(string),
 		},
 	}
 
 	if v, ok := d.GetOk("partition_key"); ok {
-		partition := make([]timeseriesinsights.TimeSeriesIDProperty, 1)
-		partition[0] = timeseriesinsights.TimeSeriesIDProperty{
-			Name: utils.String(v.(string)),
-			Type: timeseriesinsights.String,
+		environment.Properties.PartitionKeyProperties = &[]environments.TimeSeriesIdProperty{
+			{
+				Name: utils.String(v.(string)),
+				Type: pointer.To(environments.PropertyTypeString),
+			},
 		}
-		environment.Gen1EnvironmentCreationProperties.PartitionKeyProperties = &partition
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, environment)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, environment); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -179,102 +166,108 @@ func resourceIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *pluginsdk.R
 }
 
 func resourceIoTTimeSeriesInsightsStandardEnvironmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
+	client := meta.(*clients.Client).IoTTimeSeriesInsights.Environments
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EnvironmentID(d.Id())
+	id, err := environments.ParseEnvironmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-	if err != nil || resp.Value == nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+	resp, err := client.Get(ctx, *id, environments.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving IoT Time Series Insights Standard Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	environment, ok := resp.Value.AsGen1EnvironmentResource()
-	if !ok {
-		return fmt.Errorf("exisiting resource was not a standard IoT Time Series Insights Standard Environment %q (Resource Group %q)", id.Name, id.ResourceGroup)
-	}
+	d.Set("name", id.EnvironmentName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("name", environment.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("sku_name", flattenEnvironmentSkuName(environment.Sku))
-	if location := environment.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	if model := resp.Model; model != nil {
+		environment, ok := (*model).(environments.Gen1EnvironmentResource)
+		if !ok {
+			return fmt.Errorf("retrieving %s: expected a Gen1EnvironmentResource but got: %+v", *id, *model)
+		}
 
-	if props := environment.Gen1EnvironmentResourceProperties; props != nil {
-		d.Set("storage_limit_exceeded_behavior", string(props.StorageLimitExceededBehavior))
-		d.Set("data_retention_time", props.DataRetentionTime)
+		d.Set("location", location.Normalize(environment.Location))
+		d.Set("sku_name", flattenEnvironmentSkuName(environment.Sku))
 
-		if partition := props.PartitionKeyProperties; partition != nil && len(*partition) > 0 {
+		d.Set("data_retention_time", environment.Properties.DataRetentionTime)
+		storageLimitExceededBehavior := ""
+		if environment.Properties.StorageLimitExceededBehavior != nil {
+			storageLimitExceededBehavior = string(*environment.Properties.StorageLimitExceededBehavior)
+		}
+		d.Set("storage_limit_exceeded_behavior", storageLimitExceededBehavior)
+
+		partitionKey := ""
+		if partition := environment.Properties.PartitionKeyProperties; partition != nil {
 			for _, v := range *partition {
-				d.Set("partition_key", v.Name)
+				if v.Name == nil {
+					continue
+				}
+
+				partitionKey = *v.Name
 			}
 		}
-	}
+		d.Set("partition_key", partitionKey)
 
-	return tags.FlattenAndSet(d, environment.Tags)
-}
-
-func resourceIoTTimeSeriesInsightsStandardEnvironmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.EnvironmentID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	response, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting IoT Time Series Insights Standard Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		if err := tags.FlattenAndSet(d, environment.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
 
 	return nil
 }
 
-func expandEnvironmentSkuName(skuName string) (*timeseriesinsights.Sku, error) {
+func resourceIoTTimeSeriesInsightsStandardEnvironmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).IoTTimeSeriesInsights.Environments
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := environments.ParseEnvironmentID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func expandEnvironmentSkuName(skuName string) (*environments.Sku, error) {
 	parts := strings.Split(skuName, "_")
 	if len(parts) != 2 {
 		return nil, fmt.Errorf("sku_name (%s) has the worng number of parts (%d) after splitting on _", skuName, len(parts))
 	}
 
-	var name timeseriesinsights.SkuName
+	var name environments.SkuName
 	switch parts[0] {
 	case "S1":
-		name = timeseriesinsights.S1
+		name = environments.SkuNameSOne
 	case "S2":
-		name = timeseriesinsights.S2
+		name = environments.SkuNameSTwo
 	default:
 		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, parts[0])
 	}
 
 	capacity, err := strconv.Atoi(parts[1])
 	if err != nil {
-		return nil, fmt.Errorf("cannot convert skuname %s capcity %s to int", skuName, parts[2])
+		return nil, fmt.Errorf("cannot convert skuname %s capacity %s to int", skuName, parts[2])
 	}
 
-	return &timeseriesinsights.Sku{
+	return &environments.Sku{
 		Name:     name,
-		Capacity: utils.Int32(int32(capacity)),
+		Capacity: int64(capacity),
 	}, nil
 }
 
-func flattenEnvironmentSkuName(input *timeseriesinsights.Sku) string {
-	if input == nil || input.Capacity == nil {
-		return ""
-	}
-
-	return fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
+func flattenEnvironmentSkuName(input environments.Sku) string {
+	return fmt.Sprintf("%s_%d", string(input.Name), input.Capacity)
 }

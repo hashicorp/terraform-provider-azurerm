@@ -122,6 +122,8 @@ The following arguments are supported:
 
 * `node_agent_sku_id` - (Required) Specifies the SKU of the node agents that will be created in the Batch pool. Changing this forces a new resource to be created.
 
+* `stop_pending_resize_operation` - (Optional) Whether to stop if there is a pending resize operation on this pool.
+
 * `vm_size` - (Required) Specifies the size of the VM created in the Batch pool. Changing this forces a new resource to be created.
 
 * `storage_image_reference` - (Required) A `storage_image_reference` for the virtual machines that will compose the Batch pool. Changing this forces a new resource to be created.
@@ -297,7 +299,7 @@ A `container` block supports the following:
 
 * `run_options` - (Optional) Additional options to the container create command. These additional options are supplied as arguments to the "docker create" command, in addition to those controlled by the Batch Service.
 
-* `registry` - (Optional) The same reference as `container_registries` block defined as follows.
+* `registry` - (Optional) The same reference as `container_registries` block defined as below.
 
 * `working_directory` - (Optional) A flag to indicate where the container task working directory is. The default is `TaskWorkingDirectory`, an alternative value is `ContainerImageDefault`.
 
@@ -341,7 +343,7 @@ A `container_configuration` block supports the following:
 
 * `container_image_names` - (Optional) A list of container image names to use, as would be specified by `docker pull`. Changing this forces a new resource to be created.
 
-* `container_registries` - (Optional) Additional container registries from which container images can be pulled by the pool's VMs. Changing this forces a new resource to be created.
+* `container_registries` - (Optional) One or more `container_registries` blocks as defined below. Additional container registries from which container images can be pulled by the pool's VMs. Changing this forces a new resource to be created.
 
 ---
 
@@ -471,7 +473,7 @@ A `endpoint_configuration` block supports the following:
 
 * `frontend_port_range` - (Required) The range of external ports that will be used to provide inbound access to the backendPort on individual compute nodes in the format of `1000-1100`. Acceptable values range between `1` and `65534` except ports from `50000` to `55000` which are reserved by the Batch service. All ranges within a pool must be distinct and cannot overlap. Values must be a range of at least `100` nodes. Changing this forces a new resource to be created.
 
-* `network_security_group_rules` - (Optional) A list of network security group rules that will be applied to the endpoint. The maximum number of rules that can be specified across all the endpoints on a Batch pool is `25`. If no network security group rules are specified, a default rule will be created to allow inbound access to the specified backendPort. Set as documented in the network_security_group_rules block below. Changing this forces a new resource to be created.
+* `network_security_group_rules` - (Optional) A list of `network_security_group_rules` blocks as defined below that will be applied to the endpoint. The maximum number of rules that can be specified across all the endpoints on a Batch pool is `25`. If no network security group rules are specified, a default rule will be created to allow inbound access to the specified backendPort. Set as documented in the network_security_group_rules block below. Changing this forces a new resource to be created.
 
 ---
 

@@ -243,11 +243,11 @@ func resourceApiManagementSubscriptionRead(d *pluginsdk.ResourceData, meta inter
 		// check if the subscription is for all apis or a specific product/ api
 		if props.Scope != nil && *props.Scope != "" && !strings.HasSuffix(*props.Scope, "/apis") {
 			// the scope is either a product or api id
-			parseId, err := parse.ProductID(*props.Scope)
+			parseId, err := parse.ProductIDInsensitively(*props.Scope)
 			if err == nil {
 				productId = parseId.ID()
 			} else {
-				parsedApiId, err := parse.ApiID(*props.Scope)
+				parsedApiId, err := parse.ApiIDInsensitively(*props.Scope)
 				if err != nil {
 					return fmt.Errorf("parsing scope into product/ api id %q: %+v", *props.Scope, err)
 				}

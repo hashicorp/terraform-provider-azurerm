@@ -260,7 +260,7 @@ func flattenRouteTableRoutes(input *[]network.Route) []interface{} {
 			if props := route.RoutePropertiesFormat; props != nil {
 				r["address_prefix"] = *props.AddressPrefix
 				r["next_hop_type"] = string(props.NextHopType)
-				if ip := props.NextHopIPAddress; ip != nil {
+				if ip := props.NextHopIPAddress; ip != nil && *ip != "" {
 					r["next_hop_in_ip_address"] = *ip
 				}
 			}

@@ -3,17 +3,17 @@ package iottimeseriesinsights
 import (
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/environments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/referencedatasets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -27,7 +27,7 @@ func resourceIoTTimeSeriesInsightsReferenceDataSet() *pluginsdk.Resource {
 		Update: resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate,
 		Delete: resourceIoTTimeSeriesInsightsReferenceDataSetDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ReferenceDataSetID(id)
+			_, err := referencedatasets.ParseReferenceDataSetID(id)
 			return err
 		}),
 
@@ -53,17 +53,17 @@ func resourceIoTTimeSeriesInsightsReferenceDataSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.TimeSeriesInsightsEnvironmentID,
+				ValidateFunc: environments.ValidateEnvironmentID,
 			},
 
 			"data_string_comparison_behavior": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(timeseriesinsights.Ordinal),
+				Default:  string(referencedatasets.DataStringComparisonBehaviorOrdinal),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(timeseriesinsights.Ordinal),
-					string(timeseriesinsights.OrdinalIgnoreCase),
+					string(referencedatasets.DataStringComparisonBehaviorOrdinal),
+					string(referencedatasets.DataStringComparisonBehaviorOrdinalIgnoreCase),
 				}, false),
 			},
 
@@ -84,10 +84,10 @@ func resourceIoTTimeSeriesInsightsReferenceDataSet() *pluginsdk.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(timeseriesinsights.ReferenceDataKeyPropertyTypeBool),
-								string(timeseriesinsights.ReferenceDataKeyPropertyTypeDateTime),
-								string(timeseriesinsights.ReferenceDataKeyPropertyTypeDouble),
-								string(timeseriesinsights.ReferenceDataKeyPropertyTypeString),
+								string(referencedatasets.ReferenceDataKeyPropertyTypeBool),
+								string(referencedatasets.ReferenceDataKeyPropertyTypeDateTime),
+								string(referencedatasets.ReferenceDataKeyPropertyTypeDouble),
+								string(referencedatasets.ReferenceDataKeyPropertyTypeString),
 							}, false),
 						},
 					},
@@ -96,48 +96,44 @@ func resourceIoTTimeSeriesInsightsReferenceDataSet() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSetsClient
+	client := meta.(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSets
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	environmentID := d.Get("time_series_insights_environment_id").(string)
-	envId, err := parse.EnvironmentID(environmentID)
+	environmentId, err := environments.ParseEnvironmentID(d.Get("time_series_insights_environment_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewReferenceDataSetID(envId.SubscriptionId, envId.ResourceGroup, envId.Name, d.Get("name").(string))
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
-
+	id := referencedatasets.NewReferenceDataSetID(environmentId.SubscriptionId, environmentId.ResourceGroupName, environmentId.EnvironmentName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_iot_time_series_insights_reference_data_set", id.ID())
 		}
 	}
 
-	dataset := timeseriesinsights.ReferenceDataSetCreateOrUpdateParameters{
-		Location: &location,
-		Tags:     tags.Expand(t),
-		ReferenceDataSetCreationProperties: &timeseriesinsights.ReferenceDataSetCreationProperties{
-			DataStringComparisonBehavior: timeseriesinsights.DataStringComparisonBehavior(d.Get("data_string_comparison_behavior").(string)),
+	payload := referencedatasets.ReferenceDataSetCreateOrUpdateParameters{
+		Location: location.Normalize(d.Get("location").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Properties: referencedatasets.ReferenceDataSetCreationProperties{
+			DataStringComparisonBehavior: pointer.To(referencedatasets.DataStringComparisonBehavior(d.Get("data_string_comparison_behavior").(string))),
 			KeyProperties:                expandIoTTimeSeriesInsightsReferenceDataSetKeyProperties(d.Get("key_property").(*pluginsdk.Set).List()),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.EnvironmentName, id.Name, dataset); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -147,63 +143,70 @@ func resourceIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *pluginsdk.Reso
 }
 
 func resourceIoTTimeSeriesInsightsReferenceDataSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSetsClient
+	client := meta.(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ReferenceDataSetID(d.Id())
+	id, err := referencedatasets.ParseReferenceDataSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
-	if err != nil || resp.ID == nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving IoT Time Series Insights Reference Data Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("time_series_insights_environment_id", strings.Split(d.Id(), "/referenceDataSets")[0])
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.ReferenceDataSetName)
+	d.Set("time_series_insights_environment_id", environments.NewEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.EnvironmentName).ID())
 
-	if props := resp.ReferenceDataSetResourceProperties; props != nil {
-		d.Set("data_string_comparison_behavior", string(props.DataStringComparisonBehavior))
-		if err := d.Set("key_property", flattenIoTTimeSeriesInsightsReferenceDataSetKeyProperties(props.KeyProperties)); err != nil {
-			return fmt.Errorf("setting `key_property`: %+v", err)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		if props := model.Properties; props != nil {
+			dataStringComparisonBehavior := ""
+			if props.DataStringComparisonBehavior != nil {
+				dataStringComparisonBehavior = string(*props.DataStringComparisonBehavior)
+			}
+			d.Set("data_string_comparison_behavior", dataStringComparisonBehavior)
+
+			if err := d.Set("key_property", flattenIoTTimeSeriesInsightsReferenceDataSetKeyProperties(props.KeyProperties)); err != nil {
+				return fmt.Errorf("setting `key_property`: %+v", err)
+			}
 		}
-	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func resourceIoTTimeSeriesInsightsReferenceDataSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSetsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.ReferenceDataSetID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	response, err := client.Delete(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting IoT Time Series Insights Reference Data Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
 
 	return nil
 }
 
-func expandIoTTimeSeriesInsightsReferenceDataSetKeyProperties(input []interface{}) *[]timeseriesinsights.ReferenceDataSetKeyProperty {
-	properties := make([]timeseriesinsights.ReferenceDataSetKeyProperty, 0)
+func resourceIoTTimeSeriesInsightsReferenceDataSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSets
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := referencedatasets.ParseReferenceDataSetID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func expandIoTTimeSeriesInsightsReferenceDataSetKeyProperties(input []interface{}) []referencedatasets.ReferenceDataSetKeyProperty {
+	properties := make([]referencedatasets.ReferenceDataSetKeyProperty, 0)
 
 	for _, v := range input {
 		if v == nil {
@@ -211,27 +214,32 @@ func expandIoTTimeSeriesInsightsReferenceDataSetKeyProperties(input []interface{
 		}
 		attr := v.(map[string]interface{})
 
-		properties = append(properties, timeseriesinsights.ReferenceDataSetKeyProperty{
-			Type: timeseriesinsights.ReferenceDataKeyPropertyType(attr["type"].(string)),
+		properties = append(properties, referencedatasets.ReferenceDataSetKeyProperty{
+			Type: pointer.To(referencedatasets.ReferenceDataKeyPropertyType(attr["type"].(string))),
 			Name: utils.String(attr["name"].(string)),
 		})
 	}
 
-	return &properties
+	return properties
 }
 
-func flattenIoTTimeSeriesInsightsReferenceDataSetKeyProperties(input *[]timeseriesinsights.ReferenceDataSetKeyProperty) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
+func flattenIoTTimeSeriesInsightsReferenceDataSetKeyProperties(input []referencedatasets.ReferenceDataSetKeyProperty) []interface{} {
 	properties := make([]interface{}, 0)
-	for _, property := range *input {
-		attr := make(map[string]interface{})
-		attr["type"] = string(property.Type)
-		if name := property.Name; name != nil {
-			attr["name"] = *property.Name
+	for _, property := range input {
+		propertyName := ""
+		if property.Name != nil {
+			propertyName = *property.Name
 		}
-		properties = append(properties, attr)
+
+		propertyType := ""
+		if property.Type != nil {
+			propertyType = string(*property.Type)
+		}
+
+		properties = append(properties, map[string]interface{}{
+			"name": propertyName,
+			"type": propertyType,
+		})
 	}
 
 	return properties

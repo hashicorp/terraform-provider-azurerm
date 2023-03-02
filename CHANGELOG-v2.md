@@ -1099,7 +1099,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_api_management_named_value` - support for system managed identities ([#12938](https://github.com/hashicorp/terraform-provider-azurerm/issues/12938))
-* `azurerm_application_insights_smart_detection_rule` - support all currenly availible rules in the SDK ([#12857](https://github.com/hashicorp/terraform-provider-azurerm/issues/12857))
+* `azurerm_application_insights_smart_detection_rule` - support all currently available rules in the SDK ([#12857](https://github.com/hashicorp/terraform-provider-azurerm/issues/12857))
 * `azurerm_function_app` - add support for `dotnet_framework_version` in ([#12883](https://github.com/hashicorp/terraform-provider-azurerm/issues/12883))
 * `azurerm_resource_group` - conditionally (based on the `prevent_deletion_if_contains_resources` features flag - see the 'Upgrade Notes' section) checking for nested Resources during deletion of the Resource Group and raising an error if Resources are found ([#12657](https://github.com/hashicorp/terraform-provider-azurerm/issues/12657))
 

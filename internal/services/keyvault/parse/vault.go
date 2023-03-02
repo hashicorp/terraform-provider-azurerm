@@ -67,3 +67,47 @@ func VaultID(input string) (*VaultId, error) {
 
 	return &resourceId, nil
 }
+
+// VaultIDInsensitively parses an Vault ID into an VaultId struct, insensitively
+// This should only be used to parse an ID for rewriting, the VaultID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func VaultIDInsensitively(input string) (*VaultId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := VaultId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'vaults' segment
+	vaultsKey := "vaults"
+	for key := range id.Path {
+		if strings.EqualFold(key, vaultsKey) {
+			vaultsKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(vaultsKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}

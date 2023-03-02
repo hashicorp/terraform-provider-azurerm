@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -71,13 +72,14 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew:         true,
 				Sensitive:        true,
 				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
+				ValidateFunc:     computeValidate.WindowsAdminPassword,
 			},
 
 			"admin_username": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: computeValidate.WindowsAdminUsername,
 			},
 
 			"network_interface_ids": {
@@ -132,7 +134,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     computeValidate.CapacityReservationGroupID,
+				ValidateFunc:     capacityreservationgroups.ValidateCapacityReservationGroupID,
 				ConflictsWith: []string{
 					"availability_set_id",
 					"proximity_placement_group_id",
