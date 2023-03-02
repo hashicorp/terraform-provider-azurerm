@@ -27,6 +27,8 @@ func alertRuleID(rule securityinsight.BasicAlertRule) *string {
 		return rule.ID
 	case securityinsight.NrtAlertRule:
 		return rule.ID
+	case securityinsight.ThreatIntelligenceAlertRule:
+		return rule.ID
 	default:
 		return nil
 	}
@@ -85,6 +87,8 @@ func assertAlertRuleKind(rule securityinsight.BasicAlertRule, expectKind securit
 		kind = securityinsight.AlertRuleKindScheduled
 	case securityinsight.NrtAlertRule:
 		kind = securityinsight.AlertRuleKindNRT
+	case securityinsight.ThreatIntelligenceAlertRule:
+		kind = securityinsight.AlertRuleKindThreatIntelligence
 	}
 	if expectKind != kind {
 		return fmt.Errorf("Sentinel Alert Rule has mismatched kind, expected: %q, got %q", expectKind, kind)
