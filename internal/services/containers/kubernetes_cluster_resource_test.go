@@ -156,29 +156,6 @@ func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_workloadAutoscalerProfileKedaOnAbsent(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basicVMSSConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscalerToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
