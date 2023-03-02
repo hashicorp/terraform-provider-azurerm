@@ -64,7 +64,7 @@ func resourceDnsTxtRecord() *pluginsdk.Resource {
 			},
 
 			"record": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -220,7 +220,7 @@ func flattenAzureRmDnsTxtRecords(records *[]recordsets.TxtRecord) []map[string]i
 
 	if records != nil {
 		for _, recordItem := range *records {
-			var record map[string]interface{}
+			record := map[string]interface{}{}
 
 			if recordValue := recordItem.Value; recordValue != nil {
 				if !features.FourPointOhBeta() {
@@ -243,7 +243,7 @@ func flattenAzureRmDnsTxtRecords(records *[]recordsets.TxtRecord) []map[string]i
 }
 
 func expandAzureRmDnsTxtRecords(d *pluginsdk.ResourceData) (*[]recordsets.TxtRecord, error) {
-	recordStrings := d.Get("record").(*pluginsdk.Set).List()
+	recordStrings := d.Get("record").([]interface{})
 	records := make([]recordsets.TxtRecord, len(recordStrings))
 
 	var recordValuesLength int
@@ -260,18 +260,23 @@ func expandAzureRmDnsTxtRecords(d *pluginsdk.ResourceData) (*[]recordsets.TxtRec
 				return nil, fmt.Errorf("`record.value` and `record.values` cannot be set together")
 			}
 
-			segmentLen := 255
-			for len(recordValue) > segmentLen {
-				values = append(values, recordValue[:segmentLen])
-				recordValue = recordValue[segmentLen:]
+			if recordValue != "" {
+				segmentLen := 255
+				for len(recordValue) > segmentLen {
+					values = append(values, recordValue[:segmentLen])
+					recordValue = recordValue[segmentLen:]
+				}
+
+				values = append(values, recordValue)
 			}
-			values = append(values, recordValue)
 		}
 
-		for _, recordVal := range recordValues {
-			recordValString := recordVal.(string)
-			recordValuesLength += len(recordValString)
-			values = append(values, recordValString)
+		if len(recordValues) > 0 {
+			for _, recordVal := range recordValues {
+				recordValString := recordVal.(string)
+				recordValuesLength += len(recordValString)
+				values = append(values, recordValString)
+			}
 		}
 
 		records[i] = recordsets.TxtRecord{
