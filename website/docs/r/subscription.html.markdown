@@ -96,7 +96,8 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Resource ID of the Alias.
-
+* `subscription_id` - The subscription GUID.
+* `subscription_name` - The subscription name.
 * `tenant_id` - The ID of the Tenant to which the subscription belongs.
 
 ## Timeouts
