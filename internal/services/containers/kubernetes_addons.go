@@ -115,6 +115,10 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: workspaces.ValidateWorkspaceID,
 					},
+					"msi_auth_for_monitoring_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
 					"oms_agent_identity": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -318,6 +322,10 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 			config["logAnalyticsWorkspaceResourceID"] = lawid.ID()
 		}
 
+		if useAADAuth, ok := value["msi_auth_for_monitoring_enabled"].(bool); ok {
+			config["useAADAuth"] = fmt.Sprintf("%t", useAADAuth)
+		}
+
 		addonProfiles[omsAgentKey] = managedclusters.ManagedClusterAddonProfile{
 			Enabled: true,
 			Config:  &config,
@@ -495,11 +503,13 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 			}
 		}
 
+		useAADAuth := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "useAADAuth")
 		omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
 
 		omsAgents = append(omsAgents, map[string]interface{}{
-			"log_analytics_workspace_id": workspaceID,
-			"oms_agent_identity":         omsAgentIdentity,
+			"log_analytics_workspace_id":      workspaceID,
+			"msi_auth_for_monitoring_enabled": useAADAuth,
+			"oms_agent_identity":              omsAgentIdentity,
 		})
 	}
 
