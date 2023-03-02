@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -18,7 +19,7 @@ import (
 )
 
 func resourceDnsTxtRecord() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDnsTxtRecordCreateUpdate,
 		Read:   resourceDnsTxtRecordRead,
 		Update: resourceDnsTxtRecordCreateUpdate,
@@ -67,10 +68,14 @@ func resourceDnsTxtRecord() *pluginsdk.Resource {
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"value": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringLenBetween(1, 1024),
+						"values": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: !features.FourPointOhBeta(),
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringLenBetween(1, 255),
+							},
 						},
 					},
 				},
@@ -89,6 +94,18 @@ func resourceDnsTxtRecord() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["record"].Elem.(*pluginsdk.Resource).Schema["value"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringLenBetween(1, 1024),
+			Deprecated:   "`value` will be removed in favour of the property `values` in version 4.0 of the AzureRM Provider.",
+		}
+	}
+
+	return resource
 }
 
 func resourceDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -121,11 +138,16 @@ func resourceDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	parameters := recordsets.RecordSet{
 		Name: &name,
 		Properties: &recordsets.RecordSetProperties{
-			Metadata:   tags.Expand(t),
-			TTL:        &ttl,
-			TXTRecords: expandAzureRmDnsTxtRecords(d),
+			Metadata: tags.Expand(t),
+			TTL:      &ttl,
 		},
 	}
+
+	records, err := expandAzureRmDnsTxtRecords(d)
+	if err != nil {
+		return err
+	}
+	parameters.Properties.TXTRecords = records
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
@@ -197,41 +219,69 @@ func flattenAzureRmDnsTxtRecords(records *[]recordsets.TxtRecord) []map[string]i
 	results := make([]map[string]interface{}, 0)
 
 	if records != nil {
-		for _, record := range *records {
-			value := ""
-			if v := record.Value; v != nil {
-				value = strings.Join(*v, "")
+		for _, recordItem := range *records {
+			var record map[string]interface{}
+
+			if recordValue := recordItem.Value; recordValue != nil {
+				if !features.FourPointOhBeta() {
+					value := strings.Join(*recordValue, "")
+					record["value"] = value
+				}
+
+				var values []string
+				for _, v := range *recordValue {
+					values = append(values, v)
+				}
+				record["values"] = values
 			}
 
-			results = append(results, map[string]interface{}{
-				"value": value,
-			})
+			results = append(results, record)
 		}
 	}
 
 	return results
 }
 
-func expandAzureRmDnsTxtRecords(d *pluginsdk.ResourceData) *[]recordsets.TxtRecord {
+func expandAzureRmDnsTxtRecords(d *pluginsdk.ResourceData) (*[]recordsets.TxtRecord, error) {
 	recordStrings := d.Get("record").(*pluginsdk.Set).List()
 	records := make([]recordsets.TxtRecord, len(recordStrings))
 
-	segmentLen := 254
+	var recordValuesLength int
 	for i, v := range recordStrings {
 		record := v.(map[string]interface{})
-		v := record["value"].(string)
+		recordValues := record["values"].([]interface{})
 
-		var value []string
-		for len(v) > segmentLen {
-			value = append(value, v[:segmentLen])
-			v = v[segmentLen:]
+		var values []string
+
+		if !features.FourPointOhBeta() {
+			recordValue := record["value"].(string)
+
+			if recordValue != "" && len(recordValues) > 0 {
+				return nil, fmt.Errorf("`record.value` and `record.values` cannot be set together")
+			}
+
+			segmentLen := 255
+			for len(recordValue) > segmentLen {
+				values = append(values, recordValue[:segmentLen])
+				recordValue = recordValue[segmentLen:]
+			}
+			values = append(values, recordValue)
 		}
-		value = append(value, v)
+
+		for _, recordVal := range recordValues {
+			recordValString := recordVal.(string)
+			recordValuesLength += len(recordValString)
+			values = append(values, recordValString)
+		}
 
 		records[i] = recordsets.TxtRecord{
-			Value: &value,
+			Value: &values,
 		}
 	}
 
-	return &records
+	if recordValuesLength > 1024 {
+		return nil, fmt.Errorf("max length of all record values cannot exceed 1024 characters")
+	}
+
+	return &records, nil
 }
