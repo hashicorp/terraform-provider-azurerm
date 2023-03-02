@@ -221,11 +221,15 @@ func expandDatabricksVirtualNetworkPeeringProperties(d *pluginsdk.ResourceData) 
 		AllowForwardedTraffic:     &allowForwardedTraffic,
 		AllowGatewayTransit:       &allowGatewayTransit,
 		AllowVirtualNetworkAccess: &allowVirtualNetworkAccess,
-		DatabricksAddressSpace:    &vnetpeering.AddressSpace{databricksAddressSpace},
+		DatabricksAddressSpace: &vnetpeering.AddressSpace{
+			AddressPrefixes: databricksAddressSpace,
+		},
 		DatabricksVirtualNetwork: &vnetpeering.VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork{
 			Id: utils.String(databricksVirtualNetwork),
 		},
-		RemoteAddressSpace: &vnetpeering.AddressSpace{remoteAddressSpace},
+		RemoteAddressSpace: &vnetpeering.AddressSpace{
+			AddressPrefixes: remoteAddressSpace,
+		},
 		RemoteVirtualNetwork: vnetpeering.VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork{
 			Id: utils.String(remoteVirtualNetwork),
 		},
