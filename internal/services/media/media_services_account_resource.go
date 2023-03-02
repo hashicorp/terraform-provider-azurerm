@@ -523,10 +523,9 @@ func flattenMediaServicesAccountIdentity(input *accounts.MediaServiceIdentity) (
 }
 
 func expandMediaServicesAccountKeyDelivery(input []interface{}) *accounts.KeyDelivery {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-
 	keyDelivery, ok := input[0].(map[string]interface{})
 	if !ok {
 		return nil
