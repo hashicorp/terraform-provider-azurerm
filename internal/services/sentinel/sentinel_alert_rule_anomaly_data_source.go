@@ -25,7 +25,6 @@ type AlertRuleAnomalyDataSourceModel struct {
 	Description                  string                                  `tfschema:"description"`
 	Enabled                      bool                                    `tfschema:"enabled"`
 	Frequency                    string                                  `tfschema:"frequency"`
-	IsDefaultSettings            bool                                    `tfschema:"is_default_settings"`
 	RequiredDataConnectors       []AnomalyRuleRequiredDataConnectorModel `tfschema:"required_data_connector"`
 	SettingsDefinitionId         string                                  `tfschema:"settings_definition_id"`
 	Mode                         string                                  `tfschema:"mode"`
@@ -91,11 +90,6 @@ func (a AlertRuleAnomalyDataSource) Attributes() map[string]*schema.Schema {
 
 		"frequency": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"is_default_settings": {
-			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 
@@ -231,9 +225,6 @@ func (a AlertRuleAnomalyDataSource) Read() sdk.ResourceFunc {
 			}
 			if setting.Frequency != nil {
 				state.Frequency = *setting.Frequency
-			}
-			if setting.IsDefaultSettings != nil {
-				state.IsDefaultSettings = *setting.IsDefaultSettings
 			}
 			state.RequiredDataConnectors = flattenSentinelAlertRuleAnomalyRequiredDataConnectors(setting.RequiredDataConnectors)
 			if setting.SettingsDefinitionID != nil {
