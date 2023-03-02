@@ -698,9 +698,8 @@ resource "azurerm_windows_function_app_slot" "test" {
 
     login {}
   }
-
-  
-  backup {
+ 
+backup {
     name                = "acctest"
     storage_account_url = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
     schedule {
@@ -733,14 +732,13 @@ resource "azurerm_windows_function_app_slot" "test" {
     always_on          = true
     app_command_line   = "whoami"
     api_definition_url = "https://example.com/azure_function_app_def.json"
+    // api_management_api_id = ""  // TODO
+    application_insights_key               = azurerm_application_insights.test.instrumentation_key
     application_insights_connection_string = azurerm_application_insights.test.connection_string
 
     application_stack {
-      python_version = "3.8"
+      powershell_core_version = "7"
     }
-
-    container_registry_use_managed_identity       = true
-    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
     default_documents = [
       "first.html",
