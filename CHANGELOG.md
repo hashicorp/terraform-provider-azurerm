@@ -23,6 +23,7 @@ ENHANCEMENTS
 * `sentinel/alert_rule` - switching to use github.com/hashicorp/go-azure-sdk [GH-20680]
 * `azurerm_app_service_connection` - support for the `secret_store` block [GH-20613]
 * `express_route_circuit_peering_resource` - support for the `advertised_communities` property [GH-20708]
+* `azurerm_healthcare_service` - extend range of the cosmosdb_throughput to a maximum of `100000` [GH-20755]
 * `azurerm_key_vault_key` - support for the `rotation_policy` block [GH-19113]
 * `azurerm_kubernetes_cluster` - add support for the `Standard` `sku_tier` [GH-20734]
 * `azurerm_linux_function_app` - add support for AuthV2 (EasyAuthV2) `auth_settings_v2` [GH-20722]
