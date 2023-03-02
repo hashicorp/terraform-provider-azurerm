@@ -3,7 +3,6 @@ package databricks
 import (
 	"fmt"
 	"log"
-	"strings"
 	"sync"
 	"time"
 
@@ -12,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/vnetpeering"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -175,13 +173,13 @@ func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("name", id.VirtualNetworkPeeringName)
 
-	if peer := resp.Model.Properties; peer != nil {
-		d.Set("allow_virtual_network_access", peer.AllowVirtualNetworkAccess)
-		d.Set("allow_forwarded_traffic", peer.AllowForwardedTraffic)
-		d.Set("allow_gateway_transit", peer.AllowGatewayTransit)
-		d.Set("use_remote_gateways", peer.UseRemoteGateways)
-		d.Set("virtual_network_id", peer.RemoteVirtualNetwork.Id)
-		if network := peer.RemoteVirtualNetwork.Id; network != nil {
+	if model := resp.Model; model != nil {
+		d.Set("allow_virtual_network_access", model.Properties.AllowVirtualNetworkAccess)
+		d.Set("allow_forwarded_traffic", model.Properties.AllowForwardedTraffic)
+		d.Set("allow_gateway_transit", model.Properties.AllowGatewayTransit)
+		d.Set("use_remote_gateways", model.Properties.UseRemoteGateways)
+		d.Set("virtual_network_id", model.Properties.RemoteVirtualNetwork.Id)
+		if network := model.Properties.RemoteVirtualNetwork.Id; network != nil {
 			d.Set("remote_virtual_network_id", network)
 		}
 	}
@@ -194,7 +192,7 @@ func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabricksVirtualNetworkPeeringID(d.Id())
+	id, err := vnetpeering.ParseVirtualNetworkPeeringID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -202,13 +200,8 @@ func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, me
 	peerMutex.Lock()
 	defer peerMutex.Unlock()
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return err
@@ -242,25 +235,25 @@ func expandDatabricksVirtualNetworkPeeringProperties(d *pluginsdk.ResourceData) 
 
 func retryVnetPeeringsClientCreateUpdate(d *pluginsdk.ResourceData, id vnetpeering.VirtualNetworkPeeringId, peer vnetpeering.VirtualNetworkPeering, meta interface{}) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
-		vnetPeeringsClient := meta.(*clients.Client).DataBricks.VnetPeeringsClient
-		ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-		defer cancel()
+		// vnetPeeringsClient := meta.(*clients.Client).DataBricks.VnetPeeringsClient
+		// ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+		// defer cancel()
 
-		future, err := vnetPeeringsClient.CreateOrUpdate(ctx, id, peer)
-		if err != nil {
-			if utils.ResponseErrorIsRetryable(err) {
-				return pluginsdk.RetryableError(err)
-			} else if future.Response().StatusCode == 400 && strings.Contains(err.Error(), "ReferencedResourceNotProvisioned") {
-				// Resource is not yet ready, this may be the case if the Vnet was just created or another peering was just initiated.
-				return pluginsdk.RetryableError(err)
-			}
+		// future, err := vnetPeeringsClient.CreateOrUpdate(ctx, id, peer)
+		// if err != nil {
+		// 	if utils.ResponseErrorIsRetryable(err) {
+		// 		return pluginsdk.RetryableError(err)
+		// 	} else if future.Response().StatusCode == 400 && strings.Contains(err.Error(), "ReferencedResourceNotProvisioned") {
+		// 		// Resource is not yet ready, this may be the case if the Vnet was just created or another peering was just initiated.
+		// 		return pluginsdk.RetryableError(err)
+		// 	}
 
-			return pluginsdk.NonRetryableError(err)
-		}
+		// 	return pluginsdk.NonRetryableError(err)
+		// }
 
-		if err = future.WaitForCompletionRef(ctx, vnetPeeringsClient.Client); err != nil {
-			return pluginsdk.NonRetryableError(err)
-		}
+		// if err = future.WaitForCompletionRef(ctx, vnetPeeringsClient.Client); err != nil {
+		// 	return pluginsdk.NonRetryableError(err)
+		// }
 
 		return nil
 	}
