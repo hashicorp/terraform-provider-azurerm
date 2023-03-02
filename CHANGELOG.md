@@ -9,6 +9,7 @@ ENHANCEMENTS
 
 * dependencies: updating to `v0.20230228.1160358` of `github.com/hashicorp/go-azure-sdk` [GH-20688]
 * dependencies: updating to `v0.20230224.1120200` of `github.com/tombuildsstuff/kermit` [GH-20649]
+* `aadb2c`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20715]
 * `databoxedge` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
 * `dns`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20688]
 * `maps`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20688]
