@@ -20,7 +20,6 @@ ENHANCEMENTS
 * `policy/assignment` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
 * `sentinel/alert_rule` - switching to use github.com/hashicorp/go-azure-sdk [GH-20680]
 * `azurerm_app_service_connection` - support for the `secret_store` block [GH-20613]
-* `azurerm_container_app` - the `traffic_weight` block is now optional [GH-20574]
 * `express_route_circuit_peering_resource` - support for the `advertised_communities` property [GH-20708]
 * `azurerm_key_vault_key` - support for the `rotation_policy` block [GH-19113]
 * `azurerm_media_streaming_policy` - add support for `common_encryption_cbcs.clear_key_encryption`, `common_encryption_cenc.clear_key_encryption`, `common_encryption_cenc.clear_track`, `common_encryption_cenc.content_key_to_track_mapping` and `envelope_encryption` [GH-20524]
