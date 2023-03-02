@@ -469,10 +469,7 @@ func expandAutomationRuleActions(d *pluginsdk.ResourceData, defaultTenantId stri
 	if err != nil {
 		return nil, err
 	}
-	actionPlaybook, err := expandAutomationRuleActionPlaybook(d.Get("action_playbook").([]interface{}), defaultTenantId)
-	if err != nil {
-		return nil, err
-	}
+	actionPlaybook := expandAutomationRuleActionPlaybook(d.Get("action_playbook").([]interface{}), defaultTenantId)
 
 	if len(actionIncident)+len(actionPlaybook) == 0 {
 		return nil, nil
@@ -631,11 +628,7 @@ func flattenAutomationRuleActionIncident(input automationrules.AutomationRuleMod
 	}
 }
 
-func expandAutomationRuleActionPlaybook(input []interface{}, defaultTenantId string) ([]automationrules.AutomationRuleAction, error) {
-	if len(input) == 0 {
-		return nil, nil
-	}
-
+func expandAutomationRuleActionPlaybook(input []interface{}, defaultTenantId string) []automationrules.AutomationRuleAction {
 	out := make([]automationrules.AutomationRuleAction, 0, len(input))
 	for _, b := range input {
 		b := b.(map[string]interface{})
@@ -653,7 +646,7 @@ func expandAutomationRuleActionPlaybook(input []interface{}, defaultTenantId str
 			},
 		})
 	}
-	return out, nil
+	return out
 }
 
 func flattenAutomationRuleActionPlaybook(input automationrules.AutomationRuleRunPlaybookAction) map[string]interface{} {
