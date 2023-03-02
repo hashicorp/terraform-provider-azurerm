@@ -145,7 +145,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
 		SkipProviderReg:             builder.SkipProviderRegistration,
-		StorageUseAzureAD:           builder.StorageUseAzureAD
+		StorageUseAzureAD:           builder.StorageUseAzureAD,
 
 		// TODO: remove when `Azure/go-autorest` is no longer used
 		AzureEnvironment:        *azureEnvironment,
@@ -158,8 +158,6 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	if features.EnhancedValidationEnabled() {
 		location.CacheSupportedLocations(ctx, *resourceManagerEndpoint)
-		resourceproviders.CacheSupportedProviders(ctx, client.Resource.ProvidersClient)
-		location.CacheSupportedLocations(ctx, env.ResourceManagerEndpoint)
 		_, err := resourceproviders.CachedSupportedProviders(ctx, client.Resource.ProvidersClient)
 		if err != nil {
 			log.Printf("[DEBUG] error retrieving providers: %+v. Enhanced validation will be unavailable", err)
