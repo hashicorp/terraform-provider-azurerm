@@ -5,16 +5,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountpartners"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogicAppIntegrationAccountPartner() *pluginsdk.Resource {
@@ -32,7 +31,7 @@ func resourceLogicAppIntegrationAccountPartner() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.IntegrationAccountPartnerID(id)
+			_, err := integrationaccountpartners.ParsePartnerID(id)
 			return err
 		}),
 
@@ -89,37 +88,36 @@ func resourceLogicAppIntegrationAccountPartnerCreateUpdate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewIntegrationAccountPartnerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
+	id := integrationaccountpartners.NewPartnerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.PartnerName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_logic_app_integration_account_partner", id.ID())
 		}
 	}
 
-	parameters := logic.IntegrationAccountPartner{
-		IntegrationAccountPartnerProperties: &logic.IntegrationAccountPartnerProperties{
-			Content: &logic.PartnerContent{
-				B2b: &logic.B2BPartnerContent{
+	parameters := integrationaccountpartners.IntegrationAccountPartner{
+		Properties: integrationaccountpartners.IntegrationAccountPartnerProperties{
+			Content: integrationaccountpartners.PartnerContent{
+				B2b: &integrationaccountpartners.B2BPartnerContent{
 					BusinessIdentities: expandIntegrationAccountPartnerBusinessIdentity(d.Get("business_identity").(*pluginsdk.Set).List()),
 				},
 			},
-			PartnerType: logic.PartnerTypeB2B,
+			PartnerType: integrationaccountpartners.PartnerTypeBTwoB,
 		},
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {
-		metadata, _ := pluginsdk.ExpandJsonFromString(v.(string))
-		parameters.IntegrationAccountPartnerProperties.Metadata = metadata
+		parameters.Properties.Metadata = &v
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IntegrationAccountName, id.PartnerName, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -132,14 +130,14 @@ func resourceLogicAppIntegrationAccountPartnerRead(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationAccountPartnerID(d.Id())
+	id, err := integrationaccountpartners.ParsePartnerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.PartnerName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -148,20 +146,19 @@ func resourceLogicAppIntegrationAccountPartnerRead(d *pluginsdk.ResourceData, me
 	}
 
 	d.Set("name", id.PartnerName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("integration_account_name", id.IntegrationAccountName)
 
-	if props := resp.IntegrationAccountPartnerProperties; props != nil {
-		if props.Content != nil && props.Content.B2b != nil && props.Content.B2b.BusinessIdentities != nil {
+	if model := resp.Model; model != nil {
+		props := model.Properties
+		if props.Content.B2b != nil && props.Content.B2b.BusinessIdentities != nil {
 			if err := d.Set("business_identity", flattenIntegrationAccountPartnerBusinessIdentity(props.Content.B2b.BusinessIdentities)); err != nil {
 				return fmt.Errorf("setting `business_identity`: %+v", err)
 			}
 		}
 
 		if props.Metadata != nil {
-			metadataValue := props.Metadata.(map[string]interface{})
-			metadataStr, _ := pluginsdk.FlattenJsonToString(metadataValue)
-			d.Set("metadata", metadataStr)
+			d.Set("metadata", props.Metadata)
 		}
 	}
 
@@ -173,53 +170,43 @@ func resourceLogicAppIntegrationAccountPartnerDelete(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationAccountPartnerID(d.Id())
+	id, err := integrationaccountpartners.ParsePartnerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.IntegrationAccountName, id.PartnerName); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandIntegrationAccountPartnerBusinessIdentity(input []interface{}) *[]logic.BusinessIdentity {
-	results := make([]logic.BusinessIdentity, 0)
+func expandIntegrationAccountPartnerBusinessIdentity(input []interface{}) *[]integrationaccountpartners.BusinessIdentity {
+	results := make([]integrationaccountpartners.BusinessIdentity, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		results = append(results, logic.BusinessIdentity{
-			Qualifier: utils.String(v["qualifier"].(string)),
-			Value:     utils.String(v["value"].(string)),
+		results = append(results, integrationaccountpartners.BusinessIdentity{
+			Qualifier: v["qualifier"].(string),
+			Value:     v["value"].(string),
 		})
 	}
 
 	return &results
 }
 
-func flattenIntegrationAccountPartnerBusinessIdentity(input *[]logic.BusinessIdentity) []interface{} {
+func flattenIntegrationAccountPartnerBusinessIdentity(input *[]integrationaccountpartners.BusinessIdentity) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		var qualifier string
-		if item.Qualifier != nil {
-			qualifier = *item.Qualifier
-		}
-
-		var value string
-		if item.Value != nil {
-			value = *item.Value
-		}
-
 		results = append(results, map[string]interface{}{
-			"qualifier": qualifier,
-			"value":     value,
+			"qualifier": item.Qualifier,
+			"value":     item.Value,
 		})
 	}
 

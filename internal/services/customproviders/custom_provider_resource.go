@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/customproviders/mgmt/2018-09-01-preview/customproviders" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -68,10 +67,10 @@ func resourceCustomProvider() *pluginsdk.Resource {
 						"routing_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(customproviders.ResourceTypeRoutingProxy),
+							Default:  string(customresourceprovider.ResourceTypeRoutingProxy),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(customproviders.ResourceTypeRoutingProxy),
-								string(customproviders.ResourceTypeRoutingProxyCache),
+								string(customresourceprovider.ResourceTypeRoutingProxy),
+								string(customresourceprovider.ResourceTypeRoutingProxyCache),
 							}, false),
 						},
 					},

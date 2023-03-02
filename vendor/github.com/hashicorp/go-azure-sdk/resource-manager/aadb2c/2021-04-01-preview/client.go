@@ -5,6 +5,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants"
 )
 
+// Copyright (c) HashiCorp Inc. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 type Client struct {
 	Tenants *tenants.TenantsClient
 }

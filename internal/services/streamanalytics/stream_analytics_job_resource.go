@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/transformations"
@@ -253,7 +254,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	props := streamingjobs.StreamingJob{
-		Name:     utils.String(id.JobName),
+		Name:     utils.String(id.StreamingJobName),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: &streamingjobs.StreamingJobProperties{
 			Sku: &streamingjobs.Sku{
@@ -338,7 +339,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 				}
 			}
 
-			transformationId := transformations.NewTransformationID(subscriptionId, id.ResourceGroupName, id.JobName, *transformation.Name)
+			transformationId := transformations.NewTransformationID(subscriptionId, id.ResourceGroupName, id.StreamingJobName, *transformation.Name)
 
 			var updateOpts transformations.UpdateOperationOptions
 			if _, err := transformationsClient.Update(ctx, transformationId, transformationUpdate, updateOpts); err != nil {
@@ -374,11 +375,11 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.JobName)
+	d.Set("name", id.StreamingJobName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(*model.Location))
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if err := d.Set("identity", flattenJobIdentity(model.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %v", err)

@@ -126,8 +126,8 @@ func resourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.SnapshotName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("account_name", id.AccountName)
-	d.Set("pool_name", id.PoolName)
+	d.Set("account_name", id.NetAppAccountName)
+	d.Set("pool_name", id.CapacityPoolName)
 	d.Set("volume_name", id.VolumeName)
 
 	if model := resp.Model; model != nil {
@@ -183,6 +183,10 @@ func netappSnapshotDeleteStateRefreshFunc(ctx context.Context, client *snapshots
 			}
 		}
 
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
 	}
 }

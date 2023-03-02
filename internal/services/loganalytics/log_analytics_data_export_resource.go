@@ -152,7 +152,7 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 			destinationId = namespaces.NewNamespaceID(eventhubId.SubscriptionId, eventhubId.ResourceGroupName, eventhubId.NamespaceName).ID()
 			parameters.Properties.Destination.ResourceId = destinationId
 			parameters.Properties.Destination.MetaData = &dataexport.DestinationMetaData{
-				EventHubName: utils.String(eventhubId.EventHubName),
+				EventHubName: utils.String(eventhubId.EventhubName),
 			}
 		}
 	}
@@ -240,7 +240,7 @@ func flattenDataExportDestination(input *dataexport.Destination) (string, error)
 		if *input.Type == dataexport.TypeEventHub {
 			if input.MetaData != nil && input.MetaData.EventHubName != nil {
 				eventhubName := *input.MetaData.EventHubName
-				eventhubNamespaceId, err := eventhubs.ParseNamespaceID(resourceID)
+				eventhubNamespaceId, err := eventhubs.ParseNamespaceIDInsensitively(resourceID)
 				eventhubId := eventhubs.NewEventhubID(eventhubNamespaceId.SubscriptionId, eventhubNamespaceId.ResourceGroupName, eventhubNamespaceId.NamespaceName, eventhubName)
 				if err != nil {
 					return "", fmt.Errorf("parsing destination eventhub namespace ID error")

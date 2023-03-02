@@ -6,13 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -67,10 +66,26 @@ func TestAccDataConnectorThreatIntelligenceTAXII_basic(t *testing.T) {
 	r := NewDataConnectorThreatIntelligenceTAXIIResource()
 	r.preCheck(t, false)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("user_name", "password"),
+	})
+}
+
+func TestAccDataConnectorThreatIntelligenceTAXII_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_data_connector_threat_intelligence_taxii", "test")
+	r := NewDataConnectorThreatIntelligenceTAXIIResource()
+	r.preCheck(t, false)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -83,24 +98,24 @@ func TestAccDataConnectorThreatIntelligenceTAXII_update(t *testing.T) {
 	r := NewDataConnectorThreatIntelligenceTAXIIResource()
 	r.preCheck(t, true)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("user_name", "password"),
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("user_name", "password"),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -113,10 +128,10 @@ func TestAccDataConnectorThreatIntelligenceTAXII_requiresImport(t *testing.T) {
 	r := NewDataConnectorThreatIntelligenceTAXIIResource()
 	r.preCheck(t, false)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -124,7 +139,7 @@ func TestAccDataConnectorThreatIntelligenceTAXII_requiresImport(t *testing.T) {
 	})
 }
 
-func (r DataConnectorThreatIntelligenceTAXIIResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r DataConnectorThreatIntelligenceTAXIIResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := azuresdkhacks.DataConnectorsClient{BaseClient: clients.Sentinel.DataConnectorsClient.BaseClient}
 
 	id, err := parse.DataConnectorID(state.ID)
@@ -155,6 +170,26 @@ resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "test" {
   collection_id              = "%s"
   user_name                  = "%s"
   password                   = "%s"
+  depends_on                 = [azurerm_log_analytics_solution.test]
+}
+`, template, data.RandomInteger, r.taxiiInfo.APIRootURL, r.taxiiInfo.CollectionID, r.taxiiInfo.UserName, r.taxiiInfo.Password)
+}
+
+func (r DataConnectorThreatIntelligenceTAXIIResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "test" {
+  name                       = "acctestDC-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  display_name               = "test_update"
+  api_root_url               = "%s"
+  collection_id              = "%s"
+  user_name                  = "%s"
+  password                   = "%s"
+  polling_frequency          = "OnceADay"
+  lookback_date              = "1990-01-01T00:00:00Z"
   depends_on                 = [azurerm_log_analytics_solution.test]
 }
 `, template, data.RandomInteger, r.taxiiInfo.APIRootURL, r.taxiiInfo.CollectionID, r.taxiiInfo.UserName, r.taxiiInfo.Password)

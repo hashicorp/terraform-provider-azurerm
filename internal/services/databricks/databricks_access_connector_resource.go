@@ -42,7 +42,7 @@ func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"identity": commonschema.SystemAssignedIdentityRequired(),
+		"identity": commonschema.SystemAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -160,7 +160,7 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 			}
 
 			state := AccessConnectorResourceModel{
-				Name:          id.ConnectorName,
+				Name:          id.AccessConnectorName,
 				Location:      location.NormalizeNilable(utils.String(resp.Model.Location)),
 				ResourceGroup: id.ResourceGroupName,
 			}

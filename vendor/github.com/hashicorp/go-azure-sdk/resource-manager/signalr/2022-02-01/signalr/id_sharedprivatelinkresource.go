@@ -7,22 +7,25 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = SharedPrivateLinkResourceId{}
 
 // SharedPrivateLinkResourceId is a struct representing the Resource ID for a Shared Private Link Resource
 type SharedPrivateLinkResourceId struct {
 	SubscriptionId                string
 	ResourceGroupName             string
-	ResourceName                  string
+	SignalRName                   string
 	SharedPrivateLinkResourceName string
 }
 
 // NewSharedPrivateLinkResourceID returns a new SharedPrivateLinkResourceId struct
-func NewSharedPrivateLinkResourceID(subscriptionId string, resourceGroupName string, resourceName string, sharedPrivateLinkResourceName string) SharedPrivateLinkResourceId {
+func NewSharedPrivateLinkResourceID(subscriptionId string, resourceGroupName string, signalRName string, sharedPrivateLinkResourceName string) SharedPrivateLinkResourceId {
 	return SharedPrivateLinkResourceId{
 		SubscriptionId:                subscriptionId,
 		ResourceGroupName:             resourceGroupName,
-		ResourceName:                  resourceName,
+		SignalRName:                   signalRName,
 		SharedPrivateLinkResourceName: sharedPrivateLinkResourceName,
 	}
 }
@@ -46,8 +49,8 @@ func ParseSharedPrivateLinkResourceID(input string) (*SharedPrivateLinkResourceI
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.SignalRName, ok = parsed.Parsed["signalRName"]; !ok {
+		return nil, fmt.Errorf("the segment 'signalRName' was not found in the resource id %q", input)
 	}
 
 	if id.SharedPrivateLinkResourceName, ok = parsed.Parsed["sharedPrivateLinkResourceName"]; !ok {
@@ -77,8 +80,8 @@ func ParseSharedPrivateLinkResourceIDInsensitively(input string) (*SharedPrivate
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.SignalRName, ok = parsed.Parsed["signalRName"]; !ok {
+		return nil, fmt.Errorf("the segment 'signalRName' was not found in the resource id %q", input)
 	}
 
 	if id.SharedPrivateLinkResourceName, ok = parsed.Parsed["sharedPrivateLinkResourceName"]; !ok {
@@ -106,7 +109,7 @@ func ValidateSharedPrivateLinkResourceID(input interface{}, key string) (warning
 // ID returns the formatted Shared Private Link Resource ID
 func (id SharedPrivateLinkResourceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/signalR/%s/sharedPrivateLinkResources/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.SharedPrivateLinkResourceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.SignalRName, id.SharedPrivateLinkResourceName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Shared Private Link Resource ID
@@ -119,7 +122,7 @@ func (id SharedPrivateLinkResourceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticSignalR", "signalR", "signalR"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("signalRName", "signalRValue"),
 		resourceids.StaticSegment("staticSharedPrivateLinkResources", "sharedPrivateLinkResources", "sharedPrivateLinkResources"),
 		resourceids.UserSpecifiedSegment("sharedPrivateLinkResourceName", "sharedPrivateLinkResourceValue"),
 	}
@@ -130,7 +133,7 @@ func (id SharedPrivateLinkResourceId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Signal R Name: %q", id.SignalRName),
 		fmt.Sprintf("Shared Private Link Resource Name: %q", id.SharedPrivateLinkResourceName),
 	}
 	return fmt.Sprintf("Shared Private Link Resource (%s)", strings.Join(components, "\n"))

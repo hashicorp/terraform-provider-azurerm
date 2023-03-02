@@ -150,7 +150,7 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.ResourceName)
+	d.Set("name", id.SignalRName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -316,8 +316,8 @@ func resourceArmSignalRServiceDelete(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err := future.Poller.PollUntilDone(); err != nil {
-		if !response.WasNotFound(future.Poller.HttpResponse) {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
+		if r := future.Poller.LatestResponse(); r == nil || !response.WasNotFound(r.Response) {
 			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 		}
 	}

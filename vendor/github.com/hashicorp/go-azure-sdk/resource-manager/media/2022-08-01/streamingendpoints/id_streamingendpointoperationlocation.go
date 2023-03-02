@@ -7,23 +7,26 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = StreamingEndpointOperationLocationId{}
 
 // StreamingEndpointOperationLocationId is a struct representing the Resource ID for a Streaming Endpoint Operation Location
 type StreamingEndpointOperationLocationId struct {
 	SubscriptionId        string
 	ResourceGroupName     string
-	AccountName           string
+	MediaServiceName      string
 	StreamingEndpointName string
 	OperationId           string
 }
 
 // NewStreamingEndpointOperationLocationID returns a new StreamingEndpointOperationLocationId struct
-func NewStreamingEndpointOperationLocationID(subscriptionId string, resourceGroupName string, accountName string, streamingEndpointName string, operationId string) StreamingEndpointOperationLocationId {
+func NewStreamingEndpointOperationLocationID(subscriptionId string, resourceGroupName string, mediaServiceName string, streamingEndpointName string, operationId string) StreamingEndpointOperationLocationId {
 	return StreamingEndpointOperationLocationId{
 		SubscriptionId:        subscriptionId,
 		ResourceGroupName:     resourceGroupName,
-		AccountName:           accountName,
+		MediaServiceName:      mediaServiceName,
 		StreamingEndpointName: streamingEndpointName,
 		OperationId:           operationId,
 	}
@@ -48,8 +51,8 @@ func ParseStreamingEndpointOperationLocationID(input string) (*StreamingEndpoint
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.StreamingEndpointName, ok = parsed.Parsed["streamingEndpointName"]; !ok {
@@ -83,8 +86,8 @@ func ParseStreamingEndpointOperationLocationIDInsensitively(input string) (*Stre
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.StreamingEndpointName, ok = parsed.Parsed["streamingEndpointName"]; !ok {
@@ -116,7 +119,7 @@ func ValidateStreamingEndpointOperationLocationID(input interface{}, key string)
 // ID returns the formatted Streaming Endpoint Operation Location ID
 func (id StreamingEndpointOperationLocationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaServices/%s/streamingEndpoints/%s/operationLocations/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.StreamingEndpointName, id.OperationId)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName, id.StreamingEndpointName, id.OperationId)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Streaming Endpoint Operation Location ID
@@ -129,7 +132,7 @@ func (id StreamingEndpointOperationLocationId) Segments() []resourceids.Segment 
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMedia", "Microsoft.Media", "Microsoft.Media"),
 		resourceids.StaticSegment("staticMediaServices", "mediaServices", "mediaServices"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("mediaServiceName", "mediaServiceValue"),
 		resourceids.StaticSegment("staticStreamingEndpoints", "streamingEndpoints", "streamingEndpoints"),
 		resourceids.UserSpecifiedSegment("streamingEndpointName", "streamingEndpointValue"),
 		resourceids.StaticSegment("staticOperationLocations", "operationLocations", "operationLocations"),
@@ -142,7 +145,7 @@ func (id StreamingEndpointOperationLocationId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Media Service Name: %q", id.MediaServiceName),
 		fmt.Sprintf("Streaming Endpoint Name: %q", id.StreamingEndpointName),
 		fmt.Sprintf("Operation: %q", id.OperationId),
 	}

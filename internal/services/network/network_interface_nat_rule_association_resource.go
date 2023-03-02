@@ -10,12 +10,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	loadBalancerParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
@@ -28,7 +29,7 @@ func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
 			if _, err := parse.NetworkInterfaceIpConfigurationID(splitId[0]); err != nil {
 				return err
 			}
-			if _, err := parse.InboundNatRuleID(splitId[1]); err != nil {
+			if _, err := loadBalancerParse.LoadBalancerInboundNatRuleID(splitId[1]); err != nil {
 				return err
 			}
 			return nil

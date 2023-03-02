@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := inputs.NewInputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue", "inputValue")
+id := inputs.NewInputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobValue", "inputValue")
 
 payload := inputs.Input{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := inputs.NewInputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue", "inputValue")
+id := inputs.NewInputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobValue", "inputValue")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := inputs.NewInputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue", "inputValue")
+id := inputs.NewInputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobValue", "inputValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := inputs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue")
+id := inputs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobValue")
 
 // alternatively `client.ListByStreamingJob(ctx, id, inputs.DefaultListByStreamingJobOperationOptions())` can be used to do batched pagination
 items, err := client.ListByStreamingJobComplete(ctx, id, inputs.DefaultListByStreamingJobOperationOptions())
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := inputs.NewInputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue", "inputValue")
+id := inputs.NewInputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobValue", "inputValue")
 
 payload := inputs.Input{
 	// ...
@@ -111,7 +111,7 @@ if err := client.TestThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := inputs.NewInputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue", "inputValue")
+id := inputs.NewInputID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobValue", "inputValue")
 
 payload := inputs.Input{
 	// ...

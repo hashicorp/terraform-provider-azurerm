@@ -2,14 +2,19 @@ package clients
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
 	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
+	azurestackhci_v2022_12_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-12-01"
+	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
+	redis_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01"
+	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -33,6 +38,7 @@ import (
 	confidentialledger "github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/client"
 	connections "github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/client"
 	consumption "github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/client"
+	containerapps "github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/client"
 	containerServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	cosmosdb "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	costmanagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/client"
@@ -61,6 +67,7 @@ import (
 	healthcare "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
 	hpccache "github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/client"
 	hsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/client"
+	hybridcompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute/client"
 	iotcentral "github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/client"
 	iothub "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/client"
 	timeseriesinsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/client"
@@ -81,6 +88,7 @@ import (
 	mariadb "github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/client"
 	media "github.com/hashicorp/terraform-provider-azurerm/internal/services/media/client"
 	mixedreality "github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality/client"
+	mobilenetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	mssql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	mysql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
@@ -141,7 +149,7 @@ type Client struct {
 	Attestation           *attestation.Client
 	Authorization         *authorization.Client
 	Automation            *automation.Client
-	AzureStackHCI         *azureStackHCI.Client
+	AzureStackHCI         *azurestackhci_v2022_12_01.Client
 	Batch                 *batch.Client
 	Blueprints            *blueprints.Client
 	Bot                   *bot.Client
@@ -152,6 +160,7 @@ type Client struct {
 	ConfidentialLedger    *confidentialledger.Client
 	Connections           *connections.Client
 	Consumption           *consumption.Client
+	ContainerApps         *containerapps.Client
 	Containers            *containerServices.Client
 	Cosmos                *cosmosdb.Client
 	CostManagement        *costmanagement.Client
@@ -160,7 +169,7 @@ type Client struct {
 	DatabaseMigration     *datamigration.Client
 	DataBricks            *databricks.Client
 	DataboxEdge           *databoxedge.Client
-	Datadog               *datadog.Client
+	Datadog               *datadog_v2021_03_01.Client
 	DataFactory           *datafactory.Client
 	DataProtection        *dataprotection.Client
 	DataShare             *datashare.Client
@@ -179,10 +188,11 @@ type Client struct {
 	HPCCache              *hpccache.Client
 	HSM                   *hsm.Client
 	HDInsight             *hdinsight.Client
+	HybridCompute         *hybridcompute.Client
 	HealthCare            *healthcare.Client
 	IoTCentral            *iotcentral.Client
 	IoTHub                *iothub.Client
-	IoTTimeSeriesInsights *timeseriesinsights.Client
+	IoTTimeSeriesInsights *timeseriesinsights_v2020_05_15.Client
 	KeyVault              *keyvault.Client
 	Kusto                 *kusto.Client
 	LabService            *labservice.Client
@@ -201,6 +211,7 @@ type Client struct {
 	Media                 *media.Client
 	MixedReality          *mixedreality.Client
 	Monitor               *monitor.Client
+	MobileNetwork         *mobilenetwork.Client
 	MSSQL                 *mssql.Client
 	MySQL                 *mysql.Client
 	NetApp                *netapp.Client
@@ -216,7 +227,7 @@ type Client struct {
 	PrivateDnsResolver    *dnsresolver.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
-	Redis                 *redis.Client
+	Redis                 *redis_v2021_06_01.Client
 	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
 	Resource              *resource.Client
@@ -251,6 +262,8 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Features = o.Features
 	client.StopContext = ctx
 
+	var err error
+
 	client.AadB2c = aadb2c.NewClient(o)
 	client.Advisor = advisor.NewClient(o)
 	client.AnalysisServices = analysisServices.NewClient(o)
@@ -274,6 +287,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Connections = connections.NewClient(o)
 	client.Consumption = consumption.NewClient(o)
 	client.Containers = containerServices.NewContainersClient(o)
+	client.ContainerApps = containerapps.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
 	client.CustomProviders = customproviders.NewClient(o)
@@ -289,7 +303,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DevTestLabs = devtestlabs.NewClient(o)
 	client.DigitalTwins = digitaltwins.NewClient(o)
 	client.Disks = disks.NewClient(o)
-	client.Dns = dns.NewClient(o)
+	if client.Dns, err = dns.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Dns: %+v", err)
+	}
 	client.DomainServices = domainservices.NewClient(o)
 	client.Elastic = elastic.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
@@ -301,6 +317,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.HSM = hsm.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
 	client.HealthCare = healthcare.NewClient(o)
+	client.HybridCompute = hybridcompute.NewClient(o)
 	client.IoTCentral = iotcentral.NewClient(o)
 	client.IoTHub = iothub.NewClient(o)
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
@@ -317,11 +334,14 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Maintenance = maintenance.NewClient(o)
 	client.ManagedApplication = managedapplication.NewClient(o)
 	client.ManagementGroups = managementgroup.NewClient(o)
-	client.Maps = maps.NewClient(o)
+	if client.Maps, err = maps.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Maps: %+v", err)
+	}
 	client.MariaDB = mariadb.NewClient(o)
 	client.Media = media.NewClient(o)
 	client.MixedReality = mixedreality.NewClient(o)
 	client.Monitor = monitor.NewClient(o)
+	client.MobileNetwork = mobilenetwork.NewClient(o)
 	client.MSSQL = mssql.NewClient(o)
 	client.MySQL = mysql.NewClient(o)
 	client.NetApp = netapp.NewClient(o)
@@ -348,7 +368,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.ServiceConnector = serviceConnector.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
-	client.SignalR = signalr.NewClient(o)
+	if client.SignalR, err = signalr.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for SignalR: %+v", err)
+	}
 	client.Sql = sql.NewClient(o)
 	client.Storage = storage.NewClient(o)
 	client.StreamAnalytics = streamAnalytics.NewClient(o)

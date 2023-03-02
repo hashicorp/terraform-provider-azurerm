@@ -87,8 +87,7 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					metadata.Logger.Infof("%s was not found - removing from state!", id)
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}

@@ -140,7 +140,7 @@ func resourcePrivateDnsZoneVirtualNetworkLinkRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("name", id.VirtualNetworkLinkName)
-	d.Set("private_dns_zone_name", id.PrivateZoneName)
+	d.Set("private_dns_zone_name", id.PrivateDnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

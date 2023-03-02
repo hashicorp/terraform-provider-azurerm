@@ -153,9 +153,9 @@ The `storage_configuration` block supports the following:
 
 * `storage_workload_type` - (Required) The type of storage workload. Valid values include `GENERAL`, `OLTP`, or `DW`.
 
-* `data_settings` - (Optional) An `storage_settings` as defined below.
+* `data_settings` - (Optional) A `storage_settings` block as defined below.
 
-* `log_settings` - (Optional) An `storage_settings` as defined below.
+* `log_settings` - (Optional) A `storage_settings` block as defined below.
 
 * `system_db_on_data_disk_enabled` - (Optional) Specifies whether to set system databases (except tempDb) location to newly created data storage. Possible values are `true` and `false`. Defaults to `false`.
 

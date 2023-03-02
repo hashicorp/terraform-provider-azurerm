@@ -38,10 +38,11 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 2,
+		SchemaVersion: 3,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.WorkspaceV0ToV1{},
 			1: migration.WorkspaceV1ToV2{},
+			2: migration.WorkspaceV2ToV3{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -67,6 +68,12 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"local_authentication_disabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"cmk_for_query_forced": {
@@ -161,14 +168,13 @@ func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.R
 	// custom diff here because when you link the workspace to a cluster the
 	// cluster changes the sku to LACluster, so we need to ignore the change
 	// if it is LACluster else invoke the ForceNew as before...
-	//
-	// NOTE: Since LACluster is not in our enum the value is returned as ""
+
 	if d.HasChange("sku") {
 		old, new := d.GetChange("sku")
 		log.Printf("[INFO] Log Analytics Workspace SKU: OLD: %q, NEW: %q", old, new)
 		// If the old value is not LACluster(e.g. "") return ForceNew because they are
 		// really changing the sku...
-		if !strings.EqualFold(old.(string), "") {
+		if !strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumLACluster)) && !strings.EqualFold(old.(string), "") {
 			d.ForceNew("sku")
 		}
 	}
@@ -215,7 +221,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		if err == nil {
 			if resp.Model != nil && resp.Model.Properties != nil {
 				if azSku := resp.Model.Properties.Sku; azSku != nil {
-					if strings.EqualFold(string(azSku.Name), "lacluster") {
+					if strings.EqualFold(string(azSku.Name), string(workspaces.WorkspaceSkuNameEnumLACluster)) {
 						isLACluster = true
 						log.Printf("[INFO] Log Analytics Workspace %q (Resource Group %q): SKU is linked to Log Analytics cluster", name, resourceGroup)
 					}
@@ -238,13 +244,14 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	t := d.Get("tags").(map[string]interface{})
 
 	if isLACluster {
-		sku.Name = "lacluster"
+		sku.Name = workspaces.WorkspaceSkuNameEnumLACluster
 	} else if skuName == "" {
 		// Default value if sku is not defined
 		sku.Name = workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight
 	}
 
 	allowResourceOnlyPermission := d.Get("allow_resource_only_permissions").(bool)
+	disableLocalAuth := d.Get("local_authentication_disabled").(bool)
 
 	parameters := workspaces.Workspace{
 		Name:     &name,
@@ -257,6 +264,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 			RetentionInDays:                 &retentionInDays,
 			Features: &workspaces.WorkspaceFeatures{
 				EnableLogAccessUsingOnlyResourcePermissions: utils.Bool(allowResourceOnlyPermission),
+				DisableLocalAuth: utils.Bool(disableLocalAuth),
 			},
 		},
 	}
@@ -408,13 +416,19 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			allowResourceOnlyPermissions := true
+			disableLocalAuth := false
 			if features := props.Features; features != nil {
 				v := features.EnableLogAccessUsingOnlyResourcePermissions
 				if v != nil {
 					allowResourceOnlyPermissions = *v
 				}
+				d := features.DisableLocalAuth
+				if d != nil {
+					disableLocalAuth = *d
+				}
 			}
 			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
+			d.Set("local_authentication_disabled", disableLocalAuth)
 
 			sharedKeyId := sharedKeyWorkspaces.WorkspaceId{
 				SubscriptionId:    id.SubscriptionId,

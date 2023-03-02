@@ -812,7 +812,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotThree(data acceptance.TestData, tenantId string) string {
+func (KubernetesClusterResource) roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotNine(data acceptance.TestData, tenantId string) string {
 	return fmt.Sprintf(`
 variable "tenant_id" {
   default = "%s"
@@ -828,7 +828,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.24.3"
+  kubernetes_version  = "1.24.9"
 
   linux_profile {
     admin_username = "acctestuser%d"

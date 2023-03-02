@@ -7,21 +7,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = HealthBotId{}
 
 // HealthBotId is a struct representing the Resource ID for a Health Bot
 type HealthBotId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	BotName           string
+	HealthBotName     string
 }
 
 // NewHealthBotID returns a new HealthBotId struct
-func NewHealthBotID(subscriptionId string, resourceGroupName string, botName string) HealthBotId {
+func NewHealthBotID(subscriptionId string, resourceGroupName string, healthBotName string) HealthBotId {
 	return HealthBotId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		BotName:           botName,
+		HealthBotName:     healthBotName,
 	}
 }
 
@@ -44,8 +47,8 @@ func ParseHealthBotID(input string) (*HealthBotId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.BotName, ok = parsed.Parsed["botName"]; !ok {
-		return nil, fmt.Errorf("the segment 'botName' was not found in the resource id %q", input)
+	if id.HealthBotName, ok = parsed.Parsed["healthBotName"]; !ok {
+		return nil, fmt.Errorf("the segment 'healthBotName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +74,8 @@ func ParseHealthBotIDInsensitively(input string) (*HealthBotId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.BotName, ok = parsed.Parsed["botName"]; !ok {
-		return nil, fmt.Errorf("the segment 'botName' was not found in the resource id %q", input)
+	if id.HealthBotName, ok = parsed.Parsed["healthBotName"]; !ok {
+		return nil, fmt.Errorf("the segment 'healthBotName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +99,7 @@ func ValidateHealthBotID(input interface{}, key string) (warnings []string, erro
 // ID returns the formatted Health Bot ID
 func (id HealthBotId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.HealthBot/healthBots/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.BotName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.HealthBotName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Health Bot ID
@@ -109,7 +112,7 @@ func (id HealthBotId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHealthBot", "Microsoft.HealthBot", "Microsoft.HealthBot"),
 		resourceids.StaticSegment("staticHealthBots", "healthBots", "healthBots"),
-		resourceids.UserSpecifiedSegment("botName", "botValue"),
+		resourceids.UserSpecifiedSegment("healthBotName", "healthBotValue"),
 	}
 }
 
@@ -118,7 +121,7 @@ func (id HealthBotId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Bot Name: %q", id.BotName),
+		fmt.Sprintf("Health Bot Name: %q", id.HealthBotName),
 	}
 	return fmt.Sprintf("Health Bot (%s)", strings.Join(components, "\n"))
 }

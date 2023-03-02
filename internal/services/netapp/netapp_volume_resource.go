@@ -391,7 +391,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			snapshotID = *model.Id
 		}
 
-		sourceVolumeId := volumes.NewVolumeID(parsedSnapshotResourceID.SubscriptionId, parsedSnapshotResourceID.ResourceGroupName, parsedSnapshotResourceID.AccountName, parsedSnapshotResourceID.PoolName, parsedSnapshotResourceID.VolumeName)
+		sourceVolumeId := volumes.NewVolumeID(parsedSnapshotResourceID.SubscriptionId, parsedSnapshotResourceID.ResourceGroupName, parsedSnapshotResourceID.NetAppAccountName, parsedSnapshotResourceID.CapacityPoolName, parsedSnapshotResourceID.VolumeName)
 		// Validate if properties that cannot be changed matches (protocols, subnet_id, location, resource group, account_name, pool_name, service_level)
 		sourceVolume, err := client.Get(ctx, sourceVolumeId)
 		if err != nil {
@@ -418,10 +418,10 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			if !strings.EqualFold(sourceVolumeId.ResourceGroupName, id.ResourceGroupName) {
 				propertyMismatch = append(propertyMismatch, "resource_group_name")
 			}
-			if !strings.EqualFold(sourceVolumeId.AccountName, id.AccountName) {
+			if !strings.EqualFold(sourceVolumeId.NetAppAccountName, id.NetAppAccountName) {
 				propertyMismatch = append(propertyMismatch, "account_name")
 			}
-			if !strings.EqualFold(sourceVolumeId.PoolName, id.PoolName) {
+			if !strings.EqualFold(sourceVolumeId.CapacityPoolName, id.CapacityPoolName) {
 				propertyMismatch = append(propertyMismatch, "pool_name")
 			}
 			if len(propertyMismatch) > 0 {
@@ -594,8 +594,8 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	d.Set("name", id.VolumeName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("account_name", id.AccountName)
-	d.Set("pool_name", id.PoolName)
+	d.Set("account_name", id.NetAppAccountName)
+	d.Set("pool_name", id.CapacityPoolName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
@@ -838,7 +838,11 @@ func netappVolumeStateRefreshFunc(ctx context.Context, client *volumes.VolumesCl
 			}
 		}
 
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
 	}
 }
 
@@ -875,17 +879,18 @@ func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *volume
 	return func() (interface{}, string, error) {
 		res, err := client.VolumesReplicationStatus(ctx, id)
 		if err != nil {
-			if httpResponse := res.HttpResponse; httpResponse != nil {
-				if httpResponse.StatusCode == 400 && (strings.Contains(strings.ToLower(err.Error()), "deleting") || strings.Contains(strings.ToLower(err.Error()), "volume replication missing or deleted")) {
-					// This error can be ignored until a bug is fixed on RP side that it is returning 400 while the replication is in "Deleting" process
-					// TODO: remove this workaround when above bug is fixed
-				} else if !response.WasNotFound(httpResponse) {
-					return nil, "", fmt.Errorf("retrieving replication status from %s: %s", id, err)
-				}
+			if response.WasBadRequest(res.HttpResponse) && (strings.Contains(strings.ToLower(err.Error()), "deleting") || strings.Contains(strings.ToLower(err.Error()), "volume replication missing or deleted")) {
+				// This error can be ignored until a bug is fixed on RP side that it is returning 400 while the replication is in "Deleting" process
+				// TODO: remove this workaround when above bug is fixed
+			} else if !response.WasNotFound(res.HttpResponse) {
+				return nil, "", fmt.Errorf("retrieving replication status from %s: %s", id, err)
 			}
 		}
-
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
 	}
 }
 
@@ -1161,7 +1166,7 @@ func flattenNetAppVolumeDataProtectionReplication(input *volumes.VolumePropertie
 }
 
 func flattenNetAppVolumeDataProtectionSnapshotPolicy(input *volumes.VolumePropertiesDataProtection) []interface{} {
-	if input == nil || input.Snapshot == nil || *input.Snapshot.SnapshotPolicyId == "" {
+	if input == nil || input.Snapshot == nil || input.Snapshot.SnapshotPolicyId == nil || *input.Snapshot.SnapshotPolicyId == "" {
 		return []interface{}{}
 	}
 

@@ -7,23 +7,26 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = CommandResultId{}
 
 // CommandResultId is a struct representing the Resource ID for a Command Result
 type CommandResultId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ResourceName      string
-	CommandId         string
+	SubscriptionId     string
+	ResourceGroupName  string
+	ManagedClusterName string
+	CommandId          string
 }
 
 // NewCommandResultID returns a new CommandResultId struct
-func NewCommandResultID(subscriptionId string, resourceGroupName string, resourceName string, commandId string) CommandResultId {
+func NewCommandResultID(subscriptionId string, resourceGroupName string, managedClusterName string, commandId string) CommandResultId {
 	return CommandResultId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
-		CommandId:         commandId,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		ManagedClusterName: managedClusterName,
+		CommandId:          commandId,
 	}
 }
 
@@ -46,8 +49,8 @@ func ParseCommandResultID(input string) (*CommandResultId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
 	}
 
 	if id.CommandId, ok = parsed.Parsed["commandId"]; !ok {
@@ -77,8 +80,8 @@ func ParseCommandResultIDInsensitively(input string) (*CommandResultId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
 	}
 
 	if id.CommandId, ok = parsed.Parsed["commandId"]; !ok {
@@ -106,7 +109,7 @@ func ValidateCommandResultID(input interface{}, key string) (warnings []string, 
 // ID returns the formatted Command Result ID
 func (id CommandResultId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/managedClusters/%s/commandResults/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.CommandId)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, id.CommandId)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Command Result ID
@@ -119,7 +122,7 @@ func (id CommandResultId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterValue"),
 		resourceids.StaticSegment("staticCommandResults", "commandResults", "commandResults"),
 		resourceids.UserSpecifiedSegment("commandId", "commandIdValue"),
 	}
@@ -130,7 +133,7 @@ func (id CommandResultId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Managed Cluster Name: %q", id.ManagedClusterName),
 		fmt.Sprintf("Command: %q", id.CommandId),
 	}
 	return fmt.Sprintf("Command Result (%s)", strings.Join(components, "\n"))

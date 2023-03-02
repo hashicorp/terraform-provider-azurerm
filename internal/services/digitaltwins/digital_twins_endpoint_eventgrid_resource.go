@@ -5,10 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-12-01/digitaltwins" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/digitaltwinsinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -30,10 +32,15 @@ func resourceDigitalTwinsEndpointEventGrid() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DigitalTwinsEndpointID(id)
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := endpoints.ParseEndpointID(id)
 			return err
-		}),
+		}, validateEndpointType(func(input endpoints.DigitalTwinsEndpointResourceProperties) error {
+			if _, ok := input.(endpoints.EventGrid); !ok {
+				return fmt.Errorf("expected an EventGrid type but got: %+v", input)
+			}
+			return nil
+		})),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -47,7 +54,7 @@ func resourceDigitalTwinsEndpointEventGrid() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DigitalTwinsInstanceID,
+				ValidateFunc: digitaltwinsinstance.ValidateDigitalTwinsInstanceID,
 			},
 
 			"eventgrid_topic_endpoint": {
@@ -83,30 +90,27 @@ func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	digitalTwinsId, err := parse.DigitalTwinsInstanceID(d.Get("digital_twins_id").(string))
+	digitalTwinsId, err := digitaltwinsinstance.ParseDigitalTwinsInstanceID(d.Get("digital_twins_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewDigitalTwinsEndpointID(subscriptionId, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, name).ID()
-
+	id := endpoints.NewEndpointID(subscriptionId, digitalTwinsId.ResourceGroupName, digitalTwinsId.DigitalTwinsInstanceName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, name)
+		existing, err := client.DigitalTwinsEndpointGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Digital Twins Endpoint %q (Resource Group %q / Instance %q): %+v", name, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_digital_twins_endpoint_eventgrid", id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_digital_twins_endpoint_eventgrid", id.ID())
 		}
 	}
 
-	properties := digitaltwins.EndpointResource{
-		Properties: &digitaltwins.EventGrid{
-			EndpointType:       digitaltwins.EndpointTypeEventGrid,
-			AuthenticationType: digitaltwins.KeyBased,
+	payload := endpoints.DigitalTwinsEndpointResource{
+		Properties: &endpoints.EventGrid{
+			AuthenticationType: pointer.To(endpoints.AuthenticationTypeKeyBased),
 			TopicEndpoint:      utils.String(d.Get("eventgrid_topic_endpoint").(string)),
 			AccessKey1:         utils.String(d.Get("eventgrid_topic_primary_access_key").(string)),
 			AccessKey2:         utils.String(d.Get("eventgrid_topic_secondary_access_key").(string)),
@@ -114,21 +118,11 @@ func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *pluginsdk.ResourceData
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, name, properties)
-	if err != nil {
-		return fmt.Errorf("creating/updating Digital Twins EventGrid Endpoint %q (Resource Group %q / Instance %q): %+v", name, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, err)
+	if err := client.DigitalTwinsEndpointCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of the Digital Twins EventGrid Endpoint %q (Resource Group %q / Instance %q): %+v", name, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, err)
-	}
-
-	if _, err := client.Get(ctx, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, name); err != nil {
-		return fmt.Errorf("retrieving Digital Twins EventGrid Endpoint %q (Resource Group %q / Instance %q): %+v", name, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, err)
-	}
-
-	d.SetId(id)
-
+	d.SetId(id.ID())
 	return resourceDigitalTwinsEndpointEventGridRead(d, meta)
 }
 
@@ -138,26 +132,30 @@ func resourceDigitalTwinsEndpointEventGridRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DigitalTwinsEndpointID(d.Id())
+	id, err := endpoints.ParseEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.DigitalTwinsInstanceName, id.EndpointName)
+	resp, err := client.DigitalTwinsEndpointGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Digital Twins EventGrid Endpoint %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Digital Twins EventGrid Endpoint %q (Resource Group %q / Instance %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	d.Set("name", id.EndpointName)
-	d.Set("digital_twins_id", parse.NewDigitalTwinsInstanceID(subscriptionId, id.ResourceGroup, id.DigitalTwinsInstanceName).ID())
-	if resp.Properties != nil {
-		if _, ok := resp.Properties.AsEventGrid(); !ok {
-			return fmt.Errorf("retrieving Digital Twins Endpoint %q (Resource Group %q / Instance %q) is not type Event Grid", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName)
+	d.Set("digital_twins_id", digitaltwinsinstance.NewDigitalTwinsInstanceID(subscriptionId, id.ResourceGroupName, id.DigitalTwinsInstanceName).ID())
+
+	if model := resp.Model; model != nil {
+		props, ok := model.Properties.(endpoints.EventGrid)
+		if !ok {
+			return fmt.Errorf("retrieving %s: expected an EventGrid type but got: %+v", *id, model.Properties)
 		}
+
+		d.Set("eventgrid_topic_endpoint", props.TopicEndpoint)
 	}
 
 	return nil
@@ -168,18 +166,14 @@ func resourceDigitalTwinsEndpointEventGridDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DigitalTwinsEndpointID(d.Id())
+	id, err := endpoints.ParseEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.DigitalTwinsInstanceName, id.EndpointName)
-	if err != nil {
-		return fmt.Errorf("deleting Digital Twins EventGrid Endpoint %q (Resource Group %q / Instance %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
+	if err := client.DigitalTwinsEndpointDeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of the Digital Twins EventGrid Endpoint %q (Resource Group %q / Instance %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
-	}
 	return nil
 }

@@ -131,7 +131,7 @@ func (r UserAssignedIdentityResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				schema.Name = id.ResourceName
+				schema.Name = id.UserAssignedIdentityName
 				schema.ResourceGroupName = id.ResourceGroupName
 				if err := r.mapIdentityToUserAssignedIdentityResourceSchema(*model, &schema); err != nil {
 					return fmt.Errorf("flattening model: %+v", err)

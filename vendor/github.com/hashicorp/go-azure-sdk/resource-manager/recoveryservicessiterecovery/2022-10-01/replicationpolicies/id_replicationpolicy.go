@@ -7,23 +7,26 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = ReplicationPolicyId{}
 
 // ReplicationPolicyId is a struct representing the Resource ID for a Replication Policy
 type ReplicationPolicyId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ResourceName      string
-	PolicyName        string
+	SubscriptionId        string
+	ResourceGroupName     string
+	VaultName             string
+	ReplicationPolicyName string
 }
 
 // NewReplicationPolicyID returns a new ReplicationPolicyId struct
-func NewReplicationPolicyID(subscriptionId string, resourceGroupName string, resourceName string, policyName string) ReplicationPolicyId {
+func NewReplicationPolicyID(subscriptionId string, resourceGroupName string, vaultName string, replicationPolicyName string) ReplicationPolicyId {
 	return ReplicationPolicyId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
-		PolicyName:        policyName,
+		SubscriptionId:        subscriptionId,
+		ResourceGroupName:     resourceGroupName,
+		VaultName:             vaultName,
+		ReplicationPolicyName: replicationPolicyName,
 	}
 }
 
@@ -46,12 +49,12 @@ func ParseReplicationPolicyID(input string) (*ReplicationPolicyId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
+		return nil, fmt.Errorf("the segment 'vaultName' was not found in the resource id %q", input)
 	}
 
-	if id.PolicyName, ok = parsed.Parsed["policyName"]; !ok {
-		return nil, fmt.Errorf("the segment 'policyName' was not found in the resource id %q", input)
+	if id.ReplicationPolicyName, ok = parsed.Parsed["replicationPolicyName"]; !ok {
+		return nil, fmt.Errorf("the segment 'replicationPolicyName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +80,12 @@ func ParseReplicationPolicyIDInsensitively(input string) (*ReplicationPolicyId, 
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
+		return nil, fmt.Errorf("the segment 'vaultName' was not found in the resource id %q", input)
 	}
 
-	if id.PolicyName, ok = parsed.Parsed["policyName"]; !ok {
-		return nil, fmt.Errorf("the segment 'policyName' was not found in the resource id %q", input)
+	if id.ReplicationPolicyName, ok = parsed.Parsed["replicationPolicyName"]; !ok {
+		return nil, fmt.Errorf("the segment 'replicationPolicyName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +109,7 @@ func ValidateReplicationPolicyID(input interface{}, key string) (warnings []stri
 // ID returns the formatted Replication Policy ID
 func (id ReplicationPolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.RecoveryServices/vaults/%s/replicationPolicies/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.PolicyName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.VaultName, id.ReplicationPolicyName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Replication Policy ID
@@ -119,9 +122,9 @@ func (id ReplicationPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("vaultName", "vaultValue"),
 		resourceids.StaticSegment("staticReplicationPolicies", "replicationPolicies", "replicationPolicies"),
-		resourceids.UserSpecifiedSegment("policyName", "policyValue"),
+		resourceids.UserSpecifiedSegment("replicationPolicyName", "replicationPolicyValue"),
 	}
 }
 
@@ -130,8 +133,8 @@ func (id ReplicationPolicyId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
-		fmt.Sprintf("Policy Name: %q", id.PolicyName),
+		fmt.Sprintf("Vault Name: %q", id.VaultName),
+		fmt.Sprintf("Replication Policy Name: %q", id.ReplicationPolicyName),
 	}
 	return fmt.Sprintf("Replication Policy (%s)", strings.Join(components, "\n"))
 }

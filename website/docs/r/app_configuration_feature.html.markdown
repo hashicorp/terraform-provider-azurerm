@@ -78,7 +78,7 @@ A `groups` block represents a group that can be used in a `targeting_filter` and
 
 ---
 
-A `timewindow_filter` represents a feature filter of type `Microsoft.TimeWindow` and takes the following attributes:
+A `timewindow_filter` block represents a feature filter of type `Microsoft.TimeWindow` and takes the following attributes:
 
 * `start` - (Optional) The earliest timestamp the feature is enabled. The timestamp must be in RFC3339 format.
 
@@ -96,7 +96,7 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the App Configuration Feature.
+* `create` - (Defaults to 45 minutes) Used when creating the App Configuration Feature.
 * `update` - (Defaults to 30 minutes) Used when updating the App Configuration Feature.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration Feature.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Configuration Feature.

@@ -272,10 +272,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_synapse_sql_pool" "test" {
-  name                 = "acctestSP%s"
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
-  sku_name             = "DW100c"
-  create_mode          = "Default"
+  name                      = "acctestSP%s"
+  synapse_workspace_id      = azurerm_synapse_workspace.test.id
+  sku_name                  = "DW100c"
+  create_mode               = "Default"
   geo_backup_policy_enabled = false
 }
 `, template, data.RandomString)
@@ -291,10 +291,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_synapse_sql_pool" "test" {
-  name                 = "acctestSP%s"
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
-  sku_name             = "DW100c"
-  create_mode          = "Default"
+  name                      = "acctestSP%s"
+  synapse_workspace_id      = azurerm_synapse_workspace.test.id
+  sku_name                  = "DW100c"
+  create_mode               = "Default"
   geo_backup_policy_enabled = true
 }
 `, template, data.RandomString)

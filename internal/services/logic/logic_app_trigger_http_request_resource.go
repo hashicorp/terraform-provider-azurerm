@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflowtriggers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,7 +24,7 @@ func resourceLogicAppTriggerHttpRequest() *pluginsdk.Resource {
 		Delete: resourceLogicAppTriggerHttpRequestDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.TriggerID(id)
+			_, err := workflowtriggers.ParseTriggerID(id)
 			return err
 		}),
 
@@ -118,12 +119,12 @@ func resourceLogicAppTriggerHttpRequestCreateUpdate(d *pluginsdk.ResourceData, m
 		"type":   "Request",
 	}
 
-	workflowId, err := parse.WorkflowID(d.Get("logic_app_id").(string))
+	workflowId, err := workflows.ParseWorkflowID(d.Get("logic_app_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewTriggerID(workflowId.SubscriptionId, workflowId.ResourceGroup, workflowId.Name, d.Get("name").(string))
+	id := workflowtriggers.NewTriggerID(workflowId.SubscriptionId, workflowId.ResourceGroupName, workflowId.WorkflowName, d.Get("name").(string))
 
 	if err := resourceLogicAppTriggerUpdate(d, meta, *workflowId, id, trigger, "azurerm_logic_app_trigger_http_request"); err != nil {
 		return err
@@ -133,26 +134,26 @@ func resourceLogicAppTriggerHttpRequestCreateUpdate(d *pluginsdk.ResourceData, m
 }
 
 func resourceLogicAppTriggerHttpRequestRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := parse.TriggerID(d.Id())
+	id, err := workflowtriggers.ParseTriggerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	t, app, url, err := retrieveLogicAppHttpTrigger(d, meta, id.ResourceGroup, id.WorkflowName, id.Name)
+	t, app, url, err := retrieveLogicAppHttpTrigger(d, meta, *id)
 	if err != nil {
 		return err
 	}
 
 	if t == nil {
-		log.Printf("[DEBUG] Logic App %q (Resource Group %q) does not contain Trigger %q - removing from state", id.WorkflowName, id.ResourceGroup, id.Name)
+		log.Printf("[DEBUG] Logic App %q (Resource Group %q) does not contain %s - removing from state", id.WorkflowName, id.ResourceGroupName, id.ID())
 		d.SetId("")
 		return nil
 	}
 
 	trigger := *t
 
-	d.Set("name", id.Name)
-	d.Set("logic_app_id", app.ID)
+	d.Set("name", id.TriggerName)
+	d.Set("logic_app_id", app.Id)
 	d.Set("callback_url", url)
 
 	v := trigger["inputs"]
@@ -186,12 +187,14 @@ func resourceLogicAppTriggerHttpRequestRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceLogicAppTriggerHttpRequestDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := parse.TriggerID(d.Id())
+	id, err := workflowtriggers.ParseTriggerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	err = resourceLogicAppTriggerRemove(d, meta, id.ResourceGroup, id.WorkflowName, id.Name)
+	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
+
+	err = resourceLogicAppTriggerRemove(d, meta, workflowId, id.TriggerName)
 	if err != nil {
 		return fmt.Errorf("removing Trigger %s: %+v", id, err)
 	}

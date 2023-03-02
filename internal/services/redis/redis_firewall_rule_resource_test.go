@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -83,17 +83,17 @@ func TestAccRedisFirewallRule_update(t *testing.T) {
 }
 
 func (t RedisFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FirewallRuleID(state.ID)
+	id, err := firewallrules.ParseFirewallRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Redis.FirewallRulesClient.Get(ctx, id.ResourceGroup, id.RediName, id.Name)
+	resp, err := clients.Redis.FirewallRules.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Redis Firewall Rule (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.FirewallRuleProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (RedisFirewallRuleResource) basic(data acceptance.TestData) string {

@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceVirtualNetworkGateway() *pluginsdk.Resource {
@@ -838,7 +838,7 @@ func flattenVirtualNetworkGatewayBgpPeeringAddresses(input *[]network.IPConfigur
 	for _, e := range *input {
 		var ipConfigName string
 		if e.IpconfigurationID != nil {
-			id, err := parse.VirtualNetworkGatewayIpConfigurationID(*e.IpconfigurationID)
+			id, err := parse.VirtualNetworkGatewayIpConfigurationIDInsensitively(*e.IpconfigurationID)
 			if err != nil {
 				return nil, err
 			}

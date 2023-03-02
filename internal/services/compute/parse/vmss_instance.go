@@ -73,3 +73,59 @@ func VMSSInstanceID(input string) (*VMSSInstanceId, error) {
 
 	return &resourceId, nil
 }
+
+// VMSSInstanceIDInsensitively parses an VMSSInstance ID into an VMSSInstanceId struct, insensitively
+// This should only be used to parse an ID for rewriting, the VMSSInstanceID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func VMSSInstanceIDInsensitively(input string) (*VMSSInstanceId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := VMSSInstanceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'virtualMachineScaleSets' segment
+	virtualMachineScaleSetsKey := "virtualMachineScaleSets"
+	for key := range id.Path {
+		if strings.EqualFold(key, virtualMachineScaleSetsKey) {
+			virtualMachineScaleSetsKey = key
+			break
+		}
+	}
+	if resourceId.VirtualMachineScaleSetName, err = id.PopSegment(virtualMachineScaleSetsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'virtualMachines' segment
+	virtualMachinesKey := "virtualMachines"
+	for key := range id.Path {
+		if strings.EqualFold(key, virtualMachinesKey) {
+			virtualMachinesKey = key
+			break
+		}
+	}
+	if resourceId.VirtualMachineName, err = id.PopSegment(virtualMachinesKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}

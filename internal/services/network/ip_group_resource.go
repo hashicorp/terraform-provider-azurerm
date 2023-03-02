@@ -2,26 +2,30 @@ package network
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
+	firewallParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceIpGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIpGroupCreateUpdate,
+		Create: resourceIpGroupCreate,
 		Read:   resourceIpGroupRead,
-		Update: resourceIpGroupCreateUpdate,
+		Update: resourceIpGroupUpdate,
 		Delete: resourceIpGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -47,6 +51,22 @@ func resourceIpGroup() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			"firewall_ids": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"firewall_policy_ids": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"cidrs": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -62,13 +82,28 @@ func resourceIpGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceIpGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.IPGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	for _, fw := range d.Get("firewall_ids").([]interface{}) {
+		id, _ := firewallParse.FirewallID(fw.(string))
+		locks.ByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
+		defer locks.UnlockByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
+	}
+
+	for _, fwpol := range d.Get("firewall_policy_ids").([]interface{}) {
+		id, _ := firewallParse.FirewallPolicyID(fwpol.(string))
+		locks.ByName(id.Name, firewall.AzureFirewallPolicyResourceName)
+		defer locks.UnlockByName(id.Name, firewall.AzureFirewallPolicyResourceName)
+	}
+
 	id := parse.NewIpGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
@@ -144,7 +179,83 @@ func resourceIpGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
+	d.Set("firewall_ids", getIds(resp.Firewalls))
+	d.Set("firewall_policy_ids", getIds(resp.FirewallPolicies))
+
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.IPGroupsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	for _, fw := range d.Get("firewall_ids").([]interface{}) {
+		id, _ := firewallParse.FirewallID(fw.(string))
+		locks.ByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
+		defer locks.UnlockByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
+	}
+
+	for _, fwpol := range d.Get("firewall_policy_ids").([]interface{}) {
+		id, _ := firewallParse.FirewallPolicyID(fwpol.(string))
+		locks.ByName(id.Name, firewall.AzureFirewallPolicyResourceName)
+		defer locks.UnlockByName(id.Name, firewall.AzureFirewallPolicyResourceName)
+	}
+
+	id := parse.NewIpGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
+	exisiting, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(exisiting.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("making Read request on IP Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if d.HasChange("cidrs") {
+		if exisiting.IPGroupPropertiesFormat != nil {
+			exisiting.IPGroupPropertiesFormat.IPAddresses = utils.ExpandStringSlice(d.Get("cidrs").(*pluginsdk.Set).List())
+		}
+	}
+
+	if d.HasChange("tags") {
+		exisiting.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, exisiting)
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the completion of %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceIpGroupRead(d, meta)
+}
+
+func getIds(subResource *[]network.SubResource) []string {
+	if subResource == nil {
+		return nil
+	}
+
+	ids := make([]string, 0)
+	for _, v := range *subResource {
+		if v.ID == nil {
+			continue
+		}
+
+		ids = append(ids, *v.ID)
+	}
+
+	return ids
 }
 
 func resourceIpGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -155,6 +266,32 @@ func resourceIpGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := parse.IpGroupID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
+	read, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(read.Response) {
+			// deleted outside of TF
+			log.Printf("[DEBUG] IP Group %q was not found in Resource Group %q - assuming removed!", id.Name, id.ResourceGroup)
+			return nil
+		}
+
+		return fmt.Errorf("retrieving ip group %s : %+v", *id, err)
+	}
+
+	for _, fw := range *read.Firewalls {
+		id, _ := firewallParse.FirewallID(*fw.ID)
+		locks.ByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
+		defer locks.UnlockByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
+	}
+
+	for _, fwpol := range *read.FirewallPolicies {
+		id, _ := firewallParse.FirewallPolicyID(*fwpol.ID)
+		locks.ByName(id.Name, firewall.AzureFirewallPolicyResourceName)
+		defer locks.UnlockByName(id.Name, firewall.AzureFirewallPolicyResourceName)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)

@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -279,17 +279,17 @@ func TestAccBatchAccount_removeStorageAccount(t *testing.T) {
 }
 
 func (t BatchAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AccountID(state.ID)
+	id, err := batchaccount.ParseBatchAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Batch.AccountClient.Get(ctx, id.ResourceGroup, id.BatchAccountName)
+	resp, err := clients.Batch.AccountClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Batch Application %q (Resource Group %q) does not exist", id.BatchAccountName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.AccountProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (BatchAccountResource) basic(data acceptance.TestData) string {

@@ -32,7 +32,7 @@ func TestAccMonitorDataCollectionRuleDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("data_sources.0.performance_counter.#").HasValue("2"),
 				check.That(data.ResourceName).Key("data_sources.0.performance_counter.1.sampling_frequency_in_seconds").HasValue("20"),
 				check.That(data.ResourceName).Key("data_sources.0.performance_counter.1.name").HasValue("test-datasource-perfcounter2"),
-				check.That(data.ResourceName).Key("data_sources.0.windows_event_log.0.x_path_queries.0").HasValue("*[System/Level=1]"),
+				check.That(data.ResourceName).Key("data_sources.0.windows_event_log.0.x_path_queries.0").HasValue("System!*[System[EventID=4648]]"),
 				check.That(data.ResourceName).Key("data_sources.0.extension.0.extension_json").Exists(),
 			),
 		},

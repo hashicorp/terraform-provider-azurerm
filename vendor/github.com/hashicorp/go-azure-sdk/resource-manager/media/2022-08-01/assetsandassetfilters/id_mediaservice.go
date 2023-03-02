@@ -7,21 +7,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = MediaServiceId{}
 
 // MediaServiceId is a struct representing the Resource ID for a Media Service
 type MediaServiceId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	AccountName       string
+	MediaServiceName  string
 }
 
 // NewMediaServiceID returns a new MediaServiceId struct
-func NewMediaServiceID(subscriptionId string, resourceGroupName string, accountName string) MediaServiceId {
+func NewMediaServiceID(subscriptionId string, resourceGroupName string, mediaServiceName string) MediaServiceId {
 	return MediaServiceId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
+		MediaServiceName:  mediaServiceName,
 	}
 }
 
@@ -44,8 +47,8 @@ func ParseMediaServiceID(input string) (*MediaServiceId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +74,8 @@ func ParseMediaServiceIDInsensitively(input string) (*MediaServiceId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +99,7 @@ func ValidateMediaServiceID(input interface{}, key string) (warnings []string, e
 // ID returns the formatted Media Service ID
 func (id MediaServiceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaServices/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Media Service ID
@@ -109,7 +112,7 @@ func (id MediaServiceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMedia", "Microsoft.Media", "Microsoft.Media"),
 		resourceids.StaticSegment("staticMediaServices", "mediaServices", "mediaServices"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("mediaServiceName", "mediaServiceValue"),
 	}
 }
 
@@ -118,7 +121,7 @@ func (id MediaServiceId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Media Service Name: %q", id.MediaServiceName),
 	}
 	return fmt.Sprintf("Media Service (%s)", strings.Join(components, "\n"))
 }

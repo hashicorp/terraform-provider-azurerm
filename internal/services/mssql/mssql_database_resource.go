@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -378,10 +377,10 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			c, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 			if err != nil {
-				return resource.NonRetryableError(fmt.Errorf("while polling cluster %s for status: %+v", id.String(), err))
+				return pluginsdk.NonRetryableError(fmt.Errorf("while polling cluster %s for status: %+v", id.String(), err))
 			}
 			if c.DatabaseProperties.Status == sql.DatabaseStatusScaling {
-				return resource.RetryableError(fmt.Errorf("database %s is still scaling", id.String()))
+				return pluginsdk.RetryableError(fmt.Errorf("database %s is still scaling", id.String()))
 			}
 
 			return nil
@@ -432,12 +431,12 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		result, err := securityAlertPoliciesClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, expandMsSqlServerSecurityAlertPolicy(d))
 
-		if result.Response.StatusCode == 404 {
-			return resource.RetryableError(fmt.Errorf("database %s is still creating", id.String()))
+		if utils.ResponseWasNotFound(result.Response) {
+			return pluginsdk.RetryableError(fmt.Errorf("database %s is still creating", id.String()))
 		}
 
 		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("setting database threat detection policy for %s: %+v", id, err))
+			return pluginsdk.NonRetryableError(fmt.Errorf("setting database threat detection policy for %s: %+v", id, err))
 		}
 
 		return nil
@@ -556,11 +555,11 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		configurationName := ""
 		if v := props.MaintenanceConfigurationID; v != nil {
-			maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*v)
+			maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationIDInsensitively(*v)
 			if err != nil {
 				return err
 			}
-			configurationName = maintenanceConfigId.ResourceName
+			configurationName = maintenanceConfigId.PublicMaintenanceConfigurationName
 		}
 		d.Set("maintenance_configuration_name", configurationName)
 

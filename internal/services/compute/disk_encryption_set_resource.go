@@ -123,9 +123,6 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 		if !keyVaultDetails.softDeleteEnabled {
 			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 		}
-		if !keyVaultDetails.purgeProtectionEnabled {
-			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
-		}
 	}
 
 	rotationToLatestKeyVersionEnabled := d.Get("auto_key_rotation_enabled").(bool)

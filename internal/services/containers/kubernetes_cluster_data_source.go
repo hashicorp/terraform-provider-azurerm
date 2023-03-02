@@ -380,6 +380,23 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
+			"key_management_service": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"key_vault_network_access": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"kubernetes_version": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -718,6 +735,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `agent_pool_profile`: %+v", err)
 			}
 
+			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
+			if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
+				return fmt.Errorf("setting `key_management_service`: %+v", err)
+			}
+
 			kubeletIdentity, err := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
 			if err != nil {
 				return err
@@ -787,7 +809,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 
 			// adminProfile is only available for RBAC enabled clusters with AAD and without local accounts disabled
 			if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-				profileId := managedclusters.NewAccessProfileID(subscriptionId, id.ResourceGroupName, id.ResourceName, "clusterAdmin")
+				profileId := managedclusters.NewAccessProfileID(subscriptionId, id.ResourceGroupName, id.ManagedClusterName, "clusterAdmin")
 				adminProfile, err := client.GetAccessProfile(ctx, profileId)
 				if err != nil {
 					return fmt.Errorf("retrieving Admin Access Profile for %s: %+v", id, err)
@@ -825,6 +847,29 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return nil
+}
+
+func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
+	azureKeyVaultKms := make([]interface{}, 0)
+
+	if input != nil && input.AzureKeyVaultKms != nil && input.AzureKeyVaultKms.Enabled != nil && *input.AzureKeyVaultKms.Enabled {
+		keyId := ""
+		if v := input.AzureKeyVaultKms.KeyId; v != nil {
+			keyId = *v
+		}
+
+		networkAccess := ""
+		if v := input.AzureKeyVaultKms.KeyVaultNetworkAccess; v != nil {
+			networkAccess = string(*v)
+		}
+
+		azureKeyVaultKms = append(azureKeyVaultKms, map[string]interface{}{
+			"key_vault_key_id":         keyId,
+			"key_vault_network_access": networkAccess,
+		})
+	}
+
+	return azureKeyVaultKms
 }
 
 func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.ManagedClusterStorageProfile) []interface{} {

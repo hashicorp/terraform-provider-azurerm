@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -660,9 +660,7 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 		expanded.RemoteDebuggingVersion = pointer.To(linuxSlotSiteConfig.RemoteDebuggingVersion)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.use_32_bit_worker") {
-		expanded.Use32BitWorkerProcess = pointer.To(linuxSlotSiteConfig.Use32BitWorker)
-	}
+	expanded.Use32BitWorkerProcess = pointer.To(linuxSlotSiteConfig.Use32BitWorker)
 
 	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
 		expanded.WebSocketsEnabled = pointer.To(linuxSlotSiteConfig.WebSockets)
@@ -968,9 +966,7 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 		expanded.RemoteDebuggingVersion = pointer.To(winSlotSiteConfig.RemoteDebuggingVersion)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.use_32_bit_worker") {
-		expanded.Use32BitWorkerProcess = pointer.To(winSlotSiteConfig.Use32BitWorker)
-	}
+	expanded.Use32BitWorkerProcess = pointer.To(winSlotSiteConfig.Use32BitWorker)
 
 	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
 		expanded.WebSocketsEnabled = pointer.To(winSlotSiteConfig.WebSockets)

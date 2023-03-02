@@ -7,23 +7,26 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = JobId{}
 
 // JobId is a struct representing the Resource ID for a Job
 type JobId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	AccountName       string
+	MediaServiceName  string
 	TransformName     string
 	JobName           string
 }
 
 // NewJobID returns a new JobId struct
-func NewJobID(subscriptionId string, resourceGroupName string, accountName string, transformName string, jobName string) JobId {
+func NewJobID(subscriptionId string, resourceGroupName string, mediaServiceName string, transformName string, jobName string) JobId {
 	return JobId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
+		MediaServiceName:  mediaServiceName,
 		TransformName:     transformName,
 		JobName:           jobName,
 	}
@@ -48,8 +51,8 @@ func ParseJobID(input string) (*JobId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.TransformName, ok = parsed.Parsed["transformName"]; !ok {
@@ -83,8 +86,8 @@ func ParseJobIDInsensitively(input string) (*JobId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
 	}
 
 	if id.TransformName, ok = parsed.Parsed["transformName"]; !ok {
@@ -116,7 +119,7 @@ func ValidateJobID(input interface{}, key string) (warnings []string, errors []e
 // ID returns the formatted Job ID
 func (id JobId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaServices/%s/transforms/%s/jobs/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.TransformName, id.JobName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName, id.TransformName, id.JobName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Job ID
@@ -129,7 +132,7 @@ func (id JobId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMedia", "Microsoft.Media", "Microsoft.Media"),
 		resourceids.StaticSegment("staticMediaServices", "mediaServices", "mediaServices"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("mediaServiceName", "mediaServiceValue"),
 		resourceids.StaticSegment("staticTransforms", "transforms", "transforms"),
 		resourceids.UserSpecifiedSegment("transformName", "transformValue"),
 		resourceids.StaticSegment("staticJobs", "jobs", "jobs"),
@@ -142,7 +145,7 @@ func (id JobId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Media Service Name: %q", id.MediaServiceName),
 		fmt.Sprintf("Transform Name: %q", id.TransformName),
 		fmt.Sprintf("Job Name: %q", id.JobName),
 	}

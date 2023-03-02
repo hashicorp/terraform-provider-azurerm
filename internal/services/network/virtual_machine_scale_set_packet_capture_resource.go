@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceVirtualMachineScaleSetPacketCapture() *pluginsdk.Resource {
@@ -477,7 +477,7 @@ func flattenVirtualMachineScaleSetPacketCaptureScopeInstanceIds(input *[]string)
 	}
 
 	for _, instance := range *input {
-		instance, err := computeParse.VMSSInstanceID(instance)
+		instance, err := computeParse.VMSSInstanceIDInsensitively(instance)
 		if err != nil {
 			return nil, err
 		}

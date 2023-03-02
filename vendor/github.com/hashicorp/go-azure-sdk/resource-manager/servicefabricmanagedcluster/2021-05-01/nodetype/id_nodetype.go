@@ -7,23 +7,26 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = NodeTypeId{}
 
 // NodeTypeId is a struct representing the Resource ID for a Node Type
 type NodeTypeId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ClusterName       string
-	NodeTypeName      string
+	SubscriptionId     string
+	ResourceGroupName  string
+	ManagedClusterName string
+	NodeTypeName       string
 }
 
 // NewNodeTypeID returns a new NodeTypeId struct
-func NewNodeTypeID(subscriptionId string, resourceGroupName string, clusterName string, nodeTypeName string) NodeTypeId {
+func NewNodeTypeID(subscriptionId string, resourceGroupName string, managedClusterName string, nodeTypeName string) NodeTypeId {
 	return NodeTypeId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ClusterName:       clusterName,
-		NodeTypeName:      nodeTypeName,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		ManagedClusterName: managedClusterName,
+		NodeTypeName:       nodeTypeName,
 	}
 }
 
@@ -46,8 +49,8 @@ func ParseNodeTypeID(input string) (*NodeTypeId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
 	}
 
 	if id.NodeTypeName, ok = parsed.Parsed["nodeTypeName"]; !ok {
@@ -77,8 +80,8 @@ func ParseNodeTypeIDInsensitively(input string) (*NodeTypeId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
+		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
 	}
 
 	if id.NodeTypeName, ok = parsed.Parsed["nodeTypeName"]; !ok {
@@ -106,7 +109,7 @@ func ValidateNodeTypeID(input interface{}, key string) (warnings []string, error
 // ID returns the formatted Node Type ID
 func (id NodeTypeId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceFabric/managedClusters/%s/nodeTypes/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.NodeTypeName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, id.NodeTypeName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Node Type ID
@@ -119,7 +122,7 @@ func (id NodeTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftServiceFabric", "Microsoft.ServiceFabric", "Microsoft.ServiceFabric"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterValue"),
 		resourceids.StaticSegment("staticNodeTypes", "nodeTypes", "nodeTypes"),
 		resourceids.UserSpecifiedSegment("nodeTypeName", "nodeTypeValue"),
 	}
@@ -130,7 +133,7 @@ func (id NodeTypeId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Cluster Name: %q", id.ClusterName),
+		fmt.Sprintf("Managed Cluster Name: %q", id.ManagedClusterName),
 		fmt.Sprintf("Node Type Name: %q", id.NodeTypeName),
 	}
 	return fmt.Sprintf("Node Type (%s)", strings.Join(components, "\n"))

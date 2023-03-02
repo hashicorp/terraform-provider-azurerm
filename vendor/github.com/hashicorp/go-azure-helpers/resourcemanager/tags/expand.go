@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package tags
 
 // Expand transforms the input Tags to a `*map[string]string`

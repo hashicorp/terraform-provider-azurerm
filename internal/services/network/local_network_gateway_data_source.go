@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceLocalNetworkGateway() *pluginsdk.Resource {
@@ -90,11 +90,10 @@ func dataSourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("reading the state of %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

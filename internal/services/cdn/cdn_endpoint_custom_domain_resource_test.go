@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -97,7 +96,7 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificate(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.httpsUserManagedCertificate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -122,7 +121,7 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificateDeprecated(t *tes
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.httpsUserManagedCertificateDeprecated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -141,7 +140,7 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedSecret(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.httpsUserManagedSecret(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
