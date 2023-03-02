@@ -484,7 +484,7 @@ A `key_management_service` block supports the following:
 
 A `key_vault_secrets_provider` block supports the following:
 
-* `secret_rotation_enabled` - (Optional) Is secret rotation enabled?
+* `secret_rotation_enabled` - (Optional) Should the secret store CSI driver on the AKS cluster be enabled?
 
 * `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
 
