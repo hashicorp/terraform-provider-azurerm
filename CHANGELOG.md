@@ -52,6 +52,7 @@ BUG FIXES
 * `azurerm_eventhub_namespace_disaster_recovery_config` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_kubernetes_cluster_node_pool` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_iothub_dps` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_media_services_account`: fix crash around `key_delivery_access_control` [GH-20685]
 * `azurerm_netapp_account` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_netapp_pool` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_netapp_snapshot` - fixing a crash when the connection dropped [GH-20670]
