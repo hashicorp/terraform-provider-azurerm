@@ -296,7 +296,7 @@ resource "azurerm_mariadb_server" "test" {
   backup_retention_days        		= 7
   geo_redundant_backup_enabled 		= false
   ssl_enforcement_enabled      		= true
-  ssl_minimal_tls_version_enforced  = "TLS1_2"
+  ssl_minimal_tls_version_enforced      = "TLS1_2"
   storage_mb                   		= 51200
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
