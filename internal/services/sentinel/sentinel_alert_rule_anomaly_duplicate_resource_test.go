@@ -54,6 +54,21 @@ func TestAccSentinelAlertRuleAnomalyDuplicate_basic(t *testing.T) {
 	})
 }
 
+func TestAccSentinelAlertRuleAnomalyDuplicate_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_anomaly_duplicate", "test")
+	r := SentinelAlertRuleAnomalyDuplicateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccSentinelAlertRuleAnomalyDuplicate_withCustomObservation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_anomaly_duplicate", "test")
 	r := SentinelAlertRuleAnomalyDuplicateResource{}
@@ -183,7 +198,7 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
   mode                       = "Flighting"
 
   multi_select_observation {
-    name  = "Device action"
+    name   = "Device action"
     values = ["accept"]
   }
 
@@ -222,4 +237,19 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
   depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
+}
+
+func (r SentinelAlertRuleAnomalyDuplicateResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "import" {
+  display_name               = azurerm_sentinel_alert_rule_anomaly_duplicate.test.display_name
+  log_analytics_workspace_id = azurerm_sentinel_alert_rule_anomaly_duplicate.test.log_analytics_workspace_id
+  built_in_rule_id           = azurerm_sentinel_alert_rule_anomaly_duplicate.test.built_in_rule_id
+  enabled                    = azurerm_sentinel_alert_rule_anomaly_duplicate.test.enabled
+  mode                       = azurerm_sentinel_alert_rule_anomaly_duplicate.test.mode
+  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+}
+`, r.basic(data))
 }

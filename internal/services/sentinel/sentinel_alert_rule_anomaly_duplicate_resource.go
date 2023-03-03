@@ -360,18 +360,18 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 			}
 
 			var id parse.MLAnalyticsSettingsId
-			for found := true; found; found = false {
-				id = parse.NewMLAnalyticsSettingsID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, uuid.New().String())
-				existing, err := AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, *workspaceId, func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
-					if v.Name != nil && strings.EqualFold(AlertRuleAnomalyIdFromWorkspaceId(*workspaceId, *v.Name), id.ID()) {
-						return true
-					}
-					return false
-				})
-				if err != nil {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			id = parse.NewMLAnalyticsSettingsID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, uuid.New().String())
+			existing, err := AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, *workspaceId, func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
+				if v.Name != nil && strings.EqualFold(AlertRuleAnomalyIdFromWorkspaceId(*workspaceId, *v.Name), id.ID()) {
+					return true
 				}
-				found = existing != nil
+				return false
+			})
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+			if existing != nil {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			if builtInAnomalyRule.SettingsStatus == securityinsight.SettingsStatusProduction && metaModel.Mode == string(securityinsight.SettingsStatusProduction) {
@@ -388,7 +388,7 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 					Techniques:             builtInAnomalyRule.Techniques,
 					AnomalyVersion:         builtInAnomalyRule.AnomalyVersion,
 					Frequency:              builtInAnomalyRule.Frequency,
-					IsDefaultSettings:      utils.Bool(false), //for duplicate one, it's not default settings.
+					IsDefaultSettings:      utils.Bool(false), // for duplicate one, it's not default settings.
 					AnomalySettingsVersion: builtInAnomalyRule.AnomalySettingsVersion,
 					SettingsDefinitionID:   builtInAnomalyRule.SettingsDefinitionID,
 					Enabled:                utils.Bool(metaModel.Enabled),
