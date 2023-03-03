@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -99,26 +100,26 @@ func TestAccSecurityInsightsIndicator_complete(t *testing.T) {
 	})
 }
 
-//func TestAccSecurityInsightsIndicator_update(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
-//	r := SecurityInsightsIndicatorResource{}
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.complete(data, "domain-name", "http://example.com"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.update(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
+func TestAccSecurityInsightsIndicator_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
+	r := SecurityInsightsIndicatorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "domain-name", "http://example.com"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data, "domain-name", "http://example.com"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 func (r SecurityInsightsIndicatorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ThreatIntelligenceIndicatorID(state.ID)
@@ -126,7 +127,9 @@ func (r SecurityInsightsIndicatorResource) Exists(ctx context.Context, clients *
 		return nil, err
 	}
 
-	client := clients.Sentinel.ThreatIntelligenceClient
+	client := azuresdkhacks.ThreatIntelligenceIndicatorClient{
+		BaseClient: clients.Sentinel.ThreatIntelligenceClient.BaseClient,
+	}
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IndicatorName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -206,14 +209,13 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
   pattern_type             = "%s"
   pattern                  = "%s"
   confidence               = 5
-  created_by_ref           = "zhwen@microsoft.com"
+  created_by               = "testcraeted@microsoft.com"
   description              = "test indicator"
   display_name             = "test"
   language                 = "en"
-  modified_by              = "zhenteng@microsoft.com"
   pattern_version          = 1
   revoked                  = true
-  threat_intelligence_tags = ["test"]
+  tags                     = ["test-tags"]
   kill_chain_phase {
     name = "testtest"
   }
@@ -226,45 +228,42 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
   }
   source            = "test Sentinel"
   validate_from_utc = "2022-12-14T16:00:00Z"
+
   depends_on        = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), patternType, pattern)
 }
 
-//
-//func (r SecurityInsightsIndicatorResource) update(data acceptance.TestData, patternType string, pattern string) string {
-//	return fmt.Sprintf(`
-//			%s
-//
-//resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
-//  workspace_id    = azurerm_log_analytics_workspace.test.id
-//  pattern_type    = "%s"
-//  pattern         = "%s"
-//  confidence      = 5
-//  created_by_ref  = "zhwen@microsoft.com"
-//  description     = "update indicator"
-//  display_name    = "test"
-//  language        = "en"
-//  modified_by     = "zhenteng@microsoft.com"
-//  pattern_version = 1
-//  revoked         = true
-//  threat_intelligence_tags  {
-//    "updated"
-//  }
-//
-//  kill_chain_phase {
-//    name = "testtest"
-//  }
-//  external_reference {
-//    description = "test-external"
-//    source_name = "test-sourcename"
-//  }
-//  granular_marking {
-//    language = "en"
-//  }
-//  source            = "test Sentinel"
-//  validate_from_utc = "2022-12-14T16:00:00Z"
-//  depends_on        = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
-//}
-//`, r.template(data), patternType, pattern)
-//}
+func (r SecurityInsightsIndicatorResource) update(data acceptance.TestData, patternType string, pattern string) string {
+	return fmt.Sprintf(`
+			%s
+
+resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
+  workspace_id             = azurerm_log_analytics_workspace.test.id
+  pattern_type             = "%s"
+  pattern                  = "%s"
+  confidence               = 5
+  created_by               = "testcraeted@microsoft.com"
+  description              = "updated indicator"
+  display_name             = "updated"
+  language                 = "en"
+  pattern_version          = 1
+  revoked                  = true
+  tags                     = ["updated-tags"]
+  kill_chain_phase {
+    name = "testtest"
+  }
+  external_reference {
+    description = "test-external"
+    source_name = "test-sourcename"
+  }
+  granular_marking {
+    language = "en"
+  }
+  source            = "updated Sentinel"
+  validate_from_utc = "2022-12-15T16:00:00Z"
+
+  depends_on        = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+}
+`, r.template(data), patternType, pattern)
+}
