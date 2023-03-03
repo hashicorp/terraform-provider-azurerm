@@ -131,7 +131,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Built-in Anomaly Alert Rule.
 
-* `anomaly_settings_version` - The anomaly settings version of the Anomaly security ml analytics settings that dictates whether job version gets updated or not.
+* `anomaly_settings_version` - The version of the Anomaly Security ML Analytics Settings.
 
 * `anomaly_version` - The anomaly version of the Anomaly Alert Rule.
 
