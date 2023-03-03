@@ -359,8 +359,7 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("only one duplicate rule of the same built-in rule is allowed, there is an existing duplicate rule of %s with id %q", *builtInAnomalyRule.DisplayName, parsedExistingId.ID())
 			}
 
-			var id parse.MLAnalyticsSettingsId
-			id = parse.NewMLAnalyticsSettingsID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, uuid.New().String())
+			id := parse.NewMLAnalyticsSettingsID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, uuid.New().String())
 			// no need to do another existing check, it will be checked by finding existing duplicate rule of the template.
 
 			if builtInAnomalyRule.SettingsStatus == securityinsight.SettingsStatusProduction && metaModel.Mode == string(securityinsight.SettingsStatusProduction) {
