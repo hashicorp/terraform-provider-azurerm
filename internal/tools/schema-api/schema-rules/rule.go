@@ -7,6 +7,7 @@ type BreakingChangeRule interface {
 }
 
 var BreakingChangeRules = []BreakingChangeRule{
-	propertyTypeMatches{},
 	optionalRemoveComputed{},
+	optionalToRequired{},
+	propertyTypeMatches{},
 }
