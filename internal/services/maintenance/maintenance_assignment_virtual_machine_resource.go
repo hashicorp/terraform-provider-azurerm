@@ -140,8 +140,8 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceDat
 
 	var assignment configurationassignments.ConfigurationAssignment
 	for _, v := range *resp {
-		// Due to https://github.com/Azure/azure-rest-api-specs/issues/22894, API always returns the lowercase for Maintenance Assignment. Once this issue is fixed, we will remove `strings.ToLower()`
-		if v.Name != nil && strings.EqualFold(strings.ToLower(*v.Name), strings.ToLower(id.Name)) {
+		// Due to https://github.com/Azure/azure-rest-api-specs/issues/22894, API always returns the lowercase for Maintenance Assignment. So here it has to ignore case sensitivity. Once this issue is fixed, here will be updated to respect case sensitivity
+		if v.Name != nil && strings.EqualFold(*v.Name, id.Name) {
 			assignment = v
 		}
 	}
