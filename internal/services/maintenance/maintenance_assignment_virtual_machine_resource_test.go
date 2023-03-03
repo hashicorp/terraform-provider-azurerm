@@ -47,13 +47,13 @@ func TestAccMaintenanceAssignmentVirtualMachine_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccMaintenanceAssignmentVirtualMachine_multipleMaintenanceAssignmentVMs(t *testing.T) {
+func TestAccMaintenanceAssignmentVirtualMachine_linkMultipleMaintenanceAssignmentsToOneVM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_virtual_machine", "test")
 	r := MaintenanceAssignmentVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.multipleMaintenanceAssignmentVMs(data),
+			Config: r.linkMultipleMaintenanceAssignmentsToOneVM(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -176,7 +176,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r MaintenanceAssignmentVirtualMachineResource) multipleMaintenanceAssignmentVMs(data acceptance.TestData) string {
+func (r MaintenanceAssignmentVirtualMachineResource) linkMultipleMaintenanceAssignmentsToOneVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
