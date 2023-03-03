@@ -3,7 +3,9 @@
 FEATURES
 
 * **New Data Source:** `azurerm_mobile_network_data_network` [GH-20338]
+* **New Data Source:** `azurerm_sentinel_alert_rule_anomaly_built_in` [GH-20368]
 * **New Resource:** `azurerm_mobile_network_data_network` [GH-20338]
+* **New Resource:** `azurerm_sentinel_alert_rule_anomaly_built_in` [GH-20368]
 
 ENHANCEMENTS
 
