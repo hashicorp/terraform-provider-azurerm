@@ -38,7 +38,7 @@ func (d *Differ) Diff(fileName string, providerName string) []string {
 			baseItem, ok := d.base.ProviderSchema.ResourcesMap[resource].Schema[propertyName]
 			if !ok {
 				// TODO - New property, Could be Required which would be breaking, need to account for this
-				continue
+				baseItem = providerjson.SchemaJSON{}
 			}
 			if errs := compareNode(baseItem, propertySchema, propertyName); errs != nil {
 				violations = append(violations, errs...)
