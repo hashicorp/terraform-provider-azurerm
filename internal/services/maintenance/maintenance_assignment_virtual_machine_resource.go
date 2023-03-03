@@ -86,6 +86,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 			// Due to https://github.com/Azure/azure-rest-api-specs/issues/22894, API always returns the lowercase for Maintenance Assignment. So here it has to ignore case sensitivity. Once this issue is fixed, here will be updated to respect case sensitivity
 			if existing.Name != nil && strings.EqualFold(*existing.Name, configurationId.MaintenanceConfigurationName) {
 				isExist = true
+				break
 			}
 		}
 
@@ -150,6 +151,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceDat
 		// Due to https://github.com/Azure/azure-rest-api-specs/issues/22894, API always returns the lowercase for Maintenance Assignment. So here it has to ignore case sensitivity. Once this issue is fixed, here will be updated to respect case sensitivity
 		if v.Name != nil && strings.EqualFold(*v.Name, id.Name) {
 			assignment = v
+			break
 		}
 	}
 
