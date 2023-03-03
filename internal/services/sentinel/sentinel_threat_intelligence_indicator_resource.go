@@ -459,11 +459,7 @@ func (r ThreatIntelligenceIndicator) Create() sdk.ResourceFunc {
 
 			props.GranularMarkings = expandThreatIntelligenceGranularMarkingModelModel(model.GranularMarkings)
 
-			killChainPhasesValue, err := expandThreatIntelligenceKillChainPhaseModel(model.KillChainPhases)
-			if err != nil {
-				return err
-			}
-			props.KillChainPhases = killChainPhasesValue
+			props.KillChainPhases = expandThreatIntelligenceKillChainPhaseModel(model.KillChainPhases)
 
 			if model.Language != "" {
 				props.Language = &model.Language
@@ -600,11 +596,7 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("kill_chain_phase") {
-				killChainPhasesValue, err := expandThreatIntelligenceKillChainPhaseModel(model.KillChainPhases)
-				if err != nil {
-					return err
-				}
-				properties.KillChainPhases = killChainPhasesValue
+				properties.KillChainPhases = expandThreatIntelligenceKillChainPhaseModel(model.KillChainPhases)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -812,7 +804,6 @@ func (r ThreatIntelligenceIndicator) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			//client := azuresdkhacks.ThreatIntelligenceIndicatorClient{OriginalClient: metadata.Client.Sentinel.ThreatIntelligenceClient}
 			client := metadata.Client.Sentinel.ThreatIntelligenceClient
 
 			id, err := parse.ThreatIntelligenceIndicatorID(metadata.ResourceData.Id())
@@ -934,7 +925,7 @@ func flattenThreatIntelligenceGranularMarkingModelModel(input *[]azuresdkhacks.T
 	return output
 }
 
-func expandThreatIntelligenceKillChainPhaseModel(inputList []killChainPhaseModel) (*[]securityinsight.ThreatIntelligenceKillChainPhase, error) {
+func expandThreatIntelligenceKillChainPhaseModel(inputList []killChainPhaseModel) *[]securityinsight.ThreatIntelligenceKillChainPhase {
 	var outputList []securityinsight.ThreatIntelligenceKillChainPhase
 	for _, v := range inputList {
 		input := v
@@ -949,7 +940,7 @@ func expandThreatIntelligenceKillChainPhaseModel(inputList []killChainPhaseModel
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
 func flattenThreatIntelligenceKillChainPhaseModel(input *[]securityinsight.ThreatIntelligenceKillChainPhase) []killChainPhaseModel {
@@ -1038,7 +1029,9 @@ func queryIndicatorsList(ctx context.Context, client azuresdkhacks.ThreatIntelli
 			}
 			output = append(output, indicator)
 		}
-		resp.NextWithContext(ctx)
+		if err := resp.NextWithContext(ctx); err != nil {
+			return output, err
+		}
 	}
 	return output, nil
 }
