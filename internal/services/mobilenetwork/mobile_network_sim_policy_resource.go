@@ -26,14 +26,14 @@ type SimPolicyModel struct {
 	DefaultSliceId               string                    `tfschema:"default_slice_id"`
 	Location                     string                    `tfschema:"location"`
 	RegistrationTimer            int64                     `tfschema:"registration_timer_in_seconds"`
-	RfspIndex                    int64                     `tfschema:"rfsp_index"`
-	SliceConfigurations          []SliceConfigurationModel `tfschema:"slice_configuration"`
+	RfspIndex                    int64                     `tfschema:"rat_frequency_selection_priority_index"`
+	SliceConfigurations          []SliceConfigurationModel `tfschema:"slice"`
 	Tags                         map[string]string         `tfschema:"tags"`
 	UeAmbr                       []AmbrModel               `tfschema:"user_equipment_aggregate_maximum_bit_rate"`
 }
 
 type SliceConfigurationModel struct {
-	DataNetworkConfigurations []DataNetworkConfigurationModel `tfschema:"data_network_configuration"`
+	DataNetworkConfigurations []DataNetworkConfigurationModel `tfschema:"data_network"`
 	DefaultDataNetworkId      string                          `tfschema:"default_data_network_id"`
 	SliceId                   string                          `tfschema:"slice_id"`
 }
@@ -91,7 +91,7 @@ func (r SimPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 		"default_slice_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: slice.ValidateSliceID,
 		},
 
 		"location": commonschema.Location(),
@@ -103,19 +103,19 @@ func (r SimPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntAtLeast(30),
 		},
 
-		"rfsp_index": {
+		"rat_frequency_selection_priority_index": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 256),
 		},
 
-		"slice_configuration": {
+		"slice": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"data_network_configuration": {
+					"data_network": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
 						Elem: &pluginsdk.Resource{
@@ -133,9 +133,10 @@ func (r SimPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"allocation_and_retention_priority_level": {
-									Type:     pluginsdk.TypeInt,
-									Optional: true,
-									Default:  0,
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									Default:      0,
+									ValidateFunc: validation.IntAtLeast(0),
 								},
 
 								"allowed_services_ids": {
@@ -366,11 +367,11 @@ func (r SimPolicyResource) Update() sdk.ResourceFunc {
 				model.Properties.RegistrationTimer = &plan.RegistrationTimer
 			}
 
-			if metadata.ResourceData.HasChange("rfsp_index") {
+			if metadata.ResourceData.HasChange("rat_frequency_selection_priority_index") {
 				model.Properties.RfspIndex = &plan.RfspIndex
 			}
 
-			if metadata.ResourceData.HasChange("slice_configuration") {
+			if metadata.ResourceData.HasChange("slice") {
 				model.Properties.SliceConfigurations = expandSliceConfigurationModel(plan.SliceConfigurations)
 			}
 

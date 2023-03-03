@@ -61,17 +61,17 @@ func (r SimPolicyDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"rfsp_index": {
+		"rat_frequency_selection_priority_index": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
 
-		"slice_configuration": {
+		"slice": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"data_network_configuration": {
+					"data_network": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{

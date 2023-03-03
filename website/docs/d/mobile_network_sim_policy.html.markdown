@@ -44,19 +44,19 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `registration_timer_in_seconds` - Interval for the UE periodic registration update procedure.
 
-* `rfsp_index` - RAT/Frequency Selection Priority Index, defined in 3GPP TS 36.413.
+* `rat_frequency_selection_priority_index` - RAT/Frequency Selection Priority Index, defined in 3GPP TS 36.413.
 
 * `user_equipment_aggregate_maximum_bit_rate` - A `user_equipment_aggregate_maximum_bit_rate` block as defined below.
 
-* `slice_configuration` - An array of `slice_configuration` block as defined below. The allowed slices and the settings to use for them.
+* `slice` - An array of `slice` block as defined below. The allowed slices and the settings to use for them.
 
 * `tags` - A mapping of tags which should be assigned to the Mobile Network Sim Policies.
 
 ---
 
-A `slice_configuration` block supports the following:
+A `slice` block supports the following:
 
-* `data_network_configuration` - An array of `data_network_configuration` block as defined below.
+* `data_network` - An array of `data_network` block as defined below.
 
 * `default_data_network_id` - The ID of default data network to use if the UE does not explicitly specify it.
 
@@ -64,7 +64,7 @@ A `slice_configuration` block supports the following:
 
 ---
 
-A `data_network_configuration` block supports the following:
+A `data_network` block supports the following:
 
 * `allowed_services_ids` - An array of IDs of services that can be used as part of this SIM policy.
 

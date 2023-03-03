@@ -18,6 +18,9 @@ type MobileNetworkSimPolicyResource struct{}
 
 func TestAccMobileNetworkSimPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_policy", "test")
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkSimPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,6 +49,9 @@ func TestAccMobileNetworkSimPolicy_requiresImport(t *testing.T) {
 
 func TestAccMobileNetworkSimPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_policy", "test")
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkSimPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -173,10 +179,10 @@ resource "azurerm_mobile_network_sim_policy" "test" {
     uplink   = "500 Mbps"
   }
 
-  slice_configuration {
+  slice {
     default_data_network_id = azurerm_mobile_network_data_network.test.id
     slice_id                = azurerm_mobile_network_slice.test.id
-    data_network_configuration {
+    data_network {
       data_network_id                         = azurerm_mobile_network_data_network.test.id
       allocation_and_retention_priority_level = 9
       default_session_type                    = "IPv4"
@@ -211,11 +217,11 @@ resource "azurerm_mobile_network_sim_policy" "import" {
   location                      = "%s"
   registration_timer_in_seconds = 3240
 
-  slice_configuration {
+  slice {
     default_data_network_id = azurerm_mobile_network_data_network.test.id
     slice_id                = azurerm_mobile_network_slice.test.id
 
-    data_network_configuration {
+    data_network {
       allocation_and_retention_priority_level = 9
       default_session_type                    = "IPv4"
       qos_indicator                           = 9
@@ -252,12 +258,12 @@ resource "azurerm_mobile_network_sim_policy" "test" {
   location                      = "%s"
   default_slice_id              = azurerm_mobile_network_slice.test.id
   registration_timer_in_seconds = 3240
-  rfsp_index                    = 1
+  rat_frequency_selection_priority_index                    = 1
 
-  slice_configuration {
+  slice {
     default_data_network_id = azurerm_mobile_network_data_network.test.id
     slice_id                = azurerm_mobile_network_slice.test.id
-    data_network_configuration {
+    data_network {
       allocation_and_retention_priority_level = 9
       default_session_type                    = "IPv4"
       qos_indicator                           = 9
@@ -296,12 +302,12 @@ resource "azurerm_mobile_network_sim_policy" "test" {
   location                      = "%s"
   default_slice_id              = azurerm_mobile_network_slice.test.id
   registration_timer_in_seconds = 3240
-  rfsp_index                    = 1
+  rat_frequency_selection_priority_index                    = 1
 
-  slice_configuration {
+  slice {
     default_data_network_id = azurerm_mobile_network_data_network.test.id
     slice_id                = azurerm_mobile_network_slice.test.id
-    data_network_configuration {
+    data_network {
       allocation_and_retention_priority_level = 9
       default_session_type                    = "IPv4"
       qos_indicator                           = 9
