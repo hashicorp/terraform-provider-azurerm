@@ -3,18 +3,16 @@ package databoxedge
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type EdgeDeviceDataSource struct{}
@@ -134,27 +132,28 @@ func (d EdgeDeviceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := parse.NewDeviceID(subscriptionId, metaModel.ResourceGroupName, metaModel.Name)
+			id := devices.NewDataBoxEdgeDeviceID(subscriptionId, metaModel.ResourceGroupName, metaModel.Name)
 
-			resp, err := client.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
+			resp, err := client.Get(ctx, id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
-					log.Printf("[INFO] %s was not found - removing from state", id)
-					return metadata.MarkAsGone(id)
+				if response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			state := EdgeDeviceModel{
 				Name:              id.DataBoxEdgeDeviceName,
-				ResourceGroupName: id.ResourceGroup,
-				Location:          location.NormalizeNilable(resp.Location),
+				ResourceGroupName: id.ResourceGroupName,
 			}
 
-			if props := resp.DeviceProperties; props != nil {
-				state.DeviceProperties = flattenDeviceProperties(props)
-				state.SkuName = flattenDeviceSku(resp.Sku)
-				state.Tags = tags.ToTypedObject(resp.Tags)
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				if props := model.Properties; props != nil {
+					state.DeviceProperties = flattenDeviceProperties(props)
+				}
+				state.SkuName = flattenDeviceSku(model.Sku)
+				state.Tags = *model.Tags
 			}
 
 			metadata.SetID(id)

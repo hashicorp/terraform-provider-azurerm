@@ -477,7 +477,7 @@ func flattenVirtualMachineScaleSetPacketCaptureScopeInstanceIds(input *[]string)
 	}
 
 	for _, instance := range *input {
-		instance, err := computeParse.VMSSInstanceID(instance)
+		instance, err := computeParse.VMSSInstanceIDInsensitively(instance)
 		if err != nil {
 			return nil, err
 		}

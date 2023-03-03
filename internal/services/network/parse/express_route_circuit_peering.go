@@ -73,3 +73,59 @@ func ExpressRouteCircuitPeeringID(input string) (*ExpressRouteCircuitPeeringId, 
 
 	return &resourceId, nil
 }
+
+// ExpressRouteCircuitPeeringIDInsensitively parses an ExpressRouteCircuitPeering ID into an ExpressRouteCircuitPeeringId struct, insensitively
+// This should only be used to parse an ID for rewriting, the ExpressRouteCircuitPeeringID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func ExpressRouteCircuitPeeringIDInsensitively(input string) (*ExpressRouteCircuitPeeringId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := ExpressRouteCircuitPeeringId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'expressRouteCircuits' segment
+	expressRouteCircuitsKey := "expressRouteCircuits"
+	for key := range id.Path {
+		if strings.EqualFold(key, expressRouteCircuitsKey) {
+			expressRouteCircuitsKey = key
+			break
+		}
+	}
+	if resourceId.ExpressRouteCircuitName, err = id.PopSegment(expressRouteCircuitsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'peerings' segment
+	peeringsKey := "peerings"
+	for key := range id.Path {
+		if strings.EqualFold(key, peeringsKey) {
+			peeringsKey = key
+			break
+		}
+	}
+	if resourceId.PeeringName, err = id.PopSegment(peeringsKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}

@@ -6,11 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/connection"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/connectiontype"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -26,7 +27,7 @@ func resourceAutomationConnection() *pluginsdk.Resource {
 		Delete: resourceAutomationConnectionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ConnectionID(id)
+			_, err := connection.ParseConnectionID(id)
 			return err
 		}),
 
@@ -79,38 +80,40 @@ func resourceAutomationConnection() *pluginsdk.Resource {
 
 func resourceAutomationConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	connectionTypeClient := meta.(*clients.Client).Automation.ConnectionTypeClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Connection creation.")
 
-	id := parse.NewConnectionID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
+	id := connection.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_automation_connection", id.ID())
 		}
 	}
 
 	connectionTypeName := d.Get("type").(string)
-	values := utils.ExpandMapStringPtrString(d.Get("values").(map[string]interface{}))
+	values := expandStringInterfaceMap(d.Get("values").(map[string]interface{}))
 
+	connectionTypeId := connectiontype.NewConnectionTypeID(subscriptionId, id.ResourceGroupName, id.AutomationAccountName, connectionTypeName)
 	// check `type` exists and required fields are passed by users
-	connectionType, err := connectionTypeClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, connectionTypeName)
+	connectionType, err := connectionTypeClient.Get(ctx, connectionTypeId)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %s", id, err)
 	}
-	if connectionType.ConnectionTypeProperties != nil && connectionType.ConnectionTypeProperties.FieldDefinitions != nil {
+	if connectionType.Model != nil && connectionType.Model.Properties != nil && connectionType.Model.Properties.FieldDefinitions != nil {
 		var missingFields []string
-		for key := range connectionType.ConnectionTypeProperties.FieldDefinitions {
+		for key := range *connectionType.Model.Properties.FieldDefinitions {
 			if _, ok := values[key]; !ok {
 				missingFields = append(missingFields, key)
 			}
@@ -120,18 +123,18 @@ func resourceAutomationConnectionCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	parameters := automation.ConnectionCreateOrUpdateParameters{
-		Name: &id.Name,
-		ConnectionCreateOrUpdateProperties: &automation.ConnectionCreateOrUpdateProperties{
+	parameters := connection.ConnectionCreateOrUpdateParameters{
+		Name: id.ConnectionName,
+		Properties: connection.ConnectionCreateOrUpdateProperties{
 			Description: utils.String(d.Get("description").(string)),
-			ConnectionType: &automation.ConnectionTypeAssociationProperty{
+			ConnectionType: connection.ConnectionTypeAssociationProperty{
 				Name: utils.String(connectionTypeName),
 			},
-			FieldDefinitionValues: values,
+			FieldDefinitionValues: &values,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return err
 	}
 
@@ -145,34 +148,37 @@ func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ConnectionID(d.Id())
+	id, err := connection.ParseConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Read request on AzureRM Automation Connection '%s': %+v", id.Name, err)
+		return fmt.Errorf("read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ConnectionName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("automation_account_name", id.AutomationAccountName)
-	d.Set("values", resp.FieldDefinitionValues)
-	d.Set("description", resp.Description)
 
-	if props := resp.ConnectionProperties; props != nil {
-		if props.ConnectionType != nil {
-			d.Set("type", resp.ConnectionType.Name)
-		}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if props.ConnectionType != nil {
+				d.Set("type", props.ConnectionType.Name)
+			}
 
-		if err := d.Set("values", utils.FlattenMapStringPtrString(props.FieldDefinitionValues)); err != nil {
-			return fmt.Errorf("setting `values`: %+v", err)
+			if props.FieldDefinitionValues != nil {
+				if err := d.Set("values", *props.FieldDefinitionValues); err != nil {
+					return fmt.Errorf("setting `values`: %+v", err)
+				}
+			}
+			d.Set("description", props.Description)
 		}
 	}
 
@@ -184,18 +190,18 @@ func resourceAutomationConnectionDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ConnectionID(d.Id())
+	id, err := connection.ParseConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
 
-		return fmt.Errorf("deleting Automation Connection '%s': %+v", id.Name, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

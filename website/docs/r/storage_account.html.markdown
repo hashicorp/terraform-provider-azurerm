@@ -124,7 +124,7 @@ The following arguments are supported:
 
 * `nfsv3_enabled` - (Optional) Is NFSv3 protocol enabled? Changing this forces a new resource to be created. Defaults to `false`.
 
--> **NOTE:** This can only be `true` when `account_tier` is `Standard` and `account_kind` is `StorageV2`, or `account_tier` is `Premium` and `account_kind` is `BlockBlobStorage`. Additionally, the `is_hns_enabled` is `true`, and `enable_https_traffic_only` is `false`.
+-> **NOTE:** This can only be `true` when `account_tier` is `Standard` and `account_kind` is `StorageV2`, or `account_tier` is `Premium` and `account_kind` is `BlockBlobStorage`. Additionally, the `is_hns_enabled` is `true`.
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
@@ -189,7 +189,7 @@ A `blob_properties` block supports the following:
 
 * `change_feed_retention_in_days` - (Optional) The duration of change feed events retention in days. The possible values are between 1 and 146000 days (400 years). Setting this to null (or omit this in the configuration file) indicates an infinite retention of the change feed.
 
-* `default_service_version` - (Optional) The API Version which should be used by default for requests to the Data Plane API if an incoming request doesn't specify an API Version. Defaults to `2020-06-12`.
+* `default_service_version` - (Optional) The API Version which should be used by default for requests to the Data Plane API if an incoming request doesn't specify an API Version.
 
 * `last_access_time_enabled` - (Optional) Is the last access time based tracking enabled? Default to `false`.
 
@@ -501,13 +501,13 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `secondary_blob_connection_string` - The connection string associated with the secondary blob location.
 
-~> **NOTE:** If there's a write lock on the Storage Account, or the account doesn't have permission then these fields will have an empty value [due to a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/6363)
+~> **NOTE:** If there's a write-lock on the Storage Account, or the account doesn't have permission then these fields will have an empty value [due to a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/6363)
 
-* `identity` - An `identity` block as defined below..
+* `identity` - An `identity` block as defined below.
 
 ---
 
-An `identity` exports the following:
+An `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Storage Account.
 

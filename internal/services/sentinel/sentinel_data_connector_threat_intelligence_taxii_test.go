@@ -77,6 +77,22 @@ func TestAccDataConnectorThreatIntelligenceTAXII_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataConnectorThreatIntelligenceTAXII_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_data_connector_threat_intelligence_taxii", "test")
+	r := NewDataConnectorThreatIntelligenceTAXIIResource()
+	r.preCheck(t, false)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("user_name", "password"),
+	})
+}
+
 func TestAccDataConnectorThreatIntelligenceTAXII_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_data_connector_threat_intelligence_taxii", "test")
 	r := NewDataConnectorThreatIntelligenceTAXIIResource()
@@ -154,6 +170,26 @@ resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "test" {
   collection_id              = "%s"
   user_name                  = "%s"
   password                   = "%s"
+  depends_on                 = [azurerm_log_analytics_solution.test]
+}
+`, template, data.RandomInteger, r.taxiiInfo.APIRootURL, r.taxiiInfo.CollectionID, r.taxiiInfo.UserName, r.taxiiInfo.Password)
+}
+
+func (r DataConnectorThreatIntelligenceTAXIIResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "test" {
+  name                       = "acctestDC-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  display_name               = "test_update"
+  api_root_url               = "%s"
+  collection_id              = "%s"
+  user_name                  = "%s"
+  password                   = "%s"
+  polling_frequency          = "OnceADay"
+  lookback_date              = "1990-01-01T00:00:00Z"
   depends_on                 = [azurerm_log_analytics_solution.test]
 }
 `, template, data.RandomInteger, r.taxiiInfo.APIRootURL, r.taxiiInfo.CollectionID, r.taxiiInfo.UserName, r.taxiiInfo.Password)

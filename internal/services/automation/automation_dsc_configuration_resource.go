@@ -7,12 +7,13 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/dscconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,7 +30,7 @@ func resourceAutomationDscConfiguration() *pluginsdk.Resource {
 		Delete: resourceAutomationDscConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ConfigurationID(id)
+			_, err := dscconfiguration.ParseConfigurationID(id)
 			return err
 		}),
 
@@ -91,22 +92,23 @@ func resourceAutomationDscConfiguration() *pluginsdk.Resource {
 
 func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscConfigurationClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Configuration creation.")
 
-	id := parse.NewConfigurationID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
+	id := dscconfiguration.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_automation_dsc_configuration", id.ID())
 		}
 	}
@@ -115,22 +117,21 @@ func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, m
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	logVerbose := d.Get("log_verbose").(bool)
 	description := d.Get("description").(string)
-	t := d.Get("tags").(map[string]interface{})
 
-	parameters := automation.DscConfigurationCreateOrUpdateParameters{
-		DscConfigurationCreateOrUpdateProperties: &automation.DscConfigurationCreateOrUpdateProperties{
+	parameters := dscconfiguration.DscConfigurationCreateOrUpdateParameters{
+		Properties: dscconfiguration.DscConfigurationCreateOrUpdateProperties{
 			LogVerbose:  utils.Bool(logVerbose),
 			Description: utils.String(description),
-			Source: &automation.ContentSource{
-				Type:  automation.ContentSourceTypeEmbeddedContent,
+			Source: dscconfiguration.ContentSource{
+				Type:  pointer.To(dscconfiguration.ContentSourceTypeEmbeddedContent),
 				Value: utils.String(contentEmbedded),
 			},
 		},
 		Location: utils.String(location),
-		Tags:     tags.Expand(t),
+		Tags:     pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]interface{}))),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return err
 	}
 
@@ -144,49 +145,63 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ConfigurationID(d.Id())
+	id, err := dscconfiguration.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on AzureRM Automation Dsc Configuration %q: %+v", id.Name, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ConfigurationName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("automation_account_name", id.AutomationAccountName)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if model := resp.Model; model != nil {
+		if location := model.Location; location != nil {
+			d.Set("location", azure.NormalizeLocation(*location))
+		}
+
+		if props := model.Properties; props != nil {
+			d.Set("log_verbose", props.LogVerbose)
+			d.Set("description", props.Description)
+			d.Set("state", props.State)
+		}
+
+		if model.Tags != nil {
+			err := flattenAndSetTags(d, *model.Tags)
+			if err != nil {
+				return err
+			}
+		}
+
 	}
 
-	if props := resp.DscConfigurationProperties; props != nil {
-		d.Set("log_verbose", props.LogVerbose)
-		d.Set("description", props.Description)
-		d.Set("state", resp.State)
-	}
-
-	contentresp, err := client.GetContent(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	contentResp, err := client.GetContent(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM Automation Dsc Configuration content %q: %+v", id.Name, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Dsc Configuration content %q: %+v", id.ConfigurationName, err)
 	}
 
-	buf := new(bytes.Buffer)
-	if _, err := buf.ReadFrom(contentresp.Body); err != nil {
-		return fmt.Errorf("reading from AzureRM Automation Dsc Configuration buffer %q: %+v", id.Name, err)
+	if contentHttpResponse := contentResp.HttpResponse; contentHttpResponse != nil {
+		if contentHttpResponse.Body != nil {
+			buf := new(bytes.Buffer)
+			if _, err := buf.ReadFrom(contentResp.HttpResponse.Body); err != nil {
+				return fmt.Errorf("reading from AzureRM Automation Dsc Configuration buffer %q: %+v", id.ConfigurationName, err)
+			}
+			content := buf.String()
+
+			d.Set("content_embedded", content)
+		}
 	}
-	content := buf.String()
 
-	d.Set("content_embedded", content)
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceAutomationDscConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -194,18 +209,18 @@ func resourceAutomationDscConfigurationDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ConfigurationID(d.Id())
+	id, err := dscconfiguration.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
 
-		return fmt.Errorf("issuing AzureRM delete request for Automation Dsc Configuration %q: %+v", id.Name, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

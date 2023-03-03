@@ -58,7 +58,7 @@ func TestAccVirtualNetworkGatewayConnection_sitetositeWithoutSharedKey(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("shared_key"),
 	})
 }
 
@@ -396,6 +396,9 @@ resource "azurerm_local_network_gateway" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
+  lifecycle {
+    ignore_changes = ["shared_key"]
+  }
   name                = "acctest-${var.random}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name

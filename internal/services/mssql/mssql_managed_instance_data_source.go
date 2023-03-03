@@ -164,13 +164,10 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := parse.NewManagedInstanceID(subscriptionId, state.ResourceGroupName, state.Name)
-
-			metadata.Logger.Infof("Reading %s", id)
-
 			resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}

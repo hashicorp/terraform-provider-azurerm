@@ -22,14 +22,17 @@ func flattenAzureRmScheduledQueryRulesAlertAction(input *insights.AzNsActionGrou
 func expandMonitorScheduledQueryRulesCommonSource(d *pluginsdk.ResourceData) *insights.Source {
 	authorizedResourceIDs := d.Get("authorized_resource_ids").(*pluginsdk.Set).List()
 	dataSourceID := d.Get("data_source_id").(string)
-	query, ok := d.GetOk("query")
+
 	source := insights.Source{
 		AuthorizedResources: utils.ExpandStringSlice(authorizedResourceIDs),
 		DataSourceID:        utils.String(dataSourceID),
-		QueryType:           insights.QueryTypeResultCount,
 	}
-	if ok {
+
+	if query, ok := d.GetOk("query"); ok {
 		source.Query = utils.String(query.(string))
+	}
+	if queryType, ok := d.GetOk("query_type"); ok {
+		source.QueryType = insights.QueryType(queryType.(string))
 	}
 
 	return &source

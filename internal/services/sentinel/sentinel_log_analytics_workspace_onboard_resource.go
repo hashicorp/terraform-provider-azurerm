@@ -103,16 +103,19 @@ func (r LogAnalyticsWorkspaceOnboardResource) Create() sdk.ResourceFunc {
 				Target:  []string{"200"},
 				Refresh: func() (interface{}, string, error) {
 					resp, err := client.Get(ctx, id)
+					statusCode := "dropped connection"
+					if resp.HttpResponse != nil {
+						statusCode = strconv.Itoa(resp.HttpResponse.StatusCode)
+					}
+
 					if err != nil {
 						if response.WasNotFound(resp.HttpResponse) {
-							return resp, "404", nil
+							return resp, statusCode, nil
 						}
 						return resp, "", err
 					}
-					if resp.HttpResponse != nil {
-						return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
-					}
-					return resp, "", fmt.Errorf("http response is nil")
+
+					return resp, statusCode, nil
 				},
 				Timeout: time.Until(deadline),
 				Delay:   15 * time.Second,

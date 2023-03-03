@@ -7,10 +7,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -536,6 +536,27 @@ func TestAccBatchPool_mountConfigurationAzureBlobFileSystem(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_mountConfigurationAzureBlobFileSystemWithUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.mountConfigurationAzureBlobFileSystemWithUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount.0.azure_blob_file_system.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount.0.azure_blob_file_system.0.relative_mount_path").HasValue("/mnt/"),
+				check.That(data.ResourceName).Key("mount.0.azure_blob_file_system.0.identity_id").Exists(),
+			),
+		},
+		data.ImportStep(
+			"stop_pending_resize_operation",
+			"mount.0.azure_blob_file_system.0.account_key",
+		),
+	})
+}
+
 func TestAccBatchPool_mountConfigurationAzureFileShare(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
@@ -712,17 +733,17 @@ func TestAccBatchPool_windowsUserAccountsWithAdditionalConfig(t *testing.T) {
 }
 
 func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PoolID(state.ID)
+	id, err := pool.ParsePoolID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Batch.PoolClient.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
+	resp, err := clients.Batch.PoolClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s", *id)
 	}
 
-	return utils.Bool(resp.PoolProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (BatchPoolResource) fixedScale_complete(data acceptance.TestData) string {
@@ -2016,6 +2037,74 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) mountConfigurationAzureBlobFileSystemWithUserAssignedIdentity(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_storage_account" "test" {
+  name                     = "accbatchsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "accbatchsc%s"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "blob"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "testidentity%s"
+}
+
+resource "azurerm_role_assignment" "blob_contributor" {
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  role_definition_name = "Storage Blob Data Contributor"
+  scope                = azurerm_storage_account.test.id
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  display_name        = "Test Acc Pool Auto"
+  vm_size             = "Standard_A1"
+  node_agent_sku_id   = "batch.node.ubuntu 20.04"
+
+  fixed_scale {
+    target_dedicated_nodes = 0
+  }
+
+  storage_image_reference {
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "20-04-lts"
+    version   = "latest"
+  }
+
+  mount {
+    azure_blob_file_system {
+      account_name        = azurerm_storage_account.test.name
+      container_name      = azurerm_storage_container.test.name
+      relative_mount_path = "/mnt/"
+      identity_id         = azurerm_user_assigned_identity.test.id
+    }
+  }
+}
+`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) mountConfigurationAzureFileShare(data acceptance.TestData) string {

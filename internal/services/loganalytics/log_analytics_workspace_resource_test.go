@@ -681,12 +681,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                            = "acctestLAW-%d"
-  location                        = azurerm_resource_group.test.location
-  resource_group_name             = azurerm_resource_group.test.name
-  sku                             = "PerGB2018"
-  retention_in_days               = 30
-  local_authentication_disabled   = %[4]t
+  name                          = "acctestLAW-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  sku                           = "PerGB2018"
+  retention_in_days             = 30
+  local_authentication_disabled = %[4]t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, disableLocalAuth)
 }

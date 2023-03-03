@@ -67,7 +67,7 @@ A `release_criteria` block exports the following:
 
 A `recurrence` block exports the following:
 
-* `frequency` - (Required) The frequency of the schedule. Possible values are `Day`, `Hour`, `Minute`, `Month`, `Second`, `Week` and `Year`.
+* `frequency` - (Required) The frequency of the schedule. Possible values are `Day`, `Hour`, `Minute`, `Month`, `NotSpecified`, `Second`, `Week` and `Year`.
 
 * `interval` - (Required) The number of `frequency`s between runs.
 

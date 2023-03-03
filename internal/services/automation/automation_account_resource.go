@@ -196,7 +196,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 	if identityVal.Type != identity.TypeNone {
 		parameters.Identity = identityVal
 	}
-	if tagsVal := expandTags(d.Get("tags").(map[string]interface{})); tagsVal != nil {
+	if tagsVal := expandStringInterfaceMap(d.Get("tags").(map[string]interface{})); tagsVal != nil {
 		parameters.Tags = &tagsVal
 	}
 
@@ -244,7 +244,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.Encryption = enc
 	}
 
-	if tagsVal := expandTags(d.Get("tags").(map[string]interface{})); tagsVal != nil {
+	if tagsVal := expandStringInterfaceMap(d.Get("tags").(map[string]interface{})); tagsVal != nil {
 		parameters.Tags = &tagsVal
 	}
 

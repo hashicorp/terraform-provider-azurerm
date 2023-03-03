@@ -75,7 +75,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Container Registry Token Password.
 
-* `password` - Up to two `password` blocks as defined below.
+* `password1` - One `password` block as defined below.
+
+* `password2` - One `password` block as defined below.
 
 ---
 
