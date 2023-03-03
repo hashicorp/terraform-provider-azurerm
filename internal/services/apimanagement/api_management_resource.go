@@ -199,7 +199,6 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
 						ValidateFunc: validation.IntBetween(0, 12),
 					},
 

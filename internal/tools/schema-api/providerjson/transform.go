@@ -42,7 +42,6 @@ func resourceFromRaw(input *schema.Resource) (*ResourceJSON, error) {
 }
 
 func schemaFromRaw(input *schema.Schema) SchemaJSON {
-
 	return SchemaJSON{
 		Type:        input.Type.String(),
 		ConfigMode:  decodeConfigMode(input.ConfigMode),
@@ -56,6 +55,59 @@ func schemaFromRaw(input *schema.Schema) SchemaJSON {
 		MaxItems:    input.MaxItems,
 		MinItems:    input.MinItems,
 	}
+}
+
+func SchemaFromMap(input map[string]interface{}) SchemaJSON {
+	result := SchemaJSON{}
+	if t, ok := input["type"]; ok {
+		result.Type = t.(string)
+	}
+
+	if t, ok := input["configMode"]; ok {
+		result.ConfigMode = t.(string)
+	}
+
+	if t, ok := input["optional"]; ok {
+		result.Optional = t.(bool)
+	}
+
+	if t, ok := input["required"]; ok {
+		result.Required = t.(bool)
+	}
+
+	if t, ok := input["default"]; ok {
+		result.Default = t
+	}
+
+	if t, ok := input["description"]; ok {
+		result.Description = t.(string)
+	}
+
+	if t, ok := input["computed"]; ok {
+		result.Computed = t.(bool)
+	}
+
+	if t, ok := input["forceNew"]; ok {
+		result.ForceNew = t.(bool)
+	}
+
+	if t, ok := input["forceNew"]; ok {
+		result.ForceNew = t.(bool)
+	}
+
+	if t, ok := input["elem"]; ok {
+		result.Elem = decodeElem(t)
+	}
+
+	if t, ok := input["minItems"]; ok {
+		result.MinItems = int(t.(float64))
+	}
+
+	if t, ok := input["maxItems"]; ok {
+		result.MaxItems = int(t.(float64))
+	}
+
+	return result
 }
 
 func decodeConfigMode(input schema.SchemaConfigMode) (out string) {

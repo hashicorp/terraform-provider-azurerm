@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/differ"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +20,8 @@ func main() {
 	apiPort := f.Int("api-port", 8080, "the port on which to run the Provider JSON server")
 	dumpSchema := f.Bool("dump", false, "used to simply dump the entire provider schema")
 	providerName := f.String("provider-name", "azurerm", "set the provider name, defaults to `azurerm`")
+	exportSchema := f.String("export", "", "export the schema to the given path/filename. Intended for use in the release process")
+	detectBreakingChanges := f.String("detect", "", "compare current schema to named dump.")
 
 	if err := f.Parse(os.Args[1:]); err != nil {
 		fmt.Printf("error parsing args: %+v", err)
@@ -26,17 +30,45 @@ func main() {
 
 	data := providerjson.LoadData()
 
-	if *dumpSchema {
-		// Call the method to stdout
-		log.Printf("dumping schema for '%s'", *providerName)
-		wrappedProvider := &providerjson.ProviderWrapper{
-			ProviderName: *providerName,
-		}
-		if err := providerjson.DumpWithWrapper(wrappedProvider, data); err != nil {
-			log.Fatalf("error dumping provider: %+v", err)
+	switch {
+	case pointer.From(dumpSchema):
+		{
+			// Call the method to stdout
+			log.Printf("dumping schema for '%s'", *providerName)
+			wrappedProvider := &providerjson.ProviderWrapper{
+				ProviderName: *providerName,
+			}
+			if err := providerjson.DumpWithWrapper(wrappedProvider, data); err != nil {
+				log.Fatalf("error dumping provider: %+v", err)
+			}
+
+			os.Exit(0)
 		}
 
-		os.Exit(0)
+	case pointer.From(detectBreakingChanges) != "":
+		{
+			d := differ.Differ{}
+			if violations := d.Diff(*detectBreakingChanges, *providerName); violations != nil {
+				for _, v := range violations {
+					log.Println(v)
+				}
+			}
+
+			os.Exit(0)
+		}
+
+	case pointer.From(exportSchema) != "":
+		{
+			log.Printf("dumping schema for '%s'", *providerName)
+			wrappedProvider := &providerjson.ProviderWrapper{
+				ProviderName: *providerName,
+			}
+			if err := providerjson.WriteWithWrapper(wrappedProvider, data, *exportSchema); err != nil {
+				log.Fatalf("error writing provider schema for %q to %q: %+v", providerName, *exportSchema, err)
+			}
+
+			os.Exit(0)
+		}
 	}
 
 	if *apiPort < 1024 || *apiPort > 65534 {
