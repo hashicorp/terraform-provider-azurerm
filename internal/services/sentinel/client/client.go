@@ -16,6 +16,7 @@ type Client struct {
 	WatchlistsClient         *securityinsight.WatchlistsClient
 	WatchlistItemsClient     *securityinsight.WatchlistItemsClient
 	OnboardingStatesClient   *sentinelonboardingstates.SentinelOnboardingStatesClient
+	AnalyticsSettingsClient  *securityinsight.SecurityMLAnalyticsSettingsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -40,6 +41,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	onboardingStatesClient := sentinelonboardingstates.NewSentinelOnboardingStatesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&onboardingStatesClient.Client, o.ResourceManagerAuthorizer)
 
+	analyticsSettingsClient := securityinsight.NewSecurityMLAnalyticsSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&analyticsSettingsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AlertRulesClient:         &alertRulesClient,
 		AlertRuleTemplatesClient: &alertRuleTemplatesClient,
@@ -48,5 +52,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		WatchlistsClient:         &watchListsClient,
 		WatchlistItemsClient:     &watchListItemsClient,
 		OnboardingStatesClient:   &onboardingStatesClient,
+		AnalyticsSettingsClient:  &analyticsSettingsClient,
 	}
 }
