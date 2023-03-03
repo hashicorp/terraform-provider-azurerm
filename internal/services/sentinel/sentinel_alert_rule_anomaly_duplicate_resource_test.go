@@ -3,6 +3,7 @@ package sentinel_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -65,7 +66,10 @@ func TestAccSentinelAlertRuleAnomalyDuplicate_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: regexp.MustCompile("only one duplicate rule of the same built-in rule is allowed, there is an existing duplicate rule of .+"),
+		},
 	})
 }
 

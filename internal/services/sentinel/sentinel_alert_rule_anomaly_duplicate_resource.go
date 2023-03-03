@@ -356,23 +356,12 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("parsing: %+v", err)
 				}
-				return fmt.Errorf("only one duplicate rule of built-in rule is allowed, there is an existing duplicate rule of %s with id %q", *builtInAnomalyRule.DisplayName, parsedExistingId.ID())
+				return fmt.Errorf("only one duplicate rule of the same built-in rule is allowed, there is an existing duplicate rule of %s with id %q", *builtInAnomalyRule.DisplayName, parsedExistingId.ID())
 			}
 
 			var id parse.MLAnalyticsSettingsId
 			id = parse.NewMLAnalyticsSettingsID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, uuid.New().String())
-			existing, err := AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, *workspaceId, func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
-				if v.Name != nil && strings.EqualFold(AlertRuleAnomalyIdFromWorkspaceId(*workspaceId, *v.Name), id.ID()) {
-					return true
-				}
-				return false
-			})
-			if err != nil {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if existing != nil {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
+			// no need to do another existing check, it will be checked by finding existing duplicate rule of the template.
 
 			if builtInAnomalyRule.SettingsStatus == securityinsight.SettingsStatusProduction && metaModel.Mode == string(securityinsight.SettingsStatusProduction) {
 				return fmt.Errorf("built-in anomaly rule %s is in production mode, it's not allowed to create duplicate rule in production mode", *builtInAnomalyRule.DisplayName)
