@@ -115,7 +115,7 @@ func (r PacketCoreControlPlaneDataSource) Attributes() map[string]*pluginsdk.Sch
 			Computed: true,
 		},
 
-		"local_diagnostics_access_setting": {
+		"local_diagnostics_access": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{

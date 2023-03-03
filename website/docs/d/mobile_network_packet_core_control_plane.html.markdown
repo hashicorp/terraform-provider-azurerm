@@ -43,7 +43,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `sku` - The SKU defining the throughput and SIM allowances for this packet core control plane deployment. 
 
-* `local_diagnostics_access_setting` - One or more `local_diagnostics_access_setting` block as defined below. The kubernetes ingress configuration to control access to packet core diagnostics over local APIs.
+* `local_diagnostics_access` - One or more `local_diagnostics_access` block as defined below. The kubernetes ingress configuration to control access to packet core diagnostics over local APIs.
 
 * `control_plane_access_interface` - A `control_plane_access_interface` block as defined below. The control plane interface on the access network. For 5G networks, this is the N2 interface. For 4G networks, this is the S1-MME interface.
 
@@ -75,7 +75,7 @@ A `control_plane_access_interface` block supports the following:
 
 ---
 
-A `local_diagnostics_access_setting` block supports the following:
+A `local_diagnostics_access` block supports the following:
 
 * `authentication_type` - How to authenticate users who access local diagnostics APIs. 
 

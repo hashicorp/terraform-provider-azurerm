@@ -18,6 +18,10 @@ type MobileNetworkPacketCoreControlPlaneResource struct{}
 
 func TestAccMobileNetworkPacketCoreControlPlane_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
+
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,6 +50,10 @@ func TestAccMobileNetworkPacketCoreControlPlane_withAccessInterface(t *testing.T
 
 func TestAccMobileNetworkPacketCoreControlPlane_withIneropSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
+
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,6 +68,10 @@ func TestAccMobileNetworkPacketCoreControlPlane_withIneropSettings(t *testing.T)
 
 func TestAccMobileNetworkPacketCoreControlPlane_withUeMTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
+
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -74,6 +86,10 @@ func TestAccMobileNetworkPacketCoreControlPlane_withUeMTU(t *testing.T) {
 
 func TestAccMobileNetworkPacketCoreControlPlane_withCertificateUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
+
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -88,6 +104,10 @@ func TestAccMobileNetworkPacketCoreControlPlane_withCertificateUserAssignedIdent
 
 func TestAccMobileNetworkPacketCoreControlPlane_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
+
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -164,7 +184,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   sku                 = "G0"
   site_ids            = [azurerm_mobile_network_site.test.id]
 
-  local_diagnostics_access_setting {
+  local_diagnostics_access {
     authentication_type = "AAD"
   }
 
@@ -189,7 +209,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   sku                 = "G0"
   site_ids            = [azurerm_mobile_network_site.test.id]
 
-  local_diagnostics_access_setting {
+  local_diagnostics_access {
     authentication_type = "AAD"
   }
 
@@ -262,7 +282,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   sku                     = "G0"
   core_network_technology = "5GC"
   site_ids                = [azurerm_mobile_network_site.test.id]
-  local_diagnostics_access_setting {
+  local_diagnostics_access {
     authentication_type          = "AAD"
     https_server_certificate_url = azurerm_key_vault_certificate.test.versionless_secret_id
   }
@@ -304,7 +324,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   sku                 = "G0"
   site_ids            = [azurerm_mobile_network_site.test.id]
 
-  local_diagnostics_access_setting {
+  local_diagnostics_access {
     authentication_type = "AAD"
   }
 
@@ -341,7 +361,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   user_equipment_mtu_in_bytes = 1600
   site_ids                    = [azurerm_mobile_network_site.test.id]
 
-  local_diagnostics_access_setting {
+  local_diagnostics_access {
     authentication_type = "AAD"
   }
 
@@ -385,7 +405,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "import" {
     edge_device_id = azurerm_databox_edge_device.test.id
   }
 
-  local_diagnostics_access_setting {
+  local_diagnostics_access {
     authentication_type = "AAD"
   }
 
@@ -405,7 +425,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
   sku                 = "G0"
   site_ids            = [azurerm_mobile_network_site.test.id]
 
-  local_diagnostics_access_setting {
+  local_diagnostics_access {
     authentication_type = "AAD"
   }
 

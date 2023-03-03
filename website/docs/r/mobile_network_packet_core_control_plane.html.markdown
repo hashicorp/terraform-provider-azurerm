@@ -48,7 +48,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "example" {
 
   site_ids = [azurerm_mobile_network_site.example.id]
 
-  local_diagnostics_access_setting {
+  local_diagnostics_access {
     authentication_type = "AAD"
   }
 
@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `sku` - (Required) The SKU defining the throughput and SIM allowances for this packet core control plane deployment. Possible values are `G0`, `G1`, `G2`, `G3`, `G4`, `G5` and `G10`.
 
-* `local_diagnostics_access_setting` - (Required) One or more `local_diagnostics_access_setting` block as defined below. The kubernetes ingress configuration to control access to packet core diagnostics over local APIs.
+* `local_diagnostics_access` - (Required) One or more `local_diagnostics_access` block as defined below. The kubernetes ingress configuration to control access to packet core diagnostics over local APIs.
 
 * `control_plane_access_interface` - (Optional) A `control_plane_access_interface` block as defined below. The control plane interface on the access network. For 5G networks, this is the N2 interface. For 4G networks, this is the S1-MME interface.
 
@@ -121,7 +121,7 @@ A `control_plane_access_interface` block supports the following:
 
 ---
 
-A `local_diagnostics_access_setting` block supports the following:
+A `local_diagnostics_access` block supports the following:
 
 * `authentication_type` - (Required) How to authenticate users to access local diagnostics APIs. Possible values are `AAD` and `Password`.
 

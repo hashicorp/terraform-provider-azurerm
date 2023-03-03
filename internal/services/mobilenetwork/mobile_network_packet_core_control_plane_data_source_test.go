@@ -12,6 +12,10 @@ type MobileNetworkPacketCoreControlPlanDataSource struct{}
 
 func TestAccMobileNetworkPacketCoreControlPlanDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
+
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	d := MobileNetworkPacketCoreControlPlanDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -20,7 +24,7 @@ func TestAccMobileNetworkPacketCoreControlPlanDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key(`location`).Exists(),
 				check.That(data.ResourceName).Key(`sku`).HasValue("G0"),
 				check.That(data.ResourceName).Key(`site_ids.#`).HasValue("1"),
-				check.That(data.ResourceName).Key(`local_diagnostics_access_setting.0.authentication_type`).HasValue("AAD"),
+				check.That(data.ResourceName).Key(`local_diagnostics_access.0.authentication_type`).HasValue("AAD"),
 				check.That(data.ResourceName).Key(`platform.0.type`).HasValue("AKS-HCI"),
 			),
 		},

@@ -27,7 +27,7 @@ type PacketCoreControlPlaneModel struct {
 	ResourceGroupName           string                                     `tfschema:"resource_group_name"`
 	ControlPlaneAccessInterface []InterfacePropertiesModel                 `tfschema:"control_plane_access_interface"`
 	CoreNetworkTechnology       string                                     `tfschema:"core_network_technology"`
-	LocalDiagnosticsAccess      []LocalDiagnosticsAccessConfigurationModel `tfschema:"local_diagnostics_access_setting"`
+	LocalDiagnosticsAccess      []LocalDiagnosticsAccessConfigurationModel `tfschema:"local_diagnostics_access"`
 	Location                    string                                     `tfschema:"location"`
 	SiteIds                     []string                                   `tfschema:"site_ids"`
 	Platform                    []PlatformConfigurationModel               `tfschema:"platform"`
@@ -188,7 +188,7 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 
-		"local_diagnostics_access_setting": {
+		"local_diagnostics_access": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
