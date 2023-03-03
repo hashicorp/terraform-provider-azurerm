@@ -136,11 +136,9 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 				if itemProps.JobScheduleId == nil || *itemProps.JobScheduleId == "" {
 					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
 				}
-				jsId, err := jobschedule.ParseJobScheduleID(*itemProps.JobScheduleId)
-				if err != nil {
-					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", id.AutomationAccountName, err)
-				}
-				if _, err := client.Delete(ctx, *jsId); err != nil {
+
+				jsId := jobschedule.NewJobScheduleID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, *itemProps.JobScheduleId)
+				if _, err := client.Delete(ctx, jsId); err != nil {
 					return fmt.Errorf("deleting job schedule Id listed by Automation Account %q Job Schedule List:%v", id.AutomationAccountName, err)
 				}
 			}
