@@ -9,7 +9,8 @@ ENHANCEMENTS
 
 * dependencies: updating to `v0.20230228.1160358` of `github.com/hashicorp/go-azure-sdk` [GH-20688]
 * dependencies: updating to `v0.20230224.1120200` of `github.com/tombuildsstuff/kermit` [GH-20649]
-* dependences: updating `containerservice/2022-09-02-preview` to `2023-01-02-preview` [GH-20734]
+* dependencies: updating `containerservice/2022-09-02-preview` to `2023-01-02-preview` [GH-20734]
+* dependencies: updating `hybridCompute/2022-03-10` to `2022-11-10` [GH-20733]
 * `aadb2c`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20715]
 * `databoxedge` - switching to use `github.com/hashicorp/go-azure-sdk` [GH-20638]
 * `dns`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20688]
