@@ -110,6 +110,16 @@ func SchemaFromMap(input map[string]interface{}) SchemaJSON {
 	return result
 }
 
+func ResourceFromMap(input map[string]interface{}) ResourceJSON {
+	result := ResourceJSON{
+		Schema: make(map[string]SchemaJSON, 0),
+	}
+	for k, v := range input {
+		result.Schema[k] = SchemaFromMap(v.(map[string]interface{}))
+	}
+	return result
+}
+
 func decodeConfigMode(input schema.SchemaConfigMode) (out string) {
 	switch input {
 	case 1:

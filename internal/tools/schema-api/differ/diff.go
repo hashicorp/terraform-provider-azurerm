@@ -37,7 +37,7 @@ func (d *Differ) Diff(fileName string, providerName string) []string {
 			// Get the same from the base (released) json
 			baseItem, ok := d.base.ProviderSchema.ResourcesMap[resource].Schema[propertyName]
 			if !ok {
-				// TODO - New property, Could be Required which would be breaking, need to account for this
+				// New property, could be breaking - Required etc
 				baseItem = providerjson.SchemaJSON{}
 			}
 			if errs := compareNode(baseItem, propertySchema, propertyName); errs != nil {
@@ -53,10 +53,9 @@ func (d *Differ) Diff(fileName string, providerName string) []string {
 
 func compareNode(base providerjson.SchemaJSON, current providerjson.SchemaJSON, nodeName string) (errs []string) {
 	if nodeIsBlock(base) {
-		newBaseRaw := base.Elem.(map[string]interface{})["schema"].(map[string]interface{})
+		newBaseRaw := base.Elem.(providerjson.ResourceJSON).Schema
 		newCurrent := current.Elem.(*providerjson.ResourceJSON).Schema
-		for k, v := range newBaseRaw {
-			newBase := providerjson.SchemaFromMap(v.(map[string]interface{}))
+		for k, newBase := range newBaseRaw {
 			errs = append(errs, compareNode(newBase, newCurrent[k], k)...)
 		}
 	}
@@ -72,10 +71,8 @@ func compareNode(base providerjson.SchemaJSON, current providerjson.SchemaJSON, 
 
 func nodeIsBlock(input providerjson.SchemaJSON) bool {
 	if input.Type == "TypeList" || input.Type == "TypeSet" {
-		if elem, ok := input.Elem.(map[string]interface{}); ok {
-			if _, ok := elem["schema"]; ok {
-				return true
-			}
+		if _, ok := input.Elem.(providerjson.ResourceJSON); ok {
+			return true
 		}
 	}
 	return false

@@ -22,6 +22,7 @@ func main() {
 	providerName := f.String("provider-name", "azurerm", "set the provider name, defaults to `azurerm`")
 	exportSchema := f.String("export", "", "export the schema to the given path/filename. Intended for use in the release process")
 	detectBreakingChanges := f.String("detect", "", "compare current schema to named dump.")
+	errorOnBreakingChange := f.Bool("error-on-violation", false, "should the detect mode exit with a non-zero error code. Defaults to `false`")
 
 	if err := f.Parse(os.Args[1:]); err != nil {
 		fmt.Printf("error parsing args: %+v", err)
@@ -51,6 +52,9 @@ func main() {
 			if violations := d.Diff(*detectBreakingChanges, *providerName); violations != nil {
 				for _, v := range violations {
 					log.Println(v)
+				}
+				if pointer.From(errorOnBreakingChange) {
+					os.Exit(1)
 				}
 			}
 

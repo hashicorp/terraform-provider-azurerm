@@ -2,8 +2,9 @@ package differ
 
 import (
 	"encoding/json"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
 	"os"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
 )
 
 func (d *Differ) loadFromFile(fileName string) error {
@@ -13,6 +14,7 @@ func (d *Differ) loadFromFile(fileName string) error {
 	}
 	defer f.Close()
 	buf := &providerjson.ProviderWrapper{}
+	// TODO - Custom marshalling to fix the type assertions later? meh, works for now...
 	if err := json.NewDecoder(f).Decode(buf); err != nil {
 		return err
 	}
