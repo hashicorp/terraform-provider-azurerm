@@ -40,8 +40,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the ExpressRoute Port. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the ExpressRoute Port. Changing this forces a new resource to be created.
-    
+* `resource_group_name` - (Required) The name of the resource group in which to create the ExpressRoute Port. Changing this forces a new resource to be created. 
 
 * `express_route_port_name` - (Required) The name of the Express Route Port in which to create the Authorization. Changing this forces a new resource to be created.
 
