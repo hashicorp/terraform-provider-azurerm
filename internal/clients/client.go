@@ -264,7 +264,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 
 	var err error
 
-	client.AadB2c = aadb2c.NewClient(o)
+	if client.AadB2c, err = aadb2c.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AadB2c: %+v", err)
+	}
 	client.Advisor = advisor.NewClient(o)
 	client.AnalysisServices = analysisServices.NewClient(o)
 	client.ApiManagement = apiManagement.NewClient(o)
