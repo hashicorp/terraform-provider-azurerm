@@ -137,7 +137,15 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceDat
 		d.SetId("")
 		return nil
 	}
-	assignment := (*resp)[0]
+
+	var assignment configurationassignments.ConfigurationAssignment
+	for _, v := range *resp {
+		// Due to https://github.com/Azure/azure-rest-api-specs/issues/22894, API always returns the lowercase for Maintenance Assignment. Once this issue is fixed, we will remove `strings.ToLower()`
+		if v.Name != nil && strings.ToLower(*v.Name) == strings.ToLower(id.Name) {
+			assignment = v
+		}
+	}
+
 	if assignment.Id == nil || *assignment.Id == "" {
 		return fmt.Errorf("empty or nil ID of Maintenance Assignment (virtual machine ID id: %q", id.VirtualMachineIdRaw)
 	}
