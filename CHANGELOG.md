@@ -63,6 +63,7 @@ BUG FIXES
 * `azurerm_netapp_volume` - Fix potential nil panic in resource read [GH-20662]
 * `azurerm_notification_hub` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_notification_hub_namespace` - fixing a crash when the connection dropped [GH-20670]
+* `azurerm_proximity_placement_group` - will now correctly update when a vm is attached [GH-20131]
 * `azurerm_sentinel_log_analytics_workspace_onboard` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_servicebus_namespace_disaster_recovery_config` - fixing a crash when the connection dropped [GH-20670]
 * `azurerm_storage_object_replication` - now functions when cross tenant replication is disabled [GH-20132]
