@@ -159,7 +159,12 @@ func resourceMariaDbServer() *pluginsdk.Resource {
 					validation.IntDivisibleBy(1024),
 				),
 			},
-
+			"ssl_minimal_tls_version_enforced": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(servers.MinimalTlsVersionEnumTLSOneTwo),
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForMinimalTlsVersionEnum(), false),
+			},
 			"tags": commonschema.Tags(),
 
 			"version": {
@@ -215,6 +220,12 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		ssl = servers.SslEnforcementEnumDisabled
 	}
 
+	tlsMin := servers.MinimalTlsVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
+
+	if ssl == servers.SslEnforcementEnumDisabled && tlsMin != servers.MinimalTlsVersionEnumTLSEnforcementDisabled {
+		return fmt.Errorf("`ssl_minimal_tls_version_enforced` must be set to `TLSEnforcementDisabled` if `ssl_enforcement_enabled` is set to `false`")
+	}
+
 	storage := expandMariaDbStorageProfile(d)
 
 	var props servers.ServerPropertiesForCreate
@@ -253,6 +264,7 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			SourceServerId:      source,
 			RestorePointInTime:  v.(string),
 			PublicNetworkAccess: &publicAccess,
+			MinimalTlsVersion:   &tlsMin,
 			SslEnforcement:      &ssl,
 			StorageProfile:      storage,
 			Version:             &version,
@@ -370,6 +382,7 @@ func resourceMariaDbServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		if props := model.Properties; props != nil {
 			d.Set("administrator_login", props.AdministratorLogin)
+			d.Set("ssl_minimal_tls_version_enforced", props.MinimalTlsVersion)
 
 			publicNetworkAccess := false
 			if props.PublicNetworkAccess != nil {
