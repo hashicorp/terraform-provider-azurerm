@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -241,14 +242,14 @@ func TestAccResourcePolicyAssignment_basicWithCustomPolicyComplete(t *testing.T)
 }
 
 func (r ResourceAssignmentTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PolicyAssignmentID(state.ID)
+	id, err := assignments.ParseScopedPolicyAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	assignment, err := client.Policy.AssignmentsClient.Get(ctx, id.Scope, id.Name)
+	assignment, err := client.Policy.AssignmentsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(assignment.Response) {
+		if response.WasNotFound(assignment.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 

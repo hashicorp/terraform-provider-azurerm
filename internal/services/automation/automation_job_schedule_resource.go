@@ -6,17 +6,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/jobschedule"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAutomationJobSchedule() *pluginsdk.Resource {
@@ -26,7 +25,7 @@ func resourceAutomationJobSchedule() *pluginsdk.Resource {
 		Delete: resourceAutomationJobScheduleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.JobScheduleID(id)
+			_, err := jobschedule.ParseJobScheduleID(id)
 			return err
 		}),
 
@@ -89,6 +88,7 @@ func resourceAutomationJobSchedule() *pluginsdk.Resource {
 
 func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.JobScheduleClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -105,72 +105,75 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
 	}
 
-	id := parse.NewJobScheduleID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), jobScheduleUUID.String())
+	id := jobschedule.NewJobScheduleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), jobScheduleUUID.String())
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, jobScheduleUUID)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_automation_job_schedule", id.ID())
 		}
 	}
 
+	automationAccountId := jobschedule.NewAutomationAccountID(subscriptionId, id.ResourceGroupName, id.AutomationAccountName)
+
 	// fix issue: https://github.com/hashicorp/terraform-provider-azurerm/issues/7130
 	// When the runbook has some updates, it'll update all related job schedule id, so the elder job schedule will not exist
 	// We need to delete the job schedule id if exists to recreate the job schedule
-	for jsIterator, err := client.ListByAutomationAccountComplete(ctx, id.ResourceGroup, id.AutomationAccountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
-		if err != nil {
-			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
-		}
-		if props := jsIterator.Value().JobScheduleProperties; props != nil {
-			if props.Schedule.Name != nil && *props.Schedule.Name == scheduleName && props.Runbook.Name != nil && *props.Runbook.Name == runbookName {
-				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
+	jsIterator, err := client.ListByAutomationAccountComplete(ctx, automationAccountId, jobschedule.ListByAutomationAccountOperationOptions{})
+	if err != nil {
+		return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
+	}
+
+	for _, item := range jsIterator.Items {
+		if itemProps := item.Properties; itemProps != nil {
+			if itemProps.Schedule != nil && itemProps.Schedule.Name != nil && *itemProps.Schedule.Name == scheduleName && itemProps.Runbook != nil && itemProps.Runbook.Name != nil && *itemProps.Runbook.Name == runbookName {
+				if itemProps.JobScheduleId == nil || *itemProps.JobScheduleId == "" {
 					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
 				}
-				jsId, err := uuid.FromString(*jsIterator.Value().JobScheduleID)
+				jsId, err := jobschedule.ParseJobScheduleID(*itemProps.JobScheduleId)
 				if err != nil {
 					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", id.AutomationAccountName, err)
 				}
-				if _, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, jsId); err != nil {
+				if _, err := client.Delete(ctx, *jsId); err != nil {
 					return fmt.Errorf("deleting job schedule Id listed by Automation Account %q Job Schedule List:%v", id.AutomationAccountName, err)
 				}
 			}
 		}
 	}
 
-	parameters := automation.JobScheduleCreateParameters{
-		JobScheduleCreateProperties: &automation.JobScheduleCreateProperties{
-			Schedule: &automation.ScheduleAssociationProperty{
+	parameters := jobschedule.JobScheduleCreateParameters{
+		Properties: jobschedule.JobScheduleCreateProperties{
+			Schedule: jobschedule.ScheduleAssociationProperty{
 				Name: &scheduleName,
 			},
-			Runbook: &automation.RunbookAssociationProperty{
+			Runbook: jobschedule.RunbookAssociationProperty{
 				Name: &runbookName,
 			},
 		},
 	}
-	properties := parameters.JobScheduleCreateProperties
 
 	// parameters to be passed into the runbook
 	if v, ok := d.GetOk("parameters"); ok {
-		jsParameters := make(map[string]*string)
+		jsParameters := make(map[string]string)
 		for k, v := range v.(map[string]interface{}) {
 			value := v.(string)
-			jsParameters[k] = &value
+			jsParameters[k] = value
 		}
-		properties.Parameters = jsParameters
+		parameters.Properties.Parameters = &jsParameters
 	}
 
 	if v, ok := d.GetOk("run_on"); ok {
 		value := v.(string)
-		properties.RunOn = &value
+		parameters.Properties.RunOn = &value
 	}
 
-	if _, err := client.Create(ctx, id.ResourceGroup, id.AutomationAccountName, jobScheduleUUID, parameters); err != nil {
+	if _, err := client.Create(ctx, id, parameters); err != nil {
 		return err
 	}
 
@@ -184,39 +187,43 @@ func resourceAutomationJobScheduleRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.JobScheduleID(d.Id())
+	id, err := jobschedule.ParseJobScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	jobScheduleUUID := uuid.FromStringOrNil(id.Name)
-
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, jobScheduleUUID)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf("making Read request on AzureRM Automation Job Schedule '%s': %+v", id.Name, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("job_schedule_id", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("job_schedule_id", id.JobScheduleId)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("automation_account_name", id.AutomationAccountName)
-	d.Set("runbook_name", resp.JobScheduleProperties.Runbook.Name)
-	d.Set("schedule_name", resp.JobScheduleProperties.Schedule.Name)
 
-	if v := resp.JobScheduleProperties.RunOn; v != nil {
-		d.Set("run_on", v)
-	}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("runbook_name", props.Runbook.Name)
+			d.Set("schedule_name", props.Schedule.Name)
 
-	if v := resp.JobScheduleProperties.Parameters; v != nil {
-		jsParameters := make(map[string]interface{})
-		for key, value := range v {
-			jsParameters[strings.ToLower(key)] = value
+			if v := props.RunOn; v != nil {
+				d.Set("run_on", v)
+			}
+
+			if props.Parameters != nil {
+				if v := *props.Parameters; v != nil {
+					jsParameters := make(map[string]interface{})
+					for key, value := range v {
+						jsParameters[strings.ToLower(key)] = value
+					}
+					d.Set("parameters", jsParameters)
+				}
+			}
 		}
-		d.Set("parameters", jsParameters)
 	}
 
 	return nil
@@ -227,17 +234,15 @@ func resourceAutomationJobScheduleDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.JobScheduleID(d.Id())
+	id, err := jobschedule.ParseJobScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	jobScheduleUUID := uuid.FromStringOrNil(id.Name)
-
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, jobScheduleUUID)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("issuing AzureRM delete request for Automation Job Schedule '%s': %+v", id.Name, err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

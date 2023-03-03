@@ -252,12 +252,18 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
+					return resp, "404", nil
 				}
 				return nil, "nil", fmt.Errorf("polling to check the deletion state for %s: %+v", *id, err)
 			}
 
-			return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
+			// if resp.HttpResponse is nil it's a dropped connection, which is normally checked
+			// via `response.WasNotFound` however since we want the status code here for the poller
+			status := "dropped connection"
+			if resp.HttpResponse != nil {
+				status = strconv.Itoa(resp.HttpResponse.StatusCode)
+			}
+			return resp, status, nil
 		},
 	}
 
@@ -267,13 +273,17 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 
 	// it can take some time for the name to become available again
 	// this is mainly here	to enable updating the resource in place
+	deadline, ok = ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context has no deadline")
+	}
 	parentNamespaceId := checknameavailabilitydisasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	availabilityClient := meta.(*clients.Client).Eventhub.DisasterRecoveryNameAvailabilityClient
 	nameFreeWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"NameInUse"},
 		Target:     []string{"None"},
 		MinTimeout: 30 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout:    time.Until(deadline),
 		Refresh: func() (interface{}, string, error) {
 			input := checknameavailabilitydisasterrecoveryconfigs.CheckNameAvailabilityParameter{
 				Name: id.DisasterRecoveryConfigName,
@@ -282,7 +292,9 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 			if err != nil {
 				return resp, "Error", fmt.Errorf("waiting for the name of %s to become free: %v", *id, err)
 			}
-			// TODO: new crash to handle here
+			if resp.Model == nil || resp.Model.Reason == nil {
+				return resp, "Error", fmt.Errorf("`model` or `model.Reason` was nil")
+			}
 			return resp, string(*resp.Model.Reason), nil
 		},
 	}

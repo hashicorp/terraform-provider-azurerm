@@ -256,7 +256,7 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 		frontendIPConfigName := ""
 		frontendIPConfigID := ""
 		if props.FrontendIPConfiguration != nil && props.FrontendIPConfiguration.ID != nil {
-			feid, err := parse.LoadBalancerFrontendIpConfigurationID(*props.FrontendIPConfiguration.ID)
+			feid, err := parse.LoadBalancerFrontendIpConfigurationIDInsensitively(*props.FrontendIPConfiguration.ID)
 			if err != nil {
 				return err
 			}

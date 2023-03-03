@@ -35,7 +35,6 @@ func (r MobileNetworkDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -83,7 +82,7 @@ func (r MobileNetworkDataSource) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("%s was not found", id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", id, err)

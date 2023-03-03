@@ -70,15 +70,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Built-in Anomaly Alert Rule.
 
-* `anomaly_settings_version` - The anomaly settings version of the Anomaly security ml analytics settings that dictates whether job version gets updated or not.
+* `anomaly_settings_version` - The version of the Anomaly Security ML Analytics Settings.
 
 * `anomaly_version` - The anomaly version of the Anomaly Alert Rule.
 
 * `description` - The description of the Anomaly Alert Rule.
 
 * `frequency` - The frequency the Anomaly Alert Rule will be run.
-
-* `is_default_settings` - Whether this Anomaly Alert Rule is a default settings.
 
 * `required_data_connector` - A `required_data_connector` block as defined below.
 

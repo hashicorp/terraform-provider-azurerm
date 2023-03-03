@@ -4,11 +4,9 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -16,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
@@ -272,9 +271,7 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 	cert, err := client.GetCertificate(ctx, *keyVaultBaseUri, name, version)
 	if err != nil {
 		if utils.ResponseWasNotFound(cert.Response) {
-			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", name, *keyVaultBaseUri)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("a Certificate named %q was not found in Key Vault at URI %q", name, *keyVaultBaseUri)
 		}
 
 		return fmt.Errorf("reading Key Vault Certificate: %+v", err)
@@ -284,12 +281,11 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("failure reading Key Vault Certificate ID for %q", name)
 	}
 
-	d.SetId(*cert.ID)
-
 	id, err := parse.ParseNestedItemID(*cert.ID)
 	if err != nil {
 		return err
 	}
+	d.SetId(id.ID())
 
 	d.Set("name", id.Name)
 

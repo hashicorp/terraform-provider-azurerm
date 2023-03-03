@@ -601,6 +601,25 @@ func flattenSpringCloudAppAddon(configs map[string]map[string]interface{}) *stri
 	if len(configs) == 0 {
 		return nil
 	}
+	// The returned value has inconsistent casing
+	// TODO: Remove the normalization codes once the following issue is fixed.
+	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22481
+	if applicationConfigurationService, ok := configs["applicationConfigurationService"]; ok && len(applicationConfigurationService) != 0 {
+		if resourceId, ok := applicationConfigurationService["resourceId"]; ok && resourceId != nil {
+			applicationConfigurationServiceId, err := parse.SpringCloudConfigurationServiceIDInsensitively(resourceId.(string))
+			if err == nil {
+				configs["applicationConfigurationService"]["resourceId"] = applicationConfigurationServiceId.ID()
+			}
+		}
+	}
+	if serviceRegistry, ok := configs["serviceRegistry"]; ok && len(serviceRegistry) != 0 {
+		if resourceId, ok := serviceRegistry["resourceId"]; ok && resourceId != nil {
+			serviceRegistryId, err := parse.SpringCloudServiceRegistryIDInsensitively(resourceId.(string))
+			if err == nil {
+				configs["serviceRegistry"]["resourceId"] = serviceRegistryId.ID()
+			}
+		}
+	}
 	addonConfig, _ := json.Marshal(configs)
 	return utils.String(string(addonConfig))
 }

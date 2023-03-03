@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -311,7 +311,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		config := make(map[string]string)
 
 		if workspaceID, ok := value["log_analytics_workspace_id"]; ok && workspaceID != "" {
-			lawid, err := workspaces.ParseWorkspaceID(workspaceID.(string))
+			lawid, err := workspaces.ParseWorkspaceIDInsensitively(workspaceID.(string))
 			if err != nil {
 				return nil, fmt.Errorf("parsing Log Analytics Workspace ID: %+v", err)
 			}

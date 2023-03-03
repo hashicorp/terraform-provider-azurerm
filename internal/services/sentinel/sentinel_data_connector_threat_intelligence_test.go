@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -61,7 +62,7 @@ func TestAccAzureRMSentinelDataConnectorThreatIntelligence_requiresImport(t *tes
 }
 
 func (r SentinelDataConnectorThreatIntelligenceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Sentinel.DataConnectorsClient
+	client := azuresdkhacks.DataConnectorsClient{BaseClient: clients.Sentinel.DataConnectorsClient.BaseClient}
 
 	id, err := parse.DataConnectorID(state.ID)
 	if err != nil {
@@ -103,6 +104,7 @@ resource "azurerm_sentinel_data_connector_threat_intelligence" "test" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   tenant_id                  = data.azurerm_client_config.test.tenant_id
   depends_on                 = [azurerm_log_analytics_solution.test]
+  lookback_date              = "1990-01-01T00:00:00Z"
 }
 `, template, data.RandomInteger)
 }

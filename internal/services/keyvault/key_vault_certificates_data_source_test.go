@@ -19,6 +19,7 @@ func TestAccDataSourceKeyVaultCertificates_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("names.#").HasValue("31"),
+				check.That(data.ResourceName).Key("certificates.#").HasValue("31"),
 			),
 		},
 	})

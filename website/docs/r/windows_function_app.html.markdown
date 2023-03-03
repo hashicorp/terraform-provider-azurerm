@@ -76,6 +76,8 @@ The following arguments are supported:
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
+* `auth_settings_v2` - (Optional) A `auth_settings_v2` block as defined below.
+
 * `backup` - (Optional) A `backup` block as defined below.
 
 * `builtin_logging_enabled` - (Optional) Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting. Defaults to `true`.
@@ -207,6 +209,230 @@ An `auth_settings` block supports the following:
 * `twitter` - (Optional) A `twitter` block as defined below.
 
 * `unauthenticated_client_action` - (Optional) The action to take when an unauthenticated client attempts to access the app. Possible values include: `RedirectToLoginPage`, `AllowAnonymous`.
+
+---
+
+An `auth_settings_v2` block supports the following:
+
+* `auth_enabled` - (Optional) Should the AuthV2 Settings be enabled. Defaults to `false`.
+
+* `runtime_version` - (Optional) The Runtime Version of the Authentication and Authorisation feature of this App. Defaults to `~1`.
+
+* `config_file_path` - (Optional) The path to the App Auth settings.
+
+* ~> **Note:** Relative Paths are evaluated from the Site Root directory.
+
+* `require_authentication` - (Optional) Should the authentication flow be used for all requests.
+
+* `unauthenticated_action` - (Optional) The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.
+
+* `default_provider` - (Optional) The Default Authentication Provider to use when more than one Authentication Provider is configured and the `unauthenticated_action` is set to `RedirectToLoginPage`.
+
+* `excluded_paths` - (Optional) The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.
+
+* `require_https` - (Optional) Should HTTPS be required on connections? Defaults to `true`.
+
+* `http_route_api_prefix` - (Optional) The prefix that should precede all the authentication and authorisation paths. Defaults to `/.auth`.
+
+* `forward_proxy_convention` - (Optional) The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`.
+
+* `forward_proxy_custom_host_header_name` - (Optional) The name of the custom header containing the host of the request.
+
+* `forward_proxy_custom_scheme_header_name` - (Optional) The name of the custom header containing the scheme of the request.
+
+* `apple_v2` - (Optional) An `apple_v2` block as defined below.
+
+* `active_directory_v2` - (Optional) An `active_directory_v2` block as defined below.
+
+* `azure_static_web_app_v2` - (Optional) An `azure_static_web_app_v2` block as defined below.
+
+* `custom_oidc_v2` - (Optional) Zero or more `custom_oidc_v2` blocks as defined below.
+
+* `facebook_v2` - (Optional) A `facebook_v2` block as defined below.
+
+* `github_v2` - (Optional) A `github_v2` block as defined below.
+
+* `google_v2` - (Optional) A `google_v2` block as defined below.
+
+* `microsoft_v2` - (Optional) A `microsoft_v2` block as defined below.
+
+* `twitter_v2` - (Optional) A `twitter_v2` block as defined below.
+
+* `login` - (Optional) A `login` block as defined below.
+
+---
+
+An `apple_v2` block supports the following:
+
+* `client_id` - (Required) The OpenID Connect Client ID for the Apple web application.
+
+* `client_secret_setting_name` - (Required) The app setting name that contains the `client_secret` value used for Apple Login.
+
+!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+
+* `login_scopes` - A list of Login Scopes provided by this Authentication Provider.
+
+~> **NOTE:** This is configured on the Authentication Provider side and is Read Only here.
+
+---
+
+An `active_directory_v2` block supports the following:
+
+* `client_id` - (Required) The ID of the Client to use to authenticate with Azure Active Directory.
+
+* `tenant_auth_endpoint` - (Required) The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`
+
+* `client_secret_setting_name` - (Optional) The App Setting name that contains the client secret of the Client.
+
+!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+
+* `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
+
+~> **NOTE:** One of `client_secret_setting_name` or `client_secret_certificate_thumbprint` must be specified.
+
+* `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
+
+* `jwt_allowed_client_applications` - (Optional) A list of Allowed Client Applications in the JWT Claim.
+
+* `www_authentication_disabled` - (Optional) Should the www-authenticate provider should be omitted from the request? Defaults to `false`
+
+* `allowed_groups` - (Optional) The list of allowed Group Names for the Default Authorisation Policy.
+
+* `allowed_identities` - (Optional) The list of allowed Identities for the Default Authorisation Policy.
+
+* `allowed_applications` - (Optional) The list of allowed Applications for the Default Authorisation Policy.
+
+* `login_parameters` - (Optional) A map of key-value pairs to send to the Authorisation Endpoint when a user logs in.
+
+* `allowed_audiences` - (Optional) Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
+
+~> **NOTE:** This is configured on the Authentication Provider side and is Read Only here.
+
+---
+
+An `azure_static_web_app_v2` block supports the following:
+
+* `client_id` - (Required) The ID of the Client to use to authenticate with Azure Static Web App Authentication.
+
+---
+
+A `custom_oidc_v2` block supports the following:
+
+* `name` - (Required) The name of the Custom OIDC Authentication Provider.
+
+~> **NOTE:** An `app_setting` matching this value in upper case with the suffix of `_PROVIDER_AUTHENTICATION_SECRET` is required. e.g. `MYOIDC_PROVIDER_AUTHENTICATION_SECRET` for a value of `myoidc`.
+
+* `client_id` - (Required) The ID of the Client to use to authenticate with the Custom OIDC.
+
+* `openid_configuration_endpoint` - (Required) The app setting name that contains the `client_secret` value used for the Custom OIDC Login.
+
+* `name_claim_type` - (Optional) The name of the claim that contains the users name.
+
+* `scopes` - (Optional) The list of the scopes that should be requested while authenticating.
+
+* `client_credential_method` - The Client Credential Method used.
+
+* `client_secret_setting_name` - The App Setting name that contains the secret for this Custom OIDC Client. This is generated from `name` above and suffixed with `_PROVIDER_AUTHENTICATION_SECRET`.
+
+* `authorisation_endpoint` - The endpoint to make the Authorisation Request as supplied by `openid_configuration_endpoint` response.
+
+* `token_endpoint` - The endpoint used to request a Token as supplied by `openid_configuration_endpoint` response.
+
+* `issuer_endpoint` - The endpoint that issued the Token as supplied by `openid_configuration_endpoint` response.
+
+* `certification_uri` - The endpoint that provides the keys necessary to validate the token as supplied by `openid_configuration_endpoint` response.
+
+---
+
+A `facebook_v2` block supports the following:
+
+* `app_id` - (Required) The App ID of the Facebook app used for login.
+
+* `app_secret_setting_name` - (Required) The app setting name that contains the `app_secret` value used for Facebook Login.
+
+!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+
+* `graph_api_version` - (Optional) The version of the Facebook API to be used while logging in.
+
+* `login_scopes` - (Optional) The list of scopes that should be requested as part of Facebook Login authentication.
+
+---
+
+A `github_v2` block supports the following:
+
+* `client_id` - (Required) The ID of the GitHub app used for login..
+
+* `client_secret_setting_name` - (Required) The app setting name that contains the `client_secret` value used for GitHub Login.
+
+!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+
+* `login_scopes` - (Optional) The list of OAuth 2.0 scopes that should be requested as part of GitHub Login authentication.
+
+---
+
+A `google_v2` block supports the following:
+
+* `client_id` - (Required) The OpenID Connect Client ID for the Google web application.
+
+* `client_secret_setting_name` - (Required) The app setting name that contains the `client_secret` value used for Google Login.
+
+!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+
+* `allowed_audiences` - (Optional) Specifies a list of Allowed Audiences that should be requested as part of Google Sign-In authentication.
+
+* `login_scopes` - (Optional) The list of OAuth 2.0 scopes that should be requested as part of Google Sign-In authentication.
+
+---
+
+A `microsoft_v2` block supports the following:
+
+* `client_id` - (Required) The OAuth 2.0 client ID that was created for the app used for authentication.
+
+* `client_secret_setting_name` - (Required) The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.
+
+!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+
+* `allowed_audiences` - (Optional) Specifies a list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.
+
+* `login_scopes` - (Optional) The list of Login scopes that should be requested as part of Microsoft Account authentication.
+
+---
+
+A `twitter_v2` block supports the following:
+
+* `consumer_key` - (Required) The OAuth 1.0a consumer key of the Twitter application used for sign-in.
+
+* `consumer_secret_setting_name` - (Required) The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in.
+
+!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+
+---
+
+A `login` block supports the following:
+
+* `logout_endpoint` - (Optional) The endpoint to which logout requests should be made.
+
+* `token_store_enabled` - (Optional) Should the Token Store configuration Enabled. Defaults to `false`
+
+* `token_refresh_extension_time` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.
+
+* `token_store_path` - (Optional) The directory path in the App Filesystem in which the tokens will be stored.
+
+* `token_store_sas_setting_name` - (Optional) The name of the app setting which contains the SAS URL of the blob storage containing the tokens.
+
+* `preserve_url_fragments_for_logins` - (Optional) Should the fragments from the request be preserved after the login request is made. Defaults to `false`.
+
+* `allowed_external_redirect_urls` - (Optional) External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends.
+
+~> **Note:** URLs within the current domain are always implicitly allowed.
+
+* `cookie_expiration_convention` - (Optional) The method by which cookies expire. Possible values include: `FixedTime`, and `IdentityProviderDerived`. Defaults to `FixedTime`.
+
+* `cookie_expiration_time` - (Optional) The time after the request is made when the session cookie should expire. Defaults to `08:00:00`.
+
+* `validate_nonce` - (Optional) Should the nonce be validated while completing the login flow. Defaults to `true`.
+
+* `nonce_expiration_time` - (Optional) The time after the request is made when the nonce should expire. Defaults to `00:05:00`.
 
 ---
 

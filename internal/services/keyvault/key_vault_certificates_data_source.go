@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func dataSourceKeyVaultCertificates() *pluginsdk.Resource {
@@ -39,6 +41,29 @@ func dataSourceKeyVaultCertificates() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"certificates": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -70,6 +95,7 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 	d.SetId(keyVaultId.ID())
 
 	var names []string
+	var certs []map[string]interface{}
 	if certificateList.Response().Value != nil {
 		for certificateList.NotDone() {
 			for _, v := range *certificateList.Response().Value {
@@ -78,6 +104,7 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 					return err
 				}
 				names = append(names, nestedItem.Name)
+				certs = append(certs, expandCertificate(nestedItem.Name, v))
 				err = certificateList.NextWithContext(ctx)
 				if err != nil {
 					return fmt.Errorf("retrieving next page of Certificates from %s: %+v", *keyVaultId, err)
@@ -87,7 +114,19 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.Set("names", names)
+	d.Set("certificates", certs)
 	d.Set("key_vault_id", keyVaultId.ID())
 
 	return nil
+}
+
+func expandCertificate(name string, item keyvault.CertificateItem) map[string]interface{} {
+	var cert = map[string]interface{}{
+		"name": name,
+		"id":   *item.ID,
+	}
+	if item.Attributes != nil && item.Attributes.Enabled != nil {
+		cert["enabled"] = *item.Attributes.Enabled
+	}
+	return cert
 }

@@ -7,17 +7,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/jobschedule"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -85,7 +84,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 		Delete: resourceAutomationRunbookDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.RunbookID(id)
+			_, err := runbook.ParseRunbookID(id)
 			return err
 		}),
 
@@ -286,7 +285,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 		Location: &location,
 	}
-	if tagsVal := expandTags(t); tagsVal != nil {
+	if tagsVal := expandStringInterfaceMap(t); tagsVal != nil {
 		parameters.Tags = &tagsVal
 	}
 
@@ -330,21 +329,22 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	d.SetId(id.ID())
 
-	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, id.ResourceGroupName, id.AutomationAccountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
-		if err != nil {
-			return fmt.Errorf("loading %s Job Schedule List: %+v", id, err)
-		}
-		if props := jsIterator.Value().JobScheduleProperties; props != nil {
-			if props.Runbook.Name != nil && *props.Runbook.Name == id.RunbookName {
-				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
+	automationAccountId := jobschedule.NewAutomationAccountID(subscriptionID, id.ResourceGroupName, id.AutomationAccountName)
+
+	jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, automationAccountId, jobschedule.ListByAutomationAccountOperationOptions{})
+	if err != nil {
+		return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
+	}
+
+	for _, item := range jsIterator.Items {
+		if itemProps := item.Properties; itemProps != nil {
+			if itemProps.Runbook != nil && itemProps.Runbook.Name != nil && *itemProps.Runbook.Name == id.RunbookName {
+				if itemProps.JobScheduleId == nil || *itemProps.JobScheduleId == "" {
 					return fmt.Errorf("job schedule Id is nil or empty listed by %s Job Schedule List: %+v", id, err)
 				}
-				jsId, err := uuid.FromString(*jsIterator.Value().JobScheduleID)
-				if err != nil {
-					return fmt.Errorf("parsing job schedule Id listed by %s Job Schedule List:%v", id, err)
-				}
-				if resp, err := jsClient.Delete(ctx, id.ResourceGroupName, id.AutomationAccountName, jsId); err != nil {
-					if !utils.ResponseWasNotFound(resp) {
+				parsedId := jobschedule.NewJobScheduleID(subscriptionID, id.ResourceGroupName, id.AutomationAccountName, *itemProps.JobScheduleId)
+				if resp, err := jsClient.Delete(ctx, parsedId); err != nil {
+					if !response.WasNotFound(resp.HttpResponse) {
 						return fmt.Errorf("deleting job schedule Id listed by %s Job Schedule List:%v", id, err)
 					}
 				}
@@ -358,7 +358,8 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 			return err
 		}
 		for jsuuid, js := range *jsMap {
-			if _, err := jsClient.Create(ctx, id.ResourceGroupName, id.AutomationAccountName, jsuuid, js); err != nil {
+			jsId := jobschedule.NewJobScheduleID(subscriptionID, id.ResourceGroupName, id.AutomationAccountName, jsuuid.String())
+			if _, err := jsClient.Create(ctx, jsId, js); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 		}
@@ -425,21 +426,24 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("content", content)
 	}
 
-	jsMap := make(map[uuid.UUID]automation.JobScheduleProperties)
-	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, id.ResourceGroupName, id.AutomationAccountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
-		if err != nil {
-			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
-		}
-		if props := jsIterator.Value().JobScheduleProperties; props != nil {
-			if props.Runbook.Name != nil && *props.Runbook.Name == id.RunbookName {
-				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
+	jsMap := make(map[uuid.UUID]jobschedule.JobScheduleProperties)
+	automationAccountId := jobschedule.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)
+
+	jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, automationAccountId, jobschedule.ListByAutomationAccountOperationOptions{})
+	if err != nil {
+		return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
+	}
+	for _, item := range jsIterator.Items {
+		if itemProps := item.Properties; itemProps != nil {
+			if itemProps.Runbook != nil && itemProps.Runbook.Name != nil && *itemProps.Runbook.Name == id.RunbookName {
+				if itemProps.JobScheduleId == nil || *itemProps.JobScheduleId == "" {
 					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
 				}
-				jsId, err := uuid.FromString(*jsIterator.Value().JobScheduleID)
+				jsId, err := uuid.FromString(*itemProps.JobScheduleId)
 				if err != nil {
 					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", id.AutomationAccountName, err)
 				}
-				jsMap[jsId] = *props
+				jsMap[jsId] = *itemProps
 			}
 		}
 	}

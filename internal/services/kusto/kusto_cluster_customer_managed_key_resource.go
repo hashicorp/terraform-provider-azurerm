@@ -5,15 +5,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,7 +27,7 @@ func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
 		Delete: resourceKustoClusterCustomerManagedKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ClusterID(id)
+			_, err := clusters.ParseClusterID(id)
 			return err
 		}),
 
@@ -44,7 +43,7 @@ func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ClusterID,
+				ValidateFunc: clusters.ValidateClusterID,
 			},
 
 			"key_vault_id": {
@@ -61,7 +60,7 @@ func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
 
 			"key_version": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -82,20 +81,20 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 	defer cancel()
 
 	clusterIDRaw := d.Get("cluster_id").(string)
-	clusterID, err := parse.ClusterID(clusterIDRaw)
+	clusterID, err := clusters.ParseClusterID(clusterIDRaw)
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(clusterID.Name, "azurerm_kusto_cluster")
-	defer locks.UnlockByName(clusterID.Name, "azurerm_kusto_cluster")
+	locks.ByName(clusterID.ClusterName, "azurerm_kusto_cluster")
+	defer locks.UnlockByName(clusterID.ClusterName, "azurerm_kusto_cluster")
 
-	cluster, err := clusterClient.Get(ctx, clusterID.ResourceGroup, clusterID.Name)
+	cluster, err := clusterClient.Get(ctx, *clusterID)
 	if err != nil {
-		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
+		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", clusterID.ClusterName, clusterID.ResourceGroupName, err)
 	}
-	if cluster.ClusterProperties == nil {
-		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): `ClusterProperties` was nil", clusterID.Name, clusterID.ResourceGroup)
+	if cluster.Model.Properties == nil {
+		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): `ClusterProperties` was nil", clusterID.ClusterName, clusterID.ResourceGroupName)
 	}
 
 	// since we're mutating the kusto cluster here, we can use that as the ID
@@ -104,7 +103,7 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 	if d.IsNewResource() {
 		// whilst this looks superflurious given encryption is enabled by default, due to the way
 		// the Azure API works this technically can be nil
-		if cluster.ClusterProperties.KeyVaultProperties != nil {
+		if cluster.Model.Properties.KeyVaultProperties != nil {
 			return tf.ImportAsExistsError("azurerm_kusto_cluster_customer_managed_key", resourceID)
 		}
 	}
@@ -141,26 +140,23 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 
 	keyName := d.Get("key_name").(string)
 	keyVersion := d.Get("key_version").(string)
-	props := kusto.ClusterUpdate{
-		ClusterProperties: &kusto.ClusterProperties{
-			KeyVaultProperties: &kusto.KeyVaultProperties{
+	props := clusters.ClusterUpdate{
+		Properties: &clusters.ClusterProperties{
+			KeyVaultProperties: &clusters.KeyVaultProperties{
 				KeyName:     utils.String(keyName),
 				KeyVersion:  utils.String(keyVersion),
-				KeyVaultURI: utils.String(*keyVaultBaseURL),
+				KeyVaultUri: utils.String(*keyVaultBaseURL),
 			},
 		},
 	}
 
 	if v, ok := d.GetOk("user_identity"); ok {
-		props.ClusterProperties.KeyVaultProperties.UserIdentity = utils.String(v.(string))
+		props.Properties.KeyVaultProperties.UserIdentity = utils.String(v.(string))
 	}
 
-	future, err := clusterClient.Update(ctx, clusterID.ResourceGroup, clusterID.Name, props, "")
+	err = clusterClient.UpdateThenPoll(ctx, *clusterID, props, clusters.UpdateOperationOptions{})
 	if err != nil {
-		return fmt.Errorf("updating Customer Managed Key for Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Kusto Cluster Update %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
+		return fmt.Errorf("updating Customer Managed Key for Kusto Cluster %q (Resource Group %q): %+v", clusterID.ClusterName, clusterID.ResourceGroupName, err)
 	}
 
 	d.SetId(resourceID)
@@ -175,31 +171,31 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterID, err := parse.ClusterID(d.Id())
+	clusterID, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	cluster, err := clusterClient.Get(ctx, clusterID.ResourceGroup, clusterID.Name)
+	cluster, err := clusterClient.Get(ctx, *clusterID)
 	if err != nil {
-		if utils.ResponseWasNotFound(cluster.Response) {
-			log.Printf("[DEBUG] Kusto Cluster %q could not be found in Resource Group %q - removing from state!", clusterID.Name, clusterID.ResourceGroup)
+		if !response.WasNotFound(cluster.HttpResponse) {
+			log.Printf("[DEBUG] Kusto Cluster %q could not be found in Resource Group %q - removing from state!", clusterID.ClusterName, clusterID.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
+		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", clusterID.ClusterName, clusterID.ResourceGroupName, err)
 	}
-	if cluster.ClusterProperties == nil {
-		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): `ClusterProperties` was nil", clusterID.Name, clusterID.ResourceGroup)
+	if cluster.Model == nil || cluster.Model.Properties == nil {
+		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): `ClusterProperties` was nil", clusterID.ClusterName, clusterID.ResourceGroupName)
 	}
-	if cluster.ClusterProperties.KeyVaultProperties == nil {
-		log.Printf("[DEBUG] Customer Managed Key was not defined for Kusto Cluster %q (Resource Group %q) - removing from state!", clusterID.Name, clusterID.ResourceGroup)
+	if cluster.Model.Properties.KeyVaultProperties == nil {
+		log.Printf("[DEBUG] Customer Managed Key was not defined for Kusto Cluster %q (Resource Group %q) - removing from state!", clusterID.ClusterName, clusterID.ResourceGroupName)
 		d.SetId("")
 		return nil
 	}
 
-	props := cluster.ClusterProperties.KeyVaultProperties
+	props := cluster.Model.Properties.KeyVaultProperties
 
 	keyName := ""
 	keyVaultURI := ""
@@ -209,8 +205,8 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 		if props.KeyName != nil {
 			keyName = *props.KeyName
 		}
-		if props.KeyVaultURI != nil {
-			keyVaultURI = *props.KeyVaultURI
+		if props.KeyVaultUri != nil {
+			keyVaultURI = *props.KeyVaultUri
 		}
 		if props.KeyVersion != nil {
 			keyVersion = *props.KeyVersion
@@ -221,7 +217,7 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 	}
 
 	if keyVaultURI == "" {
-		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): `properties.keyVaultProperties.keyVaultUri` was nil", clusterID.Name, clusterID.ResourceGroup)
+		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): `properties.keyVaultProperties.keyVaultUri` was nil", clusterID.ClusterName, clusterID.ResourceGroupName)
 	}
 
 	// now we have the key vault uri we can look up the ID
@@ -243,40 +239,37 @@ func resourceKustoClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterID, err := parse.ClusterID(d.Id())
+	clusterID, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(clusterID.Name, "azurerm_kusto_cluster")
-	defer locks.UnlockByName(clusterID.Name, "azurerm_kusto_cluster")
+	locks.ByName(clusterID.ClusterName, "azurerm_kusto_cluster")
+	defer locks.UnlockByName(clusterID.ClusterName, "azurerm_kusto_cluster")
 
 	// confirm it still exists prior to trying to update it, else we'll get an error
-	cluster, err := client.Get(ctx, clusterID.ResourceGroup, clusterID.Name)
+	cluster, err := client.Get(ctx, *clusterID)
 	if err != nil {
-		if utils.ResponseWasNotFound(cluster.Response) {
+		if response.WasNotFound(cluster.HttpResponse) {
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
+		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", clusterID.ClusterName, clusterID.ResourceGroupName, err)
 	}
 
 	// Since this isn't a real object, just modifying an existing object
 	// "Delete" doesn't really make sense it should really be a "Revert to Default"
 	// So instead of the Delete func actually deleting the Kusto Cluster I am
 	// making it reset the Kusto cluster to its default state
-	props := kusto.ClusterUpdate{
-		ClusterProperties: &kusto.ClusterProperties{
-			KeyVaultProperties: &kusto.KeyVaultProperties{},
+	props := clusters.ClusterUpdate{
+		Properties: &clusters.ClusterProperties{
+			KeyVaultProperties: &clusters.KeyVaultProperties{},
 		},
 	}
 
-	future, err := client.Update(ctx, clusterID.ResourceGroup, clusterID.Name, props, "")
+	err = client.UpdateThenPoll(ctx, *clusterID, props, clusters.UpdateOperationOptions{})
 	if err != nil {
-		return fmt.Errorf("removing Customer Managed Key for Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Kusto Cluster Update %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
+		return fmt.Errorf("removing Customer Managed Key for Kusto Cluster %q (Resource Group %q): %+v", clusterID.ClusterName, clusterID.ResourceGroupName, err)
 	}
 
 	return nil

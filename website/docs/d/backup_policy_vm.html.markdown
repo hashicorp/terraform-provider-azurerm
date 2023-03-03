@@ -3,7 +3,7 @@ subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_backup_policy_vm"
 description: |-
-  Gets information about an existing existing VM Backup Policy.
+  Gets information about an existing VM Backup Policy.
 ---
 
 # Data Source: azurerm_backup_policy_vm

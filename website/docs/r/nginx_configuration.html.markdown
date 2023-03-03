@@ -57,17 +57,19 @@ EOT
 
 The following arguments are supported:
 
-* `config_file` - (Required) One or more `config_file` blocks as defined below.
-
 * `nginx_deployment_id` - (Required) The ID of the Nginx Deployment. Changing this forces a new Nginx Configuration to be created.
 
 * `root_file` - (Required) Specify the root file path of this Nginx Configuration.
 
 ---
 
+-> **NOTE:** Either `package_data` or `config_file` must be specified - but not both.
+
 * `package_data` - (Optional) Specify the package data for this configuration.
 
-* `protected_file` - (Optional) One or more `config_file` (Protected File) blocks with sensitive information as defined below.
+* `config_file` - (Optional) One or more `config_file` blocks as defined below.
+
+* `protected_file` - (Optional) One or more `protected_file` (Protected File) blocks with sensitive information as defined below. If specified `config_file` must also be specified.
 
 ---
 
@@ -79,7 +81,7 @@ A `config_file` block supports the following:
 
 ---
 
-A `config_file` (Protected File) block supports the following:
+A `protected_file` (Protected File) block supports the following:
 
 * `content` - (Required) Specifies the base-64 encoded contents of this config file (Sensitive).
 

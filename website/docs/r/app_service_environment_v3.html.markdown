@@ -76,7 +76,7 @@ resource "azurerm_service_plan" "example" {
   resource_group_name        = azurerm_resource_group.example.name
   location                   = azurerm_resource_group.example.location
   os_type                    = "Linux"
-  sku_name                   = "P1v2"
+  sku_name                   = "I1v2"
   app_service_environment_id = azurerm_app_service_environment_v3.example.id
 }
 ```

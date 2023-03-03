@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement"
@@ -52,6 +53,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights"
@@ -130,6 +132,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		compute.Registration{},
 		consumption.Registration{},
 		cosmos.Registration{},
+		containerapps.Registration{},
 		costmanagement.Registration{},
 		dashboard.Registration{},
 		databoxedge.Registration{},
@@ -139,6 +142,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		domainservices.Registration{},
 		eventhub.Registration{},
 		fluidrelay.Registration{},
+		hybridcompute.Registration{},
 		iothub.Registration{},
 		iotcentral.Registration{},
 		keyvault.Registration{},
