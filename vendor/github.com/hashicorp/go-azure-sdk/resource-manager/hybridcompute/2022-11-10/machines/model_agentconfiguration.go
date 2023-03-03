@@ -4,6 +4,7 @@ package machines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AgentConfiguration struct {
+	ConfigMode                *AgentConfigurationMode   `json:"configMode,omitempty"`
 	ExtensionsAllowList       *[]ConfigurationExtension `json:"extensionsAllowList,omitempty"`
 	ExtensionsBlockList       *[]ConfigurationExtension `json:"extensionsBlockList,omitempty"`
 	ExtensionsEnabled         *string                   `json:"extensionsEnabled,omitempty"`

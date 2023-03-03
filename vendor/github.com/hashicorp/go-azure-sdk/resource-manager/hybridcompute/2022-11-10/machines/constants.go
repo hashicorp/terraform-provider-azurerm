@@ -5,6 +5,34 @@ import "strings"
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type AgentConfigurationMode string
+
+const (
+	AgentConfigurationModeFull    AgentConfigurationMode = "full"
+	AgentConfigurationModeMonitor AgentConfigurationMode = "monitor"
+)
+
+func PossibleValuesForAgentConfigurationMode() []string {
+	return []string{
+		string(AgentConfigurationModeFull),
+		string(AgentConfigurationModeMonitor),
+	}
+}
+
+func parseAgentConfigurationMode(input string) (*AgentConfigurationMode, error) {
+	vals := map[string]AgentConfigurationMode{
+		"full":    AgentConfigurationModeFull,
+		"monitor": AgentConfigurationModeMonitor,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AgentConfigurationMode(input)
+	return &out, nil
+}
+
 type AssessmentModeTypes string
 
 const (
