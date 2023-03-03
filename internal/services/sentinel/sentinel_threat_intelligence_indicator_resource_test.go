@@ -20,7 +20,7 @@ func TestAccSecurityInsightsIndicator_basicDomainName(t *testing.T) {
 	r := SecurityInsightsIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "domain-name", "test.com"),
+			Config: r.basic(data, "domain-name", "http://test.com"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -71,42 +71,40 @@ func TestAccSecurityInsightsIndicator_basicIpV6(t *testing.T) {
 	})
 }
 
-//
-//func TestAccSecurityInsightsIndicator_requiresImport(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
-//	r := SecurityInsightsIndicatorResource{}
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.basic(data, "domain-name", "test.com"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.RequiresImportErrorStep(r.requiresImport),
-//	})
-//}
+func TestAccSecurityInsightsIndicator_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
+	r := SecurityInsightsIndicatorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "domain-name", "http://test.com"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
 
-//
-//func TestAccSecurityInsightsIndicator_complete(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
-//	r := SecurityInsightsIndicatorResource{}
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.complete(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-//
+func TestAccSecurityInsightsIndicator_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
+	r := SecurityInsightsIndicatorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "domain-name", "http://test.com"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 //func TestAccSecurityInsightsIndicator_update(t *testing.T) {
 //	data := acceptance.BuildTestData(t, "azurerm_sentinel_threat_intelligence_indicator", "test")
 //	r := SecurityInsightsIndicatorResource{}
 //	data.ResourceTest(t, r, []acceptance.TestStep{
 //		{
-//			Config: r.complete(data),
+//			Config: r.complete(data, "domain-name", "http://example.com"),
 //			Check: acceptance.ComposeTestCheckFunc(
 //				check.That(data.ResourceName).ExistsInAzure(r),
 //			),
@@ -137,12 +135,7 @@ func (r SecurityInsightsIndicatorResource) Exists(ctx context.Context, clients *
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	info, ok := resp.Value.AsThreatIntelligenceIndicatorModel()
-	if !ok {
-		return nil, fmt.Errorf("converting %s: %+v", id, err)
-	}
-
-	return utils.Bool(info.ID != nil), nil
+	return utils.Bool(resp.Value != nil), nil
 }
 
 func (r SecurityInsightsIndicatorResource) template(data acceptance.TestData) string {
@@ -189,152 +182,89 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
 }
 
 func (r SecurityInsightsIndicatorResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data, "domain-name", "test.com")
+	config := r.basic(data, "domain-name", "http://test.com")
 	return fmt.Sprintf(`
 			%s
 
 resource "azurerm_sentinel_threat_intelligence_indicator" "import" {
-  name                = azurerm_sentinel_threat_intelligence_indicator.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = ""
-  kind                = ""
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
-
+  workspace_id      = azurerm_sentinel_threat_intelligence_indicator.test.workspace_id
+  pattern_type      = azurerm_sentinel_threat_intelligence_indicator.test.pattern_type
+  pattern           = azurerm_sentinel_threat_intelligence_indicator.test.pattern
+  source            = azurerm_sentinel_threat_intelligence_indicator.test.source
+  validate_from_utc = azurerm_sentinel_threat_intelligence_indicator.test.validate_from_utc
+  display_name      = azurerm_sentinel_threat_intelligence_indicator.test.display_name
 }
 `, config)
 }
 
-func (r SecurityInsightsIndicatorResource) complete(data acceptance.TestData) string {
+func (r SecurityInsightsIndicatorResource) complete(data acceptance.TestData, patternType string, pattern string) string {
 	return fmt.Sprintf(`
 			%s
 
 resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
-  name                           = "acctest-sii-%d"
-  resource_group_name            = azurerm_resource_group.test.name
-  workspace_name                 = ""
-  confidence                     = 0
-  created                        = ""
-  created_by_ref                 = ""
-  defanged                       = false
-  description                    = ""
-  display_name                   = ""
-  external_id                    = ""
-  external_last_updated_time_utc = ""
-  kind                           = ""
-  language                       = ""
-  last_updated_time_utc          = ""
-  modified                       = ""
-  pattern                        = ""
-  pattern_type                   = ""
-  pattern_version                = ""
-  revoked                        = false
-  source                         = ""
-  valid_from                     = ""
-  valid_until                    = ""
-  indicator_types                = []
-  labels                         = []
-  object_marking_refs            = []
-  threat_intelligence_tags       = []
-  threat_types                   = []
-  external_references {
-    description = ""
-    external_id = ""
-    source_name = ""
-    url         = ""
-    hashes = {
-      key = ""
-    }
+  workspace_id             = azurerm_log_analytics_workspace.test.id
+  pattern_type             = "%s"
+  pattern                  = "%s"
+  confidence               = 5
+  created_by_ref           = "zhwen@microsoft.com"
+  description              = "test indicator"
+  display_name             = "test"
+  language                 = "en"
+  modified_by              = "zhenteng@microsoft.com"
+  pattern_version          = 1
+  revoked                  = true
+  threat_intelligence_tags = ["test"]
+  kill_chain_phase {
+    name = "testtest"
   }
-  granular_markings {
-    language    = ""
-    marking_ref = 0
-    selectors   = []
+  external_reference {
+    description = "test-external"
+    source_name = "test-sourcename"
   }
-  kill_chain_phases {
-    kill_chain_name = ""
-    phase_name      = ""
+  granular_marking {
+    language = "en"
   }
-  parsed_pattern {
-    pattern_type_key = ""
-    pattern_type_values {
-      value      = ""
-      value_type = ""
-    }
-  }
-  extensions = jsonencode({
-    "key" : "value"
-  })
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
-
+  source            = "test Sentinel"
+  validate_from_utc = "2022-12-14T16:00:00Z"
+  depends_on        = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), patternType, pattern)
 }
 
-func (r SecurityInsightsIndicatorResource) update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-			%s
-
-resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
-  name                           = "acctest-sii-%d"
-  resource_group_name            = azurerm_resource_group.test.name
-  workspace_name                 = ""
-  confidence                     = 0
-  created                        = ""
-  created_by_ref                 = ""
-  defanged                       = false
-  description                    = ""
-  display_name                   = ""
-  external_id                    = ""
-  external_last_updated_time_utc = ""
-  kind                           = ""
-  language                       = ""
-  last_updated_time_utc          = ""
-  modified                       = ""
-  pattern                        = ""
-  pattern_type                   = ""
-  pattern_version                = ""
-  revoked                        = false
-  source                         = ""
-  valid_from                     = ""
-  valid_until                    = ""
-  indicator_types                = []
-  labels                         = []
-  object_marking_refs            = []
-  threat_intelligence_tags       = []
-  threat_types                   = []
-  external_references {
-    description = ""
-    external_id = ""
-    source_name = ""
-    url         = ""
-    hashes = {
-      key = ""
-    }
-  }
-  granular_markings {
-    language    = ""
-    marking_ref = 0
-    selectors   = []
-  }
-  kill_chain_phases {
-    kill_chain_name = ""
-    phase_name      = ""
-  }
-  parsed_pattern {
-    pattern_type_key = ""
-    pattern_type_values {
-      value      = ""
-      value_type = ""
-    }
-  }
-  extensions = jsonencode({
-    "key" : "value"
-  })
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
-
-}
-`, r.template(data), data.RandomInteger)
-}
+//
+//func (r SecurityInsightsIndicatorResource) update(data acceptance.TestData, patternType string, pattern string) string {
+//	return fmt.Sprintf(`
+//			%s
+//
+//resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
+//  workspace_id    = azurerm_log_analytics_workspace.test.id
+//  pattern_type    = "%s"
+//  pattern         = "%s"
+//  confidence      = 5
+//  created_by_ref  = "zhwen@microsoft.com"
+//  description     = "update indicator"
+//  display_name    = "test"
+//  language        = "en"
+//  modified_by     = "zhenteng@microsoft.com"
+//  pattern_version = 1
+//  revoked         = true
+//  threat_intelligence_tags  {
+//    "updated"
+//  }
+//
+//  kill_chain_phase {
+//    name = "testtest"
+//  }
+//  external_reference {
+//    description = "test-external"
+//    source_name = "test-sourcename"
+//  }
+//  granular_marking {
+//    language = "en"
+//  }
+//  source            = "test Sentinel"
+//  validate_from_utc = "2022-12-14T16:00:00Z"
+//  depends_on        = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+//}
+//`, r.template(data), patternType, pattern)
+//}

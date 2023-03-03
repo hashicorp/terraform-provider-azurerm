@@ -27,6 +27,8 @@ const (
 	PatternTypeUrl        IndicatorPatternType = "url"
 )
 
+const killChainName = "Lockheed Martin - Intrusion Kill Chain"
+
 type IndicatorModel struct {
 	Name                       string                   `tfschema:"name"`
 	WorkspaceId                string                   `tfschema:"workspace_id"`
@@ -34,12 +36,12 @@ type IndicatorModel struct {
 	CreatedByRef               string                   `tfschema:"created_by_ref"`
 	Description                string                   `tfschema:"description"`
 	DisplayName                string                   `tfschema:"display_name"`
-	Extensions                 string                   `tfschema:"extensions"`
-	ExternalRefrence           []externalReferenceModel `tfschema:"external_references"`
-	GranularMarkings           []granularMarkingModel   `tfschema:"granular_markings"`
+	Extensions                 string                   `tfschema:"extension"`
+	ExternalRefrence           []externalReferenceModel `tfschema:"external_reference"`
+	GranularMarkings           []granularMarkingModel   `tfschema:"granular_marking"`
 	IndicatorTypes             []string                 `tfschema:"indicator_types"`
-	KillChainPhases            []killChainPhaseModel    `tfschema:"kill_chain_phases"`
-	Labels                     []string                 `tfschema:"labels"`
+	KillChainPhases            []killChainPhaseModel    `tfschema:"kill_chain_phase"`
+	Labels                     []string                 `tfschema:"label"`
 	Language                   string                   `tfschema:"language"`
 	ObjectMarking              []string                 `tfschema:"object_marking_refs"`
 	ParsedPattern              []parsedPatternModel     `tfschema:"parsed_pattern"`
@@ -61,11 +63,11 @@ type IndicatorModel struct {
 }
 
 type externalReferenceModel struct {
-	SourceName  string            `tfschema:"sourceName"`
+	SourceName  string            `tfschema:"source_name"`
 	Url         string            `tfschema:"url"`
 	Hashes      map[string]string `tfschema:"hashes"`
 	Description string            `tfschema:"description"`
-	ExternalId  string            `tfschema:"externalId"`
+	ExternalId  string            `tfschema:"id"`
 }
 
 type granularMarkingModel struct {
@@ -74,8 +76,7 @@ type granularMarkingModel struct {
 	Language   string   `tfschema:"language"`
 }
 type killChainPhaseModel struct {
-	PhaseName     string `tfschema:"phase_name"`
-	KillChainName string `tfschema:"kill_chain_name"`
+	PhaseName string `tfschema:"name"`
 }
 type parsedPatternModel struct {
 	PatternTypeValues []patternTypeValuesModel `tfschema:"pattern_type_values"`
@@ -137,7 +138,7 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"extensions": {
+		"extension": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Computed:         true,
@@ -145,7 +146,7 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 
-		"external_references": {
+		"external_reference": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
@@ -156,10 +157,9 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					"external_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 
 					"hashes": {
@@ -185,7 +185,7 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"granular_markings": {
+		"granular_marking": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
@@ -197,8 +197,9 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"marking_ref": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"selectors": {
@@ -212,26 +213,12 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"indicator_types": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"kill_chain_phases": {
+		"kill_chain_phase": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"kill_chain_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"phase_name": {
+					"name": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -240,7 +227,7 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"labels": {
+		"label": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
@@ -322,14 +309,14 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 
 		"validate_from_utc": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Required:     true,
+			ValidateFunc: validation.IsRFC3339Time,
 		},
 
 		"validate_until_utc": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.IsRFC3339Time,
 		},
 	}
 }
@@ -340,64 +327,68 @@ func (r ThreatIntelligenceIndicator) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"created_on": {
-			Type: pluginsdk.TypeString,
-			//Optional: true,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"defanged": {
-			Type: pluginsdk.TypeBool,
-			//Optional: true,
+			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
+
 		"external_id": {
-			Type: pluginsdk.TypeString,
-			//Optional: true,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"external_last_updated_time_utc": {
-			Type: pluginsdk.TypeString,
-			//Optional: true,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"last_updated_time_utc": {
-			Type: pluginsdk.TypeString,
-			//Optional: true,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"parsed_pattern": {
-			Type: pluginsdk.TypeList,
-			//Optional: true,
+			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"pattern_type_key": {
-						Type: pluginsdk.TypeString,
-						//Optional: true,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 
 					"pattern_type_values": {
-						Type: pluginsdk.TypeList,
-						//Optional: true,
+						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"value": {
-									Type: pluginsdk.TypeString,
-									//Optional: true,
+									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
 
 								"value_type": {
-									Type: pluginsdk.TypeString,
-									//Optional: true,
+									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
 							},
 						},
 					},
 				},
+			},
+		},
+
+		"indicator_types": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 	}
@@ -433,14 +424,14 @@ func (r ThreatIntelligenceIndicator) Create() sdk.ResourceFunc {
 				if indicator.PatternType != nil && *indicator.PatternType == model.PatternType {
 					if indicator.Pattern != nil && *indicator.Pattern == patternValue {
 						if indicator.ID != nil && *indicator.ID != "" {
-							return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_fusion", *indicator.ID)
+							return tf.ImportAsExistsError("azurerm_sentinel_threat_intelligence_indicator", *indicator.ID)
 						}
 						return fmt.Errorf("checking existing indicator: `id` is nil")
 					}
 				}
 			}
 
-			properties := &securityinsight.ThreatIntelligenceIndicatorModel{
+			properties := securityinsight.ThreatIntelligenceIndicatorModel{
 				Kind: securityinsight.KindBasicThreatIntelligenceInformationKindIndicator,
 				ThreatIntelligenceIndicatorProperties: &securityinsight.ThreatIntelligenceIndicatorProperties{
 					PatternType: &model.PatternType,
@@ -485,8 +476,6 @@ func (r ThreatIntelligenceIndicator) Create() sdk.ResourceFunc {
 				return err
 			}
 			props.KillChainPhases = killChainPhasesValue
-
-			props.IndicatorTypes = &model.IndicatorTypes
 
 			if model.Language != "" {
 				props.Language = &model.Language
@@ -536,7 +525,7 @@ func (r ThreatIntelligenceIndicator) Create() sdk.ResourceFunc {
 				props.ValidUntil = &validUntilValue
 			}
 
-			resp, err := client.CreateIndicator(ctx, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, *properties)
+			resp, err := client.CreateIndicator(ctx, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, properties)
 			if err != nil {
 				return fmt.Errorf("creating threaten intelligence indicator in workspace %s: %+v", workspaceId, err)
 			}
@@ -615,7 +604,7 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("extensions") {
+			if metadata.ResourceData.HasChange("extension") {
 				extensionsValue, err := pluginsdk.ExpandJsonFromString(model.Extensions)
 				if err != nil {
 					return err
@@ -623,12 +612,12 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				properties.Extensions = extensionsValue
 			}
 
-			if metadata.ResourceData.HasChange("external_references") {
+			if metadata.ResourceData.HasChange("external_reference") {
 				properties.ExternalReferences = expandThreatIntelligenceExternalReferenceModel(model.ExternalRefrence)
 
 			}
 
-			if metadata.ResourceData.HasChange("granular_markings") {
+			if metadata.ResourceData.HasChange("granular_marking") {
 				properties.GranularMarkings = expandThreatIntelligenceGranularMarkingModelModel(model.GranularMarkings)
 			}
 
@@ -636,7 +625,7 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				properties.IndicatorTypes = &model.IndicatorTypes
 			}
 
-			if metadata.ResourceData.HasChange("kill_chain_phases") {
+			if metadata.ResourceData.HasChange("kill_chain_phase") {
 				killChainPhasesValue, err := expandThreatIntelligenceKillChainPhaseModel(model.KillChainPhases)
 				if err != nil {
 					return err
@@ -644,7 +633,7 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				properties.KillChainPhases = killChainPhasesValue
 			}
 
-			if metadata.ResourceData.HasChange("labels") {
+			if metadata.ResourceData.HasChange("label") {
 				properties.Labels = &model.Labels
 			}
 
@@ -707,8 +696,6 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("validate_until_utc") {
 				properties.ValidUntil = &model.ValidUntil
 			}
-
-			properties.SystemData = nil
 
 			if _, err := client.Create(ctx, id.ResourceGroup, id.WorkspaceName, id.IndicatorName, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -870,6 +857,7 @@ func (r ThreatIntelligenceIndicator) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			//client := azuresdkhacks.ThreatIntelligenceIndicatorClient{OriginalClient: metadata.Client.Sentinel.ThreatIntelligenceClient}
 			client := metadata.Client.Sentinel.ThreatIntelligenceClient
 
 			id, err := parse.ThreatIntelligenceIndicatorID(metadata.ResourceData.Id())
@@ -877,7 +865,7 @@ func (r ThreatIntelligenceIndicator) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, id.ResourceGroup, id.IndicatorName); err != nil {
+			if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.IndicatorName); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -995,10 +983,8 @@ func expandThreatIntelligenceKillChainPhaseModel(inputList []killChainPhaseModel
 	var outputList []securityinsight.ThreatIntelligenceKillChainPhase
 	for _, v := range inputList {
 		input := v
-		output := securityinsight.ThreatIntelligenceKillChainPhase{}
-
-		if input.KillChainName != "" {
-			output.KillChainName = &input.KillChainName
+		output := securityinsight.ThreatIntelligenceKillChainPhase{
+			KillChainName: utils.String(killChainName),
 		}
 
 		if input.PhaseName != "" {
@@ -1018,9 +1004,6 @@ func flattenThreatIntelligenceKillChainPhaseModel(input *[]securityinsight.Threa
 	}
 	for _, v := range *input {
 		o := killChainPhaseModel{}
-		if v.KillChainName != nil {
-			o.KillChainName = *v.KillChainName
-		}
 		if v.PhaseName != nil {
 			o.PhaseName = *v.PhaseName
 		}
