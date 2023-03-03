@@ -14,7 +14,7 @@ func TestAccMobileNetworkSimPolicyDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_policy", "test")
 	// Limited regional availability for Mobile Network
 	data.Locations.Primary = "eastus"
-	
+
 	d := MobileNetworkSimPolicyDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
