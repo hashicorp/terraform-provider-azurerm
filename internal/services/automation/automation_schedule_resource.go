@@ -6,6 +6,8 @@ import (
 	"log"
 	"strings"
 	"time"
+	// import time/tzdata to embed timezone information in the program
+	_ "time/tzdata"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
