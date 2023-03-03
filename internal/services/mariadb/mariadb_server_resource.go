@@ -221,7 +221,6 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	tlsMin := servers.MinimalTlsVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
-
 	if ssl == servers.SslEnforcementEnumDisabled && tlsMin != servers.MinimalTlsVersionEnumTLSEnforcementDisabled {
 		return fmt.Errorf("`ssl_minimal_tls_version_enforced` must be set to `TLSEnforcementDisabled` if `ssl_enforcement_enabled` is set to `false`")
 	}
@@ -249,6 +248,7 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			AdministratorLogin:         admin,
 			AdministratorLoginPassword: pass,
 			PublicNetworkAccess:        &publicAccess,
+			MinimalTlsVersion:          &tlsMin,
 			SslEnforcement:             &ssl,
 			StorageProfile:             storage,
 			Version:                    &version,
@@ -264,7 +264,6 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			SourceServerId:      source,
 			RestorePointInTime:  v.(string),
 			PublicNetworkAccess: &publicAccess,
-			MinimalTlsVersion:   &tlsMin,
 			SslEnforcement:      &ssl,
 			StorageProfile:      storage,
 			Version:             &version,
@@ -328,12 +327,19 @@ func resourceMariaDbServerUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		ssl = servers.SslEnforcementEnumDisabled
 	}
 
+	tlsMin := servers.MinimalTlsVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
+
+	if ssl == servers.SslEnforcementEnumDisabled && tlsMin != servers.MinimalTlsVersionEnumTLSEnforcementDisabled {
+		return fmt.Errorf("`ssl_minimal_tls_version_enforced` must be set to `TLSEnforcementDisabled` if `ssl_enforcement_enabled` is set to `false`")
+	}
+
 	storageProfile := expandMariaDbStorageProfile(d)
 	serverVersion := servers.ServerVersion(d.Get("version").(string))
 	properties := servers.ServerUpdateParameters{
 		Properties: &servers.ServerUpdateParametersProperties{
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
 			PublicNetworkAccess:        &publicAccess,
+			MinimalTlsVersion:          &tlsMin,
 			SslEnforcement:             &ssl,
 			StorageProfile:             storageProfile,
 			Version:                    &serverVersion,
