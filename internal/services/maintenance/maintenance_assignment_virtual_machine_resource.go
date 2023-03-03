@@ -81,8 +81,15 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 		return err
 	}
 	if existingList != nil && len(*existingList) > 0 {
-		existing := (*existingList)[0]
-		if existing.Id != nil && *existing.Id != "" {
+		isExist := false
+		for _, existing := range *existingList {
+			// Due to https://github.com/Azure/azure-rest-api-specs/issues/22894, API always returns the lowercase for Maintenance Assignment. So here it has to ignore case sensitivity. Once this issue is fixed, here will be updated to respect case sensitivity
+			if existing.Name != nil && strings.EqualFold(*existing.Name, configurationId.MaintenanceConfigurationName) {
+				isExist = true
+			}
+		}
+
+		if isExist {
 			return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine", configurationId.ID())
 		}
 	}
