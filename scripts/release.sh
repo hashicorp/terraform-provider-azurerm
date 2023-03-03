@@ -114,6 +114,14 @@ echo "Committing changelog..."
   git push origin "${BRANCH}"
 )
 
+echo "exporting and committing Provider Schema JSON"
+(
+  set -x
+  go run internal/tools/schema-api/main.go -export azurermProviderSchema.json
+  git commit azurermProviderSchema.json -m v"${RELEASE}" schema
+  git push origin "${BRANCH}"
+)
+
 echo "Releasing v${RELEASE}..."
 
 (
