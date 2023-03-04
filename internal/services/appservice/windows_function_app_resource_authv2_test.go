@@ -771,7 +771,7 @@ resource "azurerm_windows_function_app" "test" {
     login {}
   }
 
-  
+
   backup {
     name                = "acctest"
     storage_account_url = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
