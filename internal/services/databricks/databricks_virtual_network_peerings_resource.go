@@ -308,7 +308,7 @@ func retryDatabricksVnetPeeringsClientCreateUpdate(d *pluginsdk.ResourceData, id
 		if err != nil {
 			if utils.ResponseErrorIsRetryable(err) {
 				return pluginsdk.RetryableError(err)
-			} else if future.HttpResponse.StatusCode == 400 && strings.Contains(err.Error(), "ReferencedResourceNotProvisioned") {
+			} else if future.HttpResponse != nil && future.HttpResponse.StatusCode == 400 && strings.Contains(err.Error(), "ReferencedResourceNotProvisioned") {
 				// Resource is not yet ready, this may be the case if the Vnet was just created or another peering was just initiated.
 				return pluginsdk.RetryableError(err)
 			}
