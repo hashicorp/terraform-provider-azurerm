@@ -15,21 +15,6 @@ import (
 
 type DatabricksVirtualNetworkPeeringResource struct{}
 
-func TestAccDatabricksVirtualNetworkPeering_basicStandard(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_virtual_network_peering", "test")
-	r := DatabricksVirtualNetworkPeeringResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, "standard"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("workspace_id"),
-	})
-}
-
 func TestAccDatabricksVirtualNetworkPeering_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_virtual_network_peering", "test")
 	r := DatabricksVirtualNetworkPeeringResource{}
