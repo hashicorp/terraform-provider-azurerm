@@ -21,22 +21,7 @@ func TestAccDatabricksVirtualNetworkPeering_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "standard"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("workspace_id"),
-	})
-}
-
-func TestAccDatabricksVirtualNetworkPeering_basicPremium(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_virtual_network_peering", "test")
-	r := DatabricksVirtualNetworkPeeringResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, "premium"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -51,12 +36,12 @@ func TestAccDatabricksVirtualNetworkPeering_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "standard"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImportHack),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -66,36 +51,14 @@ func TestAccDatabricksVirtualNetworkPeering_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "standard"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("workspace_id"),
 		{
-			Config: r.update(data, "standard"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("workspace_id"),
-	})
-}
-
-func TestAccDatabricksVirtualNetworkPeering_updatePremium(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_virtual_network_peering", "test")
-	r := DatabricksVirtualNetworkPeeringResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, "premium"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("workspace_id"),
-		{
-			Config: r.update(data, "premium"),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -110,22 +73,7 @@ func TestAccDatabricksVirtualNetworkPeering_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "standard"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("workspace_id"),
-	})
-}
-
-func TestAccDatabricksVirtualNetworkPeering_completePremium(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_virtual_network_peering", "test")
-	r := DatabricksVirtualNetworkPeeringResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data, "premium"),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -140,36 +88,14 @@ func TestAccDatabricksVirtualNetworkPeering_completeUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "standard"),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("workspace_id"),
 		{
-			Config: r.completeUpdate(data, "standard"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("workspace_id"),
-	})
-}
-
-func TestAccDatabricksVirtualNetworkPeering_completeUpdatePremium(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_virtual_network_peering", "test")
-	r := DatabricksVirtualNetworkPeeringResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data, "premium"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("workspace_id"),
-		{
-			Config: r.completeUpdate(data, "premium"),
+			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -192,7 +118,7 @@ func (DatabricksVirtualNetworkPeeringResource) Exists(ctx context.Context, clien
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (DatabricksVirtualNetworkPeeringResource) update(data acceptance.TestData, sku string) string {
+func (DatabricksVirtualNetworkPeeringResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -203,7 +129,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[3]s-%[1]d"
+  name     = "acctestRG-databricks-%[1]d"
   location = "%[2]s"
 }
 
@@ -215,10 +141,10 @@ resource "azurerm_virtual_network" "remote" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctest-workspace-%[3]s-%[1]d"
+  name                = "acctest-ws-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "%[3]s"
+  sku                 = "standard"
 }
 
 resource "azurerm_databricks_virtual_network_peering" "test" {
@@ -238,11 +164,11 @@ resource "azurerm_virtual_network_peering" "remote" {
   virtual_network_name      = azurerm_virtual_network.remote.name
   remote_virtual_network_id = azurerm_databricks_virtual_network_peering.test.virtual_network_id
 }
-`, data.RandomInteger, data.Locations.Primary, sku)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (DatabricksVirtualNetworkPeeringResource) requiresImportHack(data acceptance.TestData) string {
-	template := DatabricksVirtualNetworkPeeringResource{}.basic(data, "standard")
+func (DatabricksVirtualNetworkPeeringResource) requiresImport(data acceptance.TestData) string {
+	template := DatabricksVirtualNetworkPeeringResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -257,7 +183,7 @@ resource "azurerm_databricks_virtual_network_peering" "import" {
 `, template, data.RandomInteger)
 }
 
-func (DatabricksVirtualNetworkPeeringResource) basic(data acceptance.TestData, sku string) string {
+func (DatabricksVirtualNetworkPeeringResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -268,7 +194,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[3]s-%[1]d"
+  name     = "acctestRG-databricks-%[1]d"
   location = "%[2]s"
 }
 
@@ -280,10 +206,10 @@ resource "azurerm_virtual_network" "remote" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctest-workspace-%[3]s-%[1]d"
+  name                = "acctest-ws-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "%[3]s"
+  sku                 = "standard"
 }
 
 resource "azurerm_databricks_virtual_network_peering" "test" {
@@ -301,10 +227,10 @@ resource "azurerm_virtual_network_peering" "remote" {
   virtual_network_name      = azurerm_virtual_network.remote.name
   remote_virtual_network_id = azurerm_databricks_virtual_network_peering.test.virtual_network_id
 }
-`, data.RandomInteger, data.Locations.Primary, sku)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (DatabricksVirtualNetworkPeeringResource) complete(data acceptance.TestData, sku string) string {
+func (DatabricksVirtualNetworkPeeringResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -315,7 +241,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[3]s-%[1]d"
+  name     = "acctestRG-databricks-%[1]d"
   location = "%[2]s"
 }
 
@@ -327,10 +253,10 @@ resource "azurerm_virtual_network" "remote" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctest-workspace-%[3]s-%[1]d"
+  name                = "acctest-ws-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "%[3]s"
+  sku                 = "standard"
 }
 
 resource "azurerm_databricks_virtual_network_peering" "test" {
@@ -344,7 +270,7 @@ resource "azurerm_databricks_virtual_network_peering" "test" {
   virtual_network_access_enabled = true
   forwarded_traffic_enabled      = true
   gateway_transit_enabled        = false
-  remote_gateways_enabled        = false
+  use_remote_gateways_enabled    = false
 }
 
 resource "azurerm_virtual_network_peering" "remote" {
@@ -353,10 +279,10 @@ resource "azurerm_virtual_network_peering" "remote" {
   virtual_network_name      = azurerm_virtual_network.remote.name
   remote_virtual_network_id = azurerm_databricks_virtual_network_peering.test.virtual_network_id
 }
-`, data.RandomInteger, data.Locations.Primary, sku)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (DatabricksVirtualNetworkPeeringResource) completeUpdate(data acceptance.TestData, sku string) string {
+func (DatabricksVirtualNetworkPeeringResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -367,7 +293,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[3]s-%[1]d"
+  name     = "acctestRG-databricks-%[1]d"
   location = "%[2]s"
 }
 
@@ -379,10 +305,10 @@ resource "azurerm_virtual_network" "remote" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctest-workspace-%[3]s-%[1]d"
+  name                = "acctest-ws-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "%[3]s"
+  sku                 = "standard"
 }
 
 resource "azurerm_databricks_virtual_network_peering" "test" {
@@ -396,7 +322,7 @@ resource "azurerm_databricks_virtual_network_peering" "test" {
   virtual_network_access_enabled = false
   forwarded_traffic_enabled      = false
   gateway_transit_enabled        = false
-  remote_gateways_enabled        = false
+  use_remote_gateways_enabled    = false
 }
 
 resource "azurerm_virtual_network_peering" "remote" {
@@ -405,5 +331,5 @@ resource "azurerm_virtual_network_peering" "remote" {
   virtual_network_name      = azurerm_virtual_network.remote.name
   remote_virtual_network_id = azurerm_databricks_virtual_network_peering.test.virtual_network_id
 }
-`, data.RandomInteger, data.Locations.Primary, sku)
+`, data.RandomInteger, data.Locations.Primary)
 }

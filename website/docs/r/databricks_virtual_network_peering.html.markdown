@@ -75,9 +75,9 @@ The following arguments are supported:
 
 * `gateway_transit_enabled` - (Optional) Can the gateway links be used in the remote virtual network to link to the Databricks virtual network? Defaults to `false`.
 
-* `remote_gateways_enabled` - (Optional) Can remote gateways be used on the Databricks virtual network? Defaults to `false`.
+* `use_remote_gateways_enabled` - (Optional) Can remote gateways be used on the Databricks virtual network? Defaults to `false`.
 
-~> **NOTE:** If the `remote_gateways_enabled` is set to `true`, and `gateway_transit_enabled` on the remote peering is also `true`, the virtual network will use the gateways of the remote virtual network for transit. Only one peering can have this flag set to `true`. `remote_gateways_enabled` cannot be set if the virtual network already has a gateway.
+~> **NOTE:** If the `use_remote_gateways_enabled` is set to `true`, and `gateway_transit_enabled` on the remote peering is also `true`, the virtual network will use the gateways of the remote virtual network for transit. Only one peering can have this flag set to `true`. `use_remote_gateways_enabled` cannot be set if the virtual network already has a gateway.
 
 * `virtual_network_id` - (Computed) The Id of the internal databricks virtual network.
 
