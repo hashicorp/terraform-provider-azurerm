@@ -6,15 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/dataconnectors"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 func resourceSentinelDataConnectorOffice365() *pluginsdk.Resource {
@@ -25,9 +23,9 @@ func resourceSentinelDataConnectorOffice365() *pluginsdk.Resource {
 		Delete: resourceSentinelDataConnectorOffice365Delete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.DataConnectorID(id)
+			_, err := dataconnectors.ParseDataConnectorID(id)
 			return err
-		}, importSentinelDataConnector(securityinsight.DataConnectorKindOffice365)),
+		}, importSentinelDataConnector(dataconnectors.DataConnectorKindOfficeThreeSixFive)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -48,7 +46,7 @@ func resourceSentinelDataConnectorOffice365() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: workspaces.ValidateWorkspaceID,
+				ValidateFunc: dataconnectors.ValidateWorkspaceID,
 			},
 
 			"tenant_id": {
@@ -85,22 +83,22 @@ func resourceSentinelDataConnectorOffice365CreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
+	workspaceId, err := dataconnectors.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 	name := d.Get("name").(string)
-	id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
+	id := dataconnectors.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
+		resp, err := client.DataConnectorsGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
+			if !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_sentinel_data_connector_office_365", id.ID())
 		}
 	}
@@ -119,52 +117,56 @@ func resourceSentinelDataConnectorOffice365CreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("one of `exchange_enabled`, `sharepoint_enabled` and `teams_enabled` should be `true`")
 	}
 
-	exchangeState := securityinsight.DataTypeStateEnabled
+	exchangeState := dataconnectors.DataTypeStateEnabled
 	if !exchangeEnabled {
-		exchangeState = securityinsight.DataTypeStateDisabled
+		exchangeState = dataconnectors.DataTypeStateDisabled
 	}
 
-	sharePointState := securityinsight.DataTypeStateEnabled
+	sharePointState := dataconnectors.DataTypeStateEnabled
 	if !sharePointEnabled {
-		sharePointState = securityinsight.DataTypeStateDisabled
+		sharePointState = dataconnectors.DataTypeStateDisabled
 	}
 
-	teamsState := securityinsight.DataTypeStateEnabled
+	teamsState := dataconnectors.DataTypeStateEnabled
 	if !teamsEnabled {
-		teamsState = securityinsight.DataTypeStateDisabled
+		teamsState = dataconnectors.DataTypeStateDisabled
 	}
 
-	param := securityinsight.OfficeDataConnector{
+	param := dataconnectors.OfficeDataConnector{
 		Name: &name,
-		OfficeDataConnectorProperties: &securityinsight.OfficeDataConnectorProperties{
-			TenantID: &tenantId,
-			DataTypes: &securityinsight.OfficeDataConnectorDataTypes{
-				Exchange: &securityinsight.OfficeDataConnectorDataTypesExchange{
+		Properties: &dataconnectors.OfficeDataConnectorProperties{
+			TenantId: tenantId,
+			DataTypes: dataconnectors.OfficeDataConnectorDataTypes{
+				Exchange: dataconnectors.DataConnectorDataTypeCommon{
 					State: exchangeState,
 				},
-				SharePoint: &securityinsight.OfficeDataConnectorDataTypesSharePoint{
+				SharePoint: dataconnectors.DataConnectorDataTypeCommon{
 					State: sharePointState,
 				},
-				Teams: &securityinsight.OfficeDataConnectorDataTypesTeams{
+				Teams: dataconnectors.DataConnectorDataTypeCommon{
 					State: teamsState,
 				},
 			},
 		},
-		Kind: securityinsight.KindBasicDataConnectorKindOffice365,
 	}
 
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
+		resp, err := client.DataConnectorsGet(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Data Connector Office 365 %q: %+v", id, err)
 		}
 
-		if _, ok := resp.Value.(securityinsight.OfficeDataConnector); !ok {
+		if resp.Model == nil {
+			return fmt.Errorf("model was nil for %s", id)
+		}
+
+		modelPtr := *resp.Model
+		if _, ok := modelPtr.(dataconnectors.OfficeDataConnector); !ok {
 			return fmt.Errorf("%s was not an Office 365 Data Connector", id)
 		}
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, param); err != nil {
+	if _, err = client.DataConnectorsCreateOrUpdate(ctx, id, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -178,15 +180,15 @@ func resourceSentinelDataConnectorOffice365Read(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataConnectorID(d.Id())
+	id, err := dataconnectors.ParseDataConnectorID(d.Id())
 	if err != nil {
 		return err
 	}
-	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+	workspaceId := dataconnectors.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.DataConnectorsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -195,33 +197,26 @@ func resourceSentinelDataConnectorOffice365Read(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	dc, ok := resp.Value.(securityinsight.OfficeDataConnector)
+	if resp.Model == nil {
+		return fmt.Errorf("model was nil for %s", id)
+	}
+
+	modelPtr := *resp.Model
+	dc, ok := modelPtr.(dataconnectors.OfficeDataConnector)
 	if !ok {
 		return fmt.Errorf("%s was not an Office 365 Data Connector", id)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.DataConnectorId)
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
-	d.Set("tenant_id", dc.TenantID)
 
-	if dt := dc.DataTypes; dt != nil {
-		exchangeEnabled := false
-		if exchange := dt.Exchange; exchange != nil {
-			exchangeEnabled = strings.EqualFold(string(exchange.State), string(securityinsight.DataTypeStateEnabled))
-		}
-		d.Set("exchange_enabled", exchangeEnabled)
+	if props := dc.Properties; props != nil {
+		d.Set("tenant_id", props.TenantId)
 
-		sharePointEnabled := false
-		if sharePoint := dt.SharePoint; sharePoint != nil {
-			sharePointEnabled = strings.EqualFold(string(sharePoint.State), string(securityinsight.DataTypeStateEnabled))
-		}
-		d.Set("sharepoint_enabled", sharePointEnabled)
-
-		teamsEnabled := false
-		if teams := dt.Teams; teams != nil {
-			teamsEnabled = strings.EqualFold(string(teams.State), string(securityinsight.DataTypeStateEnabled))
-		}
-		d.Set("teams_enabled", teamsEnabled)
+		dt := props.DataTypes
+		d.Set("exchange_enabled", strings.EqualFold(string(dt.Exchange.State), string(dataconnectors.DataTypeStateEnabled)))
+		d.Set("sharepoint_enabled", strings.EqualFold(string(dt.SharePoint.State), string(dataconnectors.DataTypeStateEnabled)))
+		d.Set("teams_enabled", strings.EqualFold(string(dt.Teams.State), string(dataconnectors.DataTypeStateEnabled)))
 	}
 
 	return nil
@@ -232,12 +227,12 @@ func resourceSentinelDataConnectorOffice365Delete(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataConnectorID(d.Id())
+	id, err := dataconnectors.ParseDataConnectorID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+	if _, err = client.DataConnectorsDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/dataconnectors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
@@ -41,7 +40,7 @@ func (r DataConnectorAwsS3Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: workspaces.ValidateWorkspaceID,
+			ValidateFunc: dataconnectors.ValidateWorkspaceID,
 		},
 
 		"aws_role_arn": {
@@ -80,12 +79,12 @@ func (r DataConnectorAwsS3Resource) ModelObject() interface{} {
 }
 
 func (r DataConnectorAwsS3Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.DataConnectorID
+	return dataconnectors.ValidateDataConnectorID
 }
 
 func (r DataConnectorAwsS3Resource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		_, err := importSentinelDataConnector(securityinsight.DataConnectorKindAmazonWebServicesS3)(ctx, metadata.ResourceData, metadata.Client)
+		_, err := importSentinelDataConnector(dataconnectors.DataConnectorKindAmazonWebServicesSThree)(ctx, metadata.ResourceData, metadata.Client)
 		return err
 	}
 }
@@ -101,37 +100,36 @@ func (r DataConnectorAwsS3Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			workspaceId, err := workspaces.ParseWorkspaceID(plan.LogAnalyticsWorkspaceId)
+			workspaceId, err := dataconnectors.ParseWorkspaceID(plan.LogAnalyticsWorkspaceId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, plan.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			id := dataconnectors.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, plan.Name)
+			existing, err := client.DataConnectorsGet(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			params := securityinsight.AwsS3DataConnector{
+			params := dataconnectors.AwsS3DataConnector{
 				Name: &plan.Name,
-				AwsS3DataConnectorProperties: &securityinsight.AwsS3DataConnectorProperties{
-					DestinationTable: utils.String(plan.DestinationTable),
-					SqsUrls:          &plan.SqsUrls,
-					RoleArn:          utils.String(plan.AwsRoleArm),
-					DataTypes: &securityinsight.AwsS3DataConnectorDataTypes{
-						Logs: &securityinsight.AwsS3DataConnectorDataTypesLogs{
-							State: securityinsight.DataTypeStateEnabled,
+				Properties: &dataconnectors.AwsS3DataConnectorProperties{
+					DestinationTable: plan.DestinationTable,
+					SqsUrls:          plan.SqsUrls,
+					RoleArn:          plan.AwsRoleArm,
+					DataTypes: dataconnectors.AwsS3DataConnectorDataTypes{
+						Logs: dataconnectors.DataConnectorDataTypeCommon{
+							State: dataconnectors.DataTypeStateEnabled,
 						},
 					},
 				},
-				Kind: securityinsight.KindBasicDataConnectorKindAmazonWebServicesS3,
 			}
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, params); err != nil {
+			if _, err = client.DataConnectorsCreateOrUpdate(ctx, id, params); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -147,40 +145,39 @@ func (r DataConnectorAwsS3Resource) Read() sdk.ResourceFunc {
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.DataConnectorsClient
-			id, err := parse.DataConnectorID(metadata.ResourceData.Id())
+			id, err := dataconnectors.ParseDataConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+			workspaceId := dataconnectors.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			existing, err := client.DataConnectorsGet(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			dc, ok := existing.Value.(securityinsight.AwsS3DataConnector)
+			if existing.Model == nil {
+				return fmt.Errorf("model was nil for %s", id)
+			}
+
+			modelPtr := *existing.Model
+			dc, ok := modelPtr.(dataconnectors.AwsS3DataConnector)
 			if !ok {
 				return fmt.Errorf("%s was not an AWS S3 Data Connector", id)
 			}
 
 			model := DataConnectorAwsS3Model{
-				Name:                    id.Name,
+				Name:                    id.DataConnectorId,
 				LogAnalyticsWorkspaceId: workspaceId.ID(),
 			}
 
-			if prop := dc.AwsS3DataConnectorProperties; prop != nil {
-				if prop.RoleArn != nil {
-					model.AwsRoleArm = *prop.RoleArn
-				}
-				if prop.DestinationTable != nil {
-					model.DestinationTable = *prop.DestinationTable
-				}
-				if prop.SqsUrls != nil {
-					model.SqsUrls = *prop.SqsUrls
-				}
+			if prop := dc.Properties; prop != nil {
+				model.AwsRoleArm = prop.RoleArn
+				model.DestinationTable = prop.DestinationTable
+				model.SqsUrls = prop.SqsUrls
 			}
 
 			return metadata.Encode(&model)
@@ -192,7 +189,7 @@ func (DataConnectorAwsS3Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.DataConnectorID(metadata.ResourceData.Id())
+			id, err := dataconnectors.ParseDataConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -204,12 +201,17 @@ func (DataConnectorAwsS3Resource) Update() sdk.ResourceFunc {
 
 			client := metadata.Client.Sentinel.DataConnectorsClient
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			resp, err := client.DataConnectorsGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			params, ok := resp.Value.(securityinsight.AwsS3DataConnector)
+			if resp.Model == nil {
+				return fmt.Errorf("model was nil for %s", id)
+			}
+
+			modelPtr := *resp.Model
+			params, ok := modelPtr.(securityinsight.AwsS3DataConnector)
 			if !ok {
 				return fmt.Errorf("%s was not an AWS S3 Data Connector", id)
 			}
@@ -226,7 +228,7 @@ func (DataConnectorAwsS3Resource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, params); err != nil {
+			if _, err := client.DataConnectorsCreateOrUpdate(ctx, *id, params); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -241,12 +243,12 @@ func (r DataConnectorAwsS3Resource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.DataConnectorsClient
 
-			id, err := parse.DataConnectorID(metadata.ResourceData.Id())
+			id, err := dataconnectors.ParseDataConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+			if _, err := client.DataConnectorsDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

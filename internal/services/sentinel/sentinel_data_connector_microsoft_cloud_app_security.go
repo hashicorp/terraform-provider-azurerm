@@ -6,14 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/dataconnectors"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
@@ -25,9 +24,9 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurity() *pluginsdk.Resourc
 		Delete: resourceSentinelDataConnectorMicrosoftCloudAppSecurityDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.DataConnectorID(id)
+			_, err := dataconnectors.ParseDataConnectorID(id)
 			return err
-		}, importSentinelDataConnector(securityinsight.DataConnectorKindMicrosoftCloudAppSecurity)),
+		}, importSentinelDataConnector(dataconnectors.DataConnectorKindMicrosoftCloudAppSecurity)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -48,7 +47,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurity() *pluginsdk.Resourc
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: workspaces.ValidateWorkspaceID,
+				ValidateFunc: dataconnectors.ValidateWorkspaceID,
 			},
 
 			"tenant_id": {
@@ -78,22 +77,22 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *plugi
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
+	workspaceId, err := dataconnectors.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 	name := d.Get("name").(string)
-	id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
+	id := dataconnectors.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
+		resp, err := client.DataConnectorsGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
+			if !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_sentinel_data_connector_microsoft_cloud_app_security", id.ID())
 		}
 	}
@@ -111,44 +110,48 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *plugi
 		return fmt.Errorf("either `alerts_enabled` or `discovery_logs_enabled` should be `true`")
 	}
 
-	alertState := securityinsight.DataTypeStateEnabled
+	alertState := dataconnectors.DataTypeStateEnabled
 	if !alertsEnabled {
-		alertState = securityinsight.DataTypeStateDisabled
+		alertState = dataconnectors.DataTypeStateDisabled
 	}
 
-	discoveryLogsState := securityinsight.DataTypeStateEnabled
+	discoveryLogsState := dataconnectors.DataTypeStateEnabled
 	if !discoveryLogsEnabled {
-		discoveryLogsState = securityinsight.DataTypeStateDisabled
+		discoveryLogsState = dataconnectors.DataTypeStateDisabled
 	}
 
-	param := securityinsight.MCASDataConnector{
+	param := dataconnectors.MCASDataConnector{
 		Name: &name,
-		MCASDataConnectorProperties: &securityinsight.MCASDataConnectorProperties{
-			TenantID: &tenantId,
-			DataTypes: &securityinsight.MCASDataConnectorDataTypes{
-				Alerts: &securityinsight.DataConnectorDataTypeCommon{
+		Properties: &dataconnectors.MCASDataConnectorProperties{
+			TenantId: tenantId,
+			DataTypes: dataconnectors.MCASDataConnectorDataTypes{
+				Alerts: dataconnectors.DataConnectorDataTypeCommon{
 					State: alertState,
 				},
-				DiscoveryLogs: &securityinsight.DataConnectorDataTypeCommon{
+				DiscoveryLogs: &dataconnectors.DataConnectorDataTypeCommon{
 					State: discoveryLogsState,
 				},
 			},
 		},
-		Kind: securityinsight.KindBasicDataConnectorKindMicrosoftCloudAppSecurity,
 	}
 
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
+		resp, err := client.DataConnectorsGet(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		if _, ok := resp.Value.(securityinsight.MCASDataConnector); !ok {
+		if resp.Model == nil {
+			return fmt.Errorf("model was nil for %s", id)
+		}
+
+		modelPtr := *resp.Model
+		if _, ok := modelPtr.(securityinsight.MCASDataConnector); !ok {
 			return fmt.Errorf("%s was not a Microsoft Cloud App Security Data Connector", id)
 		}
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, param); err != nil {
+	if _, err = client.DataConnectorsCreateOrUpdate(ctx, id, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -162,15 +165,15 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *pluginsdk.Res
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataConnectorID(d.Id())
+	id, err := dataconnectors.ParseDataConnectorID(d.Id())
 	if err != nil {
 		return err
 	}
-	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+	workspaceId := dataconnectors.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.DataConnectorsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -179,30 +182,37 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *pluginsdk.Res
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	dc, ok := resp.Value.(securityinsight.MCASDataConnector)
+	if resp.Model == nil {
+		return fmt.Errorf("model was nil for %s", id)
+	}
+
+	modelPtr := *resp.Model
+	dc, ok := modelPtr.(dataconnectors.MCASDataConnector)
 	if !ok {
 		return fmt.Errorf("%s was not a Microsoft Cloud App Security Data Connector", id)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.DataConnectorId)
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
-	d.Set("tenant_id", dc.TenantID)
 
-	var (
-		alertsEnabled        bool
-		discoveryLogsEnabled bool
-	)
-	if dt := dc.DataTypes; dt != nil {
-		if alert := dt.Alerts; alert != nil {
-			alertsEnabled = strings.EqualFold(string(alert.State), string(securityinsight.DataTypeStateEnabled))
-		}
+	if props := dc.Properties; props != nil {
+		d.Set("tenant_id", props.TenantId)
+
+		var (
+			alertsEnabled        bool
+			discoveryLogsEnabled bool
+		)
+		dt := props.DataTypes
+
+		alertsEnabled = strings.EqualFold(string(dt.Alerts.State), string(securityinsight.DataTypeStateEnabled))
 
 		if discoveryLogs := dt.DiscoveryLogs; discoveryLogs != nil {
 			discoveryLogsEnabled = strings.EqualFold(string(discoveryLogs.State), string(securityinsight.DataTypeStateEnabled))
+
 		}
+		d.Set("discovery_logs_enabled", discoveryLogsEnabled)
+		d.Set("alerts_enabled", alertsEnabled)
 	}
-	d.Set("discovery_logs_enabled", discoveryLogsEnabled)
-	d.Set("alerts_enabled", alertsEnabled)
 
 	return nil
 }
@@ -212,12 +222,12 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityDelete(d *pluginsdk.R
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataConnectorID(d.Id())
+	id, err := dataconnectors.ParseDataConnectorID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+	if _, err = client.DataConnectorsDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

@@ -5,14 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/dataconnectors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type DataConnectorMicrosoftThreatProtectionResource struct{}
@@ -38,7 +35,7 @@ func (r DataConnectorMicrosoftThreatProtectionResource) Arguments() map[string]*
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: workspaces.ValidateWorkspaceID,
+			ValidateFunc: dataconnectors.ValidateWorkspaceID,
 		},
 
 		"tenant_id": {
@@ -64,12 +61,12 @@ func (r DataConnectorMicrosoftThreatProtectionResource) ModelObject() interface{
 }
 
 func (r DataConnectorMicrosoftThreatProtectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.DataConnectorID
+	return dataconnectors.ValidateDataConnectorID
 }
 
 func (r DataConnectorMicrosoftThreatProtectionResource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		_, err := importSentinelDataConnector(securityinsight.DataConnectorKindMicrosoftThreatProtection)(ctx, metadata.ResourceData, metadata.Client)
+		_, err := importSentinelDataConnector(dataconnectors.DataConnectorKindMicrosoftThreatProtection)(ctx, metadata.ResourceData, metadata.Client)
 		return err
 	}
 }
@@ -85,19 +82,19 @@ func (r DataConnectorMicrosoftThreatProtectionResource) Create() sdk.ResourceFun
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			workspaceId, err := workspaces.ParseWorkspaceID(plan.LogAnalyticsWorkspaceId)
+			workspaceId, err := dataconnectors.ParseWorkspaceID(plan.LogAnalyticsWorkspaceId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, plan.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			id := dataconnectors.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, plan.Name)
+			existing, err := client.DataConnectorsGet(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -106,20 +103,19 @@ func (r DataConnectorMicrosoftThreatProtectionResource) Create() sdk.ResourceFun
 				tenantId = metadata.Client.Account.TenantId
 			}
 
-			params := securityinsight.MTPDataConnector{
+			params := dataconnectors.MTPDataConnector{
 				Name: &plan.Name,
-				MTPDataConnectorProperties: &securityinsight.MTPDataConnectorProperties{
-					TenantID: &tenantId,
-					DataTypes: &securityinsight.MTPDataConnectorDataTypes{
-						Incidents: &securityinsight.MTPDataConnectorDataTypesIncidents{
-							State: securityinsight.DataTypeStateEnabled,
+				Properties: &dataconnectors.MTPDataConnectorProperties{
+					TenantId: tenantId,
+					DataTypes: dataconnectors.MTPDataConnectorDataTypes{
+						Incidents: dataconnectors.DataConnectorDataTypeCommon{
+							State: dataconnectors.DataTypeStateEnabled,
 						},
 					},
 				},
-				Kind: securityinsight.KindBasicDataConnectorKindMicrosoftThreatProtection,
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, params); err != nil {
+			if _, err = client.DataConnectorsCreateOrUpdate(ctx, id, params); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -135,35 +131,38 @@ func (r DataConnectorMicrosoftThreatProtectionResource) Read() sdk.ResourceFunc 
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.DataConnectorsClient
-			id, err := parse.DataConnectorID(metadata.ResourceData.Id())
+			id, err := dataconnectors.ParseDataConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+			workspaceId := dataconnectors.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			existing, err := client.DataConnectorsGet(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			dc, ok := existing.Value.(securityinsight.MTPDataConnector)
+			if existing.Model == nil {
+				return fmt.Errorf("model was nil for %s", id)
+			}
+
+			modelPtr := *existing.Model
+			dc, ok := modelPtr.(dataconnectors.MTPDataConnector)
 			if !ok {
 				return fmt.Errorf("%s was not an Microsoft Threat Protection Data Connector", id)
 			}
 
 			var tenantId string
-			if props := dc.MTPDataConnectorProperties; props != nil {
-				if props.TenantID != nil {
-					tenantId = *props.TenantID
-				}
+			if props := dc.Properties; props != nil {
+				tenantId = props.TenantId
 			}
 
 			model := DataConnectorMicrosoftThreatProtectionModel{
-				Name:                    id.Name,
+				Name:                    id.DataConnectorId,
 				LogAnalyticsWorkspaceId: workspaceId.ID(),
 				TenantId:                tenantId,
 			}
@@ -179,12 +178,12 @@ func (r DataConnectorMicrosoftThreatProtectionResource) Delete() sdk.ResourceFun
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.DataConnectorsClient
 
-			id, err := parse.DataConnectorID(metadata.ResourceData.Id())
+			id, err := dataconnectors.ParseDataConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+			if _, err := client.DataConnectorsDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

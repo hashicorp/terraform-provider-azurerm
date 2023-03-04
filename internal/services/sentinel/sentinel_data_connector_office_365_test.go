@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/dataconnectors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -113,13 +114,13 @@ func TestAccAzureRMSentinelDataConnectorOffice365_requiresImport(t *testing.T) {
 func (r SentinelDataConnectorOffice365Resource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Sentinel.DataConnectorsClient
 
-	id, err := parse.DataConnectorID(state.ID)
+	id, err := dataconnectors.ParseDataConnectorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+	if resp, err := client.DataConnectorsGet(ctx, *id); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Sentinel Data Connector Office 365 %q: %+v", id, err)
