@@ -36,7 +36,7 @@ resource "azurerm_databricks_virtual_network_peering" "example" {
   name                = "databricks-vnet-peer"
   resource_group_name = azurerm_resource_group.example.name
   workspace_id        = azurerm_databricks_workspace.example.id
-  
+
   remote_address_space_prefixes  = azurerm_virtual_network.remote.address_space
   remote_virtual_network_id      = azurerm_virtual_network.remote.id
   virtual_network_access_enabled = true
