@@ -3,6 +3,7 @@ package client
 import (
 	alertruletemplates "github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/sentinelonboardingstates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
@@ -16,6 +17,9 @@ type Client struct {
 	WatchlistsClient         *securityinsight.WatchlistsClient
 	WatchlistItemsClient     *securityinsight.WatchlistItemsClient
 	OnboardingStatesClient   *sentinelonboardingstates.SentinelOnboardingStatesClient
+	AnalyticsSettingsClient  *securityinsight.SecurityMLAnalyticsSettingsClient
+	ThreatIntelligenceClient *securityinsight.ThreatIntelligenceIndicatorClient
+	MetadataClient           *metadata.MetadataClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -40,6 +44,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	onboardingStatesClient := sentinelonboardingstates.NewSentinelOnboardingStatesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&onboardingStatesClient.Client, o.ResourceManagerAuthorizer)
 
+	metadataClient := metadata.NewMetadataClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&metadataClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AlertRulesClient:         &alertRulesClient,
 		AlertRuleTemplatesClient: &alertRuleTemplatesClient,
@@ -48,5 +55,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		WatchlistsClient:         &watchListsClient,
 		WatchlistItemsClient:     &watchListItemsClient,
 		OnboardingStatesClient:   &onboardingStatesClient,
+		MetadataClient:           &metadataClient,
 	}
 }
