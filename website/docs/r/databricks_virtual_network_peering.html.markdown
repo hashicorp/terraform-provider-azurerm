@@ -37,9 +37,9 @@ resource "azurerm_databricks_virtual_network_peering" "example" {
   resource_group_name = azurerm_resource_group.example.name
   workspace_id        = azurerm_databricks_workspace.example.id
 
-  remote_address_space_prefixes  = azurerm_virtual_network.remote.address_space
-  remote_virtual_network_id      = azurerm_virtual_network.remote.id
-  virtual_network_access_enabled = true
+  remote_address_space_prefixes = azurerm_virtual_network.remote.address_space
+  remote_virtual_network_id     = azurerm_virtual_network.remote.id
+  allow_virtual_network_access  = true
 }
 
 resource "azurerm_virtual_network_peering" "remote" {
@@ -69,15 +69,15 @@ The following arguments are supported:
 
 ~> **NOTE:** The remote virtual network should be in the same region as the databricks workspace. Please see the [product documentation](https://learn.microsoft.com/azure/databricks/administration-guide/cloud-configurations/azure/vnet-peering) for more information.
 
-* `virtual_network_access_enabled` - (Optional) Can the VMs in the local virtual network space access the VMs in the remote virtual network space? Defaults to `true`.
+* `allow_virtual_network_access` - (Optional) Can the VMs in the local virtual network space access the VMs in the remote virtual network space? Defaults to `true`.
 
-* `forwarded_traffic_enabled` - (Optional) Can the forwarded traffic from the VMs in the local virtual network be forwarded to the remote virtual network? Defaults to `false`.
+* `allow_forwarded_traffic` - (Optional) Can the forwarded traffic from the VMs in the local virtual network be forwarded to the remote virtual network? Defaults to `false`.
 
-* `gateway_transit_enabled` - (Optional) Can the gateway links be used in the remote virtual network to link to the Databricks virtual network? Defaults to `false`.
+* `allow_gateway_transit` - (Optional) Can the gateway links be used in the remote virtual network to link to the Databricks virtual network? Defaults to `false`.
 
-* `use_remote_gateways_enabled` - (Optional) Can remote gateways be used on the Databricks virtual network? Defaults to `false`.
+* `use_remote_gateways` - (Optional) Can remote gateways be used on the Databricks virtual network? Defaults to `false`.
 
-~> **NOTE:** If the `use_remote_gateways_enabled` is set to `true`, and `gateway_transit_enabled` on the remote peering is also `true`, the virtual network will use the gateways of the remote virtual network for transit. Only one peering can have this flag set to `true`. `use_remote_gateways_enabled` cannot be set if the virtual network already has a gateway.
+~> **NOTE:** If the `use_remote_gateways` is set to `true`, and `allow_gateway_transit` on the remote peering is also `true`, the virtual network will use the gateways of the remote virtual network for transit. Only one peering can have this flag set to `true`. `use_remote_gateways` cannot be set if the virtual network already has a gateway.
 
 * `virtual_network_id` - (Computed) The Id of the internal databricks virtual network.
 

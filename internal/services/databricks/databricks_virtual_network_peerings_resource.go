@@ -92,25 +92,25 @@ func resourceDatabricksVirtualNetworkPeering() *pluginsdk.Resource {
 				ValidateFunc: networkValidate.VirtualNetworkID,
 			},
 
-			"virtual_network_access_enabled": {
+			"allow_virtual_network_access": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
-			"forwarded_traffic_enabled": {
+			"allow_forwarded_traffic": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 				Optional: true,
 			},
 
-			"gateway_transit_enabled": {
+			"allow_gateway_transit": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 				Optional: true,
 			},
 
-			"use_remote_gateways_enabled": {
+			"use_remote_gateways": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 				Optional: true,
@@ -214,10 +214,10 @@ func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta
 	d.Set("workspace_id", workspaceId.ID())
 
 	if model := resp.Model; model != nil {
-		d.Set("virtual_network_access_enabled", model.Properties.AllowVirtualNetworkAccess)
-		d.Set("forwarded_traffic_enabled", model.Properties.AllowForwardedTraffic)
-		d.Set("gateway_transit_enabled", model.Properties.AllowGatewayTransit)
-		d.Set("use_remote_gateways_enabled", model.Properties.UseRemoteGateways)
+		d.Set("allow_virtual_network_access", model.Properties.AllowVirtualNetworkAccess)
+		d.Set("allow_forwarded_traffic", model.Properties.AllowForwardedTraffic)
+		d.Set("allow_gateway_transit", model.Properties.AllowGatewayTransit)
+		d.Set("use_remote_gateways", model.Properties.UseRemoteGateways)
 
 		if model.Properties.DatabricksAddressSpace != nil && model.Properties.DatabricksAddressSpace.AddressPrefixes != nil {
 			d.Set("address_space_prefixes", model.Properties.DatabricksAddressSpace.AddressPrefixes)
@@ -273,10 +273,10 @@ func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, me
 }
 
 func expandDatabricksVirtualNetworkPeeringProperties(d *pluginsdk.ResourceData) vnetpeering.VirtualNetworkPeeringPropertiesFormat {
-	allowForwardedTraffic := d.Get("forwarded_traffic_enabled").(bool)
-	allowGatewayTransit := d.Get("gateway_transit_enabled").(bool)
-	allowVirtualNetworkAccess := d.Get("virtual_network_access_enabled").(bool)
-	useRemoteGateways := d.Get("use_remote_gateways_enabled").(bool)
+	allowForwardedTraffic := d.Get("allow_forwarded_traffic").(bool)
+	allowGatewayTransit := d.Get("allow_gateway_transit").(bool)
+	allowVirtualNetworkAccess := d.Get("allow_virtual_network_access").(bool)
+	useRemoteGateways := d.Get("use_remote_gateways").(bool)
 	remoteVirtualNetwork := d.Get("remote_virtual_network_id").(string)
 	databricksAddressSpace := utils.ExpandStringSlice(d.Get("address_space_prefixes").([]interface{}))
 	remoteAddressSpace := utils.ExpandStringSlice(d.Get("remote_address_space_prefixes").([]interface{}))

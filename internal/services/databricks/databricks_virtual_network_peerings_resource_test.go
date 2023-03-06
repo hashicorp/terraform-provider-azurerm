@@ -155,7 +155,7 @@ resource "azurerm_databricks_virtual_network_peering" "test" {
   remote_address_space_prefixes = azurerm_virtual_network.remote.address_space
   remote_virtual_network_id     = azurerm_virtual_network.remote.id
 
-  virtual_network_access_enabled = false
+  allow_virtual_network_access = false
 }
 
 resource "azurerm_virtual_network_peering" "remote" {
@@ -267,10 +267,10 @@ resource "azurerm_databricks_virtual_network_peering" "test" {
   remote_address_space_prefixes = azurerm_virtual_network.remote.address_space
   remote_virtual_network_id     = azurerm_virtual_network.remote.id
 
-  virtual_network_access_enabled = true
-  forwarded_traffic_enabled      = true
-  gateway_transit_enabled        = false
-  use_remote_gateways_enabled    = false
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  allow_gateway_transit        = false
+  use_remote_gateways          = false
 }
 
 resource "azurerm_virtual_network_peering" "remote" {
@@ -319,10 +319,10 @@ resource "azurerm_databricks_virtual_network_peering" "test" {
   remote_address_space_prefixes = azurerm_virtual_network.remote.address_space
   remote_virtual_network_id     = azurerm_virtual_network.remote.id
 
-  virtual_network_access_enabled = false
-  forwarded_traffic_enabled      = false
-  gateway_transit_enabled        = false
-  use_remote_gateways_enabled    = false
+  allow_virtual_network_access = false
+  allow_forwarded_traffic      = false
+  allow_gateway_transit        = false
+  use_remote_gateways          = false
 }
 
 resource "azurerm_virtual_network_peering" "remote" {
