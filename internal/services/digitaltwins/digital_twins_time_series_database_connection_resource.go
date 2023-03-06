@@ -194,6 +194,9 @@ func (m TimeSeriesDatabaseConnectionResource) Read() sdk.ResourceFunc {
 			client := meta.Client.DigitalTwins.TimeSeriesDatabaseConnectionsClient
 			result, err := client.Get(ctx, *id)
 			if err != nil {
+				if response.WasNotFound(result.HttpResponse) {
+					return meta.MarkAsGone(id)
+				}
 				return err
 			}
 
