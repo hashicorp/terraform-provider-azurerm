@@ -137,10 +137,12 @@ func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+				// suppress any diff if automatic_upgrade_enabled is true
 				if value, ok := d.GetOk("automatic_upgrade_enabled"); ok && value.(bool) {
 					return true
 				}
-				if strings.HasPrefix(newValue, oldValue) {
+				// e.g. 1.24 -> 1.24.1 will be considered as no change
+				if len(oldValue) > 0 && len(newValue) > 0 && strings.HasPrefix(oldValue, newValue) {
 					return true
 				}
 				return false
