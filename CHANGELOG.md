@@ -2,6 +2,8 @@
 
 ENHANCEMENTS
 
+* dependencies: updating to `v0.55.0` of `github.com/hashicorp/go-azure-helpers` [GH-20807]
+* dependencies: updating to `v0.20230306.1165107` of `github.com/hashicorp/go-azure-sdk` [GH-20807]
 * Data Source: `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
 * `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
 
