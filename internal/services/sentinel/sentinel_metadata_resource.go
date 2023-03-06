@@ -45,7 +45,7 @@ type MetadataModel struct {
 type MetadataSourceModel struct {
 	Kind string `tfschema:"kind"`
 	Name string `tfschema:"name"`
-	Id   string `tfschema:"guid"`
+	Id   string `tfschema:"id"`
 }
 
 type MetadataAuthorModel struct {
@@ -120,7 +120,7 @@ func (a MetadataResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"guid": {
+					"id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -795,6 +795,7 @@ func flattenMetadataCategoryModel(input *sentinelmetadata.MetadataCategories) []
 func expandMetadataDependencies(input interface{}) (dependencies *sentinelmetadata.MetadataDependencies, err error) {
 	if j, ok := input.(map[string]interface{}); ok {
 		dependencies = &sentinelmetadata.MetadataDependencies{}
+		// "name" is not returned in response, so it's not supported for now.
 		if v, ok := j["contentId"]; ok {
 			dependencies.ContentId = utils.String(v.(string))
 		}

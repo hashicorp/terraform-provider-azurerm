@@ -152,7 +152,7 @@ A `source` block supports the following:
 
 * `kind` - (Required) The kind of the content source. Possible values are `LocalWorkspace`, `Communtity`, `Solution` and `SourceRepository`.
 
-* `guid` - (Optional) The guid of the content source, the solution ID, Log Analytics Workspace name etc.
+* `id` - (Optional) The id of the content source, the solution ID, Log Analytics Workspace name etc.
 
 ---
 
