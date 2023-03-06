@@ -1,3 +1,10 @@
+## 3.47.0 (Unreleased)
+
+ENHANCEMENTS
+
+* Data Source: `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
+* `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
+
 ## 3.46.0 (March 02, 2023)
 
 FEATURES
