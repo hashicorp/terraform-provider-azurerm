@@ -7,6 +7,11 @@ ENHANCEMENTS
 * Data Source: `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
 * `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
 
+BUG FIXES:
+
+* `azurerm_iothub_endpoint_*` - set Id to nil when resource is not found [GH-20798]
+* `azurerm_iothub_route` - set Id to nil when resource is not found [GH-20798]
+* 
 ## 3.46.0 (March 02, 2023)
 
 FEATURES
