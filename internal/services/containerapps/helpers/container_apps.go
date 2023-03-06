@@ -302,7 +302,7 @@ type TrafficWeight struct {
 func ContainerAppIngressTrafficWeight() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Required: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"label": {

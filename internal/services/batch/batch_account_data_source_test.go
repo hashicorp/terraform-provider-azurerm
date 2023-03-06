@@ -284,7 +284,9 @@ resource "azurerm_key_vault" "test" {
       "Create",
       "Delete",
       "WrapKey",
-      "UnwrapKey"
+      "UnwrapKey",
+      "GetRotationPolicy",
+      "SetRotationPolicy",
     ]
   }
 

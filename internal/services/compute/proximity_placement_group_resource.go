@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -57,7 +56,7 @@ func resourceProximityPlacementGroup() *pluginsdk.Resource {
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForVirtualMachineSizeTypes(), false),
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
@@ -82,8 +81,8 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	id := proximityplacementgroups.NewProximityPlacementGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
+	existing, err := client.Get(ctx, id, proximityplacementgroups.DefaultGetOperationOptions())
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, proximityplacementgroups.DefaultGetOperationOptions())
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -107,12 +106,18 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 		}
 		payload.Properties.Intent.VMSizes = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
 	} else if !d.IsNewResource() {
-		// Need to explicitly set an empty slice when updating to empty vm sizes
-		if payload.Properties.Intent == nil {
-			payload.Properties.Intent = &proximityplacementgroups.ProximityPlacementGroupPropertiesIntent{}
+		// Need to explicitly set an empty slice when updating vmSizes from non-empty to empty, and should not set it to an empty slice when existing vmSizes is empty when vm is attached
+		if model := existing.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if intent := props.Intent; intent != nil && intent.VMSizes != nil {
+					if payload.Properties.Intent == nil {
+						payload.Properties.Intent = &proximityplacementgroups.ProximityPlacementGroupPropertiesIntent{}
+					}
+					vmSizes := make([]string, 0)
+					payload.Properties.Intent.VMSizes = &vmSizes
+				}
+			}
 		}
-		vmSizes := make([]string, 0)
-		payload.Properties.Intent.VMSizes = &vmSizes
 	}
 
 	if v, ok := d.GetOk("zone"); ok {
