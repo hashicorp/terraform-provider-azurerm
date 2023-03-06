@@ -76,8 +76,10 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 						},
 
 						"key_source": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:       pluginsdk.TypeString,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "`key_source` can inferred from if `key_vault_key_id` set",
 							ValidateFunc: validation.StringInSlice(
 								automationaccount.PossibleValuesForEncryptionKeySourceType(),
 								false,
@@ -366,33 +368,33 @@ func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func expandEncryption(encMap map[string]interface{}) (*automationaccount.EncryptionProperties, error) {
-	var id interface{}
-	id, ok := encMap["user_assigned_identity_id"].(string)
-	if !ok {
-		return nil, fmt.Errorf("read encryption user identity id error")
-	}
 	prop := &automationaccount.EncryptionProperties{
-		Identity: &automationaccount.EncryptionPropertiesIdentity{
-			UserAssignedIdentity: &id,
-		},
+		Identity: &automationaccount.EncryptionPropertiesIdentity{},
 	}
-	prop.KeySource = pointer.To(automationaccount.EncryptionKeySourceTypeMicrosoftPointAutomation)
-	if val, ok := encMap["key_source"].(string); ok && val != "" {
-		prop.KeySource = (*automationaccount.EncryptionKeySourceType)(&val)
+	idObject, ok := encMap["user_assigned_identity_id"]
+	if ok {
+		if idStr, ok := idObject.(string); !ok {
+			return nil, fmt.Errorf("read encryption user identity id error")
+		} else if idStr != "" {
+			var id interface{} = idStr
+			prop.Identity.UserAssignedIdentity = &id
+		}
 	}
+
 	if keyIdStr := encMap["key_vault_key_id"].(string); keyIdStr != "" {
 		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyIdStr)
 		if err != nil {
 			return nil, err
 		}
-		if prop.KeySource == nil {
-			prop.KeySource = pointer.To(automationaccount.EncryptionKeySourceTypeMicrosoftPointKeyvault)
-		}
+
+		prop.KeySource = pointer.To(automationaccount.EncryptionKeySourceTypeMicrosoftPointKeyvault)
 		prop.KeyVaultProperties = &automationaccount.KeyVaultProperties{
 			KeyName:     utils.String(keyId.Name),
 			KeyVersion:  utils.String(keyId.Version),
 			KeyvaultUri: utils.String(keyId.KeyVaultBaseUrl),
 		}
+	} else {
+		prop.KeySource = pointer.To(automationaccount.EncryptionKeySourceTypeMicrosoftPointAutomation)
 	}
 	return prop, nil
 }

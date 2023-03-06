@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `encryption` - (Optional) An `encryption` block as defined below.
+* `encryption` - (Optional) An `encryption` block as defined below. set as an empty block for `Microsoft.Automation` kind of encryption.
 
 ---
 
@@ -70,9 +70,9 @@ An `encryption` block supports the following:
 
 * `user_assigned_identity_id` - (Optional) The User Assigned Managed Identity ID to be used for accessing the Customer Managed Key for encryption.
 
-* `key_source` - (Optional) The source of the encryption key. Possible values are `Microsoft.Automation` and `Microsoft.Keyvault`.
+* `key_source` - (Optional **Deprecated**) The source of the encryption key. Possible values are `Microsoft.Automation` and `Microsoft.Keyvault`. This field will be set to `Microsoft.Keyvault` when `key_vault_key_id` is set. otherwise it will be `Microsoft.Automation`.
 
-* `key_vault_key_id` - (Optional) The ID of the Key Vault Key which should be used to Encrypt the data in this Automation Account. Required when `key_source` is set to `Microsoft.Keyvault`.
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key which should be used to Encrypt the data in this Automation Account.
 
 ---
 

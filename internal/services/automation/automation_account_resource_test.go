@@ -76,12 +76,24 @@ func TestAccAutomationAccount_encryption(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.encryption(data),
+			Config: r.encryptionBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
-				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("encryption.0.key_source").HasValue("Microsoft.Automation"),
+			),
+		},
+		{
+			Config: r.encryptionKeyVault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("encryption.0.key_source").HasValue("Microsoft.Keyvault"),
+			),
+		},
+		{
+			Config: r.encryptionBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("encryption.0.key_source").HasValue("Microsoft.Automation"),
 			),
 		},
 		data.ImportStep(),
@@ -275,7 +287,7 @@ resource "azurerm_automation_account" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (AutomationAccountResource) encryption(data acceptance.TestData) string {
+func (AutomationAccountResource) encryptionTemplate(data acceptance.TestData, encrypt string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -383,13 +395,26 @@ resource "azurerm_automation_account" "test" {
 
   local_authentication_enabled = false
 
+  %[3]s
+}
+`, data.RandomInteger, data.Locations.Primary, encrypt)
+}
+
+func (a AutomationAccountResource) encryptionBasic(data acceptance.TestData) string {
+	return a.encryptionTemplate(data, `
+  encryption {
+  }
+`)
+}
+
+func (a AutomationAccountResource) encryptionKeyVault(data acceptance.TestData) string {
+	return a.encryptionTemplate(data, `
   encryption {
     key_source                = "Microsoft.Keyvault"
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
     key_vault_key_id          = azurerm_key_vault_key.test.id
   }
-}
-`, data.RandomInteger, data.Locations.Primary)
+`)
 }
 
 func (AutomationAccountResource) userAssignedIdentity(data acceptance.TestData) string {
