@@ -25,7 +25,7 @@ type Client struct {
 	TopicsClient                  *topics.TopicsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	DisasterRecoveryConfigsClient := disasterrecoveryconfigs.NewDisasterRecoveryConfigsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DisasterRecoveryConfigsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -63,5 +63,5 @@ func NewClient(o *common.ClientOptions) *Client {
 		SubscriptionRulesClient:       &SubscriptionRulesClient,
 		TopicsAuthClient:              &TopicsAuthClient,
 		TopicsClient:                  &TopicsClient,
-	}
+	}, nil
 }

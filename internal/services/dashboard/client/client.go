@@ -9,11 +9,11 @@ type Client struct {
 	GrafanaResourceClient *grafanaresource.GrafanaResourceClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	grafanaResourceClient := grafanaresource.NewGrafanaResourceClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&grafanaResourceClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		GrafanaResourceClient: &grafanaResourceClient,
-	}
+	}, nil
 }

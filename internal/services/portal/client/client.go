@@ -11,7 +11,7 @@ type Client struct {
 	TenantConfigurationsClient *tenantconfiguration.TenantConfigurationClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	dashboardsClient := dashboard.NewDashboardClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&dashboardsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -21,5 +21,5 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		DashboardsClient:           &dashboardsClient,
 		TenantConfigurationsClient: &tenantConfigurationsClient,
-	}
+	}, nil
 }

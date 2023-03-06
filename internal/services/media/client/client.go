@@ -12,7 +12,7 @@ type Client struct {
 	V20220801Client *mediaV20220801.Client
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	V20211101Client := mediaV20211101.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
 		c.Authorizer = o.ResourceManagerAuthorizer
 	})
@@ -24,5 +24,5 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		V20211101Client: &V20211101Client,
 		V20220801Client: &V20220801Client,
-	}
+	}, nil
 }
