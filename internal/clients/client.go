@@ -2,6 +2,7 @@ package clients
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
@@ -261,7 +262,11 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Features = o.Features
 	client.StopContext = ctx
 
-	client.AadB2c = aadb2c.NewClient(o)
+	var err error
+
+	if client.AadB2c, err = aadb2c.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AadB2c: %+v", err)
+	}
 	client.Advisor = advisor.NewClient(o)
 	client.AnalysisServices = analysisServices.NewClient(o)
 	client.ApiManagement = apiManagement.NewClient(o)
@@ -300,7 +305,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DevTestLabs = devtestlabs.NewClient(o)
 	client.DigitalTwins = digitaltwins.NewClient(o)
 	client.Disks = disks.NewClient(o)
-	client.Dns = dns.NewClient(o)
+	if client.Dns, err = dns.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Dns: %+v", err)
+	}
 	client.DomainServices = domainservices.NewClient(o)
 	client.Elastic = elastic.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
@@ -329,7 +336,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Maintenance = maintenance.NewClient(o)
 	client.ManagedApplication = managedapplication.NewClient(o)
 	client.ManagementGroups = managementgroup.NewClient(o)
-	client.Maps = maps.NewClient(o)
+	if client.Maps, err = maps.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Maps: %+v", err)
+	}
 	client.MariaDB = mariadb.NewClient(o)
 	client.Media = media.NewClient(o)
 	client.MixedReality = mixedreality.NewClient(o)
@@ -361,7 +370,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.ServiceConnector = serviceConnector.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
-	client.SignalR = signalr.NewClient(o)
+	if client.SignalR, err = signalr.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for SignalR: %+v", err)
+	}
 	client.Sql = sql.NewClient(o)
 	client.Storage = storage.NewClient(o)
 	client.StreamAnalytics = streamAnalytics.NewClient(o)

@@ -469,7 +469,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			var authV2 web.SiteAuthSettingsV2
-			if pointer.From(auth.ConfigVersion) == "v2" {
+			if strings.EqualFold(pointer.From(auth.ConfigVersion), "v2") {
 				authV2, err = client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
 				if err != nil {
 					return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)
