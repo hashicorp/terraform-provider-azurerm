@@ -7,7 +7,13 @@ type BreakingChangeRule interface {
 }
 
 var BreakingChangeRules = []BreakingChangeRule{
+	becomeComputedOnly{},
+	newRequiredPropertyExistingResource{},
 	optionalRemoveComputed{},
 	optionalToRequired{},
-	propertyTypeMatches{},
+	propertyType{},
+}
+
+var BreakingChangeRulesDataSource = []BreakingChangeRule{
+	propertyType{},
 }

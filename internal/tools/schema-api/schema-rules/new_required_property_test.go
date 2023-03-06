@@ -49,7 +49,7 @@ var newRequiredPropertyViolates = providerjson.SchemaJSON{
 }
 
 func TestNewRequiredProperty_Check(t *testing.T) {
-	data := newRequiredProperty{}
+	data := newRequiredPropertyExistingResource{}
 	if res := data.Check(newRequiredPropertyBase, newRequiredPropertyPasses, ""); res != nil {
 		t.Errorf("expected no violation, got %+v", res)
 	}

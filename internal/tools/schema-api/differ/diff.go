@@ -25,8 +25,8 @@ func (d *Differ) Diff(fileName string, providerName string) []string {
 		return []string{fmt.Sprintf("provider name mismatch, expected %q, got %q", d.base.ProviderName, d.current.ProviderName)}
 	}
 
-	// TODO - Walk the resources
 	violations := make([]string, 0)
+
 	for resource, rs := range d.current.ProviderSchema.ResourcesMap {
 		_, ok := d.base.ProviderSchema.ResourcesMap[resource]
 		if !ok {
@@ -46,7 +46,24 @@ func (d *Differ) Diff(fileName string, providerName string) []string {
 		}
 	}
 
-	// TODO - walk the data sources
+	for dataSource, ds := range d.current.ProviderSchema.DataSourcesMap {
+		_, ok := d.base.ProviderSchema.DataSourcesMap[dataSource]
+		if !ok {
+			// New resource, no breaking changes to worry about
+			continue
+		}
+		for propertyName, propertySchema := range ds.Schema {
+			// Get the same from the base (released) json
+			baseItem, ok := d.base.ProviderSchema.DataSourcesMap[dataSource].Schema[propertyName]
+			if !ok {
+				// New property, could be breaking - Required etc
+				baseItem = providerjson.SchemaJSON{}
+			}
+			if errs := compareNode(baseItem, propertySchema, propertyName); errs != nil {
+				violations = append(violations, errs...)
+			}
+		}
+	}
 
 	return violations
 }

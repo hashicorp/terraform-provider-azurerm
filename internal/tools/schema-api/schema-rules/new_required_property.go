@@ -9,11 +9,12 @@ import (
 
 // Checks that the Schema Property Type has not changed
 
-var _ BreakingChangeRule = newRequiredProperty{}
+var _ BreakingChangeRule = newRequiredPropertyExistingResource{}
 
-type newRequiredProperty struct{}
+type newRequiredPropertyExistingResource struct{}
 
-func (newRequiredProperty) Check(base providerjson.SchemaJSON, current providerjson.SchemaJSON, propertyName string) *string {
+// Check - Checks that a newly introduced property is not marked as Required since this will not be in users configurations.
+func (newRequiredPropertyExistingResource) Check(base providerjson.SchemaJSON, current providerjson.SchemaJSON, propertyName string) *string {
 	if base.Type == "" && current.Required {
 		return pointer.To(fmt.Sprintf("new property %q is Required", propertyName))
 	}

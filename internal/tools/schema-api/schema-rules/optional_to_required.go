@@ -11,6 +11,7 @@ type optionalToRequired struct {
 
 var _ BreakingChangeRule = optionalToRequired{}
 
+// Check - Checks that an Optional property is not update to become Required
 func (o optionalToRequired) Check(base providerjson.SchemaJSON, current providerjson.SchemaJSON, propertyName string) *string {
 	if base.Optional && current.Required {
 		return pointer.To(fmt.Sprintf("Cannot change property %q from Optional to Required", propertyName))

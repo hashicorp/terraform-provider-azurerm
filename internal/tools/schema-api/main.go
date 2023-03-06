@@ -68,7 +68,7 @@ func main() {
 				ProviderName: *providerName,
 			}
 			if err := providerjson.WriteWithWrapper(wrappedProvider, data, *exportSchema); err != nil {
-				log.Fatalf("error writing provider schema for %q to %q: %+v", providerName, *exportSchema, err)
+				log.Fatalf("error writing provider schema for %q to %q: %+v", *providerName, *exportSchema, err)
 			}
 
 			os.Exit(0)
