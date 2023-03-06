@@ -785,7 +785,7 @@ resource "azurerm_linux_function_app" "test" {
     login {}
   }
 
-  
+
   backup {
     name                = "acctest"
     storage_account_url = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
@@ -816,9 +816,9 @@ resource "azurerm_linux_function_app" "test" {
   }
 
   site_config {
-    always_on          = true
-    app_command_line   = "whoami"
-    api_definition_url = "https://example.com/azure_function_app_def.json"
+    always_on                              = true
+    app_command_line                       = "whoami"
+    api_definition_url                     = "https://example.com/azure_function_app_def.json"
     application_insights_connection_string = azurerm_application_insights.test.connection_string
 
     application_stack {
