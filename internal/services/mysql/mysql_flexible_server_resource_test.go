@@ -463,6 +463,21 @@ func TestAccMySqlFlexibleServer_updateToCustomerManagedKey(t *testing.T) {
 	})
 }
 
+func TestAccMySqlFlexibleServer_enableGeoRedundantBackup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	r := MySqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.enableGeoRedundantBackup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+	})
+}
+
 func (MySqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := servers.ParseFlexibleServerID(state.ID)
 	if err != nil {
@@ -1076,6 +1091,33 @@ resource "azurerm_mysql_flexible_server" "test" {
   customer_managed_key {
     key_vault_key_id                  = azurerm_key_vault_key.test.id
     primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+}
+`, r.cmkTemplate(data), data.RandomInteger)
+}
+
+func (r MySqlFlexibleServerResource) enableGeoRedundantBackup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                         = "acctest-fs-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "_admin_Terraform_892123456789312"
+  administrator_password       = "QAZwsx123"
+  sku_name                     = "B_Standard_B1s"
+  zone                         = "1"
+  geo_redundant_backup_enabled = true
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  customer_managed_key {
+    geo_backup_key_vault_key_id          = azurerm_key_vault_key.test.id
+    geo_backup_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 }
 `, r.cmkTemplate(data), data.RandomInteger)
