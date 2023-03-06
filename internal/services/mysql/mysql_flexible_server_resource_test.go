@@ -1036,7 +1036,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -1100,6 +1100,55 @@ func (r MySqlFlexibleServerResource) enableGeoRedundantBackup(data acceptance.Te
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG-mysql2-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctestmi%s"
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
+}
+
+resource "azurerm_key_vault" "test2" {
+  name                     = "acctestkv2%s"
+  location                 = azurerm_resource_group.test2.location
+  resource_group_name      = azurerm_resource_group.test2.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "standard"
+  purge_protection_enabled = true
+}
+
+resource "azurerm_key_vault_access_policy" "server2" {
+  key_vault_id = azurerm_key_vault.test2.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.test2.principal_id
+
+  key_permissions = ["Get", "List", "WrapKey", "UnwrapKey"]
+}
+
+resource "azurerm_key_vault_access_policy" "client2" {
+  key_vault_id = azurerm_key_vault.test2.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
+}
+
+resource "azurerm_key_vault_key" "test2" {
+  name         = "test2"
+  key_vault_id = azurerm_key_vault.test2.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_access_policy.client2,
+    azurerm_key_vault_access_policy.server2,
+  ]
+}
+
 resource "azurerm_mysql_flexible_server" "test" {
   name                         = "acctest-fs-%d"
   resource_group_name          = azurerm_resource_group.test.name
@@ -1107,18 +1156,20 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login          = "_admin_Terraform_892123456789312"
   administrator_password       = "QAZwsx123"
   sku_name                     = "B_Standard_B1s"
-  zone                         = "1"
+  zone                         = "2"
   geo_redundant_backup_enabled = true
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
+    identity_ids = [azurerm_user_assigned_identity.test.id, azurerm_user_assigned_identity.test2.id]
   }
 
   customer_managed_key {
-    geo_backup_key_vault_key_id          = azurerm_key_vault_key.test.id
-    geo_backup_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    key_vault_key_id                     = azurerm_key_vault_key.test.id
+    primary_user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
+    geo_backup_key_vault_key_id          = azurerm_key_vault_key.test2.id
+    geo_backup_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
   }
 }
-`, r.cmkTemplate(data), data.RandomInteger)
+`, r.cmkTemplate(data), data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomInteger)
 }
