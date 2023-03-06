@@ -668,7 +668,7 @@ func (br assignmentBaseResource) flattenSelectors(selectors *[]policyassignments
 }
 
 func (br assignmentBaseResource) flattenResourceSelectors(selectors *[]policyassignments.ResourceSelector) interface{} {
-	if selectors == nil && len(*selectors) == 0 {
+	if selectors == nil || *selectors == nil {
 		return nil
 	}
 
