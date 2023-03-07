@@ -245,6 +245,24 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 	}
 }
 
+func TestAccKubernetesCluster_dnsPrefix(t *testing.T) {
+	// regression test case for issue #20806
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	dnsPrefix := fmt.Sprintf("1stCluster%d", data.RandomInteger)
+
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dnsPrefix(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dns_prefix").HasValue(dnsPrefix),
+			),
+		},
+	})
+}
+
 func (KubernetesClusterResource) hostEncryption(data acceptance.TestData, controlPlaneVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -648,6 +666,38 @@ resource "azurerm_kubernetes_cluster" "test" {
     disk_driver_version         = "v1"
     file_driver_enabled         = false
     snapshot_controller_enabled = false
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
+}
+
+func (KubernetesClusterResource) dnsPrefix(data acceptance.TestData, controlPlaneVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "1stCluster%d"
+  kubernetes_version  = %q
+
+  default_node_pool {
+    name                   = "default"
+    node_count             = 1
+    vm_size                = "Standard_DS2_v2"
+    enable_host_encryption = true
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
