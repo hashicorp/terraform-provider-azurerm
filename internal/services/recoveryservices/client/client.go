@@ -41,6 +41,7 @@ type Client struct {
 	NetworkMappingClient                      *replicationnetworkmappings.ReplicationNetworkMappingsClient
 	ReplicationProtectableItemsClient         *replicationprotectableitems.ReplicationProtectableItemsClient
 	ReplicationProtectedItemsClient           *replicationprotecteditems.ReplicationProtectedItemsClient
+	HackedReplicationProtectedItemsClient     *azuresdkhacks.ReplicationProtectedItemsClient
 	ReplicationRecoveryPlansClient            *replicationrecoveryplans.ReplicationRecoveryPlansClient
 }
 
@@ -108,6 +109,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	replicationRecoveryPlanClient := replicationrecoveryplans.NewReplicationRecoveryPlansClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&replicationRecoveryPlanClient.Client, o.ResourceManagerAuthorizer)
 
+	hackedReplicationProtectedItemsClient := azuresdkhacks.NewReplicationProtectedItemsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&hackedReplicationProtectedItemsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ProtectableItemsClient:                    &protectableItemsClient,
 		ProtectedItemsClient:                      &protectedItemsClient,
@@ -130,5 +134,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		ReplicationProtectableItemsClient:         &replicationProtectableItemsCLient,
 		ReplicationProtectedItemsClient:           &replicationMigrationItemsClient,
 		ReplicationRecoveryPlansClient:            &replicationRecoveryPlanClient,
+		HackedReplicationProtectedItemsClient:     &hackedReplicationProtectedItemsClient,
 	}
 }

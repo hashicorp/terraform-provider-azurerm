@@ -42,7 +42,8 @@ func TestAccSiteRecoveryHyperVReplicatedVM_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, append(hostResource.PrepareHostTestSteps(data, adminPwd), []acceptance.TestStep{
 		{
-			Config: r.complete(data, adminPwd),
+			PreConfig: func() { time.Sleep(5 * time.Minute) }, // sleep 5 minutes to wait for the host registration fully finished.
+			Config:    r.complete(data, adminPwd),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -100,6 +101,8 @@ resource "azurerm_site_recovery_hyperv_replicated_vm" "test" {
     network_name       = "HyperV-NAT"
     target_subnet_name = azurerm_subnet.target.name
   }
+
+  depends_on = [azurerm_site_recovery_hyperv_replication_policy_association.test]
 }
 `, SiteRecoverHyperVReplicationPolicyAssociationResource{}.basic(data, adminPwd), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -252,6 +255,8 @@ resource "azurerm_site_recovery_hyperv_replicated_vm" "test" {
   target_network_interface_tags = {
     tag = "foo"
   }
+
+  depends_on = [azurerm_site_recovery_hyperv_replication_policy_association.test]
 }
 `, SiteRecoverHyperVReplicationPolicyAssociationResource{}.basic(data, adminPwd), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

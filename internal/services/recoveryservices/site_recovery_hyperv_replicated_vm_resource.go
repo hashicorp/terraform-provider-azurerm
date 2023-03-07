@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/azuresdkhacks"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -403,6 +404,9 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Create() sdk.ResourceFunc {
 							diskId = *d.VhdId
 							break
 						}
+						if *d.VhdName == plan.OSDiskName {
+							osVHDId = *d.VhdId
+						}
 					}
 					if diskId == "" {
 						return fmt.Errorf("disk %s not found in protectable item", disk.DiskName)
@@ -443,6 +447,7 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Create() sdk.ResourceFunc {
 						UseManagedDisks:               utils.String(strconv.FormatBool(plan.UseManagedDiskEnabled)),
 						TargetManagedDiskTags:         &plan.TargetManagedDiskTags,
 						TargetVMTags:                  &plan.TargetVMTags,
+						TargetNicTags:                 &plan.TargetNicTags,
 						TargetVMSize:                  &plan.TargetVMSize,
 						DisksToIncludeForManagedDisks: &diskToIncludeForManagedDisks,
 						EnableRdpOnTargetOption:       &plan.EnableRdpOnTargetOption,
@@ -529,19 +534,7 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Read() sdk.ResourceFunc {
 							if detail.OSDetails != nil && detail.OSDetails.OsType != nil {
 								state.OsType = *detail.OSDetails.OsType
 							}
-							if detail.AzureVMDiskDetails != nil {
-								var diskNames []string
-								for _, disk := range *detail.AzureVMDiskDetails {
-									if disk.VhdName != nil {
-										diskNames = append(diskNames, *disk.VhdName)
-									}
-									if disk.VhdType != nil && strings.EqualFold(*disk.VhdType, "OperatingSystem") {
-										state.OSDiskName = *disk.VhdName
-									}
-								}
 
-								state.DiskNamesToInclude = diskNames
-							}
 							if detail.RecoveryAzureStorageAccount != nil {
 								state.TargetStorageAccountId = *detail.RecoveryAzureStorageAccount
 							}
@@ -572,7 +565,7 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Read() sdk.ResourceFunc {
 										}
 									}
 									if nic.SelectionType != nil {
-										o.FailoverEnabled = strings.EqualFold(*nic.SelectionType, "NotSelected")
+										o.FailoverEnabled = !strings.EqualFold(*nic.SelectionType, "NotSelected")
 									}
 									if nic.NicId != nil && *nic.NicId == primaryNicId {
 										o.IsPrimary = true
@@ -585,6 +578,23 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Read() sdk.ResourceFunc {
 								state.UseManagedDiskEnabled, err = strconv.ParseBool(*detail.UseManagedDisks)
 								if err != nil {
 									return fmt.Errorf("parsing `use_managed_disk_enabled` %s: %+v", *detail.UseManagedDisks, err)
+								}
+							}
+
+							if detail.AzureVMDiskDetails != nil {
+								// no matter use managed disk or not, it will return in AzureVMDiskDetails
+								// but if it's not using managed disk, flatten it will cause force update.
+								var diskNames []string
+								for _, disk := range *detail.AzureVMDiskDetails {
+									if disk.VhdName != nil {
+										diskNames = append(diskNames, *disk.VhdName)
+									}
+									if disk.VhdType != nil && strings.EqualFold(*disk.VhdType, "OperatingSystem") {
+										state.OSDiskName = *disk.VhdName
+									}
+								}
+								if !state.UseManagedDiskEnabled {
+									state.DiskNamesToInclude = diskNames
 								}
 							}
 
@@ -629,6 +639,9 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Read() sdk.ResourceFunc {
 							if detail.TargetVMTags != nil {
 								state.TargetVMTags = *detail.TargetVMTags
 							}
+							if detail.TargetNicTags != nil {
+								state.TargetNicTags = *detail.TargetNicTags
+							}
 							if detail.RecoveryAzureLogStorageAccountId != nil {
 								state.LogStorageAccountId = *detail.RecoveryAzureLogStorageAccountId
 							}
@@ -656,16 +669,13 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 80 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RecoveryServices.ReplicationProtectedItemsClient
-
+			client := metadata.Client.RecoveryServices.HackedReplicationProtectedItemsClient
 			id, err := replicationprotecteditems.ParseReplicationProtectedItemID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, replicationprotecteditems.DisableProtectionInput{
-				Properties: replicationprotecteditems.DisableProtectionInputProperties{},
-			})
+			err = client.DeleteThenPoll(ctx, *id, azuresdkhacks.DisableProtectionInput{})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
