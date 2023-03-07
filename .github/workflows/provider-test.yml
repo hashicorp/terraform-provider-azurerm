@@ -35,6 +35,14 @@ jobs:
     needs: [secrets-check]
     if: needs.secrets-check.outputs.available == 'true'
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: ./.go-version
+
       - name: Azure CLI login
         run: az login --output none --username="${{ secrets.AZCLI_USERNAME }}" --password="${{ secrets.AZCLI_PASSWORD }}"
 
@@ -44,14 +52,6 @@ jobs:
 
       - name: Set OIDC Token File Path
         run: echo "${ARM_OIDC_TOKEN}" >"${TMPDIR}/oidc-token.jwt"
-
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Install Go
-        uses: actions/setup-go@v3
-        with:
-          go-version-file: ./.go-version
 
       - name: Run provider tests
         run: make testacc TEST=./internal/provider TESTARGS="-run '^TestAcc'"
@@ -65,5 +65,6 @@ jobs:
 
       - name: Clean Up OIDC Token File Path
         run: rm -f "${TMPDIR}/oidc-token.jwt"
+        if: always()
 
 # vim: set ts=2 sts=2 sw=2 et:
