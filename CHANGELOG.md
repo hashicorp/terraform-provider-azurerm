@@ -34,6 +34,7 @@ BUG FIXES:
 * `azurerm_iothub_endpoint_storage_container` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
 * `azurerm_iothub_fallback_route` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_iothub_route` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_linux_function_app_slot` - fix health_check_eviction_time_in_min [GH-20816]
 * `azurerm_logic_app_integration_account` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_maintenance_assignment_virtual_machine` - prevent a potential panic from a nil value [GH-20781]
 * `azurerm_nginx_certificate` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
@@ -43,6 +44,7 @@ BUG FIXES:
 * `azurerm_synapse_workspace_key` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_synapse_workspace_sql_aad_admin` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_web_app_active_slot` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_windows_function_app_slot` - fix health_check_eviction_time_in_min [GH-20816]
 
 
 ## 3.46.0 (March 02, 2023)
