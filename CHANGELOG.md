@@ -1,5 +1,9 @@
 ## 3.47.0 (Unreleased)
 
+FEATURES: 
+
+* **New Resource:** `azurerm_sentinel_metadata` [GH-20801]
+
 ENHANCEMENTS
 
 * dependencies: updating to `v0.55.0` of `github.com/hashicorp/go-azure-helpers` [GH-20807]
@@ -11,7 +15,7 @@ BUG FIXES:
 
 * `azurerm_iothub_endpoint_*` - set Id to nil when resource is not found [GH-20798]
 * `azurerm_iothub_route` - set Id to nil when resource is not found [GH-20798]
-* 
+
 ## 3.46.0 (March 02, 2023)
 
 FEATURES
