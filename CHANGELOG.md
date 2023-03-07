@@ -16,6 +16,7 @@ BUG FIXES:
 
 * `azurerm_iothub_endpoint_*` - set Id to nil when resource is not found [GH-20798]
 * `azurerm_iothub_route` - set Id to nil when resource is not found [GH-20798]
+* `azurerm_maintenance_assignment_virtual_machine` - prevent a potential panic from a nil value [GH-20781]
 
 ## 3.46.0 (March 02, 2023)
 
