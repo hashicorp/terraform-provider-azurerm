@@ -67,6 +67,7 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 					"Dns",
 					"OpenSourceRelationalDatabases",
 					"Containers",
+					"CosmosDbs",
 					"CloudPosture",
 				}, false),
 			},
