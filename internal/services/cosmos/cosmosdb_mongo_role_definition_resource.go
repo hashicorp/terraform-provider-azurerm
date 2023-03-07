@@ -19,7 +19,6 @@ type CosmosDbMongoRoleDefinitionModel struct {
 	AccountId          string      `tfschema:"account_id"`
 	DbName             string      `tfschema:"db_name"`
 	RoleName           string      `tfschema:"role_name"`
-	Type               string      `tfschema:"type"`
 	InheritedRoleNames []string    `tfschema:"inherited_role_names"`
 	Privileges         []Privilege `tfschema:"privilege"`
 }
@@ -71,16 +70,6 @@ func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.S
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(mongorbacs.MongoRoleDefinitionTypeBuiltInRole),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(mongorbacs.MongoRoleDefinitionTypeBuiltInRole),
-				string(mongorbacs.MongoRoleDefinitionTypeCustomRole),
-			}, false),
 		},
 
 		"inherited_role_names": {
@@ -166,12 +155,10 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			roleDefinitionType := mongorbacs.MongoRoleDefinitionType(model.Type)
 			properties := &mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: &model.DbName,
 					RoleName:     &model.RoleName,
-					Type:         &roleDefinitionType,
 				},
 			}
 
@@ -222,12 +209,10 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			roleDefinitionType := mongorbacs.MongoRoleDefinitionType(model.Type)
 			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: &model.DbName,
 					RoleName:     &model.RoleName,
-					Type:         &roleDefinitionType,
 				},
 			}
 
@@ -280,7 +265,6 @@ func (r CosmosDbMongoRoleDefinitionResource) Read() sdk.ResourceFunc {
 			if properties := model.Properties; properties != nil {
 				state.DbName = *properties.DatabaseName
 				state.RoleName = *properties.RoleName
-				state.Type = string(*properties.Type)
 
 				if v := properties.Privileges; v != nil {
 					state.Privileges = flattenPrivilege(properties.Privileges)
