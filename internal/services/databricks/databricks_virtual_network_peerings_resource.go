@@ -261,9 +261,8 @@ func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, me
 	peerMutex.Lock()
 	defer peerMutex.Unlock()
 
-	// this is a workaround for the 'failed to unmarshal response body: StatusCode=0
-	// -- Original Error: json: cannot unmarshal string into Go value of type map[string]interface {}'
-	// error
+	// this is a workaround for the SDK issue: https://github.com/hashicorp/go-azure-sdk/issues/351
+	// and will be cleaned up once the fix has been implemented.
 	result, err := client.Delete(ctx, *id)
 	if err != nil && result.HttpResponse != nil {
 		return fmt.Errorf("deleting Databricks %s: %+v", *id, err)
