@@ -34,6 +34,7 @@ BUG FIXES:
 * `azurerm_iothub_endpoint_storage_container` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
 * `azurerm_iothub_fallback_route` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_iothub_route` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_kubernetes_cluster` - fix validation logic for `dns_prefix` [GH-20813]
 * `azurerm_linux_function_app_slot` - fix health_check_eviction_time_in_min [GH-20816]
 * `azurerm_logic_app_integration_account` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_maintenance_assignment_virtual_machine` - prevent a potential panic from a nil value [GH-20781]
