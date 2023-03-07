@@ -191,5 +191,8 @@ func getMaintenanceAssignmentVirtualMachine(ctx context.Context, client *configu
 		}
 	}
 
-	return resp.Model.Value, nil
+	if resp.Model != nil {
+		result = resp.Model.Value
+	}
+	return
 }

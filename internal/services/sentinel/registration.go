@@ -76,5 +76,6 @@ func (r Registration) Resources() []sdk.Resource {
 		DataConnectorThreatIntelligenceTAXIIResource{},
 		DataConnectorMicrosoftThreatIntelligenceResource{},
 		AlertRuleAnomalyBuiltInResource{},
+		MetadataResource{},
 	}
 }

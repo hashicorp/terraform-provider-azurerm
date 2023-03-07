@@ -1,3 +1,23 @@
+## 3.47.0 (Unreleased)
+
+FEATURES: 
+
+* **New Resource:** `azurerm_sentinel_metadata` [GH-20801]
+
+ENHANCEMENTS
+
+* dependencies: updating to `v0.55.0` of `github.com/hashicorp/go-azure-helpers` [GH-20807]
+* dependencies: updating to `v0.20230306.1165107` of `github.com/hashicorp/go-azure-sdk` [GH-20807]
+* Data Source: `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
+* `azurerm_mariadb_server` - support for the `ssl_minimal_tls_version_enforced` property [GH-20782]
+* `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
+
+BUG FIXES:
+
+* `azurerm_iothub_endpoint_*` - set Id to nil when resource is not found [GH-20798]
+* `azurerm_iothub_route` - set Id to nil when resource is not found [GH-20798]
+* `azurerm_maintenance_assignment_virtual_machine` - prevent a potential panic from a nil value [GH-20781]
+
 ## 3.46.0 (March 02, 2023)
 
 FEATURES
