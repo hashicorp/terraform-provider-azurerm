@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -1000,7 +1001,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 														},
 													},
 												},
-												"overlays": {
+												"overlay": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
 													MinItems: 1,
@@ -1325,6 +1326,7 @@ func flattenTransformOutputs(input []encodings.TransformOutput) []interface{} {
 		results = append(results, map[string]interface{}{
 			"audio_analyzer_preset": preset.audioAnalyzerPresets,
 			"builtin_preset":        preset.builtInPresets,
+			"custom_preset":         preset.customPresets,
 			"face_detector_preset":  preset.faceDetectorPresets,
 			"on_error_action":       onErrorAction,
 			"relative_priority":     relativePriority,
@@ -1479,6 +1481,7 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 type flattenedPresets struct {
 	audioAnalyzerPresets []interface{}
 	builtInPresets       []interface{}
+	customPresets        []interface{}
 	faceDetectorPresets  []interface{}
 	videoAnalyzerPresets []interface{}
 }
@@ -1487,6 +1490,7 @@ func flattenPreset(input encodings.Preset) flattenedPresets {
 	out := flattenedPresets{
 		audioAnalyzerPresets: []interface{}{},
 		builtInPresets:       []interface{}{},
+		customPresets:        []interface{}{},
 		faceDetectorPresets:  []interface{}{},
 		videoAnalyzerPresets: []interface{}{},
 	}
@@ -1507,6 +1511,14 @@ func flattenPreset(input encodings.Preset) flattenedPresets {
 			"audio_analysis_mode":  mode,
 			"audio_language":       language,
 			"experimental_options": flattenExperimentalOptions(v.ExperimentalOptions),
+		})
+	}
+
+	if v, ok := input.(encodings.StandardEncoderPreset); ok {
+		out.audioAnalyzerPresets = append(out.audioAnalyzerPresets, map[string]interface{}{
+			"codec":  flattenCustomPresetCodecs(v.Codecs),
+			"filter": flattenCustomPresetFilter(v.Filters),
+			"format": flattenCustomPresetFormat(v.Formats),
 		})
 	}
 
@@ -1704,6 +1716,7 @@ func expandCustomPresetCodecs(input []interface{}) ([]encodings.Codec, error) {
 		if v == nil {
 			continue
 		}
+
 		codec := v.(map[string]interface{})
 		aacAudio := codec["aac_audio"].([]interface{})
 		copyAudio := codec["copy_audio"].([]interface{})
@@ -1753,7 +1766,7 @@ func expandCustomPresetCodecs(input []interface{}) ([]encodings.Codec, error) {
 		} else if len(copyVideo) > 0 {
 			results = append(results, expandCustomPresetCodecsCopyVideo(copyVideo))
 		} else if len(ddAudio) > 0 {
-			results = append(results, expandCustomPresetCodecsDdAudio(ddAudio))
+			//results = append(results, expandCustomPresetCodecsDdAudio(ddAudio))
 		} else if len(h264Video) > 0 {
 			results = append(results, expandCustomPresetCodecsH264Video(h264Video))
 		} else if len(h265Video) > 0 {
@@ -1766,6 +1779,83 @@ func expandCustomPresetCodecs(input []interface{}) ([]encodings.Codec, error) {
 	}
 
 	return results, nil
+}
+
+type flattenedCustomPresetsCodec struct {
+	aacAudio  []interface{}
+	copyAudio []interface{}
+	copyVideo []interface{}
+	ddAudio   []interface{}
+	h264Video []interface{}
+	h265Video []interface{}
+	jpgImage  []interface{}
+	pngImage  []interface{}
+}
+
+func flattenCustomPresetCodecs(input []encodings.Codec) []interface{} {
+	if len(input) == 0 {
+		return make([]interface{}, 0)
+	}
+
+	results := make([]interface{}, 0)
+
+	for _, v := range input {
+		result := flattenedCustomPresetsCodec{
+			aacAudio:  []interface{}{},
+			copyAudio: []interface{}{},
+			copyVideo: []interface{}{},
+			ddAudio:   []interface{}{},
+			h264Video: []interface{}{},
+			h265Video: []interface{}{},
+			jpgImage:  []interface{}{},
+			pngImage:  []interface{}{},
+		}
+
+		if codec, ok := v.(encodings.AacAudio); ok {
+			result.aacAudio = flattenCustomPresetCodecsAacAudio(codec)
+		}
+
+		if codec, ok := v.(encodings.CopyAudio); ok {
+			result.copyAudio = flattenCustomPresetCodecsCopyAudio(codec)
+		}
+
+		if codec, ok := v.(encodings.CopyVideo); ok {
+			result.copyVideo = flattenCustomPresetCodecsCopyVideo(codec)
+		}
+
+		//if codec,ok:= v.(encodings.DdAudio); ok{
+		//	result.DdAudio = flattenCustomPresetCodecsDdVideo(codec)
+		//}
+
+		if codec, ok := v.(encodings.H264Video); ok {
+			result.h264Video = flattenCustomPresetCodecsH264Video(codec)
+		}
+
+		if codec, ok := v.(encodings.H265Video); ok {
+			result.h265Video = flattenCustomPresetCodecsH265Video(codec)
+		}
+
+		if codec, ok := v.(azuresdkhacks.JpgImage); ok {
+			result.jpgImage = flattenCustomPresetCodecsJpgImage(codec)
+		}
+
+		if codec, ok := v.(azuresdkhacks.PngImage); ok {
+			result.pngImage = flattenCustomPresetCodecsPngImage(codec)
+		}
+
+		results = append(results, map[string]interface{}{
+			"aac_audio":  result.aacAudio,
+			"copy_audio": result.copyAudio,
+			"copy_video": result.copyVideo,
+			"dd_audio":   result.ddAudio,
+			"h264_video": result.h264Video,
+			"h265_video": result.h265Video,
+			"jpg_image":  result.jpgImage,
+			"png_image":  result.pngImage,
+		})
+	}
+
+	return results
 }
 
 func expandCustomPresetCodecsAacAudio(input []interface{}) encodings.AacAudio {
@@ -1799,6 +1889,43 @@ func expandCustomPresetCodecsAacAudio(input []interface{}) encodings.AacAudio {
 	return result
 }
 
+func flattenCustomPresetCodecsAacAudio(input encodings.AacAudio) []interface{} {
+	bitrate := 0
+	if input.Bitrate != nil {
+		bitrate = int(*input.Bitrate)
+	}
+
+	channels := 0
+	if input.Channels != nil {
+		channels = int(*input.Channels)
+	}
+
+	label := ""
+	if input.Label != nil {
+		label = *input.Label
+	}
+
+	profile := ""
+	if input.Profile != nil {
+		profile = string(*input.Profile)
+	}
+
+	samplingRate := 0
+	if input.SamplingRate != nil {
+		samplingRate = int(*input.SamplingRate)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"bitrate":       bitrate,
+			"channels":      channels,
+			"label":         label,
+			"profile":       profile,
+			"sampling_rate": samplingRate,
+		},
+	}
+}
+
 func expandCustomPresetCodecsCopyAudio(input []interface{}) encodings.CopyAudio {
 	if len(input) == 0 || input[0] == nil {
 		return encodings.CopyAudio{}
@@ -1814,6 +1941,19 @@ func expandCustomPresetCodecsCopyAudio(input []interface{}) encodings.CopyAudio 
 	return result
 }
 
+func flattenCustomPresetCodecsCopyAudio(input encodings.CopyAudio) []interface{} {
+	label := ""
+	if input.Label != nil {
+		label = *input.Label
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"label": label,
+		},
+	}
+}
+
 func expandCustomPresetCodecsCopyVideo(input []interface{}) encodings.CopyVideo {
 	if len(input) == 0 || input[0] == nil {
 		return encodings.CopyVideo{}
@@ -1827,6 +1967,19 @@ func expandCustomPresetCodecsCopyVideo(input []interface{}) encodings.CopyVideo 
 	}
 
 	return result
+}
+
+func flattenCustomPresetCodecsCopyVideo(input encodings.CopyVideo) []interface{} {
+	label := ""
+	if input.Label != nil {
+		label = *input.Label
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"label": label,
+		},
+	}
 }
 
 func expandCustomPresetCodecsDdAudio(input []interface{}) encodings.AacAudio {
@@ -1855,6 +2008,38 @@ func expandCustomPresetCodecsDdAudio(input []interface{}) encodings.AacAudio {
 	}
 
 	return result
+}
+
+func flattenCustomPresetCodecsDdAudio(input encodings.AacAudio) []interface{} {
+	// TODO: modify to encoding.DdAudio
+	bitrate := 0
+	if input.Bitrate != nil {
+		bitrate = int(*input.Bitrate)
+	}
+
+	channels := 0
+	if input.Channels != nil {
+		channels = int(*input.Channels)
+	}
+
+	label := ""
+	if input.Label != nil {
+		label = *input.Label
+	}
+
+	samplingRate := 0
+	if input.SamplingRate != nil {
+		samplingRate = int(*input.SamplingRate)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"bitrate":       bitrate,
+			"channels":      channels,
+			"label":         label,
+			"sampling_rate": samplingRate,
+		},
+	}
 }
 
 func expandCustomPresetCodecsH264Video(input []interface{}) encodings.H264Video {
@@ -1893,6 +2078,55 @@ func expandCustomPresetCodecsH264Video(input []interface{}) encodings.H264Video 
 	}
 
 	return result
+}
+
+func flattenCustomPresetCodecsH264Video(input encodings.H264Video) []interface{} {
+	complexity := ""
+	if input.Complexity != nil {
+		complexity = string(*input.Complexity)
+	}
+
+	keyFrameInterval := ""
+	if input.KeyFrameInterval != nil {
+		keyFrameInterval = *input.KeyFrameInterval
+	}
+
+	label := ""
+	if input.Label != nil {
+		label = *input.Label
+	}
+
+	rateControlMode := ""
+	if input.RateControlMode != nil {
+		rateControlMode = string(*input.RateControlMode)
+	}
+
+	sceneChangeDetectionEnabled := false
+	if input.SceneChangeDetection != nil {
+		sceneChangeDetectionEnabled = *input.SceneChangeDetection
+	}
+
+	stretchMode := ""
+	if input.StretchMode != nil {
+		stretchMode = string(*input.StretchMode)
+	}
+
+	syncMode := ""
+	if input.SyncMode != nil {
+		syncMode = string(*input.SyncMode)
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"complexity":                     complexity,
+			"keyFrameInterval":               keyFrameInterval,
+			"label":                          label,
+			"layer":                          flattenCustomPresetCodecsH264VideoLayers(input.Layers),
+			"rate_control_mode":              rateControlMode,
+			"scene_change_detection_enabled": sceneChangeDetectionEnabled,
+			"stretch_mode":                   stretchMode,
+			"sync_mode":                      syncMode,
+		},
+	}
 }
 
 func expandCustomPresetCodecsH264VideoLayers(input []interface{}) *[]encodings.H264Layer {
@@ -1966,6 +2200,106 @@ func expandCustomPresetCodecsH264VideoLayers(input []interface{}) *[]encodings.H
 	return &results
 }
 
+func flattenCustomPresetCodecsH264VideoLayers(input *[]encodings.H264Layer) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	results := make([]interface{}, 0)
+
+	for _, v := range *input {
+		adaptiveBFrameEnabled := false
+		if v.AdaptiveBFrame != nil {
+			adaptiveBFrameEnabled = *v.AdaptiveBFrame
+		}
+
+		bFrames := 0
+		if v.BFrames != nil {
+			bFrames = int(*v.BFrames)
+		}
+
+		bufferWindow := ""
+		if v.BufferWindow != nil {
+			bufferWindow = *v.BufferWindow
+		}
+
+		crf := 0.0
+		if v.Crf != nil {
+			crf = *v.Crf
+		}
+
+		entropyMode := ""
+		if v.EntropyMode != nil {
+			entropyMode = string(*v.EntropyMode)
+		}
+
+		frameRate := ""
+		if v.FrameRate != nil {
+			frameRate = *v.FrameRate
+		}
+
+		height := ""
+		if v.Height != nil {
+			height = *v.Height
+		}
+
+		label := ""
+		if v.Label != nil {
+			label = *v.Label
+		}
+
+		level := ""
+		if v.Level != nil {
+			level = *v.Level
+		}
+
+		maxBitrate := 0
+		if v.MaxBitrate != nil {
+			maxBitrate = int(*v.MaxBitrate)
+		}
+
+		profile := ""
+		if v.Profile != nil {
+			profile = string(*v.Profile)
+		}
+
+		referenceFrames := 0
+		if v.ReferenceFrames != nil {
+			referenceFrames = int(*v.ReferenceFrames)
+		}
+
+		slices := 0
+		if v.Slices != nil {
+			slices = int(*v.Slices)
+		}
+
+		width := ""
+		if v.Width != nil {
+			width = *v.Width
+		}
+
+		results = append(results, map[string]interface{}{
+			"bitrate":                  v.Bitrate,
+			"adaptive_b_frame_enabled": adaptiveBFrameEnabled,
+			"b_frames":                 bFrames,
+			"buffer_window":            bufferWindow,
+			"crf":                      crf,
+			"entropy_mode":             entropyMode,
+			"frame_rate":               frameRate,
+			"height":                   height,
+			"label":                    label,
+			"level":                    level,
+			"max_bitrate":              maxBitrate,
+			"profile":                  profile,
+			"reference_frames":         referenceFrames,
+			"slices":                   slices,
+			"width":                    width,
+		})
+	}
+
+	return results
+}
+
 func expandCustomPresetCodecsH265Video(input []interface{}) encodings.H265Video {
 	if len(input) == 0 || input[0] == nil {
 		return encodings.H265Video{}
@@ -1998,6 +2332,49 @@ func expandCustomPresetCodecsH265Video(input []interface{}) encodings.H265Video 
 	}
 
 	return result
+}
+
+func flattenCustomPresetCodecsH265Video(input encodings.H265Video) []interface{} {
+	complexity := ""
+	if input.Complexity != nil {
+		complexity = string(*input.Complexity)
+	}
+
+	keyFrameInterval := ""
+	if input.KeyFrameInterval != nil {
+		keyFrameInterval = *input.KeyFrameInterval
+	}
+
+	label := ""
+	if input.Label != nil {
+		label = *input.Label
+	}
+
+	sceneChangeDetectionEnabled := false
+	if input.SceneChangeDetection != nil {
+		sceneChangeDetectionEnabled = *input.SceneChangeDetection
+	}
+
+	stretchMode := ""
+	if input.StretchMode != nil {
+		stretchMode = string(*input.StretchMode)
+	}
+
+	syncMode := ""
+	if input.SyncMode != nil {
+		syncMode = string(*input.SyncMode)
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"complexity":                     complexity,
+			"keyFrameInterval":               keyFrameInterval,
+			"label":                          label,
+			"layer":                          flattenCustomPresetCodecsH265VideoLayers(input.Layers),
+			"scene_change_detection_enabled": sceneChangeDetectionEnabled,
+			"stretch_mode":                   stretchMode,
+			"sync_mode":                      syncMode,
+		},
+	}
 }
 
 func expandCustomPresetCodecsH265VideoLayers(input []interface{}) *[]encodings.H265Layer {
@@ -2067,14 +2444,414 @@ func expandCustomPresetCodecsH265VideoLayers(input []interface{}) *[]encodings.H
 	return &results
 }
 
-func expandCustomPresetCodecsJpgImage(input []interface{}) *[]encodings.Image {
-	//TODO: encoding.JpgImage
-	return nil
+func flattenCustomPresetCodecsH265VideoLayers(input *[]encodings.H265Layer) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	results := make([]interface{}, 0)
+
+	for _, v := range *input {
+		adaptiveBFrameEnabled := false
+		if v.AdaptiveBFrame != nil {
+			adaptiveBFrameEnabled = *v.AdaptiveBFrame
+		}
+
+		bFrames := 0
+		if v.BFrames != nil {
+			bFrames = int(*v.BFrames)
+		}
+
+		bufferWindow := ""
+		if v.BufferWindow != nil {
+			bufferWindow = *v.BufferWindow
+		}
+
+		crf := 0.0
+		if v.Crf != nil {
+			crf = *v.Crf
+		}
+
+		frameRate := ""
+		if v.FrameRate != nil {
+			frameRate = *v.FrameRate
+		}
+
+		height := ""
+		if v.Height != nil {
+			height = *v.Height
+		}
+
+		label := ""
+		if v.Label != nil {
+			label = *v.Label
+		}
+
+		level := ""
+		if v.Level != nil {
+			level = *v.Level
+		}
+
+		maxBitrate := 0
+		if v.MaxBitrate != nil {
+			maxBitrate = int(*v.MaxBitrate)
+		}
+
+		profile := ""
+		if v.Profile != nil {
+			profile = string(*v.Profile)
+		}
+
+		referenceFrames := 0
+		if v.ReferenceFrames != nil {
+			referenceFrames = int(*v.ReferenceFrames)
+		}
+
+		slices := 0
+		if v.Slices != nil {
+			slices = int(*v.Slices)
+		}
+
+		width := ""
+		if v.Width != nil {
+			width = *v.Width
+		}
+
+		results = append(results, map[string]interface{}{
+			"bitrate":                  v.Bitrate,
+			"adaptive_b_frame_enabled": adaptiveBFrameEnabled,
+			"b_frames":                 bFrames,
+			"buffer_window":            bufferWindow,
+			"crf":                      crf,
+			"frame_rate":               frameRate,
+			"height":                   height,
+			"label":                    label,
+			"level":                    level,
+			"max_bitrate":              maxBitrate,
+			"profile":                  profile,
+			"reference_frames":         referenceFrames,
+			"slices":                   slices,
+			"width":                    width,
+		})
+	}
+
+	return results
 }
 
-func expandCustomPresetCodecsPngImage(input []interface{}) *[]encodings.Image {
-	//TODO: encoding.PngImage
-	return nil
+func expandCustomPresetCodecsJpgImage(input []interface{}) azuresdkhacks.JpgImage {
+	if len(input) == 0 || input[0] == nil {
+		return azuresdkhacks.JpgImage{}
+	}
+
+	jpgImage := input[0].(map[string]interface{})
+	result := azuresdkhacks.JpgImage{
+		Start:  jpgImage["start"].(string),
+		Layers: expandCustomPresetCodecsJpgImageLayer(jpgImage["layer"].([]interface{})),
+	}
+
+	if v := jpgImage["key_frame_interval"].(string); v != "" {
+		result.KeyFrameInterval = utils.String(v)
+	}
+
+	if v := jpgImage["label"].(string); v != "" {
+		result.Label = utils.String(v)
+	}
+
+	if v := jpgImage["range"].(string); v != "" {
+		result.Range = utils.String(v)
+	}
+
+	if v := jpgImage["splite_column"].(int); v != 0 {
+		result.SpliteColumn = utils.Int64(int64(v))
+	}
+
+	if v := jpgImage["step"].(string); v != "" {
+		result.Step = utils.String(v)
+	}
+
+	if v := jpgImage["stretch_mode"].(string); v != "" {
+		result.StretchMode = pointer.To(encodings.StretchMode(v))
+	}
+
+	if v := jpgImage["sync_mode"].(string); v != "" {
+		result.SyncMode = pointer.To(encodings.VideoSyncMode(v))
+	}
+
+	return result
+}
+
+func flattenCustomPresetCodecsJpgImage(input azuresdkhacks.JpgImage) []interface{} {
+	keyFrameInterval := ""
+	if input.KeyFrameInterval != nil {
+		keyFrameInterval = *input.KeyFrameInterval
+	}
+
+	label := ""
+	if input.Label != nil {
+		label = *input.Label
+	}
+
+	rang := ""
+	if input.Range != nil {
+		rang = *input.Range
+	}
+
+	spliteColumn := 0
+	if input.SpliteColumn != nil {
+		spliteColumn = int(*input.SpliteColumn)
+	}
+
+	step := ""
+	if input.Step != nil {
+		step = *input.Step
+	}
+
+	stretchMode := ""
+	if input.StretchMode != nil {
+		stretchMode = string(*input.StretchMode)
+	}
+
+	syncMode := ""
+	if input.SyncMode != nil {
+		syncMode = string(*input.SyncMode)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"keyFrameInterval": keyFrameInterval,
+			"label":            label,
+			"layer":            flattenCustomPresetCodecsJpgImageLayer(input.Layers),
+			"range":            rang,
+			"start":            input.Start,
+			"step":             step,
+			"splite_column":    spliteColumn,
+			"stretch_mode":     stretchMode,
+			"sync_mode":        syncMode,
+		},
+	}
+}
+
+func expandCustomPresetCodecsJpgImageLayer(input []interface{}) *[]azuresdkhacks.JpgLayer {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	results := make([]azuresdkhacks.JpgLayer, 0)
+	for _, layerRaw := range input {
+		if layerRaw == nil {
+			continue
+		}
+
+		layer := layerRaw.(map[string]interface{})
+		result := azuresdkhacks.JpgLayer{}
+
+		if v := layer["height"].(string); v != "" {
+			result.Height = utils.String(v)
+		}
+
+		if v := layer["label"].(string); v != "" {
+			result.Label = utils.String(v)
+		}
+
+		if v := layer["quality"].(int); v != 0 {
+			result.Quality = utils.Int64(int64(v))
+		}
+
+		if v := layer["width"].(string); v != "" {
+			result.Width = utils.String(v)
+		}
+
+		results = append(results, result)
+	}
+
+	return &results
+}
+
+func flattenCustomPresetCodecsJpgImageLayer(input *[]azuresdkhacks.JpgLayer) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	results := make([]interface{}, 0)
+
+	for _, v := range *input {
+		height := ""
+		if v.Height != nil {
+			height = *v.Height
+		}
+
+		label := ""
+		if v.Label != nil {
+			label = *v.Label
+		}
+
+		quality := 0
+		if v.Quality != nil {
+			quality = int(*v.Quality)
+		}
+
+		width := ""
+		if v.Width != nil {
+			width = *v.Width
+		}
+
+		results = append(results, map[string]interface{}{
+			"height":  height,
+			"label":   label,
+			"quality": quality,
+			"width":   width,
+		})
+	}
+
+	return results
+}
+
+func expandCustomPresetCodecsPngImage(input []interface{}) azuresdkhacks.PngImage {
+	if len(input) == 0 || input[0] == nil {
+		return azuresdkhacks.PngImage{}
+	}
+
+	jpgImage := input[0].(map[string]interface{})
+	result := azuresdkhacks.PngImage{
+		Start:  jpgImage["start"].(string),
+		Layers: expandCustomPresetCodecsPngImageLayer(jpgImage["layer"].([]interface{})),
+	}
+
+	if v := jpgImage["key_frame_interval"].(string); v != "" {
+		result.KeyFrameInterval = utils.String(v)
+	}
+
+	if v := jpgImage["label"].(string); v != "" {
+		result.Label = utils.String(v)
+	}
+
+	if v := jpgImage["range"].(string); v != "" {
+		result.Range = utils.String(v)
+	}
+
+	if v := jpgImage["step"].(string); v != "" {
+		result.Step = utils.String(v)
+	}
+
+	if v := jpgImage["stretch_mode"].(string); v != "" {
+		result.StretchMode = pointer.To(encodings.StretchMode(v))
+	}
+
+	if v := jpgImage["sync_mode"].(string); v != "" {
+		result.SyncMode = pointer.To(encodings.VideoSyncMode(v))
+	}
+
+	return result
+}
+
+func flattenCustomPresetCodecsPngImage(input azuresdkhacks.PngImage) []interface{} {
+	keyFrameInterval := ""
+	if input.KeyFrameInterval != nil {
+		keyFrameInterval = *input.KeyFrameInterval
+	}
+
+	label := ""
+	if input.Label != nil {
+		label = *input.Label
+	}
+
+	rang := ""
+	if input.Range != nil {
+		rang = *input.Range
+	}
+
+	step := ""
+	if input.Step != nil {
+		step = *input.Step
+	}
+
+	stretchMode := ""
+	if input.StretchMode != nil {
+		stretchMode = string(*input.StretchMode)
+	}
+
+	syncMode := ""
+	if input.SyncMode != nil {
+		syncMode = string(*input.SyncMode)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"keyFrameInterval": keyFrameInterval,
+			"label":            label,
+			"layer":            flattenCustomPresetCodecsPngImageLayer(input.Layers),
+			"range":            rang,
+			"start":            input.Start,
+			"step":             step,
+			"stretch_mode":     stretchMode,
+			"sync_mode":        syncMode,
+		},
+	}
+}
+
+func expandCustomPresetCodecsPngImageLayer(input []interface{}) *[]azuresdkhacks.PngLayer {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	results := make([]azuresdkhacks.PngLayer, 0)
+	for _, layerRaw := range input {
+		if layerRaw == nil {
+			continue
+		}
+
+		layer := layerRaw.(map[string]interface{})
+		result := azuresdkhacks.PngLayer{}
+
+		if v := layer["height"].(string); v != "" {
+			result.Height = utils.String(v)
+		}
+
+		if v := layer["label"].(string); v != "" {
+			result.Label = utils.String(v)
+		}
+
+		if v := layer["width"].(string); v != "" {
+			result.Width = utils.String(v)
+		}
+
+		results = append(results, result)
+	}
+
+	return &results
+}
+
+func flattenCustomPresetCodecsPngImageLayer(input *[]azuresdkhacks.PngLayer) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	results := make([]interface{}, 0)
+
+	for _, v := range *input {
+		height := ""
+		if v.Height != nil {
+			height = *v.Height
+		}
+
+		label := ""
+		if v.Label != nil {
+			label = *v.Label
+		}
+
+		width := ""
+		if v.Width != nil {
+			width = *v.Width
+		}
+
+		results = append(results, map[string]interface{}{
+			"height": height,
+			"label":  label,
+			"width":  width,
+		})
+	}
+
+	return results
 }
 
 func expandCustomPresetFilters(input []interface{}) (*encodings.Filters, error) {
@@ -2084,7 +2861,7 @@ func expandCustomPresetFilters(input []interface{}) (*encodings.Filters, error) 
 
 	filters := input[0].(map[string]interface{})
 
-	overlays, err := expandCustomPresetFiltersOverlays(filters["overlays"].([]interface{}))
+	overlay, err := expandCustomPresetFiltersOverlays(filters["overlay"].([]interface{}))
 	if err != nil {
 		return nil, err
 	}
@@ -2093,7 +2870,7 @@ func expandCustomPresetFilters(input []interface{}) (*encodings.Filters, error) 
 		Crop:        expandCustomPresetFiltersCropRectangle(filters["crop_rectangle"].([]interface{})),
 		Deinterlace: expandCustomPresetFiltersDeinterlace(filters["deinterlace"].([]interface{})),
 		// TODO: add fade_in and fade_out
-		Overlays: overlays,
+		Overlays: overlay,
 	}
 
 	if v := filters["rotation"].(string); v != "" {
@@ -2101,6 +2878,26 @@ func expandCustomPresetFilters(input []interface{}) (*encodings.Filters, error) 
 	}
 
 	return &result, nil
+}
+
+func flattenCustomPresetFilter(input *encodings.Filters) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	rotation := ""
+	if input.Rotation != nil {
+		rotation = string(*input.Rotation)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"crop":        flattenCustomPresetFilterCropRectangle(input.Crop),
+			"deinterlace": flattenCustomPresetFilterDeinterlace(input.Deinterlace),
+			"overlay":     flattenCustomPresetFilterOverlays(input.Overlays),
+			"rotation":    rotation,
+		},
+	}
 }
 
 func expandCustomPresetFiltersCropRectangle(input []interface{}) *encodings.Rectangle {
@@ -2130,6 +2927,41 @@ func expandCustomPresetFiltersCropRectangle(input []interface{}) *encodings.Rect
 	return &result
 }
 
+func flattenCustomPresetFilterCropRectangle(input *encodings.Rectangle) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	height := ""
+	if input.Height != nil {
+		height = *input.Height
+	}
+
+	left := ""
+	if input.Left != nil {
+		height = *input.Left
+	}
+
+	top := ""
+	if input.Top != nil {
+		top = *input.Top
+	}
+
+	width := ""
+	if input.Width != nil {
+		width = *input.Width
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"height": height,
+			"left":   left,
+			"top":    top,
+			"width":  width,
+		},
+	}
+}
+
 func expandCustomPresetFiltersDeinterlace(input []interface{}) *encodings.Deinterlace {
 	if input == nil || input[0] == nil {
 		return nil
@@ -2147,6 +2979,29 @@ func expandCustomPresetFiltersDeinterlace(input []interface{}) *encodings.Deinte
 	}
 
 	return &result
+}
+
+func flattenCustomPresetFilterDeinterlace(input *encodings.Deinterlace) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	parity := ""
+	if input.Parity != nil {
+		parity = string(*input.Parity)
+	}
+
+	mode := ""
+	if input.Mode != nil {
+		mode = string(*input.Mode)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"parity": parity,
+			"mode":   mode,
+		},
+	}
 }
 
 func expandCustomPresetFiltersOverlays(input []interface{}) (*[]encodings.Overlay, error) {
@@ -2188,6 +3043,41 @@ func expandCustomPresetFiltersOverlays(input []interface{}) (*[]encodings.Overla
 	return &results, nil
 }
 
+type flattenedCustomPresetFilterOverlay struct {
+	audio []interface{}
+	video []interface{}
+}
+
+func flattenCustomPresetFilterOverlays(input *[]encodings.Overlay) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	results := make([]interface{}, 0)
+
+	for _, v := range *input {
+		result := flattenedCustomPresetFilterOverlay{
+			audio: []interface{}{},
+			video: []interface{}{},
+		}
+
+		if overlay, ok := v.(encodings.AudioOverlay); ok {
+			result.audio = flattenCustomPresetFilterOverlayAudio(overlay)
+		}
+
+		if overlay, ok := v.(encodings.VideoOverlay); ok {
+			result.audio = flattenCustomPresetFilterOverlayVideo(overlay)
+		}
+
+		results = append(results, map[string]interface{}{
+			"audio": result.audio,
+			"video": result.video,
+		})
+	}
+
+	return results
+}
+
 func expandCustomPresetFiltersOverlaysAudio(input []interface{}) encodings.AudioOverlay {
 	if len(input) == 0 || input[0] == nil {
 		return encodings.AudioOverlay{}
@@ -2221,6 +3111,44 @@ func expandCustomPresetFiltersOverlaysAudio(input []interface{}) encodings.Audio
 	return result
 }
 
+func flattenCustomPresetFilterOverlayAudio(input encodings.AudioOverlay) []interface{} {
+	audioGainLevel := 0.0
+	if input.AudioGainLevel != nil {
+		audioGainLevel = *input.AudioGainLevel
+	}
+
+	end := ""
+	if input.End != nil {
+		end = *input.End
+	}
+
+	fadeInDuration := ""
+	if input.FadeInDuration != nil {
+		fadeInDuration = *input.FadeInDuration
+	}
+
+	fadeOutDuration := ""
+	if input.FadeOutDuration != nil {
+		fadeOutDuration = *input.FadeOutDuration
+	}
+
+	start := ""
+	if input.Start != nil {
+		start = *input.Start
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"audio_gain_level":  audioGainLevel,
+			"end":               end,
+			"fade_in_duration":  fadeInDuration,
+			"fade_out_duration": fadeOutDuration,
+			"input_label":       input.InputLabel,
+			"start":             start,
+		},
+	}
+}
+
 func expandCustomPresetFiltersOverlaysVideo(input []interface{}) encodings.VideoOverlay {
 	if len(input) == 0 || input[0] == nil {
 		return encodings.VideoOverlay{}
@@ -2249,15 +3177,61 @@ func expandCustomPresetFiltersOverlaysVideo(input []interface{}) encodings.Video
 		result.FadeOutDuration = utils.String(v)
 	}
 
-	if v := video["start"].(string); v != "" {
-		result.Start = utils.String(v)
-	}
-
 	if v := video["opacity"].(float64); v != 0 {
 		result.Opacity = utils.Float(v)
 	}
 
+	if v := video["start"].(string); v != "" {
+		result.Start = utils.String(v)
+	}
+
 	return result
+}
+
+func flattenCustomPresetFilterOverlayVideo(input encodings.VideoOverlay) []interface{} {
+	audioGainLevel := 0.0
+	if input.AudioGainLevel != nil {
+		audioGainLevel = *input.AudioGainLevel
+	}
+
+	end := ""
+	if input.End != nil {
+		end = *input.End
+	}
+
+	fadeInDuration := ""
+	if input.FadeInDuration != nil {
+		fadeInDuration = *input.FadeInDuration
+	}
+
+	fadeOutDuration := ""
+	if input.FadeOutDuration != nil {
+		fadeOutDuration = *input.FadeOutDuration
+	}
+
+	opacity := 0.0
+	if input.Opacity != nil {
+		opacity = *input.Opacity
+	}
+
+	start := ""
+	if input.Start != nil {
+		start = *input.Start
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"audio_gain_level":  audioGainLevel,
+			"crop_rectangle":    flattenCustomPresetFilterCropRectangle(input.CropRectangle),
+			"end":               end,
+			"fade_in_duration":  fadeInDuration,
+			"fade_out_duration": fadeOutDuration,
+			"input_label":       input.InputLabel,
+			"opacity":           opacity,
+			"position":          flattenCustomPresetFilterCropRectangle(input.Position),
+			"start":             start,
+		},
+	}
 }
 
 func expandCustomPresetFormats(input []interface{}) ([]encodings.Format, error) {
@@ -2267,6 +3241,10 @@ func expandCustomPresetFormats(input []interface{}) ([]encodings.Format, error) 
 
 	results := make([]encodings.Format, 0)
 	for _, v := range input {
+		if v == nil {
+			continue
+		}
+
 		format := v.(map[string]interface{})
 		jpg := format["jpg"].([]interface{})
 		mp4 := format["mp4"].([]interface{})
@@ -2306,4 +3284,104 @@ func expandCustomPresetFormats(input []interface{}) ([]encodings.Format, error) 
 	}
 
 	return results, nil
+}
+
+func expandCustomPresetFormatsJpg(input []interface{}) encodings.JpgFormat {
+	if len(input) == 0 || input[0] == nil {
+		return encodings.JpgFormat{}
+	}
+
+	jpg := input[0].(map[string]interface{})
+
+	result := encodings.JpgFormat{
+		FilenamePattern: jpg["filename_pattern"].(string),
+	}
+
+	return result
+}
+
+func expandCustomPresetFormatsMp4(input []interface{}) encodings.Mp4Format {
+	if len(input) == 0 || input[0] == nil {
+		return encodings.Mp4Format{}
+	}
+
+	mp4 := input[0].(map[string]interface{})
+	result := encodings.Mp4Format{
+		FilenamePattern: mp4["filename_pattern"].(string),
+		OutputFiles:     expandCustomPresetFormatsOutputFiles(mp4["output_files"].([]interface{})),
+	}
+
+	return result
+}
+
+func expandCustomPresetFormatsPng(input []interface{}) encodings.PngFormat {
+	if len(input) == 0 || input[0] == nil {
+		return encodings.PngFormat{}
+	}
+
+	jpg := input[0].(map[string]interface{})
+	result := encodings.PngFormat{
+		FilenamePattern: jpg["filename_pattern"].(string),
+	}
+
+	return result
+}
+
+func expandCustomPresetFormatsTransportStream(input []interface{}) encodings.TransportStreamFormat {
+	if len(input) == 0 || input[0] == nil {
+		return encodings.TransportStreamFormat{}
+	}
+
+	transportStream := input[0].(map[string]interface{})
+	result := encodings.TransportStreamFormat{
+		FilenamePattern: transportStream["filename_pattern"].(string),
+		OutputFiles:     expandCustomPresetFormatsOutputFiles(transportStream["output_files"].([]interface{})),
+	}
+
+	return result
+}
+
+func expandCustomPresetFormatsOutputFiles(input []interface{}) *[]encodings.OutputFile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	results := make([]encodings.OutputFile, 0)
+	for _, v := range input {
+		if v == nil {
+			continue
+		}
+
+		outputFile := v.(map[string]interface{})
+		labels := make([]string, 0)
+		for _, label := range outputFile["label"].([]interface{}) {
+			labels = append(labels, label.(string))
+		}
+
+		results = append(results, encodings.OutputFile{
+			Labels: labels,
+		})
+	}
+
+	return &results
+}
+
+func flattenCustomPresetFormatOutputFiles(input *[]encodings.OutputFile) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	results := make([]interface{}, 0)
+	for _, v := range *input {
+		labels := make([]interface{}, 0)
+		for _, label := range v.Labels {
+			labels = append(labels, label)
+		}
+
+		results = append(results, map[string]interface{}{
+			"label": labels,
+		})
+	}
+
+	return results
 }
