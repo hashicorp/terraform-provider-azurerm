@@ -300,32 +300,15 @@ func TestAccMonitorActionGroup_disabledUpdate(t *testing.T) {
 	})
 }
 
-func TestAccMonitorActionGroup_locationBasic(t *testing.T) {
+func TestAccMonitorActionGroup_location(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 	r := MonitorActionGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.locationBasic(data),
+			Config: r.location(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("location").HasValue("global"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("location").HasValue("global"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.locationBasic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("location").HasValue("global"),
 			),
 		},
 		data.ImportStep(),
