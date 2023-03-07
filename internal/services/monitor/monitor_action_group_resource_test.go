@@ -1179,7 +1179,7 @@ func (t MonitorActionGroupResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (MonitorActionGroupResource) locationBasic(data acceptance.TestData) string {
+func (MonitorActionGroupResource) location(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1195,7 +1195,7 @@ resource "azurerm_monitor_action_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
   enabled             = false
-  location	          = "global"
+  location	          = "swedencentral"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
