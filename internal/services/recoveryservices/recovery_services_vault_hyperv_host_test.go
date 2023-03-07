@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-const LetterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const LowerLetterBytes = "abcdefghijklmnopqrstuvwxyz"
+const UpperLetterBytes = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const NumberBytes = "1234567890"
 const SpecialBytes = "!@#$%^()"
 
@@ -22,13 +23,15 @@ func GenerateRandomPassword(n int) string {
 	b := make([]byte, n)
 	for i := range b {
 		r := rand.Int()
-		switch r % 3 {
+		switch r % 4 {
 		case 0:
-			b[i] = LetterBytes[rand.Intn(len(LetterBytes))]
+			b[i] = LowerLetterBytes[rand.Intn(len(LowerLetterBytes))]
 		case 1:
 			b[i] = SpecialBytes[rand.Intn(len(SpecialBytes))]
 		case 2:
 			b[i] = NumberBytes[rand.Intn(len(NumberBytes))]
+		case 3:
+			b[i] = UpperLetterBytes[rand.Intn(len(UpperLetterBytes))]
 		}
 	}
 	return string(b)

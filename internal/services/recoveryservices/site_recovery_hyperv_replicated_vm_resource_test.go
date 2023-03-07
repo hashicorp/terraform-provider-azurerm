@@ -235,7 +235,7 @@ resource "azurerm_site_recovery_hyperv_replicated_vm" "test" {
   enable_rdp_or_ssh_on_target_option = "Always"
   network_interface {
     network_name       = "HyperV-NAT"
-    target_static_ip   = "10.0.10.5"
+    target_static_ip   = "192.168.2.5"
     target_subnet_name = azurerm_subnet.target.name
     is_primary         = true
     failover_enabled   = true

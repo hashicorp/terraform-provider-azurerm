@@ -42,7 +42,7 @@ type SiteRecoveryHyperVReplicatedVMModel struct {
 	PolicyId                        string                                                `tfschema:"replication_policy_id"`
 	OsType                          string                                                `tfschema:"os_type"`
 	OSDiskName                      string                                                `tfschema:"os_disk_name"`
-	DiskNamesToInclude              []string                                              `tfschema:"disk_to_include"`
+	DiskNamesToInclude              []string                                              `tfschema:"disks_to_include"`
 	TargetStorageAccountId          string                                                `tfschema:"target_storage_account_id"`
 	TargetNetworkId                 string                                                `tfschema:"target_network_id"`
 	TargetAvailabilityZone          string                                                `tfschema:"target_availability_zone"`
@@ -54,7 +54,7 @@ type SiteRecoveryHyperVReplicatedVMModel struct {
 	SqlServerLicenseType            string                                                `tfschema:"sql_server_license_type"`
 	TargetAvailabilitySetId         string                                                `tfschema:"target_availability_set_id"`
 	TargetManagedDiskTags           map[string]string                                     `tfschema:"target_disk_tags"`
-	TargetNicTags                   map[string]string                                     `tfschema:"target_nic_tags"`
+	TargetNicTags                   map[string]string                                     `tfschema:"target_network_interface_tags"`
 	TargetProximityPlacementGroupId string                                                `tfschema:"target_proximity_placement_group_id"`
 	TargetVMSize                    string                                                `tfschema:"target_vm_size"`
 	TargetVMTags                    map[string]string                                     `tfschema:"target_vm_tags"`
@@ -231,9 +231,10 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Arguments() map[string]*schema.S
 		},
 
 		"target_vm_size": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"target_availability_zone": {
@@ -505,7 +506,7 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Read() sdk.ResourceFunc {
 					}
 
 					if prop.PolicyId != nil {
-						state.PolicyId = *prop.PolicyId
+						state.PolicyId = handleAzureSdkForGoBug2824(*prop.PolicyId)
 					}
 
 					if prop.ProviderSpecificDetails != nil {
@@ -662,7 +663,9 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, replicationprotecteditems.DisableProtectionInput{})
+			err = client.DeleteThenPoll(ctx, *id, replicationprotecteditems.DisableProtectionInput{
+				Properties: replicationprotecteditems.DisableProtectionInputProperties{},
+			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
@@ -854,6 +857,7 @@ func HyperVReplicatedVMUpdateInternal(ctx context.Context, metadata sdk.Resource
 				TargetProximityPlacementGroupId: &plan.TargetProximityPlacementGroupId,
 				TargetVMTags:                    &plan.TargetVMTags,
 				DiskIdToDiskEncryptionMap:       &diskIdToDiskEncryptionMap,
+				UseManagedDisks:                 utils.String(strconv.FormatBool(plan.UseManagedDiskEnabled)),
 			},
 		},
 	}
