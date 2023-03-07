@@ -39,7 +39,7 @@ func KubernetesDNSPrefix(i interface{}, k string) (warnings []string, errors []e
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 	}
 
-	errMsg := fmt.Sprintf("the %q must begin and end with an letter or number, contain only letters, numbers, and hyphens and be between 1 and 54 characters in length, got", k)
+	errMsg := fmt.Sprintf("the %q must begin and end with a letter or number, contain only letters, numbers, and hyphens and be between 1 and 54 characters in length, got", k)
 
 	if len(dnsPrefix) < 2 {
 		re := regexp.MustCompile(`^[a-zA-Z\d]`)
