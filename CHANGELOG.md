@@ -38,6 +38,7 @@ BUG FIXES:
 * `azurerm_linux_function_app_slot` - fix health_check_eviction_time_in_min [GH-20816]
 * `azurerm_logic_app_integration_account` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_maintenance_assignment_virtual_machine` - prevent a potential panic from a nil value [GH-20781]
+* `azurerm_maintenance_assignment_virtual_machine` - maintenance configuration is now obtained by name rather than using the first in the list [GH-20766]
 * `azurerm_nginx_certificate` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_nginx_configuration` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_nginx_deployment` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
