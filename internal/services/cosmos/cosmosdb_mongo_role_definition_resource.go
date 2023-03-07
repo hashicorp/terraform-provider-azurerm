@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -18,6 +19,7 @@ type CosmosDbMongoRoleDefinitionModel struct {
 	AccountId          string      `tfschema:"account_id"`
 	DbName             string      `tfschema:"db_name"`
 	RoleName           string      `tfschema:"role_name"`
+	Type               string      `tfschema:"type"`
 	InheritedRoleNames []string    `tfschema:"inherited_role_names"`
 	Privileges         []Privilege `tfschema:"privilege"`
 }
@@ -69,6 +71,16 @@ func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.S
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(mongorbacs.MongoRoleDefinitionTypeBuiltInRole),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(mongorbacs.MongoRoleDefinitionTypeBuiltInRole),
+				string(mongorbacs.MongoRoleDefinitionTypeCustomRole),
+			}, false),
 		},
 
 		"inherited_role_names": {
@@ -142,6 +154,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 			mongoRoleDefinitionId := fmt.Sprintf("%s.%s", model.DbName, model.RoleName)
 			id := mongorbacs.NewMongodbRoleDefinitionID(databaseAccountId.SubscriptionId, databaseAccountId.ResourceGroupName, databaseAccountId.DatabaseAccountName, mongoRoleDefinitionId)
 
+			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+
 			existing, err := client.MongoDBResourcesGetMongoRoleDefinition(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -151,10 +166,12 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			roleDefinitionType := mongorbacs.MongoRoleDefinitionType(model.Type)
 			properties := &mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: &model.DbName,
 					RoleName:     &model.RoleName,
+					Type:         &roleDefinitionType,
 				},
 			}
 
@@ -187,6 +204,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+
 			var model CosmosDbMongoRoleDefinitionModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -202,10 +222,12 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
+			roleDefinitionType := mongorbacs.MongoRoleDefinitionType(model.Type)
 			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: &model.DbName,
 					RoleName:     &model.RoleName,
+					Type:         &roleDefinitionType,
 				},
 			}
 
@@ -258,6 +280,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Read() sdk.ResourceFunc {
 			if properties := model.Properties; properties != nil {
 				state.DbName = *properties.DatabaseName
 				state.RoleName = *properties.RoleName
+				state.Type = string(*properties.Type)
 
 				if v := properties.Privileges; v != nil {
 					state.Privileges = flattenPrivilege(properties.Privileges)
@@ -283,6 +306,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
 			if err := client.MongoDBResourcesDeleteMongoRoleDefinitionThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
