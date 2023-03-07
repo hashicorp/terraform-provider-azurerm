@@ -14,9 +14,32 @@ ENHANCEMENTS
 
 BUG FIXES:
 
-* `azurerm_iothub_endpoint_*` - set Id to nil when resource is not found [GH-20798]
-* `azurerm_iothub_route` - set Id to nil when resource is not found [GH-20798]
+* `azurerm_application_insights_analytics_item` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_automated_connection_type` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_automation_software_update_configuration` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_automation_source_control` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_automation_watcher` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_cdn_frontdoor_route_disable_link_to_default_domain` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_digital_twins_time_series_database_connection` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_fluid_relay_server` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_function_app_active_slot` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_iothub_endpoint_eventhub` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_iothub_endpoint_servicebus_queue` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_iothub_endpoint_servicebus_topic` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_iothub_endpoint_servicebus_queue` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_iothub_endpoint_storage_container` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_iothub_fallback_route` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_iothub_route` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_logic_app_integration_account` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_maintenance_assignment_virtual_machine` - prevent a potential panic from a nil value [GH-20781]
+* `azurerm_nginx_certificate` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_nginx_configuration` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_nginx_deployment` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_synapse_workspace_aad_admin` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_synapse_workspace_key` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_synapse_workspace_sql_aad_admin` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_web_app_active_slot` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+
 
 ## 3.46.0 (March 02, 2023)
 
