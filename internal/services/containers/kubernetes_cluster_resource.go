@@ -2669,7 +2669,8 @@ func flattenKubernetesClusterWindowsProfile(profile *managedclusters.ManagedClus
 }
 
 func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.ManagedClusterWorkloadAutoScalerProfile) []interface{} {
-	if profile == nil {
+	// The API always returns an empty WorkloadAutoScalerProfile object even if none of these values have ever been set
+	if profile == nil || (profile.Keda == nil && profile.VerticalPodAutoscaler == nil) {
 		return []interface{}{}
 	}
 
