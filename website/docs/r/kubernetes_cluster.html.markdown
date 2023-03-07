@@ -876,7 +876,9 @@ In addition to all arguments above, the following attributes are exported:
 
 * `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
 
-* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster. Changing this forces a new resource to be created.
+* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
+
+* `node_resource_group_id` - The ID of the Resource Group containing the resources for this Managed Kubernetes Cluster.
 
 * `network_profile` - A `network_profile` block as defined below.
 

@@ -1017,6 +1017,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"node_resource_group_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"oidc_issuer_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -2088,9 +2093,17 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("portal_fqdn", props.AzurePortalFQDN)
 		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 		d.Set("kubernetes_version", props.KubernetesVersion)
-		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 		d.Set("local_account_disabled", props.DisableLocalAccounts)
+
+		nodeResourceGroup := ""
+		if v := props.NodeResourceGroup; v != nil {
+			nodeResourceGroup = *props.NodeResourceGroup
+		}
+		d.Set("node_resource_group", nodeResourceGroup)
+
+		nodeResourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup)
+		d.Set("node_resource_group_id", nodeResourceGroupId.ID())
 
 		publicNetworkAccess := managedclusters.PublicNetworkAccessEnabled
 		if props.PublicNetworkAccess != nil {
