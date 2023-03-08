@@ -233,6 +233,21 @@ func TestAccContainerAppResource_secretRemoveWithAddShouldFail(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_basicWithCustomDomains(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithCustomDomain(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ContainerAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := containerapps.ParseContainerAppID(state.ID)
 	if err != nil {
@@ -990,4 +1005,53 @@ resource "azurerm_container_app_environment_storage" "test" {
   access_mode                  = "ReadWrite"
 }
 `, ContainerAppEnvironmentDaprComponentResource{}.complete(data), data.RandomInteger, data.RandomString)
+}
+
+func (ContainerAppResource) containerAppCertificateTemplate(data acceptance.TestData) string {
+	return ContainerAppEnvironmentCertificateResource{}.basic(data)
+}
+
+func (r ContainerAppResource) basicWithCustomDomain(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    allow_insecure_connections = true
+    external_enabled           = true
+    target_port                = 5000
+    transport                  = "auto"
+
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+
+    custom_domain {
+      certificate_id = azurerm_container_app_environment_certificate.test.id
+      name          = "acceptancetest.contoso.com"
+    }
+
+    custom_domain {
+      certificate_id = azurerm_container_app_environment_certificate.test.id
+      name          = "acceptancetest.contoso.net"
+    }
+      
+  }
+}
+`, r.containerAppCertificateTemplate(data), data.RandomInteger)
 }
