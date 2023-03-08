@@ -229,11 +229,7 @@ resource "azurerm_site_recovery_hyperv_replicated_vm" "test" {
   os_disk_name              = "VM1"
   target_network_id         = azurerm_virtual_network.target.id
   use_managed_disk_enabled  = true
-  managed_disk {
-    disk_name                     = "VM1"
-    target_disk_encryption_set_id = azurerm_disk_encryption_set.target.id
-    target_disk_type              = "Standard_LRS"
-  }
+  disks_to_include = ["VM1"] 
   log_storage_account_id             = azurerm_storage_account.target.id
   enable_rdp_or_ssh_on_target_option = "Always"
   network_interface {

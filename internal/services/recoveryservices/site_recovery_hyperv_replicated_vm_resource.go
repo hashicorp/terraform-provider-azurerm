@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/azuresdkhacks"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -49,7 +48,6 @@ type SiteRecoveryHyperVReplicatedVMModel struct {
 	TargetAvailabilityZone          string                                                `tfschema:"target_availability_zone"`
 	NetworkInterface                []SiteRecoveryHyperVReplicatedVMNetworkInterfaceModel `tfschema:"network_interface"`
 	UseManagedDiskEnabled           bool                                                  `tfschema:"use_managed_disk_enabled"`
-	ManagedDisks                    []SiteRecoveryHyperVReplicatedVMManagedDiskModel      `tfschema:"managed_disk"`
 	EnableRdpOnTargetOption         string                                                `tfschema:"enable_rdp_or_ssh_on_target_option"`
 	LicenseType                     string                                                `tfschema:"license_type"`
 	SqlServerLicenseType            string                                                `tfschema:"sql_server_license_type"`
@@ -68,12 +66,6 @@ type SiteRecoveryHyperVReplicatedVMNetworkInterfaceModel struct {
 	TargetStaticIp   string `tfschema:"target_static_ip"`
 	IsPrimary        bool   `tfschema:"is_primary"`
 	FailoverEnabled  bool   `tfschema:"failover_enabled"`
-}
-
-type SiteRecoveryHyperVReplicatedVMManagedDiskModel struct {
-	DiskName            string `tfschema:"disk_name"`
-	DiskEncryptionSetId string `tfschema:"target_disk_encryption_set_id"`
-	DiskType            string `tfschema:"target_disk_type"`
 }
 
 type SiteRecoveryHyperVReplicatedVMResource struct{}
@@ -149,10 +141,9 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Arguments() map[string]*schema.S
 		},
 
 		"disks_to_include": {
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"use_managed_disk_enabled", "managed_disk"},
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -163,40 +154,6 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Arguments() map[string]*schema.S
 			Optional: true,
 			Default:  false,
 			ForceNew: true,
-		},
-
-		"managed_disk": {
-			Type:         pluginsdk.TypeSet,
-			ConfigMode:   pluginsdk.SchemaConfigModeAttr,
-			Optional:     true,
-			ForceNew:     true,
-			RequiredWith: []string{"use_managed_disk_enabled"},
-			Set:          resourceSiteRecoveryReplicatedVMDiskHash,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"disk_name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"target_disk_encryption_set_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validate.DiskEncryptionSetID,
-					},
-					"target_disk_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(replicationprotecteditems.DiskAccountTypePremiumLRS),
-							string(replicationprotecteditems.DiskAccountTypeStandardLRS),
-							string(replicationprotecteditems.DiskAccountTypeStandardSSDLRS),
-						}, false),
-					},
-				},
-			},
 		},
 
 		"log_storage_account_id": {
@@ -280,6 +237,7 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Arguments() map[string]*schema.S
 
 		"target_proximity_placement_group_id": {
 			Type:         pluginsdk.TypeString,
+			RequiredWith: []string{"use_managed_disk_enabled"},
 			Optional:     true,
 			ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 		},
@@ -395,37 +353,12 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Create() sdk.ResourceFunc {
 
 			osVHDId := ""
 			diskIdsToInclude := make([]string, 0)
-			var diskToIncludeForManagedDisks []replicationprotecteditems.HyperVReplicaAzureDiskInputDetails
-			if plan.UseManagedDiskEnabled {
-				for _, disk := range plan.ManagedDisks {
-					diskId := ""
-					for _, d := range *customDetail.DiskDetails {
-						if *d.VhdName == disk.DiskName {
-							diskId = *d.VhdId
-							break
-						}
-						if *d.VhdName == plan.OSDiskName {
-							osVHDId = *d.VhdId
-						}
-					}
-					if diskId == "" {
-						return fmt.Errorf("disk %s not found in protectable item", disk.DiskName)
-					}
-					diskType := replicationprotecteditems.DiskAccountType(disk.DiskType)
-					diskToIncludeForManagedDisks = append(diskToIncludeForManagedDisks, replicationprotecteditems.HyperVReplicaAzureDiskInputDetails{
-						DiskId:              &diskId,
-						DiskEncryptionSetId: &disk.DiskEncryptionSetId,
-						DiskType:            &diskType,
-					})
+			for _, disk := range *customDetail.DiskDetails {
+				if *disk.VhdName == plan.OSDiskName {
+					osVHDId = *disk.VhdId
 				}
-			} else {
-				for _, disk := range *customDetail.DiskDetails {
-					if *disk.VhdName == plan.OSDiskName {
-						osVHDId = *disk.VhdId
-					}
-					if utils.SliceContainsValue(plan.DiskNamesToInclude, *disk.VhdName) {
-						diskIdsToInclude = append(diskIdsToInclude, *disk.VhdId)
-					}
+				if utils.SliceContainsValue(plan.DiskNamesToInclude, *disk.VhdName) {
+					diskIdsToInclude = append(diskIdsToInclude, *disk.VhdId)
 				}
 			}
 
@@ -436,24 +369,23 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Create() sdk.ResourceFunc {
 					PolicyId:          &plan.PolicyId,
 					ProtectableItemId: protectableItem.Id,
 					ProviderSpecificDetails: &replicationprotecteditems.HyperVReplicaAzureEnableProtectionInput{
-						OsType:                        &plan.OsType,
-						TargetAzureVMName:             &plan.TargetVMName,
-						VhdId:                         &osVHDId,
-						DisksToInclude:                &diskIdsToInclude,
-						TargetAzureV2ResourceGroupId:  &plan.TargetResourceGroupId,
-						TargetAvailabilityZone:        &plan.TargetAvailabilityZone,
-						TargetStorageAccountId:        &plan.TargetStorageAccountId,
-						TargetAvailabilitySetId:       &plan.TargetAvailabilitySetId,
-						UseManagedDisks:               utils.String(strconv.FormatBool(plan.UseManagedDiskEnabled)),
-						TargetManagedDiskTags:         &plan.TargetManagedDiskTags,
-						TargetVMTags:                  &plan.TargetVMTags,
-						TargetNicTags:                 &plan.TargetNicTags,
-						TargetVMSize:                  &plan.TargetVMSize,
-						DisksToIncludeForManagedDisks: &diskToIncludeForManagedDisks,
-						EnableRdpOnTargetOption:       &plan.EnableRdpOnTargetOption,
-						LicenseType:                   &licenseType,
-						SqlServerLicenseType:          &sqlLicenseType,
-						LogStorageAccountId:           &plan.LogStorageAccountId,
+						OsType:                       &plan.OsType,
+						TargetAzureVMName:            &plan.TargetVMName,
+						VhdId:                        &osVHDId,
+						DisksToInclude:               &diskIdsToInclude,
+						TargetAzureV2ResourceGroupId: &plan.TargetResourceGroupId,
+						TargetAvailabilityZone:       &plan.TargetAvailabilityZone,
+						TargetStorageAccountId:       &plan.TargetStorageAccountId,
+						TargetAvailabilitySetId:      &plan.TargetAvailabilitySetId,
+						UseManagedDisks:              utils.String(strconv.FormatBool(plan.UseManagedDiskEnabled)),
+						TargetManagedDiskTags:        &plan.TargetManagedDiskTags,
+						TargetVMTags:                 &plan.TargetVMTags,
+						TargetNicTags:                &plan.TargetNicTags,
+						TargetVMSize:                 &plan.TargetVMSize,
+						EnableRdpOnTargetOption:      &plan.EnableRdpOnTargetOption,
+						LicenseType:                  &licenseType,
+						SqlServerLicenseType:         &sqlLicenseType,
+						LogStorageAccountId:          &plan.LogStorageAccountId,
 					},
 				},
 			}
@@ -593,31 +525,9 @@ func (s SiteRecoveryHyperVReplicatedVMResource) Read() sdk.ResourceFunc {
 										state.OSDiskName = *disk.VhdName
 									}
 								}
-								if !state.UseManagedDiskEnabled {
-									state.DiskNamesToInclude = diskNames
-								}
+								state.DiskNamesToInclude = diskNames
 							}
 
-							if detail.ProtectedManagedDisks != nil {
-								diskIdToNameMap, _, err := fetchProtectableDiskNameIdMap(ctx, metadata.Client.RecoveryServices.ReplicationProtectableItemsClient, *prop.ProtectableItemId)
-								if err != nil {
-									return fmt.Errorf("fetching Disk Name to Id Map by Protectable Item Id %s: %+v", *prop.ProtectableItemId, err)
-								}
-								var outputs []SiteRecoveryHyperVReplicatedVMManagedDiskModel
-								for _, disk := range *detail.ProtectedManagedDisks {
-									o := SiteRecoveryHyperVReplicatedVMManagedDiskModel{}
-									if disk.DiskEncryptionSetId != nil {
-										o.DiskEncryptionSetId = *disk.DiskEncryptionSetId
-									}
-									if disk.ReplicaDiskType != nil {
-										o.DiskType = *disk.ReplicaDiskType
-									}
-									if v, existing := diskIdToNameMap[*disk.DiskId]; existing {
-										o.DiskName = v
-									}
-								}
-								state.ManagedDisks = outputs
-							}
 							if detail.EnableRdpOnTargetOption != nil {
 								state.EnableRdpOnTargetOption = *detail.EnableRdpOnTargetOption
 							}
@@ -707,30 +617,6 @@ func fetchProtectableItemByVMName(ctx context.Context, client *replicationprotec
 	}
 
 	return nil, fmt.Errorf("protectable item with vm name %s not found", vmName)
-}
-
-func fetchProtectableDiskNameIdMap(ctx context.Context, client *replicationprotectableitems.ReplicationProtectableItemsClient, protectableItemId string) (idToName map[string]string, nameToId map[string]string, err error) {
-	idToName = make(map[string]string)
-	nameToId = make(map[string]string)
-	protectableItem, err := fetchProtectableItemById(ctx, client, protectableItemId)
-	if err != nil {
-		return idToName, nameToId, fmt.Errorf("retrieving %s: %+v", protectableItemId, err)
-	}
-
-	if protectableItem.Properties != nil && protectableItem.Properties.CustomDetails != nil {
-		if customDetail, ok := protectableItem.Properties.CustomDetails.(replicationprotectableitems.HyperVVirtualMachineDetails); ok {
-			if customDetail.DiskDetails != nil {
-				for _, disk := range *customDetail.DiskDetails {
-					if disk.VhdName != nil && disk.VhdId != nil {
-						nameToId[*disk.VhdName] = *disk.VhdId
-						idToName[*disk.VhdId] = *disk.VhdName
-					}
-				}
-			}
-		}
-	}
-
-	return idToName, nameToId, nil
 }
 
 func fetchVMNameByProtectableItemId(ctx context.Context, client *replicationprotectableitems.ReplicationProtectableItemsClient, protectableItemId string) (string, error) {
@@ -841,12 +727,6 @@ func HyperVReplicatedVMUpdateInternal(ctx context.Context, metadata sdk.Resource
 	if existing.Model.Properties == nil || existing.Model.Properties.ProtectableItemId == nil {
 		return fmt.Errorf("retrieving %s: properties or protectableItemId was nil", id)
 	}
-	_, diskNameToIdMap, err := fetchProtectableDiskNameIdMap(ctx, metadata.Client.RecoveryServices.ReplicationProtectableItemsClient, *existing.Model.Properties.ProtectableItemId)
-	diskIdToDiskEncryptionMap := make(map[string]string, 0)
-	for _, disk := range plan.ManagedDisks {
-		vhdId := diskNameToIdMap[disk.DiskName]
-		diskIdToDiskEncryptionMap[vhdId] = disk.DiskEncryptionSetId
-	}
 	licenseType := replicationprotecteditems.LicenseType(plan.LicenseType)
 	sqlServerLicenseType := replicationprotecteditems.SqlServerLicenseType(plan.SqlServerLicenseType)
 	input := replicationprotecteditems.UpdateReplicationProtectedItemInput{
@@ -866,7 +746,6 @@ func HyperVReplicatedVMUpdateInternal(ctx context.Context, metadata sdk.Resource
 				TargetNicTags:                   &plan.TargetNicTags,
 				TargetProximityPlacementGroupId: &plan.TargetProximityPlacementGroupId,
 				TargetVMTags:                    &plan.TargetVMTags,
-				DiskIdToDiskEncryptionMap:       &diskIdToDiskEncryptionMap,
 				UseManagedDisks:                 utils.String(strconv.FormatBool(plan.UseManagedDiskEnabled)),
 			},
 		},
