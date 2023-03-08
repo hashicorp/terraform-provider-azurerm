@@ -30,6 +30,58 @@ func TestAccCosmosDbMongoRoleDefinition_basic(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbMongoRoleDefinition_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_role_definition", "test")
+	r := CosmosMongoRoleDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccCosmosDbMongoRoleDefinition_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_role_definition", "test")
+	r := CosmosMongoRoleDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDbMongoRoleDefinition_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_role_definition", "test")
+	r := CosmosMongoRoleDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CosmosMongoRoleDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := mongorbacs.ParseMongodbRoleDefinitionID(state.ID)
 	if err != nil {
@@ -54,6 +106,64 @@ resource "azurerm_cosmosdb_mongo_role_definition" "test" {
   role_name  = "acctest-mongoroledef-%d"
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r CosmosMongoRoleDefinitionResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_mongo_role_definition" "import" {
+  account_id = azurerm_cosmosdb_mongo_role_definition.test.account_id
+  db_name    = azurerm_cosmosdb_mongo_role_definition.test.db_name
+  role_name  = azurerm_cosmosdb_mongo_role_definition.test.role_name
+}
+`, r.basic(data))
+}
+
+func (r CosmosMongoRoleDefinitionResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_mongo_role_definition" "base" {
+  account_id = azurerm_cosmosdb_account.test.id
+  db_name    = azurerm_cosmosdb_mongo_database.test.name
+  role_name  = "acctest-baseroledef-%d"
+}
+
+resource "azurerm_cosmosdb_mongo_database" "test2" {
+  name                = "acctest-mongodb2-%d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+
+resource "azurerm_cosmosdb_mongo_collection" "test" {
+  name                = "acctest-mongocoll-%d"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test2.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test2.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test2.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
+}
+
+resource "azurerm_cosmosdb_mongo_role_definition" "test" {
+  account_id           = azurerm_cosmosdb_account.test.id
+  db_name              = azurerm_cosmosdb_mongo_database.test.name
+  role_name            = "acctest-mongoroledef-%d"
+  inherited_role_names = [azurerm_cosmosdb_mongo_role_definition.base.role_name]
+
+  privilege {
+    actions = ["insert", "find"]
+
+    resource {
+      collection_name = azurerm_cosmosdb_mongo_collection.test.name
+      db_name         = azurerm_cosmosdb_mongo_database.test2.name
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r CosmosMongoRoleDefinitionResource) template(data acceptance.TestData) string {

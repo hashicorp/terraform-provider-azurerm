@@ -3,6 +3,7 @@ package cosmos
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -62,7 +63,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.CosmosEntityName,
 		},
 
 		"role_name": {
@@ -104,13 +105,13 @@ func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.S
 								"collection_name": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validate.CosmosEntityName,
 								},
 
 								"db_name": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: validate.CosmosEntityName,
 								},
 							},
 						},
