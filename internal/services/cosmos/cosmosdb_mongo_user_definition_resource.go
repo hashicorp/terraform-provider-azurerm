@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -108,6 +109,9 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 			mongoUserDefinitionId := fmt.Sprintf("%s.%s", model.DBName, model.Username)
 			id := mongorbacs.NewMongodbUserDefinitionID(databaseAccountId.SubscriptionId, databaseAccountId.ResourceGroupName, databaseAccountId.DatabaseAccountName, mongoUserDefinitionId)
 
+			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+
 			existing, err := client.MongoDBResourcesGetMongoUserDefinition(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -151,6 +155,9 @@ func (r CosmosDbMongoUserDefinitionResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
 			var model CosmosDbMongoUserDefinitionModel
 			if err := metadata.Decode(&model); err != nil {
@@ -242,6 +249,9 @@ func (r CosmosDbMongoUserDefinitionResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
 			if err := client.MongoDBResourcesDeleteMongoUserDefinitionThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
