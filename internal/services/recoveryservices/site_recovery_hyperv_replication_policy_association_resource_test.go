@@ -21,15 +21,20 @@ func TestAccSiteRecoveryHyperVReplicationPolicyAssociation_basic(t *testing.T) {
 	hostResource := HyperVHostTestResource{}
 	adminPwd := GenerateRandomPassword(10)
 
-	data.ResourceTest(t, r, append(hostResource.PrepareHostTestSteps(data, adminPwd), []acceptance.TestStep{
-		{
-			Config: r.basic(data, adminPwd),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	}...))
+	data.ResourceTest(t, r,
+		append(hostResource.PrepareHostTestSteps(data, adminPwd), []acceptance.TestStep{
+			{
+				Config: r.basic(data, adminPwd),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: hostResource.template(data, adminPwd, false),
+			},
+		}...),
+	)
 }
 
 func (SiteRecoverHyperVReplicationPolicyAssociationResource) basic(data acceptance.TestData, adminPwd string) string {
@@ -48,8 +53,10 @@ resource "azurerm_site_recovery_hyperv_replication_policy_association" "test" {
   name           = "test-association"
   hyperv_site_id = azurerm_site_recovery_services_vault_hyperv_site.test.id
   policy_id      = azurerm_site_recovery_hyperv_replication_policy.test.id
+
+  depends_on = [azurerm_windows_virtual_machine.host]
 }
-`, HyperVHostTestResource{}.template(data, adminPwd), data.RandomInteger)
+`, HyperVHostTestResource{}.template(data, adminPwd, true), data.RandomInteger)
 }
 
 func (t SiteRecoverHyperVReplicationPolicyAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

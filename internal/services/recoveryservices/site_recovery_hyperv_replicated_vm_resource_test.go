@@ -31,6 +31,9 @@ func TestAccSiteRecoveryHyperVReplicatedVM_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: hostResource.template(data, adminPwd, false),
+		},
 	}...))
 }
 
@@ -49,6 +52,9 @@ func TestAccSiteRecoveryHyperVReplicatedVM_complete(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: hostResource.template(data, adminPwd, false),
+		},
 	}...))
 }
 
@@ -139,78 +145,6 @@ resource "azurerm_subnet" "target" {
   address_prefixes     = ["192.168.2.0/24"]
 }
 
-resource "azurerm_key_vault" "target" {
-  name                        = "kv%[2]d"
-  location                    = azurerm_resource_group.target.location
-  resource_group_name         = azurerm_resource_group.target.name
-  tenant_id                   = data.azurerm_client_config.current.tenant_id
-  sku_name                    = "standard"
-  enabled_for_disk_encryption = true
-  purge_protection_enabled    = true
-}
-
-resource "azurerm_key_vault_access_policy" "service-principal" {
-  key_vault_id = azurerm_key_vault.target.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  key_permissions = [
-    "Create",
-    "Delete",
-    "Get",
-    "Purge",
-    "Update",
-  ]
-
-  secret_permissions = [
-    "Get",
-    "Delete",
-    "Set",
-  ]
-}
-
-resource "azurerm_key_vault_key" "target" {
-  name         = "examplekey"
-  key_vault_id = azurerm_key_vault.target.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-
-  depends_on = ["azurerm_key_vault_access_policy.service-principal"]
-}
-
-resource "azurerm_disk_encryption_set" "target" {
-  name                = "acctestdes-%[2]d2"
-  resource_group_name = azurerm_resource_group.target.name
-  location            = azurerm_resource_group.target.location
-  key_vault_key_id    = azurerm_key_vault_key.target.id
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_key_vault_access_policy" "disk-encryption" {
-  key_vault_id = azurerm_key_vault.target.id
-
-  key_permissions = [
-    "Get",
-    "WrapKey",
-    "UnwrapKey",
-  ]
-
-  tenant_id = azurerm_disk_encryption_set.target.identity.0.tenant_id
-  object_id = azurerm_disk_encryption_set.target.identity.0.principal_id
-}
-
 resource "azurerm_proximity_placement_group" "target" {
   name                = "acctest-replication-%[2]d"
   location            = azurerm_resource_group.target.location
@@ -218,18 +152,18 @@ resource "azurerm_proximity_placement_group" "target" {
 }
 
 resource "azurerm_site_recovery_hyperv_replicated_vm" "test" {
-  name                      = "acctest-vm-%[2]d"
-  hyperv_site_id            = azurerm_site_recovery_services_vault_hyperv_site.test.id
-  source_vm_name            = "VM1"
-  target_resource_group_id  = azurerm_resource_group.target.id
-  target_vm_name            = "target-vm"
-  target_storage_account_id = azurerm_storage_account.target.id
-  replication_policy_id     = azurerm_site_recovery_hyperv_replication_policy.test.id
-  os_type                   = "Windows"
-  os_disk_name              = "VM1"
-  target_network_id         = azurerm_virtual_network.target.id
-  use_managed_disk_enabled  = true
-  disks_to_include = ["VM1"] 
+  name                               = "acctest-vm-%[2]d"
+  hyperv_site_id                     = azurerm_site_recovery_services_vault_hyperv_site.test.id
+  source_vm_name                     = "VM1"
+  target_resource_group_id           = azurerm_resource_group.target.id
+  target_vm_name                     = "target-vm"
+  target_storage_account_id          = azurerm_storage_account.target.id
+  replication_policy_id              = azurerm_site_recovery_hyperv_replication_policy.test.id
+  os_type                            = "Windows"
+  os_disk_name                       = "VM1"
+  target_network_id                  = azurerm_virtual_network.target.id
+  use_managed_disk_enabled           = true
+  disks_to_include                   = ["VM1"]
   log_storage_account_id             = azurerm_storage_account.target.id
   enable_rdp_or_ssh_on_target_option = "Always"
   network_interface {

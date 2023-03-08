@@ -103,7 +103,7 @@ func (HyperVHostTestResource) rebootVirtualMachine(ctx context.Context, clients 
 func (r HyperVHostTestResource) PrepareHostTestSteps(data acceptance.TestData, adminPwd string) (steps []acceptance.TestStep) {
 	return []acceptance.TestStep{
 		{
-			Config: r.recovery(data),
+			Config: r.recovery(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				// set the registration key value to environment variable.
 				data.CheckWithClientForResource(r.generateHyperVHostRegistrationCert(func(xmlContent string) error {
@@ -112,14 +112,14 @@ func (r HyperVHostTestResource) PrepareHostTestSteps(data acceptance.TestData, a
 			),
 		},
 		{
-			Config: r.hyperVTemplate(data, adminPwd), // split complete template into two parts to reboot the server.
+			Config: r.hyperVTemplate(data, adminPwd, true), // split complete template into two parts to reboot the server.
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_windows_virtual_machine.host"),
 				data.CheckWithClientForResource(r.rebootVirtualMachine, "azurerm_windows_virtual_machine.host"),
 			),
 		},
 		{
-			Config: r.template(data, adminPwd),
+			Config: r.template(data, adminPwd, true),
 		},
 	}
 }
@@ -307,7 +307,19 @@ resource "azurerm_network_interface_security_group_association" "hybrid" {
 `
 }
 
-func (r HyperVHostTestResource) recovery(data acceptance.TestData) string {
+// in creating, it should create `hyperv_site` before connect host to it
+// but it needs to remove the `hyperv_site` before deleting the host.
+func (r HyperVHostTestResource) recovery(data acceptance.TestData, includeSite bool) string {
+	siteBlock := ""
+	if includeSite {
+		siteBlock = `
+resource "azurerm_site_recovery_services_vault_hyperv_site" "test" {
+  name              = local.recovery_site_name
+  recovery_vault_id = azurerm_recovery_services_vault.test.id
+}
+`
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -320,14 +332,11 @@ resource "azurerm_recovery_services_vault" "test" {
   soft_delete_enabled = false
 }
 
-resource "azurerm_site_recovery_services_vault_hyperv_site" "test" {
-  name              = local.recovery_site_name
-  recovery_vault_id = azurerm_recovery_services_vault.test.id
-}
-`, r.base(data))
+%s
+`, r.base(data), siteBlock)
 }
 
-func (r HyperVHostTestResource) hyperVTemplate(data acceptance.TestData, adminPwd string) string {
+func (r HyperVHostTestResource) hyperVTemplate(data acceptance.TestData, adminPwd string, includeSite bool) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -458,10 +467,10 @@ resource "azurerm_windows_virtual_machine" "host" {
 %[3]s
 
 %[4]s
-`, r.recovery(data), adminPwd, r.keyVault(), r.securityGroup())
+`, r.recovery(data, includeSite), adminPwd, r.keyVault(), r.securityGroup())
 }
 
-func (r HyperVHostTestResource) template(data acceptance.TestData, adminPwd string) string {
+func (r HyperVHostTestResource) template(data acceptance.TestData, adminPwd string, includeSite bool) string {
 	return fmt.Sprintf(`
 %s
 # register the server could only be done by CustomScriptExtension because it requires local admin to run.
@@ -533,5 +542,5 @@ resource "azurerm_virtual_machine_extension" "script" {
   ]
 }
 
-`, r.hyperVTemplate(data, adminPwd), HostName)
+`, r.hyperVTemplate(data, adminPwd, includeSite), HostName)
 }
