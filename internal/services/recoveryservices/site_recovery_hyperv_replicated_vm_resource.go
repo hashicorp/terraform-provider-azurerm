@@ -716,7 +716,7 @@ func HyperVReplicatedVMUpdateInternal(ctx context.Context, metadata sdk.Resource
 					RecoveryStaticIPAddress: &nic.TargetStaticIp,
 					// per Portal behaviour, these two property are always set to true.
 					// Primary Nic is selected by `selectedSourceNicId` parameter.
-					// Whether to create nic for failover is controled by `selectionType`
+					// Whether to create nic for failover is controlled by `selectionType`
 					IsPrimary:            utils.Bool(true),
 					IsSeletedForFailover: utils.Bool(true),
 				},
