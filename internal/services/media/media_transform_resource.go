@@ -1517,8 +1517,8 @@ func flattenPreset(input encodings.Preset) flattenedPresets {
 	if v, ok := input.(encodings.StandardEncoderPreset); ok {
 		out.audioAnalyzerPresets = append(out.audioAnalyzerPresets, map[string]interface{}{
 			"codec":  flattenCustomPresetCodecs(v.Codecs),
-			"filter": flattenCustomPresetFilter(v.Filters),
-			"format": flattenCustomPresetFormat(v.Formats),
+			"filter": flattenCustomPresetFilters(v.Filters),
+			"format": flattenCustomPresetFormats(v.Formats),
 		})
 	}
 
@@ -2880,7 +2880,7 @@ func expandCustomPresetFilters(input []interface{}) (*encodings.Filters, error) 
 	return &result, nil
 }
 
-func flattenCustomPresetFilter(input *encodings.Filters) []interface{} {
+func flattenCustomPresetFilters(input *encodings.Filters) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -3286,6 +3286,51 @@ func expandCustomPresetFormats(input []interface{}) ([]encodings.Format, error) 
 	return results, nil
 }
 
+type flattenedCustomPresetFormat struct {
+	jpg             []interface{}
+	mp4             []interface{}
+	png             []interface{}
+	transportStream []interface{}
+}
+
+func flattenCustomPresetFormats(input []encodings.Format) []interface{} {
+	results := make([]interface{}, 0)
+
+	for _, v := range input {
+		result := flattenedCustomPresetFormat{
+			jpg:             []interface{}{},
+			mp4:             []interface{}{},
+			png:             []interface{}{},
+			transportStream: []interface{}{},
+		}
+
+		if format, ok := v.(encodings.JpgFormat); ok {
+			result.jpg = flattenCustomPresetFormatsJpg(format)
+		}
+
+		if format, ok := v.(encodings.Mp4Format); ok {
+			result.mp4 = flattenCustomPresetFormatsMp4(format)
+		}
+
+		if format, ok := v.(encodings.PngFormat); ok {
+			result.png = flattenCustomPresetFormatsPng(format)
+		}
+
+		if format, ok := v.(encodings.TransportStreamFormat); ok {
+			result.transportStream = flattenCustomPresetFormatsTransportStream(format)
+		}
+
+		results = append(results, map[string]interface{}{
+			"jpg":              result.jpg,
+			"mp4":              result.mp4,
+			"png":              result.png,
+			"transport_stream": result.transportStream,
+		})
+	}
+
+	return results
+}
+
 func expandCustomPresetFormatsJpg(input []interface{}) encodings.JpgFormat {
 	if len(input) == 0 || input[0] == nil {
 		return encodings.JpgFormat{}
@@ -3298,6 +3343,14 @@ func expandCustomPresetFormatsJpg(input []interface{}) encodings.JpgFormat {
 	}
 
 	return result
+}
+
+func flattenCustomPresetFormatsJpg(input encodings.JpgFormat) []interface{} {
+	return []interface{}{
+		map[string]interface{}{
+			"filename_pattern": input.FilenamePattern,
+		},
+	}
 }
 
 func expandCustomPresetFormatsMp4(input []interface{}) encodings.Mp4Format {
@@ -3314,6 +3367,15 @@ func expandCustomPresetFormatsMp4(input []interface{}) encodings.Mp4Format {
 	return result
 }
 
+func flattenCustomPresetFormatsMp4(input encodings.Mp4Format) []interface{} {
+	return []interface{}{
+		map[string]interface{}{
+			"filename_pattern": input.FilenamePattern,
+			"output_files":     flattenCustomPresetFormatOutputFiles(input.OutputFiles),
+		},
+	}
+}
+
 func expandCustomPresetFormatsPng(input []interface{}) encodings.PngFormat {
 	if len(input) == 0 || input[0] == nil {
 		return encodings.PngFormat{}
@@ -3325,6 +3387,14 @@ func expandCustomPresetFormatsPng(input []interface{}) encodings.PngFormat {
 	}
 
 	return result
+}
+
+func flattenCustomPresetFormatsPng(input encodings.PngFormat) []interface{} {
+	return []interface{}{
+		map[string]interface{}{
+			"filename_pattern": input.FilenamePattern,
+		},
+	}
 }
 
 func expandCustomPresetFormatsTransportStream(input []interface{}) encodings.TransportStreamFormat {
@@ -3339,6 +3409,15 @@ func expandCustomPresetFormatsTransportStream(input []interface{}) encodings.Tra
 	}
 
 	return result
+}
+
+func flattenCustomPresetFormatsTransportStream(input encodings.TransportStreamFormat) []interface{} {
+	return []interface{}{
+		map[string]interface{}{
+			"filename_pattern": input.FilenamePattern,
+			"output_files":     flattenCustomPresetFormatOutputFiles(input.OutputFiles),
+		},
+	}
 }
 
 func expandCustomPresetFormatsOutputFiles(input []interface{}) *[]encodings.OutputFile {
