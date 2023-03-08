@@ -14,17 +14,12 @@ import (
 )
 
 type CosmosDbMongoUserDefinitionModel struct {
-	AccountId  string `tfschema:"account_id"`
-	CustomData string `tfschema:"custom_data"`
-	DBName     string `tfschema:"db_name"`
-	Password   string `tfschema:"password"`
-	Roles      []Role `tfschema:"roles"`
-	Username   string `tfschema:"username"`
-}
-
-type Role struct {
-	Db   string `tfschema:"db"`
-	Role string `tfschema:"role"`
+	AccountId          string   `tfschema:"account_id"`
+	DBName             string   `tfschema:"db_name"`
+	Username           string   `tfschema:"username"`
+	Password           string   `tfschema:"password"`
+	CustomData         string   `tfschema:"custom_data"`
+	InheritedRoleNames []string `tfschema:"inherited_role_names"`
 }
 
 type CosmosDbMongoUserDefinitionResource struct{}
@@ -79,23 +74,12 @@ func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.S
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"roles": {
+		"inherited_role_names": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"db": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"role": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
@@ -138,18 +122,13 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 					Mechanisms:   utils.String("SCRAM-SHA-256"),
 					Password:     &model.Password,
 					UserName:     &model.Username,
+					Roles:        expandInheritedRole(model.InheritedRoleNames, model.DBName),
 				},
 			}
 
-			if model.CustomData != "" {
-				properties.Properties.CustomData = &model.CustomData
+			if v := model.CustomData; v != "" {
+				properties.Properties.CustomData = &v
 			}
-
-			rolesValue, err := expandRole(model.Roles)
-			if err != nil {
-				return err
-			}
-			properties.Properties.Roles = rolesValue
 
 			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -193,18 +172,13 @@ func (r CosmosDbMongoUserDefinitionResource) Update() sdk.ResourceFunc {
 					Mechanisms:   utils.String("SCRAM-SHA-256"),
 					Password:     &model.Password,
 					UserName:     &model.Username,
+					Roles:        expandInheritedRole(model.InheritedRoleNames, model.DBName),
 				},
 			}
 
 			if model.CustomData != "" {
 				properties.Properties.CustomData = &model.CustomData
 			}
-
-			rolesValue, err := expandRole(model.Roles)
-			if err != nil {
-				return err
-			}
-			properties.Properties.Roles = rolesValue
 
 			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -249,12 +223,7 @@ func (r CosmosDbMongoUserDefinitionResource) Read() sdk.ResourceFunc {
 				state.Username = *properties.UserName
 				state.Password = metadata.ResourceData.Get("password").(string)
 				state.CustomData = metadata.ResourceData.Get("custom_data").(string)
-
-				rolesValue, err := flattenRole(properties.Roles)
-				if err != nil {
-					return err
-				}
-				state.Roles = rolesValue
+				state.InheritedRoleNames = flattenInheritedRole(properties.Roles)
 			}
 
 			return metadata.Encode(&state)
@@ -282,46 +251,39 @@ func (r CosmosDbMongoUserDefinitionResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandRole(input []Role) (*[]mongorbacs.Role, error) {
+func expandInheritedRole(input []string, dbName string) *[]mongorbacs.Role {
+	if len(input) == 0 || dbName == "" {
+		return nil
+	}
+
 	var result []mongorbacs.Role
 
 	for _, v := range input {
-		input := v
-		output := mongorbacs.Role{}
-
-		if input.Db != "" {
-			output.Db = &input.Db
+		role := mongorbacs.Role{
+			Role: utils.String(v),
+			Db:   utils.String(dbName),
 		}
 
-		if input.Role != "" {
-			output.Role = &input.Role
-		}
-
-		result = append(result, output)
+		result = append(result, role)
 	}
 
-	return &result, nil
+	return &result
 }
 
-func flattenRole(input *[]mongorbacs.Role) ([]Role, error) {
-	var result []Role
+func flattenInheritedRole(input *[]mongorbacs.Role) []string {
+	var result []string
 	if input == nil {
-		return result, nil
+		return result
 	}
 
-	for _, input := range *input {
-		output := Role{}
-
-		if input.Db != nil {
-			output.Db = *input.Db
+	for _, v := range *input {
+		var roleName string
+		if role := v.Role; role != nil {
+			roleName = *role
 		}
 
-		if input.Role != nil {
-			output.Role = *input.Role
-		}
-
-		result = append(result, output)
+		result = append(result, roleName)
 	}
 
-	return result, nil
+	return result
 }
