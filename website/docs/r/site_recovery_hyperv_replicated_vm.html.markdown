@@ -115,10 +115,6 @@ The following arguments are supported:
 
 * `use_managed_disk_enabled` - (Optional) Whether to use managed disks in replication. Changing this forces a new resource to be created. Defaults to `false`.
 
-* `managed_disk` - (Optional) One or more `managed_disk` block as defined below. Changing this forces a new resource to be created.
-
--> **NOTE:** If `use_managed_disk_enabled` is set to `true`, then `managed_disk` block must be specified. If `use_managed_disk_enabled` is set to `false`, then `disks_to_include` block must be specified.
-
 * `log_storage_account_id` - (Optional) ID of the Storage Account to be used for logging during replication. Changing this forces a new resource to be created.
 
 * `enable_rdp_or_ssh_on_target_option` - (Optional) Options to enable RDP or SSH on replicated VM. Possible values are `Never`, `OnlyOnTestFailover` and `Always`.
@@ -135,23 +131,13 @@ The following arguments are supported:
 
 * `target_proximity_placement_group_id` - (Optional) ID of Proximity Placement Group the new VM should belong to when a failover is done.
 
+~> **NOTE:** When `target_proximity_placement_group_id` is specified, `use_managed_disk_enabled` must be set to `true`.
+
 * `target_vm_tags` - (Optional) A mapping of tags assigned to the replicated VM.
 
 * `target_disk_tags` - (Optional) A mapping of tags assigned to the disks of the replicated VM.
 
 * `target_network_interface_tags` - (Optional) A mapping of tags assigned to the Network Interfaces of the replicated VM.
-
----
-
-A `managed_disk` block supports the following:
-
-* `disk_name` - (Required) Name of the disks from the source VM. Changing this forces a new resource to be created.
-
-* `target_disk_type` - (Required) What type should the disk be when a failover is done. Possible values are `Standard_LRS`, `Premium_LRS`and `StandardSSD_LRS`. Changing this forces a new resource to be created.
-
-* `target_disk_encryption_set_id` - (Optional) The Disk Encryption Set that the Managed Disk will be associated with.
-
--> **NOTE:** Creating replicated vm with `target_disk_encryption_set_id` wil take more time (up to 5 hours), please extend the `timeout` for `create`. 
 
 ---
 
