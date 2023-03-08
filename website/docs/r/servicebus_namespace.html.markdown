@@ -95,6 +95,8 @@ The following attributes are exported:
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this ServiceBus Namespace.
 
+* `endpoint` - The URL to access the ServiceBus Namespace.
+
 ---
 
 A `identity` block exports the following:

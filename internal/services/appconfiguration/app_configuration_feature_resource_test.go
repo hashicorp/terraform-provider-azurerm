@@ -250,6 +250,8 @@ resource "azurerm_app_configuration_feature" "test" {
 }
 
 
+
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 

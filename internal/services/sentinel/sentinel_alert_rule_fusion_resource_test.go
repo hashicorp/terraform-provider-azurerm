@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type SentinelAlertRuleFusionResource struct{}
@@ -98,26 +98,30 @@ func TestAccSentinelAlertRuleFusion_requiresImport(t *testing.T) {
 
 func (r SentinelAlertRuleFusionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	alertRuleClient := client.Sentinel.AlertRulesClient
-	id, err := parse.AlertRuleID(state.ID)
+	id, err := alertrules.ParseAlertRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := alertRuleClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := alertRuleClient.AlertRulesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 
 		return nil, fmt.Errorf("retrieving Sentinel Alert Rule Fusion (%q): %+v", state.String(), err)
 	}
 
-	rule, ok := resp.Value.(securityinsight.FusionAlertRule)
-	if !ok {
-		return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
+	if model := resp.Model; model != nil {
+		modelPtr := *model
+		rule, ok := modelPtr.(alertrules.FusionAlertRule)
+		if !ok {
+			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
+		}
+		return utils.Bool(rule.Id != nil), nil
 	}
 
-	return utils.Bool(rule.ID != nil), nil
+	return utils.Bool(false), nil
 }
 
 func (r SentinelAlertRuleFusionResource) basic(data acceptance.TestData) string {

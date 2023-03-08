@@ -127,6 +127,9 @@ func (r FunctionAppActiveSlotResource) Read() sdk.ResourceFunc {
 
 			app, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
+				if utils.ResponseWasNotFound(app.Response) {
+					return metadata.MarkAsGone(id)
+				}
 				return fmt.Errorf("reading active slot for %s: %+v", id.SiteName, err)
 			}
 

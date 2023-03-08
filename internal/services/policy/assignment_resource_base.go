@@ -6,14 +6,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -26,21 +27,21 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
-			id := parse.NewPolicyAssignmentId(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
-			existing, err := client.Get(ctx, id.Scope, id.Name)
+			id := policyassignments.NewScopedPolicyAssignmentID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
+			existing, err := client.Get(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError(resourceName, id.ID())
 			}
 
-			assignment := policy.Assignment{
-				AssignmentProperties: &policy.AssignmentProperties{
-					PolicyDefinitionID: utils.String(metadata.ResourceData.Get("policy_definition_id").(string)),
+			assignment := policyassignments.PolicyAssignment{
+				Properties: &policyassignments.PolicyAssignmentProperties{
+					PolicyDefinitionId: utils.String(metadata.ResourceData.Get("policy_definition_id").(string)),
 					DisplayName:        utils.String(metadata.ResourceData.Get("display_name").(string)),
 					Scope:              utils.String(id.Scope),
 					EnforcementMode:    convertEnforcementMode(metadata.ResourceData.Get("enforce").(bool)),
@@ -48,7 +49,7 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 			}
 
 			if v := metadata.ResourceData.Get("description").(string); v != "" {
-				assignment.AssignmentProperties.Description = utils.String(v)
+				assignment.Properties.Description = utils.String(v)
 			}
 
 			if v := metadata.ResourceData.Get("location").(string); v != "" {
@@ -59,11 +60,11 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 				if assignment.Location == nil {
 					return fmt.Errorf("`location` must be set when `identity` is assigned")
 				}
-				identity, err := br.expandIdentity(v.([]interface{}))
+				identityIns, err := identity.ExpandSystemOrUserAssignedMap(v.([]interface{}))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
-				assignment.Identity = identity
+				assignment.Identity = identityIns
 			}
 
 			if v := metadata.ResourceData.Get("parameters").(string); v != "" {
@@ -72,7 +73,9 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 					return fmt.Errorf("expanding JSON for `parameters` %q: %+v", v, err)
 				}
 
-				assignment.AssignmentProperties.Parameters = expandedParams
+				if expandedParams != nil {
+					assignment.Properties.Parameters = &expandedParams
+				}
 			}
 
 			if metaDataString := metadata.ResourceData.Get("metadata").(string); metaDataString != "" {
@@ -80,18 +83,21 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 				if err != nil {
 					return fmt.Errorf("unable to parse metadata: %s", err)
 				}
-				assignment.AssignmentProperties.Metadata = &metaData
+				if metaData != nil {
+					var d interface{} = metaData
+					assignment.Properties.Metadata = &d
+				}
 			}
 
 			if v, ok := metadata.ResourceData.GetOk("not_scopes"); ok {
-				assignment.AssignmentProperties.NotScopes = expandAzureRmPolicyNotScopes(v.([]interface{}))
+				assignment.Properties.NotScopes = expandAzureRmPolicyNotScopes(v.([]interface{}))
 			}
 
 			if msgs := metadata.ResourceData.Get("non_compliance_message").([]interface{}); len(msgs) > 0 {
-				assignment.NonComplianceMessages = br.expandNonComplianceMessages(msgs)
+				assignment.Properties.NonComplianceMessages = br.expandNonComplianceMessages(msgs)
 			}
 
-			if _, err := client.Create(ctx, id.Scope, id.Name, assignment); err != nil {
+			if _, err := client.Create(ctx, id, assignment); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -113,12 +119,12 @@ func (br assignmentBaseResource) deleteFunc() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
 
-			id, err := parse.PolicyAssignmentID(metadata.ResourceData.Id())
+			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.Scope, id.Name); err != nil {
+			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting Policy Assignment %q: %+v", id, err)
 			}
 
@@ -139,43 +145,54 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
 
-			id, err := parse.PolicyAssignmentID(metadata.ResourceData.Id())
+			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.Scope, id.Name)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
+			if resp.Model == nil {
+				return fmt.Errorf("reading nil model")
+			}
 
-			metadata.ResourceData.Set("name", id.Name)
-			metadata.ResourceData.Set("location", location.NormalizeNilable(resp.Location))
+			model := resp.Model
+			metadata.ResourceData.Set("name", id.PolicyAssignmentName)
+			metadata.ResourceData.Set("location", location.NormalizeNilable(model.Location))
 			// lintignore:R001
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
-			identity, _ := br.flattenIdentity(resp.Identity)
-			if err := metadata.ResourceData.Set("identity", identity); err != nil {
+			identityIns, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("FlattenSystemOrUserAssignedMap: %+v", err)
+			}
+			if err = metadata.ResourceData.Set("identity", identityIns); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
-			if props := resp.AssignmentProperties; props != nil {
+			if props := model.Properties; props != nil {
 				metadata.ResourceData.Set("description", props.Description)
 				metadata.ResourceData.Set("display_name", props.DisplayName)
-				metadata.ResourceData.Set("enforce", props.EnforcementMode == policy.EnforcementModeDefault)
+				var enforce bool
+				if mode := props.EnforcementMode; mode != nil {
+					enforce = (*props.EnforcementMode) == policyassignments.EnforcementModeDefault
+				}
+				metadata.ResourceData.Set("enforce", enforce)
 				metadata.ResourceData.Set("not_scopes", props.NotScopes)
-				metadata.ResourceData.Set("policy_definition_id", props.PolicyDefinitionID)
+				metadata.ResourceData.Set("policy_definition_id", props.PolicyDefinitionId)
 
 				metadata.ResourceData.Set("non_compliance_message", br.flattenNonComplianceMessages(props.NonComplianceMessages))
 
-				flattenedMetaData := flattenJSON(props.Metadata)
+				flattenedMetaData := flattenJSON(pointer.From(props.Metadata))
 				metadata.ResourceData.Set("metadata", flattenedMetaData)
 
-				flattenedParameters, err := flattenParameterValuesValueToString(props.Parameters)
+				flattenedParameters, err := flattenParameterValuesValueToStringV2(props.Parameters)
 				if err != nil {
 					return fmt.Errorf("serializing JSON from `parameters`: %+v", err)
 				}
@@ -193,44 +210,43 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
 
-			id, err := parse.PolicyAssignmentID(metadata.ResourceData.Id())
+			id, err := policyassignments.ParseScopedPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.Get(ctx, id.Scope, id.Name)
+			getResp, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if existing.AssignmentProperties == nil {
+
+			existing := getResp.Model
+			if existing == nil {
 				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
-			update := policy.Assignment{
-				Location:             existing.Location,
-				AssignmentProperties: existing.AssignmentProperties,
+			update := policyassignments.PolicyAssignment{
+				Location:   existing.Location,
+				Properties: existing.Properties,
 			}
 			if existing.Identity != nil {
-				update.Identity = &policy.Identity{
-					Type:                   existing.Identity.Type,
-					UserAssignedIdentities: existing.Identity.UserAssignedIdentities,
-				}
+				update.Identity = existing.Identity
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				update.AssignmentProperties.Description = utils.String(metadata.ResourceData.Get("description").(string))
+				update.Properties.Description = utils.String(metadata.ResourceData.Get("description").(string))
 			}
 			if metadata.ResourceData.HasChange("display_name") {
-				update.AssignmentProperties.DisplayName = utils.String(metadata.ResourceData.Get("display_name").(string))
+				update.Properties.DisplayName = utils.String(metadata.ResourceData.Get("display_name").(string))
 			}
 			if metadata.ResourceData.HasChange("enforce") {
-				update.AssignmentProperties.EnforcementMode = convertEnforcementMode(metadata.ResourceData.Get("enforce").(bool))
+				update.Properties.EnforcementMode = convertEnforcementMode(metadata.ResourceData.Get("enforce").(bool))
 			}
 			if metadata.ResourceData.HasChange("location") {
 				update.Location = utils.String(metadata.ResourceData.Get("location").(string))
 			}
 			if metadata.ResourceData.HasChange("policy_definition_id") {
-				update.AssignmentProperties.PolicyDefinitionID = utils.String(metadata.ResourceData.Get("policy_definition_id").(string))
+				update.Properties.PolicyDefinitionId = utils.String(metadata.ResourceData.Get("policy_definition_id").(string))
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -238,47 +254,48 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 					return fmt.Errorf("`location` must be set when `identity` is assigned")
 				}
 				identityRaw := metadata.ResourceData.Get("identity").([]interface{})
-				identity, err := br.expandIdentity(identityRaw)
+				identityIns, err := identity.ExpandSystemOrUserAssignedMap(identityRaw)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
-				update.Identity = identity
+				update.Identity = identityIns
 			}
 
 			if metadata.ResourceData.HasChange("metadata") {
 				v := metadata.ResourceData.Get("metadata").(string)
-				update.AssignmentProperties.Metadata = map[string]interface{}{}
+				m := map[string]interface{}{}
 				if v != "" {
-					metaData, err := pluginsdk.ExpandJsonFromString(v)
+					m, err = pluginsdk.ExpandJsonFromString(v)
 					if err != nil {
 						return fmt.Errorf("parsing metadata: %+v", err)
 					}
-					update.AssignmentProperties.Metadata = &metaData
 				}
+				var i interface{} = m
+				update.Properties.Metadata = &i
 			}
 
 			if metadata.ResourceData.HasChange("not_scopes") {
-				update.AssignmentProperties.NotScopes = expandAzureRmPolicyNotScopes(metadata.ResourceData.Get("not_scopes").([]interface{}))
+				update.Properties.NotScopes = expandAzureRmPolicyNotScopes(metadata.ResourceData.Get("not_scopes").([]interface{}))
 			}
 
 			if metadata.ResourceData.HasChange("non_compliance_message") {
-				update.AssignmentProperties.NonComplianceMessages = br.expandNonComplianceMessages(metadata.ResourceData.Get("non_compliance_message").([]interface{}))
+				update.Properties.NonComplianceMessages = br.expandNonComplianceMessages(metadata.ResourceData.Get("non_compliance_message").([]interface{}))
 			}
 
 			if metadata.ResourceData.HasChange("parameters") {
-				update.AssignmentProperties.Parameters = map[string]*policy.ParameterValuesValue{}
+				m := map[string]policyassignments.ParameterValuesValue{}
 
 				if v := metadata.ResourceData.Get("parameters").(string); v != "" {
-					expandedParams, err := expandParameterValuesValueFromString(v)
+					m, err = expandParameterValuesValueFromString(v)
 					if err != nil {
 						return fmt.Errorf("expanding JSON for `parameters` %q: %+v", v, err)
 					}
-					update.AssignmentProperties.Parameters = expandedParams
 				}
+				update.Properties.Parameters = &m
 			}
 
 			// NOTE: there isn't an Update endpoint
-			if _, err := client.Create(ctx, id.Scope, id.Name, update); err != nil {
+			if _, err := client.Create(ctx, *id, update); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -376,87 +393,35 @@ func (br assignmentBaseResource) attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (br assignmentBaseResource) expandIdentity(input []interface{}) (*policy.Identity, error) {
-	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	out := policy.Identity{
-		Type: policy.ResourceIdentityType(string(expanded.Type)),
-	}
-	if expanded.Type == identity.TypeUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*policy.IdentityUserAssignedIdentitiesValue)
-		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &policy.IdentityUserAssignedIdentitiesValue{
-				// intentionally empty
-			}
-		}
-	}
-	return &out, nil
-}
-
-func (br assignmentBaseResource) flattenIdentity(input *policy.Identity) (*[]interface{}, error) {
-	var config *identity.SystemOrUserAssignedMap
-	if input != nil {
-		config = &identity.SystemOrUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-
-		if input.PrincipalID != nil {
-			config.PrincipalId = *input.PrincipalID
-		}
-		if input.TenantID != nil {
-			config.TenantId = *input.TenantID
-		}
-		for k, v := range input.UserAssignedIdentities {
-			config.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-				ClientId:    v.ClientID,
-				PrincipalId: v.PrincipalID,
-			}
-		}
-	}
-	return identity.FlattenSystemOrUserAssignedMap(config)
-}
-
-func (br assignmentBaseResource) flattenNonComplianceMessages(input *[]policy.NonComplianceMessage) []interface{} {
+func (br assignmentBaseResource) flattenNonComplianceMessages(input *[]policyassignments.NonComplianceMessage) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	results := make([]interface{}, 0)
 	for _, v := range *input {
-		content := ""
-		if v.Message != nil {
-			content = *v.Message
-		}
-		policyDefinitionReferenceId := ""
-		if v.PolicyDefinitionReferenceID != nil {
-			policyDefinitionReferenceId = *v.PolicyDefinitionReferenceID
-		}
 		results = append(results, map[string]interface{}{
-			"content":                        content,
-			"policy_definition_reference_id": policyDefinitionReferenceId,
+			"content":                        v.Message,
+			"policy_definition_reference_id": pointer.From(v.PolicyDefinitionReferenceId),
 		})
 	}
 
 	return results
 }
 
-func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}) *[]policy.NonComplianceMessage {
+func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}) *[]policyassignments.NonComplianceMessage {
 	if len(input) == 0 {
 		return nil
 	}
 
-	output := make([]policy.NonComplianceMessage, 0)
+	output := make([]policyassignments.NonComplianceMessage, 0)
 	for _, v := range input {
 		if m, ok := v.(map[string]interface{}); ok {
-			ncm := policy.NonComplianceMessage{
-				Message: utils.String(m["content"].(string)),
+			ncm := policyassignments.NonComplianceMessage{
+				Message: m["content"].(string),
 			}
 			if id := m["policy_definition_reference_id"].(string); id != "" {
-				ncm.PolicyDefinitionReferenceID = utils.String(id)
+				ncm.PolicyDefinitionReferenceId = utils.String(id)
 			}
 			output = append(output, ncm)
 		}
