@@ -3,17 +3,16 @@ package cosmos
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
-	"time"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"time"
 )
 
 type CosmosDbMongoRoleDefinitionModel struct {
@@ -160,15 +159,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: &model.DbName,
 					RoleName:     &model.RoleName,
+					Privileges:   expandPrivilege(model.Privileges),
+					Roles:        expandInheritedRole(model.InheritedRoleNames, model.DbName),
 				},
-			}
-
-			if v := model.Privileges; v != nil {
-				properties.Properties.Privileges = expandPrivilege(model.Privileges)
-			}
-
-			if v := model.InheritedRoleNames; v != nil {
-				properties.Properties.Roles = expandInheritedRole(model.InheritedRoleNames, model.DbName)
 			}
 
 			if err := client.MongoDBResourcesCreateUpdateMongoRoleDefinitionThenPoll(ctx, id, *properties); err != nil {
@@ -214,15 +207,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: &model.DbName,
 					RoleName:     &model.RoleName,
+					Privileges:   expandPrivilege(model.Privileges),
+					Roles:        expandInheritedRole(model.InheritedRoleNames, model.DbName),
 				},
-			}
-
-			if v := model.Privileges; v != nil {
-				properties.Properties.Privileges = expandPrivilege(model.Privileges)
-			}
-
-			if v := model.InheritedRoleNames; v != nil {
-				properties.Properties.Roles = expandInheritedRole(model.InheritedRoleNames, model.DbName)
 			}
 
 			if err := client.MongoDBResourcesCreateUpdateMongoRoleDefinitionThenPoll(ctx, *id, parameters); err != nil {
@@ -266,14 +253,8 @@ func (r CosmosDbMongoRoleDefinitionResource) Read() sdk.ResourceFunc {
 			if properties := model.Properties; properties != nil {
 				state.DbName = *properties.DatabaseName
 				state.RoleName = *properties.RoleName
-
-				if v := properties.Privileges; v != nil {
-					state.Privileges = flattenPrivilege(properties.Privileges)
-				}
-
-				if v := properties.Roles; v != nil {
-					state.InheritedRoleNames = flattenInheritedRole(properties.Roles)
-				}
+				state.Privileges = flattenPrivilege(properties.Privileges)
+				state.InheritedRoleNames = flattenInheritedRole(properties.Roles)
 			}
 
 			return metadata.Encode(&state)
