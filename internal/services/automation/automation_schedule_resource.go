@@ -7,6 +7,10 @@ import (
 	"strings"
 	"time"
 
+	// import time/tzdata to embed timezone information in the program
+	// add this to resolve https://github.com/hashicorp/terraform-provider-azurerm/issues/20690
+	_ "time/tzdata"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/schedule"

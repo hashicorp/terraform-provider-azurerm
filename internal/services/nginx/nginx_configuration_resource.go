@@ -227,6 +227,9 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			client := meta.Client.Nginx.NginxConfiguration
 			result, err := client.ConfigurationsGet(ctx, *id)
 			if err != nil {
+				if response.WasNotFound(result.HttpResponse) {
+					return meta.MarkAsGone(id)
+				}
 				return err
 			}
 

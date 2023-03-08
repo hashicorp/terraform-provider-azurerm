@@ -39,6 +39,8 @@ output "location" {
 
 * `zone_redundant` - Whether or not this ServiceBus Namespace is zone redundant.
 
+* `endpoint` - The URL to access the ServiceBus Namespace.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 The following attributes are exported only if there is an authorization rule named
