@@ -533,20 +533,21 @@ func flattenServiceRegionPropertiesModel(inputList *[]communicationsgateways.Ser
 			Location: location.Normalize(input.Name),
 		}
 
-		if v := &input.PrimaryRegionProperties; v != nil {
+		v := &input.PrimaryRegionProperties
+		if v.OperatorAddresses != nil {
 			output.OperatorAddresses = v.OperatorAddresses
+		}
 
-			if v.AllowedMediaSourceAddressPrefixes != nil {
-				output.AllowedMediaSourceAddressPrefixes = *v.AllowedMediaSourceAddressPrefixes
-			}
+		if v.AllowedMediaSourceAddressPrefixes != nil {
+			output.AllowedMediaSourceAddressPrefixes = *v.AllowedMediaSourceAddressPrefixes
+		}
 
-			if v.AllowedSignalingSourceAddressPrefixes != nil {
-				output.AllowedSignalingSourceAddressPrefixes = *v.AllowedSignalingSourceAddressPrefixes
-			}
+		if v.AllowedSignalingSourceAddressPrefixes != nil {
+			output.AllowedSignalingSourceAddressPrefixes = *v.AllowedSignalingSourceAddressPrefixes
+		}
 
-			if v.EsrpAddresses != nil {
-				output.EsrpAddresses = *v.EsrpAddresses
-			}
+		if v.EsrpAddresses != nil {
+			output.EsrpAddresses = *v.EsrpAddresses
 		}
 
 		outputList = append(outputList, output)
