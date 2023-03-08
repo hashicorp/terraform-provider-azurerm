@@ -6,17 +6,48 @@ FEATURES:
 
 ENHANCEMENTS
 
+* dependencies: updating to `v4.4.0+incompatible` of `github.com/gofrs/uuid` [GH-20821]
 * dependencies: updating to `v0.55.0` of `github.com/hashicorp/go-azure-helpers` [GH-20807]
 * dependencies: updating to `v0.20230306.1165107` of `github.com/hashicorp/go-azure-sdk` [GH-20807]
+* dependencies: updating to `v0.20230307.1105329` of `github.com/tombuildsstuff/kermit` [GH-20821]
 * Data Source: `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
+* Data Source: `azurerm_kubernetes_cluster` - generate and export `node_resource_group_id` [GH-20830]
+* `azurerm_kubernetes_cluster` - generate and export `node_resource_group_id` [GH-20830]
 * `azurerm_mariadb_server` - support for the `ssl_minimal_tls_version_enforced` property [GH-20782]
 * `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
 
 BUG FIXES:
 
-* `azurerm_iothub_endpoint_*` - set Id to nil when resource is not found [GH-20798]
-* `azurerm_iothub_route` - set Id to nil when resource is not found [GH-20798]
+* `azurerm_application_insights_analytics_item` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_automated_connection_type` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_automation_software_update_configuration` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_automation_source_control` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_automation_watcher` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_cdn_frontdoor_route_disable_link_to_default_domain` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_digital_twins_time_series_database_connection` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_fluid_relay_server` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_function_app_active_slot` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_iothub_endpoint_eventhub` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_iothub_endpoint_servicebus_queue` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_iothub_endpoint_servicebus_topic` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_iothub_endpoint_servicebus_queue` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_iothub_endpoint_storage_container` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_iothub_fallback_route` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_iothub_route` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_kubernetes_cluster` - fix validation logic for `dns_prefix` [GH-20813]
+* `azurerm_linux_function_app_slot` - fix health_check_eviction_time_in_min [GH-20816]
+* `azurerm_logic_app_integration_account` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_maintenance_assignment_virtual_machine` - prevent a potential panic from a nil value [GH-20781]
+* `azurerm_maintenance_assignment_virtual_machine` - maintenance configuration is now obtained by name rather than using the first in the list [GH-20766]
+* `azurerm_nginx_certificate` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_nginx_configuration` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_nginx_deployment` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_synapse_workspace_aad_admin` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_synapse_workspace_key` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_synapse_workspace_sql_aad_admin` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_web_app_active_slot` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_windows_function_app_slot` - fix health_check_eviction_time_in_min [GH-20816]
+
 
 ## 3.46.0 (March 02, 2023)
 
