@@ -981,8 +981,6 @@ The `oms_agent` block exports the following:
 
 * `oms_agent_identity` - An `oms_agent_identity` block is exported. The exported attributes are defined below.
 
-* `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
-
 ---
 
 The `oms_agent_identity` block exports the following:
