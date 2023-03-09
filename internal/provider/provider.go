@@ -366,9 +366,13 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			}
 		}
 
+		oidcToken, err := getOidcToken(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
 		var (
 			env *environments.Environment
-			err error
 
 			envName      = d.Get("environment").(string)
 			metadataHost = d.Get("metadata_host").(string)
@@ -399,7 +403,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			ClientCertificatePassword: d.Get("client_certificate_password").(string),
 			ClientSecret:              d.Get("client_secret").(string),
 
-			OIDCAssertionToken:          d.Get("oidc_token").(string),
+			OIDCAssertionToken:          *oidcToken,
 			GitHubOIDCTokenRequestURL:   d.Get("oidc_request_url").(string),
 			GitHubOIDCTokenRequestToken: d.Get("oidc_request_token").(string),
 
@@ -482,6 +486,28 @@ func decodeCertificate(clientCertificate string) ([]byte, error) {
 		pfx = out[:n]
 	}
 	return pfx, nil
+}
+
+func getOidcToken(d *schema.ResourceData) (*string, error) {
+	idToken := strings.TrimSpace(d.Get("oidc_token").(string))
+
+	if path := d.Get("oidc_token_file_path").(string); path != "" {
+		fileTokenRaw, err := os.ReadFile(path)
+
+		if err != nil {
+			return nil, fmt.Errorf("reading OIDC Token from file %q: %v", path, err)
+		}
+
+		fileToken := strings.TrimSpace(string(fileTokenRaw))
+
+		if idToken != "" && idToken != fileToken {
+			return nil, fmt.Errorf("mismatch between supplied OIDC token and supplied OIDC token file contents - please either remove one or ensure they match")
+		}
+
+		idToken = fileToken
+	}
+
+	return &idToken, nil
 }
 
 const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.
