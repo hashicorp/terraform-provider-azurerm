@@ -75,9 +75,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIf("default_node_pool.0.name", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
 				old, new := d.GetChange("default_node_pool.0.name")
 				defaultName := d.Get("default_node_pool.0.name")
-				tempName := d.Get("default_node_pool.0.temporary_name_for_vm_resize")
+				tempName := d.Get("default_node_pool.0.temporary_name_for_rotation")
 
-				// if the default node pool name has been set to temporary_name_for_vm_resize it means resizing failed
+				// if the default node pool name has been set to temporary_name_for_rotation it means resizing failed
 				// we should not try to recreate the cluster, another apply will attempt the resize again
 				if old != "" && old == tempName {
 					return new != defaultName
@@ -2020,11 +2020,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
 			// bringing up the new one.
 
-			if v := d.Get("default_node_pool.0.temporary_name_for_vm_resize").(string); v == "" {
-				return fmt.Errorf("`temporary_name_for_vm_resize` must be specified when updating `vm_size`")
+			if v := d.Get("default_node_pool.0.temporary_name_for_rotation").(string); v == "" {
+				return fmt.Errorf("`temporary_name_for_rotation` must be specified when updating `vm_size`")
 			}
 
-			temporaryNodePoolName := d.Get("default_node_pool.0.temporary_name_for_vm_resize").(string)
+			temporaryNodePoolName := d.Get("default_node_pool.0.temporary_name_for_rotation").(string)
 			tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, temporaryNodePoolName)
 
 			tempExisting, err := nodePoolsClient.Get(ctx, tempNodePoolId)
