@@ -153,6 +153,8 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			statusSucceeded:  pollers.PollingStatusSucceeded,
 
 			// whilst the standard set above should be sufficient, some APIs differ from the spec and should be documented below:
+			// Dashboard@2022-08-01 returns `Accepted` rather than `InProgress` during creation
+			"Accepted": pollers.PollingStatusInProgress,
 			// SignalR@2022-02-01 returns `Running` rather than `InProgress` during creation
 			"Running": pollers.PollingStatusInProgress,
 		}

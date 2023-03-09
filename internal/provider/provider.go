@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"strings"
 
@@ -200,10 +201,11 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			},
 
 			"metadata_host": {
-				Type:        schema.TypeString,
-				Required:    true,
+				Type:     schema.TypeString,
+				Required: true,
+				// TODO - 4.0: Rename the env var to ARM_METADATA_HOST
 				DefaultFunc: schema.EnvDefaultFunc("ARM_METADATA_HOSTNAME", ""),
-				Description: "The Hostname which should be used for the Azure Metadata Service.",
+				Description: "The host name/url which should be used for the Azure Metadata Service.",
 			},
 
 			// Client Certificate specific fields
@@ -375,7 +377,14 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		)
 
 		if metadataHost != "" {
-			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost), envName); err != nil {
+			hostURL, err := url.Parse(metadataHost)
+			if err != nil {
+				return nil, diag.FromErr(err)
+			}
+			if hostURL.Scheme == "" {
+				hostURL.Scheme = "https"
+			}
+			if env, err = environments.FromEndpoint(ctx, hostURL.String(), envName); err != nil {
 				return nil, diag.FromErr(err)
 			}
 		} else if env, err = environments.FromName(envName); err != nil {
