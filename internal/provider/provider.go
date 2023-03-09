@@ -504,7 +504,7 @@ func getOidcToken(d *schema.ResourceData) (*string, error) {
 			return nil, fmt.Errorf("mismatch between supplied OIDC token and supplied OIDC token file contents - please either remove one or ensure they match")
 		}
 
-		idToken = string(fileToken)
+		idToken = fileToken
 	}
 
 	return &idToken, nil
