@@ -62,6 +62,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_cdn_frontdoor_route_disable_link_to_default_domain": resourceCdnFrontDoorRouteDisableLinkToDefaultDomain(),
 		"azurerm_cdn_frontdoor_rule":                                 resourceCdnFrontDoorRule(),
 		"azurerm_cdn_frontdoor_rule_set":                             resourceCdnFrontDoorRuleSet(),
+		"azurerm_cdn_frontdoor_rule_set_association":                 resourceCdnFrontDoorRuleSetAssociation(),
 		"azurerm_cdn_frontdoor_secret":                               resourceCdnFrontDoorSecret(),
 		"azurerm_cdn_frontdoor_security_policy":                      resourceCdnFrontDoorSecurityPolicy(),
 	}
