@@ -24,6 +24,7 @@ ENHANCEMENTS
 * `azurerm_mariadb_server` - support for the `ssl_minimal_tls_version_enforced` property [GH-20782]
 * `azurerm_monitor_action_group` - add support for the `location` property [GH-20603]
 * `azurerm_mssql_database` - Add support through regex for ServerlessGen5 Hyperscale [GH-20875]
+* `azurerm_mssql_managed_database` - support for retention policies [GH-20845]
 * `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
 * `azurerm_virtual_network_peering` - add support for  `triggers` attribute to allow `address_space` synchronization [GH-20877]
 
