@@ -31,7 +31,6 @@ There are no arguments available for this data source.
 * `tenant_id` is set to the Azure Tenant ID.
 * `subscription_id` is set to the Azure Subscription ID.
 * `object_id` is set to the Azure Object ID.
-* `environment_name` is set to the configured Cloud Environment.
 
 ---
 
