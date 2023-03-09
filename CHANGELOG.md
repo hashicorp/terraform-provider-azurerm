@@ -11,6 +11,7 @@ ENHANCEMENTS
 * dependencies: updating to `v0.20230306.1165107` of `github.com/hashicorp/go-azure-sdk` [GH-20807]
 * dependencies: updating to `v0.20230307.1105329` of `github.com/tombuildsstuff/kermit` [GH-20821]
 * dependencies: updating `redis/2021-06-01` to `redis/2022-06-01` [GH-20839]
+* Data Source: `azurerm_client_config` - export the `environment_name` attribute [GH-20819]
 * Data Source: `azurerm_function_app_host_keys` - exporting `blobs_extension_key` [GH-20837]
 * Data Source: `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
 * Data Source: `azurerm_kubernetes_cluster` - generate and export `node_resource_group_id` [GH-20830]
