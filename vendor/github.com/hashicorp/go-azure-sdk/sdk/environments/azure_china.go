@@ -10,7 +10,9 @@ func AzureChina() *Environment {
 			"https://management.core.chinacloudapi.cn",
 			"https://management.chinacloudapi.cn",
 		},
-		LoginEndpoint: "https://login.chinacloudapi.cn",
+		IdentityProvider: "AAD",
+		LoginEndpoint:    "https://login.chinacloudapi.cn",
+		Tenant:           "common",
 	}
 	env.ResourceManager = ResourceManagerAPI("https://management.chinacloudapi.cn").withResourceIdentifier("https://management.chinacloudapi.cn")
 	env.MicrosoftGraph = MicrosoftGraphAPI("https://microsoftgraph.chinacloudapi.cn").withResourceIdentifier("https://microsoftgraph.chinacloudapi.cn")

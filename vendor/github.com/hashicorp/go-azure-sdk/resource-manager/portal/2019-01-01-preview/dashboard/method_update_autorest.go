@@ -1,8 +1,7 @@
-package deploymentscripts
+package dashboard
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -14,26 +13,26 @@ import (
 
 type UpdateOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *DeploymentScript
+	Model        *Dashboard
 }
 
 // Update ...
-func (c DeploymentScriptsClient) Update(ctx context.Context, id DeploymentScriptId, input DeploymentScriptUpdateParameter) (result UpdateOperationResponse, err error) {
+func (c DashboardClient) Update(ctx context.Context, id DashboardId, input PatchableDashboard) (result UpdateOperationResponse, err error) {
 	req, err := c.preparerForUpdate(ctx, id, input)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "deploymentscripts.DeploymentScriptsClient", "Update", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "dashboard.DashboardClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "deploymentscripts.DeploymentScriptsClient", "Update", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dashboard.DashboardClient", "Update", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForUpdate(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "deploymentscripts.DeploymentScriptsClient", "Update", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "dashboard.DashboardClient", "Update", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -41,7 +40,7 @@ func (c DeploymentScriptsClient) Update(ctx context.Context, id DeploymentScript
 }
 
 // preparerForUpdate prepares the Update request.
-func (c DeploymentScriptsClient) preparerForUpdate(ctx context.Context, id DeploymentScriptId, input DeploymentScriptUpdateParameter) (*http.Request, error) {
+func (c DashboardClient) preparerForUpdate(ctx context.Context, id DashboardId, input PatchableDashboard) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -58,21 +57,13 @@ func (c DeploymentScriptsClient) preparerForUpdate(ctx context.Context, id Deplo
 
 // responderForUpdate handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (c DeploymentScriptsClient) responderForUpdate(resp *http.Response) (result UpdateOperationResponse, err error) {
-	var respObj json.RawMessage
+func (c DashboardClient) responderForUpdate(resp *http.Response) (result UpdateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&respObj),
+		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
-	if err != nil {
-		return
-	}
-	model, err := unmarshalDeploymentScriptImplementation(respObj)
-	if err != nil {
-		return
-	}
-	result.Model = &model
+
 	return
 }

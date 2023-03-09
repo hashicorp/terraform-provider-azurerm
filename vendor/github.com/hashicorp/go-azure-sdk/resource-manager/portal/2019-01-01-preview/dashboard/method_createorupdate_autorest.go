@@ -1,8 +1,7 @@
-package eventsources
+package dashboard
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -14,26 +13,26 @@ import (
 
 type CreateOrUpdateOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *EventSourceResource
+	Model        *Dashboard
 }
 
 // CreateOrUpdate ...
-func (c EventSourcesClient) CreateOrUpdate(ctx context.Context, id EventSourceId, input EventSourceCreateOrUpdateParameters) (result CreateOrUpdateOperationResponse, err error) {
+func (c DashboardClient) CreateOrUpdate(ctx context.Context, id DashboardId, input Dashboard) (result CreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdate(ctx, id, input)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventsources.EventSourcesClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "dashboard.DashboardClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventsources.EventSourcesClient", "CreateOrUpdate", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dashboard.DashboardClient", "CreateOrUpdate", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForCreateOrUpdate(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventsources.EventSourcesClient", "CreateOrUpdate", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "dashboard.DashboardClient", "CreateOrUpdate", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -41,7 +40,7 @@ func (c EventSourcesClient) CreateOrUpdate(ctx context.Context, id EventSourceId
 }
 
 // preparerForCreateOrUpdate prepares the CreateOrUpdate request.
-func (c EventSourcesClient) preparerForCreateOrUpdate(ctx context.Context, id EventSourceId, input EventSourceCreateOrUpdateParameters) (*http.Request, error) {
+func (c DashboardClient) preparerForCreateOrUpdate(ctx context.Context, id DashboardId, input Dashboard) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -58,21 +57,13 @@ func (c EventSourcesClient) preparerForCreateOrUpdate(ctx context.Context, id Ev
 
 // responderForCreateOrUpdate handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (c EventSourcesClient) responderForCreateOrUpdate(resp *http.Response) (result CreateOrUpdateOperationResponse, err error) {
-	var respObj json.RawMessage
+func (c DashboardClient) responderForCreateOrUpdate(resp *http.Response) (result CreateOrUpdateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusCreated, http.StatusOK),
-		autorest.ByUnmarshallingJSON(&respObj),
+		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
-	if err != nil {
-		return
-	}
-	model, err := unmarshalEventSourceResourceImplementation(respObj)
-	if err != nil {
-		return
-	}
-	result.Model = &model
+
 	return
 }

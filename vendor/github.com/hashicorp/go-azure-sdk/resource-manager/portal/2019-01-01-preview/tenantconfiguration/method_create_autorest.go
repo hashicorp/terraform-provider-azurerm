@@ -1,8 +1,7 @@
-package synchronizationsetting
+package tenantconfiguration
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -14,26 +13,26 @@ import (
 
 type CreateOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *SynchronizationSetting
+	Model        *Configuration
 }
 
 // Create ...
-func (c SynchronizationSettingClient) Create(ctx context.Context, id SynchronizationSettingId, input SynchronizationSetting) (result CreateOperationResponse, err error) {
-	req, err := c.preparerForCreate(ctx, id, input)
+func (c TenantConfigurationClient) Create(ctx context.Context, input Configuration) (result CreateOperationResponse, err error) {
+	req, err := c.preparerForCreate(ctx, input)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synchronizationsetting.SynchronizationSettingClient", "Create", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "tenantconfiguration.TenantConfigurationClient", "Create", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synchronizationsetting.SynchronizationSettingClient", "Create", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "tenantconfiguration.TenantConfigurationClient", "Create", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForCreate(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synchronizationsetting.SynchronizationSettingClient", "Create", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "tenantconfiguration.TenantConfigurationClient", "Create", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -41,7 +40,7 @@ func (c SynchronizationSettingClient) Create(ctx context.Context, id Synchroniza
 }
 
 // preparerForCreate prepares the Create request.
-func (c SynchronizationSettingClient) preparerForCreate(ctx context.Context, id SynchronizationSettingId, input SynchronizationSetting) (*http.Request, error) {
+func (c TenantConfigurationClient) preparerForCreate(ctx context.Context, input Configuration) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -50,7 +49,7 @@ func (c SynchronizationSettingClient) preparerForCreate(ctx context.Context, id 
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(id.ID()),
+		autorest.WithPath("/providers/Microsoft.Portal/tenantConfigurations/default"),
 		autorest.WithJSON(input),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -58,21 +57,13 @@ func (c SynchronizationSettingClient) preparerForCreate(ctx context.Context, id 
 
 // responderForCreate handles the response to the Create request. The method always
 // closes the http.Response Body.
-func (c SynchronizationSettingClient) responderForCreate(resp *http.Response) (result CreateOperationResponse, err error) {
-	var respObj json.RawMessage
+func (c TenantConfigurationClient) responderForCreate(resp *http.Response) (result CreateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusCreated, http.StatusOK),
-		autorest.ByUnmarshallingJSON(&respObj),
+		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp
-	if err != nil {
-		return
-	}
-	model, err := unmarshalSynchronizationSettingImplementation(respObj)
-	if err != nil {
-		return
-	}
-	result.Model = &model
+
 	return
 }
