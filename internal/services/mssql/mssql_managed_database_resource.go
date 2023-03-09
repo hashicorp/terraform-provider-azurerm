@@ -69,6 +69,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 35),
+			Default:      7,
 		},
 	}
 }
@@ -153,8 +154,7 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 						RetentionDays: pointer.To(model.ShortTermRetentionDays),
 					},
 				}
-				_, err := shortTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, shortTermRetentionPolicy)
-				if err != nil {
+				if _, err := shortTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, shortTermRetentionPolicy); err != nil {
 					return fmt.Errorf("setting Short Term Retention Policy for %s: %+v", id, err)
 				}
 			}
@@ -212,8 +212,7 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 						RetentionDays: pointer.To(model.ShortTermRetentionDays),
 					},
 				}
-				_, err := shortTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, shortTermRetentionPolicy)
-				if err != nil {
+				if _, err := shortTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName, shortTermRetentionPolicy); err != nil {
 					return fmt.Errorf("updating Short Term Retention Policy for %s: %+v", id, err)
 				}
 			}
