@@ -356,9 +356,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.NotificationHubs = notificationhub.NewClient(o)
 	client.Orbital = orbital.NewClient(o)
 	client.Policy = policy.NewClient(o)
-	if client.Portal, err = portal.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Portal: %+v", err)
-	}
+	client.Portal = portal.NewClient(o)
 	client.Postgres = postgres.NewClient(o)
 	client.PowerBI = powerBI.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
