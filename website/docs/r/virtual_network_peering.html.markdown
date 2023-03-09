@@ -140,7 +140,7 @@ resource "azurerm_virtual_network_peering" "example-1" {
   remote_virtual_network_id = azurerm_virtual_network.example-2.id
   
   triggers = {
-    remote_address_space = join(",", azurerm_virtual_network.test2.address_space)
+    remote_address_space = join(",", azurerm_virtual_network.example-2.address_space)
   }
 }
 
@@ -151,7 +151,7 @@ resource "azurerm_virtual_network_peering" "example-2" {
   remote_virtual_network_id = azurerm_virtual_network.example-1.id
   
   triggers = {
-    remote_address_space = join(",", azurerm_virtual_network.test1.address_space)
+    remote_address_space = join(",", azurerm_virtual_network.example-1.address_space)
   }
 }
 ```
