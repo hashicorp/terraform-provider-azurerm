@@ -188,7 +188,7 @@ func TestAccMariaDbServer_createPointInTimeRestore(t *testing.T) {
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
-			Config:    r.createPointInTimeRestore(data, version, restoreTime.Add(5*time.Second).Format(time.RFC3339)),
+			Config:    r.createPointInTimeRestore(data, version, restoreTime.Add(3*time.Minute).Format(time.RFC3339)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_mariadb_server.restore").ExistsInAzure(r),
@@ -290,13 +290,14 @@ resource "azurerm_mariadb_server" "test" {
   sku_name            = "B_Gen5_2"
   version             = "%s"
 
-  administrator_login          = "acctestun"
-  administrator_login_password = "H@Sh1CoR3!"
-  auto_grow_enabled            = true
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  ssl_enforcement_enabled      = true
-  storage_mb                   = 51200
+  administrator_login          		= "acctestun"
+  administrator_login_password 		= "H@Sh1CoR3!"
+  auto_grow_enabled            		= true
+  backup_retention_days        		= 7
+  geo_redundant_backup_enabled 		= false
+  ssl_enforcement_enabled      		= true
+  ssl_minimal_tls_version_enforced      = "TLS1_2"
+  storage_mb                   		= 51200
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }

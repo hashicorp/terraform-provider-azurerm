@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"
-	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"                     // nolint: staticcheck
+	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

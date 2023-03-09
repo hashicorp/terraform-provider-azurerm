@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,6 +27,11 @@ func resourceIotHubEnrichment() *pluginsdk.Resource {
 		Read:   resourceArmIotHubEnrichmentRead,
 		Update: resourceArmIotHubEnrichmentCreateUpdate,
 		Delete: resourceArmIotHubEnrichmentDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.IoTHubEnrichmentV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.EnrichmentID(id)

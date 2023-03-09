@@ -58,7 +58,7 @@ func TestAccVirtualNetworkGatewayConnection_sitetositeWithoutSharedKey(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("shared_key"),
 	})
 }
 
@@ -271,6 +271,11 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-${var.random}"
+  location = azurerm_resource_group.test.location
+}
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvn-${var.random}"
   location            = azurerm_resource_group.test.location
@@ -311,8 +316,8 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctest-${var.random}"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
 
   gateway_address = "168.62.225.23"
   address_space   = ["10.1.1.0/24"]
@@ -320,8 +325,8 @@ resource "azurerm_local_network_gateway" "test" {
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
   name                = "acctest-${var.random}"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
 
   type                       = "IPsec"
   virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
@@ -391,6 +396,9 @@ resource "azurerm_local_network_gateway" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
+  lifecycle {
+    ignore_changes = ["shared_key"]
+  }
   name                = "acctest-${var.random}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name

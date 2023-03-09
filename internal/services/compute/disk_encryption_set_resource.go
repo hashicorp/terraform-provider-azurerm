@@ -76,8 +76,14 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
 					string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys),
-					string(diskencryptionsets.DiskEncryptionSetTypeConfidentialVmEncryptedWithCustomerKey),
+					string(diskencryptionsets.DiskEncryptionSetTypeConfidentialVMEncryptedWithCustomerKey),
 				}, false),
+			},
+
+			"federated_client_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
@@ -117,9 +123,6 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 		if !keyVaultDetails.softDeleteEnabled {
 			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 		}
-		if !keyVaultDetails.purgeProtectionEnabled {
-			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
-		}
 	}
 
 	rotationToLatestKeyVersionEnabled := d.Get("auto_key_rotation_enabled").(bool)
@@ -142,6 +145,10 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("federated_client_id"); ok {
+		params.Properties.FederatedClientId = utils.String(v.(string))
 	}
 
 	if keyVaultDetails != nil {
@@ -205,6 +212,12 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 			encryptionType = string(*props.EncryptionType)
 		}
 		d.Set("encryption_type", encryptionType)
+
+		federatedClientId := ""
+		if props.FederatedClientId != nil {
+			federatedClientId = *props.FederatedClientId
+		}
+		d.Set("federated_client_id", federatedClientId)
 	}
 
 	flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
@@ -271,6 +284,18 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		update.Properties.RotationToLatestKeyVersionEnabled = utils.Bool(d.Get("auto_key_rotation_enabled").(bool))
+	}
+
+	if d.HasChange("federated_client_id") {
+		if update.Properties == nil {
+			update.Properties = &diskencryptionsets.DiskEncryptionSetUpdateProperties{}
+		}
+		v, ok := d.GetOk("federated_client_id")
+		if ok {
+			update.Properties.FederatedClientId = utils.String(v.(string))
+		} else {
+			update.Properties.FederatedClientId = utils.String("None") // this is the only way to remove the federated client id
+		}
 	}
 
 	err = client.UpdateThenPoll(ctx, *id, update)

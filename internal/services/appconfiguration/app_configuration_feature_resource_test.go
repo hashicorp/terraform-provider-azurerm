@@ -60,6 +60,20 @@ func TestAccAppConfigurationFeature_basicNoLabel(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationFeature_basicWithSlash(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
+	r := AppConfigurationFeatureResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithSlash(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppConfigurationFeature_basicNoFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
 	r := AppConfigurationFeatureResource{}
@@ -85,6 +99,27 @@ func TestAccAppConfigurationFeature_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccAppConfigurationFeature_noLabelUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
+	r := AppConfigurationFeatureResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicNoLabel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateNoLabel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -137,12 +172,12 @@ func (t AppConfigurationFeatureResource) Exists(ctx context.Context, clients *cl
 	}
 
 	client, err := clients.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+	if err != nil {
+		return nil, err
+	}
 	if client == nil {
 		// if the AppConfiguration is gone all the data is too
 		return utils.Bool(false), nil
-	}
-	if err != nil {
-		return nil, err
 	}
 
 	res, err := client.GetKeyValues(ctx, resourceID.Name, resourceID.Label, "", "", []string{})
@@ -215,6 +250,8 @@ resource "azurerm_app_configuration_feature" "test" {
 }
 
 
+
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
@@ -253,6 +290,87 @@ resource "azurerm_app_configuration_feature" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
   description            = "test description"
   name                   = "acctest-ackey-%d"
+  enabled                = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (t AppConfigurationFeatureResource) updateNoLabel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appconfig-%d"
+  location = "%s"
+}
+
+data "azurerm_client_config" "test" {
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_resource_group.test.id
+  role_definition_name = "App Configuration Data Owner"
+  principal_id         = data.azurerm_client_config.test.object_id
+}
+
+resource "azurerm_app_configuration" "test" {
+  name                = "testacc-appconf%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+
+  depends_on = [
+    azurerm_role_assignment.test,
+  ]
+}
+
+resource "azurerm_app_configuration_feature" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  description            = "test description"
+  name                   = "acctest-ackey-%d"
+  enabled                = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (t AppConfigurationFeatureResource) basicWithSlash(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appconfig-%d"
+  location = "%s"
+}
+
+data "azurerm_client_config" "test" {
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_resource_group.test.id
+  role_definition_name = "App Configuration Data Owner"
+  principal_id         = data.azurerm_client_config.test.object_id
+}
+
+resource "azurerm_app_configuration" "test" {
+  name                = "testacc-appconf%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+
+  depends_on = [
+    azurerm_role_assignment.test,
+  ]
+}
+
+resource "azurerm_app_configuration_feature" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  description            = "test description"
+  name                   = "acctest/ackey/%d"
+  label                  = "acctest/label"
   enabled                = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

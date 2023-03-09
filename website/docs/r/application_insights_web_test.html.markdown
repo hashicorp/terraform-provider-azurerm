@@ -59,8 +59,7 @@ output "webtests_synthetic_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Application Insights WebTest. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the Application Insights WebTest. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Application Insights WebTest. Changing this forces a new resource
 
@@ -68,7 +67,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. It needs to correlate with location of parent resource (azurerm_application_insights).
 
-* `kind` = (Required) The kind of web test that this web test watches. Choices are `ping` and `multistep`. Changing this forces a new resource to be created.
+* `kind` - (Required) The kind of web test that this web test watches. Choices are `ping` and `multistep`. Changing this forces a new resource to be created.
 
 * `geo_locations` - (Required) A list of where to physically run the tests from to give global coverage for accessibility of your application.
 

@@ -67,11 +67,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the failover group. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group containing the SQL server
+* `resource_group_name` - (Required) The name of the resource group containing the SQL server Changing this forces a new resource to be created.
 
-* `server_name` - (Required) The name of the primary SQL server. Changing this forces a new resource to be created.
+* `server_name` - (Required) The name of the primary SQL server. Changing this forces a new resource to be created. 
 
-* `databases` - A list of database ids to add to the failover group
+* `databases` - (Optional) A list of database ids to add to the failover group
 
 -> **NOTE:** The failover group will create a secondary database for each database listed in `databases`. If the secondary databases need to be managed through Terraform, they should be defined as resources and a dependency added to the failover group to ensure the secondary databases are created first. Please refer to the detailed example which can be found in [the `./examples/sql-azure/failover_group` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/failover_group)
 
@@ -83,19 +83,25 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`partner_servers` supports the following:
+---
+
+The `partner_servers` block supports the following:
 
 * `id` - (Required) the SQL server ID
 
-`read_write_endpoint_failover_policy` supports the following:
+---
+
+The `read_write_endpoint_failover_policy` block supports the following:
 
 * `mode` - (Required) the failover mode. Possible values are `Manual`, `Automatic`
 
-* `grace_minutes` - Applies only if `mode` is `Automatic`. The grace period in minutes before failover with data loss is attempted
+* `grace_minutes` - (Optional) Applies only if `mode` is `Automatic`. The grace period in minutes before failover with data loss is attempted
 
-`readonly_endpoint_failover_policy` supports the following:
+---
 
-* `mode` - Failover policy for the read-only endpoint. Possible values are `Enabled`, and `Disabled`
+The `readonly_endpoint_failover_policy` block supports the following:
+
+* `mode` - (Required) Failover policy for the read-only endpoint. Possible values are `Enabled`, and `Disabled`
 
 ## Attributes Reference
 
@@ -103,10 +109,10 @@ The following attributes are exported:
 
 * `id` - The failover group ID.
 * `location` - the location of the failover group.
-* `server_name` - the name of the primary SQL Database Server.
+* `server_name` - (Required) the name of the primary SQL Database Server. Changing this forces a new resource to be created.
 * `role` - local replication role of the failover group instance.
-* `databases` - list of databases in the failover group.
-* `partner_servers` - list of partner server information for the failover group.
+* `databases` - (Optional) list of databases in the failover group.
+* `partner_servers` - (Required) list of partner server information for the failover group.
 
 ## Timeouts
 
@@ -122,5 +128,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 SQL Failover Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_sql_failover_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/failovergroups/group1
+terraform import azurerm_sql_failover_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/failoverGroups/group1
 ```

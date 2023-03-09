@@ -1,4 +1,6 @@
+---
 name: Open Pull Request when an `auto-pr` is pushed
+
 on:
   push:
     branches:

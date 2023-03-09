@@ -8,8 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault"
-	KeyVaultMgmt "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault" // nolint: staticcheck
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -30,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	KeyVaultMgmt "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 // As can be seen in the API definition, the Sku Family only supports the value

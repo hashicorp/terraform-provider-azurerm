@@ -104,11 +104,11 @@ The following arguments are supported:
 
 * `force_an_update_when_value_changed` - (Optional) A unique string. If changed the script will be applied again.
 
-* `script_content` - (Optional) The script content. This property should be used when the script is provide inline and not through file in a SA. Must not be used together with `url` and `sas_token` properties.
+* `script_content` - (Optional) The script content. This property should be used when the script is provide inline and not through file in a SA. Must not be used together with `url` and `sas_token` properties. Changing this forces a new resource to be created.
 
-* `sas_token` - (Optional) The SAS token used to access the script. Must be provided when using scriptUrl property.
+* `sas_token` - (Optional) The SAS token used to access the script. Must be provided when using scriptUrl property. Changing this forces a new resource to be created.
 
-* `url` - (Optional) The url to the KQL script blob file.  Must not be used together with scriptContent property. Please reference [this documentation](https://docs.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
+* `url` - (Optional) The url to the KQL script blob file. Must not be used together with scriptContent property. Please reference [this documentation](https://docs.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
 
 ## Attributes Reference
 
@@ -130,5 +130,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Kusto Scripts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kusto_script.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1/Scripts/script1
+terraform import azurerm_kusto_script.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/clusters/cluster1/databases/database1/scripts/script1
 ```

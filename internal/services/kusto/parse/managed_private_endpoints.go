@@ -36,7 +36,7 @@ func (id ManagedPrivateEndpointsId) String() string {
 }
 
 func (id ManagedPrivateEndpointsId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s/ManagedPrivateEndpoints/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/clusters/%s/managedPrivateEndpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.ManagedPrivateEndpointName)
 }
 
@@ -60,10 +60,66 @@ func ManagedPrivateEndpointsID(input string) (*ManagedPrivateEndpointsId, error)
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.ClusterName, err = id.PopSegment("Clusters"); err != nil {
+	if resourceId.ClusterName, err = id.PopSegment("clusters"); err != nil {
 		return nil, err
 	}
-	if resourceId.ManagedPrivateEndpointName, err = id.PopSegment("ManagedPrivateEndpoints"); err != nil {
+	if resourceId.ManagedPrivateEndpointName, err = id.PopSegment("managedPrivateEndpoints"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// ManagedPrivateEndpointsIDInsensitively parses an ManagedPrivateEndpoints ID into an ManagedPrivateEndpointsId struct, insensitively
+// This should only be used to parse an ID for rewriting, the ManagedPrivateEndpointsID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func ManagedPrivateEndpointsIDInsensitively(input string) (*ManagedPrivateEndpointsId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := ManagedPrivateEndpointsId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'clusters' segment
+	clustersKey := "clusters"
+	for key := range id.Path {
+		if strings.EqualFold(key, clustersKey) {
+			clustersKey = key
+			break
+		}
+	}
+	if resourceId.ClusterName, err = id.PopSegment(clustersKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'managedPrivateEndpoints' segment
+	managedPrivateEndpointsKey := "managedPrivateEndpoints"
+	for key := range id.Path {
+		if strings.EqualFold(key, managedPrivateEndpointsKey) {
+			managedPrivateEndpointsKey = key
+			break
+		}
+	}
+	if resourceId.ManagedPrivateEndpointName, err = id.PopSegment(managedPrivateEndpointsKey); err != nil {
 		return nil, err
 	}
 

@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Template should exist. Changing this forces a new Template to be created.
 
-* `management_group_id` - (Required) The ID of the Management Group to apply the Deployment Template to.
+* `management_group_id` - (Required) The ID of the Management Group to apply the Deployment Template to. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name which should be used for this Template Deployment. Changing this forces a new Template Deployment to be created.
 

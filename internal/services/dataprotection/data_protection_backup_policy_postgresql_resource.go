@@ -244,7 +244,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLRead(d *pluginsdk.ResourceData,
 	}
 	d.Set("name", id.BackupPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("vault_name", id.VaultName)
+	d.Set("vault_name", id.BackupVaultName)
 
 	if resp.Model != nil {
 		if resp.Model.Properties != nil {
@@ -551,9 +551,7 @@ func flattenBackupPolicyPostgreSQLBackupCriteriaArray(input *[]backuppolicies.Ba
 			var scheduleTimes []string
 			if criteria.ScheduleTimes != nil {
 				scheduleTimes = make([]string, 0)
-				for _, item := range *criteria.ScheduleTimes {
-					scheduleTimes = append(scheduleTimes, item)
-				}
+				scheduleTimes = append(scheduleTimes, *criteria.ScheduleTimes...)
 			}
 
 			results = append(results, map[string]interface{}{

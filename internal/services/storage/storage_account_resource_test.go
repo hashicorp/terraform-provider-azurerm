@@ -45,6 +45,7 @@ func TestAccStorageAccount_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("cross_tenant_replication_enabled").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -600,11 +601,19 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.restorePolicyMinimal(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.blobProperties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("300"),
+				check.That(data.ResourceName).Key("blob_properties.0.restore_policy.0.days").HasValue("299"),
 			),
 		},
 		data.ImportStep(),
@@ -624,6 +633,7 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.#").DoesNotExist(),
+				check.That(data.ResourceName).Key("blob_properties.0.restore_policy.#").DoesNotExist(),
 				check.That(data.ResourceName).Key("blob_properties.0.container_delete_retention_policy.#").DoesNotExist(),
 			),
 		},
@@ -878,6 +888,13 @@ func TestAccAzureRMStorageAccount_azureFilesAuthentication(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.azureFilesAuthenticationAADKERB(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -1108,7 +1125,7 @@ func TestAccStorageAccount_encryptionKeyType(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_infrastructureEncryption(t *testing.T) {
+func TestAccStorageAccount_infrastructureEncryptionStorageV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1130,14 +1147,43 @@ func TestAccStorageAccount_infrastructureEncryption(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.infrastructureEncryptionForBlockBlobStorage(data),
+			Config: r.infrastructureEncryption(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("infrastructure_encryption_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("account_tier").HasValue("Premium"),
-				check.That(data.ResourceName).Key("account_kind").HasValue("BlockBlobStorage"),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_infrastructureEncryptionFileStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.infrastructureEncryptionForFileStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_infrastructureEncryptionBlockBlobStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.infrastructureEncryptionForBlockBlobStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1319,6 +1365,95 @@ func TestAccStorageAccount_premiumFileCustomerManagedKey(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.premiumFileCustomerManagedKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_sasPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sasPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_allowedCopyScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.allowedCopyScope(data, "AAD"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.allowedCopyScope(data, "PrivateLink"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_isSftpEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.isSftpEnabledTrue(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sftp_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.isSftpEnabledFalse(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sftp_enabled").HasValue("false"),
+			),
+		},
+	})
+}
+
+func TestAccStorageAccount_emptyShareProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyShareProperties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1620,33 +1755,6 @@ resource "azurerm_storage_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tlsVersion)
-}
-
-func (r *StorageAccountResource) controlAllowNestedItemsToBePublic(data acceptance.TestData, allowFlag bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
-
-  location                        = azurerm_resource_group.test.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = %t
-
-  tags = {
-    environment = "production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, allowFlag)
 }
 
 func (r StorageAccountResource) isHnsEnabledTrue(data acceptance.TestData) string {
@@ -2380,6 +2488,10 @@ resource "azurerm_storage_account" "test" {
       days = 300
     }
 
+    restore_policy {
+      days = 299
+    }
+
     default_service_version       = "2019-07-07"
     versioning_enabled            = true
     change_feed_enabled           = true
@@ -2460,6 +2572,39 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   blob_properties {
+    versioning_enabled  = true
+    change_feed_enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) restorePolicyMinimal(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  blob_properties {
+    delete_retention_policy {}
+
+    restore_policy {
+      days = 6
+    }
+
     versioning_enabled  = true
     change_feed_enabled = true
   }
@@ -3090,6 +3235,35 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+func (r StorageAccountResource) azureFilesAuthenticationAADKERB(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  azure_files_authentication {
+    directory_type = "AADKERB"
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
 func (r StorageAccountResource) routing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3564,6 +3738,30 @@ resource "azurerm_storage_account" "test" {
 
   location                          = azurerm_resource_group.test.location
   account_kind                      = "BlockBlobStorage"
+  account_tier                      = "Premium"
+  account_replication_type          = "LRS"
+  infrastructure_encryption_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) infrastructureEncryptionForFileStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                          = azurerm_resource_group.test.location
+  account_kind                      = "FileStorage"
   account_tier                      = "Premium"
   account_replication_type          = "LRS"
   infrastructure_encryption_enabled = true
@@ -4056,4 +4254,129 @@ resource "azurerm_storage_account" "test" {
   }
 }
     `, r.cmkTemplate(data), data.RandomString)
+}
+
+func (r StorageAccountResource) sasPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  sas_policy {
+    expiration_action = "Log"
+    expiration_period = "1.15:5:05"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) allowedCopyScope(data acceptance.TestData, scope string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  allowed_copy_scope       = %q
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, scope)
+}
+
+func (r StorageAccountResource) emptyShareProperties(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+
+  share_properties {}
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) isSftpEnabledTrue(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "StorageV2"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  is_hns_enabled           = true
+  sftp_enabled             = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) isSftpEnabledFalse(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "StorageV2"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  is_hns_enabled           = true
+  sftp_enabled             = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

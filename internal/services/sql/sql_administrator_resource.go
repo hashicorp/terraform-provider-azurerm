@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -30,6 +31,11 @@ func resourceSqlAdministrator() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AzureActiveDirectoryAdministratorID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SQLAdministratorV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{

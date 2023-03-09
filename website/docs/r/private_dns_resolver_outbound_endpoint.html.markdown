@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Private DNS Resolver Outbound Endpoint should exist. Changing this forces a new Private DNS Resolver Outbound Endpoint to be created.
 
-* `subnet_id` - (Required)  The ID of the Subnet that is linked to the Private DNS Resolver Outbound Endpoint.
+* `subnet_id` - (Required) The ID of the Subnet that is linked to the Private DNS Resolver Outbound Endpoint. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Private DNS Resolver Outbound Endpoint.
 

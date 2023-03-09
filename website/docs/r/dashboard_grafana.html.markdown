@@ -52,6 +52,8 @@ The following arguments are supported:
 
 * `deterministic_outbound_ip_enabled` - (Optional) Whether to enable the Grafana instance to use deterministic outbound IPs. Defaults to `false`.
 
+* `azure_monitor_workspace_integrations` - (Optional) A `azure_monitor_workspace_integrations` block as defined below.
+
 * `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Dashboard Grafana to be created.
 
 * `public_network_access_enabled` - (Optional) Whether to enable traffic over the public interface. Defaults to `true`.
@@ -64,9 +66,15 @@ The following arguments are supported:
 
 ---
 
+An `azure_monitor_workspace_integrations` block supports the following:
+
+* `resource_id` - (Required) Specifies the resource ID of the connected Azure Monitor Workspace.
+
+---
+
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity. The only possible values is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity. The only possible values is `SystemAssigned`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

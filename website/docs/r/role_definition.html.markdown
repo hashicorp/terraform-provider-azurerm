@@ -37,9 +37,9 @@ resource "azurerm_role_definition" "example" {
 
 The following arguments are supported:
 
-* `role_definition_id` - (Optional) A unique UUID/GUID which identifies this role - one will be generated if not specified. Changing this forces a new resource to be created.
+* `role_definition_id` - (Optional) A unique UUID/GUID which identifies this role - one will be generated if not specified. Changing this forces a new resource to be created. 
 
-* `name` - (Required) The name of the Role Definition. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Role Definition. 
 
 * `scope` - (Required) The scope at which the Role Definition applies to, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`. It is recommended to use the first entry of the `assignable_scopes`. Changing this forces a new resource to be created.
 
@@ -69,7 +69,7 @@ The following attributes are exported:
 
 * `id` - This ID is specific to Terraform - and is of the format `{roleDefinitionId}|{scope}`.
 
-* `role_definition_id` - The Role Definition ID.
+* `role_definition_id` - (Optional) The Role Definition ID. Changing this forces a new resource to be created.
 
 * `role_definition_resource_id` - The Azure Resource Manager ID for the resource.
 
@@ -78,7 +78,7 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Role Definition.
-* `update` - (Defaults to 30 minutes) Used when updating the Role Definition.
+* `update` - (Defaults to 60 minutes) Used when updating the Role Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Role Definition.
 

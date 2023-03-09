@@ -45,7 +45,7 @@ resource "azurerm_route_table" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the route table. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the route table. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the route table. Changing this forces a new resource to be created.
 
@@ -59,7 +59,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-Elements of `route` support:
+---
+
+A `route` block support:
 
 * `name` - (Required) The name of the route.
 

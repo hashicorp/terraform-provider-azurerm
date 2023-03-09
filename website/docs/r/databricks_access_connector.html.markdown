@@ -8,8 +8,6 @@ description: |-
 
 # azurerm_databricks_access_connector
 
-~> **NOTE:** Databricks Access Connectors are in Private Preview and potentially subject to breaking change without notice. If you would like to use these features please contact your Microsoft support representative on how to opt-in to the Databricks Access Connector Private Preview feature program.
-
 Manages a Databricks Access Connector
 
 ## Example Usage
@@ -24,6 +22,7 @@ resource "azurerm_databricks_access_connector" "example" {
   name                = "databrickstest"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
+
   identity {
     type = "SystemAssigned"
   }
@@ -44,13 +43,33 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be created. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The type of identity to use for this Access Connector. `SystemAssigned` is the only possible value.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Databricks Access Connector in the Azure management plane.
+
+* `identity` - A list of `identity` blocks containing the system-assigned managed identities as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `type` - The type of identity.
+
+* `principal_id` - The Principal ID associated with this system-assigned managed identity.
+
+* `tenant_id` - The Tenant ID associated with this system-assigned managed identity.
 
 ## Timeouts
 
@@ -59,7 +78,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 5 minutes) Used when creating the Databricks Access Connector.
 * `update` - (Defaults to 5 minutes) Used when updating the Databricks Access Connector.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Access Connector.
-* `delete` - (Defaults to 5 minutes) Used when deleting the Databricks Access Connector.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Databricks Access Connector.
 
 ## Import
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	tfvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -316,7 +316,7 @@ func (r ContainerConnectedRegistryResource) Read() sdk.ResourceFunc {
 				}
 				if parent := props.Parent; parent != nil {
 					if parent.ID != nil {
-						if pid, err := parse.RegistryID(*parent.ID); err == nil {
+						if pid, err := parse.RegistryIDInsensitively(*parent.ID); err == nil {
 							parentRegistryId = pid.ID()
 						} else if pid, err := parse.ContainerConnectedRegistryID(*parent.ID); err == nil {
 							parentRegistryId = pid.ID()

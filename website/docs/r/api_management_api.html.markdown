@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The Name of the Resource Group where the API Management API exists. Changing this forces a new resource to be created.
 
-* `revision` - (Required) The Revision which used for this API.
+* `revision` - (Required) The Revision which used for this API. Changing this forces a new resource to be created.
 
 ---
 
@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
 
-* `subscription_required` - (Optional) Should this API require a subscription key?
+* `subscription_required` - (Optional) Should this API require a subscription key? Defaults to `true`.
 
 * `terms_of_service_url` - (Optional) Absolute URL of the Terms of Service for the API.
 
@@ -174,9 +174,9 @@ In addition to all arguments above, the following attributes are exported:
 
 * `is_online` - Is this API Revision online/accessible via the Gateway?
 
-* `version` - The Version number of this API, if this API is versioned.
+* `version` - (Optional) The Version number of this API, if this API is versioned.
 
-* `version_set_id` - The ID of the Version Set which this API is associated with.
+* `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.
 
 ## Timeouts
 

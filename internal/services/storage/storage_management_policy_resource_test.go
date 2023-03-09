@@ -370,7 +370,14 @@ func TestAccStorageManagementPolicy_baseblobAccessTimeBased(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.baseblobAccessTimeBased(data),
+			Config: r.baseblobAccessTimeBased(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.baseblobAccessTimeBased(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -378,6 +385,13 @@ func TestAccStorageManagementPolicy_baseblobAccessTimeBased(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.baseblobAccessTimeBasedZero(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.baseblobCreateBased(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1003,7 +1017,7 @@ resource "azurerm_storage_management_policy" "test" {
 `, r.templateLastAccessTimeEnabled(data))
 }
 
-func (r StorageManagementPolicyResource) baseblobAccessTimeBased(data acceptance.TestData) string {
+func (r StorageManagementPolicyResource) baseblobCreateBased(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1019,6 +1033,33 @@ resource "azurerm_storage_management_policy" "test" {
     }
     actions {
       base_blob {
+        tier_to_cool_after_days_since_creation_greater_than    = 10
+        tier_to_archive_after_days_since_creation_greater_than = 50
+        delete_after_days_since_creation_greater_than          = 100
+      }
+    }
+  }
+}
+`, r.templateLastAccessTimeEnabled(data))
+}
+
+func (r StorageManagementPolicyResource) baseblobAccessTimeBased(data acceptance.TestData, autoTierToHotEnabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_management_policy" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+
+  rule {
+    name    = "rule-1"
+    enabled = true
+    filters {
+      prefix_match = ["container1/prefix1"]
+      blob_types   = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        auto_tier_to_hot_from_cool_enabled                             = %t
         tier_to_cool_after_days_since_last_access_time_greater_than    = 10
         tier_to_archive_after_days_since_last_access_time_greater_than = 50
         delete_after_days_since_last_access_time_greater_than          = 100
@@ -1026,7 +1067,7 @@ resource "azurerm_storage_management_policy" "test" {
     }
   }
 }
-`, r.templateLastAccessTimeEnabled(data))
+`, r.templateLastAccessTimeEnabled(data), autoTierToHotEnabled)
 }
 
 func (r StorageManagementPolicyResource) baseblobAccessTimeBasedZero(data acceptance.TestData) string {

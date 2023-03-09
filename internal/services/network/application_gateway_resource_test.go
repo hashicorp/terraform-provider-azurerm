@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type ApplicationGatewayResource struct{}
@@ -2316,6 +2316,16 @@ resource "azurerm_application_gateway" "test" {
     subnet_id = "${azurerm_subnet.test.id}"
   }
 
+  waf_configuration {
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
+    file_upload_limit_mb     = 100
+    request_body_check       = true
+    max_request_body_size_kb = 100
+  }
+
   identity {
     type         = "UserAssigned"
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
@@ -2491,6 +2501,16 @@ resource "azurerm_application_gateway" "test" {
     subnet_id = azurerm_subnet.test.id
   }
 
+  waf_configuration {
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
+    file_upload_limit_mb     = 100
+    request_body_check       = true
+    max_request_body_size_kb = 100
+  }
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -2651,6 +2671,16 @@ resource "azurerm_application_gateway" "test" {
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
     subnet_id = azurerm_subnet.test.id
+  }
+
+  waf_configuration {
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
+    file_upload_limit_mb     = 100
+    request_body_check       = true
+    max_request_body_size_kb = 100
   }
 
   frontend_port {
@@ -3189,6 +3219,16 @@ resource "azurerm_application_gateway" "test" {
   frontend_ip_configuration {
     name                 = local.frontend_ip_configuration_name
     public_ip_address_id = azurerm_public_ip.teststd.id
+  }
+
+  waf_configuration {
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
+    file_upload_limit_mb     = 100
+    request_body_check       = true
+    max_request_body_size_kb = 100
   }
 
   backend_address_pool {
@@ -4437,6 +4477,16 @@ resource "azurerm_application_gateway" "test" {
     subnet_id = azurerm_subnet.test.id
   }
 
+  waf_configuration {
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
+    file_upload_limit_mb     = 100
+    request_body_check       = true
+    max_request_body_size_kb = 100
+  }
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -4585,6 +4635,16 @@ resource "azurerm_application_gateway" "test" {
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
     subnet_id = azurerm_subnet.test.id
+  }
+
+  waf_configuration {
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
+    file_upload_limit_mb     = 100
+    request_body_check       = true
+    max_request_body_size_kb = 100
   }
 
   identity {

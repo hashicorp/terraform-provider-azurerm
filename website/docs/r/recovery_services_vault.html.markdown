@@ -44,9 +44,15 @@ The following arguments are supported:
 
 * `sku` - (Required) Sets the vault's SKU. Possible values include: `Standard`, `RS0`.
 
+* `public_network_access_enabled` - (Optional) Is it enabled to access the vault from public networks. Defaults to `true`.
+
+* `immutability` - (Optional) Immutability Settings of vault, possible values include: `Locked`, `Unlocked` and `Disabled`.
+
 * `storage_mode_type` - (Optional) The storage type of the Recovery Services Vault. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Defaults to `GeoRedundant`.
 
 * `cross_region_restore_enabled` - (Optional) Is cross region restore enabled for this Vault? Only can be `true`, when `storage_mode_type` is `GeoRedundant`. Defaults to `false`.
+
+-> **Note:** Once `cross_region_restore_enabled` is set to `true`, changing it back to `false` forces a new Recovery Service Vault to be created.
 
 * `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
 
@@ -54,11 +60,17 @@ The following arguments are supported:
 
 !> **Note:** Once Encryption with your own key has been Enabled it's not possible to Disable it.
 
+* `classic_vmware_replication_enabled` - (Optional) Whether to enable the Classic experience for VMware replication. If set to `false` VMware machines will be protected using the new stateless ASR replication appliance. Changing this forces a new resource to be created.
+
 ---
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Recovery Services Vault. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Recovery Services Vault. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
+
+~> **NOTE:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -68,7 +80,11 @@ An `encryption` block supports the following:
 
 * `infrastructure_encryption_enabled` - (Required) Enabling/Disabling the Double Encryption state.
 
-* `use_system_assigned_identity` - (Optional) Indicate that system assigned identity should be used or not. At this time the only possible value is `true`. Defaults to `true`.
+* `user_assigned_identity_id` - (Optional) Specifies the user assigned identity ID to be used.
+
+* `use_system_assigned_identity` - (Optional) Indicate that system assigned identity should be used or not. Defaults to `true`.
+
+!> **Note:** `use_system_assigned_identity` only be able to set to `false` for **new** vaults. Any vaults containing existing items registered or attempted to be registered to it are not supported. Details can be found in [the document](https://learn.microsoft.com/en-us/azure/backup/encryption-at-rest-with-cmk?tabs=portal#before-you-start)
 
 !> **Note:** Once `infrastructure_encryption_enabled` has been set it's not possible to change it.
 
@@ -94,8 +110,8 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Recovery Services Vault.
-* `update` - (Defaults to 30 minutes) Used when updating the Recovery Services Vault.
+* `create` - (Defaults to 2 hours) Used when creating the Recovery Services Vault.
+* `update` - (Defaults to 60 minutes) Used when updating the Recovery Services Vault.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services Vault.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Recovery Services Vault.
 

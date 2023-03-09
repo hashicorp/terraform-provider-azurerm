@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -184,7 +184,8 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainRead(d *pluginsdk.Resour
 	existing, err := routeClient.Get(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("creating %s: %s was not found", id, routeId)
+			d.SetId("")
+			return nil
 		}
 
 		return fmt.Errorf("retrieving existing %s: %+v", *routeId, err)

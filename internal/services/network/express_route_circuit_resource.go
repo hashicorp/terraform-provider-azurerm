@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
@@ -300,7 +300,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("bandwidth_in_gbps", resp.BandwidthInGbps)
 
 		if resp.ExpressRoutePort.ID != nil {
-			portID, err := parse.ExpressRoutePortID(*resp.ExpressRoutePort.ID)
+			portID, err := parse.ExpressRoutePortIDInsensitively(*resp.ExpressRoutePort.ID)
 			if err != nil {
 				return err
 			}

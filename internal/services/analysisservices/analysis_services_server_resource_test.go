@@ -126,7 +126,7 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 	const ArmAccAdminEmail2 = "ARM_ACCTEST_ADMIN_EMAIL2"
 
 	if os.Getenv(ArmAccAdminEmail1) == "" || os.Getenv(ArmAccAdminEmail2) == "" {
-		t.Skip(fmt.Sprintf("Acceptance test skipped unless env '%s' and '%s' set", ArmAccAdminEmail1, ArmAccAdminEmail2))
+		t.Skipf("Acceptance test skipped unless env '%s' and '%s' set", ArmAccAdminEmail1, ArmAccAdminEmail2)
 		return
 	}
 

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -97,7 +98,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.CapacityReservationGroupID,
+				ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 				ConflictsWith: []string{
 					"proximity_placement_group_id",
 				},
@@ -226,9 +227,12 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					computeValidate.SharedGalleryImageID,
 					computeValidate.SharedGalleryImageVersionID,
 				),
+				ConflictsWith: []string{
+					"source_image_reference",
+				},
 			},
 
-			"source_image_reference": sourceImageReferenceSchema(false),
+			"source_image_reference": sourceImageReferenceSchemaOrchestratedVMSS(),
 
 			"zone_balance": {
 				Type:     pluginsdk.TypeBool,
@@ -255,6 +259,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsBase64,
 			},
+
+			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
 		},
 	}
 }
@@ -377,10 +383,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
 	if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
-		sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-		if err != nil {
-			return err
-		}
+		sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 	}
 
@@ -619,6 +622,13 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 
 			props.VirtualMachineScaleSetProperties.ZoneBalance = utils.Bool(v.(bool))
+		}
+
+		if v, ok := d.GetOk("priority_mix"); ok {
+			if virtualMachineProfile.Priority != compute.VirtualMachinePriorityTypesSpot {
+				return fmt.Errorf("a `priority_mix` can only be specified when `priority` is set to `Spot`")
+			}
+			props.VirtualMachineScaleSetProperties.PriorityMixPolicy = ExpandVirtualMachineScaleSetPriorityMixPolicy(v.([]interface{}))
 		}
 
 		props.VirtualMachineScaleSetProperties.VirtualMachineProfile = &virtualMachineProfile
@@ -933,10 +943,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				sourceImageId := d.Get("source_image_id").(string)
 
 				if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
-					sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-					if err != nil {
-						return err
-					}
+					sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 					updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 				}
 
@@ -1016,20 +1023,26 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			update.Plan = expandPlan(planRaw)
 		}
 
-		if d.HasChange("sku") || d.HasChange("instances") {
+		if d.HasChange("sku_name") || d.HasChange("instances") {
 			// in-case ignore_changes is being used, since both fields are required
 			// look up the current values and override them as needed
 			sku := existing.Sku
 			instances := int(*sku.Capacity)
+			skuName := d.Get("sku_name").(string)
 
 			if d.HasChange("instances") {
 				instances = d.Get("instances").(int)
+
+				sku, err = expandOrchestratedVirtualMachineScaleSetSku(skuName, instances)
+				if err != nil {
+					return err
+				}
 			}
 
 			if d.HasChange("sku_name") {
 				updateInstances = true
 
-				sku, err = expandOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string), instances)
+				sku, err = expandOrchestratedVirtualMachineScaleSetSku(skuName, instances)
 				if err != nil {
 					return err
 				}
@@ -1284,6 +1297,13 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 		d.Set("user_data_base64", profile.UserData)
 	}
+
+	if priorityMixPolicy := props.PriorityMixPolicy; priorityMixPolicy != nil {
+		if err := d.Set("priority_mix", FlattenOrchestratedVirtualMachineScaleSetPriorityMixPolicy(priorityMixPolicy)); err != nil {
+			return fmt.Errorf("setting `priority_mix`: %+v", err)
+		}
+	}
+
 	d.Set("extension_operations_enabled", extensionOperationsEnabled)
 
 	return tags.FlattenAndSet(d, resp.Tags)

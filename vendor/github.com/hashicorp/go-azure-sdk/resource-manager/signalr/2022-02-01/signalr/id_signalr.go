@@ -7,21 +7,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = SignalRId{}
 
 // SignalRId is a struct representing the Resource ID for a Signal R
 type SignalRId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	ResourceName      string
+	SignalRName       string
 }
 
 // NewSignalRID returns a new SignalRId struct
-func NewSignalRID(subscriptionId string, resourceGroupName string, resourceName string) SignalRId {
+func NewSignalRID(subscriptionId string, resourceGroupName string, signalRName string) SignalRId {
 	return SignalRId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
+		SignalRName:       signalRName,
 	}
 }
 
@@ -44,8 +47,8 @@ func ParseSignalRID(input string) (*SignalRId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.SignalRName, ok = parsed.Parsed["signalRName"]; !ok {
+		return nil, fmt.Errorf("the segment 'signalRName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +74,8 @@ func ParseSignalRIDInsensitively(input string) (*SignalRId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.SignalRName, ok = parsed.Parsed["signalRName"]; !ok {
+		return nil, fmt.Errorf("the segment 'signalRName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +99,7 @@ func ValidateSignalRID(input interface{}, key string) (warnings []string, errors
 // ID returns the formatted Signal R ID
 func (id SignalRId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/signalR/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.SignalRName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Signal R ID
@@ -109,7 +112,7 @@ func (id SignalRId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticSignalR", "signalR", "signalR"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("signalRName", "signalRValue"),
 	}
 }
 
@@ -118,7 +121,7 @@ func (id SignalRId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Signal R Name: %q", id.SignalRName),
 	}
 	return fmt.Sprintf("Signal R (%s)", strings.Join(components, "\n"))
 }

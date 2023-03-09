@@ -7,21 +7,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = WebPubSubId{}
 
 // WebPubSubId is a struct representing the Resource ID for a Web Pub Sub
 type WebPubSubId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	ResourceName      string
+	WebPubSubName     string
 }
 
 // NewWebPubSubID returns a new WebPubSubId struct
-func NewWebPubSubID(subscriptionId string, resourceGroupName string, resourceName string) WebPubSubId {
+func NewWebPubSubID(subscriptionId string, resourceGroupName string, webPubSubName string) WebPubSubId {
 	return WebPubSubId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
+		WebPubSubName:     webPubSubName,
 	}
 }
 
@@ -44,8 +47,8 @@ func ParseWebPubSubID(input string) (*WebPubSubId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
+		return nil, fmt.Errorf("the segment 'webPubSubName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +74,8 @@ func ParseWebPubSubIDInsensitively(input string) (*WebPubSubId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
+		return nil, fmt.Errorf("the segment 'webPubSubName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +99,7 @@ func ValidateWebPubSubID(input interface{}, key string) (warnings []string, erro
 // ID returns the formatted Web Pub Sub ID
 func (id WebPubSubId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/webPubSub/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Web Pub Sub ID
@@ -109,7 +112,7 @@ func (id WebPubSubId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticWebPubSub", "webPubSub", "webPubSub"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("webPubSubName", "webPubSubValue"),
 	}
 }
 
@@ -118,7 +121,7 @@ func (id WebPubSubId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Web Pub Sub Name: %q", id.WebPubSubName),
 	}
 	return fmt.Sprintf("Web Pub Sub (%s)", strings.Join(components, "\n"))
 }

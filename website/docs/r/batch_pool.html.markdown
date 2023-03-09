@@ -120,17 +120,19 @@ The following arguments are supported:
 
 * `account_name` - (Required) Specifies the name of the Batch account in which the pool will be created. Changing this forces a new resource to be created.
 
-* `node_agent_sku_id` - (Required) Specifies the SKU of the node agents that will be created in the Batch pool.
+* `node_agent_sku_id` - (Required) Specifies the SKU of the node agents that will be created in the Batch pool. Changing this forces a new resource to be created.
 
-* `vm_size` - (Required) Specifies the size of the VM created in the Batch pool.
+* `stop_pending_resize_operation` - (Optional) Whether to stop if there is a pending resize operation on this pool.
 
-* `storage_image_reference` - (Required) A `storage_image_reference` for the virtual machines that will compose the Batch pool.
+* `vm_size` - (Required) Specifies the size of the VM created in the Batch pool. Changing this forces a new resource to be created.
 
-* `data_disks` - (Optional) A `data_disks` block describes the data disk settings.
+* `storage_image_reference` - (Required) A `storage_image_reference` for the virtual machines that will compose the Batch pool. Changing this forces a new resource to be created.
 
-* `display_name` - (Optional) Specifies the display name of the Batch pool.
+* `data_disks` - (Optional) A `data_disks` block describes the data disk settings as defined below.
 
-* `disk_encryption` - (Optional) A `disk_encryption` block describes the disk encryption configuration applied on compute nodes in the pool. Disk encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared Image Gallery Image.
+* `display_name` - (Optional) Specifies the display name of the Batch pool. Changing this forces a new resource to be created.
+
+* `disk_encryption` - (Optional) A `disk_encryption` block, as defined below, describes the disk encryption configuration applied on compute nodes in the pool. Disk encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared Image Gallery Image.
 
 * `extensions` - (Optional) An `extensions` block as defined below.
 
@@ -142,13 +144,13 @@ The following arguments are supported:
 
 * `max_tasks_per_node` - (Optional) Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool. Defaults to `1`. Changing this forces a new resource to be created.
 
-* `fixed_scale` - (Optional) A `fixed_scale` block that describes the scale settings when using fixed scale.
+* `fixed_scale` - (Optional) A `fixed_scale` block that describes the scale settings when using fixed scale as defined below.
 
-* `auto_scale` - (Optional) A `auto_scale` block that describes the scale settings when using auto scale.
+* `auto_scale` - (Optional) A `auto_scale` block that describes the scale settings when using auto scale as defined below.
 
-* `start_task` - (Optional) A `start_task` block that describes the start task settings for the Batch pool.
+* `start_task` - (Optional) A `start_task` block that describes the start task settings for the Batch pool as defined below.
 
-* `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool.
+* `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool as defined below.
 
 * `container_configuration` - (Optional) The container configuration used in the pool's VMs.
 
@@ -156,17 +158,17 @@ The following arguments are supported:
 
 * `mount` - (Optional) A `mount` block defined as below.
 
-* `network_configuration` - (Optional) A `network_configuration` block that describes the network configurations for the Batch pool.
+* `network_configuration` - (Optional) A `network_configuration` block that describes the network configurations for the Batch pool as defined below. Changing this forces a new resource to be created.
 
-* `node_placement` - (Optional) A `node_placement` block that describes the placement policy for allocating nodes in the pool.
+* `node_placement` - (Optional) A `node_placement` block that describes the placement policy for allocating nodes in the pool as defined below.
 
-* `os_disk_placement` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>.
+* `os_disk_placement` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>. The only possible value is `CacheDisk`.
 
-* `task_scheduling_policy` - (Optional) A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool. If not specified, the default is spread.
+* `task_scheduling_policy` - (Optional) A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool. If not specified, the default is spread as defined below.
 
-* `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool.
+* `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool as defined below.
 
-* `windows` - A `windows` block that describes the Windows configuration in the pool.
+* `windows` - (Optional) A `windows` block that describes the Windows configuration in the pool as defined below.
 
 -> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
@@ -186,11 +188,13 @@ A `data_disks` block supports the following:
 
 * `lun` - (Required) The lun is used to uniquely identify each data disk. If attaching multiple disks, each should have a distinct lun. The value must be between 0 and 63, inclusive.
 
-* `caching` - (Required) Values are: "none" - The caching mode for the disk is not enabled. "readOnly" - The caching mode for the disk is read only. "readWrite" - The caching mode for the disk is read and write. The default value for caching is "none". For information about the caching options see: <https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/>.
+* `caching` - (Optional) Values are: "none" - The caching mode for the disk is not enabled. "readOnly" - The caching mode for the disk is read only. "readWrite" - The caching mode for the disk is read and write. The default value for caching is "none". For information about the caching options see: <https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/>. Possible values are `None`, `ReadOnly` and `ReadWrite`.
 
 * `disk_size_gb` - (Required) The initial disk size in GB when creating new data disk.
 
 * `storage_account_type` - (Optional) The storage account type to be used for the data disk. If omitted, the default is "Standard_LRS". Values are: "Standard_LRS" - The data disk should use standard locally redundant storage. "Premium_LRS" - The data disk should use premium locally redundant storage.
+
+---
 
 A `disk_encryption` block supports the following:
 
@@ -227,7 +231,7 @@ A `node_placement` block supports the following:
 
 Node placement Policy type on Batch Pools. Allocation policy used by Batch Service to provision the nodes. If not specified, Batch will use the regional policy.
 
-* `policy` - (Required) The placement policy for allocating nodes in the pool. Values are: "Regional": All nodes in the pool will be allocated in the same region; "Zonal": Nodes in the pool will be spread across different zones with the best effort balancing.
+* `policy` - (Optional) The placement policy for allocating nodes in the pool. Values are: "Regional": All nodes in the pool will be allocated in the same region; "Zonal": Nodes in the pool will be spread across different zones with the best effort balancing.
 
 ---
 
@@ -237,17 +241,17 @@ This block provisions virtual machines in the Batch Pool from one of two sources
 
 To provision from an Azure Platform Image, the following fields are applicable:
 
-* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `offer` - (Required) Specifies the offer of the image used to create the virtual machines. Changing this forces a new resource to be created.
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines. Changing this forces a new resource to be created.
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
 * `version` - (Optional) Specifies the version of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
 To provision a Custom Image, the following fields are applicable:
 
-* `id` - (Required) Specifies the ID of the Custom Image which the virtual machines should be created from. Changing this forces a new resource to be created. See [official documentation](https://docs.microsoft.com/azure/batch/batch-custom-images) for more details.
+* `id` - (Optional) Specifies the ID of the Custom Image which the virtual machines should be created from. Changing this forces a new resource to be created. See [official documentation](https://docs.microsoft.com/azure/batch/batch-custom-images) for more details.
 
 ---
 
@@ -277,15 +281,15 @@ A `start_task` block supports the following:
 
 * `container` - (Optional) A `container` block is the settings for the container under which the start task runs. When this is specified, all directories recursively below the `AZ_BATCH_NODE_ROOT_DIR` (the root of Azure Batch directories on the node) are mapped into the container, all task environment variables are mapped into the container, and the task command line is executed in the container.
 
-* `task_retry_maximum` - (Optional) The number of retry count. Defaults to `1`.
+* `task_retry_maximum` - (Optional) The number of retry count.
 
 * `wait_for_success` - (Optional) A flag that indicates if the Batch pool should wait for the start task to be completed. Default to `false`.
 
 * `common_environment_properties` - (Optional) A map of strings (key,value) that represents the environment variables to set in the start task.
 
-* `user_identity` - (Required) A `user_identity` block that describes the user identity under which the start task runs.
+* `user_identity` - (Required) A `user_identity` block that describes the user identity under which the start task runs as defined below.
 
-* `resource_file` - (Optional) One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
+* `resource_file` - (Optional) One or more `resource_file` blocks that describe the files to be downloaded to a compute node as defined below.
 
 ---
 
@@ -295,7 +299,7 @@ A `container` block supports the following:
 
 * `run_options` - (Optional) Additional options to the container create command. These additional options are supplied as arguments to the "docker create" command, in addition to those controlled by the Batch Service.
 
-* `registry` - (Optional) The same reference as `container_registries` block defined as follows.
+* `registry` - (Optional) The same reference as `container_registries` block defined as below.
 
 * `working_directory` - (Optional) A flag to indicate where the container task working directory is. The default is `TaskWorkingDirectory`, an alternative value is `ContainerImageDefault`.
 
@@ -305,7 +309,7 @@ A `user_identity` block supports the following:
 
 * `user_name` - (Optional) The username to be used by the Batch pool start task.
 
-* `auto_user` - (Optional) A `auto_user` block that describes the user identity under which the start task runs.
+* `auto_user` - (Optional) A `auto_user` block that describes the user identity under which the start task runs as defined below.
 
 ~> **Please Note:** `user_name` and `auto_user` blocks cannot be used both at the same time, but you need to define one or the other.
 
@@ -329,7 +333,7 @@ A `certificate` block supports the following:
 
 * `store_name` - (Optional) The name of the certificate store on the compute node into which to install the certificate. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). Common store names include: `My`, `Root`, `CA`, `Trust`, `Disallowed`, `TrustedPeople`, `TrustedPublisher`, `AuthRoot`, `AddressBook`, but any custom store name can also be used. The default value is `My`.
 
-* `visibility` - (Optional) Which user accounts on the compute node should have access to the private data of the certificate.
+* `visibility` - (Optional) Which user accounts on the compute node should have access to the private data of the certificate. Possible values are `StartTask`, `Task` and `RemoteUser`.
 
 ---
 
@@ -337,9 +341,9 @@ A `container_configuration` block supports the following:
 
 * `type` - (Optional) The type of container configuration. Possible value is `DockerCompatible`.
 
-* `container_image_names` - (Optional) A list of container image names to use, as would be specified by `docker pull`.
+* `container_image_names` - (Optional) A list of container image names to use, as would be specified by `docker pull`. Changing this forces a new resource to be created.
 
-* `container_registries` - (Optional) Additional container registries from which container images can be pulled by the pool's VMs.
+* `container_registries` - (Optional) One or more `container_registries` blocks as defined below. Additional container registries from which container images can be pulled by the pool's VMs. Changing this forces a new resource to be created.
 
 ---
 
@@ -365,7 +369,7 @@ A `resource_file` block supports the following:
 
 A `container_registries` block supports the following:
 
-* `registry_server` - (Optional) The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
+* `registry_server` - (Required) The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
 
 * `user_name` - (Optional) The user name to log into the registry server. Changing this forces a new resource to be created.
 
@@ -449,7 +453,7 @@ A `network_configuration` block supports the following:
 
 * `subnet_id` - (Required) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
-* `dynamic_vnet_assignment_scope` - (Optional) The scope of dynamic vnet assignment. Allowed values: `none`, `job`.
+* `dynamic_vnet_assignment_scope` - (Optional) The scope of dynamic vnet assignment. Allowed values: `none`, `job`. Changing this forces a new resource to be created.
 
 * `public_ips` - (Optional) A list of public IP ids that will be allocated to nodes. Changing this forces a new resource to be created.
 
@@ -461,15 +465,15 @@ A `network_configuration` block supports the following:
 
 A `endpoint_configuration` block supports the following:
 
-* `name` - The name of the endpoint. The name must be unique within a Batch pool, can contain letters, numbers, underscores, periods, and hyphens. Names must start with a letter or number, must end with a letter, number, or underscore, and cannot exceed 77 characters. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the endpoint. The name must be unique within a Batch pool, can contain letters, numbers, underscores, periods, and hyphens. Names must start with a letter or number, must end with a letter, number, or underscore, and cannot exceed 77 characters. Changing this forces a new resource to be created.
 
-* `backend_port` - The port number on the compute node. Acceptable values are between `1` and `65535` except for `29876`, `29877` as these are reserved. Changing this forces a new resource to be created.
+* `backend_port` - (Required) The port number on the compute node. Acceptable values are between `1` and `65535` except for `29876`, `29877` as these are reserved. Changing this forces a new resource to be created.
 
-* `protocol` - The protocol of the endpoint. Acceptable values are `TCP` and `UDP`. Changing this forces a new resource to be created.
+* `protocol` - (Required) The protocol of the endpoint. Acceptable values are `TCP` and `UDP`. Changing this forces a new resource to be created.
 
-* `frontend_port_range` - The range of external ports that will be used to provide inbound access to the backendPort on individual compute nodes in the format of `1000-1100`. Acceptable values range between `1` and `65534` except ports from `50000` to `55000` which are reserved by the Batch service. All ranges within a pool must be distinct and cannot overlap. Values must be a range of at least `100` nodes. Changing this forces a new resource to be created.
+* `frontend_port_range` - (Required) The range of external ports that will be used to provide inbound access to the backendPort on individual compute nodes in the format of `1000-1100`. Acceptable values range between `1` and `65534` except ports from `50000` to `55000` which are reserved by the Batch service. All ranges within a pool must be distinct and cannot overlap. Values must be a range of at least `100` nodes. Changing this forces a new resource to be created.
 
-* `network_security_group_rules` - (Optional) A list of network security group rules that will be applied to the endpoint. The maximum number of rules that can be specified across all the endpoints on a Batch pool is `25`. If no network security group rules are specified, a default rule will be created to allow inbound access to the specified backendPort. Set as documented in the network_security_group_rules block below. Changing this forces a new resource to be created.
+* `network_security_group_rules` - (Optional) A list of `network_security_group_rules` blocks as defined below that will be applied to the endpoint. The maximum number of rules that can be specified across all the endpoints on a Batch pool is `25`. If no network security group rules are specified, a default rule will be created to allow inbound access to the specified backendPort. Set as documented in the network_security_group_rules block below. Changing this forces a new resource to be created.
 
 ---
 
@@ -481,13 +485,13 @@ A `network_security_group_rules` block supports the following:
 
 * `source_address_prefix` - (Required) The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
 
-* `source_port_ranges` - (Optional) The source port ranges to match for the rule. Valid values are `*` (for all ports 0 - 65535) or arrays of ports or port ranges (i.e. `100-200`). The ports should in the range of 0 to 65535 and the port ranges or ports can't overlap. If any other values are provided the request fails with HTTP status code 400. Default value will be `*`.
+* `source_port_ranges` - (Optional) The source port ranges to match for the rule. Valid values are `*` (for all ports 0 - 65535) or arrays of ports or port ranges (i.e. `100-200`). The ports should in the range of 0 to 65535 and the port ranges or ports can't overlap. If any other values are provided the request fails with HTTP status code 400. Default value will be `*`. Changing this forces a new resource to be created.
 
 ---
 
 A `task_scheduling_policy` block supports the following:
 
-* `node_fill_type` - (Required) Supported values are "Pack" and "Spread". "Pack" means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. "Spread" means that tasks should be assigned evenly across all nodes in the pool.
+* `node_fill_type` - (Optional) Supported values are "Pack" and "Spread". "Pack" means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. "Spread" means that tasks should be assigned evenly across all nodes in the pool.
 
 ---
 
@@ -517,7 +521,7 @@ A `linux_user_configuration` block supports the following:
 
 A `windows_user_configuration` block supports the following:
 
-* `login_mode` - (Optional) Specifies login mode for the user. The default value for VirtualMachineConfiguration pools is interactive mode and for CloudServiceConfiguration pools is batch mode. Values supported are "Batch" and "Interactive".
+* `login_mode` - (Required) Specifies login mode for the user. The default value for VirtualMachineConfiguration pools is interactive mode and for CloudServiceConfiguration pools is batch mode. Values supported are "Batch" and "Interactive".
 
 ---
 
@@ -525,7 +529,7 @@ A `windows` block supports the following:
 
 Windows operating system settings on the virtual machine. This property must not be specified if the imageReference specifies a Linux OS image.
 
-* `enable_automatic_updates` - (Required) Whether automatic updates are enabled on the virtual machine. If omitted, the default value is true.
+* `enable_automatic_updates` - (Optional) Whether automatic updates are enabled on the virtual machine. If omitted, the default value is true.
 
 ---
 

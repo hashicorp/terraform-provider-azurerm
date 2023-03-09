@@ -10,7 +10,6 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-
 	grafanaResourceClient := grafanaresource.NewGrafanaResourceClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&grafanaResourceClient.Client, o.ResourceManagerAuthorizer)
 

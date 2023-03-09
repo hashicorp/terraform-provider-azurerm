@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
+	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -216,6 +216,10 @@ func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, met
 
 	result, err := client.Get(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
+		if utils.ResponseWasNotFound(result.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("getting Application Insights Analytics Item %s: %+v", id, err)
 	}
 

@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache"
+	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -593,7 +593,7 @@ func expandStorageCacheDirectorySettings(d *pluginsdk.ResourceData) *storagecach
 }
 
 func flattenStorageCacheDirectorySettings(d *pluginsdk.ResourceData, input *storagecache.CacheDirectorySettings) (ad, flatFile, ldap []interface{}, err error) {
-	if input == nil || input.UsernameDownload == nil {
+	if input == nil || input.UsernameDownload == nil || input.UsernameDownload.UsernameSource == storagecache.UsernameSourceNone {
 		return nil, nil, nil, nil
 	}
 

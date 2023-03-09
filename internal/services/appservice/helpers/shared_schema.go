@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -373,7 +374,6 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1161,8 +1161,10 @@ func expandIpRestrictionHeaders(headers []IpRestrictionHeaders) map[string][]str
 
 func ExpandCorsSettings(input []CorsSetting) *web.CorsSettings {
 	if len(input) == 0 {
+		allowedOrigins := make([]string, 0)
 		return &web.CorsSettings{
-			AllowedOrigins: &[]string{},
+			AllowedOrigins:     &allowedOrigins,
+			SupportCredentials: pointer.To(false),
 		}
 	}
 	var result web.CorsSettings
@@ -1277,8 +1279,8 @@ func ExpandAuthSettings(auth []AuthSettings) *web.SiteAuthSettings {
 }
 
 func FlattenAuthSettings(auth web.SiteAuthSettings) []AuthSettings {
-	if auth.SiteAuthSettingsProperties == nil {
-		return nil
+	if auth.SiteAuthSettingsProperties == nil || !pointer.From(auth.Enabled) || strings.ToLower(pointer.From(auth.ConfigVersion)) != "v1" {
+		return []AuthSettings{}
 	}
 
 	props := *auth.SiteAuthSettingsProperties

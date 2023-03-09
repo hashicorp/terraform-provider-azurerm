@@ -28,7 +28,11 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return r.autoRegistration.Resources()
+	resources := []sdk.Resource{
+		FederatedIdentityCredentialResource{},
+	}
+	resources = append(resources, r.autoRegistration.Resources()...)
+	return resources
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar

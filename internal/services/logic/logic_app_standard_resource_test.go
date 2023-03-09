@@ -344,6 +344,22 @@ func TestAccLogicAppStandard_updateIdentity(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppStandard_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+			),
+		},
+	})
+}
+
 func TestAccLogicAppStandard_corsSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
@@ -1284,6 +1300,39 @@ resource "azurerm_logic_app_standard" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "acctest%[2]d"
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%[2]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
   }
 }
 `, r.template(data), data.RandomInteger)

@@ -83,7 +83,7 @@ The following supported locations for a Binary Dataset. One of these should be s
 
 A `compression` block supports the following:
 
-* `type` - (Required) The type of compression used during transport.
+* `type` - (Required) The type of compression used during transport. Possible values are `BZip2`, `Deflate`, `GZip`, `Tar`, `TarGZip` and `ZipDeflate`.
 
 * `level` - (Optional) The level of compression. Possible values are `Fastest` and `Optimal`.
 

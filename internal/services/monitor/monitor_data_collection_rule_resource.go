@@ -535,7 +535,6 @@ func (r DataCollectionRuleResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
-
 		},
 		Timeout: 30 * time.Minute,
 	}
@@ -616,7 +615,6 @@ func expandDataCollectionRuleDataSources(input []DataSource) (*datacollectionrul
 		Syslog:              expandDataCollectionRuleDataSourceSyslog(input[0].Syslog),
 		WindowsEventLogs:    expandDataCollectionRuleDataSourceWindowsEventLogs(input[0].WindowsEventLogs),
 	}, nil
-
 }
 
 func expandDataCollectionRuleDataSourceExtensions(input []Extension) (*[]datacollectionrules.ExtensionDataSource, error) {

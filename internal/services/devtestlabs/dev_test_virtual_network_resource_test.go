@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -98,18 +98,44 @@ func TestAccDevTestVirtualNetwork_subnet(t *testing.T) {
 	})
 }
 
+func TestAccDevTestVirtualNetwork_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
+	r := DevTestVirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		{
+			Config: r.subnets(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet.#").HasValue("1"),
+				check.That(data.ResourceName).Key("subnet.0.use_public_ip_address").HasValue("Deny"),
+				check.That(data.ResourceName).Key("subnet.0.use_in_virtual_machine_creation").HasValue("Allow"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (DevTestVirtualNetworkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DevTestVirtualNetworkID(state.ID)
+	id, err := virtualnetworks.ParseVirtualNetworkID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DevTestLabs.VirtualNetworksClient.Get(ctx, id.ResourceGroup, id.LabName, id.VirtualNetworkName, "")
+	resp, err := clients.DevTestLabs.VirtualNetworksClient.Get(ctx, *id, virtualnetworks.GetOperationOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.VirtualNetworkProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DevTestVirtualNetworkResource) basic(data acceptance.TestData) string {

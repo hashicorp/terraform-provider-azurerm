@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceArmLoadBalancerNatPool() *pluginsdk.Resource {
@@ -222,7 +222,7 @@ func resourceArmLoadBalancerNatPoolRead(d *pluginsdk.ResourceData, meta interfac
 		frontendIPConfigName := ""
 		frontendIPConfigID := ""
 		if props.FrontendIPConfiguration != nil && props.FrontendIPConfiguration.ID != nil {
-			feid, err := parse.LoadBalancerFrontendIpConfigurationID(*props.FrontendIPConfiguration.ID)
+			feid, err := parse.LoadBalancerFrontendIpConfigurationIDInsensitively(*props.FrontendIPConfiguration.ID)
 			if err != nil {
 				return err
 			}

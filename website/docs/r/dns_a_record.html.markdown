@@ -68,11 +68,13 @@ resource "azurerm_dns_a_record" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS A Record.
+* `name` - (Required) The name of the DNS A Record. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
+
+~> **Note:** The `zone_name` should be the name of resource `azurerm_dns_zone` instead of `azurerm_private_dns_zone`.
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
@@ -111,5 +113,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 A records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_a_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/A/myrecord1
+terraform import azurerm_dns_a_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/A/myrecord1
 ```

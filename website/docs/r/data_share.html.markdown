@@ -71,7 +71,7 @@ The following arguments are supported:
 
 A `snapshot_schedule` block supports the following:
 
-* `name` - The name of the snapshot schedule.
+* `name` - (Required) The name of the snapshot schedule.
 
 * `recurrence` - (Required) The interval of the synchronization with the source data. Possible values are `Hour` and `Day`.
 

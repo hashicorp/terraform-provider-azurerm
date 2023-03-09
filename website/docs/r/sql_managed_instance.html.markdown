@@ -207,13 +207,13 @@ resource "azurerm_sql_managed_instance" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the SQL Managed Instance. This needs to be globally unique within Azure.
+* `name` - (Required) The name of the SQL Managed Instance. This needs to be globally unique within Azure. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the SQL Server.
+* `resource_group_name` - (Required) The name of the resource group in which to create the SQL Server. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) Specifies the SKU Name for the SQL Managed Instance. Valid values include `GP_Gen4`, `GP_Gen5`, `BC_Gen4`, `BC_Gen5`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) Specifies the SKU Name for the SQL Managed Instance. Valid values include `GP_Gen4`, `GP_Gen5`, `BC_Gen4`, `BC_Gen5`. 
 
 * `vcores` - (Required) Number of cores that should be assigned to your instance. Values can be `8`, `16`, or `24` if `sku_name` is `GP_Gen4`, or `8`, `16`, `24`, `32`, or `40` if `sku_name` is `GP_Gen5`.
 
@@ -225,7 +225,7 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
 
-* `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with.
+* `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with. Changing this forces a new resource to be created.
 
 * `collation` - (Optional) Specifies how the SQL Managed Instance will be collated. Default value is `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
 
@@ -244,12 +244,6 @@ The following arguments are supported:
 * `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Changing this forces a new resource to be created. Possible values are `GRS`, `LRS` and `ZRS`. The default value is `GRS`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
----
-
-A `sku` block supports the following:
-
-* `name` - (Required) SKU of the managed instance. Values can be `GP_Gen4`, `GP_Gen5`, `BC_Gen4`, or `BC_Gen5`.
 
 ---
 
@@ -274,6 +268,15 @@ The following attributes are exported:
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Managed Instance.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Managed Instance.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Sql Managed Instance.
+* `create` - (Defaults to 24 hours) Used when creating the Sql Managed Instance.
+* `update` - (Defaults to 24 hours) Used when updating the Sql Managed Instance.
+* `delete` - (Defaults to 24 hours) Used when deleting the Sql Managed Instance.
 
 ## Import
 

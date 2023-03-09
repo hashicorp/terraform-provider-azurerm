@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -251,7 +251,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	newGeoReplicationLocations = expandReplications(geoReplications)
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
-		err = applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, oldGeoReplicationLocations, newGeoReplicationLocations)
+		err = applyGeoReplicationLocations(ctx, meta, id.ResourceGroup, id.Name, oldGeoReplicationLocations, newGeoReplicationLocations)
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
@@ -349,12 +349,12 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if hasGeoReplicationsChanges {
-		err := applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, expandReplications(oldReplications), expandReplications(newReplications))
+		err := applyGeoReplicationLocations(ctx, meta, id.ResourceGroup, id.Name, expandReplications(oldReplications), expandReplications(newReplications))
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	} else if hasGeoReplicationLocationsChanges {
-		err := applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, expandReplicationsFromLocations(oldGeoReplicationLocations), expandReplicationsFromLocations(newGeoReplicationLocations))
+		err := applyGeoReplicationLocations(ctx, meta, id.ResourceGroup, id.Name, expandReplicationsFromLocations(oldGeoReplicationLocations), expandReplicationsFromLocations(newGeoReplicationLocations))
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
@@ -405,10 +405,8 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 	return nil
 }
 
-func applyGeoReplicationLocations(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplications []containerregistry.Replication, newGeoReplications []containerregistry.Replication) error {
+func applyGeoReplicationLocations(ctx context.Context, meta interface{}, resourceGroup string, name string, oldGeoReplications []containerregistry.Replication, newGeoReplications []containerregistry.Replication) error {
 	replicationClient := meta.(*clients.Client).Containers.ReplicationsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 	log.Printf("[INFO] preparing to apply geo-replications for  Container Registry.")
 
 	oldReplications := map[string]containerregistry.Replication{}
@@ -642,13 +640,11 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("making Read request on Azure Container Registry %s for replications: %s", id.Name, err)
 	}
 
-	geoReplicationLocations := make([]interface{}, 0)
 	geoReplications := make([]interface{}, 0)
 	for _, value := range replications.Values() {
 		if value.Location != nil {
 			valueLocation := azure.NormalizeLocation(*value.Location)
 			if location != nil && valueLocation != azure.NormalizeLocation(*location) {
-				geoReplicationLocations = append(geoReplicationLocations, *value.Location)
 				replication := make(map[string]interface{})
 				replication["location"] = valueLocation
 				replication["tags"] = tags.Flatten(value.Tags)

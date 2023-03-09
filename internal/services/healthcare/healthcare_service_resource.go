@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis"
+	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -67,7 +67,7 @@ func resourceHealthcareService() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1000,
-				ValidateFunc: validation.IntBetween(1, 10000),
+				ValidateFunc: validation.IntBetween(1, 100000),
 			},
 
 			"cosmosdb_key_vault_key_versionless_id": {

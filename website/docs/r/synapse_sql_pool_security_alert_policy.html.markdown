@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `sql_pool_id` - (Required) Specifies the ID of the Synapse SQL Pool. Changing this forces a new resource to be created.
 
-* `policy_state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific SQL pool. Allowed values are: `Disabled`, `Enabled`.
+* `policy_state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific SQL pool. Possible values are `Disabled`, `Enabled` and `New`.
 
 * `disabled_alerts` - (Optional) Specifies an array of alerts that are disabled. Allowed values are: `Sql_Injection`, `Sql_Injection_Vulnerability`, `Access_Anomaly`, `Data_Exfiltration`, `Unsafe_Action`.
 
@@ -125,5 +125,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Synapse SQL Pool Security Alert Policies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_synapse_sql_pool_security_alert_policy.example  /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Synapse/workspaces/workspace1/sqlPools/sqlPool1/securityAlertPolicies/default
+terraform import azurerm_synapse_sql_pool_security_alert_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Synapse/workspaces/workspace1/sqlPools/sqlPool1/securityAlertPolicies/default
 ```

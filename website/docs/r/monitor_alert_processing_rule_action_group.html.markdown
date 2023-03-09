@@ -136,6 +136,8 @@ A `condition` block supports the following:
 
 * `target_resource_type` - (Optional) A `target_resource_type` block as defined below.
 
+-> **Note:** At least one of the `alert_context`, `alert_rule_id`, `alert_rule_name`, `description`, `monitor_condition`, `monitor_service`, `severity`, `signal_type`, `target_resource`, `target_resource_group`, `target_resource_type` must be specified.
+
 ---
 
 A `daily` block supports the following:
@@ -198,7 +200,7 @@ A `schedule` block supports the following:
 
 * `recurrence` - (Optional) A `recurrence` block as defined above.
 
-* `time_zone` - (Optional)  The time zone (e.g. Pacific Standard time, Eastern Standard Time). Defaults to `UTC`. [possible values are defined here](https://docs.microsoft.com/en-us/previous-versions/windows/embedded/ms912391(v=winembedded.11)).
+* `time_zone` - (Optional) The time zone (e.g. Pacific Standard time, Eastern Standard Time). Defaults to `UTC`. [possible values are defined here](https://docs.microsoft.com/en-us/previous-versions/windows/embedded/ms912391(v=winembedded.11)).
 
 ---
 
@@ -244,7 +246,7 @@ A `target_resource_type` block supports the following:
 
 A `weekly` block supports the following:
 
-* `days_of_week` - (Required) Specifies a list of dayOfWeek to recurrence.Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, and  `Saturday`.
+* `days_of_week` - (Required) Specifies a list of dayOfWeek to recurrence. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, and `Saturday`.
 
 * `start_time` - (Optional) Specifies the recurrence start time (H:M:S).
 

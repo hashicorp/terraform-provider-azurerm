@@ -15,7 +15,7 @@ Use this data source to access information about an existing Healthcare DICOM Se
 ```hcl
 data "azurerm_healthcare_dicom_service" "example" {
   name         = "example-healthcare_dicom_service"
-  workspace_id = "example_healthcare_workspace"
+  workspace_id = data.azurerm_healthcare_workspace.example.id
 }
 
 output "azurerm_healthcare_dicom_service" {
@@ -27,7 +27,7 @@ output "azurerm_healthcare_dicom_service" {
 
 * `name` - The name of the Healthcare DICOM Service
 
-* `workspace_id` - The name of the Healthcare Workspace in which the Healthcare DICOM Service exists.
+* `workspace_id` - The id of the Healthcare Workspace in which the Healthcare DICOM Service exists.
 
 ## Attributes Reference
 

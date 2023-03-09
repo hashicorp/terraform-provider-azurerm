@@ -30,11 +30,11 @@ For this example you will need to look up the object IDs of the Frontdoor servic
 
 * From the left hand menu select `Azure Active Directory`.
 
-* In the search filter box, near the top of the page, type `Microsoft.AzureFrontDoor-Cdn`.
+* In the search filter box, near the top of the page, type `Microsoft.Azure.Cdn`.
 
-* Click on the `Microsoft.AzureFrontDoor-Cdn` entry in the `Enterprise Applications` results view.
+* Click on the `Microsoft.Azure.Cdn` entry in the `Enterprise Applications` results view.
 
-* This will open the `Enterprise Applications Properties`, copy the `Object ID` and paste it into the examples `main.tf` file where is says `<- Object Id for the Microsoft.AzureFrontDoor-Cdn Enterprise Application.`.
+* This will open the `Enterprise Applications Properties`, copy the `Object ID` and paste it into the examples `main.tf` file where is says `<- Object Id for the Microsoft.Azure.Cdn Enterprise Application.`.
 
 Repeat the above steps for all of the object IDs needed for this example.
 
@@ -44,7 +44,7 @@ The following Key Vault permission are granted by this example:
 
 | Object ID                                | Key Permissions | Secret Permissions   | Certificate Permissions                       |
 |:-----------------------------------------|:---------------:|:--------------------:|:---------------------------------------------:|
-| `Microsoft.AzureFrontDoor-Cdn` Object ID | -               | **Get**              | -                                             |
+| `Microsoft.Azure.Cdn` Object ID | -               | **Get**              | -                                             |
 | Your Personal AAD Object ID              | -               | **Get** and **List** | **Get**, **List**, **Purge** and **Recover**  |
 | Terraform Service Principal              | -               | **Get**              | **Get**, **Import**, **Delete** and **Purge** |
 

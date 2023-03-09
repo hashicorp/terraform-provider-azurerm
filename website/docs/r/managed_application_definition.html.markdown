@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `create_ui_definition` - (Optional) Specifies the `createUiDefinition` JSON for the backing template with `Microsoft.Solutions/applications` resource.
 
-* `display_name` - (Optional) Specifies the managed application definition display name.
+* `display_name` - (Required) Specifies the managed application definition display name.
 
 * `description` - (Optional) Specifies the managed application definition description.
 

@@ -507,7 +507,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 			if err = securityClient.CreateOrUpdateThenPoll(ctx, securityAlertId, *alert); err != nil {
 				return fmt.Errorf("updataing security alert policy for %s: %v", id, err)
 			}
-
 		}
 	}
 

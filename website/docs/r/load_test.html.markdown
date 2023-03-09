@@ -3,7 +3,7 @@ subcategory: "Load Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_load_test"
 description: |-
-  Manages a Load Test Service.
+  Manages a Load Test.
 ---
 
 <!-- Note: This documentation is generated. Any manual changes will be overwritten -->
@@ -15,7 +15,7 @@ Manages a Load Test Service.
 ## Example Usage
 
 ```hcl
-resource "azurerm_load_example" "example" {
+resource "azurerm_load_test" "example" {
   location            = azurerm_resource_group.example.location
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name

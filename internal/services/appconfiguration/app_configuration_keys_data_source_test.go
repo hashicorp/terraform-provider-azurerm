@@ -53,7 +53,7 @@ func TestAccAppConfigurationKeysDataSource_label(t *testing.T) {
 }
 
 func (t AppConfigurationKeysDataSource) keys() string {
-	return fmt.Sprintf(`
+	return `
 resource "azurerm_app_configuration_key" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
   key                    = "key1"
@@ -92,7 +92,7 @@ resource "azurerm_app_configuration_key" "test5" {
   content_type           = "test"
   value                  = "a test"
 }
-`)
+`
 }
 
 func (t AppConfigurationKeysDataSource) allKeys(data acceptance.TestData) string {

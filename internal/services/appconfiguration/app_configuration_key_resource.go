@@ -8,9 +8,10 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/1.0/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
@@ -23,6 +24,8 @@ import (
 type KeyResource struct{}
 
 var _ sdk.ResourceWithCustomizeDiff = KeyResource{}
+
+var _ sdk.ResourceWithStateMigration = KeyResource{}
 
 const (
 	KeyTypeVault        = "vault"
@@ -53,7 +56,7 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
 		},
 		"key": {
 			Type:         pluginsdk.TypeString,
@@ -122,24 +125,39 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
-			if client == nil {
-				return fmt.Errorf("app configuration %q was not found", model.ConfigurationStoreId)
-			}
 			if err != nil {
 				return err
+			}
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", model.ConfigurationStoreId)
 			}
 
 			appCfgKeyResourceID := parse.AppConfigurationKeyId{
 				ConfigurationStoreId: model.ConfigurationStoreId,
-				Key:                  url.QueryEscape(model.Key),
-				Label:                url.QueryEscape(model.Label),
+				Key:                  model.Key,
+				Label:                model.Label,
+			}
+
+			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
+			// allow up to 15 min for role permission to be done propagated
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be done propagated", model.Key)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:      []string{"Forbidden"},
+				Target:       []string{"Error", "Exists"},
+				Refresh:      appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
+				PollInterval: 20 * time.Second,
+				Timeout:      15 * time.Minute,
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Key %q read permission to be propagated: %+v", model.Key, err)
 			}
 
 			kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, model.Key, v.Error())
+						return fmt.Errorf("checking for presence of existing %s: %+v", appCfgKeyResourceID, err)
 					}
 				} else {
 					return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
@@ -186,7 +204,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			metadata.SetID(appCfgKeyResourceID)
 			return nil
 		},
-		Timeout: 30 * time.Minute,
+		Timeout: 45 * time.Minute,
 	}
 }
 
@@ -205,34 +223,24 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if err != nil {
+				return err
+			}
 			if client == nil {
 				// if the parent AppConfiguration is gone, all the data will be too
 				return metadata.MarkAsGone(resourceID)
 			}
-			if err != nil {
-				return err
-			}
 
-			decodedKey, err := url.QueryUnescape(resourceID.Key)
-			if err != nil {
-				return fmt.Errorf("while decoding key of resource ID: %+v", err)
-			}
-
-			decodedLabel, err := url.QueryUnescape(resourceID.Label)
-			if err != nil {
-				return fmt.Errorf("while decoding label of resource ID: %+v", err)
-			}
-
-			kv, err := client.GetKeyValue(ctx, decodedKey, decodedLabel, "", "", "", []string{})
+			kv, err := client.GetKeyValue(ctx, resourceID.Key, resourceID.Label, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
 						return metadata.MarkAsGone(resourceID)
 					}
 				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", decodedKey, err)
+					return fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Key, err)
 				}
-				return fmt.Errorf("while checking for key's %q existence: %+v", decodedKey, err)
+				return fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Label, err)
 			}
 
 			model := KeyResourceModel{
@@ -279,11 +287,11 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
-			if client == nil {
-				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
-			}
 			if err != nil {
 				return err
+			}
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
 			}
 
 			var model KeyResourceModel
@@ -341,11 +349,12 @@ func (k KeyResource) Delete() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
-			if client == nil {
-				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
-			}
 			if err != nil {
 				return err
+
+			}
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
 			}
 
 			decodedKey, err := url.QueryUnescape(resourceID.Key)
@@ -403,4 +412,13 @@ func (k KeyResource) CustomizeDiff() sdk.ResourceFunc {
 
 func (k KeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.AppConfigurationKeyID
+}
+
+func (k KeyResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.KeyResourceV0ToV1{},
+		},
+	}
 }

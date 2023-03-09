@@ -979,30 +979,30 @@ func parseUnderlyingResourceAction(input string) (*UnderlyingResourceAction, err
 	return &out, nil
 }
 
-type VmPriority string
+type VMPriority string
 
 const (
-	VmPriorityDedicated   VmPriority = "Dedicated"
-	VmPriorityLowPriority VmPriority = "LowPriority"
+	VMPriorityDedicated   VMPriority = "Dedicated"
+	VMPriorityLowPriority VMPriority = "LowPriority"
 )
 
-func PossibleValuesForVmPriority() []string {
+func PossibleValuesForVMPriority() []string {
 	return []string{
-		string(VmPriorityDedicated),
-		string(VmPriorityLowPriority),
+		string(VMPriorityDedicated),
+		string(VMPriorityLowPriority),
 	}
 }
 
-func parseVmPriority(input string) (*VmPriority, error) {
-	vals := map[string]VmPriority{
-		"dedicated":   VmPriorityDedicated,
-		"lowpriority": VmPriorityLowPriority,
+func parseVMPriority(input string) (*VMPriority, error) {
+	vals := map[string]VMPriority{
+		"dedicated":   VMPriorityDedicated,
+		"lowpriority": VMPriorityLowPriority,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := VmPriority(input)
+	out := VMPriority(input)
 	return &out, nil
 }

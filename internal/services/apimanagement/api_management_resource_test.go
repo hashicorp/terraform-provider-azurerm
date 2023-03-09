@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
@@ -193,6 +192,49 @@ func TestAccApiManagement_signInSignUpSettings(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.signInSignUpSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_delegationSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.delegationSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.delegationSettingsDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.delegationSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -571,7 +613,7 @@ func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client
 }
 
 func (ApiManagementResource) testCheckHasNoProductsOrApis(resourceName string) pluginsdk.TestCheckFunc {
-	return func(state *terraform.State) error {
+	return func(state *pluginsdk.State) error {
 		client, err := testclient.Build()
 		if err != nil {
 			return fmt.Errorf("building client: %+v", err)
@@ -1113,6 +1155,64 @@ resource "azurerm_api_management" "test" {
       consent_required = false
       text             = "Lorem Ipsum Dolor Morty"
     }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) delegationSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  delegation {
+    url                       = "https://google.com"
+    subscriptions_enabled     = true
+    validation_key            = "aW50ZWdyYXRpb24mMjAyMzAzMTAxODMwJkxRaUxzcUVsaUpEaHJRK01YZkJYV3paUi9qdzZDSWMrazhjUXB0bVdyTGxKcVYrd0R4OXRqMGRzTWZXU3hmeGQ0a2V0WjcrcE44U0dJdDNsYUQ3Rk5BPT0="
+    user_registration_enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) delegationSettingsDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  delegation {
+    subscriptions_enabled     = false
+    user_registration_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

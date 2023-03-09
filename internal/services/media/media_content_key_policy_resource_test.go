@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/contentkeypolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -25,6 +25,35 @@ func TestAccMediaContentKeyPolicy_basic(t *testing.T) {
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
 				check.That(data.ResourceName).Key("policy_option.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMediaContentKeyPolicy_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_content_key_policy", "test")
+	r := MediaContentKeyPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -64,17 +93,17 @@ func TestAccMediaContentKeyPolicy_complete(t *testing.T) {
 }
 
 func (r MediaContentKeyPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ContentKeyPolicyID(state.ID)
+	id, err := contentkeypolicies.ParseContentKeyPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Media.ContentKeyPoliciesClient.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := clients.Media.V20220801Client.ContentKeyPolicies.ContentKeyPoliciesGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Content Key Policy %s (Media Account %s) (resource group: %s): %v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ContentKeyPolicyProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MediaContentKeyPolicyResource) basic(data acceptance.TestData) string {
@@ -146,10 +175,12 @@ resource "azurerm_media_content_key_policy" "test" {
     open_restriction_enabled = true
   }
   policy_option {
-    name = "playReady"
+    name                           = "playReady"
+    playready_response_custom_data = "test custom data"
     playready_configuration_license {
       allow_test_devices = true
       begin_date         = "2017-10-16T18:22:53Z"
+      security_level     = "SL150"
       play_right {
         scms_restriction                                         = 2
         digital_video_only_content_restriction                   = false
@@ -157,9 +188,14 @@ resource "azurerm_media_content_key_policy" "test" {
         image_constraint_for_analog_computer_monitor_restriction = false
         allow_passing_video_content_to_unknown_output            = "NotAllowed"
         uncompressed_digital_video_opl                           = 100
-        uncompressed_digital_audio_opl                           = 100
+        uncompressed_digital_audio_opl                           = 200
         analog_video_opl                                         = 150
-        compressed_digital_audio_opl                             = 150
+        compressed_digital_audio_opl                             = 250
+        compressed_digital_video_opl                             = 400
+        explicit_analog_television_output_restriction {
+          best_effort_enforced = true
+          control_bits         = 3
+        }
       }
       license_type                             = "Persistent"
       content_type                             = "UltraVioletDownload"
@@ -175,6 +211,13 @@ resource "azurerm_media_content_key_policy" "test" {
       audience                    = "urn:audience"
       token_type                  = "Swt"
       primary_symmetric_token_key = "AAAAAAAAAAAAAAAAAAAAAA=="
+      alternate_key {
+        rsa_token_key_exponent = "AQAB"
+        rsa_token_key_modulus  = "AQAD"
+      }
+      alternate_key {
+        symmetric_token_key = "BBAAAAAAAAAAAAAAAAAAAA=="
+      }
     }
   }
   policy_option {

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -232,10 +232,15 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 
 func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
-	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	env := meta.(*clients.Client).Account.Environment
+	storageAccountDomainSuffix, ok := env.Storage.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine the domain suffix for storage accounts in environment %q: %+v", env.Name, env.Storage)
+	}
 
 	log.Printf("[INFO] preparing arguments for AzureRM Logic App Standard creation.")
 
@@ -282,7 +287,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	VirtualNetworkSubnetID := d.Get("virtual_network_subnet_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
+	basicAppSettings, err := getBasicLogicAppSettings(d, *storageAccountDomainSuffix)
 	if err != nil {
 		return err
 	}
@@ -349,9 +354,14 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 
 func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
-	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	env := meta.(*clients.Client).Account.Environment
+	storageAccountDomainSuffix, ok := env.Storage.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine the domain suffix for storage accounts in environment %q: %+v", env.Name, env.Storage)
+	}
 
 	id, err := parse.LogicAppStandardID(d.Id())
 	if err != nil {
@@ -367,7 +377,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
+	basicAppSettings, err := getBasicLogicAppSettings(d, *storageAccountDomainSuffix)
 	if err != nil {
 		return err
 	}
@@ -385,7 +395,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	siteConfig.AppSettings = &basicAppSettings
 
 	// WEBSITE_VNET_ROUTE_ALL is superseded by a setting in site_config that defaults to false from 2021-02-01
-	appSettings, err := expandLogicAppStandardSettings(d, endpointSuffix)
+	appSettings, err := expandLogicAppStandardSettings(d, *storageAccountDomainSuffix)
 	if err != nil {
 		return fmt.Errorf("expanding `app_settings`: %+v", err)
 	}
@@ -598,7 +608,10 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	identity := flattenLogicAppStandardIdentity(resp.Identity)
+	identity, err := flattenLogicAppStandardIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %s", err)
 	}
@@ -1325,21 +1338,35 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 }
 
 func expandLogicAppStandardIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return &web.ManagedServiceIdentity{
+	output := web.ManagedServiceIdentity{
 		Type: web.ManagedServiceIdentityType(expanded.Type),
-	}, nil
+	}
+
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		output.UserAssignedIdentities = expandLogicAppStandardUserAssignedIdentity(expanded.IdentityIds)
+	}
+
+	return &output, nil
 }
 
-func flattenLogicAppStandardIdentity(input *web.ManagedServiceIdentity) []interface{} {
-	var transform *identity.SystemAssigned
+func expandLogicAppStandardUserAssignedIdentity(input map[string]identity.UserAssignedIdentityDetails) map[string]*web.UserAssignedIdentity {
+	output := make(map[string]*web.UserAssignedIdentity)
+	for k := range input {
+		output[k] = &web.UserAssignedIdentity{}
+	}
+	return output
+}
+
+func flattenLogicAppStandardIdentity(input *web.ManagedServiceIdentity) ([]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		transform = &identity.SystemAssigned{
+		transform = &identity.SystemAndUserAssignedMap{
 			Type: identity.Type(string(input.Type)),
 		}
 		if input.PrincipalID != nil {
@@ -1348,9 +1375,31 @@ func flattenLogicAppStandardIdentity(input *web.ManagedServiceIdentity) []interf
 		if input.TenantID != nil {
 			transform.TenantId = *input.TenantID
 		}
+		if input.UserAssignedIdentities != nil {
+			transform.IdentityIds = flattenLogicAppStandardUserAssignedIdentity(input.UserAssignedIdentities)
+		}
 	}
 
-	return identity.FlattenSystemAssigned(transform)
+	output, err := identity.FlattenSystemAndUserAssignedMap(transform)
+	if err != nil {
+		return nil, err
+	}
+	return *output, nil
+}
+
+func flattenLogicAppStandardUserAssignedIdentity(input map[string]*web.UserAssignedIdentity) map[string]identity.UserAssignedIdentityDetails {
+	expanded := make(map[string]identity.UserAssignedIdentityDetails)
+	for k, v := range input {
+		identityDetail := identity.UserAssignedIdentityDetails{}
+		if v.PrincipalID != nil {
+			identityDetail.PrincipalId = v.PrincipalID
+		}
+		if v.ClientID != nil {
+			identityDetail.ClientId = v.ClientID
+		}
+		expanded[k] = identityDetail
+	}
+	return expanded
 }
 
 func expandLogicAppStandardSettings(

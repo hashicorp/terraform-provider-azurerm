@@ -25,6 +25,7 @@ func TestAccDataSourceServiceBusNamespace_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("default_secondary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("default_primary_key").Exists(),
 				check.That(data.ResourceName).Key("default_secondary_key").Exists(),
+				check.That(data.ResourceName).Key("endpoint").Exists(),
 			),
 		},
 	})
@@ -45,6 +46,7 @@ func TestAccDataSourceServiceBusNamespace_premium(t *testing.T) {
 				check.That(data.ResourceName).Key("default_secondary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("default_primary_key").Exists(),
 				check.That(data.ResourceName).Key("default_secondary_key").Exists(),
+				check.That(data.ResourceName).Key("endpoint").Exists(),
 			),
 		},
 	})

@@ -12,9 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -97,7 +98,12 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.CapacityReservationGroupID,
+				ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
+			},
+
+			"custom_ca_trust_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"enable_auto_scaling": {
@@ -183,6 +189,8 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				// NOTE: rather than setting `0` users should instead pass `null` here
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
+
+			"node_network_profile": schemaNodePoolNetworkProfile(),
 
 			"node_labels": {
 				Type:     pluginsdk.TypeMap,
@@ -321,6 +329,23 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 			"upgrade_settings": upgradeSettingsSchema(),
 
+			"windows_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"outbound_nat_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  true,
+						},
+					},
+				},
+			},
+
 			"workload_runtime": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -346,7 +371,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ResourceName, d.Get("name").(string))
+	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
 
 	log.Printf("[DEBUG] Retrieving %s...", *clusterId)
 	cluster, err := clustersClient.Get(ctx, *clusterId)
@@ -398,6 +423,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	profile := agentpools.ManagedClusterAgentPoolProfileProperties{
 		OsType:                 utils.ToPtr(agentpools.OSType(osType)),
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
+		EnableCustomCATrust:    utils.Bool(d.Get("custom_ca_trust_enabled").(bool)),
 		EnableFIPS:             utils.Bool(d.Get("fips_enabled").(bool)),
 		EnableEncryptionAtHost: utils.Bool(d.Get("enable_host_encryption").(bool)),
 		EnableUltraSSD:         utils.Bool(d.Get("ultra_ssd_enabled").(bool)),
@@ -407,8 +433,9 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		ScaleSetPriority:       utils.ToPtr(agentpools.ScaleSetPriority(d.Get("priority").(string))),
 		Tags:                   tags.Expand(t),
 		Type:                   utils.ToPtr(agentpools.AgentPoolTypeVirtualMachineScaleSets),
-		VmSize:                 utils.String(d.Get("vm_size").(string)),
+		VMSize:                 utils.String(d.Get("vm_size").(string)),
 		UpgradeSettings:        expandAgentPoolUpgradeSettings(d.Get("upgrade_settings").([]interface{})),
+		WindowsProfile:         expandAgentPoolWindowsProfile(d.Get("windows_profile").([]interface{})),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int64(int64(count)),
@@ -551,6 +578,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.LinuxOSConfig = linuxOSConfig
 	}
 
+	if networkProfile := d.Get("node_network_profile").([]interface{}); len(networkProfile) > 0 {
+		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
+	}
+
 	parameters := agentpools.AgentPool{
 		Name:       utils.String(id.AgentPoolName),
 		Properties: &profile,
@@ -613,6 +644,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("enable_host_encryption") {
 		props.EnableEncryptionAtHost = utils.Bool(d.Get("enable_host_encryption").(bool))
+	}
+
+	if d.HasChange("custom_ca_trust_enabled") {
+		props.EnableCustomCATrust = utils.Bool(d.Get("custom_ca_trust_enabled").(bool))
 	}
 
 	if d.HasChange("enable_node_public_ip") {
@@ -737,7 +772,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	// if the parent cluster doesn't exist then the node pool won't
-	clusterId := managedclusters.NewManagedClusterID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+	clusterId := managedclusters.NewManagedClusterID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName)
 	cluster, err := clustersClient.Get(ctx, clusterId)
 	if err != nil {
 		if response.WasNotFound(cluster.HttpResponse) {
@@ -769,6 +804,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
+		d.Set("custom_ca_trust_enabled", props.EnableCustomCATrust)
 		d.Set("fips_enabled", props.EnableFIPS)
 		d.Set("ultra_ssd_enabled", props.EnableUltraSSD)
 
@@ -897,12 +933,20 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("spot_max_price", spotMaxPrice)
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
-		d.Set("vm_size", props.VmSize)
+		d.Set("vm_size", props.VMSize)
 		d.Set("host_group_id", props.HostGroupID)
 		d.Set("capacity_reservation_group_id", props.CapacityReservationGroupID)
 
 		if err := d.Set("upgrade_settings", flattenAgentPoolUpgradeSettings(props.UpgradeSettings)); err != nil {
 			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
+		}
+
+		if err := d.Set("windows_profile", flattenAgentPoolWindowsProfile(props.WindowsProfile)); err != nil {
+			return fmt.Errorf("setting `windows_profile`: %+v", err)
+		}
+
+		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
+			return fmt.Errorf("setting `node_network_profile`: %+v", err)
 		}
 	}
 
@@ -1158,13 +1202,13 @@ func expandAgentPoolSysctlConfig(input []interface{}) (*agentpools.SysctlConfig,
 		result.KernelThreadsMax = utils.Int64(int64(v))
 	}
 	if v := raw["vm_max_map_count"].(int); v != 0 {
-		result.VmMaxMapCount = utils.Int64(int64(v))
+		result.VMMaxMapCount = utils.Int64(int64(v))
 	}
 	if v := raw["vm_swappiness"].(int); v != 0 {
-		result.VmSwappiness = utils.Int64(int64(v))
+		result.VMSwappiness = utils.Int64(int64(v))
 	}
 	if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
-		result.VmVfsCachePressure = utils.Int64(int64(v))
+		result.VMVfsCachePressure = utils.Int64(int64(v))
 	}
 	return result, nil
 }
@@ -1318,16 +1362,16 @@ func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}
 		netNetfilterNfConntrackMax = int(*input.NetNetfilterNfConntrackMax)
 	}
 	var vmMaxMapCount int
-	if input.VmMaxMapCount != nil {
-		vmMaxMapCount = int(*input.VmMaxMapCount)
+	if input.VMMaxMapCount != nil {
+		vmMaxMapCount = int(*input.VMMaxMapCount)
 	}
 	var vmSwappiness int
-	if input.VmSwappiness != nil {
-		vmSwappiness = int(*input.VmSwappiness)
+	if input.VMSwappiness != nil {
+		vmSwappiness = int(*input.VMSwappiness)
 	}
 	var vmVfsCachePressure int
-	if input.VmVfsCachePressure != nil {
-		vmVfsCachePressure = int(*input.VmVfsCachePressure)
+	if input.VMVfsCachePressure != nil {
+		vmVfsCachePressure = int(*input.VMVfsCachePressure)
 	}
 	return []interface{}{
 		map[string]interface{}{
@@ -1362,4 +1406,86 @@ func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}
 			"vm_vfs_cache_pressure":              vmVfsCachePressure,
 		},
 	}, nil
+}
+
+func expandAgentPoolWindowsProfile(input []interface{}) *agentpools.AgentPoolWindowsProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	outboundNatEnabled := v["outbound_nat_enabled"].(bool)
+	return &agentpools.AgentPoolWindowsProfile{
+		DisableOutboundNat: utils.Bool(!outboundNatEnabled),
+	}
+}
+
+func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	outboundNatEnabled := true
+	if input.DisableOutboundNat != nil {
+		outboundNatEnabled = !*input.DisableOutboundNat
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"outbound_nat_enabled": outboundNatEnabled,
+		},
+	}
+}
+
+func expandAgentPoolNetworkProfile(input []interface{}) *agentpools.AgentPoolNetworkProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &agentpools.AgentPoolNetworkProfile{
+		NodePublicIPTags: expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
+	}
+}
+
+func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]agentpools.IPTag {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make([]agentpools.IPTag, 0)
+
+	for key, val := range input {
+		ipTag := agentpools.IPTag{
+			IPTagType: utils.String(key),
+			Tag:       utils.String(val.(string)),
+		}
+		out = append(out, ipTag)
+	}
+	return &out
+}
+
+func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []interface{} {
+	if input == nil || input.NodePublicIPTags == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"node_public_ip_tags": flattenAgentPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
+		},
+	}
+}
+
+func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) map[string]interface{} {
+	if input == nil {
+		return map[string]interface{}{}
+	}
+	out := make(map[string]interface{})
+
+	for _, tag := range *input {
+		if tag.IPTagType != nil {
+			out[*tag.IPTagType] = tag.Tag
+		}
+	}
+
+	return out
 }

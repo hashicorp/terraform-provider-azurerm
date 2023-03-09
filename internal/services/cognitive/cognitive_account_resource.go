@@ -11,14 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2021-04-30/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/cognitiveservicesaccounts"
 	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -47,7 +46,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AccountID(id)
+			_, err := cognitiveservicesaccounts.ParseAccountID(id)
 			return err
 		}),
 
@@ -56,7 +55,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CognitiveServicesAccountName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"location": commonschema.Location(),
@@ -109,7 +108,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"F0", "F1", "S0", "S", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2", "E0",
+					"F0", "F1", "S0", "S", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2", "E0", "DC0",
 				}, false),
 			},
 
@@ -139,6 +138,11 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"dynamic_throttling_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"fqdns": {
@@ -375,6 +379,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
 			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			DynamicThrottlingEnabled:      utils.Bool(d.Get("dynamic_throttling_enabled").(bool)),
 			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -459,6 +464,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
 			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			DynamicThrottlingEnabled:      utils.Bool(d.Get("dynamic_throttling_enabled").(bool)),
 			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -551,6 +557,13 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if err := d.Set("network_acls", flattenCognitiveAccountNetworkAcls(props.NetworkAcls)); err != nil {
 				return fmt.Errorf("setting `network_acls` for Cognitive Account %q: %+v", id, err)
 			}
+
+			dynamicThrottlingEnabled := false
+			if props.DynamicThrottlingEnabled != nil {
+				dynamicThrottlingEnabled = *props.DynamicThrottlingEnabled
+			}
+			d.Set("dynamic_throttling_enabled", dynamicThrottlingEnabled)
+
 			d.Set("fqdns", utils.FlattenStringSlice(props.AllowedFqdnList))
 
 			publicNetworkAccess := true
@@ -566,7 +579,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if props.RestrictOutboundNetworkAccess != nil {
 				outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
 			}
-			//lintignore:R001
+			// lintignore:R001
 			d.Set("outbound_network_access_restricted", outboundNetworkAccessRestricted)
 
 			localAuthEnabled := true
@@ -575,7 +588,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 			d.Set("local_auth_enabled", localAuthEnabled)
 
-			customerManagedKey, err := flattenCognitiveAccountCustomerManagedKey(id, props.Encryption)
+			customerManagedKey, err := flattenCognitiveAccountCustomerManagedKey(props.Encryption)
 			if err != nil {
 				return err
 			}
@@ -789,7 +802,6 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 		}
 	}
 
-	virtualNetworkSubnetIds := make([]interface{}, 0)
 	virtualNetworkRules := make([]interface{}, 0)
 	if input.VirtualNetworkRules != nil {
 		for _, v := range *input.VirtualNetworkRules {
@@ -799,7 +811,6 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 				id = subnetId.ID()
 			}
 
-			virtualNetworkSubnetIds = append(virtualNetworkSubnetIds, id)
 			virtualNetworkRules = append(virtualNetworkRules, map[string]interface{}{
 				"subnet_id":                            id,
 				"ignore_missing_vnet_service_endpoint": *v.IgnoreMissingVnetServiceEndpoint,
@@ -857,7 +868,7 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 	}
 }
 
-func flattenCognitiveAccountCustomerManagedKey(cognitiveAccountId *cognitiveservicesaccounts.AccountId, input *cognitiveservicesaccounts.Encryption) ([]interface{}, error) {
+func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.Encryption) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}

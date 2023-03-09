@@ -41,6 +41,19 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the IoTHub.
 * `hostname` - The Hostname of the IoTHub.
+* `identity` - A `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `identity_ids` - The list of User Managed Identity IDs which are assigned to the Virtual Machine.
+
+* `principal_id` - The ID of the System Managed Service Principal assigned to the Virtual Machine.
+
+* `tenant_id` - The ID of the Tenant of the System Managed Service Principal assigned to the Virtual Machine.
+
+* `type` - The identity type of the Managed Identity assigned to the Virtual Machine.
 
 ## Timeouts
 

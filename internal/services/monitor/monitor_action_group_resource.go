@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -829,7 +829,7 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 				if err != nil {
 					return nil, err
 				}
-				eventHubNameSpace, eventHubName, subId = eventHubId.NamespaceName, eventHubId.EventHubName, eventHubId.SubscriptionId
+				eventHubNameSpace, eventHubName, subId = eventHubId.NamespaceName, eventHubId.EventhubName, eventHubId.SubscriptionId
 			} else if val["event_hub_id"].(string) != "" || eventHubNameSpace == "" || eventHubName == "" {
 				return nil, fmt.Errorf("in event_hub_receiver, exactly one of event_hub_id or (event_hub_namespace, event_hub_name) must be set")
 			}

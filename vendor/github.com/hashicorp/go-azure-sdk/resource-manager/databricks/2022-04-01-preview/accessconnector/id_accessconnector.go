@@ -7,21 +7,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = AccessConnectorId{}
 
 // AccessConnectorId is a struct representing the Resource ID for a Access Connector
 type AccessConnectorId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ConnectorName     string
+	SubscriptionId      string
+	ResourceGroupName   string
+	AccessConnectorName string
 }
 
 // NewAccessConnectorID returns a new AccessConnectorId struct
-func NewAccessConnectorID(subscriptionId string, resourceGroupName string, connectorName string) AccessConnectorId {
+func NewAccessConnectorID(subscriptionId string, resourceGroupName string, accessConnectorName string) AccessConnectorId {
 	return AccessConnectorId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ConnectorName:     connectorName,
+		SubscriptionId:      subscriptionId,
+		ResourceGroupName:   resourceGroupName,
+		AccessConnectorName: accessConnectorName,
 	}
 }
 
@@ -44,8 +47,8 @@ func ParseAccessConnectorID(input string) (*AccessConnectorId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ConnectorName, ok = parsed.Parsed["connectorName"]; !ok {
-		return nil, fmt.Errorf("the segment 'connectorName' was not found in the resource id %q", input)
+	if id.AccessConnectorName, ok = parsed.Parsed["accessConnectorName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accessConnectorName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +74,8 @@ func ParseAccessConnectorIDInsensitively(input string) (*AccessConnectorId, erro
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ConnectorName, ok = parsed.Parsed["connectorName"]; !ok {
-		return nil, fmt.Errorf("the segment 'connectorName' was not found in the resource id %q", input)
+	if id.AccessConnectorName, ok = parsed.Parsed["accessConnectorName"]; !ok {
+		return nil, fmt.Errorf("the segment 'accessConnectorName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +99,7 @@ func ValidateAccessConnectorID(input interface{}, key string) (warnings []string
 // ID returns the formatted Access Connector ID
 func (id AccessConnectorId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Databricks/accessConnectors/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ConnectorName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccessConnectorName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Access Connector ID
@@ -109,7 +112,7 @@ func (id AccessConnectorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDatabricks", "Microsoft.Databricks", "Microsoft.Databricks"),
 		resourceids.StaticSegment("staticAccessConnectors", "accessConnectors", "accessConnectors"),
-		resourceids.UserSpecifiedSegment("connectorName", "connectorValue"),
+		resourceids.UserSpecifiedSegment("accessConnectorName", "accessConnectorValue"),
 	}
 }
 
@@ -118,7 +121,7 @@ func (id AccessConnectorId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Connector Name: %q", id.ConnectorName),
+		fmt.Sprintf("Access Connector Name: %q", id.AccessConnectorName),
 	}
 	return fmt.Sprintf("Access Connector (%s)", strings.Join(components, "\n"))
 }

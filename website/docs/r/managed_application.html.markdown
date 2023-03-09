@@ -63,7 +63,7 @@ resource "azurerm_managed_application" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Managed Application. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Managed Application. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Managed Application should exist. Changing this forces a new resource to be created.
 

@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `server_name` - (Required) Specifies the name of the MS SQL Server. Changing this forces a new resource to be created.
 
-* `state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific database server. Allowed values are: `Disabled`, `Enabled`.
+* `state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific database server. Possible values are `Disabled`, `Enabled` and `New`.
 
 * `disabled_alerts` - (Optional) Specifies an array of alerts that are disabled. Allowed values are: `Sql_Injection`, `Sql_Injection_Vulnerability`, `Access_Anomaly`, `Data_Exfiltration`, `Unsafe_Action`.
 
@@ -96,5 +96,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 MS SQL Server Security Alert Policy can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_mssql_server_security_alert_policy.example  /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acceptanceTestResourceGroup1/providers/Microsoft.Sql/servers/mssqlserver/securityAlertPolicies/Default
+terraform import azurerm_mssql_server_security_alert_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acceptanceTestResourceGroup1/providers/Microsoft.Sql/servers/mssqlserver/securityAlertPolicies/Default
 ```

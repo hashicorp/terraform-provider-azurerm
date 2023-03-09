@@ -211,19 +211,19 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
 
-* `license_type` - (Required) What type of license the Managed Instance will use. Valid values include can be `PriceIncluded` or `BasePrice`.
+* `license_type` - (Required) What type of license the Managed Instance will use. Possible values are `LicenseIncluded` and `BasePrice`.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name of the SQL Managed Instance. This needs to be globally unique within Azure.
+* `name` - (Required) The name of the SQL Managed Instance. This needs to be globally unique within Azure. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the SQL Managed Instance.
+* `resource_group_name` - (Required) The name of the resource group in which to create the SQL Managed Instance. Changing this forces a new resource to be created.
 
 * `sku_name` - (Required) Specifies the SKU Name for the SQL Managed Instance. Valid values include `GP_Gen4`, `GP_Gen5`, `GP_Gen8IM`, `GP_Gen8IH`, `BC_Gen4`, `BC_Gen5`, `BC_Gen8IM` or `BC_Gen8IH`.
 
 * `storage_size_in_gb` - (Required) Maximum storage space for the SQL Managed instance. This should be a multiple of 32 (GB).
 
-* `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with.
+* `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with. Changing this forces a new resource to be created.
 
 * `vcores` - (Required) Number of cores that should be assigned to the SQL Managed Instance. Values can be `8`, `16`, or `24` for Gen4 SKUs, or `4`, `8`, `16`, `24`, `32`, `40`, `64`, or `80` for Gen5 SKUs.
 
@@ -249,9 +249,13 @@ The following arguments are supported:
 
 ---
 
- An `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The identity type of the SQL Managed Instance. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this SQL Managed Instance. Possible values are `SystemAssigned`, `UserAssigned`.
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this SQL Managed Instance. Required when `type` is set to `UserAssigned`.
+
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and SQL Managed Instance has been created. 
 
 ## Attributes Reference
 
@@ -263,11 +267,13 @@ The following attributes are exported:
 
 ---
 
- The `identity` block exports the following:
+An `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Managed Instance.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Managed Instance.
+
+-> You can access the Principal ID via `azurerm_mssql_managed_instance.example.identity.0.principal_id` and the Tenant ID via `azurerm_mssql_managed_instance.example.identity.0.tenant_id`
 
 ## Timeouts
 

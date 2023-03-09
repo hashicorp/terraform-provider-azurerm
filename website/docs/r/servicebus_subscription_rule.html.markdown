@@ -113,7 +113,9 @@ The following arguments are supported:
 
 * `action` - (Optional) Represents set of actions written in SQL language-based syntax that is performed against a BrokeredMessage.
 
-`correlation_filter` supports the following:
+---
+
+The `correlation_filter` block supports the following:
 
 * `content_type` - (Optional) Content type of the message.
 

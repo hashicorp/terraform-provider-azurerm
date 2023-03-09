@@ -46,6 +46,9 @@ func TestExpandFeatures(t *testing.T) {
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: true,
 				},
+				ManagedDisk: features.ManagedDiskFeatures{
+					ExpandWithoutDowntime: true,
+				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: true,
 				},
@@ -108,6 +111,11 @@ func TestExpandFeatures(t *testing.T) {
 							"permanently_delete_on_destroy": true,
 						},
 					},
+					"managed_disk": []interface{}{
+						map[string]interface{}{
+							"expand_without_downtime": true,
+						},
+					},
 					"network": []interface{}{
 						map[string]interface{}{
 							"relaxed_locking": true,
@@ -167,6 +175,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: true,
+				},
+				ManagedDisk: features.ManagedDiskFeatures{
+					ExpandWithoutDowntime: true,
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: true,
@@ -230,6 +241,11 @@ func TestExpandFeatures(t *testing.T) {
 							"permanently_delete_on_destroy": false,
 						},
 					},
+					"managed_disk": []interface{}{
+						map[string]interface{}{
+							"expand_without_downtime": false,
+						},
+					},
 					"network_locking": []interface{}{
 						map[string]interface{}{
 							"relaxed_locking": false,
@@ -289,6 +305,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: false,
+				},
+				ManagedDisk: features.ManagedDiskFeatures{
+					ExpandWithoutDowntime: false,
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: false,
@@ -1116,6 +1135,71 @@ func TestExpandFeaturesResourceGroup(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.ResourceGroup, testCase.Expected.ResourceGroup) {
 			t.Fatalf("Expected %+v but got %+v", result.ResourceGroup, testCase.Expected.ResourceGroup)
+		}
+	}
+}
+
+func TestExpandFeaturesManagedDisk(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"managed_disk": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				ManagedDisk: features.ManagedDiskFeatures{
+					ExpandWithoutDowntime: true,
+				},
+			},
+		},
+		{
+			Name: "No Downtime Resize Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"managed_disk": []interface{}{
+						map[string]interface{}{
+							"expand_without_downtime": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				ManagedDisk: features.ManagedDiskFeatures{
+					ExpandWithoutDowntime: true,
+				},
+			},
+		},
+		{
+			Name: "No Downtime Resize Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"managed_disk": []interface{}{
+						map[string]interface{}{
+							"expand_without_downtime": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				ManagedDisk: features.ManagedDiskFeatures{
+					ExpandWithoutDowntime: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.ManagedDisk, testCase.Expected.ManagedDisk) {
+			t.Fatalf("Expected %+v but got %+v", result.ManagedDisk, testCase.Expected.ManagedDisk)
 		}
 	}
 }

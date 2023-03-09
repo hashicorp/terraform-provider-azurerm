@@ -1,3 +1,4 @@
+---
 name: Issue Comment Created Triage
 
 on:
@@ -26,6 +27,7 @@ jobs:
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           labels: waiting-response
+
   pull_request_comment:
     runs-on: ubuntu-latest
     if: github.event.issue.pull_request && endsWith(github.event.comment.body, '/wr')

@@ -46,9 +46,9 @@ The following arguments are supported:
 
 * `managed_disk_id` - (Required) The ID of an existing Managed Disk which should be exported. Changing this forces a new resource to be created.
 
-* `duration_in_seconds` - (Required) The duration for which the export should be allowed. Should be between 30 & 4294967295 seconds.
+* `duration_in_seconds` - (Required) The duration for which the export should be allowed. Should be between 30 & 4294967295 seconds. Changing this forces a new resource to be created.
 
-* `access_level` - (Required) The level of access required on the disk. Supported are Read, Write.
+* `access_level` - (Required) The level of access required on the disk. Supported are Read, Write. Changing this forces a new resource to be created.
 
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/compute/disks/grant-access)
 for additional details on the fields above.
@@ -74,5 +74,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Disk SAS Token can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_managed_disk_sas_token.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/disks/manageddisk1
+terraform import azurerm_managed_disk_sas_token.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/disks/manageddisk1
 ```

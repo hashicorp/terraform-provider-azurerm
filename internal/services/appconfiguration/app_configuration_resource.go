@@ -287,11 +287,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
 
 	if publicNetworkAccessNotEmpty {
-		publicNetworkAccess, err := parsePublicNetworkAccess(publicNetworkAccessValue.(string))
-		if err != nil {
-			return fmt.Errorf("unable to parse public_network_access: %+v", err)
-		}
-		parameters.Properties.PublicNetworkAccess = publicNetworkAccess
+		parameters.Properties.PublicNetworkAccess = parsePublicNetworkAccess(publicNetworkAccessValue.(string))
 	}
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -372,11 +368,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
 		if publicNetworkAccessNotEmpty {
-			publicNetworkAccess, err := parsePublicNetworkAccess(publicNetworkAccessValue.(string))
-			if err != nil {
-				return fmt.Errorf("unable to parse public_network_access: %+v", err)
-			}
-			update.Properties.PublicNetworkAccess = publicNetworkAccess
+			update.Properties.PublicNetworkAccess = parsePublicNetworkAccess(publicNetworkAccessValue.(string))
 		}
 	}
 
@@ -446,7 +438,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving access keys for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.ConfigStoreName)
+	d.Set("name", id.ConfigurationStoreName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -539,7 +531,7 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if meta.(*clients.Client).Features.AppConfiguration.PurgeSoftDeleteOnDestroy && softDeleteEnabled {
-		deletedId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, existing.Model.Location, id.ConfigStoreName)
+		deletedId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, existing.Model.Location, id.ConfigurationStoreName)
 
 		// AppConfiguration with Purge Protection Enabled cannot be deleted unless done by Azure
 		if purgeProtectionEnabled {
@@ -550,20 +542,20 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 
 			if deletedInfo.Model != nil && deletedInfo.Model.Properties != nil && deletedInfo.Model.Properties.DeletionDate != nil && deletedInfo.Model.Properties.ScheduledPurgeDate != nil {
 				log.Printf("[DEBUG] The App Configuration %q has Purge Protection Enabled and was deleted on %q. Azure will purge this on %q",
-					id.ConfigStoreName, *deletedInfo.Model.Properties.DeletionDate, *deletedInfo.Model.Properties.ScheduledPurgeDate)
+					id.ConfigurationStoreName, *deletedInfo.Model.Properties.DeletionDate, *deletedInfo.Model.Properties.ScheduledPurgeDate)
 			} else {
-				log.Printf("[DEBUG] The App Configuration %q has Purge Protection Enabled and will be purged automatically by Azure", id.ConfigStoreName)
+				log.Printf("[DEBUG] The App Configuration %q has Purge Protection Enabled and will be purged automatically by Azure", id.ConfigurationStoreName)
 			}
 			return nil
 		}
 
-		log.Printf("[DEBUG]  %q marked for purge - executing purge", id.ConfigStoreName)
+		log.Printf("[DEBUG]  %q marked for purge - executing purge", id.ConfigurationStoreName)
 		if err := deletedConfigurationStoresClient.ConfigurationStoresPurgeDeletedThenPoll(ctx, deletedId); err != nil {
 			return fmt.Errorf("purging %s: %+v", *id, err)
 		}
 
 		// TODO: retry checkNameAvailability after deletion when SDK is ready, see https://github.com/Azure/AppConfiguration/issues/677
-		log.Printf("[DEBUG] Purged AppConfiguration %q.", id.ConfigStoreName)
+		log.Printf("[DEBUG] Purged AppConfiguration %q.", id.ConfigurationStoreName)
 	}
 
 	return nil
@@ -674,16 +666,16 @@ this into Terraform via "terraform import", or pick a different name/location.
 `, name, location)
 }
 
-func parsePublicNetworkAccess(input string) (*configurationstores.PublicNetworkAccess, error) {
+func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAccess {
 	vals := map[string]configurationstores.PublicNetworkAccess{
 		"disabled": configurationstores.PublicNetworkAccessDisabled,
 		"enabled":  configurationstores.PublicNetworkAccessEnabled,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
+		return &v
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := configurationstores.PublicNetworkAccess(input)
-	return &out, nil
+	return &out
 }

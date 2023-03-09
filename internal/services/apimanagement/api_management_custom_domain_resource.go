@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -32,10 +32,10 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(45 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -169,6 +169,11 @@ func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	apimHostNameSuffix, ok := environment.ApiManagement.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine API Management domain suffix for environment %q", environment.Name)
+	}
+
 	id, err := parse.CustomDomainID(d.Id())
 	if err != nil {
 		return err
@@ -190,11 +195,10 @@ func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("api_management_id", apiMgmtId.ID())
 
 	if resp.ServiceProperties != nil && resp.ServiceProperties.HostnameConfigurations != nil {
-		apimHostNameSuffix := environment.APIManagementHostNameSuffix
-		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d, *resp.Name, apimHostNameSuffix)
+		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d, *resp.Name, *apimHostNameSuffix)
 		for _, config := range configs {
 			for key, v := range config.(map[string]interface{}) {
-				//lintignore:R001
+				// lintignore:R001
 				if err := d.Set(key, v); err != nil {
 					return fmt.Errorf("setting `hostname_configuration` %q: %+v", key, err)
 				}
@@ -343,6 +347,10 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 
 		if config.KeyVaultID != nil {
 			output["key_vault_id"] = *config.KeyVaultID
+		}
+
+		if config.IdentityClientID != nil {
+			output["ssl_keyvault_identity_client_id"] = *config.IdentityClientID
 		}
 
 		var configType string

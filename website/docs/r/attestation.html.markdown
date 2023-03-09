@@ -1,12 +1,12 @@
 ---
 subcategory: "Attestation"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_attestation"
+page_title: "Azure Resource Manager: azurerm_attestation_provider"
 description: |-
   Manages a Attestation Provider.
 ---
 
-# azurerm_attestation
+# azurerm_attestation_provider
 
 Manages a Attestation Provider.
 

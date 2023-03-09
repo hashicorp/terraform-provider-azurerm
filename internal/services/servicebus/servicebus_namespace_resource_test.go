@@ -250,6 +250,22 @@ func TestAccAzureRMServiceBusNamespace_minimumTLSUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusNamespace_endpoint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	r := ServiceBusNamespaceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				acceptance.TestMatchResourceAttr(
+					data.ResourceName, "endpoint", regexp.MustCompile(`https://.+`)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t ServiceBusNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := namespaces.ParseNamespaceID(state.ID)
 	if err != nil {

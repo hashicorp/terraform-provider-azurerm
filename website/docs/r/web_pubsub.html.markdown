@@ -1,5 +1,5 @@
 ---
-subcategory: "Web PubSub"
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub"
 description: |-
@@ -46,16 +46,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Web PubSub service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Web PubSub service. Changing
-  this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Web PubSub service. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the Web PubSub service exists. Changing this
-  forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the Web PubSub service exists. Changing this forces a new resource to be created.
 
 * `sku` - (Required) Specifies which SKU to use. Possible values are `Free_F1` and `Standard_S1`.
 
-* `capacity` - (Optional) Specifies the number of units associated with this Web PubSub resource. Valid values are:
-  Free: `1`, Standard: `1`, `2`, `5`, `10`, `20`, `50`, `100`.
+* `capacity` - (Optional) Specifies the number of units associated with this Web PubSub resource. Valid values are: Free: `1`, Standard: `1`, `2`, `5`, `10`, `20`, `50`, `100`.
 
 * `public_network_access_enabled` - (Optional) Whether to enable public network access? Defaults to `true`.
 
@@ -69,8 +66,7 @@ The following arguments are supported:
 
 * `aad_auth_enabled` - (Optional) Whether to enable AAD auth? Defaults to `true`.
 
-* `tls_client_cert_enabled` - (Optional)  Whether to request client certificate during TLS handshake? Defaults
-  to `false`.
+* `tls_client_cert_enabled` - (Optional) Whether to request client certificate during TLS handshake? Defaults to `false`.
 
 ---
 
@@ -104,7 +100,7 @@ The following attributes are exported:
 
 * `identity` - An `identity` block as defined below.
 
-* `ip_address` - The publicly accessible IP of the Web PubSub service.
+* `external_ip` - The publicly accessible IP of the Web PubSub service.
 
 * `public_port` - The publicly accessible port of the Web PubSub service which is designed for browser/client use.
 

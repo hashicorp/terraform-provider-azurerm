@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -156,7 +156,7 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 		props.AFDDomainProperties.AzureDNSZone = expandResourceReference(dnsZone)
 	}
 
-	tlsSettings, err := expandTlsParameters(tls, false)
+	tlsSettings, err := expandTlsParameters(tls)
 	if err != nil {
 		return err
 	}
@@ -203,11 +203,21 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 	if props := resp.AFDDomainProperties; props != nil {
 		d.Set("host_name", props.HostName)
 
-		if err := d.Set("dns_zone_id", flattenResourceReference(props.AzureDNSZone)); err != nil {
+		dnsZoneId, err := flattenDNSZoneResourceReference(props.AzureDNSZone)
+		if err != nil {
+			return fmt.Errorf("flattening `dns_zone_id`: %+v", err)
+		}
+
+		if err := d.Set("dns_zone_id", dnsZoneId); err != nil {
 			return fmt.Errorf("setting `dns_zone_id`: %+v", err)
 		}
 
-		if err := d.Set("tls", flattenCustomDomainAFDDomainHttpsParameters(props.TLSSettings)); err != nil {
+		tls, err := flattenCustomDomainAFDDomainHttpsParameters(props.TLSSettings)
+		if err != nil {
+			return fmt.Errorf("flattening `tls`: %+v", err)
+		}
+
+		if err := d.Set("tls", tls); err != nil {
 			return fmt.Errorf("setting `tls`: %+v", err)
 		}
 
@@ -309,7 +319,7 @@ func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandTlsParameters(input []interface{}, isPreValidatedDomain bool) (*cdn.AFDDomainHTTPSParameters, error) {
+func expandTlsParameters(input []interface{}) (*cdn.AFDDomainHTTPSParameters, error) {
 	// NOTE: With the Frontdoor service, they do not treat an empty object like an empty object
 	// if it is not nil they assume it is fully defined and then end up throwing errors when they
 	// attempt to get a value from one of the fields.
@@ -348,16 +358,21 @@ func expandTlsParameters(input []interface{}, isPreValidatedDomain bool) (*cdn.A
 	return &tls, nil
 }
 
-func flattenCustomDomainAFDDomainHttpsParameters(input *cdn.AFDDomainHTTPSParameters) []interface{} {
+func flattenCustomDomainAFDDomainHttpsParameters(input *cdn.AFDDomainHTTPSParameters) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
+	}
+
+	secretId, err := flattenSecretResourceReference(input.Secret)
+	if err != nil {
+		return []interface{}{}, err
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"cdn_frontdoor_secret_id": flattenResourceReference(input.Secret),
+			"cdn_frontdoor_secret_id": secretId,
 			"certificate_type":        string(input.CertificateType),
 			"minimum_tls_version":     string(input.MinimumTLSVersion),
 		},
-	}
+	}, nil
 }

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"                     // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"

@@ -7,23 +7,26 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = ServiceId{}
 
 // ServiceId is a struct representing the Resource ID for a Service
 type ServiceId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
-	ServiceName       string
+	SubscriptionId      string
+	ResourceGroupName   string
+	DatabaseAccountName string
+	ServiceName         string
 }
 
 // NewServiceID returns a new ServiceId struct
-func NewServiceID(subscriptionId string, resourceGroupName string, accountName string, serviceName string) ServiceId {
+func NewServiceID(subscriptionId string, resourceGroupName string, databaseAccountName string, serviceName string) ServiceId {
 	return ServiceId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
-		ServiceName:       serviceName,
+		SubscriptionId:      subscriptionId,
+		ResourceGroupName:   resourceGroupName,
+		DatabaseAccountName: databaseAccountName,
+		ServiceName:         serviceName,
 	}
 }
 
@@ -46,8 +49,8 @@ func ParseServiceID(input string) (*ServiceId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
@@ -77,8 +80,8 @@ func ParseServiceIDInsensitively(input string) (*ServiceId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
 	}
 
 	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
@@ -106,7 +109,7 @@ func ValidateServiceID(input interface{}, key string) (warnings []string, errors
 // ID returns the formatted Service ID
 func (id ServiceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/services/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ServiceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.ServiceName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Service ID
@@ -119,7 +122,7 @@ func (id ServiceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
 		resourceids.StaticSegment("staticServices", "services", "services"),
 		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
 	}
@@ -130,7 +133,7 @@ func (id ServiceId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Database Account Name: %q", id.DatabaseAccountName),
 		fmt.Sprintf("Service Name: %q", id.ServiceName),
 	}
 	return fmt.Sprintf("Service (%s)", strings.Join(components, "\n"))

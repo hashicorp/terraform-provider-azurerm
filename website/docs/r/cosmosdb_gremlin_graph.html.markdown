@@ -76,11 +76,11 @@ The following arguments are supported:
 
 ~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed.
 
-* `index_policy` - (Required) The configuration of the indexing policy. One or more `index_policy` blocks as defined below.
+* `index_policy` - (Optional) The configuration of the indexing policy. One or more `index_policy` blocks as defined below.
 
-* `conflict_resolution_policy` - (Optional)  A `conflict_resolution_policy` blocks as defined below.
+* `conflict_resolution_policy` - (Optional) A `conflict_resolution_policy` blocks as defined below. Changing this forces a new resource to be created.
 
-* `unique_key` (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
+* `unique_key` - (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -124,21 +124,21 @@ An `conflict_resolution_policy` block supports the following:
 
 An `unique_key` block supports the following:
 
-* `paths` - (Required) A list of paths to use for this unique key.
+* `paths` - (Required) A list of paths to use for this unique key. Changing this forces a new resource to be created.
 
 ---
 
 A `composite_index` block supports the following:
 
-* `index` - One or more `index` blocks as defined below.
+* `index` - (Required) One or more `index` blocks as defined below.
 
 ---
 
 An `index` block supports the following:
 
-* `path` - Path for which the indexing behaviour applies to.
+* `path` - (Required) Path for which the indexing behaviour applies to.
 
-* `order` - Order of the index. Possible values are `Ascending` or `Descending`.
+* `order` - (Required) Order of the index. Possible values are `Ascending` or `Descending`.
 
 ## Attributes Reference
 

@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -176,7 +175,7 @@ func (d DiskPoolIscsiTargetLunModel) Read() sdk.ResourceFunc {
 			for _, lun := range *resp.Model.Properties.Luns {
 				if lun.ManagedDiskAzureResourceId == id.ManagedDiskId.ID() {
 					diskPoolId := diskpools.NewDiskPoolID(iscsiTargetId.SubscriptionId, iscsiTargetId.ResourceGroupName, iscsiTargetId.DiskPoolName)
-					diskId, err := disks.ParseDiskID(lun.ManagedDiskAzureResourceId)
+					diskId, err := disks.ParseDiskIDInsensitively(lun.ManagedDiskAzureResourceId)
 					if err != nil {
 						return fmt.Errorf("invalid managed disk id in iscsi target response %q : %q", iscsiTargetId.ID(), lun.ManagedDiskAzureResourceId)
 					}
@@ -266,7 +265,7 @@ func (d DiskPoolIscsiTargetLunModel) IDValidationFunc() pluginsdk.SchemaValidate
 }
 
 func (DiskPoolIscsiTargetLunModel) RetryError(timeout time.Duration, action string, id string, retryFunc func() error) error {
-	return pluginsdk.Retry(timeout, func() *resource.RetryError {
+	return pluginsdk.Retry(timeout, func() *pluginsdk.RetryError {
 		err := retryFunc()
 		if err == nil {
 			return nil

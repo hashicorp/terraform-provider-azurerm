@@ -87,7 +87,9 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					string(disks.DiskCreateOptionEmpty),
 					string(disks.DiskCreateOptionFromImage),
 					string(disks.DiskCreateOptionImport),
+					string(disks.DiskCreateOptionImportSecure),
 					string(disks.DiskCreateOptionRestore),
+					string(disks.DiskCreateOptionUpload),
 				}, false),
 			},
 
@@ -153,6 +155,13 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.ManagedDiskSizeGB,
+			},
+
+			"upload_size_bytes": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"disk_iops_read_write": {
@@ -379,15 +388,15 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only, disk_mbps_read_only and logical_sector_size are only available for UltraSSD disks and PremiumV2 disks")
 	}
 
-	if createOption == disks.DiskCreateOptionImport {
+	if createOption == disks.DiskCreateOptionImport || createOption == disks.DiskCreateOptionImportSecure {
 		sourceUri := d.Get("source_uri").(string)
 		if sourceUri == "" {
-			return fmt.Errorf("`source_uri` must be specified when `create_option` is set to `Import`")
+			return fmt.Errorf("`source_uri` must be specified when `create_option` is set to `Import` or `ImportSecure`")
 		}
 
 		storageAccountId := d.Get("storage_account_id").(string)
 		if storageAccountId == "" {
-			return fmt.Errorf("`storage_account_id` must be specified when `create_option` is set to `Import`")
+			return fmt.Errorf("`storage_account_id` must be specified when `create_option` is set to `Import` or `ImportSecure`")
 		}
 
 		props.CreationData.StorageAccountId = utils.String(storageAccountId)
@@ -412,6 +421,14 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		} else {
 			return fmt.Errorf("`image_reference_id` or `gallery_image_reference_id` must be specified when `create_option` is set to `FromImage`")
+		}
+	}
+
+	if createOption == disks.DiskCreateOptionUpload {
+		if uploadSizeBytes := d.Get("upload_size_bytes").(int); uploadSizeBytes != 0 {
+			props.CreationData.UploadSizeBytes = utils.Int64(int64(uploadSizeBytes))
+		} else {
+			return fmt.Errorf("`upload_size_bytes` must be specified when `create_option` is set to `Upload`")
 		}
 	}
 
@@ -474,8 +491,9 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		switch createOption {
 		case disks.DiskCreateOptionFromImage:
 		case disks.DiskCreateOptionImport:
+		case disks.DiskCreateOptionImportSecure:
 		default:
-			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are FromImage, Import", createOption)
+			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are `FromImage`, `Import`, `ImportSecure`", createOption)
 		}
 	}
 
@@ -489,8 +507,9 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		switch createOption {
 		case disks.DiskCreateOptionFromImage:
 		case disks.DiskCreateOptionImport:
+		case disks.DiskCreateOptionImportSecure:
 		default:
-			return fmt.Errorf("`security_type` can only be specified when `create_option` is set to `FromImage` or `Import`")
+			return fmt.Errorf("`security_type` can only be specified when `create_option` is set to `FromImage`, `Import` or `ImportSecure`")
 		}
 
 		if disks.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey == disks.DiskSecurityTypes(securityType) && secureVMDiskEncryptionId == "" {
@@ -567,6 +586,8 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
+	virtualMachinesClient := meta.(*clients.Client).Compute.VirtualMachinesClient
+	skusClient := meta.(*clients.Client).Compute.SkusClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -678,9 +699,23 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("disk_size_gb") {
-		if old, new := d.GetChange("disk_size_gb"); new.(int) > old.(int) {
-			shouldShutDown = true
-			diskUpdate.Properties.DiskSizeGB = utils.Int64(int64(new.(int)))
+		if oldSize, newSize := d.GetChange("disk_size_gb"); newSize.(int) > oldSize.(int) {
+			canBeResizedWithoutDowntime := false
+			if meta.(*clients.Client).Features.ManagedDisk.ExpandWithoutDowntime {
+				diskSupportsNoDowntimeResize := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, oldSize.(int), newSize.(int))
+
+				vmSkuSupportsNoDowntimeResize, err := determineIfVirtualMachineSkuSupportsNoDowntimeResize(ctx, disk.Model.ManagedBy, virtualMachinesClient, skusClient)
+				if err != nil {
+					return fmt.Errorf("determining if the Virtual Machine the Disk is attached to supports no-downtime-resize: %+v", err)
+				}
+
+				canBeResizedWithoutDowntime = *vmSkuSupportsNoDowntimeResize && *diskSupportsNoDowntimeResize
+			}
+			if !canBeResizedWithoutDowntime {
+				log.Printf("[INFO] The %s, or the Virtual Machine that it's attached to, doesn't support no-downtime-resizing - requiring that the VM should be shutdown", *id)
+				shouldShutDown = true
+			}
+			diskUpdate.Properties.DiskSizeGB = utils.Int64(int64(newSize.(int)))
 		} else {
 			return fmt.Errorf("- New size must be greater than original size. Shrinking disks is not supported on Azure")
 		}
@@ -928,6 +963,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("source_resource_id", creationData.SourceResourceId)
 			d.Set("source_uri", creationData.SourceUri)
 			d.Set("storage_account_id", creationData.StorageAccountId)
+			d.Set("upload_size_bytes", creationData.UploadSizeBytes)
 
 			d.Set("disk_size_gb", props.DiskSizeGB)
 			d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)

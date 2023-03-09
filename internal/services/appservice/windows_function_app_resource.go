@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -41,6 +42,7 @@ type WindowsFunctionAppModel struct {
 	AppSettings                 map[string]string                      `tfschema:"app_settings"`
 	StickySettings              []helpers.StickySettings               `tfschema:"sticky_settings"`
 	AuthSettings                []helpers.AuthSettings                 `tfschema:"auth_settings"`
+	AuthV2Settings              []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
 	Backup                      []helpers.Backup                       `tfschema:"backup"` // Not supported on Dynamic or Basic plans
 	BuiltinLogging              bool                                   `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled           bool                                   `tfschema:"client_certificate_enabled"`
@@ -164,6 +166,8 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
+
+		"auth_settings_v2": helpers.AuthV2SettingsSchema(),
 
 		"backup": helpers.BackupSchema(),
 
@@ -315,6 +319,11 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
+
 			var functionApp WindowsFunctionAppModel
 
 			if err := metadata.Decode(&functionApp); err != nil {
@@ -396,7 +405,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				if functionApp.StorageKeyVaultSecretID != "" {
 					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, functionApp.StorageKeyVaultSecretID)
 				} else {
-					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionApp.StorageAccountName, functionApp.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionApp.StorageAccountName, functionApp.StorageAccountKey, *storageDomainSuffix)
 				}
 			}
 
@@ -428,13 +437,13 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 
 					if !contentSharePresent {
 						if contentOverVnetEnabled {
-							return fmt.Errorf("the value of WEBSITE_CONTENTSHARE must be set to a predefined share when the storage account is restricted to a virtual network")
+							return fmt.Errorf("the app_setting WEBSITE_CONTENTSHARE must be specified and set to a valid share when WEBSITE_CONTENTOVERVNET is specified")
 						}
 						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
 					}
 					if !contentShareConnectionString {
 						if contentOverVnetEnabled && contentSharePresent {
-							return fmt.Errorf("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING must be set when WEBSITE_CONTENTSHARE and WEBSITE_CONTENTOVERVNET is specified")
+							return fmt.Errorf("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING must be set when WEBSITE_CONTENTSHARE and WEBSITE_CONTENTOVERVNET are specified")
 						}
 						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
@@ -445,7 +454,6 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			siteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(functionApp.SiteConfig[0].ApplicationStack)
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionApp.AppSettings)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
@@ -509,7 +517,10 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			backupConfig := helpers.ExpandBackupConfig(functionApp.Backup)
+			backupConfig, err := helpers.ExpandBackupConfig(functionApp.Backup)
+			if err != nil {
+				return fmt.Errorf("expanding backup configuration for Windows %s: %+v", id, err)
+			}
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
 					return fmt.Errorf("adding Backup Settings for Windows %s: %+v", id, err)
@@ -520,6 +531,13 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 			if auth.SiteAuthSettingsProperties != nil {
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *auth); err != nil {
 					return fmt.Errorf("setting Authorisation Settings for Windows %s: %+v", id, err)
+				}
+			}
+
+			authv2 := helpers.ExpandAuthV2Settings(functionApp.AuthV2Settings)
+			if authv2.SiteAuthSettingsV2Properties != nil {
+				if _, err = client.UpdateAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName, *authv2); err != nil {
+					return fmt.Errorf("updating AuthV2 settings for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -612,6 +630,14 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
 			}
 
+			var authV2 web.SiteAuthSettingsV2
+			if strings.EqualFold(pointer.From(auth.ConfigVersion), "v2") {
+				authV2, err = client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
+				if err != nil {
+					return fmt.Errorf("reading authV2 settings for Windows %s: %+v", *id, err)
+				}
+			}
+
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(backup.Response) {
@@ -660,6 +686,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
+
 			state.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}
 
 			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
@@ -669,6 +696,8 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
+
+			state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
@@ -726,6 +755,11 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
+
 			client := metadata.Client.AppService.WebAppsClient
 
 			id, err := parse.FunctionAppID(metadata.ResourceData.Id())
@@ -749,17 +783,30 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.SiteProperties.ServerFarmID = utils.String(serviceFarmId)
 			}
 
-			_, planSKU, err := helpers.GetServicePlanSku(ctx, metadata, *id, serviceFarmId)
+			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
 			if err != nil {
 				return err
 			}
 
-			if planSKU == nil {
-				_, planSKU, err = helpers.ServicePlanInfoForApp(ctx, metadata, *id)
+			// Some service plan updates are allowed - see customiseDiff for exceptions
+			if metadata.ResourceData.HasChange("service_plan_id") {
+				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
+				servicePlanId, err := parse.ServicePlanID(state.ServicePlanId)
 				if err != nil {
 					return err
 				}
+
+				servicePlanClient := metadata.Client.AppService.ServicePlanClient
+				servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+				if err != nil {
+					return fmt.Errorf("reading new service plan (%s) for Windows %s: %+v", servicePlanId, id, err)
+				}
+
+				if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
+					planSKU = sku.Name
+				}
 			}
+
 			// Only send for ElasticPremium and consumption plan
 			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !state.ForceDisableContentShare
 
@@ -829,7 +876,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				if state.StorageKeyVaultSecretID != "" {
 					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
 				} else {
-					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, *storageDomainSuffix)
 				}
 			}
 
@@ -889,10 +936,6 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.SiteConfig = siteConfig
 			}
 
-			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-				existing.SiteConfig.WindowsFxVersion = helpers.EncodeFunctionAppWindowsFxVersion(state.SiteConfig[0].ApplicationStack)
-			}
-
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
 
 			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, existing)
@@ -941,15 +984,44 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			updateLogs := false
+
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
+				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
+				if authUpdate.SiteAuthSettingsProperties == nil {
+					authUpdate.SiteAuthSettingsProperties = &web.SiteAuthSettingsProperties{
+						Enabled:                           pointer.To(false),
+						ClientSecret:                      pointer.To(""),
+						ClientSecretSettingName:           pointer.To(""),
+						ClientSecretCertificateThumbprint: pointer.To(""),
+						GoogleClientSecret:                pointer.To(""),
+						FacebookAppSecret:                 pointer.To(""),
+						GitHubClientSecret:                pointer.To(""),
+						TwitterConsumerSecret:             pointer.To(""),
+						MicrosoftAccountClientSecret:      pointer.To(""),
+					}
+					updateLogs = true
+				}
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *authUpdate); err != nil {
 					return fmt.Errorf("updating Auth Settings for Windows %s: %+v", id, err)
 				}
 			}
 
+			if metadata.ResourceData.HasChange("auth_settings_v2") {
+				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				if _, err := client.UpdateAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName, *authV2Update); err != nil {
+					return fmt.Errorf("updating AuthV2 Settings for Windows %s: %+v", id, err)
+				}
+				updateLogs = true
+			}
+
 			if metadata.ResourceData.HasChange("backup") {
-				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
+				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
+				if err != nil {
+					return fmt.Errorf("expanding backup configuration for Windows %s: %+v", *id, err)
+				}
+
 				if backupUpdate.BackupRequestProperties == nil {
 					if _, err := client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName); err != nil {
 						return fmt.Errorf("removing Backup Settings for Windows %s: %+v", id, err)
@@ -961,7 +1033,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("site_config.0.app_service_logs") {
+			if metadata.ResourceData.HasChange("site_config.0.app_service_logs") || updateLogs {
 				appServiceLogs := helpers.ExpandFunctionAppAppServiceLogs(state.SiteConfig[0].AppServiceLogs)
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, appServiceLogs); err != nil {
 					return fmt.Errorf("updating App Service Log Settings for %s: %+v", id, err)
@@ -1000,7 +1072,7 @@ func (r WindowsFunctionAppResource) CustomImporter() sdk.ResourceRunFunc {
 			return fmt.Errorf("reading Service Plan for Windows %s: %+v", id, err)
 		}
 
-		if strings.Contains(strings.ToLower(*sp.Kind), "linux") {
+		if strings.Contains(strings.ToLower(*sp.Kind), "Windows") {
 			return fmt.Errorf("specified Service Plan is not a Windows Functionapp plan")
 		}
 
@@ -1089,7 +1161,11 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 		case "FUNCTIONS_EXTENSION_VERSION":
 			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
 
-		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
+		case "WEBSITE_NODE_DEFAULT_VERSION":
+			if len(m.SiteConfig[0].ApplicationStack) == 0 {
+				m.SiteConfig[0].ApplicationStack = []helpers.ApplicationStackWindowsFunctionApp{{}}
+			}
+			m.SiteConfig[0].ApplicationStack[0].NodeVersion = pointer.From(v)
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
 				appSettings[k] = utils.NormalizeNilableString(v)
@@ -1102,12 +1178,15 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
-			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].ApplicationStack) > 0 {
-				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
-			}
-
 			if _, ok := metadata.ResourceData.GetOk("app_settings.FUNCTIONS_WORKER_RUNTIME"); ok {
 				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+			switch *v {
+			case "dotnet-isolated":
+				m.SiteConfig[0].ApplicationStack[0].DotNetIsolated = true
+			case "custom":
+				m.SiteConfig[0].ApplicationStack[0].CustomHandler = true
+
 			}
 
 		case "DOCKER_REGISTRY_SERVER_URL":

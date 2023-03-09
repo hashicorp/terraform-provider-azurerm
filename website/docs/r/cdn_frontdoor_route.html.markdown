@@ -34,9 +34,9 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_origin" "example" {
-  name                                  = "example-origin"
-  cdn_frontdoor_profile_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
-  enabled                               = true
+  name                          = "example-origin"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  enabled                       = true
 
   certificate_name_check_enabled = false
 
@@ -124,7 +124,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_origin_ids` - (Required) One or more Front Door Origin resource IDs that this Front Door Route will link to.
 
-* `forwarding_protocol` - (Required) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`.
+* `forwarding_protocol` - (Optional) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`.
 
 * `patterns_to_match` - (Required) The route patterns of the rule.
 

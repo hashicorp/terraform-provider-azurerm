@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-08-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -380,6 +380,23 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
+			"key_management_service": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"key_vault_network_access": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"kubernetes_version": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -585,6 +602,11 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"node_resource_group_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"oidc_issuer_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -607,6 +629,36 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"client_id": {
 							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"storage_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+
+						"blob_driver_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"disk_driver_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"disk_driver_version": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"file_driver_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"snapshot_controller_enabled": {
+							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 					},
@@ -660,7 +712,15 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 			d.Set("private_fqdn", props.PrivateFQDN)
 			d.Set("kubernetes_version", props.KubernetesVersion)
-			d.Set("node_resource_group", props.NodeResourceGroup)
+
+			nodeResourceGroup := ""
+			if v := props.NodeResourceGroup; v != nil {
+				nodeResourceGroup = *props.NodeResourceGroup
+			}
+			d.Set("node_resource_group", nodeResourceGroup)
+
+			nodeResourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup)
+			d.Set("node_resource_group_id", nodeResourceGroupId.ID())
 
 			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
 				apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
@@ -686,6 +746,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			agentPoolProfiles := flattenKubernetesClusterDataSourceAgentPoolProfiles(props.AgentPoolProfiles)
 			if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
 				return fmt.Errorf("setting `agent_pool_profile`: %+v", err)
+			}
+
+			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
+			if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
+				return fmt.Errorf("setting `key_management_service`: %+v", err)
 			}
 
 			kubeletIdentity, err := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
@@ -729,6 +794,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `oidc_issuer_url`: %+v", err)
 			}
 
+			storageProfile := flattenKubernetesClusterDataSourceStorageProfile(props.StorageProfile)
+			if err := d.Set("storage_profile", storageProfile); err != nil {
+				return fmt.Errorf("setting `storage_profile`: %+v", err)
+			}
+
 			rbacEnabled := true
 			if props.EnableRBAC != nil {
 				rbacEnabled = *props.EnableRBAC
@@ -752,14 +822,13 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 
 			// adminProfile is only available for RBAC enabled clusters with AAD and without local accounts disabled
 			if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-				profileId := managedclusters.NewAccessProfileID(subscriptionId, id.ResourceGroupName, id.ResourceName, "clusterAdmin")
+				profileId := managedclusters.NewAccessProfileID(subscriptionId, id.ResourceGroupName, id.ManagedClusterName, "clusterAdmin")
 				adminProfile, err := client.GetAccessProfile(ctx, profileId)
 				if err != nil {
 					return fmt.Errorf("retrieving Admin Access Profile for %s: %+v", id, err)
 				}
 
 				if adminProfileModel := adminProfile.Model; adminProfileModel != nil {
-
 					adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(*adminProfileModel)
 					d.Set("kube_admin_config_raw", adminKubeConfigRaw)
 					if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
@@ -793,6 +862,70 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
+func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
+	azureKeyVaultKms := make([]interface{}, 0)
+
+	if input != nil && input.AzureKeyVaultKms != nil && input.AzureKeyVaultKms.Enabled != nil && *input.AzureKeyVaultKms.Enabled {
+		keyId := ""
+		if v := input.AzureKeyVaultKms.KeyId; v != nil {
+			keyId = *v
+		}
+
+		networkAccess := ""
+		if v := input.AzureKeyVaultKms.KeyVaultNetworkAccess; v != nil {
+			networkAccess = string(*v)
+		}
+
+		azureKeyVaultKms = append(azureKeyVaultKms, map[string]interface{}{
+			"key_vault_key_id":         keyId,
+			"key_vault_network_access": networkAccess,
+		})
+	}
+
+	return azureKeyVaultKms
+}
+
+func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.ManagedClusterStorageProfile) []interface{} {
+	storageProfile := make([]interface{}, 0)
+
+	if input != nil {
+		blobEnabled := false
+		if input.BlobCSIDriver != nil {
+			blobEnabled = *input.BlobCSIDriver.Enabled
+		}
+
+		diskEnabled := true
+		if input.DiskCSIDriver != nil {
+			diskEnabled = *input.DiskCSIDriver.Enabled
+		}
+
+		diskVersion := ""
+		if input.FileCSIDriver != nil {
+			diskVersion = *input.DiskCSIDriver.Version
+		}
+
+		fileEnabled := true
+		if input.DiskCSIDriver != nil {
+			fileEnabled = *input.FileCSIDriver.Enabled
+		}
+
+		snapshotController := true
+		if input.SnapshotController != nil {
+			snapshotController = *input.SnapshotController.Enabled
+		}
+
+		storageProfile = append(storageProfile, map[string]interface{}{
+			"blob_driver_enabled":         blobEnabled,
+			"disk_driver_enabled":         diskEnabled,
+			"disk_driver_version":         diskVersion,
+			"file_driver_enabled":         fileEnabled,
+			"snapshot_controller_enabled": snapshotController,
+		})
+	}
+
+	return storageProfile
+}
+
 func flattenKubernetesClusterDataSourceAccessProfile(profile managedclusters.ManagedClusterAccessProfile) (*string, []interface{}) {
 	if profile.Properties == nil {
 		return nil, []interface{}{}
@@ -801,7 +934,7 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile managedclusters.Man
 	if kubeConfigRaw := profile.Properties.KubeConfig; kubeConfigRaw != nil {
 		rawConfig := *kubeConfigRaw
 		if base64IsEncoded(*kubeConfigRaw) {
-			rawConfig, _ = base64Decode(*kubeConfigRaw)
+			rawConfig = base64Decode(*kubeConfigRaw)
 		}
 
 		var flattenedKubeConfig []interface{}
@@ -1030,7 +1163,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			nodeTaints = *profile.NodeTaints
 		}
 
-		vmSize := profile.VmSize
+		vmSize := profile.VMSize
 
 		out := map[string]interface{}{
 			"count":                    count,
@@ -1156,7 +1289,6 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *managedclusters.Conta
 				}
 			}
 		}
-
 	}
 
 	values["ssh_key"] = sshKeys

@@ -67,11 +67,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Healthcare FHIR Service. Changing this forces a new Healthcare FHIR Service to be created.
 
-* `workspace_id`  - (Required) Specifies the name of the Healthcare Workspace where the Healthcare FHIR Service should exist. Changing this forces a new Healthcare FHIR Service to be created.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group in which to create the Healthcare FHIR Service. Changing this forces a new resource to be created.
+
+* `workspace_id` - (Required) Specifies the id of the Healthcare Workspace where the Healthcare FHIR Service should exist. Changing this forces a new Healthcare FHIR Service to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Healthcare FHIR Service should be created. Changing this forces a new Healthcare FHIR Service to be created.
 
-* `kind` - (Required) Specifies the kind of the Healthcare FHIR Service. Possible values are: `fhir-Stu3` and `fhir-R4`. Defaults to `fhir-R4`. Changing this forces a new Healthcare FHIR Service to be created.
+* `kind` - (Optional) Specifies the kind of the Healthcare FHIR Service. Possible values are: `fhir-Stu3` and `fhir-R4`. Defaults to `fhir-R4`. Changing this forces a new Healthcare FHIR Service to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -87,6 +89,8 @@ The following arguments are supported:
 
 * `configuration_export_storage_account_name` - (Optional) Specifies the name of the storage account which the operation configuration information is exported to.
 
+* `tags` - (Optional) A mapping of tags to assign to the Healthcare FHIR Service.
+
 ---
 An `identity` block supports the following:
 
@@ -97,16 +101,17 @@ A `cors` block supports the following:
 
 * `allowed_origins` - (Required) A set of origins to be allowed via CORS.
 * `allowed_headers` - (Required) A set of headers to be allowed via CORS.
-* `allowed_methods` - (Required) The methods to be allowed via CORS.
-* `max_age_in_seconds` - (Required) The max age to be allowed via CORS.
+* `allowed_methods` - (Required) The methods to be allowed via CORS. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` and `PUT`.
+* `max_age_in_seconds` - (Optional) The max age to be allowed via CORS.
 * `credentials_allowed` - (Optional) If credentials are allowed via CORS.
 
 ---
-An `authentication` supports the following:
+An `authentication` block supports the following:
 
-* `authority` - (Optional) The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
+* `authority` - (Required) The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
   Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id>}.
-* `audience` - (Optional) The intended audience to receive authentication tokens for the service. The default value is `https://<name>.fhir.azurehealthcareapis.com`.
+* `audience` - (Required) The intended audience to receive authentication tokens for the service. The default value is `https://<name>.fhir.azurehealthcareapis.com`.
+* `smart_proxy_enabled` - (Optional) Whether smart proxy is enabled.
 
 ---
 
@@ -130,8 +135,8 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Healthcare FHIR Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Healthcare FHIR Service.
+* `create` - (Defaults to 90 minutes) Used when creating the Healthcare FHIR Service.
+* `update` - (Defaults to 90 minutes) Used when updating the Healthcare FHIR Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare FHIR Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare FHIR Service.
 
@@ -140,5 +145,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Healthcare FHIR Service can be imported using the resource`id`, e.g.
 
 ```shell
-terraform import azurerm_healthcare_fhir_service.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/fhirservices/service1
+terraform import azurerm_healthcare_fhir_service.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/fhirServices/service1
 ```

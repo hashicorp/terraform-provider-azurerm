@@ -48,13 +48,13 @@ func TestIotSecuritySolutionID(t *testing.T) {
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Security/IoTSecuritySolutions/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Security/iotSecuritySolutions/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Security/IoTSecuritySolutions/solution1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Security/iotSecuritySolutions/solution1",
 			Valid: true,
 		},
 

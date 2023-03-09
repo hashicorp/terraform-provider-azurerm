@@ -84,7 +84,6 @@ func (ServicebusNamespaceAuthRuleV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (ServicebusNamespaceAuthRuleV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-
 		oldID := rawState["id"].(string)
 
 		id, err := namespacesauthorizationrule.ParseAuthorizationRuleIDInsensitively(oldID)

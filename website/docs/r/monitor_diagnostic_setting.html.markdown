@@ -19,24 +19,33 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-data "azurerm_storage_account" "example" {
-  name                = "examplestoracc"
-  resource_group_name = azurerm_resource_group.example.name
+resource "azurerm_storage_account" "example" {
+  name                     = "storageaccountname"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
-data "azurerm_key_vault" "example" {
-  name                = "example-vault"
-  resource_group_name = azurerm_resource_group.example.name
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "example" {
+  name                       = "examplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = false
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "example" {
   name               = "example"
-  target_resource_id = data.azurerm_key_vault.example.id
-  storage_account_id = data.azurerm_storage_account.example.id
+  target_resource_id = azurerm_key_vault.example.id
+  storage_account_id = azurerm_storage_account.example.id
 
-  log {
+  enabled_log {
     category = "AuditEvent"
-    enabled  = false
 
     retention_policy {
       enabled = false
@@ -63,39 +72,43 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) The ID of an existing Resource on which to configure Diagnostic Settings. Changing this forces a new resource to be created.
 
-* `eventhub_name` - (Optional) Specifies the name of the Event Hub where Diagnostics Data should be sent. Changing this forces a new resource to be created.
+* `eventhub_name` - (Optional) Specifies the name of the Event Hub where Diagnostics Data should be sent.
 
 -> **NOTE:** If this isn't specified then the default Event Hub will be used.
 
-* `eventhub_authorization_rule_id` - (Optional) Specifies the ID of an Event Hub Namespace Authorization Rule used to send Diagnostics Data. Changing this forces a new resource to be created.
+* `eventhub_authorization_rule_id` - (Optional) Specifies the ID of an Event Hub Namespace Authorization Rule used to send Diagnostics Data. 
 
 -> **NOTE:** This can be sourced from [the `azurerm_eventhub_namespace_authorization_rule` resource](eventhub_namespace_authorization_rule.html) and is different from [a `azurerm_eventhub_authorization_rule` resource](eventhub_authorization_rule.html).
 
--> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` and `storage_account_id` must be specified.
+-> **NOTE:** At least one of `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` and `storage_account_id` must be specified.
 
 * `log` - (Optional) One or more `log` blocks as defined below.
 
--> **NOTE:** At least one `log` or `metric` block must be specified.
+-> **NOTE:** `log` is deprecated in favour of the `enabled_log` property and will be removed in version 4.0 of the AzureRM Provider.
+
+* `enabled_log` - (Optional) One or more `enabled_log` blocks as defined below.
+
+-> **NOTE:** At least one `log`, `enabled_log` or `metric` block must be specified. At least one type of Log or Metric must be enabled.
 
 * `log_analytics_workspace_id` - (Optional) Specifies the ID of a Log Analytics Workspace where Diagnostics Data should be sent.
 
--> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` and `storage_account_id` must be specified.
+-> **NOTE:** At least one of `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` and `storage_account_id` must be specified.
 
 * `metric` - (Optional) One or more `metric` blocks as defined below.
 
--> **NOTE:** At least one `log` or `metric` block must be specified.
+-> **NOTE:** At least one `log`, `enabled_log` or `metric` block must be specified.
 
-* `storage_account_id` - (Optional) The ID of the Storage Account where logs should be sent. Changing this forces a new resource to be created.
+* `storage_account_id` - (Optional) The ID of the Storage Account where logs should be sent. 
 
--> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` and `storage_account_id` must be specified.
+-> **NOTE:** At least one of `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` and `storage_account_id` must be specified.
 
-* `log_analytics_destination_type` - (Optional) When set to 'Dedicated' logs sent to a Log Analytics workspace will go into resource specific tables, instead of the legacy AzureDiagnostics table.
+* `log_analytics_destination_type` - (Optional) Possible values are `AzureDiagnostics` and `Dedicated`. When set to `Dedicated`, logs sent to a Log Analytics workspace will go into resource specific tables, instead of the legacy `AzureDiagnostics` table.
 
--> **NOTE:** This setting will only have an effect if a `log_analytics_workspace_id` is provided, and the resource is available for resource-specific logs.  As of July 2019, this only includes Azure Data Factory. Please [see the documentation](https://docs.microsoft.com/azure/azure-monitor/platform/diagnostic-logs-stream-log-store#azure-diagnostics-vs-resource-specific) for more information.
+-> **NOTE:** This setting will only have an effect if a `log_analytics_workspace_id` is provided. For some target resource type (e.g., Key Vault), this field is unconfigurable. Please see [resource types](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/azurediagnostics#resource-types) for services that use each method. Please [see the documentation](https://docs.microsoft.com/azure/azure-monitor/platform/diagnostic-logs-stream-log-store#azure-diagnostics-vs-resource-specific) for details on the differences between destination types.
 
 * `partner_solution_id` - (Optional) The ID of the market partner solution where Diagnostics Data should be sent. For potential partner integrations, [click to learn more about partner integration](https://learn.microsoft.com/en-us/azure/partner-solutions/overview).
 
--> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` and `storage_account_id` must be specified.
+-> **NOTE:** At least one of `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` and `storage_account_id` must be specified.
 
 ---
 
@@ -107,11 +120,25 @@ A `log` block supports the following:
 
 * `category_group` - (Optional) The name of a Diagnostic Log Category Group for this Resource.
 
--> **NOTE:** Not all resources have category groups available.****
+-> **NOTE:** Not all resources have category groups available.
 
 * `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
 * `enabled` - (Optional) Is this Diagnostic Log enabled? Defaults to `true`.
+
+---
+
+An `enabled_log` block supports the following:
+
+* `category` - (Optional) The name of a Diagnostic Log Category for this Resource.
+
+-> **NOTE:** The Log Categories available vary depending on the Resource being used. You may wish to use [the `azurerm_monitor_diagnostic_categories` Data Source](../d/monitor_diagnostic_categories.html) or [list of service specific schemas](https://docs.microsoft.com/azure/azure-monitor/platform/resource-logs-schema#service-specific-schemas) to identify which categories are available for a given Resource.
+
+* `category_group` - (Optional) The name of a Diagnostic Log Category Group for this Resource.
+
+-> **NOTE:** Not all resources have category groups available.****
+
+* `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
 ---
 

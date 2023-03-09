@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_route_id` - (Required) The resource ID of the Front Door Route where the Link To Default Domain property should be `disabled`. Changing this forces a new Front Door Route Disable Link To Default Domain to be created.
 
-* `cdn_frontdoor_custom_domain_ids` - (Required) The resource IDs of the Front Door Custom Domains which are associated with this Front Door Route. Changing this forces a new Front Door Route Disable Link To Default Domain to be created.
+* `cdn_frontdoor_custom_domain_ids` - (Required) The resource IDs of the Front Door Custom Domains which are associated with this Front Door Route.
 
 ## Attributes Reference
 
@@ -44,6 +44,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Route Disable Link To Default Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Route Disable Link To Default Domain.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Route Disable Link To Default Domain.
+* `update` - (Defaults to 30 minutes) Used when updating the Cdn Frontdoor Route Disable Link To Default Domain.
 
 ## Import
 

@@ -23,10 +23,10 @@ resource "azurerm_key_vault" "example" {
     ip_rules       = ["10.0.1.0/24"] # <- this should be the CIDR for your clients IP to allow it through the Key Vault Firewall Policy
   }
 
-  # Grant access to the Frontdoor Enterprise Application(e.g. Microsoft.AzureFrontDoor-Cdn) to the Key Vaults Certificates
+  # Grant access to the Frontdoor Enterprise Application(e.g. Microsoft.Azure.Cdn) to the Key Vaults Certificates
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id for the Microsoft.AzureFrontDoor-Cdn Enterprise Application.
+    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id for the Microsoft.Azure.Cdn Enterprise Application.
 
     secret_permissions = [
       "Get",

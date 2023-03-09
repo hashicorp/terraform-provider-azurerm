@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/schedules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -26,7 +26,7 @@ func (DevTestLabScheduleUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/schedules/{scheduleName}
 		oldId := rawState["id"].(string)
-		id, err := parse.DevTestLabScheduleIDInsensitively(oldId)
+		id, err := schedules.ParseLabScheduleIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}

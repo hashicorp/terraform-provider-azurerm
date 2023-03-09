@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) The Display Name for this Policy Assignment.
 
-* `enforce` - (Optional) Specifies if this Policy should be enforced or not?
+* `enforce` - (Optional) Specifies if this Policy should be enforced or not? Defaults to `true`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -82,7 +82,7 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Optional) The Type of Managed Identity which should be added to this Policy Definition. Possible values are `SystemAssigned` and `UserAssigned`.
+* `type` - (Required) The Type of Managed Identity which should be added to this Policy Definition. Possible values are `SystemAssigned` and `UserAssigned`.
 
 * `identity_ids` - (Optional) A list of User Managed Identity IDs which should be assigned to the Policy Definition.
 

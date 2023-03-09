@@ -91,10 +91,12 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// zone redundant is computed by service based on the availability of availability zone feature.
+			// for premium namespace, zone redundant is computed by service based on the availability of availability zone feature.
 			"zone_redundant": {
 				Type:     pluginsdk.TypeBool,
+				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 
 			"dedicated_cluster_id": {
@@ -104,7 +106,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				ValidateFunc: eventhubsclusters.ValidateClusterID,
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"maximum_throughput_units": {
 				Type:         pluginsdk.TypeInt,
@@ -343,7 +345,8 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(t),
 	}
 
-	if !features.FourPointOhBeta() {
+	// for premium namespace, the zone_redundant is computed based on the region, user's input will be overridden
+	if sku != string(namespaces.SkuNamePremium) {
 		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
 	}
 
@@ -619,6 +622,11 @@ func resourceEventHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	// need to wait for namespace status to be ready before deleting.
+	if err := waitForEventHubNamespaceStatusToBeReady(ctx, meta, *id, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
+		return fmt.Errorf("waiting for eventHub namespace %s state to be ready error: %+v", *id, err)
+	}
+
 	future, err := client.Delete(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(future.HttpResponse) {
@@ -628,6 +636,27 @@ func resourceEventHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return waitForEventHubNamespaceToBeDeleted(ctx, client, *id)
+}
+
+func waitForEventHubNamespaceStatusToBeReady(ctx context.Context, meta interface{}, id namespaces.NamespaceId, timeout time.Duration) error {
+	namespaceClient := meta.(*clients.Client).Eventhub.NamespacesClient
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			string(namespaces.EndPointProvisioningStateUpdating),
+			string(namespaces.EndPointProvisioningStateCreating),
+			string(namespaces.EndPointProvisioningStateDeleting),
+		},
+		Target:                    []string{string(namespaces.EndPointProvisioningStateSucceeded)},
+		Refresh:                   eventHubNamespaceProvisioningStateRefreshFunc(ctx, namespaceClient, id),
+		Timeout:                   timeout,
+		PollInterval:              10 * time.Second,
+		ContinuousTargetOccurence: 5,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return err
+	}
+	return nil
 }
 
 func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) error {
@@ -655,18 +684,20 @@ func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *namespaces
 func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
+		status := "dropped connection"
 		if res.HttpResponse != nil {
-			log.Printf("Retrieving %s returned Status %d", id, res.HttpResponse.StatusCode)
+			status = strconv.Itoa(res.HttpResponse.StatusCode)
 		}
+		log.Printf("Retrieving %s returned Status %q", id, status)
 
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {
-				return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+				return res, status, nil
 			}
 			return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
 		}
 
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+		return res, status, nil
 	}
 }
 

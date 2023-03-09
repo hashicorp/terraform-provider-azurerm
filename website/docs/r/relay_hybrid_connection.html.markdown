@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `relay_namespace_name` - (Required) The name of the Azure Relay in which to create the Azure Relay Hybrid Connection. Changing this forces a new resource to be created.
 
-* `requires_client_authorization` - (Optional) Specify if client authorization is needed for this hybrid connection. True by default. Changing this forces a new resource to be created.
+* `requires_client_authorization` - (Optional) Specify if client authorization is needed for this hybrid connection. True by default. Changing this forces a new resource to be created. Defaults to `true`.
 
 * `user_metadata` - (Optional) The usermetadata is a placeholder to store user-defined string data for the hybrid connection endpoint. For example, it can be used to store descriptive data, such as a list of teams and their contact information. Also, user-defined configuration settings can be stored.
 

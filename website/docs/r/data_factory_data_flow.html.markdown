@@ -229,6 +229,8 @@ A `source` block supports the following:
 
 * `linked_service` - (Optional) A `linked_service` block as defined below.
 
+* `rejected_linked_service` - (Optional) A `rejected_linked_service` block as defined below.
+
 * `schema_linked_service` - (Optional) A `schema_linked_service` block as defined below.
 
 ---
@@ -262,6 +264,8 @@ A `dataset` block supports the following:
 A `flowlet` block supports the following:
 
 * `name` - (Required) The name for the Data Factory Flowlet.
+
+* `dataset_parameters` - (Optional) Specifies the reference data flow parameters from dataset.
 
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Flowlet.
 

@@ -56,13 +56,13 @@ resource "azurerm_traffic_manager_profile" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Traffic Manager profile. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Traffic Manager profile. Changing this forces a new resource to be created. 
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Traffic Manager profile.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Traffic Manager profile. Changing this forces a new resource to be created.
 
 * `profile_status` - (Optional) The status of the profile, can be set to either `Enabled` or `Disabled`. Defaults to `Enabled`.
 
-* `traffic_routing_method` - (Required) Specifies the algorithm used to route traffic, possible values are:
+* `traffic_routing_method` - (Required) Specifies the algorithm used to route traffic. Possible values are `Geographic`, `Weighted`, `Performance`, `Priority`, `Subnet` and `MultiValue`.
   * `Geographic` - Traffic is routed based on Geographic regions specified in the Endpoint.
   * `MultiValue` - All healthy Endpoints are returned.  MultiValue routing method works only if all the endpoints of type ‘External’ and are specified as IPv4 or IPv6 addresses.
   * `Performance` - Traffic is routed via the User's closest Endpoint
@@ -82,11 +82,15 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
 The `dns_config` block supports:
 
 * `relative_name` - (Required) The relative domain name, this is combined with the domain name used by Traffic Manager to form the FQDN which is exported as documented below. Changing this forces a new resource to be created.
 
 * `ttl` - (Required) The TTL value of the Profile used by Local DNS resolvers and clients.
+
+---
 
 The `monitor_config` block supports:
 
@@ -105,6 +109,8 @@ The `monitor_config` block supports:
 * `timeout_in_seconds` - (Optional) The amount of time the Traffic Manager probing agent should wait before considering that check a failure when a health check probe is sent to the endpoint. If `interval_in_seconds` is set to `30`, then `timeout_in_seconds` can be between `5` and `10`. The default value is `10`. If `interval_in_seconds` is set to `10`, then valid values are between `5` and `9` and `timeout_in_seconds` is required.
 
 * `tolerated_number_of_failures` - (Optional) The number of failures a Traffic Manager probing agent tolerates before marking that endpoint as unhealthy. Valid values are between `0` and `9`. The default value is `3`
+
+---
 
 A `custom_header` block supports the following:
 

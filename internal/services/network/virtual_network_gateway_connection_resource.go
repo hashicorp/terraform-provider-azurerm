@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
@@ -374,7 +374,7 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceDa
 			return err
 		}
 
-		virtualNetworkGateway, err = vnetGatewayClient.Get(ctx, id.ResourceGroup, gwid.Name)
+		virtualNetworkGateway, err = vnetGatewayClient.Get(ctx, gwid.ResourceGroup, gwid.Name)
 		if err != nil {
 			return err
 		}

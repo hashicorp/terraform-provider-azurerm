@@ -45,17 +45,25 @@ resource "azurerm_orbital_spacecraft" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Spacecraft. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Spacecraft. Changing this forces a new resource to be created. 
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Spacecraft exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Spacecraft exists. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location where the Spacecraft exists.
+* `location` - (Required) The location where the Spacecraft exists. Changing this forces a new resource to be created.
 
 * `norad_id` - (Required) NORAD ID of the Spacecraft.
 
-* `links` - (Required) A `links` block as defined below.
+* `links` - (Required) A `links` block as defined below. Changing this forces a new resource to be created.
+
+* `two_line_elements` - (Required) A list of the two line elements (TLE), the first string being the first of the TLE, the second string being the second line of the TLE. Changing this forces a new resource to be created.
+
+* `title_line` - (Required) Title of the two line elements (TLE).
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
+
+A `links` block supports the following:
 
 * `bandwidth_mhz` - (Required) Bandwidth in Mhz.
 
@@ -68,10 +76,6 @@ The following arguments are supported:
 * `name` - (Required) Name of the link.
 
 ---
-
-* `two_line_elements` - (Optional) A list of the two line elements(TLE), the first string in the list is the first line of TLE, the second one is the second line of TLE.
-
-* `title_line` - (Optional) Title of the two line elements(TLE).
 
 ## Attributes Reference
 

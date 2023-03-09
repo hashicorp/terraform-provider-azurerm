@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	azureNetwork "github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	azureNetwork "github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceAppServiceVirtualNetworkSwiftConnection() *pluginsdk.Resource {

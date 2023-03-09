@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `instance_count` - (Optional) Specifies the required instance count of the Spring Cloud Deployment. Possible Values are between `1` and `500`. Defaults to `1` if not specified.
 
-* `language_framework` - (Optional) Specifies the language framework of the container image.
+* `language_framework` - (Optional) Specifies the language framework of the container image. The only possible value is `springboot`.
 
 * `quota` - (Optional) A `quota` block as defined below.
 
@@ -111,5 +111,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud Container Deployments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_container_deployment.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/apps/app1/deployments/deploy1
+terraform import azurerm_spring_cloud_container_deployment.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/apps/app1/deployments/deploy1
 ```

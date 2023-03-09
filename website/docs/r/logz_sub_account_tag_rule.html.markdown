@@ -25,7 +25,6 @@ resource "azurerm_logz_monitor" "example" {
   plan {
     billing_cycle  = "MONTHLY"
     effective_date = "2022-06-06T00:00:00Z"
-    plan_id        = "100gb14days"
     usage_type     = "COMMITTED"
   }
 

@@ -106,11 +106,11 @@ resource "azurerm_blueprint_assignment" "example" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Blueprint Assignment
+* `name` - (Required) The name of the Blueprint Assignment. Changing this forces a new resource to be created.
 
-* `target_subscription_id` - (Required) The Subscription ID the Blueprint Published Version is to be applied to.
+* `target_subscription_id` - (Required) The Subscription ID the Blueprint Published Version is to be applied to. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure location of the Assignment.
+* `location` - (Required) The Azure location of the Assignment. Changing this forces a new resource to be created.
 
 * `identity` - (Required) An `identity` block as defined below.
 
@@ -124,7 +124,7 @@ resource "azurerm_blueprint_assignment" "example" {
 
 ~> **NOTE:** Improperly formatted JSON, or missing values required by a Blueprint will cause the assignment to fail.
 
-* `lock_mode` - (Optional) The locking mode of the Blueprint Assignment.  One of `None` (Default), `AllResourcesReadOnly`, or `AllResourcesDoNotDelete`.
+* `lock_mode` - (Optional) The locking mode of the Blueprint Assignment. One of `None` (Default), `AllResourcesReadOnly`, or `AllResourcesDoNotDelete`. Defaults to `none`.
 
 * `lock_exclude_principals` - (Optional) a list of up to 5 Principal IDs that are permitted to bypass the locks applied by the Blueprint.
 

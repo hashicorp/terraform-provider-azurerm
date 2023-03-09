@@ -127,7 +127,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeString,
 				Optional:   true,
 				Computed:   true,
-				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 4.0 AzureRM provider. Please use the 'subnet_id' field instead",
+				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 4.0 AzureRM provider. Please use the 'subnet_ids' field instead",
 			},
 
 			"subnet_ids": {
@@ -1972,7 +1972,7 @@ func flattenContainerGroupDnsConfig(input *containerinstance.DnsConfiguration) [
 
 func expandContainerGroupDnsConfig(input interface{}) *containerinstance.DnsConfiguration {
 	dnsConfigRaw := input.([]interface{})
-	if len(dnsConfigRaw) > 0 {
+	if len(dnsConfigRaw) > 0 && dnsConfigRaw[0] != nil {
 		config := dnsConfigRaw[0].(map[string]interface{})
 
 		nameservers := []string{}
@@ -2009,7 +2009,7 @@ func flattenContainerGroupSubnets(input *[]containerinstance.ContainerGroupSubne
 			continue
 		}
 
-		id, err := networkParse.SubnetID(resourceRef.Id)
+		id, err := networkParse.SubnetIDInsensitively(resourceRef.Id)
 		if err != nil {
 			return nil, fmt.Errorf(`parsing subnet id %q: %v`, resourceRef.Id, err)
 		}

@@ -79,6 +79,8 @@ The following arguments are supported:
 
 * `instant_restore_retention_days` - (Optional) Specifies the instant restore retention range in days. Possible values are between `1` and `5` when `policy_type` is `V1`, and `1` to `30` when `policy_type` is `V2`.
 
+* `instant_restore_resource_group` - (Optional) Specifies the instant restore resource group name as documented in the `instant_restore_resource_group` block below.
+
 * `retention_daily` - (Optional) Configures the policy daily retention as documented in the `retention_daily` block below. Required when backup frequency is `Daily`.
 
 * `retention_weekly` - (Optional) Configures the policy weekly retention as documented in the `retention_weekly` block below. Required when backup frequency is `Weekly`.
@@ -95,13 +97,20 @@ The `backup` block supports:
 
 * `time` - (Required) The time of day to perform the backup in 24hour format.
 
-* `hour_interval` - (Optional) Interval in hour at which backup is triggered. Possible values are `4`, `6`, `8` and `12`. This is used  when `frequency` is `Hourly`.
+* `hour_interval` - (Optional) Interval in hour at which backup is triggered. Possible values are `4`, `6`, `8` and `12`. This is used when `frequency` is `Hourly`.
 
 * `hour_duration` - (Optional) Duration of the backup window in hours. Possible values are between `4` and `24` This is used when `frequency` is `Hourly`.
 
 ~> **NOTE:** `hour_duration` must be multiplier of `hour_interval`
 
 * `weekdays` - (Optional) The days of the week to perform backups on. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`. This is used when `frequency` is `Weekly`.
+
+---
+The `instant_restore_resource_group` block supports:
+
+* `prefix` - (Required) The prefix for the `instant_restore_resource_group` name.
+
+* `suffix` - (Optional) The suffix for the `instant_restore_resource_group` name.
 
 ---
 

@@ -88,11 +88,11 @@ The following arguments are supported:
 
 * `cluster_id` - (Required) The ID of the Kusto Cluster. Changing this forces a new resource to be created.
 
-* `key_vault_id` - (Required) The ID of the Key Vault. Changing this forces a new resource to be created.
+* `key_vault_id` - (Required) The ID of the Key Vault. 
 
 * `key_name` - (Required) The name of Key Vault Key.
 
-* `key_version` - (Required) The version of Key Vault Key.
+* `key_version` - (Optional) The version of Key Vault Key.
 
 * `user_identity` - (Optional) The user assigned identity that has access to the Key Vault Key. If not specified, system assigned identity will be used.
 
@@ -116,5 +116,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Customer Managed Keys for a Kusto Cluster can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kusto_cluster_customer_managed_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1
+terraform import azurerm_kusto_cluster_customer_managed_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1
 ```

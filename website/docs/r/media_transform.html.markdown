@@ -126,7 +126,7 @@ The following arguments are supported:
 
 * `description` - (Optional) An optional verbose description of the Transform.
 
-* `output` - (Required) One or more `output` blocks as defined below. At least one `output` must be defined.
+* `output` - (Optional) One or more `output` blocks as defined below. At least one `output` must be defined.
 
 ---
 
@@ -150,13 +150,13 @@ A `output` block supports the following:
 
 A `builtin_preset` block supports the following:
 
-* `preset_name` - (Optional) The built-in preset to be used for encoding videos. The allowed values are `AACGoodQualityAudio`, `AdaptiveStreaming`,`ContentAwareEncoding`, `ContentAwareEncodingExperimental`,`CopyAllBitrateNonInterleaved`, `H264MultipleBitrate1080p`,`H264MultipleBitrate720p`, `H264MultipleBitrateSD`,`H264SingleBitrate1080p`, `H264SingleBitrate720p` and `H264SingleBitrateSD`.
+* `preset_name` - (Required) The built-in preset to be used for encoding videos. The Possible values are `AACGoodQualityAudio`, `AdaptiveStreaming`, `ContentAwareEncoding`, `ContentAwareEncodingExperimental`, `CopyAllBitrateNonInterleaved`, `H265AdaptiveStreaming`, `H265ContentAwareEncoding`, `H265SingleBitrate4K`, `H265SingleBitrate1080p`, `H265SingleBitrate720p`, `H264MultipleBitrate1080p`, `H264MultipleBitrateSD`, `H264MultipleBitrate720p`, `H264SingleBitrate1080p`, `H264SingleBitrateSD` and `H264SingleBitrate720p`.
 
 ---
 
 A `audio_analyzer_preset` block supports the following:
 
-* `audio_language` - (Optional) The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US'). If you know the language of your content, it is recommended that you specify it. The language must be specified explicitly for AudioAnalysisMode:Basic, since automatic language detection is not included in basic mode. If the language isn't specified, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernible speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'." The list of supported languages is available here: <https://go.microsoft.com/fwlink/?linkid=2109463>.
+* `audio_language` - (Optional) The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US'). If you know the language of your content, it is recommended that you specify it. The language must be specified explicitly for AudioAnalysisMode:Basic, since automatic language detection is not included in basic mode. If the language isn't specified, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernible speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'." The list of supported languages is available here: <https://go.microsoft.com/fwlink/?linkid=2109463>. Possible values are `ar-EG`, `ar-SY`, `de-DE`, `en-AU`, `en-GB`, `en-US`, `es-ES`, `es-MX`, `fr-FR`, `hi-IN`, `it-IT`, `ja-JP`, `ko-KR`, `pt-BR`, `ru-RU` and `zh-CN`.
 
 * `audio_analysis_mode` - (Optional) Possibles value are `Basic` or `Standard`. Determines the set of audio analysis operations to be performed.
 
@@ -164,7 +164,7 @@ A `audio_analyzer_preset` block supports the following:
 
 A `video_analyzer_preset` block supports the following:
 
-* `audio_language` - (Optional) The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US'). If you know the language of your content, it is recommended that you specify it. The language must be specified explicitly for AudioAnalysisMode:Basic, since automatic language detection is not included in basic mode. If the language isn't specified, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernible speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'." The list of supported languages is available here: <https://go.microsoft.com/fwlink/?linkid=2109463>.
+* `audio_language` - (Optional) The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US'). If you know the language of your content, it is recommended that you specify it. The language must be specified explicitly for AudioAnalysisMode:Basic, since automatic language detection is not included in basic mode. If the language isn't specified, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernible speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'." The list of supported languages is available here: <https://go.microsoft.com/fwlink/?linkid=2109463>. Possible values are `ar-EG`, `ar-SY`, `de-DE`, `en-AU`, `en-GB`, `en-US`, `es-ES`, `es-MX`, `fr-FR`, `hi-IN`, `it-IT`, `ja-JP`, `ko-KR`, `pt-BR`, `ru-RU` and `zh-CN`.
 
 * `audio_analysis_mode` - (Optional) Possibles value are `Basic` or `Standard`. Determines the set of audio analysis operations to be performed.
 
@@ -196,5 +196,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Transforms can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_transform.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/media1/transforms/transform1
+terraform import azurerm_media_transform.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaServices/media1/transforms/transform1
 ```

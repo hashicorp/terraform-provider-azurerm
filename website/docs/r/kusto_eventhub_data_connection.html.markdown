@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `APACHEAVRO`, `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `ORC`, `PARQUET`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSVE`, `TSV`, `TXT`, and `W3CLOGFILE`.
 
-* `database_routing_type` - (Optional) Indication for database routing information from the data connection, by default only database routing information is allowed. Allowed values: `Single`, `Multi`.
+* `database_routing_type` - (Optional) Indication for database routing information from the data connection, by default only database routing information is allowed. Allowed values: `Single`, `Multi`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -128,5 +128,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Kusto EventHub Data Connections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kusto_eventhub_data_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1/DataConnections/eventHubConnection1
+terraform import azurerm_kusto_eventhub_data_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1/databases/database1/dataConnections/eventHubConnection1
 ```

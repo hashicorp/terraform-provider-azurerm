@@ -35,10 +35,10 @@ resource "azurerm_automation_software_update_configuration" "example" {
   operating_system      = "Linux"
 
   linux {
-    classification    = "Security"
-    excluded_packages = ["apt"]
-    included_packages = ["vim"]
-    reboot            = "IfRequired"
+    classification_included = "Security"
+    excluded_packages       = ["apt"]
+    included_packages       = ["vim"]
+    reboot                  = "IfRequired"
   }
 
   duration = "PT2H2M2S"
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Automation. Changing this forces a new Automation to be created.
 
-* `automation_account_id` (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
+* `automation_account_id` - (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
 
 * `operating_system` - (Required) The Operating system of target machines. Possible values are `Windows` and `Linux`.
 
@@ -91,7 +91,7 @@ A `linux` block supports the following:
 
 A `windows` block supports the following:
 
-* `classification_included` - (Deprecated) Specifies the update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
+* `classification_included` - (Optional) (Deprecated) Specifies the update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
 * `classifications_included` - (Optional) Specifies the list of update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
@@ -119,7 +119,7 @@ A `azure_query` block supports the following:
 
 * `tag_filter` - (Optional) Specifies how the specified tags to filter VMs. Possible values are `Any` and `All`.
 
-* `tags` - (Optional) A mapping of tags used for query filter.
+* `tags` - (Optional) A mapping of tags used for query filter as defined below.
 
 ---
 
@@ -159,15 +159,15 @@ A `schedule` block supports the following:
 
 * `is_enabled` - (Optional) Whether the schedule is enabled.
 
-* `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
+* `frequency` - (Optional) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
 
-* `description` -  (Optional) A description for this Schedule.
+* `description` - (Optional) A description for this Schedule.
 
-* `interval` -  (Optional) The number of `frequency`s between runs. Only valid when frequency is `Day`, `Hour`, `Week`, or `Month` and defaults to `1`.
+* `interval` - (Optional) The number of `frequency`s between runs. Only valid when frequency is `Day`, `Hour`, `Week`, or `Month`.
 
-* `start_time` -  (Optional) Start time of the schedule. Must be at least five minutes in the future. Defaults to seven minutes in the future from the time the resource is created.
+* `start_time` - (Optional) Start time of the schedule. Must be at least five minutes in the future. Defaults to seven minutes in the future from the time the resource is created.
 
-* `expiry_time` -  (Optional) The end time of the schedule.
+* `expiry_time` - (Optional) The end time of the schedule.
 
 * `time_zone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
 
@@ -175,11 +175,11 @@ A `schedule` block supports the following:
 
 * `advanced_month_days` - (Optional) List of days of the month that the job should execute on. Must be between `1` and `31`. `-1` for last day of the month. Only valid when frequency is `Month`.
 
-* `monthly_occurrence` - (Optional) List of occurrences of days within a month. Only valid when frequency is `Month`. The `monthly_occurrence` block supports fields documented below.
+* `monthly_occurrence` - (Optional) List of `monthly_occurrence` blocks as defined below to specifies occurrences of days within a month. Only valid when frequency is `Month`. The `monthly_occurrence` block supports fields as defined below.
 
 ---
 
-The `monthly_occurrence` block supports:
+The `monthly_occurrence` block supports the following:
 
 * `day` - (Required) Day of the occurrence. Must be one of `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, `Sunday`.
 

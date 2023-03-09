@@ -41,15 +41,13 @@ resource "azurerm_redis_cache" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Redis instance. Changing this forces a
-    new resource to be created.
+* `name` - (Required) The name of the Redis instance. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location of the resource group.
+* `location` - (Required) The location of the resource group. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the Redis instance.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Redis instance. Changing this forces a new resource to be created.
 
-* `capacity` - (Required) The size of the Redis cache to deploy. Valid values for a SKU `family` of C (Basic/Standard) are `0, 1, 2, 3, 4, 5, 6`, and for P (Premium) `family` are `1, 2, 3, 4`.
+* `capacity` - (Required) The size of the Redis cache to deploy. Valid values for a SKU `family` of C (Basic/Standard) are `0, 1, 2, 3, 4, 5, 6`, and for P (Premium) `family` are `1, 2, 3, 4, 5`.
 
 * `family` - (Required) The SKU family/pricing group to use. Valid values are `C` (for Basic/Standard SKU family) and `P` (for `Premium`)
 
@@ -63,11 +61,11 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `minimum_tls_version` - (Optional) The minimum TLS version.  Defaults to `1.0`.
+* `minimum_tls_version` - (Optional) The minimum TLS version. Possible values are `1.0`, `1.1` and `1.2`. Defaults to `1.0`.
 
 * `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below.
 
-* `private_static_ip_address` - (Optional) The Static IP Address to assign to the Redis Cache when hosted inside the Virtual Network. Changing this forces a new resource to be created.
+* `private_static_ip_address` - (Optional) The Static IP Address to assign to the Redis Cache when hosted inside the Virtual Network. This argument implies the use of `subnet_id`. Changing this forces a new resource to be created.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this Redis Cache. `true` means this resource could be accessed by both public and private endpoint. `false` means only private endpoint access is allowed. Defaults to `true`.
 
@@ -127,7 +125,7 @@ redis_configuration {
 
 * `maxmemory_reserved` - (Optional) Value in megabytes reserved for non-cache usage e.g. failover. Defaults are shown below.
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
-* `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults are shown below.
+* `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults are shown below. Defaults to `volatile-lru`.
 
 * `maxfragmentationmemory_reserved` - (Optional) Value in megabytes reserved to accommodate for memory fragmentation. Defaults are shown below.
 
@@ -158,7 +156,7 @@ redis_configuration {
 }
 ```
 
-## Default Redis Configuration Values
+### Default Redis Configuration Values
 
 | Redis Value                     | Basic        | Standard     | Premium      |
 | ------------------------------- | ------------ | ------------ | ------------ |
@@ -174,7 +172,7 @@ redis_configuration {
 
 A `patch_schedule` block supports the following:
 
-* `day_of_week` (Required) the Weekday name - possible values include `Monday`, `Tuesday`, `Wednesday` etc.
+* `day_of_week` - (Required) the Weekday name - possible values include `Monday`, `Tuesday`, `Wednesday` etc.
 
 * `start_hour_utc` - (Optional) the Start Hour for maintenance in UTC - possible values range from `0 - 23`.
 
@@ -229,5 +227,5 @@ A `redis_configuration` block exports the following:
 Redis Cache's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_redis_cache.cache1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/Redis/cache1
+terraform import azurerm_redis_cache.cache1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redis/cache1
 ```

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -173,8 +173,14 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 			Type:  datafactory.TypeSecureString,
 		},
 		FileShare: d.Get("file_share").(string),
-		Host:      d.Get("host").(string),
-		UserID:    d.Get("user_id").(string),
+	}
+
+	if host := d.Get("host").(string); host != "" {
+		fileStorageProperties.Host = host
+	}
+
+	if userId := d.Get("user_id").(string); userId != "" {
+		fileStorageProperties.UserID = userId
 	}
 
 	password := d.Get("password").(string)
