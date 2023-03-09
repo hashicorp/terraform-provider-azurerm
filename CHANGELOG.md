@@ -8,9 +8,12 @@ ENHANCEMENTS
 
 * dependencies: updating to `v4.4.0+incompatible` of `github.com/gofrs/uuid` [GH-20821]
 * dependencies: updating to `v0.55.0` of `github.com/hashicorp/go-azure-helpers` [GH-20807]
-* dependencies: updating to `v0.20230306.1165107` of `github.com/hashicorp/go-azure-sdk` [GH-20807]
+* dependencies: updating to version `v0.20230309.1123256` of `github.com/hashicorp/go-azure-sdk` [GH-20810]
 * dependencies: updating to `v0.20230307.1105329` of `github.com/tombuildsstuff/kermit` [GH-20821]
 * dependencies: updating `redis/2021-06-01` to `redis/2022-06-01` [GH-20839]
+* `dashboard`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20810]
+* `media`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20810]
+* `servicebus`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20810]
 * Data Source: `azurerm_client_config` - export the `environment_name` attribute [GH-20819]
 * Data Source: `azurerm_function_app_host_keys` - exporting `blobs_extension_key` [GH-20837]
 * Data Source: `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
