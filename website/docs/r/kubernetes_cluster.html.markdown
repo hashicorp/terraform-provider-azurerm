@@ -682,6 +682,8 @@ An `oms_agent` block supports the following:
 
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace which the OMS Agent should send data to.
 
+* `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
+
 ---
 
 An `ingress_application_gateway` block supports the following:
