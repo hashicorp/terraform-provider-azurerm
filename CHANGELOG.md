@@ -26,6 +26,7 @@ BUG FIXES:
 * `azurerm_automation_source_control` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_automation_watcher` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_cdn_frontdoor_route_disable_link_to_default_domain` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
+* `azurerm_container_registry_task` - Fix updating failed due to incomplete `registry_credential` [GH-20841]
 * `azurerm_digital_twins_time_series_database_connection` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_fluid_relay_server` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_function_app_active_slot` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
