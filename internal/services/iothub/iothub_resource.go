@@ -222,7 +222,7 @@ func resourceIotHub() *pluginsdk.Resource {
 								if !features.FourPointOhBeta() {
 									return nil
 								}
-								return "PT1H"
+								return "PT1M"
 							}(),
 						},
 						"default_ttl": {
