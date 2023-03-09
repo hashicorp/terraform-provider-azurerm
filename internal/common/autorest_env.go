@@ -1,4 +1,4 @@
-package clients
+package common
 
 import (
 	"fmt"
@@ -7,16 +7,20 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
-func toAutorestEnv(env environments.Environment) (*azure.Environment, error) {
+func ToAutorestEnv(env environments.Environment) (*azure.Environment, error) {
 	var resourceManagerEndpoint string
 	if ptr, ok := env.ResourceManager.Endpoint(); ok {
 		resourceManagerEndpoint = *ptr
 	}
 
-	var keyvaultEndpoint string
-	// Key vault doesn't have endpoint defined, not sure why..
+	var aadEndpoint string
+	if auth := env.Authorization; auth != nil {
+		aadEndpoint = auth.LoginEndpoint
+	}
+
+	var keyvaultIdentifier string
 	if ptr, ok := env.KeyVault.ResourceIdentifier(); ok {
-		keyvaultEndpoint = *ptr
+		keyvaultIdentifier = *ptr
 	}
 
 	var managedHSMEndpoint string
@@ -39,9 +43,9 @@ func toAutorestEnv(env environments.Environment) (*azure.Environment, error) {
 		batcheManagementEndpoint = *ptr
 	}
 
-	var storageEndpointSuffix string
+	var storageSuffix string
 	if ptr, ok := env.Storage.DomainSuffix(); ok {
-		storageEndpointSuffix = *ptr
+		storageSuffix = *ptr
 	}
 
 	var cosmosDBDNSSuffix string
@@ -114,11 +118,6 @@ func toAutorestEnv(env environments.Environment) (*azure.Environment, error) {
 		storageIdentifier = *ptr
 	}
 
-	var keyvaultIdentifier string
-	if ptr, ok := env.Keyvault.ResourceIdentifier(); ok {
-		keyvaultIdentifier = *ptr
-	}
-
 	var datalakeIdentifier string
 	if ptr, ok := env.DataLake.ResourceIdentifier(); ok {
 		datalakeIdentifier = *ptr
@@ -145,20 +144,23 @@ func toAutorestEnv(env environments.Environment) (*azure.Environment, error) {
 	}
 
 	aEnv := &azure.Environment{
-		Name:                         env.Name,
-		ManagementPortalURL:          "", // environment only has the appId defined
-		PublishSettingsURL:           "", // not available in environment
-		ServiceManagementEndpoint:    "", // environment only has the appId defined
-		ResourceManagerEndpoint:      resourceManagerEndpoint,
-		ActiveDirectoryEndpoint:      env.Authorization.LoginEndpoint,
-		GalleryEndpoint:              "", // not available in environment
-		KeyVaultEndpoint:             keyvaultEndpoint,
+		Name:                      env.Name,
+		ManagementPortalURL:       "", // environment only has the appId defined
+		PublishSettingsURL:        "", // not available in environment
+		ServiceManagementEndpoint: "", // environment only has the appId defined
+		ResourceManagerEndpoint:   resourceManagerEndpoint,
+		ActiveDirectoryEndpoint:   aadEndpoint,
+		GalleryEndpoint:           "", // not available in environment
+
+		// Using the key vault identifier here since the environment assigns a null as key vault endpoint, not sure why...
+		KeyVaultEndpoint: keyvaultIdentifier,
+
 		ManagedHSMEndpoint:           managedHSMEndpoint,
 		GraphEndpoint:                "", // not available in environment
 		ServiceBusEndpoint:           servicebusEndpoint,
 		BatchManagementEndpoint:      batcheManagementEndpoint,
 		MicrosoftGraphEndpoint:       msGraphEndpoint,
-		StorageEndpointSuffix:        storageEndpointSuffix,
+		StorageEndpointSuffix:        storageSuffix,
 		CosmosDBDNSSuffix:            cosmosDBDNSSuffix,
 		MariaDBDNSSuffix:             mariaDBDNSSuffix,
 		MySQLDatabaseDNSSuffix:       mysqlDBDNSSuffix,
@@ -175,7 +177,7 @@ func toAutorestEnv(env environments.Environment) (*azure.Environment, error) {
 		SynapseEndpointSuffix:        synapseEndpointSuffix,
 		DatalakeSuffix:               datalakeSuffix,
 		ResourceIdentifiers: azure.ResourceIdentifier{
-			Storage:             "https://storage.azure.com/",
+			Storage:             storageIdentifier,
 			Graph:               "", // not available in environment
 			KeyVault:            keyvaultIdentifier,
 			Datalake:            datalakeIdentifier,

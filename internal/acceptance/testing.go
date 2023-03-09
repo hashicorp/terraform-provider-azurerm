@@ -3,15 +3,16 @@ package acceptance
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"regexp"
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 func PreCheck(t *testing.T) {
@@ -44,8 +45,23 @@ func EnvironmentName() string {
 
 func Environment() (*azure.Environment, error) {
 	envName := EnvironmentName()
-	metadataURL := os.Getenv("ARM_METADATA_HOSTNAME")
-	return authentication.AzureEnvironmentByNameFromEndpoint(context.TODO(), metadataURL, envName)
+	metadataHost := os.Getenv("ARM_METADATA_HOSTNAME")
+	hostURL, err := url.Parse(metadataHost)
+	if err != nil {
+		return nil, err
+	}
+	if hostURL.Scheme == "" {
+		hostURL.Scheme = "https"
+	}
+	env, err := environments.FromEndpoint(context.TODO(), hostURL.String(), envName)
+	if err != nil {
+		return nil, err
+	}
+	azureEnvironment, err := common.ToAutorestEnv(*env)
+	if err != nil {
+		return nil, err
+	}
+	return azureEnvironment, nil
 }
 
 func GetAuthConfig(t *testing.T) *auth.Credentials {

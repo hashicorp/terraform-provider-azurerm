@@ -93,7 +93,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	})
 
 	// TODO: remove these when autorest clients are no longer used
-	azureEnvironment, err := toAutorestEnv(builder.AuthConfig.Environment)
+	azureEnvironment, err := common.ToAutorestEnv(builder.AuthConfig.Environment)
 	if err != nil {
 		return nil, fmt.Errorf("unable to find environment %q from endpoint %q: %+v", builder.AuthConfig.Environment.Name, builder.MetadataHost, err)
 	}
