@@ -94,6 +94,9 @@ func (c EnvironmentsClient) responderForGet(resp *http.Response) (result GetOper
 		autorest.ByUnmarshallingJSON(&respObj),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+	if err != nil {
+		return
+	}
 	model, err := unmarshalEnvironmentResourceImplementation(respObj)
 	if err != nil {
 		return

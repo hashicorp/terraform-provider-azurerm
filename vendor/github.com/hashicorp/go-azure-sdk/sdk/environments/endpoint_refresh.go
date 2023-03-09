@@ -31,11 +31,17 @@ func (e *Environment) updateFromMetaData(config *metadata.MetaData) error {
 	if e.Authorization == nil {
 		e.Authorization = &Authorization{}
 	}
+	if len(config.Authentication.Audiences) > 0 {
+		e.Authorization.Audiences = config.Authentication.Audiences
+	}
 	if config.Authentication.LoginEndpoint != "" {
 		e.Authorization.LoginEndpoint = config.Authentication.LoginEndpoint
 	}
-	if len(config.Authentication.Audiences) > 0 {
-		e.Authorization.Audiences = config.Authentication.Audiences
+	if config.Authentication.IdentityProvider != "" {
+		e.Authorization.IdentityProvider = config.Authentication.IdentityProvider
+	}
+	if config.Authentication.Tenant != "" {
+		e.Authorization.Tenant = config.Authentication.Tenant
 	}
 	if config.ResourceManagerEndpoint != "" {
 		e.ResourceManager = ResourceManagerAPI(config.ResourceManagerEndpoint)
