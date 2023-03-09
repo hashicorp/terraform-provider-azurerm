@@ -44,6 +44,7 @@ BUG FIXES:
 * `azurerm_fluid_relay_server` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_function_app_active_slot` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_iothub_endpoint_eventhub` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
+* `azurerm_iothub` - Fix wrong default value of `file_upload.sas_ttl` when not specified [GH-20854]
 * `azurerm_iothub_endpoint_servicebus_queue` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
 * `azurerm_iothub_endpoint_servicebus_topic` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
 * `azurerm_iothub_endpoint_servicebus_queue` - marking the resource as gone when it's been deleted outside of Terraform [GH-20798]
