@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -329,38 +328,38 @@ func resourceMediaTransform() *pluginsdk.Resource {
 														},
 													},
 												},
-												"dd_audio": {
-													Type:     pluginsdk.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*schema.Schema{
-															"bitrate": {
-																Type:         pluginsdk.TypeInt,
-																Optional:     true,
-																Default:      192000,
-																ValidateFunc: validation.IntAtLeast(1),
-															},
-															"channels": {
-																Type:         pluginsdk.TypeInt,
-																Default:      2,
-																Optional:     true,
-																ValidateFunc: validation.IntBetween(1, 6),
-															},
-															"label": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"sampling_rate": {
-																Type:         pluginsdk.TypeInt,
-																Default:      48000,
-																Optional:     true,
-																ValidateFunc: validation.IntBetween(32000, 48000),
-															},
-														},
-													},
-												},
+												//"dd_audio": {
+												//	Type:     pluginsdk.TypeList,
+												//	Optional: true,
+												//	MaxItems: 1,
+												//	Elem: &pluginsdk.Resource{
+												//		Schema: map[string]*schema.Schema{
+												//			"bitrate": {
+												//				Type:         pluginsdk.TypeInt,
+												//				Optional:     true,
+												//				Default:      192000,
+												//				ValidateFunc: validation.IntAtLeast(1),
+												//			},
+												//			"channels": {
+												//				Type:         pluginsdk.TypeInt,
+												//				Default:      2,
+												//				Optional:     true,
+												//				ValidateFunc: validation.IntBetween(1, 6),
+												//			},
+												//			"label": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//			"sampling_rate": {
+												//				Type:         pluginsdk.TypeInt,
+												//				Default:      48000,
+												//				Optional:     true,
+												//				ValidateFunc: validation.IntBetween(32000, 48000),
+												//			},
+												//		},
+												//	},
+												//},
 												"h264_video": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
@@ -635,162 +634,162 @@ func resourceMediaTransform() *pluginsdk.Resource {
 														},
 													},
 												},
-												"jpg_image": {
-													Type:     pluginsdk.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*schema.Schema{
-															"start": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"key_frame_interval": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																Default:      "PT2S",
-																ValidateFunc: validate.ISO8601DurationBetween("PT0.5S", "PT20S"),
-															},
-															"label": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"layer": {
-																Type:     pluginsdk.TypeList,
-																Optional: true,
-																MinItems: 1,
-																Elem: &pluginsdk.Resource{
-																	Schema: map[string]*schema.Schema{
-																		"height": {
-																			Type:         pluginsdk.TypeString,
-																			Optional:     true,
-																			ValidateFunc: validation.StringIsNotEmpty,
-																		},
-																		"label": {
-																			Type:         pluginsdk.TypeString,
-																			Optional:     true,
-																			ValidateFunc: validation.StringIsNotEmpty,
-																		},
-																		"quality": {
-																			Type:         pluginsdk.TypeInt,
-																			Optional:     true,
-																			Default:      70,
-																			ValidateFunc: validation.IntBetween(0, 100),
-																		},
-																		"width": {
-																			Type:         pluginsdk.TypeString,
-																			Optional:     true,
-																			ValidateFunc: validation.StringIsNotEmpty,
-																		},
-																	},
-																},
-															},
-															"range": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																Default:      "100%",
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"splite_column": {
-																Type:         pluginsdk.TypeInt,
-																Optional:     true,
-																Default:      0,
-																ValidateFunc: validation.IntAtLeast(0),
-															},
-															"step": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"stretch_mode": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																Default:      string(encodings.StretchModeAutoSize),
-																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForStretchMode(), false),
-															},
-															"sync_mode": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																Default:      string(encodings.VideoSyncModeAuto),
-																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForVideoSyncMode(), false),
-															},
-														},
-													},
-												},
-												"png_image": {
-													Type:     pluginsdk.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*schema.Schema{
-															"start": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"key_frame_interval": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																Default:      "PT2S",
-																ValidateFunc: validate.ISO8601Duration,
-															},
-															"label": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"layer": {
-																Type:     pluginsdk.TypeList,
-																Optional: true,
-																MinItems: 1,
-																Elem: &pluginsdk.Resource{
-																	Schema: map[string]*schema.Schema{
-																		"height": {
-																			Type:         pluginsdk.TypeString,
-																			Optional:     true,
-																			ValidateFunc: validation.StringIsNotEmpty,
-																		},
-																		"label": {
-																			Type:         pluginsdk.TypeString,
-																			Optional:     true,
-																			ValidateFunc: validation.StringIsNotEmpty,
-																		},
-																		"width": {
-																			Type:         pluginsdk.TypeString,
-																			Optional:     true,
-																			ValidateFunc: validation.StringIsNotEmpty,
-																		},
-																	},
-																},
-															},
-															"range": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																Default:      "100%",
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"step": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"stretch_mode": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																Default:      string(encodings.StretchModeAutoSize),
-																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForStretchMode(), false),
-															},
-															"sync_mode": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																Default:      string(encodings.VideoSyncModeAuto),
-																ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForVideoSyncMode(), false),
-															},
-														},
-													},
-												},
+												//"jpg_image": {
+												//	Type:     pluginsdk.TypeList,
+												//	Optional: true,
+												//	MaxItems: 1,
+												//	Elem: &pluginsdk.Resource{
+												//		Schema: map[string]*schema.Schema{
+												//			"start": {
+												//				Type:         pluginsdk.TypeString,
+												//				Required:     true,
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//			"key_frame_interval": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				Default:      "PT2S",
+												//				ValidateFunc: validate.ISO8601DurationBetween("PT0.5S", "PT20S"),
+												//			},
+												//			"label": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//			"layer": {
+												//				Type:     pluginsdk.TypeList,
+												//				Optional: true,
+												//				MinItems: 1,
+												//				Elem: &pluginsdk.Resource{
+												//					Schema: map[string]*schema.Schema{
+												//						"height": {
+												//							Type:         pluginsdk.TypeString,
+												//							Optional:     true,
+												//							ValidateFunc: validation.StringIsNotEmpty,
+												//						},
+												//						"label": {
+												//							Type:         pluginsdk.TypeString,
+												//							Optional:     true,
+												//							ValidateFunc: validation.StringIsNotEmpty,
+												//						},
+												//						"quality": {
+												//							Type:         pluginsdk.TypeInt,
+												//							Optional:     true,
+												//							Default:      70,
+												//							ValidateFunc: validation.IntBetween(0, 100),
+												//						},
+												//						"width": {
+												//							Type:         pluginsdk.TypeString,
+												//							Optional:     true,
+												//							ValidateFunc: validation.StringIsNotEmpty,
+												//						},
+												//					},
+												//				},
+												//			},
+												//			"range": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				Default:      "100%",
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//			"sprite_column": {
+												//				Type:         pluginsdk.TypeInt,
+												//				Optional:     true,
+												//				Default:      0,
+												//				ValidateFunc: validation.IntAtLeast(0),
+												//			},
+												//			"step": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//			"stretch_mode": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				Default:      string(encodings.StretchModeAutoSize),
+												//				ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForStretchMode(), false),
+												//			},
+												//			"sync_mode": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				Default:      string(encodings.VideoSyncModeAuto),
+												//				ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForVideoSyncMode(), false),
+												//			},
+												//		},
+												//	},
+												//},
+												//"png_image": {
+												//	Type:     pluginsdk.TypeList,
+												//	Optional: true,
+												//	MaxItems: 1,
+												//	Elem: &pluginsdk.Resource{
+												//		Schema: map[string]*schema.Schema{
+												//			"start": {
+												//				Type:         pluginsdk.TypeString,
+												//				Required:     true,
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//			"key_frame_interval": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				Default:      "PT2S",
+												//				ValidateFunc: validate.ISO8601Duration,
+												//			},
+												//			"label": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//			"layer": {
+												//				Type:     pluginsdk.TypeList,
+												//				Optional: true,
+												//				MinItems: 1,
+												//				Elem: &pluginsdk.Resource{
+												//					Schema: map[string]*schema.Schema{
+												//						"height": {
+												//							Type:         pluginsdk.TypeString,
+												//							Optional:     true,
+												//							ValidateFunc: validation.StringIsNotEmpty,
+												//						},
+												//						"label": {
+												//							Type:         pluginsdk.TypeString,
+												//							Optional:     true,
+												//							ValidateFunc: validation.StringIsNotEmpty,
+												//						},
+												//						"width": {
+												//							Type:         pluginsdk.TypeString,
+												//							Optional:     true,
+												//							ValidateFunc: validation.StringIsNotEmpty,
+												//						},
+												//					},
+												//				},
+												//			},
+												//			"range": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				Default:      "100%",
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//			"step": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//			"stretch_mode": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				Default:      string(encodings.StretchModeAutoSize),
+												//				ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForStretchMode(), false),
+												//			},
+												//			"sync_mode": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				Default:      string(encodings.VideoSyncModeAuto),
+												//				ValidateFunc: validation.StringInSlice(encodings.PossibleValuesForVideoSyncMode(), false),
+												//			},
+												//		},
+												//	},
+												//},
 											},
 										},
 									},
@@ -800,20 +799,20 @@ func resourceMediaTransform() *pluginsdk.Resource {
 										MinItems: 1,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*schema.Schema{
-												"jpg": {
-													Type:     pluginsdk.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*schema.Schema{
-															"filename_pattern": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-														},
-													},
-												},
+												//"jpg": {
+												//	Type:     pluginsdk.TypeList,
+												//	Optional: true,
+												//	MaxItems: 1,
+												//	Elem: &pluginsdk.Resource{
+												//		Schema: map[string]*schema.Schema{
+												//			"filename_pattern": {
+												//				Type:         pluginsdk.TypeString,
+												//				Required:     true,
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//		},
+												//	},
+												//},
 												"mp4": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
@@ -846,20 +845,20 @@ func resourceMediaTransform() *pluginsdk.Resource {
 														},
 													},
 												},
-												"png": {
-													Type:     pluginsdk.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*schema.Schema{
-															"filename_pattern": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-														},
-													},
-												},
+												//"png": {
+												//	Type:     pluginsdk.TypeList,
+												//	Optional: true,
+												//	MaxItems: 1,
+												//	Elem: &pluginsdk.Resource{
+												//		Schema: map[string]*schema.Schema{
+												//			"filename_pattern": {
+												//				Type:         pluginsdk.TypeString,
+												//				Required:     true,
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//		},
+												//	},
+												//},
 												"transport_stream": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
@@ -901,7 +900,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 										MaxItems: 1,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*schema.Schema{
-												"crop": {
+												"crop_rectangle": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
 													MaxItems: 1,
@@ -951,56 +950,56 @@ func resourceMediaTransform() *pluginsdk.Resource {
 														},
 													},
 												},
-												"fade_in": {
-													Type:     pluginsdk.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*schema.Schema{
-															"duration": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"fate_color": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"start": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																Default:      "0",
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-														},
-													},
-												},
-												"fade_out": {
-													Type:     pluginsdk.TypeList,
-													Optional: true,
-													MaxItems: 1,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*schema.Schema{
-															"duration": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"fate_color": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-															"start": {
-																Type:         pluginsdk.TypeString,
-																Optional:     true,
-																Default:      "0",
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-														},
-													},
-												},
+												//"fade_in": {
+												//	Type:     pluginsdk.TypeList,
+												//	Optional: true,
+												//	MaxItems: 1,
+												//	Elem: &pluginsdk.Resource{
+												//		Schema: map[string]*schema.Schema{
+												//			"duration": {
+												//				Type:         pluginsdk.TypeString,
+												//				Required:     true,
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//			"fate_color": {
+												//				Type:         pluginsdk.TypeString,
+												//				Required:     true,
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//			"start": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				Default:      "0",
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//		},
+												//	},
+												//},
+												//"fade_out": {
+												//	Type:     pluginsdk.TypeList,
+												//	Optional: true,
+												//	MaxItems: 1,
+												//	Elem: &pluginsdk.Resource{
+												//		Schema: map[string]*schema.Schema{
+												//			"duration": {
+												//				Type:         pluginsdk.TypeString,
+												//				Required:     true,
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//			"fate_color": {
+												//				Type:         pluginsdk.TypeString,
+												//				Required:     true,
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//			"start": {
+												//				Type:         pluginsdk.TypeString,
+												//				Optional:     true,
+												//				Default:      "0",
+												//				ValidateFunc: validation.StringIsNotEmpty,
+												//			},
+												//		},
+												//	},
+												//},
 												"overlay": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
@@ -1515,7 +1514,7 @@ func flattenPreset(input encodings.Preset) flattenedPresets {
 	}
 
 	if v, ok := input.(encodings.StandardEncoderPreset); ok {
-		out.audioAnalyzerPresets = append(out.audioAnalyzerPresets, map[string]interface{}{
+		out.customPresets = append(out.customPresets, map[string]interface{}{
 			"codec":  flattenCustomPresetCodecs(v.Codecs),
 			"filter": flattenCustomPresetFilters(v.Filters),
 			"format": flattenCustomPresetFormats(v.Formats),
@@ -1721,11 +1720,11 @@ func expandCustomPresetCodecs(input []interface{}) ([]encodings.Codec, error) {
 		aacAudio := codec["aac_audio"].([]interface{})
 		copyAudio := codec["copy_audio"].([]interface{})
 		copyVideo := codec["copy_video"].([]interface{})
-		ddAudio := codec["dd_audio"].([]interface{})
+		//ddAudio := codec["dd_audio"].([]interface{})
 		h264Video := codec["h264_video"].([]interface{})
 		h265Video := codec["h265_video"].([]interface{})
-		jpgImage := codec["jpg_image"].([]interface{})
-		pngImage := codec["png_image"].([]interface{})
+		//jpgImage := codec["jpg_image"].([]interface{})
+		//pngImage := codec["png_image"].([]interface{})
 
 		codecsCount := 0
 		if len(aacAudio) > 0 {
@@ -1737,23 +1736,24 @@ func expandCustomPresetCodecs(input []interface{}) ([]encodings.Codec, error) {
 		if len(copyVideo) > 0 {
 			codecsCount++
 		}
-		if len(ddAudio) > 0 {
-			codecsCount++
-		}
+		//if len(ddAudio) > 0 {
+		//	codecsCount++
+		//}
 		if len(h264Video) > 0 {
 			codecsCount++
 		}
 		if len(h265Video) > 0 {
 			codecsCount++
 		}
-		if len(jpgImage) > 0 {
-			codecsCount++
-		}
-		if len(pngImage) > 0 {
-			codecsCount++
-		}
+		//if len(jpgImage) > 0 {
+		//	codecsCount++
+		//}
+		//if len(pngImage) > 0 {
+		//	codecsCount++
+		//}
 		if codecsCount == 0 {
-			return nil, fmt.Errorf("custom preset codec must contain at least one type of: aac_audio, copy_audio, copy_video, dd_audio, h264_video, h265_video, jpg_image or png_image")
+			//dd_audio jpg_image or png_image
+			return nil, fmt.Errorf("custom preset codec must contain at least one type of: aac_audio, copy_audio, copy_video, h264_video or h265_video")
 		}
 		if codecsCount > 1 {
 			return nil, fmt.Errorf("more than one type of codec in the same custom preset codec is not allowed")
@@ -1765,16 +1765,16 @@ func expandCustomPresetCodecs(input []interface{}) ([]encodings.Codec, error) {
 			results = append(results, expandCustomPresetCodecsCopyAudio(copyAudio))
 		} else if len(copyVideo) > 0 {
 			results = append(results, expandCustomPresetCodecsCopyVideo(copyVideo))
-		} else if len(ddAudio) > 0 {
+			//} else if len(ddAudio) > 0 {
 			//results = append(results, expandCustomPresetCodecsDdAudio(ddAudio))
 		} else if len(h264Video) > 0 {
 			results = append(results, expandCustomPresetCodecsH264Video(h264Video))
 		} else if len(h265Video) > 0 {
 			results = append(results, expandCustomPresetCodecsH265Video(h265Video))
-		} else if len(jpgImage) > 0 {
-			results = append(results, expandCustomPresetCodecsJpgImage(jpgImage))
-		} else if len(pngImage) > 0 {
-			results = append(results, expandCustomPresetCodecsPngImage(pngImage))
+			//} else if len(jpgImage) > 0 {
+			//	results = append(results, expandCustomPresetCodecsJpgImage(jpgImage))
+			//} else if len(pngImage) > 0 {
+			//	results = append(results, expandCustomPresetCodecsPngImage(pngImage))
 		}
 	}
 
@@ -1785,11 +1785,11 @@ type flattenedCustomPresetsCodec struct {
 	aacAudio  []interface{}
 	copyAudio []interface{}
 	copyVideo []interface{}
-	ddAudio   []interface{}
+	//ddAudio   []interface{}
 	h264Video []interface{}
 	h265Video []interface{}
-	jpgImage  []interface{}
-	pngImage  []interface{}
+	//jpgImage  []interface{}
+	//pngImage  []interface{}
 }
 
 func flattenCustomPresetCodecs(input []encodings.Codec) []interface{} {
@@ -1804,11 +1804,11 @@ func flattenCustomPresetCodecs(input []encodings.Codec) []interface{} {
 			aacAudio:  []interface{}{},
 			copyAudio: []interface{}{},
 			copyVideo: []interface{}{},
-			ddAudio:   []interface{}{},
+			//ddAudio:   []interface{}{},
 			h264Video: []interface{}{},
 			h265Video: []interface{}{},
-			jpgImage:  []interface{}{},
-			pngImage:  []interface{}{},
+			//jpgImage:  []interface{}{},
+			//pngImage:  []interface{}{},
 		}
 
 		if codec, ok := v.(encodings.AacAudio); ok {
@@ -1835,23 +1835,23 @@ func flattenCustomPresetCodecs(input []encodings.Codec) []interface{} {
 			result.h265Video = flattenCustomPresetCodecsH265Video(codec)
 		}
 
-		if codec, ok := v.(azuresdkhacks.JpgImage); ok {
-			result.jpgImage = flattenCustomPresetCodecsJpgImage(codec)
-		}
+		//if codec, ok := v.(azuresdkhacks.JpgImage); ok {
+		//	result.jpgImage = flattenCustomPresetCodecsJpgImage(codec)
+		//}
 
-		if codec, ok := v.(azuresdkhacks.PngImage); ok {
-			result.pngImage = flattenCustomPresetCodecsPngImage(codec)
-		}
+		//if codec, ok := v.(azuresdkhacks.PngImage); ok {
+		//	result.pngImage = flattenCustomPresetCodecsPngImage(codec)
+		//}
 
 		results = append(results, map[string]interface{}{
 			"aac_audio":  result.aacAudio,
 			"copy_audio": result.copyAudio,
 			"copy_video": result.copyVideo,
-			"dd_audio":   result.ddAudio,
+			//"dd_audio":   result.ddAudio,
 			"h264_video": result.h264Video,
 			"h265_video": result.h265Video,
-			"jpg_image":  result.jpgImage,
-			"png_image":  result.pngImage,
+			//"jpg_image":  result.jpgImage,
+			//"png_image":  result.pngImage,
 		})
 	}
 
@@ -1982,65 +1982,65 @@ func flattenCustomPresetCodecsCopyVideo(input encodings.CopyVideo) []interface{}
 	}
 }
 
-func expandCustomPresetCodecsDdAudio(input []interface{}) encodings.AacAudio {
-	// TODO: modify to encoding.DdAudio
-	if len(input) == 0 || input[0] == nil {
-		return encodings.AacAudio{}
-	}
-
-	ddAudio := input[0].(map[string]interface{})
-	result := encodings.AacAudio{}
-
-	if v := ddAudio["bitrate"].(int); v != 0 {
-		result.Bitrate = utils.Int64(int64(v))
-	}
-
-	if v := ddAudio["channels"].(int); v != 0 {
-		result.Channels = utils.Int64(int64(v))
-	}
-
-	if v := ddAudio["label"].(string); v != "" {
-		result.Label = utils.String(v)
-	}
-
-	if v := ddAudio["sampling_rate"].(int); v != 0 {
-		result.SamplingRate = utils.Int64(int64(v))
-	}
-
-	return result
-}
-
-func flattenCustomPresetCodecsDdAudio(input encodings.AacAudio) []interface{} {
-	// TODO: modify to encoding.DdAudio
-	bitrate := 0
-	if input.Bitrate != nil {
-		bitrate = int(*input.Bitrate)
-	}
-
-	channels := 0
-	if input.Channels != nil {
-		channels = int(*input.Channels)
-	}
-
-	label := ""
-	if input.Label != nil {
-		label = *input.Label
-	}
-
-	samplingRate := 0
-	if input.SamplingRate != nil {
-		samplingRate = int(*input.SamplingRate)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"bitrate":       bitrate,
-			"channels":      channels,
-			"label":         label,
-			"sampling_rate": samplingRate,
-		},
-	}
-}
+//func expandCustomPresetCodecsDdAudio(input []interface{}) encodings.AacAudio {
+//	// TODO: modify to encoding.DdAudio
+//	if len(input) == 0 || input[0] == nil {
+//		return encodings.AacAudio{}
+//	}
+//
+//	ddAudio := input[0].(map[string]interface{})
+//	result := encodings.AacAudio{}
+//
+//	if v := ddAudio["bitrate"].(int); v != 0 {
+//		result.Bitrate = utils.Int64(int64(v))
+//	}
+//
+//	if v := ddAudio["channels"].(int); v != 0 {
+//		result.Channels = utils.Int64(int64(v))
+//	}
+//
+//	if v := ddAudio["label"].(string); v != "" {
+//		result.Label = utils.String(v)
+//	}
+//
+//	if v := ddAudio["sampling_rate"].(int); v != 0 {
+//		result.SamplingRate = utils.Int64(int64(v))
+//	}
+//
+//	return result
+//}
+//
+//func flattenCustomPresetCodecsDdAudio(input encodings.AacAudio) []interface{} {
+//	// TODO: modify to encoding.DdAudio
+//	bitrate := 0
+//	if input.Bitrate != nil {
+//		bitrate = int(*input.Bitrate)
+//	}
+//
+//	channels := 0
+//	if input.Channels != nil {
+//		channels = int(*input.Channels)
+//	}
+//
+//	label := ""
+//	if input.Label != nil {
+//		label = *input.Label
+//	}
+//
+//	samplingRate := 0
+//	if input.SamplingRate != nil {
+//		samplingRate = int(*input.SamplingRate)
+//	}
+//
+//	return []interface{}{
+//		map[string]interface{}{
+//			"bitrate":       bitrate,
+//			"channels":      channels,
+//			"label":         label,
+//			"sampling_rate": samplingRate,
+//		},
+//	}
+//}
 
 func expandCustomPresetCodecsH264Video(input []interface{}) encodings.H264Video {
 	if len(input) == 0 || input[0] == nil {
@@ -2118,7 +2118,7 @@ func flattenCustomPresetCodecsH264Video(input encodings.H264Video) []interface{}
 	return []interface{}{
 		map[string]interface{}{
 			"complexity":                     complexity,
-			"keyFrameInterval":               keyFrameInterval,
+			"key_frame_interval":             keyFrameInterval,
 			"label":                          label,
 			"layer":                          flattenCustomPresetCodecsH264VideoLayers(input.Layers),
 			"rate_control_mode":              rateControlMode,
@@ -2367,7 +2367,7 @@ func flattenCustomPresetCodecsH265Video(input encodings.H265Video) []interface{}
 	return []interface{}{
 		map[string]interface{}{
 			"complexity":                     complexity,
-			"keyFrameInterval":               keyFrameInterval,
+			"key_frame_interval":             keyFrameInterval,
 			"label":                          label,
 			"layer":                          flattenCustomPresetCodecsH265VideoLayers(input.Layers),
 			"scene_change_detection_enabled": sceneChangeDetectionEnabled,
@@ -2538,321 +2538,321 @@ func flattenCustomPresetCodecsH265VideoLayers(input *[]encodings.H265Layer) []in
 	return results
 }
 
-func expandCustomPresetCodecsJpgImage(input []interface{}) azuresdkhacks.JpgImage {
-	if len(input) == 0 || input[0] == nil {
-		return azuresdkhacks.JpgImage{}
-	}
-
-	jpgImage := input[0].(map[string]interface{})
-	result := azuresdkhacks.JpgImage{
-		Start:  jpgImage["start"].(string),
-		Layers: expandCustomPresetCodecsJpgImageLayer(jpgImage["layer"].([]interface{})),
-	}
-
-	if v := jpgImage["key_frame_interval"].(string); v != "" {
-		result.KeyFrameInterval = utils.String(v)
-	}
-
-	if v := jpgImage["label"].(string); v != "" {
-		result.Label = utils.String(v)
-	}
-
-	if v := jpgImage["range"].(string); v != "" {
-		result.Range = utils.String(v)
-	}
-
-	if v := jpgImage["splite_column"].(int); v != 0 {
-		result.SpliteColumn = utils.Int64(int64(v))
-	}
-
-	if v := jpgImage["step"].(string); v != "" {
-		result.Step = utils.String(v)
-	}
-
-	if v := jpgImage["stretch_mode"].(string); v != "" {
-		result.StretchMode = pointer.To(encodings.StretchMode(v))
-	}
-
-	if v := jpgImage["sync_mode"].(string); v != "" {
-		result.SyncMode = pointer.To(encodings.VideoSyncMode(v))
-	}
-
-	return result
-}
-
-func flattenCustomPresetCodecsJpgImage(input azuresdkhacks.JpgImage) []interface{} {
-	keyFrameInterval := ""
-	if input.KeyFrameInterval != nil {
-		keyFrameInterval = *input.KeyFrameInterval
-	}
-
-	label := ""
-	if input.Label != nil {
-		label = *input.Label
-	}
-
-	rang := ""
-	if input.Range != nil {
-		rang = *input.Range
-	}
-
-	spliteColumn := 0
-	if input.SpliteColumn != nil {
-		spliteColumn = int(*input.SpliteColumn)
-	}
-
-	step := ""
-	if input.Step != nil {
-		step = *input.Step
-	}
-
-	stretchMode := ""
-	if input.StretchMode != nil {
-		stretchMode = string(*input.StretchMode)
-	}
-
-	syncMode := ""
-	if input.SyncMode != nil {
-		syncMode = string(*input.SyncMode)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"keyFrameInterval": keyFrameInterval,
-			"label":            label,
-			"layer":            flattenCustomPresetCodecsJpgImageLayer(input.Layers),
-			"range":            rang,
-			"start":            input.Start,
-			"step":             step,
-			"splite_column":    spliteColumn,
-			"stretch_mode":     stretchMode,
-			"sync_mode":        syncMode,
-		},
-	}
-}
-
-func expandCustomPresetCodecsJpgImageLayer(input []interface{}) *[]azuresdkhacks.JpgLayer {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	results := make([]azuresdkhacks.JpgLayer, 0)
-	for _, layerRaw := range input {
-		if layerRaw == nil {
-			continue
-		}
-
-		layer := layerRaw.(map[string]interface{})
-		result := azuresdkhacks.JpgLayer{}
-
-		if v := layer["height"].(string); v != "" {
-			result.Height = utils.String(v)
-		}
-
-		if v := layer["label"].(string); v != "" {
-			result.Label = utils.String(v)
-		}
-
-		if v := layer["quality"].(int); v != 0 {
-			result.Quality = utils.Int64(int64(v))
-		}
-
-		if v := layer["width"].(string); v != "" {
-			result.Width = utils.String(v)
-		}
-
-		results = append(results, result)
-	}
-
-	return &results
-}
-
-func flattenCustomPresetCodecsJpgImageLayer(input *[]azuresdkhacks.JpgLayer) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	results := make([]interface{}, 0)
-
-	for _, v := range *input {
-		height := ""
-		if v.Height != nil {
-			height = *v.Height
-		}
-
-		label := ""
-		if v.Label != nil {
-			label = *v.Label
-		}
-
-		quality := 0
-		if v.Quality != nil {
-			quality = int(*v.Quality)
-		}
-
-		width := ""
-		if v.Width != nil {
-			width = *v.Width
-		}
-
-		results = append(results, map[string]interface{}{
-			"height":  height,
-			"label":   label,
-			"quality": quality,
-			"width":   width,
-		})
-	}
-
-	return results
-}
-
-func expandCustomPresetCodecsPngImage(input []interface{}) azuresdkhacks.PngImage {
-	if len(input) == 0 || input[0] == nil {
-		return azuresdkhacks.PngImage{}
-	}
-
-	jpgImage := input[0].(map[string]interface{})
-	result := azuresdkhacks.PngImage{
-		Start:  jpgImage["start"].(string),
-		Layers: expandCustomPresetCodecsPngImageLayer(jpgImage["layer"].([]interface{})),
-	}
-
-	if v := jpgImage["key_frame_interval"].(string); v != "" {
-		result.KeyFrameInterval = utils.String(v)
-	}
-
-	if v := jpgImage["label"].(string); v != "" {
-		result.Label = utils.String(v)
-	}
-
-	if v := jpgImage["range"].(string); v != "" {
-		result.Range = utils.String(v)
-	}
-
-	if v := jpgImage["step"].(string); v != "" {
-		result.Step = utils.String(v)
-	}
-
-	if v := jpgImage["stretch_mode"].(string); v != "" {
-		result.StretchMode = pointer.To(encodings.StretchMode(v))
-	}
-
-	if v := jpgImage["sync_mode"].(string); v != "" {
-		result.SyncMode = pointer.To(encodings.VideoSyncMode(v))
-	}
-
-	return result
-}
-
-func flattenCustomPresetCodecsPngImage(input azuresdkhacks.PngImage) []interface{} {
-	keyFrameInterval := ""
-	if input.KeyFrameInterval != nil {
-		keyFrameInterval = *input.KeyFrameInterval
-	}
-
-	label := ""
-	if input.Label != nil {
-		label = *input.Label
-	}
-
-	rang := ""
-	if input.Range != nil {
-		rang = *input.Range
-	}
-
-	step := ""
-	if input.Step != nil {
-		step = *input.Step
-	}
-
-	stretchMode := ""
-	if input.StretchMode != nil {
-		stretchMode = string(*input.StretchMode)
-	}
-
-	syncMode := ""
-	if input.SyncMode != nil {
-		syncMode = string(*input.SyncMode)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"keyFrameInterval": keyFrameInterval,
-			"label":            label,
-			"layer":            flattenCustomPresetCodecsPngImageLayer(input.Layers),
-			"range":            rang,
-			"start":            input.Start,
-			"step":             step,
-			"stretch_mode":     stretchMode,
-			"sync_mode":        syncMode,
-		},
-	}
-}
-
-func expandCustomPresetCodecsPngImageLayer(input []interface{}) *[]azuresdkhacks.PngLayer {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	results := make([]azuresdkhacks.PngLayer, 0)
-	for _, layerRaw := range input {
-		if layerRaw == nil {
-			continue
-		}
-
-		layer := layerRaw.(map[string]interface{})
-		result := azuresdkhacks.PngLayer{}
-
-		if v := layer["height"].(string); v != "" {
-			result.Height = utils.String(v)
-		}
-
-		if v := layer["label"].(string); v != "" {
-			result.Label = utils.String(v)
-		}
-
-		if v := layer["width"].(string); v != "" {
-			result.Width = utils.String(v)
-		}
-
-		results = append(results, result)
-	}
-
-	return &results
-}
-
-func flattenCustomPresetCodecsPngImageLayer(input *[]azuresdkhacks.PngLayer) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	results := make([]interface{}, 0)
-
-	for _, v := range *input {
-		height := ""
-		if v.Height != nil {
-			height = *v.Height
-		}
-
-		label := ""
-		if v.Label != nil {
-			label = *v.Label
-		}
-
-		width := ""
-		if v.Width != nil {
-			width = *v.Width
-		}
-
-		results = append(results, map[string]interface{}{
-			"height": height,
-			"label":  label,
-			"width":  width,
-		})
-	}
-
-	return results
-}
+//func expandCustomPresetCodecsJpgImage(input []interface{}) azuresdkhacks.JpgImage {
+//	if len(input) == 0 || input[0] == nil {
+//		return azuresdkhacks.JpgImage{}
+//	}
+//
+//	jpgImage := input[0].(map[string]interface{})
+//	result := azuresdkhacks.JpgImage{
+//		Start:  jpgImage["start"].(string),
+//		Layers: expandCustomPresetCodecsJpgImageLayer(jpgImage["layer"].([]interface{})),
+//	}
+//
+//	if v := jpgImage["key_frame_interval"].(string); v != "" {
+//		result.KeyFrameInterval = utils.String(v)
+//	}
+//
+//	if v := jpgImage["label"].(string); v != "" {
+//		result.Label = utils.String(v)
+//	}
+//
+//	if v := jpgImage["range"].(string); v != "" {
+//		result.Range = utils.String(v)
+//	}
+//
+//	if v := jpgImage["sprite_column"].(int); v != 0 {
+//		result.SpriteColumn = utils.Int64(int64(v))
+//	}
+//
+//	if v := jpgImage["step"].(string); v != "" {
+//		result.Step = utils.String(v)
+//	}
+//
+//	if v := jpgImage["stretch_mode"].(string); v != "" {
+//		result.StretchMode = pointer.To(encodings.StretchMode(v))
+//	}
+//
+//	if v := jpgImage["sync_mode"].(string); v != "" {
+//		result.SyncMode = pointer.To(encodings.VideoSyncMode(v))
+//	}
+//
+//	return result
+//}
+//
+//func flattenCustomPresetCodecsJpgImage(input azuresdkhacks.JpgImage) []interface{} {
+//	keyFrameInterval := ""
+//	if input.KeyFrameInterval != nil {
+//		keyFrameInterval = *input.KeyFrameInterval
+//	}
+//
+//	label := ""
+//	if input.Label != nil {
+//		label = *input.Label
+//	}
+//
+//	rang := ""
+//	if input.Range != nil {
+//		rang = *input.Range
+//	}
+//
+//	spriteColumn := 0
+//	if input.SpriteColumn != nil {
+//		spriteColumn = int(*input.SpriteColumn)
+//	}
+//
+//	step := ""
+//	if input.Step != nil {
+//		step = *input.Step
+//	}
+//
+//	stretchMode := ""
+//	if input.StretchMode != nil {
+//		stretchMode = string(*input.StretchMode)
+//	}
+//
+//	syncMode := ""
+//	if input.SyncMode != nil {
+//		syncMode = string(*input.SyncMode)
+//	}
+//
+//	return []interface{}{
+//		map[string]interface{}{
+//			"keyFrameInterval": keyFrameInterval,
+//			"label":            label,
+//			"layer":            flattenCustomPresetCodecsJpgImageLayer(input.Layers),
+//			"range":            rang,
+//			"start":            input.Start,
+//			"step":             step,
+//			"sprite_column":    spriteColumn,
+//			"stretch_mode":     stretchMode,
+//			"sync_mode":        syncMode,
+//		},
+//	}
+//}
+//
+//func expandCustomPresetCodecsJpgImageLayer(input []interface{}) *[]azuresdkhacks.JpgLayer {
+//	if len(input) == 0 || input[0] == nil {
+//		return nil
+//	}
+//
+//	results := make([]azuresdkhacks.JpgLayer, 0)
+//	for _, layerRaw := range input {
+//		if layerRaw == nil {
+//			continue
+//		}
+//
+//		layer := layerRaw.(map[string]interface{})
+//		result := azuresdkhacks.JpgLayer{}
+//
+//		if v := layer["height"].(string); v != "" {
+//			result.Height = utils.String(v)
+//		}
+//
+//		if v := layer["label"].(string); v != "" {
+//			result.Label = utils.String(v)
+//		}
+//
+//		if v := layer["quality"].(int); v != 0 {
+//			result.Quality = utils.Int64(int64(v))
+//		}
+//
+//		if v := layer["width"].(string); v != "" {
+//			result.Width = utils.String(v)
+//		}
+//
+//		results = append(results, result)
+//	}
+//
+//	return &results
+//}
+//
+//func flattenCustomPresetCodecsJpgImageLayer(input *[]azuresdkhacks.JpgLayer) []interface{} {
+//	if input == nil {
+//		return make([]interface{}, 0)
+//	}
+//
+//	results := make([]interface{}, 0)
+//
+//	for _, v := range *input {
+//		height := ""
+//		if v.Height != nil {
+//			height = *v.Height
+//		}
+//
+//		label := ""
+//		if v.Label != nil {
+//			label = *v.Label
+//		}
+//
+//		quality := 0
+//		if v.Quality != nil {
+//			quality = int(*v.Quality)
+//		}
+//
+//		width := ""
+//		if v.Width != nil {
+//			width = *v.Width
+//		}
+//
+//		results = append(results, map[string]interface{}{
+//			"height":  height,
+//			"label":   label,
+//			"quality": quality,
+//			"width":   width,
+//		})
+//	}
+//
+//	return results
+//}
+//
+//func expandCustomPresetCodecsPngImage(input []interface{}) azuresdkhacks.PngImage {
+//	if len(input) == 0 || input[0] == nil {
+//		return azuresdkhacks.PngImage{}
+//	}
+//
+//	jpgImage := input[0].(map[string]interface{})
+//	result := azuresdkhacks.PngImage{
+//		Start:  jpgImage["start"].(string),
+//		Layers: expandCustomPresetCodecsPngImageLayer(jpgImage["layer"].([]interface{})),
+//	}
+//
+//	if v := jpgImage["key_frame_interval"].(string); v != "" {
+//		result.KeyFrameInterval = utils.String(v)
+//	}
+//
+//	if v := jpgImage["label"].(string); v != "" {
+//		result.Label = utils.String(v)
+//	}
+//
+//	if v := jpgImage["range"].(string); v != "" {
+//		result.Range = utils.String(v)
+//	}
+//
+//	if v := jpgImage["step"].(string); v != "" {
+//		result.Step = utils.String(v)
+//	}
+//
+//	if v := jpgImage["stretch_mode"].(string); v != "" {
+//		result.StretchMode = pointer.To(encodings.StretchMode(v))
+//	}
+//
+//	if v := jpgImage["sync_mode"].(string); v != "" {
+//		result.SyncMode = pointer.To(encodings.VideoSyncMode(v))
+//	}
+//
+//	return result
+//}
+//
+//func flattenCustomPresetCodecsPngImage(input azuresdkhacks.PngImage) []interface{} {
+//	keyFrameInterval := ""
+//	if input.KeyFrameInterval != nil {
+//		keyFrameInterval = *input.KeyFrameInterval
+//	}
+//
+//	label := ""
+//	if input.Label != nil {
+//		label = *input.Label
+//	}
+//
+//	rang := ""
+//	if input.Range != nil {
+//		rang = *input.Range
+//	}
+//
+//	step := ""
+//	if input.Step != nil {
+//		step = *input.Step
+//	}
+//
+//	stretchMode := ""
+//	if input.StretchMode != nil {
+//		stretchMode = string(*input.StretchMode)
+//	}
+//
+//	syncMode := ""
+//	if input.SyncMode != nil {
+//		syncMode = string(*input.SyncMode)
+//	}
+//
+//	return []interface{}{
+//		map[string]interface{}{
+//			"key_frame_interval": keyFrameInterval,
+//			"label":              label,
+//			"layer":              flattenCustomPresetCodecsPngImageLayer(input.Layers),
+//			"range":              rang,
+//			"start":              input.Start,
+//			"step":               step,
+//			"stretch_mode":       stretchMode,
+//			"sync_mode":          syncMode,
+//		},
+//	}
+//}
+//
+//func expandCustomPresetCodecsPngImageLayer(input []interface{}) *[]azuresdkhacks.PngLayer {
+//	if len(input) == 0 || input[0] == nil {
+//		return nil
+//	}
+//
+//	results := make([]azuresdkhacks.PngLayer, 0)
+//	for _, layerRaw := range input {
+//		if layerRaw == nil {
+//			continue
+//		}
+//
+//		layer := layerRaw.(map[string]interface{})
+//		result := azuresdkhacks.PngLayer{}
+//
+//		if v := layer["height"].(string); v != "" {
+//			result.Height = utils.String(v)
+//		}
+//
+//		if v := layer["label"].(string); v != "" {
+//			result.Label = utils.String(v)
+//		}
+//
+//		if v := layer["width"].(string); v != "" {
+//			result.Width = utils.String(v)
+//		}
+//
+//		results = append(results, result)
+//	}
+//
+//	return &results
+//}
+//
+//func flattenCustomPresetCodecsPngImageLayer(input *[]azuresdkhacks.PngLayer) []interface{} {
+//	if input == nil {
+//		return make([]interface{}, 0)
+//	}
+//
+//	results := make([]interface{}, 0)
+//
+//	for _, v := range *input {
+//		height := ""
+//		if v.Height != nil {
+//			height = *v.Height
+//		}
+//
+//		label := ""
+//		if v.Label != nil {
+//			label = *v.Label
+//		}
+//
+//		width := ""
+//		if v.Width != nil {
+//			width = *v.Width
+//		}
+//
+//		results = append(results, map[string]interface{}{
+//			"height": height,
+//			"label":  label,
+//			"width":  width,
+//		})
+//	}
+//
+//	return results
+//}
 
 func expandCustomPresetFilters(input []interface{}) (*encodings.Filters, error) {
 	if len(input) == 0 || input[0] == nil {
@@ -2861,16 +2861,22 @@ func expandCustomPresetFilters(input []interface{}) (*encodings.Filters, error) 
 
 	filters := input[0].(map[string]interface{})
 
-	overlay, err := expandCustomPresetFiltersOverlays(filters["overlay"].([]interface{}))
-	if err != nil {
-		return nil, err
+	result := encodings.Filters{}
+
+	if overlayRaw, ok := filters["overlay"].([]interface{}); ok {
+		overlay, err := expandCustomPresetFiltersOverlays(overlayRaw)
+		if err != nil {
+			return nil, err
+		}
+		result.Overlays = overlay
 	}
 
-	result := encodings.Filters{
-		Crop:        expandCustomPresetFiltersCropRectangle(filters["crop_rectangle"].([]interface{})),
-		Deinterlace: expandCustomPresetFiltersDeinterlace(filters["deinterlace"].([]interface{})),
-		// TODO: add fade_in and fade_out
-		Overlays: overlay,
+	if cropRectangle, ok := filters["crop_rectangle"].([]interface{}); ok {
+		result.Crop = expandCustomPresetFiltersCropRectangle(cropRectangle)
+	}
+
+	if deinterlace, ok := filters["deinterlace"].([]interface{}); ok {
+		result.Deinterlace = expandCustomPresetFiltersDeinterlace(deinterlace)
 	}
 
 	if v := filters["rotation"].(string); v != "" {
@@ -2892,10 +2898,10 @@ func flattenCustomPresetFilters(input *encodings.Filters) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"crop":        flattenCustomPresetFilterCropRectangle(input.Crop),
-			"deinterlace": flattenCustomPresetFilterDeinterlace(input.Deinterlace),
-			"overlay":     flattenCustomPresetFilterOverlays(input.Overlays),
-			"rotation":    rotation,
+			"crop_rectangle": flattenCustomPresetFilterCropRectangle(input.Crop),
+			"deinterlace":    flattenCustomPresetFilterDeinterlace(input.Deinterlace),
+			"overlay":        flattenCustomPresetFilterOverlays(input.Overlays),
+			"rotation":       rotation,
 		},
 	}
 }
@@ -2939,7 +2945,7 @@ func flattenCustomPresetFilterCropRectangle(input *encodings.Rectangle) []interf
 
 	left := ""
 	if input.Left != nil {
-		height = *input.Left
+		left = *input.Left
 	}
 
 	top := ""
@@ -3066,7 +3072,7 @@ func flattenCustomPresetFilterOverlays(input *[]encodings.Overlay) []interface{}
 		}
 
 		if overlay, ok := v.(encodings.VideoOverlay); ok {
-			result.audio = flattenCustomPresetFilterOverlayVideo(overlay)
+			result.video = flattenCustomPresetFilterOverlayVideo(overlay)
 		}
 
 		results = append(results, map[string]interface{}{
@@ -3246,21 +3252,21 @@ func expandCustomPresetFormats(input []interface{}) ([]encodings.Format, error) 
 		}
 
 		format := v.(map[string]interface{})
-		jpg := format["jpg"].([]interface{})
+		//jpg := format["jpg"].([]interface{})
 		mp4 := format["mp4"].([]interface{})
-		png := format["png"].([]interface{})
+		//png := format["png"].([]interface{})
 		transportStream := format["transport_stream"].([]interface{})
 
 		formatCount := 0
-		if len(jpg) > 0 {
-			formatCount++
-		}
+		//if len(jpg) > 0 {
+		//	formatCount++
+		//}
 		if len(mp4) > 0 {
 			formatCount++
 		}
-		if len(png) > 0 {
-			formatCount++
-		}
+		//if len(png) > 0 {
+		//	formatCount++
+		//}
 		if len(transportStream) > 0 {
 			formatCount++
 		}
@@ -3272,12 +3278,13 @@ func expandCustomPresetFormats(input []interface{}) ([]encodings.Format, error) 
 			return nil, fmt.Errorf("more than one type of format in the same custom preset format is not allowed")
 		}
 
-		if len(jpg) > 0 {
-			results = append(results, expandCustomPresetFormatsJpg(jpg))
-		} else if len(mp4) > 0 {
+		//if len(jpg) > 0 {
+		//	results = append(results, expandCustomPresetFormatsJpg(jpg))
+		//} else
+		if len(mp4) > 0 {
 			results = append(results, expandCustomPresetFormatsMp4(mp4))
-		} else if len(png) > 0 {
-			results = append(results, expandCustomPresetFormatsPng(png))
+			//} else if len(png) > 0 {
+			//	results = append(results, expandCustomPresetFormatsPng(png))
 		} else if len(transportStream) > 0 {
 			results = append(results, expandCustomPresetFormatsTransportStream(transportStream))
 		}
@@ -3287,9 +3294,9 @@ func expandCustomPresetFormats(input []interface{}) ([]encodings.Format, error) 
 }
 
 type flattenedCustomPresetFormat struct {
-	jpg             []interface{}
-	mp4             []interface{}
-	png             []interface{}
+	//jpg             []interface{}
+	mp4 []interface{}
+	//png             []interface{}
 	transportStream []interface{}
 }
 
@@ -3298,32 +3305,32 @@ func flattenCustomPresetFormats(input []encodings.Format) []interface{} {
 
 	for _, v := range input {
 		result := flattenedCustomPresetFormat{
-			jpg:             []interface{}{},
-			mp4:             []interface{}{},
-			png:             []interface{}{},
+			//jpg:             []interface{}{},
+			mp4: []interface{}{},
+			//png:             []interface{}{},
 			transportStream: []interface{}{},
 		}
 
-		if format, ok := v.(encodings.JpgFormat); ok {
-			result.jpg = flattenCustomPresetFormatsJpg(format)
-		}
+		//if format, ok := v.(encodings.JpgFormat); ok {
+		//	result.jpg = flattenCustomPresetFormatsJpg(format)
+		//}
 
 		if format, ok := v.(encodings.Mp4Format); ok {
 			result.mp4 = flattenCustomPresetFormatsMp4(format)
 		}
 
-		if format, ok := v.(encodings.PngFormat); ok {
-			result.png = flattenCustomPresetFormatsPng(format)
-		}
+		//if format, ok := v.(encodings.PngFormat); ok {
+		//	result.png = flattenCustomPresetFormatsPng(format)
+		//}
 
 		if format, ok := v.(encodings.TransportStreamFormat); ok {
 			result.transportStream = flattenCustomPresetFormatsTransportStream(format)
 		}
 
 		results = append(results, map[string]interface{}{
-			"jpg":              result.jpg,
-			"mp4":              result.mp4,
-			"png":              result.png,
+			//"jpg":              result.jpg,
+			"mp4": result.mp4,
+			//"png":              result.png,
 			"transport_stream": result.transportStream,
 		})
 	}
@@ -3331,27 +3338,27 @@ func flattenCustomPresetFormats(input []encodings.Format) []interface{} {
 	return results
 }
 
-func expandCustomPresetFormatsJpg(input []interface{}) encodings.JpgFormat {
-	if len(input) == 0 || input[0] == nil {
-		return encodings.JpgFormat{}
-	}
-
-	jpg := input[0].(map[string]interface{})
-
-	result := encodings.JpgFormat{
-		FilenamePattern: jpg["filename_pattern"].(string),
-	}
-
-	return result
-}
-
-func flattenCustomPresetFormatsJpg(input encodings.JpgFormat) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
-			"filename_pattern": input.FilenamePattern,
-		},
-	}
-}
+//func expandCustomPresetFormatsJpg(input []interface{}) encodings.JpgFormat {
+//	if len(input) == 0 || input[0] == nil {
+//		return encodings.JpgFormat{}
+//	}
+//
+//	jpg := input[0].(map[string]interface{})
+//
+//	result := encodings.JpgFormat{
+//		FilenamePattern: jpg["filename_pattern"].(string),
+//	}
+//
+//	return result
+//}
+//
+//func flattenCustomPresetFormatsJpg(input encodings.JpgFormat) []interface{} {
+//	return []interface{}{
+//		map[string]interface{}{
+//			"filename_pattern": input.FilenamePattern,
+//		},
+//	}
+//}
 
 func expandCustomPresetFormatsMp4(input []interface{}) encodings.Mp4Format {
 	if len(input) == 0 || input[0] == nil {
@@ -3376,26 +3383,26 @@ func flattenCustomPresetFormatsMp4(input encodings.Mp4Format) []interface{} {
 	}
 }
 
-func expandCustomPresetFormatsPng(input []interface{}) encodings.PngFormat {
-	if len(input) == 0 || input[0] == nil {
-		return encodings.PngFormat{}
-	}
-
-	jpg := input[0].(map[string]interface{})
-	result := encodings.PngFormat{
-		FilenamePattern: jpg["filename_pattern"].(string),
-	}
-
-	return result
-}
-
-func flattenCustomPresetFormatsPng(input encodings.PngFormat) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
-			"filename_pattern": input.FilenamePattern,
-		},
-	}
-}
+//func expandCustomPresetFormatsPng(input []interface{}) encodings.PngFormat {
+//	if len(input) == 0 || input[0] == nil {
+//		return encodings.PngFormat{}
+//	}
+//
+//	jpg := input[0].(map[string]interface{})
+//	result := encodings.PngFormat{
+//		FilenamePattern: jpg["filename_pattern"].(string),
+//	}
+//
+//	return result
+//}
+//
+//func flattenCustomPresetFormatsPng(input encodings.PngFormat) []interface{} {
+//	return []interface{}{
+//		map[string]interface{}{
+//			"filename_pattern": input.FilenamePattern,
+//		},
+//	}
+//}
 
 func expandCustomPresetFormatsTransportStream(input []interface{}) encodings.TransportStreamFormat {
 	if len(input) == 0 || input[0] == nil {
@@ -3433,7 +3440,7 @@ func expandCustomPresetFormatsOutputFiles(input []interface{}) *[]encodings.Outp
 
 		outputFile := v.(map[string]interface{})
 		labels := make([]string, 0)
-		for _, label := range outputFile["label"].([]interface{}) {
+		for _, label := range outputFile["labels"].([]interface{}) {
 			labels = append(labels, label.(string))
 		}
 
@@ -3458,7 +3465,7 @@ func flattenCustomPresetFormatOutputFiles(input *[]encodings.OutputFile) []inter
 		}
 
 		results = append(results, map[string]interface{}{
-			"label": labels,
+			"labels": labels,
 		})
 	}
 

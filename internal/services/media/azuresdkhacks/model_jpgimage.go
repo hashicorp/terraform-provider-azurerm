@@ -15,7 +15,7 @@ type JpgImage struct {
 	KeyFrameInterval *string                  `json:"keyFrameInterval,omitempty"`
 	Layers           *[]JpgLayer              `json:"layers,omitempty"`
 	Range            *string                  `json:"range,omitempty"`
-	SpliteColumn     *int64                   `json:"spliteColumn,omitempty"`
+	SpriteColumn     *int64                   `json:"spriteColumn,omitempty"`
 	Start            string                   `json:"start"`
 	Step             *string                  `json:"step,omitempty"`
 	StretchMode      *encodings.StretchMode   `json:"stretchMode,omitempty"`
