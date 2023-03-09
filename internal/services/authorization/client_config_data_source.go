@@ -38,11 +38,6 @@ func dataSourceArmClientConfig() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
-
-			"environment_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -58,7 +53,6 @@ func dataSourceArmClientConfigRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("object_id", client.Account.ObjectId)
 	d.Set("subscription_id", client.Account.SubscriptionId)
 	d.Set("tenant_id", client.Account.TenantId)
-	d.Set("environment_name", client.Account.Environment.Name)
 
 	return nil
 }
