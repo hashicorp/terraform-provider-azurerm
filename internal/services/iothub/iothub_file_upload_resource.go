@@ -154,7 +154,13 @@ func (r IotHubFileUploadResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %q: %+v", id, err)
 			}
 
-			// NOTE: this resource intentionally doesn't support Requires Import since a file upload is created by default
+			if iotHub.Properties != nil && iotHub.Properties.MessagingEndpoints != nil {
+				if storageEndpoint, ok := iotHub.Properties.StorageEndpoints["$default"]; ok {
+					if storageEndpoint.ConnectionString != nil && *storageEndpoint.ConnectionString != "" && storageEndpoint.ContainerName != nil && *storageEndpoint.ContainerName != "" {
+						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					}
+				}
+			}
 
 			messagingEndpointProperties := make(map[string]*devices.MessagingEndpointProperties)
 			storageEndpointProperties := make(map[string]*devices.StorageEndpointProperties)

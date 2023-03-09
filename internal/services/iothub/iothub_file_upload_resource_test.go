@@ -15,8 +15,6 @@ import (
 
 type IotHubFileUploadResource struct{}
 
-// NOTE: this resource intentionally doesn't support requiresImport since a fallback route is created by default
-
 func TestAccIotHubFileUpload_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_file_upload", "test")
 	r := IotHubFileUploadResource{}
@@ -35,6 +33,24 @@ func TestAccIotHubFileUpload_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccIotHubFileUpload_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_file_upload", "test")
+	r := IotHubFileUploadResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_iothub_file_upload"),
+		},
 	})
 }
 
@@ -227,12 +243,20 @@ func (IotHubFileUploadResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, err
 	}
 
-	resp, err := clients.IoTHub.ResourceClient.Get(ctx, id.ResourceGroup, id.Name)
+	iotHub, err := clients.IoTHub.ResourceClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	if iotHub.Properties != nil && iotHub.Properties.MessagingEndpoints != nil {
+		if storageEndpoint, ok := iotHub.Properties.StorageEndpoints["$default"]; ok {
+			if storageEndpoint.ConnectionString != nil && *storageEndpoint.ConnectionString != "" && storageEndpoint.ContainerName != nil && *storageEndpoint.ContainerName != "" {
+				return utils.Bool(true), nil
+			}
+		}
+	}
+
+	return utils.Bool(false), nil
 }
 
 func (r IotHubFileUploadResource) basic(data acceptance.TestData) string {
@@ -245,6 +269,18 @@ resource "azurerm_iothub_file_upload" "test" {
   container_name    = azurerm_storage_container.test.name
 }
 `, r.template(data))
+}
+
+func (r IotHubFileUploadResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub_file_upload" "import" {
+  iothub_id         = azurerm_iothub_file_upload.test.iothub_id
+  connection_string = azurerm_iothub_file_upload.test.connection_string
+  container_name    = azurerm_iothub_file_upload.test.container_name
+}
+`, r.basic(data))
 }
 
 func (r IotHubFileUploadResource) authenticationTypeUserAssignedIdentity(data acceptance.TestData) string {
