@@ -25,6 +25,7 @@ ENHANCEMENTS
 * `azurerm_monitor_action_group` - add support for the `location` property [GH-20603]
 * `azurerm_mssql_database` - Add support through regex for ServerlessGen5 Hyperscale [GH-20875]
 * `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
+* `azurerm_virtual_network_peering` - add support for  `triggers` attribute to allow `address_space` synchronization [GH-20877]
 
 BUG FIXES:
 
