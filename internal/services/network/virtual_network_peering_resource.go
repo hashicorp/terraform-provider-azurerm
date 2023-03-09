@@ -83,6 +83,14 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 			},
+
+			"triggers": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
 		},
 	}
 }
