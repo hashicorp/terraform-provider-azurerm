@@ -3,6 +3,8 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -13,7 +15,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ManagerResource struct{}
+type ManagerResource struct {
+	DoNotRunNetworkManagerTests string
+}
 
 func TestAccNetworkManager(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
@@ -82,6 +86,14 @@ func TestAccNetworkManager(t *testing.T) {
 		},
 	}
 
+	r := ManagerResource{os.Getenv("ARM_TEST_DO_DOT_RUN_NETWORK_MANAGER_TESTS")}
+	if r.DoNotRunNetworkManagerTests == "" {
+		t.Skipf("`ARM_TEST_DO_DOT_RUN_NETWORK_MANAGER_TESTS` must be set for acceptance tests")
+	}
+
+	if strings.EqualFold(r.DoNotRunNetworkManagerTests, "true") {
+		t.Skipf("`azurerm_network_manager` currently is not testable due to service requirements")
+	}
 	for group, m := range testCases {
 		m := m
 		t.Run(group, func(t *testing.T) {
