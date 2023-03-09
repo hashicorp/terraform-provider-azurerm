@@ -1195,7 +1195,7 @@ resource "azurerm_monitor_action_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
   enabled             = false
-  location	          = "swedencentral"
+  location            = "swedencentral"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

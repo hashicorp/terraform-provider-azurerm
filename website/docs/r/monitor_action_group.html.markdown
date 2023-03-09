@@ -122,7 +122,6 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Action Group. Changing this forces a new resource to be created. 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Action Group instance. Changing this forces a new resource to be created.
-* `location` - (Optional) The Azure Region where the Action Group should exist. Changing this forces a new Action Group to be created. Defaults to `global`.
 * `short_name` - (Required) The short name of the action group. This will be used in SMS messages.
 * `enabled` - (Optional) Whether this action group is enabled. If an action group is not enabled, then none of its receivers will receive communications. Defaults to `true`.
 * `arm_role_receiver` - (Optional) One or more `arm_role_receiver` blocks as defined below.
@@ -132,6 +131,7 @@ The following arguments are supported:
 * `email_receiver` - (Optional) One or more `email_receiver` blocks as defined below.
 * `event_hub_receiver` - (Optional) One or more `event_hub_receiver` blocks as defined below.
 * `itsm_receiver` - (Optional) One or more `itsm_receiver` blocks as defined below.
+* `location` - (Optional) The Azure Region where the Action Group should exist. Changing this forces a new Action Group to be created. Defaults to `global`.
 * `logic_app_receiver` - (Optional) One or more `logic_app_receiver` blocks as defined below.
 * `sms_receiver` - (Optional) One or more `sms_receiver` blocks as defined below.
 * `voice_receiver` - (Optional) One or more `voice_receiver` blocks as defined below.
