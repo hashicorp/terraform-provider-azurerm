@@ -991,7 +991,7 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 			}
 		}
 
-		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "useAADAuth"); v != "false" {
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "useAADAuth"); v != "false" && v != "" {
 			useAADAuth = true
 		}
 
