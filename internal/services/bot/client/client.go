@@ -1,11 +1,11 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/healthbot/mgmt/2020-12-08/healthbot"                   // nolint: staticcheck
-	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2021-05-01-preview/botservice" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/healthbot/mgmt/2020-12-08/healthbot" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	healthbot_2020_12_08 "github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2020-12-08"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type Client struct {

@@ -110,5 +110,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Private DNS Resolver Inbound Endpoint can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_resolver_inbound_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/dnsResolvers/dnsResolver1/inboundEndpoints/inboundEndpoint1
+terraform import azurerm_private_dns_resolver_inbound_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/dnsResolvers/dnsResolver1/inboundEndpoints/inboundEndpoint1
 ```

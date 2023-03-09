@@ -132,6 +132,9 @@ func (m CertificateResource) Read() sdk.ResourceFunc {
 			client := meta.Client.Nginx.NginxCertificate
 			result, err := client.CertificatesGet(ctx, *id)
 			if err != nil {
+				if response.WasNotFound(result.HttpResponse) {
+					return meta.MarkAsGone(id)
+				}
 				return err
 			}
 

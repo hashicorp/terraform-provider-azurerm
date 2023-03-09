@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -38,6 +38,7 @@ type WindowsFunctionAppSlotModel struct {
 	StorageKeyVaultSecretID       string                                     `tfschema:"storage_key_vault_secret_id"`
 	AppSettings                   map[string]string                          `tfschema:"app_settings"`
 	AuthSettings                  []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
 	Backup                        []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
 	BuiltinLogging                bool                                       `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled             bool                                       `tfschema:"client_certificate_enabled"`
@@ -157,6 +158,8 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
+
+		"auth_settings_v2": helpers.AuthV2SettingsSchema(),
 
 		"backup": helpers.BackupSchema(),
 
@@ -313,6 +316,11 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
+
 			var functionAppSlot WindowsFunctionAppSlotModel
 
 			if err := metadata.Decode(&functionAppSlot); err != nil {
@@ -420,7 +428,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				if functionAppSlot.StorageKeyVaultSecretID != "" {
 					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, functionAppSlot.StorageKeyVaultSecretID)
 				} else {
-					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionAppSlot.StorageAccountName, functionAppSlot.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionAppSlot.StorageAccountName, functionAppSlot.StorageAccountKey, *storageDomainSuffix)
 				}
 			}
 			siteConfig, err := helpers.ExpandSiteConfigWindowsFunctionAppSlot(functionAppSlot.SiteConfig, nil, metadata, functionAppSlot.FunctionExtensionsVersion, storageString, functionAppSlot.StorageUsesMSI)
@@ -528,6 +536,13 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			authv2 := helpers.ExpandAuthV2Settings(functionAppSlot.AuthV2Settings)
+			if authv2.SiteAuthSettingsV2Properties != nil {
+				if _, err = client.UpdateAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, *authv2, id.SlotName); err != nil {
+					return fmt.Errorf("updating AuthV2 settings for Windows %s: %+v", id, err)
+				}
+			}
+
 			storageConfig := helpers.ExpandStorageConfig(functionAppSlot.StorageAccounts)
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageConfig, id.SlotName); err != nil {
@@ -613,6 +628,14 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
 			}
 
+			var authV2 web.SiteAuthSettingsV2
+			if strings.EqualFold(pointer.From(auth.ConfigVersion), "v2") {
+				authV2, err = client.GetAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+				if err != nil {
+					return fmt.Errorf("reading authV2 settings for Windows %s: %+v", *id, err)
+				}
+			}
+
 			backup, err := client.GetBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(backup.Response) {
@@ -641,12 +664,12 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 			functionApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading parent Function App for Linux %s: %+v", *id, err)
+				return fmt.Errorf("reading parent Function App for Windows %s: %+v", *id, err)
 			}
 			if functionApp.SiteProperties == nil || functionApp.SiteProperties.ServerFarmID == nil {
-				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
+				return fmt.Errorf("reading parent Function App Service Plan information for Windows %s: %+v", *id, err)
 			}
-			parentAppFarmId, err := parse.ServicePlanID(*functionApp.SiteProperties.ServerFarmID)
+			parentAppFarmId, err := parse.ServicePlanIDInsensitively(*functionApp.SiteProperties.ServerFarmID)
 			if err != nil {
 				return err
 			}
@@ -673,6 +696,8 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
+
+			state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
@@ -732,6 +757,11 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
+			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
+
 			id, err := parse.FunctionAppSlotID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -768,7 +798,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				locks.ByID(newPlan.ID())
 				defer locks.UnlockByID(newPlan.ID())
 				if existing.SiteProperties == nil {
-					return fmt.Errorf("updating Service Plan for Linux %s: Slot SiteProperties was nil", *id)
+					return fmt.Errorf("updating Service Plan for Windows %s: Slot SiteProperties was nil", *id)
 				}
 				existing.SiteProperties.ServerFarmID = pointer.To(newPlan.ID())
 			}
@@ -838,7 +868,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				if state.StorageKeyVaultSecretID != "" {
 					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
 				} else {
-					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, *storageDomainSuffix)
 				}
 			}
 
@@ -899,8 +929,29 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
+				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
+				if authUpdate.SiteAuthSettingsProperties == nil {
+					authUpdate.SiteAuthSettingsProperties = &web.SiteAuthSettingsProperties{
+						Enabled:                           pointer.To(false),
+						ClientSecret:                      pointer.To(""),
+						ClientSecretSettingName:           pointer.To(""),
+						ClientSecretCertificateThumbprint: pointer.To(""),
+						GoogleClientSecret:                pointer.To(""),
+						FacebookAppSecret:                 pointer.To(""),
+						GitHubClientSecret:                pointer.To(""),
+						TwitterConsumerSecret:             pointer.To(""),
+						MicrosoftAccountClientSecret:      pointer.To(""),
+					}
+				}
 				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *authUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating Auth Settings for Windows %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("auth_settings_v2") {
+				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				if _, err := client.UpdateAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, *authV2Update, id.SlotName); err != nil {
+					return fmt.Errorf("updating AuthV2 Settings for Windows %s: %+v", id, err)
 				}
 			}
 

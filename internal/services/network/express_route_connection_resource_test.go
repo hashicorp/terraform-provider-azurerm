@@ -86,14 +86,7 @@ func testAccExpressRouteConnection_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -166,6 +159,81 @@ resource "azurerm_express_route_connection" "test" {
       route_table_ids = [azurerm_virtual_hub.test.default_route_table_id]
     }
   }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ExpressRouteConnectionResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_route_map" "routemap1" {
+  name           = "routemapfirst"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+
+  rule {
+    name                 = "rule1"
+    next_step_if_matched = "Continue"
+
+    action {
+      type = "Add"
+
+      parameter {
+        as_path = ["22334"]
+      }
+    }
+
+    match_criterion {
+      match_condition = "Contains"
+      route_prefix    = ["10.0.0.0/8"]
+    }
+  }
+}
+
+resource "azurerm_route_map" "routemap2" {
+  name           = "routemapsecond"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+
+  rule {
+    name                 = "rule1"
+    next_step_if_matched = "Continue"
+
+    action {
+      type = "Add"
+
+      parameter {
+        as_path = ["22334"]
+      }
+    }
+
+    match_criterion {
+      match_condition = "Contains"
+      route_prefix    = ["10.0.0.0/8"]
+    }
+  }
+}
+
+resource "azurerm_express_route_connection" "test" {
+  name                                 = "acctest-ExpressRouteConnection-%d"
+  express_route_gateway_id             = azurerm_express_route_gateway.test.id
+  express_route_circuit_peering_id     = azurerm_express_route_circuit_peering.test.id
+  routing_weight                       = 2
+  authorization_key                    = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
+  enable_internet_security             = true
+  express_route_gateway_bypass_enabled = true
+
+  routing {
+    associated_route_table_id = azurerm_virtual_hub.test.default_route_table_id
+
+    propagated_route_table {
+      labels          = ["label1"]
+      route_table_ids = [azurerm_virtual_hub.test.default_route_table_id]
+    }
+
+    inbound_route_map_id  = azurerm_route_map.routemap1.id
+    outbound_route_map_id = azurerm_route_map.routemap2.id
+  }
+  depends_on = [azurerm_route_map.routemap1, azurerm_route_map.routemap2]
 }
 `, r.template(data), data.RandomInteger)
 }

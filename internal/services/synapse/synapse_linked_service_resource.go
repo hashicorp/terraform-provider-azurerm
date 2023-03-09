@@ -235,13 +235,17 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	environment := meta.(*clients.Client).Account.Environment
+	synapseDomainSuffix, ok := environment.Synapse.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine Synapse domain suffix for environment %q", environment.Name)
+	}
 
 	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 
-	client, err := synapseClient.LinkedServiceClient(workspaceId.Name, environment.SynapseEndpointSuffix)
+	client, err := synapseClient.LinkedServiceClient(workspaceId.Name, *synapseDomainSuffix)
 	if err != nil {
 		return err
 	}
@@ -323,13 +327,17 @@ func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	environment := meta.(*clients.Client).Account.Environment
+	synapseDomainSuffix, ok := environment.Synapse.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine Synapse domain suffix for environment %q", environment.Name)
+	}
 
 	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client, err := synapseClient.LinkedServiceClient(id.WorkspaceName, environment.SynapseEndpointSuffix)
+	client, err := synapseClient.LinkedServiceClient(id.WorkspaceName, *synapseDomainSuffix)
 	if err != nil {
 		return err
 	}
@@ -428,13 +436,17 @@ func resourceSynapseLinkedServiceDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	environment := meta.(*clients.Client).Account.Environment
+	synapseDomainSuffix, ok := environment.Synapse.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine Synapse domain suffix for environment %q", environment.Name)
+	}
 
 	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client, err := synapseClient.LinkedServiceClient(id.WorkspaceName, environment.SynapseEndpointSuffix)
+	client, err := synapseClient.LinkedServiceClient(id.WorkspaceName, *synapseDomainSuffix)
 	if err != nil {
 		return err
 	}

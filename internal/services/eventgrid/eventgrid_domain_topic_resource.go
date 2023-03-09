@@ -41,8 +41,8 @@ func resourceEventGridDomainTopic() *pluginsdk.Resource {
 				ValidateFunc: validation.All(
 					validation.StringIsNotEmpty,
 					validation.StringMatch(
-						regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
-						"EventGrid domain name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+						regexp.MustCompile("^[-a-zA-Z0-9]{3,128}$"),
+						"EventGrid domain topic name must be 3 - 128 characters long, contain only letters, numbers and hyphens.",
 					),
 				),
 			},

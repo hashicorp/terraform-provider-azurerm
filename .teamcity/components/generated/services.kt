@@ -52,6 +52,7 @@ var services = mapOf(
         "hpccache" to "HPC Cache",
         "hsm" to "Hardware Security Module",
         "healthcare" to "Health Care",
+        "hybridcompute" to "Hybrid Compute",
         "iotcentral" to "IoT Central",
         "iothub" to "IoT Hub",
         "keyvault" to "KeyVault",

@@ -245,7 +245,9 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 	patchScheduleRedisId := patchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
 	schedule, err := patchSchedulesClient.Get(ctx, patchScheduleRedisId)
 	if err != nil {
-		return fmt.Errorf("obtaining patch schedules for %s: %+v", id, err)
+		if !response.WasNotFound(schedule.HttpResponse) {
+			return fmt.Errorf("obtaining patch schedules for %s: %+v", id, err)
+		}
 	}
 	var patchSchedule []interface{}
 	if model := schedule.Model; model != nil {

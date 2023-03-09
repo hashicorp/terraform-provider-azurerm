@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
@@ -470,9 +470,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"dns_zone_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: dnsValidate.ValidateDnsZoneID,
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.Any(
+								dnsValidate.ValidateDnsZoneID,
+								validation.StringIsEmpty,
+							),
 						},
 					},
 				},
@@ -1026,6 +1029,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"node_resource_group_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"oidc_issuer_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1123,6 +1131,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(managedclusters.ManagedClusterSKUTierFree),
 					string(managedclusters.ManagedClusterSKUTierPaid),
+					string(managedclusters.ManagedClusterSKUTierStandard),
 				}, false),
 			},
 
@@ -2150,9 +2159,17 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("portal_fqdn", props.AzurePortalFQDN)
 		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 		d.Set("kubernetes_version", props.KubernetesVersion)
-		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 		d.Set("local_account_disabled", props.DisableLocalAccounts)
+
+		nodeResourceGroup := ""
+		if v := props.NodeResourceGroup; v != nil {
+			nodeResourceGroup = *props.NodeResourceGroup
+		}
+		d.Set("node_resource_group", nodeResourceGroup)
+
+		nodeResourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup)
+		d.Set("node_resource_group_id", nodeResourceGroupId.ID())
 
 		publicNetworkAccess := managedclusters.PublicNetworkAccessEnabled
 		if props.PublicNetworkAccess != nil {
@@ -2312,7 +2329,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("oidc_issuer_enabled", oidcIssuerEnabled)
 		d.Set("oidc_issuer_url", oidcIssuerUrl)
 
-		microsoftDefender := flattenKubernetesClusterMicrosoftDefender(props.SecurityProfile.Defender)
+		microsoftDefender := flattenKubernetesClusterMicrosoftDefender(props.SecurityProfile)
 		if err := d.Set("microsoft_defender", microsoftDefender); err != nil {
 			return fmt.Errorf("setting `microsoft_defender`: %+v", err)
 		}
@@ -2328,7 +2345,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		d.Set("workload_identity_enabled", workloadIdentity)
 
-		azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile.AzureKeyVaultKms)
+		azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
 		if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
 			return fmt.Errorf("setting `key_management_service`: %+v", err)
 		}
@@ -3695,13 +3712,13 @@ func expandKubernetesClusterMicrosoftDefender(d *pluginsdk.ResourceData, input [
 	}
 }
 
-func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfileDefender) []interface{} {
-	if input == nil || (input.SecurityMonitoring != nil && input.SecurityMonitoring.Enabled != nil && !*input.SecurityMonitoring.Enabled) {
+func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
+	if input == nil || input.Defender == nil || input.Defender.SecurityMonitoring == nil || input.Defender.SecurityMonitoring.Enabled == nil || !*input.Defender.SecurityMonitoring.Enabled {
 		return []interface{}{}
 	}
 
 	logAnalyticsWorkspace := ""
-	if v := input.LogAnalyticsWorkspaceResourceId; v != nil {
+	if v := input.Defender.LogAnalyticsWorkspaceResourceId; v != nil {
 		logAnalyticsWorkspace = *v
 	}
 
@@ -3771,23 +3788,29 @@ func base64IsEncoded(data string) bool {
 }
 
 func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ManagedClusterIngressProfile {
-	if (len(input) == 0 || input[0] == nil) && d.HasChange("web_app_routing") {
+	if len(input) == 0 && d.HasChange("web_app_routing") {
 		return &managedclusters.ManagedClusterIngressProfile{
 			WebAppRouting: &managedclusters.ManagedClusterIngressProfileWebAppRouting{
 				Enabled: utils.Bool(false),
 			},
 		}
-	} else if len(input) == 0 || input[0] == nil {
+	} else if len(input) == 0 {
 		return nil
 	}
 
-	config := input[0].(map[string]interface{})
-	return &managedclusters.ManagedClusterIngressProfile{
+	out := managedclusters.ManagedClusterIngressProfile{
 		WebAppRouting: &managedclusters.ManagedClusterIngressProfileWebAppRouting{
-			Enabled:           utils.Bool(true),
-			DnsZoneResourceId: utils.String(config["dns_zone_id"].(string)),
+			Enabled: utils.Bool(true),
 		},
 	}
+	if input[0] != nil {
+		config := input[0].(map[string]interface{})
+		dnsZoneResourceId := config["dns_zone_id"].(string)
+		if dnsZoneResourceId != "" {
+			out.WebAppRouting.DnsZoneResourceId = utils.String(dnsZoneResourceId)
+		}
+	}
+	return &out
 }
 
 func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedClusterIngressProfile) []interface{} {

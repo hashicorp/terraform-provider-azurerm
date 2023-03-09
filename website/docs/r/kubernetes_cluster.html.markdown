@@ -175,14 +175,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** If you use BYO DNS Zone, the AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - the cluster should depend on the role assignment, like in this example:
 
-* `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
-
-* `workload_identity_enabled` - (Optional) Specifies whether Azure AD Workload Identity should be enabled for the Cluster. Defaults to `false`.
-
--> **Note** To enable Azure AD Workload Identity `oidc_issuer_enabled` must be set to `true`.
-
--> **Note** This requires that the Preview Feature `Microsoft.ContainerService/EnableWorkloadIdentityPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#register-the-enableworkloadidentitypreview-feature-flag) for more information.
-
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example"
@@ -223,6 +215,14 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 ```
 
+* `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
+
+* `workload_identity_enabled` - (Optional) Specifies whether Azure AD Workload Identity should be enabled for the Cluster. Defaults to `false`.
+
+-> **Note** To enable Azure AD Workload Identity `oidc_issuer_enabled` must be set to `true`.
+
+-> **Note** This requires that the Preview Feature `Microsoft.ContainerService/EnableWorkloadIdentityPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#register-the-enableworkloadidentitypreview-feature-flag) for more information.
+
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. Changing this forces a new resource to be created.
 
 -> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/32` must be added to `authorized_ip_ranges` in the `api_server_access_profile` block.
@@ -235,7 +235,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 !> **Note:** A migration scenario from `service_principal` to `identity` is supported. When upgrading `service_principal` to `identity`, your cluster's control plane and addon pods will switch to use managed identity, but the kubelets will keep using your configured `service_principal` until you upgrade your Node Pool.
 
-* `sku_tier` - (Optional) The SKU Tier that should be used for this Kubernetes Cluster. Possible values are `Free` and `Paid` (which includes the Uptime SLA). Defaults to `Free`.
+* `sku_tier` - (Optional) The SKU Tier that should be used for this Kubernetes Cluster. Possible values are `Free`, `Paid` and `Standard` (which includes the Uptime SLA). Defaults to `Free`.
 
 * `storage_profile` - (Optional) A `storage_profile` block as defined below.
 
@@ -430,6 +430,8 @@ A `default_node_pool` block supports the following:
 
 * `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`. Changing this forces a new resource to be created.
 
+-> **Note:** When creating a cluster that supports multiple node pools, the cluster must use `VirtualMachineScaleSets`. For more information on the limitations of clusters using multiple node pools see [the documentation](https://learn.microsoft.com/en-us/azure/aks/use-multiple-node-pools#limitations).
+
 * `tags` - (Optional) A mapping of tags to assign to the Node Pool.
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) until this is fixed in the AKS API.
@@ -486,9 +488,11 @@ A `key_management_service` block supports the following:
 
 A `key_vault_secrets_provider` block supports the following:
 
-* `secret_rotation_enabled` - (Optional) Is secret rotation enabled?
+* `secret_rotation_enabled` - (Optional) Should the secret store CSI driver on the AKS cluster be enabled?
 
 * `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true and defaults to `2m`.
+
+-> **NOTE:** To enable`key_vault_secrets_provider` either `secret_rotation_enabled` or `secret_rotation_interval` must be specified.
 
 ---
 
@@ -796,7 +800,7 @@ A `sysctl_config` block supports the following:
 
 A `web_app_routing` block supports the following:
 
-* `dns_zone_id` - (Required) Specifies the ID of the DNS Zone in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled.
+* `dns_zone_id` - (Required) Specifies the ID of the DNS Zone in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled. For Bring-Your-Own DNS zones this property should be set to an empty string `""`.
 
 ---
 
@@ -876,7 +880,9 @@ In addition to all arguments above, the following attributes are exported:
 
 * `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
 
-* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster. Changing this forces a new resource to be created.
+* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
+
+* `node_resource_group_id` - The ID of the Resource Group containing the resources for this Managed Kubernetes Cluster.
 
 * `network_profile` - A `network_profile` block as defined below.
 

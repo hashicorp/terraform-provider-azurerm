@@ -227,7 +227,7 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("setting `plan`: %+v", err)
 	}
 	if props := resp.ApplicationProperties; props != nil {
-		id, err := resourcesParse.ResourceGroupID(*props.ManagedResourceGroupID)
+		id, err := resourcesParse.ResourceGroupIDInsensitively(*props.ManagedResourceGroupID)
 		if err != nil {
 			return err
 		}

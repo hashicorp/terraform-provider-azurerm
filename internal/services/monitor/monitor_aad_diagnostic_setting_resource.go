@@ -11,12 +11,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
-	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -79,7 +78,7 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: storageaccounts.ValidateStorageAccountID,
 				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id"},
 			},
 
@@ -243,7 +242,7 @@ func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta int
 
 	storageAccountId := ""
 	if resp.StorageAccountID != nil && *resp.StorageAccountID != "" {
-		parsedId, err := storageParse.StorageAccountID(*resp.StorageAccountID)
+		parsedId, err := storageaccounts.ParseStorageAccountIDInsensitively(*resp.StorageAccountID)
 		if err != nil {
 			return err
 		}

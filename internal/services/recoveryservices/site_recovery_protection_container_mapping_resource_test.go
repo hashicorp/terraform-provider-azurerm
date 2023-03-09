@@ -56,10 +56,17 @@ func TestAccSiteRecoveryProtectionContainerMapping_withAutoUpdateExtension(t *te
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.autoUpdateExtension_changeAutomationAccount(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func (SiteRecoveryProtectionContainerMappingResource) basic(data acceptance.TestData) string {
+func (SiteRecoveryProtectionContainerMappingResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -115,6 +122,12 @@ resource "azurerm_site_recovery_replication_policy" "test" {
   recovery_point_retention_in_minutes                  = 24 * 60
   application_consistent_snapshot_frequency_in_minutes = 4 * 60
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r SiteRecoveryProtectionContainerMappingResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_site_recovery_protection_container_mapping" "test" {
   resource_group_name                       = azurerm_resource_group.test1.name
@@ -125,22 +138,15 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
   name                                      = "mapping-%d"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (SiteRecoveryProtectionContainerMappingResource) autoUpdateExtension(data acceptance.TestData, enabled bool) string {
+func (r SiteRecoveryProtectionContainerMappingResource) autoUpdateExtension(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test1" {
-  name     = "acctestRG-recovery-%d-1"
-  location = "%s"
-}
+%s
 
 resource "azurerm_automation_account" "test" {
-  name                = "acctestAutomation-%d"
+  name                = "acctestAutomation-%[2]d"
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
 
@@ -151,50 +157,48 @@ resource "azurerm_automation_account" "test" {
   }
 }
 
-resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-vault-%d"
+resource "azurerm_site_recovery_protection_container_mapping" "test" {
+  resource_group_name                       = azurerm_resource_group.test1.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  recovery_fabric_name                      = azurerm_site_recovery_fabric.test1.name
+  recovery_source_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+  recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  name                                      = "mapping-%[2]d"
+  automatic_update {
+    enabled               = %[3]t
+    automation_account_id = azurerm_automation_account.test.id
+  }
+}
+`, r.template(data), data.RandomInteger, enabled)
+}
+
+func (r SiteRecoveryProtectionContainerMappingResource) autoUpdateExtension_changeAutomationAccount(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctestAutomation-%[2]d"
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
-  sku                 = "Standard"
 
-  soft_delete_enabled = false
+  sku_name = "Basic"
+
+  tags = {
+    Environment = "Test"
+  }
 }
 
-resource "azurerm_site_recovery_fabric" "test1" {
-  resource_group_name = azurerm_resource_group.test1.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-  name                = "acctest-fabric1-%d"
+resource "azurerm_automation_account" "test2" {
+  name                = "acctestAutomation-2-%[2]d"
   location            = azurerm_resource_group.test1.location
-}
-
-resource "azurerm_site_recovery_fabric" "test2" {
   resource_group_name = azurerm_resource_group.test1.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-  name                = "acctest-fabric2-%d"
-  location            = "%s"
-  depends_on          = [azurerm_site_recovery_fabric.test1]
-}
 
-resource "azurerm_site_recovery_protection_container" "test1" {
-  resource_group_name  = azurerm_resource_group.test1.name
-  recovery_vault_name  = azurerm_recovery_services_vault.test.name
-  recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
-  name                 = "acctest-protection-cont1-%d"
-}
+  sku_name = "Basic"
 
-resource "azurerm_site_recovery_protection_container" "test2" {
-  resource_group_name  = azurerm_resource_group.test1.name
-  recovery_vault_name  = azurerm_recovery_services_vault.test.name
-  recovery_fabric_name = azurerm_site_recovery_fabric.test2.name
-  name                 = "acctest-protection-cont2-%d"
-}
-
-resource "azurerm_site_recovery_replication_policy" "test" {
-  resource_group_name                                  = azurerm_resource_group.test1.name
-  recovery_vault_name                                  = azurerm_recovery_services_vault.test.name
-  name                                                 = "acctest-policy-%d"
-  recovery_point_retention_in_minutes                  = 24 * 60
-  application_consistent_snapshot_frequency_in_minutes = 4 * 60
+  tags = {
+    Environment = "Test"
+  }
 }
 
 resource "azurerm_site_recovery_protection_container_mapping" "test" {
@@ -204,13 +208,13 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
   recovery_source_protection_container_name = azurerm_site_recovery_protection_container.test1.name
   recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  name                                      = "mapping-%d"
+  name                                      = "mapping-%[2]d"
   automatic_update {
-    enabled               = %v
-    automation_account_id = azurerm_automation_account.test.id
+    enabled               = %[3]t
+    automation_account_id = azurerm_automation_account.test2.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
+`, r.template(data), data.RandomInteger, enabled)
 }
 
 func (t SiteRecoveryProtectionContainerMappingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
