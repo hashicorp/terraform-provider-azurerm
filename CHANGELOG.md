@@ -23,6 +23,7 @@ ENHANCEMENTS
 * `azurerm_kubernetes_cluster` - `vm_size` of the `default_node_pool` is no longer ForceNew and can be resized by specifying `temporary_name_for_rotation` [GH-20628]
 * `azurerm_mariadb_server` - support for the `ssl_minimal_tls_version_enforced` property [GH-20782]
 * `azurerm_monitor_action_group` - add support for the `location` property [GH-20603]
+* `azurerm_mssql_database` - Add support through regex for ServerlessGen5 Hyperscale [GH-20875]
 * `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
 
 BUG FIXES:
