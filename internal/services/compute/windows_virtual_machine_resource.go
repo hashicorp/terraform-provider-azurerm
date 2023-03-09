@@ -1370,6 +1370,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		update.UserData = utils.String(d.Get("user_data").(string))
 	}
 
+	timeout, _ := ctx.Deadline()
 	if instanceView.Statuses != nil {
 		for _, status := range *instanceView.Statuses {
 			if status.Code == nil {
@@ -1397,15 +1398,15 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 				// VM already stopped, no shutdown needed anymore
 				shouldShutDown = false
 			case "starting":
-				// send a duplicate start command to ensure Virtual Machine is not in transitioning state which doesn't accept further command
-				log.Printf("[DEBUG] Starting %q", id)
-				future, err := client.Start(ctx, id.ResourceGroup, id.Name)
-				if err != nil {
-					return fmt.Errorf("sending Start to %q: %+v", id, err)
+				stateConf := &pluginsdk.StateChangeConf{
+					Pending:    []string{"starting"},
+					Target:     []string{"running"},
+					Refresh:    virtualMachinePowerStateRefreshFunc(ctx, client, *id),
+					MinTimeout: 10 * time.Second,
+					Timeout:    time.Until(timeout),
 				}
-
-				if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for Start of %q: %+v", id, err)
+				if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+					return fmt.Errorf("waiting for power state to becoming running %s: %+v", id, err)
 				}
 			}
 		}

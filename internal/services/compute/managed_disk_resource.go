@@ -795,6 +795,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	// if we are attached to a VM we bring down the VM as necessary for the operations which are not allowed while it's online
+	timeout, _ := ctx.Deadline()
 	if shouldShutDown {
 		virtualMachine, err := parse.VirtualMachineID(*disk.Model.ManagedBy)
 		if err != nil {
@@ -840,15 +841,15 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				case "stopped":
 					shouldShutDown = false
 				case "starting":
-					// send a duplicate start command to ensure Virtual Machine is not in transitioning state which doesn't accept further command
-					log.Printf("[DEBUG] Starting %q", virtualMachine)
-					future, err := vmClient.Start(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
-					if err != nil {
-						return fmt.Errorf("sending Start to %q: %+v", virtualMachine, err)
+					stateConf := &pluginsdk.StateChangeConf{
+						Pending:    []string{"starting"},
+						Target:     []string{"running"},
+						Refresh:    virtualMachinePowerStateRefreshFunc(ctx, vmClient, *virtualMachine),
+						MinTimeout: 10 * time.Second,
+						Timeout:    time.Until(timeout),
 					}
-
-					if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-						return fmt.Errorf("waiting for Start of %q: %+v", virtualMachine, err)
+					if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+						return fmt.Errorf("waiting for power state to becoming running %s: %+v", id, err)
 					}
 				}
 			}
