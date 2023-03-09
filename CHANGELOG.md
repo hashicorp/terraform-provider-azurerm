@@ -16,6 +16,7 @@ ENHANCEMENTS
 * Data Source: `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
 * Data Source: `azurerm_kubernetes_cluster` - generate and export `node_resource_group_id` [GH-20830]
 * `azurerm_kubernetes_cluster` - generate and export `node_resource_group_id` [GH-20830]
+* `azurerm_kubernetes_cluster` - add support for `vertical_pod_autoscaler_enabled` [GH-20751]
 * `azurerm_mariadb_server` - support for the `ssl_minimal_tls_version_enforced` property [GH-20782]
 * `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
 
