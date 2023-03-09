@@ -131,6 +131,7 @@ The following arguments are supported:
 * `email_receiver` - (Optional) One or more `email_receiver` blocks as defined below.
 * `event_hub_receiver` - (Optional) One or more `event_hub_receiver` blocks as defined below.
 * `itsm_receiver` - (Optional) One or more `itsm_receiver` blocks as defined below.
+* `location` - (Optional) The Azure Region where the Action Group should exist. Changing this forces a new Action Group to be created. Defaults to `global`.
 * `logic_app_receiver` - (Optional) One or more `logic_app_receiver` blocks as defined below.
 * `sms_receiver` - (Optional) One or more `sms_receiver` blocks as defined below.
 * `voice_receiver` - (Optional) One or more `voice_receiver` blocks as defined below.
