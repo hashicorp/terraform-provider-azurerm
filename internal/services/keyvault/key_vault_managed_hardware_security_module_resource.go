@@ -435,7 +435,7 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 		keyID, _ := parse.ParseNestedItemID(certID)
 		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseUrl, keyID.Name, keyID.Version)
 		if err != nil {
-			return "", fmt.Errorf("retriving key %s: %v", certID, err)
+			return "", fmt.Errorf("retreiving key %s: %v", certID, err)
 		}
 		if certRes.Cer == nil {
 			return "", fmt.Errorf("got nil key for %s", certID)
@@ -444,8 +444,6 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 			Kty:    pointer.FromString("RSA"),
 			KeyOps: &[]string{""},
 			Alg:    pointer.FromString("RSA-OAEP-256"),
-		}
-		if *cert.Alg == "" {
 		}
 		if certRes.Policy != nil && certRes.Policy.KeyProperties != nil {
 			cert.Kty = pointer.FromString(string(certRes.Policy.KeyProperties.KeyType))
