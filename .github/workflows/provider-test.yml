@@ -48,10 +48,10 @@ jobs:
 
       - name: Set OIDC Token
         run: |
-          echo "ARM_OIDC_TOKEN=$(curl -H "Accept: application/json; api-version=2.0" -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" -H "Content-Type: application/json" -G --data-urlencode "audience=api://AzureADTokenExchange" "${ACTIONS_ID_TOKEN_REQUEST_URL}" | jq -r '.value')"  >>${GITHUB_ENV}
+          echo "ARM_OIDC_TOKEN=$(curl -H "Accept: application/json; api-version=2.0" -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" -H "Content-Type: application/json" -G --data-urlencode "audience=api://AzureADTokenExchange" "${ACTIONS_ID_TOKEN_REQUEST_URL}" | jq -r '.value')" >>${GITHUB_ENV}
 
       - name: Set OIDC Token File Path
-        run: echo "${ARM_OIDC_TOKEN}" >"${TMPDIR}/oidc-token.jwt"
+        run: echo "${ARM_OIDC_TOKEN}" >"${RUNNER_TEMP}/oidc-token.jwt" && echo "ARM_OIDC_TOKEN_FILE_PATH=${RUNNER_TEMP}/oidc-token.jwt" >>${GITHUB_ENV}
 
       - name: Run provider tests
         run: make testacc TEST=./internal/provider TESTARGS="-run '^TestAcc'"
@@ -64,7 +64,7 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
       - name: Clean Up OIDC Token File Path
-        run: rm -f "${TMPDIR}/oidc-token.jwt"
+        run: rm -f "${RUNNER_TEMP}/oidc-token.jwt"
         if: always()
 
 # vim: set ts=2 sts=2 sw=2 et:
