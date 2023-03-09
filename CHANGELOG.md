@@ -27,6 +27,8 @@ ENHANCEMENTS
 
 BUG FIXES:
 
+* provider: fix an issue with authentication using `oidc_token_file_path` [GH-20824]
+* provider: fix an issue with Azure CLI authentication when running in Azure Cloud Shell [GH-20824]
 * `azurerm_application_insights_analytics_item` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_automated_connection_type` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
 * `azurerm_automation_software_update_configuration` - marking the resource as gone when it's been deleted outside of Terraform [GH-20797]
