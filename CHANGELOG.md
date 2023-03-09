@@ -14,7 +14,6 @@ ENHANCEMENTS
 * `dashboard`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20810]
 * `media`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20810]
 * `servicebus`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-20810]
-* Data Source: `azurerm_client_config` - export the `environment_name` attribute [GH-20819]
 * Data Source: `azurerm_function_app_host_keys` - exporting `blobs_extension_key` [GH-20837]
 * Data Source: `azurerm_servicebus_namespace` - exporting `endpoint` [GH-20790]
 * Data Source: `azurerm_kubernetes_cluster` - generate and export `node_resource_group_id` [GH-20830]
