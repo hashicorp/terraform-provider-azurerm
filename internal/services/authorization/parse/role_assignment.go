@@ -16,15 +16,15 @@ type RoleAssignmentId struct {
 	ResourceScope            string
 	ResourceProvider         string
 	Name                     string
-	Alias                    string
+	SubscriptionAlias        string
 	TenantId                 string
 	IsSubscriptionLevel      bool
 	IsSubscriptionAliasLevel bool
 }
 
-func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resourceScope, managementGroup, name, tenantId string, isSubLevel bool) (*RoleAssignmentId, error) {
-	if subscriptionId == "" && resourceGroup == "" && managementGroup == "" && !isSubLevel {
-		return nil, fmt.Errorf("one of subscriptionId, resourceGroup, managementGroup or isSubscriptionLevel must be provided")
+func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resourceScope, managementGroup, name, tenantId, subscriptionAlias string, isSubLevel bool, isSubAliasLevel bool) (*RoleAssignmentId, error) {
+	if subscriptionId == "" && resourceGroup == "" && managementGroup == "" && !isSubLevel && !isSubAliasLevel {
+		return nil, fmt.Errorf("one of subscriptionId, resourceGroup, managementGroup, isSubscriptionLevel or isSubscriptionAliasLevel must be provided")
 	}
 
 	if managementGroup != "" {
@@ -39,6 +39,12 @@ func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resour
 		}
 	}
 
+	if isSubAliasLevel {
+		if subscriptionId != "" || resourceGroup != "" || managementGroup != "" {
+			return nil, fmt.Errorf("cannot provide subscriptionId, resourceGroup or managementGroup when isSubscriptionAliasLevel is provided")
+		}
+	}
+
 	if resourceGroup != "" {
 		if subscriptionId == "" {
 			return nil, fmt.Errorf("subscriptionId must not be empty when resourceGroup is provided")
@@ -46,14 +52,16 @@ func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resour
 	}
 
 	return &RoleAssignmentId{
-		SubscriptionID:      subscriptionId,
-		ResourceGroup:       resourceGroup,
-		ResourceProvider:    resourceProvider,
-		ResourceScope:       resourceScope,
-		ManagementGroup:     managementGroup,
-		Name:                name,
-		TenantId:            tenantId,
-		IsSubscriptionLevel: isSubLevel,
+		SubscriptionID:           subscriptionId,
+		ResourceGroup:            resourceGroup,
+		ResourceProvider:         resourceProvider,
+		ResourceScope:            resourceScope,
+		ManagementGroup:          managementGroup,
+		SubscriptionAlias:        subscriptionAlias,
+		Name:                     name,
+		TenantId:                 tenantId,
+		IsSubscriptionLevel:      isSubLevel,
+		IsSubscriptionAliasLevel: isSubAliasLevel,
 	}, nil
 }
 
@@ -77,7 +85,7 @@ func (id RoleAssignmentId) AzureResourceID() string {
 
 	if id.IsSubscriptionAliasLevel {
 		fmtString := "/providers/Microsoft.Subscription/aliases/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.Alias, id.Name)
+		return fmt.Sprintf(fmtString, id.SubscriptionAlias, id.Name)
 	}
 
 	if id.IsSubscriptionLevel {
@@ -142,7 +150,7 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 			roleAssignmentId.IsSubscriptionAliasLevel = true
 			aliasParts := strings.Split(idParts[0], "/")
 			alias := aliasParts[len(aliasParts)-1]
-			roleAssignmentId.Alias = alias
+			roleAssignmentId.SubscriptionAlias = alias
 		} else {
 			roleAssignmentId.IsSubscriptionLevel = true
 		}

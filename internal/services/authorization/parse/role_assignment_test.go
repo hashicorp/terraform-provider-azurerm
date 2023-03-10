@@ -11,6 +11,7 @@ func TestRoleAssignmentIDFormatter(t *testing.T) {
 		ResourceProvider         string
 		ResourceScope            string
 		ManagementGroup          string
+		SubscriptionAlias        string
 		IsSubscriptionLevel      bool
 		IsSubscriptionAliasLevel bool
 		Name                     string
@@ -97,12 +98,13 @@ func TestRoleAssignmentIDFormatter(t *testing.T) {
 			IsSubscriptionAliasLevel: true,
 			Name:                     "23456781-2349-8764-5631-234567890121",
 			TenantId:                 "34567812-3456-7653-6742-345678901234",
+			SubscriptionAlias:        "my-awesome-sub",
 			Expected:                 "/providers/Microsoft.Subscription/aliases/my-awesome-sub/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
 		},
 	}
 	for _, v := range testData {
 		t.Logf("testing %+v", v)
-		actual, err := NewRoleAssignmentID(v.SubscriptionId, v.ResourceGroup, v.ResourceProvider, v.ResourceScope, v.ManagementGroup, v.Name, v.TenantId, v.IsSubscriptionLevel)
+		actual, err := NewRoleAssignmentID(v.SubscriptionId, v.ResourceGroup, v.ResourceProvider, v.ResourceScope, v.ManagementGroup, v.Name, v.TenantId, v.SubscriptionAlias, v.IsSubscriptionLevel, v.IsSubscriptionAliasLevel)
 		if err != nil {
 			if v.Expected == "" {
 				continue
