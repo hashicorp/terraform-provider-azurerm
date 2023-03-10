@@ -6,15 +6,16 @@ import (
 
 func TestRoleAssignmentIDFormatter(t *testing.T) {
 	testData := []struct {
-		SubscriptionId      string
-		ResourceGroup       string
-		ResourceProvider    string
-		ResourceScope       string
-		ManagementGroup     string
-		IsSubscriptionLevel bool
-		Name                string
-		TenantId            string
-		Expected            string
+		SubscriptionId           string
+		ResourceGroup            string
+		ResourceProvider         string
+		ResourceScope            string
+		ManagementGroup          string
+		IsSubscriptionLevel      bool
+		IsSubscriptionAliasLevel bool
+		Name                     string
+		TenantId                 string
+		Expected                 string
 	}{
 		{
 			SubscriptionId:  "",
@@ -92,6 +93,12 @@ func TestRoleAssignmentIDFormatter(t *testing.T) {
 			TenantId:            "34567812-3456-7653-6742-345678901234",
 			Expected:            "/providers/Microsoft.Subscription/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
 		},
+		{
+			IsSubscriptionAliasLevel: true,
+			Name:                     "23456781-2349-8764-5631-234567890121",
+			TenantId:                 "34567812-3456-7653-6742-345678901234",
+			Expected:                 "/providers/Microsoft.Subscription/aliases/my-awesome-sub/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
+		},
 	}
 	for _, v := range testData {
 		t.Logf("testing %+v", v)
@@ -163,6 +170,15 @@ func TestRoleAssignmentID(t *testing.T) {
 			Expected: &RoleAssignmentId{
 				IsSubscriptionLevel: true,
 				Name:                "23456781-2349-8764-5631-234567890121",
+			},
+		},
+
+		{
+			// valid at subscriptions aliases scope
+			Input: "/providers/Microsoft.Subscription/aliases/my-awesome-subscription/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
+			Expected: &RoleAssignmentId{
+				IsSubscriptionAliasLevel: true,
+				Name:                     "23456781-2349-8764-5631-234567890121",
 			},
 		},
 
