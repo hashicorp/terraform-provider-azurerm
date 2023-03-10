@@ -343,6 +343,7 @@ func clientCredentialsToken(ctx context.Context, endpoint string, params *url.Va
 		AccessToken: tokenRes.AccessToken,
 		TokenType:   tokenRes.TokenType,
 	}
+
 	var secs time.Duration
 	if exp, ok := tokenRes.ExpiresIn.(string); ok && exp != "" {
 		if v, err := strconv.Atoi(exp); err == nil {
