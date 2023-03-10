@@ -175,7 +175,7 @@ func TestRoleAssignmentID(t *testing.T) {
 
 		{
 			// valid at subscriptions aliases scope
-			Input: "/providers/Microsoft.Subscription/aliases/my-awesome-subscription/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
+			Input: "/providers/Microsoft.Subscription/aliases/my-awesome-sub/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
 			Expected: &RoleAssignmentId{
 				IsSubscriptionAliasLevel: true,
 				Name:                     "23456781-2349-8764-5631-234567890121",
