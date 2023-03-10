@@ -143,10 +143,11 @@ func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
+	a := d.Get("site").(*pluginsdk.Set).List()
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineChannel{
 			Properties: &botservice.DirectLineChannelProperties{
-				Sites: expandDirectlineSites(d.Get("site").(*pluginsdk.Set).List()),
+				Sites: expandDirectlineSites(a),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameDirectLineChannel,
 		},
@@ -257,7 +258,7 @@ func resourceBotChannelDirectlineDelete(d *pluginsdk.ResourceData, meta interfac
 }
 
 func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
-	sites := make([]botservice.DirectLineSite, len(input))
+	sites := make([]botservice.DirectLineSite, 0)
 
 	for _, element := range input {
 		if element == nil {
