@@ -143,11 +143,10 @@ func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	a := d.Get("site").(*pluginsdk.Set).List()
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineChannel{
 			Properties: &botservice.DirectLineChannelProperties{
-				Sites: expandDirectlineSites(a),
+				Sites: expandDirectlineSites(d.Get("site").(*pluginsdk.Set).List()),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameDirectLineChannel,
 		},
