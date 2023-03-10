@@ -29,9 +29,9 @@ resource "azurerm_recovery_services_vault" "example" {
 }
 
 resource "azurerm_site_recovery_vmware_replication_policy" "example" {
-  name                                                 = "example-policy"
+  name = "example-policy"
 
-  recovery_vault_id                                  = azurerm_recovery_services_vault.example.id
+  recovery_vault_id                                    = azurerm_recovery_services_vault.example.id
   recovery_point_retention_in_minutes                  = 1440
   application_consistent_snapshot_frequency_in_minutes = 240
 }
