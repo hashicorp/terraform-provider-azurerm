@@ -1,5 +1,9 @@
 ## 3.48.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20230310.1062650` of `github.com/hashicorp/go-azure-sdk` [GH-20885]
+
 ## 3.47.0 (March 09, 2023)
 
 FEATURES: 
