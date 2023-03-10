@@ -2708,10 +2708,9 @@ resource "azurerm_linux_function_app" "test" {
   }
 
   site_config {
-    always_on          = true
-    app_command_line   = "whoami"
-    api_definition_url = "https://example.com/azure_function_app_def.json"
-    // api_management_api_id = ""  // TODO
+    always_on                              = true
+    app_command_line                       = "whoami"
+    api_definition_url                     = "https://example.com/azure_function_app_def.json"
     application_insights_connection_string = azurerm_application_insights.test.connection_string
 
     application_stack {

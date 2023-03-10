@@ -10,7 +10,9 @@ func AzurePublic() *Environment {
 			"https://management.core.windows.net",
 			"https://management.azure.com",
 		},
-		LoginEndpoint: "https://login.microsoftonline.com",
+		IdentityProvider: "AAD",
+		LoginEndpoint:    "https://login.microsoftonline.com",
+		Tenant:           "common",
 	}
 	env.ResourceManager = ResourceManagerAPI("https://management.azure.com")
 	env.MicrosoftGraph = MicrosoftGraphAPI("https://graph.microsoft.com")

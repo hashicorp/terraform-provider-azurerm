@@ -16,8 +16,9 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 
 	// If this is a LRO we should either have a 201/202 with a Polling URI header
 	isLroStatus := response.StatusCode == http.StatusCreated || response.StatusCode == http.StatusAccepted
+	methodIsDelete := strings.EqualFold(response.Request.Method, "DELETE")
 	lroPollingUri := pollingUriForLongRunningOperation(response)
-	if isLroStatus && lroPollingUri != "" {
+	if isLroStatus && lroPollingUri != "" && !methodIsDelete {
 		lro, lroErr := longRunningOperationPollerFromResponse(response, client.Client)
 		if lroErr != nil {
 			err = lroErr
@@ -38,12 +39,23 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 		strings.EqualFold(response.Request.Method, "POST") ||
 		strings.EqualFold(response.Request.Method, "PUT")
 	if statusCodesToCheckProvisioningState && contentTypeMatchesForProvisioningStateCheck && methodIsApplicable {
-		provisioningState, provisioningStateErr := provisioningStatePollerFromResponse(response, client, DefaultProvisioningStatePollingInterval)
+		provisioningState, provisioningStateErr := provisioningStatePollerFromResponse(response, client, DefaultPollingInterval)
 		if provisioningStateErr != nil {
 			err = provisioningStateErr
 			return pollers.Poller{}, fmt.Errorf("building provisioningState poller: %+v", provisioningStateErr)
 		}
 		return pollers.NewPoller(provisioningState, provisioningState.initialRetryDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow), nil
+	}
+
+	// finally, if it was a Delete that returned a 200/204
+	statusCodesToCheckDelete := response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated || response.StatusCode == http.StatusAccepted || response.StatusCode == http.StatusNoContent
+	if methodIsDelete && statusCodesToCheckDelete {
+		deletePoller, deletePollerErr := deletePollerFromResponse(response, client, DefaultPollingInterval)
+		if deletePollerErr != nil {
+			err = deletePollerErr
+			return pollers.Poller{}, fmt.Errorf("building delete poller: %+v", deletePollerErr)
+		}
+		return pollers.NewPoller(deletePoller, deletePoller.initialRetryDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow), nil
 	}
 
 	return pollers.Poller{}, fmt.Errorf("no applicable pollers were found for the response")

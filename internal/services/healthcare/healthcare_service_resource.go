@@ -67,7 +67,7 @@ func resourceHealthcareService() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1000,
-				ValidateFunc: validation.IntBetween(1, 10000),
+				ValidateFunc: validation.IntBetween(1, 100000),
 			},
 
 			"cosmosdb_key_vault_key_versionless_id": {

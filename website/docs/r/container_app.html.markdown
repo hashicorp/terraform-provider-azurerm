@@ -279,11 +279,21 @@ An `ingress` block supports the following:
 
 * `target_port` - (Required) The target port on the container for the Ingress traffic.
 
-* `traffic_weight` - (Optional) A `traffic_weight` block as detailed below.
+* `traffic_weight` - (Required) A `traffic_weight` block as detailed below.
 
 ~> **Note:** `traffic_weight` can only be specified when `revision_mode` is set to `Multiple`.
 
 * `transport` - (Optional) The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`
+
+---
+
+A `custom_domain` block supports the following:
+
+* `certificate_binding_type` - (Optional) The Binding type. Possible values include `Disabled` and `SniEnabled`. Defaults to `Disabled`.
+
+* `certificate_id` - (Required) The ID of the Container App Environment Certificate.
+
+* `name` - (Required) The hostname of the Certificate. Must be the CN or a named SAN in the certificate.
 
 ---
 

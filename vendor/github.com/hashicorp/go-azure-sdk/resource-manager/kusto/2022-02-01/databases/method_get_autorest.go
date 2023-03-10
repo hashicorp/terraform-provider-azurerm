@@ -65,6 +65,9 @@ func (c DatabasesClient) responderForGet(resp *http.Response) (result GetOperati
 		autorest.ByUnmarshallingJSON(&respObj),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+	if err != nil {
+		return
+	}
 	model, err := unmarshalDatabaseImplementation(respObj)
 	if err != nil {
 		return

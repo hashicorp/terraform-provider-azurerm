@@ -61,7 +61,20 @@ The following arguments are supported:
 
 * `managed_instance_id` - (Required) The ID of the Azure SQL Managed Instance on which to create this Managed Database. Changing this forces a new resource to be created.
 
+* `long_term_retention_policy` - (Optional) A `long_term_retention_policy` block as defined below.
+
+* `short_term_retention_days` - (Optional) The backup retention period in days. This is how many days Point-in-Time Restore will be supported.
+
 ---
+
+A `long_term_retention_policy` block supports the following:
+
+* `weekly_retention` - (Optional) The weekly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 520 weeks. e.g. `P1Y`, `P1M`, `P1W` or `P7D`.
+* `monthly_retention` - (Optional) The monthly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 120 months. e.g. `P1Y`, `P1M`, `P4W` or `P30D`.
+* `yearly_retention` - (Optional) The yearly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 10 years. e.g. `P1Y`, `P12M`, `P52W` or `P365D`.
+* `week_of_year` - (Optional) The week of year to take the yearly backup. Value has to be between `1` and `52`.
+
+## Attributes Reference
 
 The following attributes are exported:
 
@@ -73,6 +86,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mssql Managed Database.
 * `create` - (Defaults to 30 minutes) Used when creating the Mssql Managed Database.
+* `update` - (Defaults to 30 minutes) Used when updating the Mssql Managed Database.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Mssql Managed Database.
 
 ## Import

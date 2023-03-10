@@ -64,20 +64,6 @@ func SchemaWithMax(max int) *pluginsdk.Schema {
 	}
 }
 
-// SchemaDeprecatedUnsupported returns the Schema used for deprecated Tags which is not supported by the resource
-// TODO remove in 3.0
-func SchemaDeprecatedUnsupported() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:         pluginsdk.TypeMap,
-		Optional:     true,
-		ValidateFunc: Validate,
-		Deprecated:   "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
-		Elem: &pluginsdk.Schema{
-			Type: pluginsdk.TypeString,
-		},
-	}
-}
-
 // Schema returns the Schema used for Tags
 func SchemaEnforceLowerCaseKeys() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
