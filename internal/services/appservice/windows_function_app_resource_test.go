@@ -198,7 +198,7 @@ func TestAccWindowsFunctionApp_withCustomContentShareVnetEnabled(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
 			),
 		},
-		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"),
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING", "app_settings.%"),
 	})
 }
 
