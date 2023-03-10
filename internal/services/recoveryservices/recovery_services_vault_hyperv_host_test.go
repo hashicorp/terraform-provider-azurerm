@@ -470,6 +470,7 @@ resource "azurerm_windows_virtual_machine" "host" {
 `, r.recovery(data, includeSite), adminPwd, r.keyVault(), r.securityGroup())
 }
 
+// for resources need a connected host, remove site and these resources and then remove the host, or it may fail.
 func (r HyperVHostTestResource) template(data acceptance.TestData, adminPwd string, includeSite bool) string {
 	return fmt.Sprintf(`
 %s
