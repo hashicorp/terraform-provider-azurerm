@@ -362,38 +362,24 @@ func ensureVirtualMachineStarted(ctx context.Context, client *compute.VirtualMac
 
 			state := strings.TrimPrefix(statusCode, "powerstate/")
 			state = strings.ToLower(state)
-			// Send a duplicate command if Virtual Machine is in transitioning state to ensure it is in final state so that further command can work
+
+			// Wait for Virtual Machine to finish transitioning so that further command could be sent
 			switch state {
-			case "starting":
-				log.Printf("[DEBUG] Starting %q", id)
-				future, err := client.Start(ctx, id.ResourceGroup, id.Name)
-				if err != nil {
-					return false, nil
+			case "starting", "stopping", "deallocating":
+				timeout, _ := ctx.Deadline()
+				stateConf := &pluginsdk.StateChangeConf{
+					Pending:    []string{"starting", "stopping", "deallocating"},
+					Target:     []string{"running", "stopped", "deallocated"},
+					Refresh:    virtualMachineExtensionPowerStateRefreshFunc(ctx, client, id),
+					MinTimeout: 10 * time.Second,
+					Timeout:    time.Until(timeout),
 				}
-				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return false, nil
-				}
-				return false, nil
-			case "stopping":
-				log.Printf("[DEBUG] Powering off %q", id)
-				future, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
-				if err != nil {
-					return false, err
-				}
-				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return false, err
-				}
-			case "deallocating":
-				log.Printf("[DEBUG] Deallocating %q", id)
-				future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
-				if err != nil {
-					return false, err
-				}
-				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return false, err
+				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+					return false, fmt.Errorf("waiting for Vritual Machine to finish %s: %+v", state, err)
 				}
 			}
 
+			// Start Virtual Machine if it is stopped or deallocated
 			switch state {
 			case "stopping", "stopped", "deallocating", "deallocated":
 				log.Printf("[DEBUG] Starting %q", id)
@@ -451,4 +437,27 @@ func restoreVirtualMachinePowerState(ctx context.Context, client *compute.Virtua
 	}
 
 	return nil
+}
+
+func virtualMachineExtensionPowerStateRefreshFunc(ctx context.Context, client *compute.VirtualMachinesClient, id parse.VirtualMachineId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		instanceView, err := client.InstanceView(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return nil, "", fmt.Errorf("retrieving InstanceView for %q: %+v", id, err)
+		}
+
+		if instanceView.Statuses != nil {
+			for _, status := range *instanceView.Statuses {
+				if status.Code != nil {
+					state := strings.ToLower(*status.Code)
+					if strings.HasPrefix(state, "powerstate/") {
+						state = strings.TrimPrefix(state, "powerstate/")
+						return state, strings.ToLower(state), nil
+					}
+				}
+			}
+		}
+
+		return nil, "", nil
+	}
 }
