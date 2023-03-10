@@ -29,7 +29,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_rule_set_ids` - (Required) One or more Front Door Rule Set IDs which are associated with the Front Door Route.
 
--> **NOTE:** This must include all of the Front Door Rule Set resources that the Front Door Route is associated with. If the list of Front Door Rule Sets is not complete you will receive and error instructing to include the missing Front Door Rule Set resources.
+-> **NOTE:** This must include all of the Front Door Rule Set resources that the Front Door Route is associated with. If the list of Front Door Rule Sets is not complete you will receive an error instructing you to include the missing Front Door Rule Set resources.
 
 ## Attributes Reference
 

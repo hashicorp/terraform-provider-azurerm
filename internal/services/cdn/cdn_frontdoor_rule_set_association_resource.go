@@ -102,11 +102,22 @@ func resourceCdnFrontDoorRuleSetAssociationUpdate(d *pluginsdk.ResourceData, met
 
 		// make sure the route and the rule sets exist and are associated with the route...
 		if err := updateRuleSetsAssociations(d, meta, id, "updating", "waiting for the update of"); err != nil {
+			// I think there is a bug here, if you update the route to remove the reference to the rule set it detects the change and throws the correct
+			// error stating that the rule set is not associated with the route anymore, but the state file keeps the old value. When you update the
+			// association resource to match the route resource (e.g. remove the reference from the rule set) the compare shows no changes. I think I
+			// should remove the resource from the state file here and then throw the error, that way the state and azure will be in sync. That way the
+			// next time you run plan it will show the association resource as a new resource and everything will be copasetic again. This is similar
+			// to the existing behavior to in most resources read functions when the utils.ResponseWasNotFound returns true, it removes the resource from
+			// state. I can't do it in the read because this resource does not exist in Azure, I have to do it when the update fails.
+			d.SetId("")
+
 			return err
 		}
+
+		return resourceCdnFrontDoorRuleSetAssociationRead(d, meta)
 	}
 
-	return resourceCdnFrontDoorRuleSetAssociationRead(d, meta)
+	return nil
 }
 
 func resourceCdnFrontDoorRuleSetAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {

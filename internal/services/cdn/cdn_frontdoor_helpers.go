@@ -330,22 +330,6 @@ func routeSliceContains(input *[]parse.FrontDoorRouteId, value string) bool {
 	return false
 }
 
-// determines if the slice contains the value case-insensitively
-func routeRuleSetSliceContains(input *[]parse.FrontDoorRuleSetId, value string) bool {
-	if len(*input) == 0 || input == nil {
-		return false
-	}
-
-	for _, key := range *input {
-		v := key.ID()
-		if strings.EqualFold(v, value) {
-			return true
-		}
-	}
-
-	return false
-}
-
 // returns the slice with the value removed case-insensitively
 func sliceRemoveString(input []interface{}, value string) []interface{} {
 	out := make([]interface{}, 0)
@@ -732,38 +716,6 @@ func routeDelta(oldRoutes *[]parse.FrontDoorRouteId, newRoutes *[]parse.FrontDoo
 	}
 
 	return &remove, &shared
-}
-
-// Determines which CDN FrontDoor Rule Sets need to be removed/disassociated from a CDN FrontDoor Route
-func routeRuleSetDelta(oldRuleSets *[]parse.FrontDoorRuleSetId, newRuleSets *[]parse.FrontDoorRuleSetId) *[]interface{} {
-	newRouteRuleSetAssociations := make([]interface{}, 0)
-
-	// if there are no new rule sets, you have to remove all
-	// existing rule set associations from the route...
-	if len(*newRuleSets) == 0 || newRuleSets == nil {
-		return &newRouteRuleSetAssociations
-	}
-
-	// if the old rule set is empty, their isn't a delta just return
-	// the list of expected rule set associations for the route...
-	if len(*oldRuleSets) == 0 || oldRuleSets == nil {
-		for _, v := range *newRuleSets {
-			newRouteRuleSetAssociations = append(newRouteRuleSetAssociations, v.ID())
-		}
-
-		return &newRouteRuleSetAssociations
-	}
-
-	// old and new rule set lists have items, find which old rule sets are also
-	// in the new rule set list, that will be the rule set associations we
-	// need to set on the route...
-	for _, oldRuleSet := range *oldRuleSets {
-		if routeRuleSetSliceContains(newRuleSets, oldRuleSet.ID()) {
-			newRouteRuleSetAssociations = append(newRouteRuleSetAssociations, oldRuleSet.ID())
-		}
-	}
-
-	return &newRouteRuleSetAssociations
 }
 
 func expandRuleSetIds(input []interface{}) ([]interface{}, error) {
