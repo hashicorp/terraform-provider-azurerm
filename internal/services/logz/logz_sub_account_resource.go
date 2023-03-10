@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/parse"
@@ -48,7 +49,7 @@ func resourceLogzSubAccount() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LogzMonitorID,
+				ValidateFunc: monitors.ValidateMonitorID,
 			},
 
 			"user": SchemaUserInfo(),
@@ -68,12 +69,12 @@ func resourceLogzSubAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	monitorId, err := parse.LogzMonitorID(d.Get("logz_monitor_id").(string))
+	monitorId, err := monitors.ParseMonitorID(d.Get("logz_monitor_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewLogzSubAccountID(monitorId.SubscriptionId, monitorId.ResourceGroup, monitorId.MonitorName, d.Get("name").(string))
+	id := parse.NewLogzSubAccountID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
 	existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.AccountName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -91,7 +92,7 @@ func resourceLogzSubAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	monitorClient := meta.(*clients.Client).Logz.MonitorClient
-	resp, err := monitorClient.Get(ctx, monitorId.ResourceGroup, monitorId.MonitorName)
+	resp, err := monitorClient.Get(ctx, *monitorId)
 	if err != nil {
 		return fmt.Errorf("checking for existing %s: %+v", monitorId, err)
 	}
@@ -143,7 +144,7 @@ func resourceLogzSubAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	d.Set("name", id.AccountName)
-	d.Set("logz_monitor_id", parse.NewLogzMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName).ID())
+	d.Set("logz_monitor_id", monitors.NewMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName).ID())
 
 	if props := resp.Properties; props != nil {
 		d.Set("enabled", props.MonitoringStatus == logz.MonitoringStatusEnabled)

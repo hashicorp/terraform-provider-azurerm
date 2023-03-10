@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -39,7 +39,7 @@ func resourceLogzTagRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LogzMonitorID,
+				ValidateFunc: monitors.ValidateMonitorID,
 			},
 
 			"tag_filter": schemaTagFilter(),
@@ -70,12 +70,12 @@ func resourceLogzTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	monitorId, err := parse.LogzMonitorID(d.Get("logz_monitor_id").(string))
+	monitorId, err := monitors.ParseMonitorID(d.Get("logz_monitor_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewLogzTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroup, monitorId.MonitorName, TagRuleName)
+	id := parse.NewLogzTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, TagRuleName)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
@@ -123,7 +123,7 @@ func resourceLogzTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("logz_monitor_id", parse.NewLogzMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName).ID())
+	d.Set("logz_monitor_id", monitors.NewMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName).ID())
 	if props := resp.Properties; props != nil && props.LogRules != nil {
 		d.Set("send_aad_logs", props.LogRules.SendAadLogs)
 		d.Set("send_activity_logs", props.LogRules.SendActivityLogs)
