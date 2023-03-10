@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230310.1062650` of `github.com/hashicorp/go-azure-sdk` [GH-20885]
 
+BUG FIXES:
+
+* provider: fix an authentication bug which sometimes caused access tokens to be refreshed too late [GH-20894]
+
 ## 3.47.0 (March 09, 2023)
 
 FEATURES: 
