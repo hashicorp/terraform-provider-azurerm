@@ -111,8 +111,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `http_proxy_config` - (Optional) A `http_proxy_config` block as defined below.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/HTTPProxyConfigPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/http-proxy) for more information.
-
 * `identity` - (Optional) An `identity` block as defined below. One of either `identity` or `service_principal` must be specified.
 
 !> **Note:** A migration scenario from `service_principal` to `identity` is supported. When upgrading `service_principal` to `identity`, your cluster's control plane and addon pods will switch to use managed identity, but the kubelets will keep using your configured `service_principal` until you upgrade your Node Pool.
@@ -145,8 +143,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `microsoft_defender` - (Optional) A `microsoft_defender` block as defined below.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-AzureDefender` is enabled, see [the documentation](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-containers-enable?tabs=aks-deploy-portal%2Ck8s-deploy-asc%2Ck8s-verify-asc%2Ck8s-remove-arc%2Caks-removeprofile-api&pivots=defender-for-container-aks) for more information.
-
 * `monitor_metrics` - (Optional) Specifies a Prometheus add-on profile for the Kubernetes Cluster. A `monitor_metrics` block as defined below.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below. Changing this forces a new resource to be created.
@@ -157,7 +153,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise, the provisioning of the Kubernetes Service will fail.
 
-* `oidc_issuer_enabled` - (Optional) Enable or Disable the [OIDC issuer URL](https://docs.microsoft.com/azure/aks/cluster-configuration#oidc-issuer-preview)
+* `oidc_issuer_enabled` - (Optional) Enable or Disable the [OIDC issuer URL](https://learn.microsoft.com/en-gb/azure/aks/use-oidc-issuer)
 
 * `oms_agent` - (Optional) A `oms_agent` block as defined below.
 
@@ -168,8 +164,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 * `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise, the cluster will have issues after provisioning. Changing this forces a new resource to be created.
 
 * `private_cluster_public_fqdn_enabled` - (Optional) Specifies whether a Public FQDN for this Private Cluster should be added. Defaults to `false`.
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnablePrivateClusterPublicFQDN` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/private-clusters#create-a-private-aks-cluster-with-a-public-dns-address) for more information.
 
 -> **Note:** If you use BYO DNS Zone, the AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - the cluster should depend on the role assignment, like in this example:
 
@@ -388,8 +382,6 @@ A `default_node_pool` block supports the following:
 
 * `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? Changing this forces a new resource to be created.
 
-~> **Note:** FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
-
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible values are `OS` and `Temporary`.
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
@@ -417,8 +409,6 @@ A `default_node_pool` block supports the following:
 * `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values include: `Ubuntu`, `CBLMariner`, `Mariner`, `Windows2019`, `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this forces a new resource to be created.
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group. Changing this forces a new resource to be created.
 
@@ -546,7 +536,7 @@ A `node_network_profile` block supports the following:
 
 * `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered.
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered. , see [the documentation](https://learn.microsoft.com/en-us/azure/aks/use-node-public-ips#use-public-ip-tags-on-node-public-ips-preview) for more information.
 
 ---
 
