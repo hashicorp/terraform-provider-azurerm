@@ -448,7 +448,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   kubernetes_version  = %q
 
   workload_autoscaler_profile {
-	vertical_pod_autoscaler_enabled = %t
+    vertical_pod_autoscaler_enabled = %t
   }
 
   default_node_pool {
