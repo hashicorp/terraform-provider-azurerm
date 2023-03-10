@@ -410,7 +410,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	// we need to lock the route for update because the custom domain
-	// association may also be trying to update the route as well...
+	// association or the rule set association may also be trying to update the route as well...
 	locks.ByName(id.RouteName, cdnFrontDoorRouteResourceName)
 	defer locks.UnlockByName(id.RouteName, cdnFrontDoorRouteResourceName)
 
@@ -452,11 +452,12 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	// NOTE: You need to always pass these two on update else you will
-	// disable your cache and disassociate your custom domains...
+	// NOTE: You need to always pass these these three on update else you will
+	// disable/disassociate your custom domains, cache configuration or rule sets...
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
 		CustomDomains:      existing.RouteProperties.CustomDomains,
 		CacheConfiguration: existing.RouteProperties.CacheConfiguration,
+		RuleSets:           existing.RuleSets,
 	}
 
 	if d.HasChange("cache") {

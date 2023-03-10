@@ -140,9 +140,9 @@ func (rupp RouteUpdatePropertiesParameters) MarshalJSON() ([]byte, error) {
 	if rupp.OriginPath != nil {
 		objectMap["originPath"] = rupp.OriginPath
 	}
-	if rupp.RuleSets != nil {
-		objectMap["ruleSets"] = rupp.RuleSets
-	}
+
+	objectMap["ruleSets"] = rupp.RuleSets
+
 	if rupp.SupportedProtocols != nil {
 		objectMap["supportedProtocols"] = rupp.SupportedProtocols
 	}

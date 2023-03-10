@@ -388,7 +388,7 @@ func getRouteProperties(d *pluginsdk.ResourceData, meta interface{}, id *parse.F
 	return customDomains, props, nil
 }
 
-func getRouteRuleSetPropertiesTwo(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRuleSetAssociationId, resourceName string) ([]interface{}, *cdn.RouteProperties, error) {
+func getRouteRuleSetProperties(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRuleSetAssociationId) ([]interface{}, *cdn.RouteProperties, error) {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	ctx, routeCancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer routeCancel()
@@ -398,12 +398,12 @@ func getRouteRuleSetPropertiesTwo(d *pluginsdk.ResourceData, meta interface{}, i
 	// Check to see if the route exists
 	resp, err := client.Get(ctx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
 	if err != nil {
-		return nil, nil, fmt.Errorf("%s: retrieving existing %s: %+v", resourceName, routeId, err)
+		return nil, nil, fmt.Errorf("retrieving %s: %+v", routeId, err)
 	}
 
 	props := resp.RouteProperties
 	if props == nil {
-		return nil, nil, fmt.Errorf("%s: %s properties are 'nil': %+v", resourceName, routeId, err)
+		return nil, nil, fmt.Errorf("retrieving %s properties are 'nil': %+v", routeId, err)
 	}
 
 	ruleSets := flattenRuleSetResourceArray(props.RuleSets)
@@ -411,25 +411,28 @@ func getRouteRuleSetPropertiesTwo(d *pluginsdk.ResourceData, meta interface{}, i
 	return ruleSets, props, nil
 }
 
-func getRouteRuleSetProperties(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRouteId, resourceName string) ([]interface{}, *cdn.RouteProperties, error) {
-	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	ctx, routeCancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer routeCancel()
+func ruleSetExists(d *pluginsdk.ResourceData, meta interface{}, id *[]parse.FrontDoorRuleSetId) error {
+	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
-	// Check to see if the route exists
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
-	if err != nil {
-		return nil, nil, fmt.Errorf("%s: retrieving existing %s: %+v", resourceName, *id, err)
+	notFound := make([]string, 0)
+
+	for _, v := range *id {
+		// Check to see if the rule set exists
+		existing, err := client.Get(ctx, v.ResourceGroup, v.ProfileName, v.RuleSetName)
+		if err != nil {
+			if utils.ResponseWasNotFound(existing.Response) {
+				notFound = append(notFound, v.RuleSetName)
+			}
+		}
 	}
 
-	props := resp.RouteProperties
-	if props == nil {
-		return nil, nil, fmt.Errorf("%s: %s properties are 'nil': %+v", resourceName, *id, err)
+	if len(notFound) != 0 {
+		return fmt.Errorf("the following CDN FrontDoor Rule Sets do not exist: %s. Please remove them from your configuration", strings.Join(notFound, ", "))
 	}
 
-	ruleSets := flattenRuleSetResourceArray(props.RuleSets)
-
-	return ruleSets, props, nil
+	return nil
 }
 
 func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta interface{}, routes *[]parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
@@ -461,46 +464,18 @@ func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func removeRuleSetAssociationsFromRouteTwo(d *pluginsdk.ResourceData, meta interface{}, newRuleSetAssociations *[]interface{}, routeID *parse.FrontDoorRouteId) error {
-	// if the passed removeRuleSets is empty we need to remove all rule set associations from the route
-	// I might have to hack the SDK to remove all of the rule set associations, since I believe the API
-	// is expecting a null to remove all of the rule set associations with the route... :/
-	newRouteRuleSetAssociations := make([]interface{}, 0)
-
-	// lock the route resource for update...
-	locks.ByName(routeID.RouteName, cdnFrontDoorRouteResourceName)
-	defer locks.UnlockByName(routeID.RouteName, cdnFrontDoorRouteResourceName)
-
-	// Check to see if the route still exists and grab its properties...
-	_, props, err := getRouteRuleSetProperties(d, meta, routeID, "azurerm_cdn_frontdoor_rule_set_association")
-
-	// if there is an error we can ignore the error because the route has most likely already been deleted...
-	if err != nil {
-		return nil
-	}
-
-	// now set the new rule set associations on the route...
-	if err := updateRouteRuleSetAssociations(d, meta, routeID, newRouteRuleSetAssociations, props); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func updateRouteAssociations(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, customDomains []interface{}, props *cdn.RouteProperties, customDomainID *parse.FrontDoorCustomDomainId) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	workaroundsClient := azuresdkhacks.NewCdnFrontDoorRoutesWorkaroundClient(client)
 	ctx, routeCancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer routeCancel()
 
+	// NOTE: You need to always pass these these three on update else you will
+	// disable/disassociate your custom domains, cache configuration or rule sets...
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains: expandCustomDomainActivatedResourceArray(customDomains),
-	}
-
-	// NOTE: You must pull the Cache Configuration from the existing route else you will get a diff
-	// because a nil value means disabled
-	if props.CacheConfiguration != nil {
-		updateProps.CacheConfiguration = props.CacheConfiguration
+		CustomDomains:      expandCustomDomainActivatedResourceArray(customDomains),
+		CacheConfiguration: props.CacheConfiguration,
+		RuleSets:           props.RuleSets,
 	}
 
 	// NOTE: If there are no more custom domains associated with the route you must flip the
@@ -525,62 +500,40 @@ func updateRouteAssociations(d *pluginsdk.ResourceData, meta interface{}, routeI
 	return nil
 }
 
-// func removeRuleSetAssociationsFromRoute(d *pluginsdk.ResourceData, meta interface{}, ruleSets *[]parse.FrontDoorRuleSetId, routeID *parse.FrontDoorRouteId) error {
-// 	if len(*ruleSets) != 0 && ruleSets != nil {
-// 		// lock the rule set resource for update...
-// 		locks.ByName(routeID.RouteName, cdnFrontDoorRouteResourceName)
-// 		defer locks.UnlockByName(routeID.RouteName, cdnFrontDoorRouteResourceName)
-
-// 		// Check to see if the route still exists and grab its properties...
-// 		// ignore the error because that could just mean that the route has already been deleted...
-// 		routeRuleSets, props, err := getRouteRuleSetProperties(d, meta, routeID, "azurerm_cdn_frontdoor_rule_set_association")
-
-// 		for _, ruleSet := range *ruleSets {
-// 			if err == nil {
-// 				// Check to make sure the custom domain is still associated with the route
-// 				isAssociated := sliceContainsString(routeRuleSets, ruleSet.ID())
-
-// 				if isAssociated {
-// 					// it is, now removed the association...
-// 					newRuleSets := sliceRemoveString(routeRuleSets, ruleSet.ID())
-// 					if err := updateRouteRuleSetAssociations(d, meta, routeID, newRuleSets, props); err != nil {
-// 						return err
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	return nil
-// }
-
-func updateRouteRuleSetAssociations(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, ruleSets []interface{}, props *cdn.RouteProperties) error {
+func setRouteRuleSetAssociations(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRuleSetAssociationId, ruleSets []interface{}, props *cdn.RouteProperties, errorTxt string, futureErrorTxt string) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	workaroundsClient := azuresdkhacks.NewCdnFrontDoorRoutesWorkaroundClient(client)
 	ctx, routeCancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer routeCancel()
 
+	// NOTE: You need to always pass these these three on update else you will
+	// disable/disassociate your custom domains, cache configuration or rule sets...
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		RuleSets: expandRuleSetReferenceArray(ruleSets),
+		CustomDomains:      props.CustomDomains,
+		CacheConfiguration: props.CacheConfiguration,
 	}
 
-	// NOTE: You must pull the Cache Configuration from the existing route else you will get a diff
-	// because a nil value means disabled
-	if props.CacheConfiguration != nil {
-		updateProps.CacheConfiguration = props.CacheConfiguration
+	// Since delete is the only function that passes nil as the ruleSet value
+	// we know it is a delete operation...
+	if ruleSets != nil || len(ruleSets) != 0 {
+		// associate only the rule sets contained within the association resource
+		updateProps.RuleSets = expandRuleSetReferenceArray(ruleSets)
+	} else {
+		// Disassociate all rule sets from the route
+		updateProps.RuleSets = nil
 	}
 
 	updateParams := azuresdkhacks.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &updateProps,
 	}
 
-	future, err := workaroundsClient.Update(ctx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updateParams)
+	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName, updateParams)
 	if err != nil {
-		return fmt.Errorf("updating %s rule set associations: %+v", *routeId, err)
+		return fmt.Errorf("%s %s: %+v", errorTxt, *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update %s rule set associations: %+v", *routeId, err)
+		return fmt.Errorf("%s %s: %+v", futureErrorTxt, *id, err)
 	}
 
 	return nil
@@ -740,7 +693,7 @@ func routeSliceHasDuplicates(input *[]parse.FrontDoorRouteId, resourceName strin
 	return nil
 }
 
-func ruleSetSliceHasDuplicates(input *[]parse.FrontDoorRuleSetId, resourceName string) error {
+func ruleSetSliceHasDuplicates(input *[]parse.FrontDoorRuleSetId) error {
 	k := make(map[string]bool)
 	if len(*input) == 0 || input == nil {
 		return nil
@@ -750,7 +703,7 @@ func ruleSetSliceHasDuplicates(input *[]parse.FrontDoorRuleSetId, resourceName s
 		if _, d := k[strings.ToLower(ruleSet.ID())]; !d {
 			k[strings.ToLower(ruleSet.ID())] = true
 		} else {
-			return fmt.Errorf("%[1]q: duplicate CDN Front Door Rule Set ID(%[2]q) detected, please remove all duplicate entries from your %[1]q code block", resourceName, ruleSet.ID())
+			return fmt.Errorf("duplicate CDN Front Door Rule Set ID %s detected, please remove all duplicate entries from your configuration", ruleSet.ID())
 		}
 	}
 
@@ -794,13 +747,11 @@ func routeRuleSetDelta(oldRuleSets *[]parse.FrontDoorRuleSetId, newRuleSets *[]p
 	// if the old rule set is empty, their isn't a delta just return
 	// the list of expected rule set associations for the route...
 	if len(*oldRuleSets) == 0 || oldRuleSets == nil {
-		associations := make([]interface{}, 0)
-
 		for _, v := range *newRuleSets {
-			associations = append(associations, v.ID())
+			newRouteRuleSetAssociations = append(newRouteRuleSetAssociations, v.ID())
 		}
 
-		return &associations
+		return &newRouteRuleSetAssociations
 	}
 
 	// old and new rule set lists have items, find which old rule sets are also

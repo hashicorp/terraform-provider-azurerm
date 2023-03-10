@@ -129,17 +129,16 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 
 	// If it is already disabled do not update the route...
 	if props.LinkToDefaultDomain != cdn.LinkToDefaultDomainDisabled {
+		// NOTE: You need to always pass these these three on update else you will
+		// disable/disassociate your custom domains, cache configuration or rule sets...
 		updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-			CustomDomains: expandCustomDomainActivatedResourceArray(customDomains),
+			CustomDomains:      expandCustomDomainActivatedResourceArray(customDomains),
+			CacheConfiguration: props.CacheConfiguration,
+			RuleSets:           props.RuleSets,
 		}
 
 		// Since this unlink default domain resource always set the value to false
 		updateProps.LinkToDefaultDomain = cdn.LinkToDefaultDomainDisabled
-
-		// NOTE: You must pull the Cache Configuration from the existing route else you will get a diff, because a nil value means disabled
-		if props.CacheConfiguration != nil {
-			updateProps.CacheConfiguration = props.CacheConfiguration
-		}
 
 		updateParams := azuresdkhacks.RouteUpdateParameters{
 			RouteUpdatePropertiesParameters: &updateProps,
@@ -272,17 +271,16 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate(d *pluginsdk.Reso
 
 		// If it is already disabled do not update the route...
 		if props.LinkToDefaultDomain != cdn.LinkToDefaultDomainDisabled {
+			// NOTE: You need to always pass these these three on update else you will
+			// disable/disassociate your custom domains, cache configuration or rule sets...
 			updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-				CustomDomains: expandCustomDomainActivatedResourceArray(customDomains),
+				CustomDomains:      expandCustomDomainActivatedResourceArray(customDomains),
+				CacheConfiguration: props.CacheConfiguration,
+				RuleSets:           props.RuleSets,
 			}
 
 			// Since this unlink default domain resource always set the value to false
 			updateProps.LinkToDefaultDomain = cdn.LinkToDefaultDomainDisabled
-
-			// NOTE: You must pull the Cache Configuration from the existing route else you will get a diff, because a nil value means disabled
-			if props.CacheConfiguration != nil {
-				updateProps.CacheConfiguration = props.CacheConfiguration
-			}
 
 			updateParams := azuresdkhacks.RouteUpdateParameters{
 				RouteUpdatePropertiesParameters: &updateProps,
@@ -340,14 +338,12 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.Reso
 		return fmt.Errorf("deleting %s: %s properties are 'nil'", *id, *route)
 	}
 
+	// NOTE: You need to always pass these these three on update else you will
+	// disable/disassociate your custom domains, cache configuration or rule sets...
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains: props.CustomDomains,
-	}
-
-	// NOTE: You must pull the Cache Configuration from the existing route else you will
-	// get a diff because the API sees nil as disabled
-	if props.CacheConfiguration != nil {
-		updateProps.CacheConfiguration = props.CacheConfiguration
+		CustomDomains:      props.CustomDomains,
+		CacheConfiguration: props.CacheConfiguration,
+		RuleSets:           props.RuleSets,
 	}
 
 	customDomains, err := flattenCustomDomainActivatedResourceArray(props.CustomDomains)

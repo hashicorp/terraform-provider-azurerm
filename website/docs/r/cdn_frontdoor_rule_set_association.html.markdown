@@ -8,7 +8,9 @@ description: |-
 
 # azurerm_cdn_frontdoor_rule_set_association
 
-Manages the association between one or more Front Door (standard/premium) Rule Sets and a Front Door (standard/premium) Route.
+Manages the association between one or more Front Door (standard/premium) Rule Sets and a Front Door (standard/premium) Route. Use this resource to avoid receiving the service side error `This resource is still associated with a route. Please delete the association with the route first before deleting this resource` when you attempt to `destroy`/`delete` a Front Door (standard/premium) Rule Set.
+
+!> **IMPORTANT:** When you delete this resource it will remove **all** of the Front Door Rule Set associations from the referenced Front Door Route resource. If you remove a Front Door Rule Set association from the resources `cdn_frontdoor_rule_set_ids` field make sure to also remove the reference from your `azurerm_cdn_frontdoor_route` resource that is being managed by the `azurerm_cdn_frontdoor_rule_set_association` resource, else Terraform will attempt add the Front Door Rule Set association back to the Front Door Route resource.
 
 ## Example Usage
 
@@ -27,7 +29,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_rule_set_ids` - (Required) One or more Front Door Rule Set IDs which are associated with the Front Door Route.
 
--> **NOTE:** This should include all of the Front Door Rule Set resources that the Front Door Route is associated with. If the list of Front Door Rule Sets is not complete you will receive the service side error `This resource is still associated with a route. Please delete the association with the route first before deleting this resource.` when you attempt to `destroy`/`delete` your Front Door Rule Set.
+-> **NOTE:** This must include all of the Front Door Rule Set resources that the Front Door Route is associated with. If the list of Front Door Rule Sets is not complete you will receive and error instructing to include the missing Front Door Rule Set resources.
 
 ## Attributes Reference
 
@@ -51,5 +53,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Front Door Rule Set Associations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cdn_frontdoor_rule_set_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/assoc1
+terraform import azurerm_cdn_frontdoor_rule_set_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/afdEndpoint1/associations/route1
 ```
