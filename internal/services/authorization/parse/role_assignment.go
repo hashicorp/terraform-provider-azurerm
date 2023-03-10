@@ -10,14 +10,16 @@ import (
 // TODO: @tombuildsstuff: this wants refactoring and fixing into sub-ID parsers
 
 type RoleAssignmentId struct {
-	SubscriptionID      string
-	ResourceGroup       string
-	ManagementGroup     string
-	ResourceScope       string
-	ResourceProvider    string
-	Name                string
-	TenantId            string
-	IsSubscriptionLevel bool
+	SubscriptionID           string
+	ResourceGroup            string
+	ManagementGroup          string
+	ResourceScope            string
+	ResourceProvider         string
+	Name                     string
+	Alias                    string
+	TenantId                 string
+	IsSubscriptionLevel      bool
+	IsSubscriptionAliasLevel bool
 }
 
 func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resourceScope, managementGroup, name, tenantId string, isSubLevel bool) (*RoleAssignmentId, error) {
@@ -71,6 +73,11 @@ func (id RoleAssignmentId) AzureResourceID() string {
 	if id.ResourceGroup != "" {
 		fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Authorization/roleAssignments/%s"
 		return fmt.Sprintf(fmtString, id.SubscriptionID, id.ResourceGroup, id.Name)
+	}
+
+	if id.IsSubscriptionAliasLevel {
+		fmtString := "/providers/Microsoft.Subscription/aliases/%s/providers/Microsoft.Authorization/roleAssignments/%s"
+		return fmt.Sprintf(fmtString, id.Alias, id.Name)
 	}
 
 	if id.IsSubscriptionLevel {
@@ -131,7 +138,14 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		if len(idParts) != 2 {
 			return nil, fmt.Errorf("could not parse Role Assignment ID %q for subscription scope", input)
 		}
-		roleAssignmentId.IsSubscriptionLevel = true
+		if strings.Contains(input, "/aliases/") {
+			roleAssignmentId.IsSubscriptionAliasLevel = true
+			aliasParts := strings.Split(idParts[0], "/")
+			alias := aliasParts[len(aliasParts)-1]
+			roleAssignmentId.Alias = alias
+		} else {
+			roleAssignmentId.IsSubscriptionLevel = true
+		}
 		if idParts[1] == "" {
 			return nil, fmt.Errorf("ID was missing a value for the roleAssignments element")
 		}
