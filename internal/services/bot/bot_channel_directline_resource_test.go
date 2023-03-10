@@ -98,11 +98,11 @@ resource "azurerm_bot_channel_directline" "test" {
   location            = "${azurerm_bot_channels_registration.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   site {
-    name    = "test"
+    name    = "test%s"
     enabled = true
   }
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data))
+`, BotChannelsRegistrationResource{}.basicConfig(data), data.RandomString)
 }
 
 func (r BotChannelDirectlineResource) completeConfig(data acceptance.TestData) string {
@@ -114,7 +114,7 @@ resource "azurerm_bot_channel_directline" "test" {
   location            = "${azurerm_bot_channels_registration.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   site {
-    name                            = "test"
+    name                            = "test%s"
     enabled                         = true
     v1_allowed                      = true
     v3_allowed                      = true
@@ -122,7 +122,7 @@ resource "azurerm_bot_channel_directline" "test" {
     trusted_origins                 = ["https://example.com"]
   }
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data))
+`, BotChannelsRegistrationResource{}.basicConfig(data), data.RandomString)
 }
 
 func (r BotChannelDirectlineResource) basicUpdate(data acceptance.TestData) string {
@@ -134,9 +134,9 @@ resource "azurerm_bot_channel_directline" "test" {
   location            = "${azurerm_bot_channels_registration.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   site {
-    name    = "test"
+    name    = "test%s"
     enabled = false
   }
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data))
+`, BotChannelsRegistrationResource{}.basicConfig(data), data.RandomString)
 }
