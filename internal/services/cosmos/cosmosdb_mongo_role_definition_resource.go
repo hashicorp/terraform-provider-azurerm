@@ -3,6 +3,8 @@ package cosmos
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs"
@@ -12,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"time"
 )
 
 type CosmosDbMongoRoleDefinitionModel struct {
@@ -155,12 +156,14 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
 			properties := &mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: &model.DbName,
 					RoleName:     &model.RoleName,
 					Privileges:   expandPrivilege(model.Privileges),
 					Roles:        expandInheritedRole(model.InheritedRoleNames, model.DbName),
+					Type:         &roleType,
 				},
 			}
 
@@ -203,12 +206,14 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
+			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
 			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: &model.DbName,
 					RoleName:     &model.RoleName,
 					Privileges:   expandPrivilege(model.Privileges),
 					Roles:        expandInheritedRole(model.InheritedRoleNames, model.DbName),
+					Type:         &roleType,
 				},
 			}
 
