@@ -413,7 +413,7 @@ func ruleSetExists(d *pluginsdk.ResourceData, meta interface{}, id *[]parse.Fron
 	}
 
 	if len(notFound) != 0 {
-		return fmt.Errorf("the following CDN FrontDoor Rule Sets do not exist: %s. Please remove them from your configuration", strings.Join(notFound, ", "))
+		return fmt.Errorf("the following CDN FrontDoor Rule Sets do not exist: %s. Please remove the CDN FrontDoor Rule Sets from your configuration", strings.Join(notFound, ", "))
 	}
 
 	return nil

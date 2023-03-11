@@ -3,6 +3,7 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -14,72 +15,176 @@ import (
 )
 
 type CdnFrontDoorRuleSetAssociationResource struct {
+	// The configuration value to use in the Front Door Route Resource
+	RouteRuleSetConfig string
+
+	// The configuration value to use in the Front Door Rule Set Resource(s)
+	RuleSetConfig string
+}
+
+func NewCdnFrontDoorRuleSetAssociationResource(routeRuleSetConfig string, ruleSetConfig string) *CdnFrontDoorRuleSetAssociationResource {
+	return &CdnFrontDoorRuleSetAssociationResource{
+		RouteRuleSetConfig: routeRuleSetConfig,
+		RuleSetConfig:      ruleSetConfig,
+	}
 }
 
 // NOTE: There isn't a complete test case because the basic and the
 // update together equals what the complete test case would be...
 func TestAccCdnFrontDoorRuleSetAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set_association", "test")
-	r := CdnFrontDoorRuleSetAssociationResource{}
+	r := NewCdnFrontDoorRuleSetAssociationResource("cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id]", templateOneRuleSet(data))
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("1"),
 			),
 		},
 	})
 }
 
-// NOTE: the 'requiresImport' test is not possible on this resource
+// NOTE: the 'requiresImport' test is not possible with this resource
 
-func TestAccCdnFrontDoorRuleSetAssociation_removeAssociation(t *testing.T) {
+func TestAccCdnFrontDoorRuleSetAssociation_destroy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set_association", "test")
-	r := CdnFrontDoorRuleSetAssociationResource{}
+	r := NewCdnFrontDoorRuleSetAssociationResource("cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id]", templateOneRuleSet(data))
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("1"),
 			),
 		},
 		{
-			Config:             r.remove(data),
+			Config:             r.destroy(data),
 			Check:              acceptance.ComposeTestCheckFunc(),
-			ExpectNonEmptyPlan: true, // since deleting this resource actually removes the linked custom domain from the route resource(s)
+			ExpectNonEmptyPlan: true, // since destroying this resource actually removes the routes rule set associations
 		},
 	})
 }
 
-func TestAccCdnFrontDoorRuleSetAssociation_removeAssociations(t *testing.T) {
+func TestAccCdnFrontDoorRuleSetAssociation_removeRouteRuleSetAssociation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set_association", "test")
-	r := CdnFrontDoorRuleSetAssociationResource{}
+	r := NewCdnFrontDoorRuleSetAssociationResource("cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id]", templateOneRuleSet(data))
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.update(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("1"),
 			),
 		},
 		{
-			Config:             r.remove(data),
-			Check:              acceptance.ComposeTestCheckFunc(),
-			ExpectNonEmptyPlan: true, // since deleting this resource actually removes the linked custom domain from the route resource(s)
+			Config: r.removeRouteRuleSetAssociations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("0"),
+			),
+			ExpectNonEmptyPlan: true, // since updating the field actually removes the routes rule set associations
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRuleSetAssociation_removeMultipleRouteRuleSetAssociations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set_association", "test")
+	r := NewCdnFrontDoorRuleSetAssociationResource("cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.two.id, azurerm_cdn_frontdoor_rule_set.three.id]", templateMultipleRuleSets(data))
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleRuleSets(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+			),
+		},
+		{
+			Config: r.removeRouteRuleSetAssociations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("0"),
+			),
+			ExpectNonEmptyPlan: true, // since updating the field actually removes the routes rule set associations
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRuleSetAssociation_multipleRuleSetAssociations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set_association", "test")
+	r := NewCdnFrontDoorRuleSetAssociationResource("cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.two.id, azurerm_cdn_frontdoor_rule_set.three.id]", templateMultipleRuleSets(data))
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleRuleSets(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+			),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRuleSetAssociation_routeRuleSetNotReferencedByAssociationError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set_association", "test")
+	r := NewCdnFrontDoorRuleSetAssociationResource("cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.two.id, azurerm_cdn_frontdoor_rule_set.three.id]", templateMultipleRuleSets(data))
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.ruleSetsNotReferencedByAssociation(data),
+			ExpectError: regexp.MustCompile("Please add the CDN FrontDoor Rule Sets to your configuration"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRuleSetAssociation_duplicateAssociationRuleSetError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set_association", "test")
+	r := NewCdnFrontDoorRuleSetAssociationResource("cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id]", templateOneRuleSet(data))
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.duplicateRuleSets(data),
+			ExpectError: regexp.MustCompile("please remove all duplicate entries from your configuration"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRuleSetAssociation_ruleSetNotAssociatedWithRouteError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set_association", "test")
+	r := NewCdnFrontDoorRuleSetAssociationResource("cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.two.id]", templateMultipleRuleSets(data))
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.basic(data),
+			ExpectError: regexp.MustCompile("is currently not associated with the CDN FrontDoor Rule Sets"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRuleSetAssociation_ruleSetDoesNotExistError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set_association", "test")
+	r := NewCdnFrontDoorRuleSetAssociationResource("cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id]", templateOneRuleSet(data))
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.ruleSetDoesNotExist(data),
+			ExpectError: regexp.MustCompile("the following CDN FrontDoor Rule Sets do not exist"),
 		},
 	})
 }
 
 func (r CdnFrontDoorRuleSetAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorCustomDomainAssociationID(state.ID)
+	id, err := parse.FrontDoorRuleSetAssociationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := clients.Cdn.FrontDoorCustomDomainsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AssociationName)
+	client := clients.Cdn.FrontDoorRoutesClient
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
@@ -90,57 +195,82 @@ func (r CdnFrontDoorRuleSetAssociationResource) Exists(ctx context.Context, clie
 	return utils.Bool(true), nil
 }
 
+func (r CdnFrontDoorRuleSetAssociationResource) multipleRuleSets(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_rule_set_association" "test" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.two.id, azurerm_cdn_frontdoor_rule_set.three.id]
+}
+`, template)
+}
+
+func (r CdnFrontDoorRuleSetAssociationResource) ruleSetsNotReferencedByAssociation(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_rule_set_association" "test" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.three.id]
+}
+`, template)
+}
+
+func (r CdnFrontDoorRuleSetAssociationResource) removeRouteRuleSetAssociations(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_rule_set_association" "test" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
+  cdn_frontdoor_rule_set_ids = []
+}
+`, template)
+}
+
+func (r CdnFrontDoorRuleSetAssociationResource) destroy(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+`, template)
+}
+
 func (r CdnFrontDoorRuleSetAssociationResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_cdn_frontdoor_rule_set_association" "test" {
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
-  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.contoso.id]
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id]
 }
 `, template)
 }
 
-func (r CdnFrontDoorRuleSetAssociationResource) update(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleSetAssociationResource) ruleSetDoesNotExist(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
-
-resource "azurerm_cdn_frontdoor_route" "fabrikam" {
-  name                          = "acctest-fabrikam-%[2]d"
-  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
-  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
-  enabled                       = true
-
-  https_redirect_enabled = true
-  forwarding_protocol    = "HttpsOnly"
-  patterns_to_match      = ["/sub-%[3]s"]
-  supported_protocols    = ["Http", "Https"]
-
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
-  link_to_default_domain          = true
-
-  cache {
-    compression_enabled           = true
-    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
-    query_strings                 = ["account", "settings", "foo", "bar"]
-    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
-  }
-}
 
 resource "azurerm_cdn_frontdoor_rule_set_association" "test" {
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
-  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.contoso.id, azurerm_cdn_frontdoor_route.fabrikam.id]
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
+  cdn_frontdoor_rule_set_ids = ["/subscriptions/%s/resourceGroups/acctestRG-cdn-afdx-%[3]d/providers/Microsoft.Cdn/profiles/acctest-profile-%[3]d/ruleSets/yolo"]
 }
-`, template, data.RandomInteger, data.RandomStringOfLength(10))
+`, template, data.Client().SubscriptionID, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleSetAssociationResource) remove(data acceptance.TestData) string {
+func (r CdnFrontDoorRuleSetAssociationResource) duplicateRuleSets(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_cdn_frontdoor_rule_set_association" "test" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.one.id]
+}
 `, template)
 }
 
@@ -153,11 +283,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
   location = "%[2]s"
-}
-
-resource "azurerm_dns_zone" "test" {
-  name                = "acctest-dns-zone.com"
-  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
@@ -193,7 +318,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   enabled                       = true
 
   certificate_name_check_enabled = false
-  host_name                      = join(".", ["%[3]s", azurerm_dns_zone.test.name])
+  host_name                      = "contoso.com"
   priority                       = 1
   weight                         = 1
 }
@@ -204,7 +329,9 @@ resource "azurerm_cdn_frontdoor_endpoint" "test" {
   enabled                  = true
 }
 
-resource "azurerm_cdn_frontdoor_route" "contoso" {
+%[4]s
+
+resource "azurerm_cdn_frontdoor_route" "test" {
   name                          = "acctest-contoso-%[1]d"
   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
@@ -215,9 +342,9 @@ resource "azurerm_cdn_frontdoor_route" "contoso" {
   forwarding_protocol    = "HttpsOnly"
   patterns_to_match      = ["/%[3]s"]
   supported_protocols    = ["Http", "Https"]
+  link_to_default_domain = true
 
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
-  link_to_default_domain          = false
+  %[5]s
 
   cache {
     compression_enabled           = true
@@ -226,17 +353,33 @@ resource "azurerm_cdn_frontdoor_route" "contoso" {
     query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
   }
 }
-
-resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
-  name                     = "acctest-contoso-%[1]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  dns_zone_id              = azurerm_dns_zone.test.id
-  host_name                = join(".", ["%[3]s", azurerm_dns_zone.test.name])
-
-  tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
-  }
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(10), r.RuleSetConfig, r.RouteRuleSetConfig)
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(10))
+
+func templateOneRuleSet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_cdn_frontdoor_rule_set" "one" {
+  name                     = "acctestrulesetone%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+`, data.RandomInteger)
+}
+
+func templateMultipleRuleSets(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_cdn_frontdoor_rule_set" "one" {
+  name                     = "acctestrulesetone%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "two" {
+  name                     = "acctestrulesettwo%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "three" {
+  name                     = "acctestrulesetthree%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+`, data.RandomInteger)
 }
