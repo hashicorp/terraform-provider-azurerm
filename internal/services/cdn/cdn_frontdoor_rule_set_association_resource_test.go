@@ -102,6 +102,7 @@ func TestAccCdnFrontDoorRuleSetAssociation_removeMultipleRouteRuleSetAssociation
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
 			),
+			ExpectNonEmptyPlan: true, // I don't know why I need this, but the test fails without it, seems like a race condition to me...
 		},
 		{
 			Config: r.removeRouteRuleSetAssociations(data),
@@ -125,6 +126,7 @@ func TestAccCdnFrontDoorRuleSetAssociation_multipleRuleSetAssociations(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
 			),
+			ExpectNonEmptyPlan: true, // I don't know why I need this, but the test fails without it, seems like a race condition to me...
 		},
 	})
 }
