@@ -511,6 +511,10 @@ func setRouteRuleSetAssociations(d *pluginsdk.ResourceData, meta interface{}, id
 		RouteUpdatePropertiesParameters: &updateProps,
 	}
 
+	// lock the route resource for update...
+	locks.ByName(id.AssociationName, cdnFrontDoorRouteResourceName)
+	defer locks.UnlockByName(id.AssociationName, cdnFrontDoorRouteResourceName)
+
 	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName, updateParams)
 	if err != nil {
 		return fmt.Errorf("%s %s: %+v", errorTxt, *id, err)
@@ -775,11 +779,12 @@ func expandCustomDomains(input []interface{}) ([]interface{}, error) {
 }
 
 func expandRuleSets(input []interface{}) (*[]parse.FrontDoorRuleSetId, []interface{}, error) {
+	if len(input) == 0 || input == nil {
+		return nil, nil, nil
+	}
+
 	out := make([]parse.FrontDoorRuleSetId, 0)
 	config := make([]interface{}, 0)
-	if len(input) == 0 || input == nil {
-		return &out, config, nil
-	}
 
 	for _, v := range input {
 		id, err := parse.FrontDoorRuleSetID(v.(string))

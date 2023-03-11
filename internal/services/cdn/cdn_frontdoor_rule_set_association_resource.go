@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -64,7 +63,7 @@ func resourceCdnFrontDoorRuleSetAssociationCreate(d *pluginsdk.ResourceData, met
 	id := parse.NewFrontDoorRuleSetAssociationID(routeId.SubscriptionId, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
 
 	// make sure the route and the rule sets exist and are associated with the route...
-	if err := validateRuleSetsAssociation(d, meta, &id); err != nil {
+	if err := validateRuleSetsAssociation(d, meta, &id, true); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -76,6 +75,10 @@ func resourceCdnFrontDoorRuleSetAssociationCreate(d *pluginsdk.ResourceData, met
 func resourceCdnFrontDoorRuleSetAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := parse.FrontDoorRuleSetAssociationID(d.Id())
 	if err != nil {
+		return err
+	}
+
+	if err := validateRuleSetsAssociation(d, meta, id, false); err != nil {
 		return err
 	}
 
@@ -94,35 +97,24 @@ func resourceCdnFrontDoorRuleSetAssociationRead(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceCdnFrontDoorRuleSetAssociationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	if d.HasChange("cdn_frontdoor_rule_set_ids") {
-		id, err := parse.FrontDoorRuleSetAssociationID(d.Id())
-		if err != nil {
-			return err
-		}
-
-		// make sure the route and the rule sets exist and are associated with the route...
-		if err := updateRuleSetsAssociations(d, meta, id, "updating", "waiting for the update of"); err != nil {
-			// I think there is a bug here, if you update the route to remove the reference to the rule set it detects the change and throws the correct
-			// error stating that the rule set is not associated with the route anymore, but the state file keeps the old value. When you update the
-			// association resource to match the route resource (e.g. remove the reference from the rule set) the compare shows no changes. I think I
-			// should remove the resource from the state file here and then throw the error, that way the state and azure will be in sync. That way the
-			// next time you run plan it will show the association resource as a new resource and everything will be copasetic again. This is similar
-			// to the existing behavior to in most resources read functions when the utils.ResponseWasNotFound returns true, it removes the resource from
-			// state. I can't do it in the read because this resource does not exist in Azure, I have to do it when the update fails.
-			d.SetId("")
-
-			return err
-		}
-
-		return resourceCdnFrontDoorRuleSetAssociationRead(d, meta)
+	id, err := parse.FrontDoorRuleSetAssociationID(d.Id())
+	if err != nil {
+		return err
 	}
 
-	return nil
+	if d.HasChange("cdn_frontdoor_rule_set_ids") {
+		// make sure the route and the rule sets exist and are associated with the route...
+		if err := updateRuleSetsAssociations(d, meta, id, "updating", "waiting for the update of"); err != nil {
+			return err
+		}
+	}
+
+	return resourceCdnFrontDoorRuleSetAssociationRead(d, meta)
 }
 
 func resourceCdnFrontDoorRuleSetAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	// since you are deleting the resource remove all rule set associations
-	// on the route
+	// since you are deleting the resource remove all
+	// rule set associations on the route
 	id, err := parse.FrontDoorRuleSetAssociationID(d.Id())
 	if err != nil {
 		return err
@@ -144,20 +136,9 @@ func resourceCdnFrontDoorRuleSetAssociationDelete(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func validateRuleSetsAssociation(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRuleSetAssociationId) error {
-	newRuleSets := d.Get("cdn_frontdoor_rule_set_ids").([]interface{})
-
-	if len(newRuleSets) == 0 || newRuleSets == nil {
-		return nil
-	}
-
-	newID, _, err := expandRuleSets(newRuleSets)
+func validateRuleSetsAssociation(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRuleSetAssociationId, isCreate bool) error {
+	newRuleSets, newRuleSetsList, err := expandRuleSets(d.Get("cdn_frontdoor_rule_set_ids").([]interface{}))
 	if err != nil {
-		return err
-	}
-
-	// check for dupe entries in the resources rule set list...
-	if err := ruleSetSliceHasDuplicates(newID); err != nil {
 		return err
 	}
 
@@ -167,23 +148,55 @@ func validateRuleSetsAssociation(d *pluginsdk.ResourceData, meta interface{}, id
 		return err
 	}
 
-	// Make sure the rule sets exist...
-	if err = ruleSetExists(d, meta, newID); err != nil {
-		return err
-	}
+	// Only validate the rule sets if there are rule sets defined in the association resource
+	if newRuleSets != nil {
+		// check for dupe entries in the resources rule set list...
+		if err := ruleSetSliceHasDuplicates(newRuleSets); err != nil {
+			return err
+		}
 
-	// validate the new rule sets are associated with the route...
-	if len(*newID) != 0 {
-		notAssociated := make([]string, 0)
+		// Make sure the rule sets exist...
+		if err = ruleSetExists(d, meta, newRuleSets); err != nil {
+			return err
+		}
 
-		for _, v := range *newID {
-			if len(routeRuleSetAssociations) == 0 || !sliceContainsString(routeRuleSetAssociations, v.ID()) {
-				notAssociated = append(notAssociated, v.RuleSetName)
+		// validate the new rule sets are associated with the route...
+		if len(*newRuleSets) != 0 {
+			notAssociated := make([]string, 0)
+
+			for _, v := range *newRuleSets {
+				if len(routeRuleSetAssociations) == 0 || !sliceContainsString(routeRuleSetAssociations, v.ID()) {
+					notAssociated = append(notAssociated, v.RuleSetName)
+				}
+			}
+
+			if len(notAssociated) != 0 {
+				return fmt.Errorf("the CDN FrontDoor Route(Name: %q) is currently not associated with the CDN FrontDoor Rule Sets: %s. Please remove the CDN FrontDoor Rule Sets from your configuration", id.AssociationName, strings.Join(notAssociated, ", "))
 			}
 		}
 
-		if len(notAssociated) != 0 {
-			return fmt.Errorf("the CDN FrontDoor Route(Name: %q) is currently not associated with the CDN FrontDoor Rule Sets: %s. Please remove the CDN FrontDoor Rule Sets from your configuration", id.AssociationName, strings.Join(notAssociated, ", "))
+		// on the initial creation of the resource we need to make sure ALL of the associated
+		// rule sets in the route resource are also included in the list of rule sets in the association...
+		if isCreate {
+			// validate that all of the routes associated rule sets are included in the association resource...
+			if len(routeRuleSetAssociations) != 0 {
+				notAssociated := make([]string, 0)
+
+				for _, v := range routeRuleSetAssociations {
+					if len(newRuleSetsList) == 0 || !sliceContainsString(newRuleSetsList, v.(string)) {
+						routeRuleSet, err := parse.FrontDoorRuleSetID(v.(string))
+						if err != nil {
+							return err
+						}
+
+						notAssociated = append(notAssociated, routeRuleSet.RuleSetName)
+					}
+				}
+
+				if len(notAssociated) != 0 {
+					return fmt.Errorf("the CDN FrontDoor Route(Name: %q) is currently associated with the CDN FrontDoor Rule Sets: %s. Please add the CDN FrontDoor Rule Sets to your configuration", id.AssociationName, strings.Join(notAssociated, ", "))
+				}
+			}
 		}
 	}
 
@@ -194,17 +207,9 @@ func updateRuleSetsAssociations(d *pluginsdk.ResourceData, meta interface{}, id 
 	newRuleSets := d.Get("cdn_frontdoor_rule_set_ids").([]interface{})
 
 	// first validate the resource
-	if err := validateRuleSetsAssociation(d, meta, id); err != nil {
+	if err := validateRuleSetsAssociation(d, meta, id, false); err != nil {
 		return err
 	}
-
-	// if the passed removeRuleSets is empty we need to remove all rule set associations from the route
-	// I might have to hack the SDK to remove all of the rule set associations, since I believe the API
-	// is expecting a null to remove all of the rule set associations with the route... :/
-
-	// lock the route resource for update...
-	locks.ByName(id.AssociationName, cdnFrontDoorRouteResourceName)
-	defer locks.UnlockByName(id.AssociationName, cdnFrontDoorRouteResourceName)
 
 	// Check to see if the route still exists and grab its properties...
 	_, props, err := getRouteRuleSetProperties(d, meta, id)
