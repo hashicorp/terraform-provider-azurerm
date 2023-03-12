@@ -15,10 +15,10 @@ import (
 )
 
 type CdnFrontDoorRuleSetAssociationResource struct {
-	// The configuration value to use in the Front Door Route Resource
+	// The 'cdn_frontdoor_rule_set_ids' field to use in the Front Door Route Resource configuration block
 	RouteRuleSetConfig string
 
-	// The configuration value to use in the Front Door Rule Set Resource(s)
+	// The 'azurerm_cdn_frontdoor_rule_set' configuration blocks for the Front Door Rule Set Resource(s)
 	RuleSetConfig string
 }
 
@@ -30,7 +30,8 @@ func NewCdnFrontDoorRuleSetAssociationResource(routeRuleSetConfig string, ruleSe
 }
 
 // NOTE: There isn't a complete test case because the basic and the
-// update together equals what the complete test case would be...
+// removeRouteRuleSetAssociation tests together equals what the complete test case would be...
+
 func TestAccCdnFrontDoorRuleSetAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set_association", "test")
 	r := NewCdnFrontDoorRuleSetAssociationResource("cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id]", templateOneRuleSet(data))
@@ -102,7 +103,6 @@ func TestAccCdnFrontDoorRuleSetAssociation_removeMultipleRouteRuleSetAssociation
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
 			),
-			ExpectNonEmptyPlan: true, // I don't know why I need this, but the test fails without it, seems like a race condition to me...
 		},
 		{
 			Config: r.removeRouteRuleSetAssociations(data),
@@ -126,7 +126,6 @@ func TestAccCdnFrontDoorRuleSetAssociation_multipleRuleSetAssociations(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
 			),
-			ExpectNonEmptyPlan: true, // I don't know why I need this, but the test fails without it, seems like a race condition to me...
 		},
 	})
 }
@@ -139,18 +138,6 @@ func TestAccCdnFrontDoorRuleSetAssociation_routeRuleSetNotReferencedByAssociatio
 		{
 			Config:      r.ruleSetsNotReferencedByAssociation(data),
 			ExpectError: regexp.MustCompile("Please add the CDN FrontDoor Rule Sets to your configuration"),
-		},
-	})
-}
-
-func TestAccCdnFrontDoorRuleSetAssociation_duplicateAssociationRuleSetError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set_association", "test")
-	r := NewCdnFrontDoorRuleSetAssociationResource("cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id]", templateOneRuleSet(data))
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.duplicateRuleSets(data),
-			ExpectError: regexp.MustCompile("please remove all duplicate entries from your configuration"),
 		},
 	})
 }

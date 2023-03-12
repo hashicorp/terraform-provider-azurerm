@@ -681,23 +681,6 @@ func routeSliceHasDuplicates(input *[]parse.FrontDoorRouteId, resourceName strin
 	return nil
 }
 
-func ruleSetSliceHasDuplicates(input *[]parse.FrontDoorRuleSetId) error {
-	k := make(map[string]bool)
-	if len(*input) == 0 || input == nil {
-		return nil
-	}
-
-	for _, ruleSet := range *input {
-		if _, d := k[strings.ToLower(ruleSet.ID())]; !d {
-			k[strings.ToLower(ruleSet.ID())] = true
-		} else {
-			return fmt.Errorf("duplicate CDN Front Door Rule Set ID %s detected, please remove all duplicate entries from your configuration", ruleSet.ID())
-		}
-	}
-
-	return nil
-}
-
 // Determines what CDN FrontDoor Routes need to be removed/disassociated from this CDN FrontDoor Custom Domain
 func routeDelta(oldRoutes *[]parse.FrontDoorRouteId, newRoutes *[]parse.FrontDoorRouteId) (*[]parse.FrontDoorRouteId, *[]parse.FrontDoorRouteId) {
 	remove := make([]parse.FrontDoorRouteId, 0)

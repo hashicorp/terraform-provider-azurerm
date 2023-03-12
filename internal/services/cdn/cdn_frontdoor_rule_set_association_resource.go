@@ -39,7 +39,7 @@ func resourceCdnFrontDoorRuleSetAssociation() *pluginsdk.Resource {
 			},
 
 			"cdn_frontdoor_rule_set_ids": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 
 				Elem: &pluginsdk.Schema{
@@ -137,7 +137,7 @@ func resourceCdnFrontDoorRuleSetAssociationDelete(d *pluginsdk.ResourceData, met
 }
 
 func validateRuleSetsAssociation(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRuleSetAssociationId, isCreate bool) error {
-	newRuleSets, newRuleSetsList, err := expandRuleSets(d.Get("cdn_frontdoor_rule_set_ids").([]interface{}))
+	newRuleSets, newRuleSetsList, err := expandRuleSets(d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List())
 	if err != nil {
 		return err
 	}
@@ -150,11 +150,6 @@ func validateRuleSetsAssociation(d *pluginsdk.ResourceData, meta interface{}, id
 
 	// Only validate the rule sets if there are rule sets defined in the association resource
 	if newRuleSets != nil {
-		// check for dupe entries in the resources rule set list...
-		if err := ruleSetSliceHasDuplicates(newRuleSets); err != nil {
-			return err
-		}
-
 		// Make sure the rule sets exist...
 		if err = ruleSetExists(d, meta, newRuleSets); err != nil {
 			return err
@@ -204,7 +199,7 @@ func validateRuleSetsAssociation(d *pluginsdk.ResourceData, meta interface{}, id
 }
 
 func updateRuleSetsAssociations(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRuleSetAssociationId, errorTxt string, futureErrorTxt string) error {
-	newRuleSets := d.Get("cdn_frontdoor_rule_set_ids").([]interface{})
+	newRuleSets := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
 
 	// first validate the resource
 	if err := validateRuleSetsAssociation(d, meta, id, false); err != nil {
