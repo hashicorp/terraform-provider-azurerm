@@ -251,18 +251,6 @@ resource "azurerm_cdn_frontdoor_rule_set_association" "test" {
 `, template, data.Client().SubscriptionID, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleSetAssociationResource) duplicateRuleSets(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cdn_frontdoor_rule_set_association" "test" {
-  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
-  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.one.id]
-}
-`, template)
-}
-
 func (r CdnFrontDoorRuleSetAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
