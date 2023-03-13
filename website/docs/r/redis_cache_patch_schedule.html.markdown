@@ -11,6 +11,8 @@ description: |-
 
 Manages a Redis Cache Patch Schedule.
 
+~> **NOTE:** It's possible to define Redis Patch Schedule both within [the `azurerm_redis_cache` resource](redis_cache.html) via the `patch_schedule` block and by using [the `azurerm_redis_cache_patch_schedule` resource](redis_cache_patch_schedule.html). However it's not possible to use both methods to manage Patch Schedule within a Redis, since there'll be conflicts.
+
 ## Example Usage
 
 ```hcl
