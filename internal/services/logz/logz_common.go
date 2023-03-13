@@ -3,6 +3,8 @@ package logz
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/monitors"
+
 	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -54,13 +56,13 @@ func SchemaUserInfo() *pluginsdk.Schema {
 	}
 }
 
-func expandUserInfo(input []interface{}) *logz.UserInfo {
+func expandUserInfo(input []interface{}) *monitors.UserInfo {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
-	return &logz.UserInfo{
+	return &monitors.UserInfo{
 		FirstName:    utils.String(v["first_name"].(string)),
 		LastName:     utils.String(v["last_name"].(string)),
 		EmailAddress: utils.String(v["email"].(string)),
@@ -68,7 +70,7 @@ func expandUserInfo(input []interface{}) *logz.UserInfo {
 	}
 }
 
-func flattenUserInfo(input *logz.UserInfo) []interface{} {
+func flattenUserInfo(input *monitors.UserInfo) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}

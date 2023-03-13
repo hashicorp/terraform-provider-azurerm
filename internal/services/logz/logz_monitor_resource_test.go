@@ -110,7 +110,7 @@ func (r LogzMonitorResource) Exists(ctx context.Context, clients *clients.Client
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r LogzMonitorResource) template(data acceptance.TestData) string {
