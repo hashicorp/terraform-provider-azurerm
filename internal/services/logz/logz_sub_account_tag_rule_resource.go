@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/subaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -39,7 +39,7 @@ func resourceLogzSubAccountTagRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LogzSubAccountID,
+				ValidateFunc: subaccount.ValidateAccountID,
 			},
 
 			"tag_filter": schemaTagFilter(),
@@ -69,12 +69,12 @@ func resourceLogzSubAccountTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	subAccountId, err := parse.LogzSubAccountID(d.Get("logz_sub_account_id").(string))
+	subAccountId, err := subaccount.ParseAccountID(d.Get("logz_sub_account_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewLogzSubAccountTagRuleID(subAccountId.SubscriptionId, subAccountId.ResourceGroup, subAccountId.MonitorName, subAccountId.AccountName, TagRuleName)
+	id := parse.NewLogzSubAccountTagRuleID(subAccountId.SubscriptionId, subAccountId.ResourceGroupName, subAccountId.MonitorName, subAccountId.AccountName, "default")
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.AccountName, id.TagRuleName)
@@ -122,7 +122,7 @@ func resourceLogzSubAccountTagRuleRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("logz_sub_account_id", parse.NewLogzSubAccountID(id.SubscriptionId, id.ResourceGroup, id.MonitorName, id.AccountName).ID())
+	d.Set("logz_sub_account_id", subaccount.NewAccountID(id.SubscriptionId, id.ResourceGroup, id.MonitorName, id.AccountName).ID())
 	if props := resp.Properties; props != nil && props.LogRules != nil {
 		d.Set("send_aad_logs", props.LogRules.SendAadLogs)
 		d.Set("send_activity_logs", props.LogRules.SendActivityLogs)
