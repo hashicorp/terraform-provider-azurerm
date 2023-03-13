@@ -70,9 +70,7 @@ The following arguments are supported:
 
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 
-* `security_domain_certificate` - (Optional) A list of KeyVault certificates resource ID(minimum of three and up to a maximum of 10) to activate this Managed HSM. More information see [activate-your-managed-hsm](https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/quick-create-cli#activate-your-managed-hsm)
-
-* `security_domain_quorum` - (Optional) Specifies the minimum number of shares required to decrypt the security domain for recovery. This is required the `security_domain_certificate` is provided. The value must between 2 and 10 (inclusive).
+* `activate_config` - (Optional) A `activate_config` block used to activate this Managed HSM as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
@@ -83,6 +81,14 @@ A `network_acls` block supports the following:
 * `bypass` - (Required) Specifies which traffic can bypass the network rules. Possible values are `AzureServices` and `None`.
 
 * `default_action` - (Required) The Default Action to use. Possible values are `Allow` and `Deny`.
+
+---
+
+A `activate_config` block supports the following:
+
+* `security_domain_certificate` - (Required) A list of KeyVault certificates resource ID(minimum of three and up to a maximum of 10) to activate this Managed HSM. More information see [activate-your-managed-hsm](https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/quick-create-cli#activate-your-managed-hsm)
+
+* `security_domain_quorum` - (Required) Specifies the minimum number of shares required to decrypt the security domain for recovery. This is required the `security_domain_certificate` is provided. The value must between 2 and 10 (inclusive).
 
 ## Attributes Reference
 

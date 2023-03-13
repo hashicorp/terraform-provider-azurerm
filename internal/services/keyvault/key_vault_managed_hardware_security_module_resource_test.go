@@ -65,6 +65,14 @@ func testAccKeyVaultManagedHardwareSecurityModule_download(t *testing.T) {
 			),
 		},
 		data.ImportStep("security_domain_certificate", "security_domain_enc_data", "security_domain_quorum"),
+		{
+			Config: r.createKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(fmt.Sprintf("%s.%s", "azurerm_key_vault_key", r.testKeyResourceName())).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("security_domain_certificate", "security_domain_enc_data", "security_domain_quorum"),
 	})
 }
 
@@ -259,15 +267,52 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   admin_object_ids         = [data.azurerm_client_config.current.object_id]
   purge_protection_enabled = false
 
-  security_domain_certificate = [
-    azurerm_key_vault_certificate.cert[0].id,
-    azurerm_key_vault_certificate.cert[1].id,
-    azurerm_key_vault_certificate.cert[2].id,
-  ]
-
-  security_domain_quorum = 2
+  active_config {
+    security_domain_certificate = [
+      azurerm_key_vault_certificate.cert[0].id,
+      azurerm_key_vault_certificate.cert[1].id,
+      azurerm_key_vault_certificate.cert[2].id,
+    ]
+    security_domain_quorum = 2
+  }
 }
 `, template, data.RandomInteger)
+}
+
+func (r KeyVaultManagedHardwareSecurityModuleResource) testKeyResourceName() string {
+	return "mhsm_key"
+}
+
+func (r KeyVaultManagedHardwareSecurityModuleResource) createKey(data acceptance.TestData) string {
+	template := r.download(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_key_vault_role_definition" "user" {
+  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  role_definition_id = "21dbd100-6940-42c2-9190-5d6cb909625b"
+  scope              = "/"
+}
+
+resource "azurerm_key_vault_role_assignment" "test" {
+  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  scope              = "${data.azurerm_key_vault_role_definition.user.scope}"
+  role_definition_id = "${data.azurerm_key_vault_role_definition.user.resource_id}"
+  principal_id       = "${data.azurerm_client_config.current.object_id}"
+}
+
+resource "azurerm_key_vault_key" "%s" {
+  name         = "mhsm-key-%s"
+  key_vault_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+`, template, r.testKeyResourceName(), data.RandomString)
 }
 
 func (r KeyVaultManagedHardwareSecurityModuleResource) complete(data acceptance.TestData) string {

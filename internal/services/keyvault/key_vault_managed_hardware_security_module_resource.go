@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault" // nolint: staticcheck
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -143,22 +143,30 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				},
 			},
 
-			"security_domain_certificate": {
-				Type:     pluginsdk.TypeSet,
-				MinItems: 3,
-				MaxItems: 10,
+			"activate_config": {
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.NestedItemId,
-				},
-			},
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"security_domain_certificate": {
+							Type:     pluginsdk.TypeSet,
+							MinItems: 3,
+							MaxItems: 10,
+							Required: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.NestedItemId,
+							},
+						},
 
-			"security_domain_quorum": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				RequiredWith: []string{"security_domain_certificate"},
-				ValidateFunc: validation.IntBetween(2, 10),
+						"security_domain_quorum": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(2, 10),
+						},
+					},
+				},
 			},
 
 			"security_domain_enc_data": {
@@ -217,37 +225,35 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		hsm.Properties.PublicNetworkAccess = keyvault.PublicNetworkAccessDisabled
 	}
 
+	reTry := client.Client.RetryAttempts
 	client.Client.RetryAttempts = 1 // retry if failed
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, hsm)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	client.Client.RetryAttempts = reTry
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting on creation for %s: %+v", id, err)
 	}
 
 	// security domain download to activate this module
-	if certs := utils.ExpandStringSlice(d.Get("security_domain_certificate").(*pluginsdk.Set).List()); certs != nil && len(*certs) > 0 {
+	if certs := d.Get("activate_config").([]interface{}); certs != nil && len(certs) > 0 && (certs)[0] != nil {
 		// get hsm uri
 		hsmRes, err := future.Result(*client)
-		if err != nil {
-			return fmt.Errorf("get hsm result: %v", err)
-		}
 		if hsmRes.Properties == nil || hsmRes.Properties.HsmURI == nil {
-			return fmt.Errorf("get nil hsmURI for %s", id)
-		}
-
-		encData, err := securityDomainDownload(ctx,
-			meta.(*clients.Client).KeyVault,
-			*hsmRes.Properties.HsmURI,
-			*certs,
-			d.Get("security_domain_quorum").(int),
-		)
-		if err == nil {
-			d.Set("security_domain_enc_data", encData)
+			log.Printf("get emtpy HSM URI when activating it, skip it now: %+v", err)
 		} else {
-			log.Printf("security domain download: %v", err)
+			encData, err := securityDomainDownload(ctx,
+				meta.(*clients.Client).KeyVault,
+				*hsmRes.Properties.HsmURI,
+				certs[0].(map[string]interface{}),
+			)
+			if err == nil {
+				d.Set("security_domain_enc_data", encData)
+			} else {
+				log.Printf("security domain download: %v", err)
+			}
 		}
 	}
 
@@ -271,20 +277,18 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if d.HasChange("security_domain_certificate") {
-		if certs := utils.ExpandStringSlice(d.Get("security_domain_certificate").(*pluginsdk.Set).List()); len(*certs) > 0 {
-			// get hsm uri
-			encData, err := securityDomainDownload(ctx,
-				meta.(*clients.Client).KeyVault,
-				*resp.Properties.HsmURI,
-				*certs,
-				d.Get("security_domain_quorum").(int),
-			)
-			if err != nil {
-				return fmt.Errorf("security domain download: %v", err)
-			}
-			d.Set("security_domain_enc_data", encData)
+	// if it has activate_config but with no enc data in stat, try to activate it
+	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && certs[0] != nil && d.Get("security_domain_enc_data").(string) == "" {
+		// get hsm uri
+		encData, err := securityDomainDownload(ctx,
+			meta.(*clients.Client).KeyVault,
+			*resp.Properties.HsmURI,
+			certs[0].(map[string]interface{}),
+		)
+		if err != nil {
+			return fmt.Errorf("security domain download: %v", err)
 		}
+		d.Set("security_domain_enc_data", encData)
 	}
 	return nil
 }
@@ -424,15 +428,22 @@ func flattenMHSMNetworkAcls(acl *keyvault.MHSMNetworkRuleSet) []interface{} {
 	return []interface{}{res}
 }
 
-func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseURL string, certIDs []string, qourum int) (encDataStr string, err error) {
+func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseURL string, config map[string]interface{}) (encDataStr string, err error) {
 	sdClient := cli.MHSMSDClient
 	keyClient := cli.ManagementClient
 
 	var param kv73.CertificateInfoObject
+	var qourum = config["security_domain_quorum"].(int)
+	certIDs := config["security_domain_certificate"].(*pluginsdk.Set).List()
+
 	param.Required = utils.Int32(int32(qourum))
 	var certs []kv73.SecurityDomainJSONWebKey
 	for _, certID := range certIDs {
-		keyID, _ := parse.ParseNestedItemID(certID)
+		certIDStr, ok := certID.(string)
+		if !ok {
+			continue
+		}
+		keyID, _ := parse.ParseNestedItemID(certIDStr)
 		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseUrl, keyID.Name, keyID.Version)
 		if err != nil {
 			return "", fmt.Errorf("retreiving key %s: %v", certID, err)
@@ -485,20 +496,37 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 	if err != nil {
 		return "", fmt.Errorf("unmarshal EncData: %v", err)
 	}
-	// wait download code has bug will never return
-	// limit ctx to wait 5 second(value from azcli)
-	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
-	defer cancel()
-	if err := future.WaitForCompletionRef(ctx, sdClient.Client); err != nil {
-		if !response.WasStatusCode(future.Response(), http.StatusOK) {
-			log.Printf("waiting for download of %s: %v. ignore", vaultBaseURL, err)
-		}
-	}
-	result, err := future.Result(*sdClient)
-	if result.Value != nil {
-		encData.Value = pointer.ToString(result.Value)
-	}
-	encDataStr = encData.Value
 
-	return encDataStr, nil
+	err = waitHSMPendingStatus(ctx, vaultBaseURL, sdClient, false)
+	return encData.Value, nil
+}
+
+// if isUpload is false, then check the download pending
+// the generated SDK of `future.WaitForCompletionRef` not work, see:
+// https://github.com/Azure/azure-rest-api-specs/issues/23035
+func waitHSMPendingStatus(ctx context.Context, baseURL string, client *kv73.HSMSecurityDomainClient, isUpload bool) (err error) {
+	maxRetry := 30
+	var maxAttempt = client.RetryAttempts
+
+	var res kv73.SecurityDomainOperationStatus
+	for try := 0; try < maxRetry; try++ {
+		if isUpload {
+			res, err = client.UploadPending(ctx, baseURL)
+		} else {
+			res, err = client.DownloadPending(ctx, baseURL)
+		}
+
+		if err != nil {
+			maxAttempt--
+			if maxAttempt <= 0 {
+				return err
+			}
+		}
+
+		if res.Status == kv73.OperationStatusSuccess {
+			return nil
+		}
+		time.Sleep(client.PollingDuration)
+	}
+	return fmt.Errorf("time out for polling operation status")
 }
