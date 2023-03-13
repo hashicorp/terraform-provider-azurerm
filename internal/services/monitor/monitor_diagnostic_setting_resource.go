@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
+	kustoParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -462,6 +463,8 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
+	id.ResourceUri = normalizeMonitorDiagnosticSettingTargetResourceId(id.ResourceUri)
+
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -872,4 +875,14 @@ func resourceMonitorDiagnosticMetricsSettingHash(input interface{}) int {
 		}
 	}
 	return pluginsdk.HashString(buf.String())
+}
+
+func normalizeMonitorDiagnosticSettingTargetResourceId(input string) string {
+	if strings.Contains(strings.ToLower(input), "microsoft.kusto/clusters/") {
+		if id, err := kustoParse.ClusterIDInsensitively(input); err == nil {
+			return id.ID()
+		}
+	}
+
+	return input
 }
