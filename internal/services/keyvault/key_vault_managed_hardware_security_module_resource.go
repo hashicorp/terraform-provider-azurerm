@@ -238,11 +238,11 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 	}
 
 	// security domain download to activate this module
-	if certs := d.Get("activate_config").([]interface{}); certs != nil && len(certs) > 0 && (certs)[0] != nil {
+	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && (certs)[0] != nil {
 		// get hsm uri
 		hsmRes, err := future.Result(*client)
 		if hsmRes.Properties == nil || hsmRes.Properties.HsmURI == nil {
-			log.Printf("get emtpy HSM URI when activating it, skip it now: %+v", err)
+			log.Printf("get empty HSM URI when activating it, skip it now: %+v", err)
 		} else {
 			encData, err := securityDomainDownload(ctx,
 				meta.(*clients.Client).KeyVault,
@@ -498,7 +498,7 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 	}
 
 	err = waitHSMPendingStatus(ctx, vaultBaseURL, sdClient, false)
-	return encData.Value, nil
+	return encData.Value, err
 }
 
 // if isUpload is false, then check the download pending
