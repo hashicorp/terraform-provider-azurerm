@@ -33,6 +33,56 @@ func parseACLAction(input string) (*ACLAction, error) {
 	return &out, nil
 }
 
+type EventListenerEndpointDiscriminator string
+
+const (
+	EventListenerEndpointDiscriminatorEventHub EventListenerEndpointDiscriminator = "EventHub"
+)
+
+func PossibleValuesForEventListenerEndpointDiscriminator() []string {
+	return []string{
+		string(EventListenerEndpointDiscriminatorEventHub),
+	}
+}
+
+func parseEventListenerEndpointDiscriminator(input string) (*EventListenerEndpointDiscriminator, error) {
+	vals := map[string]EventListenerEndpointDiscriminator{
+		"eventhub": EventListenerEndpointDiscriminatorEventHub,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := EventListenerEndpointDiscriminator(input)
+	return &out, nil
+}
+
+type EventListenerFilterDiscriminator string
+
+const (
+	EventListenerFilterDiscriminatorEventName EventListenerFilterDiscriminator = "EventName"
+)
+
+func PossibleValuesForEventListenerFilterDiscriminator() []string {
+	return []string{
+		string(EventListenerFilterDiscriminatorEventName),
+	}
+}
+
+func parseEventListenerFilterDiscriminator(input string) (*EventListenerFilterDiscriminator, error) {
+	vals := map[string]EventListenerFilterDiscriminator{
+		"eventname": EventListenerFilterDiscriminatorEventName,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := EventListenerFilterDiscriminator(input)
+	return &out, nil
+}
+
 type KeyType string
 
 const (
