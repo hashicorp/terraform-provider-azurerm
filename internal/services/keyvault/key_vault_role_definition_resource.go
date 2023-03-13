@@ -185,6 +185,8 @@ func (k KeyVaultRoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema
 			},
 		},
 
+		// the server changes the value to `/` when pass a `/keys`: https://github.com/Azure/azure-rest-api-specs/issues/23045
+		// so limit the value to `/` for current version
 		"assignable_scopes": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
