@@ -229,6 +229,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"patch_schedule": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"day_of_week": {
