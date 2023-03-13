@@ -68,5 +68,6 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		KeyVaultCertificateContactsResource{},
 		KeyVaultRoleDefinitionResource{},
+		KeyVaultRoleAssignmentResource{},
 	}
 }
