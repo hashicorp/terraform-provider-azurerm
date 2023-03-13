@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/crypto/ssh"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -27,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
-	"golang.org/x/crypto/ssh"
 )
 
 func resourceKeyVaultKey() *pluginsdk.Resource {
@@ -62,7 +63,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: keyVaultValidate.VaultID,
+				ValidateFunc: validation.Any(keyVaultValidate.VaultID, keyVaultValidate.ManagedHSMID),
 			},
 
 			"key_type": {
@@ -260,20 +261,26 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 
 func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
+	client := keyVaultsClient.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key creation.")
 	name := d.Get("name").(string)
-	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	keyVaultIDStr := d.Get("key_vault_id").(string)
+	var vaulter parse.Vaulter
+	vaulter, err := parse.NewVaulterFromString(keyVaultIDStr)
 	if err != nil {
 		return err
 	}
 
-	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, vaulter)
 	if err != nil {
-		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", name, *keyVaultId, err)
+		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", name, vaulter, err)
+	}
+
+	if parse.IsMHSMVaulter(vaulter) {
+		client = keyVaultsClient.ManagementHSMClient
 	}
 
 	existing, err := client.GetKey(ctx, *keyVaultBaseUri, name, "")
@@ -359,7 +366,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if v, ok := d.GetOk("rotation_policy"); ok {
 		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, *keyVaultBaseUri, name, expandKeyVaultKeyRotationPolicy(v)); err != nil {
 			if utils.ResponseWasForbidden(respPolicy.Response) {
-				return fmt.Errorf("current client lacks permissions to create Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", name, *keyVaultId, *keyVaultBaseUri, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
+				return fmt.Errorf("current client lacks permissions to create Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", name, keyVaultIDStr, *keyVaultBaseUri, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
 			}
 			return fmt.Errorf("creating Key Rotation Policy: %+v", err)
 		}
@@ -394,19 +401,22 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	keyVaultId, err := parse.NewVaulterFromString(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}
+	if parse.IsMHSMVaulter(keyVaultId) {
+		client = keyVaultsClient.ManagementHSMClient
+	}
 
-	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseUrl)
+	meta.(*clients.Client).KeyVault.AddToCache(keyVaultId, id.KeyVaultBaseUrl)
 
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	ok, err := keyVaultsClient.Exists(ctx, keyVaultId)
 	if err != nil {
-		return fmt.Errorf("checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking if key vault %q for Key %q in Vault at url %q exists: %v", keyVaultId.ID(), id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId.ID(), id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}
@@ -441,7 +451,7 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if v, ok := d.GetOk("rotation_policy"); ok {
 		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name, expandKeyVaultKeyRotationPolicy(v)); err != nil {
 			if utils.ResponseWasForbidden(respPolicy.Response) {
-				return fmt.Errorf("current client lacks permissions to update Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
+				return fmt.Errorf("current client lacks permissions to update Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", id.Name, keyVaultId.ID(), id.KeyVaultBaseUrl, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
 			}
 			return fmt.Errorf("Creating Key Rotation Policy: %+v", err)
 		}
@@ -466,22 +476,28 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
+
 	if keyVaultIdRaw == nil {
 		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+
+	keyVaultId, err := parse.NewVaulterFromString(*keyVaultIdRaw)
 	if err != nil {
 		return err
 	}
 
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	if parse.IsMHSMVaulter(keyVaultId) {
+		client = keyVaultsClient.ManagementHSMClient
+	}
+
+	ok, err := keyVaultsClient.Exists(ctx, keyVaultId)
 	if err != nil {
-		return fmt.Errorf("checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking if key vault %q for Key %q in Vault at url %q exists: %v", keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, keyVaultId, id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}
@@ -584,15 +600,15 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name, id.Version).ID())
-	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
+	d.Set("resource_id", parse.NewVaultKeyID(keyVaultId, id.Name, id.Version).ID())
+	d.Set("resource_versionless_id", parse.NewVaultKeyVersionlessID(keyVaultId, id.Name).ID())
 
 	respPolicy, err := client.GetKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name)
 	if err != nil {
 		switch {
 		case utils.ResponseWasForbidden(respPolicy.Response):
 			// If client is not authorized to access the policy:
-			return fmt.Errorf("current client lacks permissions to read Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
+			return fmt.Errorf("current client lacks permissions to read Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", id.Name, keyVaultId.GetName(), id.KeyVaultBaseUrl, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
 		case utils.ResponseWasNotFound(respPolicy.Response):
 			return tags.FlattenAndSet(d, resp.Tags)
 		default:
@@ -627,24 +643,30 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	if keyVaultIdRaw == nil {
 		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	vaulter, err := parse.NewVaulterFromString(*keyVaultIdRaw)
 	if err != nil {
 		return err
 	}
 
-	kv, err := keyVaultsClient.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(kv.Response) {
-			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("retrieving key vault %q properties: %+v", *keyVaultId, err)
+	if parse.IsMHSMVaulter(vaulter) {
+		client = meta.(*clients.Client).KeyVault.ManagementHSMClient
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedKeysOnDestroy
-	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
-		log.Printf("[DEBUG] cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+	kv, mhsm, err := keyVaultsClient.GetVault(ctx, vaulter)
+
+	if err != nil {
+		if utils.ResponseWasNotFound(kv.Response) {
+			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, vaulter.GetName(), id.KeyVaultBaseUrl)
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("retrieving key vault %q properties: %+v", vaulter.ID(), err)
+	}
+
+	if shouldPurge && ((kv != nil && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection)) ||
+		(mhsm != nil && mhsm.Properties != nil && utils.NormaliseNilableBool(mhsm.Properties.EnablePurgeProtection))) {
+		log.Printf("[DEBUG] cannot purge key %q because vault %q has purge protection enabled", id.Name, vaulter.ID())
 		shouldPurge = false
 	}
 
