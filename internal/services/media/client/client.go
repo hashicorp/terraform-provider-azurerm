@@ -1,9 +1,11 @@
 package client
 
 import (
-	"github.com/Azure/go-autorest/autorest"
+	"fmt"
+
 	mediaV20211101 "github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01"
 	mediaV20220801 "github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -12,17 +14,23 @@ type Client struct {
 	V20220801Client *mediaV20220801.Client
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	V20211101Client := mediaV20211101.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
-		c.Authorizer = o.ResourceManagerAuthorizer
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	v20211101Client, err := mediaV20211101.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+		o.Configure(c, o.Authorizers.ResourceManager)
 	})
+	if err != nil {
+		return nil, fmt.Errorf("building 2021-11-01 client: %+v", err)
+	}
 
-	V20220801Client := mediaV20220801.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
-		c.Authorizer = o.ResourceManagerAuthorizer
+	v20220801Client, err := mediaV20220801.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+		o.Configure(c, o.Authorizers.ResourceManager)
 	})
+	if err != nil {
+		return nil, fmt.Errorf("building 2022-08-01 client: %+v", err)
+	}
 
 	return &Client{
-		V20211101Client: &V20211101Client,
-		V20220801Client: &V20220801Client,
-	}
+		V20211101Client: v20211101Client,
+		V20220801Client: v20220801Client,
+	}, nil
 }

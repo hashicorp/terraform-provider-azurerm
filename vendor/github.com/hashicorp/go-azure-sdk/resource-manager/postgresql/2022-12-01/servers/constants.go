@@ -36,21 +36,21 @@ func parseActiveDirectoryAuthEnum(input string) (*ActiveDirectoryAuthEnum, error
 type ArmServerKeyType string
 
 const (
-	ArmServerKeyTypeAzureKeyVault  ArmServerKeyType = "AzureKeyVault"
-	ArmServerKeyTypeSystemAssigned ArmServerKeyType = "SystemAssigned"
+	ArmServerKeyTypeAzureKeyVault ArmServerKeyType = "AzureKeyVault"
+	ArmServerKeyTypeSystemManaged ArmServerKeyType = "SystemManaged"
 )
 
 func PossibleValuesForArmServerKeyType() []string {
 	return []string{
 		string(ArmServerKeyTypeAzureKeyVault),
-		string(ArmServerKeyTypeSystemAssigned),
+		string(ArmServerKeyTypeSystemManaged),
 	}
 }
 
 func parseArmServerKeyType(input string) (*ArmServerKeyType, error) {
 	vals := map[string]ArmServerKeyType{
-		"azurekeyvault":  ArmServerKeyTypeAzureKeyVault,
-		"systemassigned": ArmServerKeyTypeSystemAssigned,
+		"azurekeyvault": ArmServerKeyTypeAzureKeyVault,
+		"systemmanaged": ArmServerKeyTypeSystemManaged,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

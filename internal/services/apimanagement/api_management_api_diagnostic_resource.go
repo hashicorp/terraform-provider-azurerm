@@ -189,10 +189,11 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 		},
 	}
 
-	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
+	samplingPercentage := d.GetRawConfig().AsValueMap()["sampling_percentage"]
+	if !samplingPercentage.IsNull() {
 		parameters.Sampling = &apimanagement.SamplingSettings{
 			SamplingType: apimanagement.SamplingTypeFixed,
-			Percentage:   utils.Float(samplingPercentage.(float64)),
+			Percentage:   utils.Float(d.Get("sampling_percentage").(float64)),
 		}
 	} else {
 		parameters.Sampling = nil

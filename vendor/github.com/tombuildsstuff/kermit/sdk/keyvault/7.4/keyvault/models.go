@@ -4258,8 +4258,8 @@ type Setting struct {
 // SettingsListResult the settings list result.
 type SettingsListResult struct {
 	autorest.Response `json:"-"`
-	// Value - READ-ONLY; A response message containing a list of account settings with their associated value.
-	Value *[]Setting `json:"value,omitempty"`
+	// Settings - READ-ONLY; A response message containing a list of account settings with their associated value.
+	Settings *[]Setting `json:"settings,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SettingsListResult.
