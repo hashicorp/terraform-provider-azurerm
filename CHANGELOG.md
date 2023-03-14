@@ -7,6 +7,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * provider: fix an authentication bug which sometimes caused access tokens to be refreshed too late [GH-20894]
+* `azurerm_healthcare_dicom_service` - extending the `create` and `update` timeouts to `90` minutes [GH-20932]
 
 ## 3.47.0 (March 09, 2023)
 
