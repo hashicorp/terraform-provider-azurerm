@@ -734,14 +734,6 @@ func (r PostgresqlFlexibleServerResource) authConfig(data acceptance.TestData, a
 		tenantIdBlock = "tenant_id = data.azurerm_client_config.current.tenant_id"
 	}
 
-	pwdBlock := ""
-	if pwdEnabled {
-		pwdBlock = `
-administrator_login    = "adminTerraform"
-administrator_password = "QAZwsx123"
-`
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -749,23 +741,24 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                = "acctest-fs-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  %[3]s
-  storage_mb = 32768
-  version    = "12"
-  sku_name   = "GP_Standard_D2s_v3"
-  zone       = "2"
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = 32768
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 
   authentication {
-    active_directory_auth_enabled = %[4]t
-    password_auth_enabled         = %[5]t
-   %[6]s
+    active_directory_auth_enabled = %[3]t
+    password_auth_enabled         = %[4]t
+   %[5]s
   }
 
 }
-`, r.template(data), data.RandomInteger, pwdBlock, aadEnabled, pwdEnabled, tenantIdBlock)
+`, r.template(data), data.RandomInteger, aadEnabled, pwdEnabled, tenantIdBlock)
 }
 
 func (r PostgresqlFlexibleServerResource) cmkTemplate(data acceptance.TestData) string {
