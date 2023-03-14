@@ -211,6 +211,46 @@ func TestAccCdnFrontDoorOrigin_removeOriginHostHeaderName(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorOrigin_OriginHostHeaderRegression(t *testing.T) {
+	// regression test case for issue 20866
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
+	r := CdnFrontDoorOriginResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.OriginHostHeaderRegression(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("origin_host_header").HasValue("regression20866.australiaeast.cloudapp.azure.com"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.OriginHostHeaderRegressionUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("origin_host_header").HasValue("regression20866.australiaeast.cloudapp.azure.com"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.OriginHostHeaderRegression(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("origin_host_header").HasValue("regression20866.australiaeast.cloudapp.azure.com"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.removeOriginHostHeader(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("origin_host_header").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CdnFrontDoorOriginResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontDoorOriginID(state.ID)
 	if err != nil {
@@ -729,6 +769,56 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   http_port                      = 80
   https_port                     = 443
   priority                       = 1
+  weight                         = 1
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorOriginResource) OriginHostHeaderRegression(data acceptance.TestData) string {
+	template := r.template(data, "Standard_AzureFrontDoor", false)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name                          = "acctest-cdnfdorigin-%d"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
+
+  certificate_name_check_enabled = false
+  host_name                      = "contoso.com"
+  origin_host_header             = "regression20866.australiaeast.cloudapp.azure.com"
+  http_port                      = 80
+  https_port                     = 443
+  priority                       = 1
+  weight                         = 1
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorOriginResource) OriginHostHeaderRegressionUpdate(data acceptance.TestData) string {
+	template := r.template(data, "Standard_AzureFrontDoor", false)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name                          = "acctest-cdnfdorigin-%d"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
+
+  certificate_name_check_enabled = false
+  host_name                      = "contoso.com"
+  origin_host_header             = "regression20866.australiaeast.cloudapp.azure.com"
+  http_port                      = 80
+  https_port                     = 443
+  priority                       = 5
   weight                         = 1
 }
 `, template, data.RandomInteger)

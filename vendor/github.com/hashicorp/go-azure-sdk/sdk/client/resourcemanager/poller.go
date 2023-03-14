@@ -16,8 +16,9 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 
 	// If this is a LRO we should either have a 201/202 with a Polling URI header
 	isLroStatus := response.StatusCode == http.StatusCreated || response.StatusCode == http.StatusAccepted
+	methodIsDelete := strings.EqualFold(response.Request.Method, "DELETE")
 	lroPollingUri := pollingUriForLongRunningOperation(response)
-	if isLroStatus && lroPollingUri != "" {
+	if isLroStatus && lroPollingUri != "" && !methodIsDelete {
 		lro, lroErr := longRunningOperationPollerFromResponse(response, client.Client)
 		if lroErr != nil {
 			err = lroErr
@@ -47,8 +48,7 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 	}
 
 	// finally, if it was a Delete that returned a 200/204
-	methodIsDelete := strings.EqualFold(response.Request.Method, "DELETE")
-	statusCodesToCheckDelete := response.StatusCode == http.StatusOK || response.StatusCode == http.StatusNoContent
+	statusCodesToCheckDelete := response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated || response.StatusCode == http.StatusAccepted || response.StatusCode == http.StatusNoContent
 	if methodIsDelete && statusCodesToCheckDelete {
 		deletePoller, deletePollerErr := deletePollerFromResponse(response, client, DefaultPollingInterval)
 		if deletePollerErr != nil {

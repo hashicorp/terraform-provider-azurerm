@@ -66,6 +66,9 @@ func (c MachineLearningComputesClient) responderForComputeListKeys(resp *http.Re
 		autorest.ByUnmarshallingJSON(&respObj),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+	if err != nil {
+		return
+	}
 	model, err := unmarshalComputeSecretsImplementation(respObj)
 	if err != nil {
 		return

@@ -271,6 +271,8 @@ An `oms_agent` block exports the following:
 
 * `log_analytics_workspace_id` - The ID of the Log Analytics Workspace to which the OMS Agent should send data.
 
+* `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
+
 * `oms_agent_identity` - An `oms_agent_identity` block as defined below.  
 
 ---
