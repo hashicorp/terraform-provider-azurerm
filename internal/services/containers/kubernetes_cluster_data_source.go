@@ -688,15 +688,14 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	profileId := managedclusters.NewAccessProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string), "clusterUser")
-	profile, err := client.GetAccessProfile(ctx, profileId)
+	credentials, err := client.ListClusterUserCredentials(ctx, id, managedclusters.ListClusterUserCredentialsOperationOptions{})
 	if err != nil {
-		return fmt.Errorf("retrieving Access Profile for %s: %+v", id, err)
+		return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
 	}
-	if profile.Model == nil {
-		return fmt.Errorf("retrieving Access Profile for %s: payload is empty", id)
+	if credentials.Model == nil {
+		return fmt.Errorf("retrieving User Credentials for %s: payload is empty", id)
 	}
-	profileModel := profile.Model
+	credentialsModel := credentials.Model
 
 	d.SetId(id.ID())
 	if model := resp.Model; model != nil {
@@ -822,14 +821,13 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 
 			// adminProfile is only available for RBAC enabled clusters with AAD and without local accounts disabled
 			if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-				profileId := managedclusters.NewAccessProfileID(subscriptionId, id.ResourceGroupName, id.ManagedClusterName, "clusterAdmin")
-				adminProfile, err := client.GetAccessProfile(ctx, profileId)
+				adminCredentials, err := client.ListClusterAdminCredentials(ctx, id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
 				if err != nil {
-					return fmt.Errorf("retrieving Admin Access Profile for %s: %+v", id, err)
+					return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
 				}
 
-				if adminProfileModel := adminProfile.Model; adminProfileModel != nil {
-					adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(*adminProfileModel)
+				if adminCredentialModel := adminCredentials.Model; adminCredentialModel != nil {
+					adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterDataSourceCredentials(*adminCredentialModel, "clusterAdmin")
 					d.Set("kube_admin_config_raw", adminKubeConfigRaw)
 					if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
 						return fmt.Errorf("setting `kube_admin_config`: %+v", err)
@@ -850,7 +848,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceAccessProfile(*profileModel)
+		kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceCredentials(*credentialsModel, "clusterUser")
 		d.Set("kube_config_raw", kubeConfigRaw)
 		if err := d.Set("kube_config", kubeConfig); err != nil {
 			return fmt.Errorf("setting `kube_config`: %+v", err)
@@ -926,36 +924,41 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 	return storageProfile
 }
 
-func flattenKubernetesClusterDataSourceAccessProfile(profile managedclusters.ManagedClusterAccessProfile) (*string, []interface{}) {
-	if profile.Properties == nil {
+func flattenKubernetesClusterDataSourceCredentials(model managedclusters.CredentialResults, configName string) (*string, []interface{}) {
+	if model.Kubeconfigs == nil || len(*model.Kubeconfigs) < 1 {
 		return nil, []interface{}{}
 	}
 
-	if kubeConfigRaw := profile.Properties.KubeConfig; kubeConfigRaw != nil {
-		rawConfig := *kubeConfigRaw
-		if base64IsEncoded(*kubeConfigRaw) {
-			rawConfig = base64Decode(*kubeConfigRaw)
+	for _, c := range *model.Kubeconfigs {
+		if c.Name == nil || *c.Name != configName {
+			continue
 		}
-
-		var flattenedKubeConfig []interface{}
-
-		if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
-			kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
-			if err != nil {
-				return utils.String(rawConfig), []interface{}{}
+		if kubeConfigRaw := c.Value; kubeConfigRaw != nil {
+			rawConfig := *kubeConfigRaw
+			if base64IsEncoded(*kubeConfigRaw) {
+				rawConfig = base64Decode(*kubeConfigRaw)
 			}
 
-			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
-		} else {
-			kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
-			if err != nil {
-				return utils.String(rawConfig), []interface{}{}
+			var flattenedKubeConfig []interface{}
+
+			if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
+				kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
+				if err != nil {
+					return utils.String(rawConfig), []interface{}{}
+				}
+
+				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
+			} else {
+				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
+				if err != nil {
+					return utils.String(rawConfig), []interface{}{}
+				}
+
+				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
 			}
 
-			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
+			return utils.String(rawConfig), flattenedKubeConfig
 		}
-
-		return utils.String(rawConfig), flattenedKubeConfig
 	}
 
 	return nil, []interface{}{}
