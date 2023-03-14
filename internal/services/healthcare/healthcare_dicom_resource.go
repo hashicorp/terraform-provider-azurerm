@@ -30,9 +30,9 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 		Delete: resourceHealthcareApisDicomServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(00 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -290,7 +290,7 @@ func resourceHealthcareApisDicomServiceDelete(d *pluginsdk.ResourceData, meta in
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Pending"},
 		Target:                    []string{"Deleted"},
-		Refresh:                   dicomServiceStateStatusCodeRefreshFunc(ctx, client, *id),
+		Refresh:                   dicomServiceStateStatusCodeRefreshFuncForDeletion(ctx, client, *id),
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 		ContinuousTargetOccurence: 3,
 		PollInterval:              10 * time.Second,
@@ -302,7 +302,21 @@ func resourceHealthcareApisDicomServiceDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func dicomServiceStateStatusCodeRefreshFunc(ctx context.Context, client *healthcareapis.DicomServicesClient, id parse.DicomServiceId) pluginsdk.StateRefreshFunc {
+func dicomServiceStateStatusCodeRefreshFuncForCreation(ctx context.Context, client *healthcareapis.DicomServicesClient, fhirServiceId parse.FhirServiceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, fhirServiceId.ResourceGroup, fhirServiceId.WorkspaceName, fhirServiceId.Name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil, "", fmt.Errorf("unable to retrieve iot connector %q: %+v", fhirServiceId, err)
+			}
+			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", fhirServiceId, err)
+		}
+
+		return resp, string(resp.ProvisioningState), nil
+	}
+}
+
+func dicomServiceStateStatusCodeRefreshFuncForDeletion(ctx context.Context, client *healthcareapis.DicomServicesClient, id parse.DicomServiceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 
