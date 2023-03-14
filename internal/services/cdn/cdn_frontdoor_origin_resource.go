@@ -344,13 +344,11 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 		params.HTTPSPort = utils.Int32(int32(d.Get("https_port").(int)))
 	}
 
-	// The API requires that an explicit null be passed as the 'origin_host_header' value to remove the origin host header
-	// e.g. {"properties":{"originHostHeader":null}}
-	if d.HasChange("origin_host_header") {
-		params.OriginHostHeader = nil
-		if d.Get("origin_host_header").(string) != "" {
-			params.OriginHostHeader = utils.String(d.Get("origin_host_header").(string))
-		}
+	// The API requires that an explicit null be passed as the 'origin_host_header' value to remove the origin host header, see issue #20617
+	// Since null is a valid value, we now have to always pass the value during update else we will inadvertently clear the value, see issue #20866
+	params.OriginHostHeader = nil
+	if d.Get("origin_host_header").(string) != "" {
+		params.OriginHostHeader = utils.String(d.Get("origin_host_header").(string))
 	}
 
 	if d.HasChange("private_link") {

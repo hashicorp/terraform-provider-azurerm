@@ -138,7 +138,7 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "Get", "List", "Create", "Delete", "Update", "Purge",
+      "Get", "List", "Create", "Delete", "Update", "Purge", "GetRotationPolicy", "SetRotationPolicy"
     ]
   }
 
@@ -147,7 +147,7 @@ resource "azurerm_key_vault" "test" {
     object_id = azurerm_mssql_managed_instance.test.identity[0].principal_id
 
     key_permissions = [
-      "Get", "WrapKey", "UnwrapKey", "List", "Create",
+      "Get", "WrapKey", "UnwrapKey", "List", "Create", "GetRotationPolicy", "SetRotationPolicy"
     ]
   }
 }
@@ -199,7 +199,7 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "Get", "List", "Create", "Delete", "Update", "Purge",
+      "Get", "List", "Create", "Delete", "Update", "Purge", "GetRotationPolicy", "SetRotationPolicy"
     ]
   }
 
@@ -208,7 +208,7 @@ resource "azurerm_key_vault" "test" {
     object_id = azurerm_user_assigned_identity.test.principal_id
 
     key_permissions = [
-      "Get", "WrapKey", "UnwrapKey", "List", "Create",
+      "Get", "WrapKey", "UnwrapKey", "List", "Create", "GetRotationPolicy", "SetRotationPolicy"
     ]
   }
 }
@@ -260,7 +260,7 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "Get", "List", "Create", "Delete", "Update", "Purge",
+      "Get", "List", "Create", "Delete", "Update", "Purge", "GetRotationPolicy", "SetRotationPolicy"
     ]
   }
 
@@ -269,7 +269,7 @@ resource "azurerm_key_vault" "test" {
     object_id = azurerm_user_assigned_identity.test.principal_id
 
     key_permissions = [
-      "Get", "WrapKey", "UnwrapKey", "List", "Create",
+      "Get", "WrapKey", "UnwrapKey", "List", "Create", "GetRotationPolicy", "SetRotationPolicy"
     ]
   }
 }
