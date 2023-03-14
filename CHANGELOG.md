@@ -11,6 +11,8 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230313.1140427` of `github.com/hashicorp/go-azure-sdk` [GH-20918]
+* `signalr`: updating to API Version `2023-02-01` [GH-20910]
+* `webpubsub`: updating to API Version `2023-02-01` [GH-20910]
 * `azurerm_express_route_gateway` - support for the `allow_non_virtual_wan_traffic` property [GH-20667]
 
 BUG FIXES:
