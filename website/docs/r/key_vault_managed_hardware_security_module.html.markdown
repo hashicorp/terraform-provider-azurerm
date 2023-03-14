@@ -12,6 +12,8 @@ Manages a Key Vault Managed Hardware Security Module.
 
 ~> **Note:** the Azure Provider includes a Feature Toggle which will purge a Key Vault Managed Hardware Security Module resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_hardware_security_modules_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_hardware_security_modules_on_destroy) for more information.
 
+~> **Note:** To create a key for the Manage HSM, you can use the `[azurerm_key_vault_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key)`.
+
 ## Example Usage
 
 ```hcl

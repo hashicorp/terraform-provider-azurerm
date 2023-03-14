@@ -3,13 +3,13 @@ subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_key"
 description: |-
-  Manages a Key Vault Key.
+  Manages a Key Vault Key or a Managed HSM Key.
 
 ---
 
 # azurerm_key_vault_key
 
-Manages a Key Vault Key.
+Manages a Key Vault Key or a Managed HSM Key.
 
 ## Example Usage
 
@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Key. Changing this forces a new resource to be created.
 
-* `key_vault_id` - (Required) The ID of the Key Vault where the Key should be created. Changing this forces a new resource to be created.
+* `key_vault_id` - (Required) The ID of the Key Vault, or the Managed HSM, where the Key should be created. Changing this forces a new resource to be created.
 
 * `key_type` - (Required) Specifies the Key Type to use for this Key Vault Key. Possible values are `EC` (Elliptic Curve), `EC-HSM`, `RSA` and `RSA-HSM`. Changing this forces a new resource to be created.
 
@@ -138,7 +138,7 @@ An `automatic` block supports the following:
 The following attributes are exported:
 
 * `id` - The Key Vault Key ID.
-* `resource_id` - The (Versioned) ID for this Key Vault Key. This property points to a specific version of a Key Vault Key, as such using this won't auto-rotate values if used in other Azure Services.
+* `resource_id` - The (Versioned) ID for this Key Vault/Manage HSM Key. This property points to a specific version of a Key Vault Key, as such using this won't auto-rotate values if used in other Azure Services.
 * `resource_versionless_id` - The Versionless ID of the Key Vault Key. This property allows other Azure Services (that support it) to auto-rotate their value when the Key Vault Key is updated.
 * `version` - The current version of the Key Vault Key.
 * `versionless_id` - The Base ID of the Key Vault Key.
