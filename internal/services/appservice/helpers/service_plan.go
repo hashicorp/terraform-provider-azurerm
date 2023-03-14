@@ -187,34 +187,3 @@ func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, i
 
 	return osType, planSku, nil
 }
-
-func GetServicePlanSku(ctx context.Context, metadata sdk.ResourceMetaData, id interface{}, serviceFarmId string) (osType *string, planSku *string, err error) {
-	servicePlanClient := metadata.Client.AppService.ServicePlanClient
-
-	// serviceFarmId remains unchanged
-	if serviceFarmId == "" {
-		return nil, nil, nil
-	}
-
-	servicePlanId, err := parse.ServicePlanID(serviceFarmId)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	sp, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
-	if err != nil || sp.Kind == nil {
-		return nil, nil, fmt.Errorf("reading Service Plan for %s: %+v", id, err)
-	}
-
-	osType = utils.String("windows")
-	if strings.Contains(strings.ToLower(*sp.Kind), "linux") {
-		osType = utils.String("linux")
-	}
-
-	planSku = utils.String("")
-	if sku := sp.Sku; sku != nil {
-		planSku = sku.Name
-	}
-
-	return osType, planSku, nil
-}

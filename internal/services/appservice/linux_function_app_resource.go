@@ -785,7 +785,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.SiteProperties.ServerFarmID = utils.String(serviceFarmId)
 			}
 
-			_, planSKU, err := helpers.GetServicePlanSku(ctx, metadata, *id, serviceFarmId)
+			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
 			if err != nil {
 				return err
 			}
@@ -801,7 +801,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				servicePlanClient := metadata.Client.AppService.ServicePlanClient
 				servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
 				if err != nil {
-					return fmt.Errorf("reading new service plan (%s) for Linux %s: %+v", servicePlanId, id, err)
+					return fmt.Errorf("reading new service plan (%s) for Linux %s: %+v", servicePlanId.ServerfarmName, id, err)
 				}
 
 				if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
