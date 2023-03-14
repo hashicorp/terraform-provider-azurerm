@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr` Documentation
 
-The `signalr` SDK allows for interaction with the Azure Resource Manager Service `signalr` (API Version `2022-02-01`).
+The `signalr` SDK allows for interaction with the Azure Resource Manager Service `signalr` (API Version `2023-02-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
 ```
 
 
