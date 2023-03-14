@@ -8,6 +8,7 @@ BUG FIXES:
 
 * provider: fix an authentication bug which sometimes caused access tokens to be refreshed too late [GH-20894]
 * `azurerm_healthcare_dicom_service` - extending the `create` and `update` timeouts to `90` minutes [GH-20932]
+* `azurerm_kusto_eventhub_data_connection` - fixing an issue where an existing resource wouldn't be flagged during creation [GH-20926]
 
 ## 3.47.0 (March 09, 2023)
 
