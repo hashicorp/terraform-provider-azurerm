@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewMHSMNestedItemID(t *testing.T) {
-	mhsmType := MHSMKeys
+	mhsmType := RoleDefinitionType
 	cases := []struct {
 		Scenario        string
 		keyVaultBaseUrl string
@@ -26,7 +26,7 @@ func TestNewMHSMNestedItemID(t *testing.T) {
 			keyVaultBaseUrl: "https://test.managedhsm.azure.net",
 			Scope:           "/",
 			Name:            "test",
-			Expected:        "https://test.managedhsm.azure.net///test",
+			Expected:        fmt.Sprintf("https://test.managedhsm.azure.net///%s/test", mhsmType),
 			ExpectError:     false,
 		},
 		{
@@ -34,7 +34,7 @@ func TestNewMHSMNestedItemID(t *testing.T) {
 			keyVaultBaseUrl: "https://test.managedhsm.azure.net:443",
 			Scope:           "/keys",
 			Name:            "test",
-			Expected:        "https://test.managedhsm.azure.net//keys/test",
+			Expected:        fmt.Sprintf("https://test.managedhsm.azure.net//keys/%s/test", mhsmType),
 			ExpectError:     false,
 		},
 	}
