@@ -29,7 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	kv73 "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	kv74 "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
@@ -182,7 +182,8 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).KeyVault.ManagedHsmClient
+	kvClient := meta.(*clients.Client).KeyVault
+	hsmClient := kvClient.ManagedHsmClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,7 +192,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 
 	id := parse.NewManagedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	existing, err := hsmClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -225,27 +226,29 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		hsm.Properties.PublicNetworkAccess = keyvault.PublicNetworkAccessDisabled
 	}
 
-	reTry := client.Client.RetryAttempts
-	client.Client.RetryAttempts = 1 // retry if failed
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, hsm)
+	// do NOT retry if failed, for it takes too long to create and will not success. let it fail
+	// but `hsmClient` is a shared variable such change may cause data-race, but it should be fine for a hsmClient tool
+	retry := hsmClient.Client.RetryAttempts
+	hsmClient.Client.RetryAttempts = 1
+	future, err := hsmClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, hsm)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-	client.Client.RetryAttempts = reTry
+	hsmClient.Client.RetryAttempts = retry
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, hsmClient.Client); err != nil {
 		return fmt.Errorf("waiting on creation for %s: %+v", id, err)
 	}
 
 	// security domain download to activate this module
 	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && (certs)[0] != nil {
 		// get hsm uri
-		hsmRes, err := future.Result(*client)
+		hsmRes, err := future.Result(*hsmClient)
 		if hsmRes.Properties == nil || hsmRes.Properties.HsmURI == nil {
 			log.Printf("get empty HSM URI when activating it, skip it now: %+v", err)
 		} else {
 			encData, err := securityDomainDownload(ctx,
-				meta.(*clients.Client).KeyVault,
+				kvClient,
 				*hsmRes.Properties.HsmURI,
 				certs[0].(map[string]interface{}),
 			)
@@ -263,7 +266,8 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 
 // update to re-activate the security module
 func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	cli := meta.(*clients.Client).KeyVault.ManagedHsmClient
+	kvClient := meta.(*clients.Client).KeyVault
+	hsmClient := kvClient.ManagedHsmClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -272,7 +276,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 		return err
 	}
 
-	resp, err := cli.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := hsmClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil || resp.Properties == nil || resp.Properties.HsmURI == nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -281,7 +285,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && certs[0] != nil && d.Get("security_domain_enc_data").(string) == "" {
 		// get hsm uri
 		encData, err := securityDomainDownload(ctx,
-			meta.(*clients.Client).KeyVault,
+			kvClient,
 			*resp.Properties.HsmURI,
 			certs[0].(map[string]interface{}),
 		)
@@ -294,7 +298,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).KeyVault.ManagedHsmClient
+	hsmClient := meta.(*clients.Client).KeyVault.ManagedHsmClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -303,7 +307,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := hsmClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[ERROR] %s was not found - removing from state", id)
@@ -348,7 +352,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).KeyVault.ManagedHsmClient
+	hsmClient := meta.(*clients.Client).KeyVault.ManagedHsmClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -358,7 +362,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 	}
 
 	// We need to grab the keyvault hsm to see if purge protection is enabled prior to deletion
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := hsmClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil || resp.Location == nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
@@ -367,14 +371,14 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := hsmClient.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	// there is an API bug being tracked here: https://github.com/Azure/azure-rest-api-specs/issues/13365
 	// taking the statusCode404 as the expected resource deletion result, instead of the error code which triggers retry
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, hsmClient.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf(
 				"waiting for deletion of API Management Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -387,12 +391,12 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		return nil
 	}
 
-	purgeFuture, err := client.PurgeDeleted(ctx, id.Name, *resp.Location)
+	purgeFuture, err := hsmClient.PurgeDeleted(ctx, id.Name, *resp.Location)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	if err = purgeFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = purgeFuture.WaitForCompletionRef(ctx, hsmClient.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf(
 				"waiting for purge of %s: %+v", id, err)
@@ -432,12 +436,12 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 	sdClient := cli.MHSMSDClient
 	keyClient := cli.ManagementClient
 
-	var param kv73.CertificateInfoObject
+	var param kv74.CertificateInfoObject
 	var qourum = config["security_domain_quorum"].(int)
 	certIDs := config["security_domain_certificate"].(*pluginsdk.Set).List()
 
 	param.Required = utils.Int32(int32(qourum))
-	var certs []kv73.SecurityDomainJSONWebKey
+	var certs []kv74.SecurityDomainJSONWebKey
 	for _, certID := range certIDs {
 		certIDStr, ok := certID.(string)
 		if !ok {
@@ -451,7 +455,7 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 		if certRes.Cer == nil {
 			return "", fmt.Errorf("got nil key for %s", certID)
 		}
-		cert := kv73.SecurityDomainJSONWebKey{
+		cert := kv74.SecurityDomainJSONWebKey{
 			Kty:    pointer.FromString("RSA"),
 			KeyOps: &[]string{""},
 			Alg:    pointer.FromString("RSA-OAEP-256"),
@@ -504,11 +508,11 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 // if isUpload is false, then check the download pending
 // the generated SDK of `future.WaitForCompletionRef` not work, see:
 // https://github.com/Azure/azure-rest-api-specs/issues/23035
-func waitHSMPendingStatus(ctx context.Context, baseURL string, client *kv73.HSMSecurityDomainClient, isUpload bool) (err error) {
+func waitHSMPendingStatus(ctx context.Context, baseURL string, client *kv74.HSMSecurityDomainClient, isUpload bool) (err error) {
 	maxRetry := 30
 	var maxAttempt = client.RetryAttempts
 
-	var res kv73.SecurityDomainOperationStatus
+	var res kv74.SecurityDomainOperationStatus
 	for try := 0; try < maxRetry; try++ {
 		if isUpload {
 			res, err = client.UploadPending(ctx, baseURL)
@@ -523,7 +527,7 @@ func waitHSMPendingStatus(ctx context.Context, baseURL string, client *kv73.HSMS
 			}
 		}
 
-		if res.Status == kv73.OperationStatusSuccess {
+		if res.Status == kv74.OperationStatusSuccess {
 			return nil
 		}
 		time.Sleep(client.PollingDuration)
