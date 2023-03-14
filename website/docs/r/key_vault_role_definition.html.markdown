@@ -33,13 +33,13 @@ resource "azurerm_key_vault_managed_hardware_security_module" "example" {
 }
 
 resource "azurerm_key_vault_role_definition" "example" {
-  name = "7d206142-bf01-11ed-80bc-00155d61ee9e"
+  name              = "7d206142-bf01-11ed-80bc-00155d61ee9e"
   scope             = "/"
   vault_base_url    = azurerm_key_vault_managed_hardware_security_module.example.hsm_uri
   description       = "desc foo"
   assignable_scopes = ["/"]
   permission {
-    data_actions     = [
+    data_actions = [
       "Microsoft.KeyVault/managedHsm/keys/read/action",
     ]
   }
