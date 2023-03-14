@@ -3,6 +3,7 @@
 FEATURES: 
 
 * **New Data Source:** `azurerm_mobile_network_sim_policy` [FGH-20732]
+* **New Resource:** `azurerm_express_route_port_authorization` [GH-20736]
 * **New Resource:** `azurerm_mobile_network_sim_policy` [GH-20732]
 * **New Resource:** `azurerm_site_recovery_vmware_replication_policy` [GH-20881]
 
