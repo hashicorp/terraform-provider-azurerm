@@ -65,7 +65,6 @@ func (k KeyvaultRoleDefinitionDataResource) Arguments() map[string]*pluginsdk.Sc
 		"vault_base_url": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 
@@ -73,7 +72,6 @@ func (k KeyvaultRoleDefinitionDataResource) Arguments() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeString,
 			Default:  "/",
 			Optional: true,
-			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"/",
 			}, false),
