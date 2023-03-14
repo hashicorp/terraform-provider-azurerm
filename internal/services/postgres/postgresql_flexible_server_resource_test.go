@@ -269,6 +269,28 @@ func TestAccPostgresqlFlexibleServer_authConfig(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServer_disablePwdAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// starts from pwdEnabled set to `false` to test add `admininistrator_login`
+			Config: r.authConfig(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.authConfig(data, true, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
 func TestAccPostgresqlFlexibleServer_createWithCustomerManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
