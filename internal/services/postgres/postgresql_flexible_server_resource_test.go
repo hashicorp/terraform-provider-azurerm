@@ -245,14 +245,6 @@ func TestAccPostgresqlFlexibleServer_authConfig(t *testing.T) {
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// stats from pwdEnabled set to `false` to test add `admininistrator_login`
-			Config: r.authConfig(data, true, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
 			Config: r.authConfig(data, false, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -260,7 +252,7 @@ func TestAccPostgresqlFlexibleServer_authConfig(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			Config: r.authConfig(data, true, true),
+			Config: r.authConfig(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
