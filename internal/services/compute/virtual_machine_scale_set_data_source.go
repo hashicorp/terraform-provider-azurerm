@@ -164,6 +164,9 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 		if instance.InstanceID != nil {
 			nics, err := networkInterfacesClient.ListVirtualMachineScaleSetVMNetworkInterfacesComplete(ctx, id.ResourceGroup, id.Name, *instance.InstanceID)
 			if err != nil {
+				if utils.ResponseWasNotFound(nics.Response().Response) {
+					break
+				}
 				return fmt.Errorf("listing Network Interfaces for VM Instance %q for Virtual Machine Scale Set %q (Resource Group %q): %+v", *instance.InstanceID, id.ResourceGroup, id.Name, err)
 			}
 
