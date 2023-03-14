@@ -2,6 +2,7 @@ package signalr
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -135,8 +136,9 @@ func resourceSignalRSharedPrivateLinkRead(d *pluginsdk.ResourceData, meta interf
 	resp, err := client.SharedPrivateLinkResourcesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
-			return fmt.Errorf("%s was not found", id)
+			return nil
 		}
 		return fmt.Errorf("retrieving shared private link %s: %+v", id, err)
 	}
@@ -172,6 +174,27 @@ func resourceSignalrSharedPrivateLinkDelete(d *pluginsdk.ResourceData, meta inte
 
 	if err := client.SharedPrivateLinkResourcesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Deleting"},
+		Target:     []string{"NotFound"},
+		MinTimeout: 30 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+		Refresh: func() (interface{}, string, error) {
+			resp, err2 := client.SharedPrivateLinkResourcesGet(ctx, *id)
+			if err2 != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return resp, "NotFound", nil
+				}
+				return nil, "", err2
+			}
+
+			return resp, "Deleting", nil
+		},
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 	return nil
 }
