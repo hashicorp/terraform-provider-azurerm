@@ -7,6 +7,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * provider: fix an authentication bug which sometimes caused access tokens to be refreshed too late [GH-20894]
+* `azurerm_bot_channel_directline` - fixing an issue where an empty `site` was passed to the API [GH-20890]
 * `azurerm_healthcare_dicom_service` - extending the `create` and `update` timeouts to `90` minutes [GH-20932]
 * `azurerm_kusto_eventhub_data_connection` - fixing an issue where an existing resource wouldn't be flagged during creation [GH-20926]
 
