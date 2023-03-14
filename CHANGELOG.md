@@ -1,5 +1,9 @@
 ## 3.48.0 (Unreleased)
 
+FEATURES: 
+
+* **New Resource:** `azurerm_site_recovery_vmware_replication_policy` [GH-20881]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230313.1140427` of `github.com/hashicorp/go-azure-sdk` [GH-20918]
