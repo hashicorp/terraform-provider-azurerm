@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230313.1140427` of `github.com/hashicorp/go-azure-sdk` [GH-20918]
+* `azurerm_express_route_gateway` - support for the `allow_non_virtual_wan_traffic` property [GH-20667]
 
 BUG FIXES:
 
