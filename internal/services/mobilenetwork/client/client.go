@@ -13,13 +13,13 @@ import (
 )
 
 type Client struct {
-	MobileNetworkClient *mobilenetwork.MobileNetworkClient
-	ServiceClient       *service.ServiceClient
-	SIMGroupClient      *simgroup.SIMGroupClient
-	SliceClient         *slice.SliceClient
-	SiteClient          *site.SiteClient
-	DataNetworkClient   *datanetwork.DataNetworkClient
-	SIMPolicyClient     *simpolicy.SIMPolicyClient
+	MobileNetworkClient          *mobilenetwork.MobileNetworkClient
+	ServiceClient                *service.ServiceClient
+	SIMGroupClient               *simgroup.SIMGroupClient
+	SliceClient                  *slice.SliceClient
+	SiteClient                   *site.SiteClient
+	DataNetworkClient            *datanetwork.DataNetworkClient
+	SIMPolicyClient              *simpolicy.SIMPolicyClient
 	PacketCoreControlPlaneClient *packetcorecontrolplane.PacketCoreControlPlaneClient
 }
 
@@ -49,13 +49,13 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&packetCoreControlPlaneClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		MobileNetworkClient: &mobileNetworkClient,
-		DataNetworkClient:   &dataNetworkClient,
-		ServiceClient:       &serviceClient,
-		SIMGroupClient:      &simGroupClient,
-		SiteClient:          &siteClient,
-		SliceClient:         &sliceClient,
-		SIMPolicyClient:     &simPolicyClient,
+		MobileNetworkClient:          &mobileNetworkClient,
+		DataNetworkClient:            &dataNetworkClient,
+		ServiceClient:                &serviceClient,
+		SIMGroupClient:               &simGroupClient,
+		SiteClient:                   &siteClient,
+		SliceClient:                  &sliceClient,
+		SIMPolicyClient:              &simPolicyClient,
 		PacketCoreControlPlaneClient: &packetCoreControlPlaneClient,
 	}
 }
