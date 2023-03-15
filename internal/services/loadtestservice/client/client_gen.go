@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-func NewClient(o *common.ClientOptions) *loadtestservice_v2021_12_01_preview.Client {
+func NewClient(o *common.ClientOptions) (*loadtestservice_v2021_12_01_preview.Client, error) {
 	client := loadtestservice_v2021_12_01_preview.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
 		c.Authorizer = o.ResourceManagerAuthorizer
 	})
-	return &client
+	return &client, nil
 }
