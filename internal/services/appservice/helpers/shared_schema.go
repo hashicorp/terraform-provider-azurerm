@@ -273,7 +273,8 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"allowed_origins": {
 					Type:     pluginsdk.TypeSet,
-					Required: true,
+					Optional: true,
+					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -313,6 +314,34 @@ func CorsSettingsSchemaComputed() *pluginsdk.Schema {
 				},
 			},
 		},
+	}
+}
+
+func FlattenCorsSettings(input *web.CorsSettings) []CorsSetting {
+	if input == nil {
+		return []CorsSetting{}
+	}
+
+	cors := *input
+	if len(pointer.From(cors.AllowedOrigins)) == 0 && !pointer.From(cors.SupportCredentials) {
+		return []CorsSetting{}
+	}
+
+	return []CorsSetting{{
+		SupportCredentials: pointer.From(cors.SupportCredentials),
+		AllowedOrigins:     pointer.From(cors.AllowedOrigins),
+	}}
+}
+
+func ExpandCorsSettings(input []CorsSetting) *web.CorsSettings {
+	if len(input) != 1 {
+		return &web.CorsSettings{}
+	}
+	cors := input[0]
+
+	return &web.CorsSettings{
+		AllowedOrigins:     pointer.To(cors.AllowedOrigins),
+		SupportCredentials: pointer.To(cors.SupportCredentials),
 	}
 }
 
@@ -1159,25 +1188,6 @@ func expandIpRestrictionHeaders(headers []IpRestrictionHeaders) map[string][]str
 	return result
 }
 
-func ExpandCorsSettings(input []CorsSetting) *web.CorsSettings {
-	if len(input) == 0 {
-		allowedOrigins := make([]string, 0)
-		return &web.CorsSettings{
-			AllowedOrigins:     &allowedOrigins,
-			SupportCredentials: pointer.To(false),
-		}
-	}
-	var result web.CorsSettings
-	for _, v := range input {
-		if v.SupportCredentials {
-			result.SupportCredentials = utils.Bool(v.SupportCredentials)
-		}
-
-		result.AllowedOrigins = &v.AllowedOrigins
-	}
-	return &result
-}
-
 func ExpandAuthSettings(auth []AuthSettings) *web.SiteAuthSettings {
 	result := &web.SiteAuthSettings{}
 	if len(auth) == 0 {
@@ -1444,7 +1454,7 @@ func FlattenAuthSettings(auth web.SiteAuthSettings) []AuthSettings {
 
 func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []IpRestriction {
 	if ipRestrictionsList == nil {
-		return nil
+		return []IpRestriction{}
 	}
 
 	var ipRestrictions []IpRestriction
@@ -1489,7 +1499,7 @@ func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []Ip
 
 func flattenIpRestrictionHeaders(headers map[string][]string) []IpRestrictionHeaders {
 	if len(headers) == 0 {
-		return nil
+		return []IpRestrictionHeaders{}
 	}
 	ipRestrictionHeader := IpRestrictionHeaders{}
 	if xForwardFor, ok := headers["x-forwarded-for"]; ok {

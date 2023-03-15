@@ -727,6 +727,7 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 		AutoHealSettings:        flattenAutoHealSettingsLinux(appSiteSlotConfig.AutoHealRules),
 		AutoSwapSlotName:        pointer.From(appSiteSlotConfig.AutoSwapSlotName),
 		ContainerRegistryMSI:    pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID),
+		Cors:                    FlattenCorsSettings(appSiteSlotConfig.Cors),
 		DetailedErrorLogging:    pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled),
 		Http2Enabled:            pointer.From(appSiteSlotConfig.HTTP20Enabled),
 		IpRestriction:           FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions),
@@ -768,27 +769,6 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 		// Decode the string to docker values
 		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion)
 		siteConfig.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
-	}
-
-	if appSiteSlotConfig.Cors != nil {
-		corsEmpty := false
-		corsSettings := appSiteSlotConfig.Cors
-		cors := CorsSetting{}
-		if corsSettings.SupportCredentials != nil {
-			cors.SupportCredentials = *corsSettings.SupportCredentials
-		}
-
-		if corsSettings.AllowedOrigins != nil {
-			if len(*corsSettings.AllowedOrigins) > 0 {
-				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
-				corsEmpty = true
-			}
-		}
-
-		if !corsEmpty {
-			siteConfig.Cors = []CorsSetting{cors}
-		}
 	}
 
 	return []SiteConfigLinuxWebAppSlot{siteConfig}
@@ -1033,6 +1013,7 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 		AutoHealSettings:         flattenAutoHealSettingsWindows(appSiteSlotConfig.AutoHealRules),
 		AutoSwapSlotName:         pointer.From(appSiteSlotConfig.AutoSwapSlotName),
 		ContainerRegistryUserMSI: pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID),
+		Cors:                     FlattenCorsSettings(appSiteSlotConfig.Cors),
 		DetailedErrorLogging:     pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled),
 		FtpsState:                string(appSiteSlotConfig.FtpsState),
 		HealthCheckPath:          pointer.From(appSiteSlotConfig.HealthCheckPath),
@@ -1111,26 +1092,6 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 	winAppStack.CurrentStack = currentStack
 
 	siteConfig.ApplicationStack = []ApplicationStackWindows{winAppStack}
-
-	if appSiteSlotConfig.Cors != nil {
-		corsEmpty := false
-		corsSettings := appSiteSlotConfig.Cors
-		cors := CorsSetting{}
-		if corsSettings.SupportCredentials != nil {
-			cors.SupportCredentials = *corsSettings.SupportCredentials
-		}
-
-		if corsSettings.AllowedOrigins != nil {
-			if len(*corsSettings.AllowedOrigins) > 0 {
-				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
-				corsEmpty = true
-			}
-		}
-		if !corsEmpty {
-			siteConfig.Cors = []CorsSetting{cors}
-		}
-	}
 
 	return []SiteConfigWindowsWebAppSlot{siteConfig}
 }
