@@ -253,12 +253,12 @@ func (r MobileNetworkSimPolicyResource) complete(data acceptance.TestData) strin
 			%s
 
 resource "azurerm_mobile_network_sim_policy" "test" {
-  name                          = "acctest-mnsp-%d"
-  mobile_network_id             = azurerm_mobile_network.test.id
-  location                      = "%s"
-  default_slice_id              = azurerm_mobile_network_slice.test.id
-  registration_timer_in_seconds = 3240
-  rat_frequency_selection_priority_index                    = 1
+  name                                   = "acctest-mnsp-%d"
+  mobile_network_id                      = azurerm_mobile_network.test.id
+  location                               = "%s"
+  default_slice_id                       = azurerm_mobile_network_slice.test.id
+  registration_timer_in_seconds          = 3240
+  rat_frequency_selection_priority_index = 1
 
   slice {
     default_data_network_id = azurerm_mobile_network_data_network.test.id
@@ -297,12 +297,12 @@ func (r MobileNetworkSimPolicyResource) update(data acceptance.TestData) string 
 
 
 resource "azurerm_mobile_network_sim_policy" "test" {
-  name                          = "acctest-mnsp-%d"
-  mobile_network_id             = azurerm_mobile_network.test.id
-  location                      = "%s"
-  default_slice_id              = azurerm_mobile_network_slice.test.id
-  registration_timer_in_seconds = 3240
-  rat_frequency_selection_priority_index                    = 1
+  name                                   = "acctest-mnsp-%d"
+  mobile_network_id                      = azurerm_mobile_network.test.id
+  location                               = "%s"
+  default_slice_id                       = azurerm_mobile_network_slice.test.id
+  registration_timer_in_seconds          = 3240
+  rat_frequency_selection_priority_index = 1
 
   slice {
     default_data_network_id = azurerm_mobile_network_data_network.test.id
