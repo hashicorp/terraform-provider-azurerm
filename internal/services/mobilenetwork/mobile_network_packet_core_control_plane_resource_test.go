@@ -36,6 +36,10 @@ func TestAccMobileNetworkPacketCoreControlPlane_basic(t *testing.T) {
 
 func TestAccMobileNetworkPacketCoreControlPlane_withAccessInterface(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
+
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -122,6 +126,10 @@ func TestAccMobileNetworkPacketCoreControlPlane_requiresImport(t *testing.T) {
 
 func TestAccMobileNetworkPacketCoreControlPlane_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
+
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
