@@ -33,7 +33,7 @@ type PacketCoreControlPlaneModel struct {
 	Platform                    []PlatformConfigurationModel               `tfschema:"platform"`
 	Sku                         string                                     `tfschema:"sku"`
 	UeMtu                       int64                                      `tfschema:"user_equipment_mtu_in_bytes"`
-	InteropSettings             string                                     `tfschema:"interop_settings"`
+	InteropSettings             string                                     `tfschema:"interop_json"`
 	Identity                    []identity.ModelUserAssigned               `tfschema:"identity"`
 	Tags                        map[string]string                          `tfschema:"tags"`
 	Version                     string                                     `tfschema:"version"`
@@ -181,7 +181,7 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 
 		"identity": commonschema.UserAssignedIdentityOptional(),
 
-		"interop_settings": {
+		"interop_json": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ValidateFunc:     validation.StringIsJSON,
@@ -351,7 +351,7 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 				model.Properties.CoreNetworkTechnology = &value
 			}
 
-			if metadata.ResourceData.HasChange("interop_settings") {
+			if metadata.ResourceData.HasChange("interop_json") {
 				var interopSettingsValue interface{}
 				err := json.Unmarshal([]byte(plan.InteropSettings), &interopSettingsValue)
 				if err != nil {

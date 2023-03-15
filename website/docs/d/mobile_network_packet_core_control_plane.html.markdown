@@ -55,9 +55,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
-* `interop_settings` - Settings to allow interoperability with third party components e.g. RANs and UEs.
+* `interop_json` - Settings in JSON format to allow interoperability with third party components.
 
-* `tags` - A mapping of tags which should be assigned to the Mobile Network Packet Core Control Plane.
+* `tags` - A mapping of tags of Mobile Network Packet Core Control Plane.
 
 * `version` - The version of the packet core software that is deployed.
 

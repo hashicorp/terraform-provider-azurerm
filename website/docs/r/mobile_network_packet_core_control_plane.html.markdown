@@ -64,7 +64,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "example" {
     edge_device_id = azurerm_databox_edge_device.example.id
   }
 
-  interop_settings = jsonencode({
+  interop_json = jsonencode({
     "key" = "value"
   })
 
@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `interop_settings` - (Optional) Settings to allow interoperability with third party components e.g. RANs and UEs.
+* `interop_json` - (Optional) Settings in JSON format to allow interoperability with third party components e.g. RANs and UEs.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network Packet Core Control Plane.
 

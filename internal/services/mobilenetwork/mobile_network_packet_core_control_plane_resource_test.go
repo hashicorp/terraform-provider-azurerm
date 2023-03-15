@@ -48,7 +48,7 @@ func TestAccMobileNetworkPacketCoreControlPlane_withAccessInterface(t *testing.T
 	})
 }
 
-func TestAccMobileNetworkPacketCoreControlPlane_withIneropSettings(t *testing.T) {
+func TestAccMobileNetworkPacketCoreControlPlane_withIneropJSON(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_control_plane", "test")
 
 	// Limited regional availability for Mobile Network
@@ -57,7 +57,7 @@ func TestAccMobileNetworkPacketCoreControlPlane_withIneropSettings(t *testing.T)
 	r := MobileNetworkPacketCoreControlPlaneResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withInteropSettings(data),
+			Config: r.withInteropJson(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -313,7 +313,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r MobileNetworkPacketCoreControlPlaneResource) withInteropSettings(data acceptance.TestData) string {
+func (r MobileNetworkPacketCoreControlPlaneResource) withInteropJson(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 				%s
 
@@ -340,7 +340,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
     edge_device_id = azurerm_databox_edge_device.test.id
   }
 
-  interop_settings = jsonencode({
+  interop_json = jsonencode({
     "mtu" = 1440
   })
 
