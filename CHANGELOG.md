@@ -1,12 +1,26 @@
 ## 3.48.0 (Unreleased)
 
+FEATURES: 
+
+* **New Data Source:** `azurerm_mobile_network_sim_policy` [FGH-20732]
+* **New Resource:** `azurerm_express_route_port_authorization` [GH-20736]
+* **New Resource:** `azurerm_mobile_network_sim_policy` [GH-20732]
+* **New Resource:** `azurerm_site_recovery_vmware_replication_policy` [GH-20881]
+* **New Resource:** `azurerm_sentinel_alert_rule_anomaly_duplicate` [GH-20760]
+
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230310.1062650` of `github.com/hashicorp/go-azure-sdk` [GH-20885]
+* dependencies: updating to `v0.20230313.1140427` of `github.com/hashicorp/go-azure-sdk` [GH-20918]
+* `signalr`: updating to API Version `2023-02-01` [GH-20910]
+* `webpubsub`: updating to API Version `2023-02-01` [GH-20910]
+* `azurerm_express_route_gateway` - support for the `allow_non_virtual_wan_traffic` property [GH-20667]
 
 BUG FIXES:
 
 * provider: fix an authentication bug which sometimes caused access tokens to be refreshed too late [GH-20894]
+* `azurerm_bot_channel_directline` - fixing an issue where an empty `site` was passed to the API [GH-20890]
+* `azurerm_healthcare_dicom_service` - extending the `create` and `update` timeouts to `90` minutes [GH-20932]
+* `azurerm_kusto_eventhub_data_connection` - fixing an issue where an existing resource wouldn't be flagged during creation [GH-20926]
 
 ## 3.47.0 (March 09, 2023)
 

@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub` Documentation
 
-The `webpubsub` SDK allows for interaction with the Azure Resource Manager Service `webpubsub` (API Version `2021-10-01`).
+The `webpubsub` SDK allows for interaction with the Azure Resource Manager Service `webpubsub` (API Version `2023-02-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
 ```
 
 
@@ -54,6 +54,134 @@ payload := webpubsub.WebPubSubResource{
 
 if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
+}
+```
+
+
+### Example Usage: `WebPubSubClient.CustomCertificatesCreateOrUpdate`
+
+```go
+ctx := context.TODO()
+id := webpubsub.NewCustomCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webPubSubValue", "customCertificateValue")
+
+payload := webpubsub.CustomCertificate{
+	// ...
+}
+
+
+if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `WebPubSubClient.CustomCertificatesDelete`
+
+```go
+ctx := context.TODO()
+id := webpubsub.NewCustomCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webPubSubValue", "customCertificateValue")
+
+read, err := client.CustomCertificatesDelete(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `WebPubSubClient.CustomCertificatesGet`
+
+```go
+ctx := context.TODO()
+id := webpubsub.NewCustomCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webPubSubValue", "customCertificateValue")
+
+read, err := client.CustomCertificatesGet(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `WebPubSubClient.CustomCertificatesList`
+
+```go
+ctx := context.TODO()
+id := webpubsub.NewWebPubSubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webPubSubValue")
+
+// alternatively `client.CustomCertificatesList(ctx, id)` can be used to do batched pagination
+items, err := client.CustomCertificatesListComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `WebPubSubClient.CustomDomainsCreateOrUpdate`
+
+```go
+ctx := context.TODO()
+id := webpubsub.NewCustomDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webPubSubValue", "customDomainValue")
+
+payload := webpubsub.CustomDomain{
+	// ...
+}
+
+
+if err := client.CustomDomainsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `WebPubSubClient.CustomDomainsDelete`
+
+```go
+ctx := context.TODO()
+id := webpubsub.NewCustomDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webPubSubValue", "customDomainValue")
+
+if err := client.CustomDomainsDeleteThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `WebPubSubClient.CustomDomainsGet`
+
+```go
+ctx := context.TODO()
+id := webpubsub.NewCustomDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webPubSubValue", "customDomainValue")
+
+read, err := client.CustomDomainsGet(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `WebPubSubClient.CustomDomainsList`
+
+```go
+ctx := context.TODO()
+id := webpubsub.NewWebPubSubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webPubSubValue")
+
+// alternatively `client.CustomDomainsList(ctx, id)` can be used to do batched pagination
+items, err := client.CustomDomainsListComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
 }
 ```
 

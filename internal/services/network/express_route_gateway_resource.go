@@ -63,6 +63,12 @@ func resourceExpressRouteGateway() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 10),
 			},
 
+			"allow_non_virtual_wan_traffic": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -110,6 +116,7 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 	parameters := network.ExpressRouteGateway{
 		Location: utils.String(location),
 		ExpressRouteGatewayProperties: &network.ExpressRouteGatewayProperties{
+			AllowNonVirtualWanTraffic: utils.Bool(d.Get("allow_non_virtual_wan_traffic").(bool)),
 			AutoScaleConfiguration: &network.ExpressRouteGatewayPropertiesAutoScaleConfiguration{
 				Bounds: &network.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds{
 					Min: &minScaleUnits,
@@ -168,6 +175,7 @@ func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 			virtualHubId = *props.VirtualHub.ID
 		}
 		d.Set("virtual_hub_id", virtualHubId)
+		d.Set("allow_non_virtual_wan_traffic", props.AllowNonVirtualWanTraffic)
 
 		scaleUnits := 0
 		if props.AutoScaleConfiguration != nil && props.AutoScaleConfiguration.Bounds != nil && props.AutoScaleConfiguration.Bounds.Min != nil {

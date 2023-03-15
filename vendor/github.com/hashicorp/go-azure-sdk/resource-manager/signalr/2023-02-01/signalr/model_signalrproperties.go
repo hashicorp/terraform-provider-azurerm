@@ -19,6 +19,7 @@ type SignalRProperties struct {
 	PublicPort                 *int64                       `json:"publicPort,omitempty"`
 	ResourceLogConfiguration   *ResourceLogConfiguration    `json:"resourceLogConfiguration,omitempty"`
 	ServerPort                 *int64                       `json:"serverPort,omitempty"`
+	Serverless                 *ServerlessSettings          `json:"serverless,omitempty"`
 	SharedPrivateLinkResources *[]SharedPrivateLinkResource `json:"sharedPrivateLinkResources,omitempty"`
 	Tls                        *SignalRTlsSettings          `json:"tls,omitempty"`
 	Upstream                   *ServerlessUpstreamSettings  `json:"upstream,omitempty"`

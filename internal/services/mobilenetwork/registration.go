@@ -47,6 +47,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		SiteDataSource{},
 		SimGroupDataSource{},
 		SliceDataSource{},
+		SimPolicyDataSource{},
 	}
 }
 
@@ -59,5 +60,6 @@ func (r Registration) Resources() []sdk.Resource {
 		SliceResource{},
 		MobileNetworkResource{},
 		SiteResource{},
+		SimPolicyResource{},
 	}
 }
