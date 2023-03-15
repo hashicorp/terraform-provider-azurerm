@@ -5,8 +5,10 @@ import (
 )
 
 type Authorization struct {
-	Audiences     []string
-	LoginEndpoint string
+	Audiences        []string
+	IdentityProvider string
+	LoginEndpoint    string
+	Tenant           string
 }
 
 type Environment struct {

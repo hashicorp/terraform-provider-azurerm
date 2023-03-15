@@ -27,10 +27,10 @@ type CachedAuthorizer struct {
 // Token returns the current token if it's still valid, else will acquire a new token
 func (c *CachedAuthorizer) Token(ctx context.Context, req *http.Request) (*oauth2.Token, error) {
 	c.mutex.RLock()
-	valid := c.token != nil && c.token.Valid()
+	dueForRenewal := tokenDueForRenewal(c.token)
 	c.mutex.RUnlock()
 
-	if !valid {
+	if dueForRenewal {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
 		var err error
@@ -46,16 +46,15 @@ func (c *CachedAuthorizer) Token(ctx context.Context, req *http.Request) (*oauth
 // AuxiliaryTokens returns additional tokens for auxiliary tenant IDs, for use in multi-tenant scenarios
 func (c *CachedAuthorizer) AuxiliaryTokens(ctx context.Context, req *http.Request) ([]*oauth2.Token, error) {
 	c.mutex.RLock()
-	var valid bool
+	var dueForRenewal bool
 	for _, token := range c.auxTokens {
-		valid = token != nil && token.Valid()
-		if !valid {
+		if dueForRenewal = tokenDueForRenewal(token); dueForRenewal {
 			break
 		}
 	}
 	c.mutex.RUnlock()
 
-	if !valid {
+	if !dueForRenewal {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
 		var err error

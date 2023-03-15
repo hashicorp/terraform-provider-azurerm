@@ -216,6 +216,10 @@ func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, met
 
 	result, err := client.Get(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
+		if utils.ResponseWasNotFound(result.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("getting Application Insights Analytics Item %s: %+v", id, err)
 	}
 

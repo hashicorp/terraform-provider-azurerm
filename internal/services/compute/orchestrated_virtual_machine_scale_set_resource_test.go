@@ -2004,11 +2004,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   sku_name  = "Standard_D1_v2"
   instances = 3
-  
+
   tags = {
-    "SkipASMAzSecPack" = "true",
+    "SkipASMAzSecPack"                                                         = "true",
     "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
-    "prevent_deletion_if_contains_resources" = "false" 
+    "prevent_deletion_if_contains_resources"                                   = "false"
   }
 
   platform_fault_domain_count = 2
@@ -2059,7 +2059,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   priority_mix {
-    base_regular_count = 1
+    base_regular_count            = 1
     regular_percentage_above_base = 50
   }
 }
@@ -2094,11 +2094,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   sku_name  = "Standard_D1_v2"
   instances = 3
-  
+
   tags = {
-    "SkipASMAzSecPack" = "true",
+    "SkipASMAzSecPack"                                                         = "true",
     "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
-    "prevent_deletion_if_contains_resources" = "false" 
+    "prevent_deletion_if_contains_resources"                                   = "false"
   }
 
   platform_fault_domain_count = 2
@@ -2149,7 +2149,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   priority_mix {
-    base_regular_count = 1
+    base_regular_count            = 1
     regular_percentage_above_base = 50
   }
 }

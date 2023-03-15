@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -57,6 +58,21 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"location": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "global",
+				ValidateFunc: validation.Any(
+					location.EnhancedValidate,
+					validation.StringInSlice([]string{
+						"global",
+					}, false),
+				),
+				StateFunc:        location.StateFunc,
+				DiffSuppressFunc: location.DiffSuppressFunc,
+			},
 
 			"short_name": {
 				Type:         pluginsdk.TypeString,
@@ -476,6 +492,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	tenantId := meta.(*clients.Client).Account.TenantId
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	location := location.Normalize(d.Get("location").(string))
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -523,7 +540,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	expandedTags := tags.Expand(t)
 
 	parameters := insights.ActionGroupResource{
-		Location: utils.String(azure.NormalizeLocation("Global")),
+		Location: utils.String(location),
 		ActionGroup: &insights.ActionGroup{
 			GroupShortName:             utils.String(shortName),
 			Enabled:                    utils.Bool(enabled),
@@ -572,6 +589,7 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if group := resp.ActionGroup; group != nil {
 		d.Set("short_name", group.GroupShortName)

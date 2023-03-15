@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
@@ -71,6 +71,18 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			}),
 			pluginsdk.ForceNewIfChange("api_server_access_profile.0.subnet_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != "" && new == ""
+			}),
+			pluginsdk.ForceNewIf("default_node_pool.0.name", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+				old, new := d.GetChange("default_node_pool.0.name")
+				defaultName := d.Get("default_node_pool.0.name")
+				tempName := d.Get("default_node_pool.0.temporary_name_for_rotation")
+
+				// if the default node pool name has been set to temporary_name_for_rotation it means resizing failed
+				// we should not try to recreate the cluster, another apply will attempt the resize again
+				if old != "" && old == tempName {
+					return new != defaultName
+				}
+				return true
 			}),
 		),
 
@@ -1017,6 +1029,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"node_resource_group_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"oidc_issuer_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1114,6 +1131,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(managedclusters.ManagedClusterSKUTierFree),
 					string(managedclusters.ManagedClusterSKUTierPaid),
+					string(managedclusters.ManagedClusterSKUTierStandard),
 				}, false),
 			},
 
@@ -1215,6 +1233,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
+						},
+						"vertical_pod_autoscaler_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"vertical_pod_autoscaler_update_mode": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"vertical_pod_autoscaler_controlled_values": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -1329,7 +1360,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
 
 	workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
-	workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw)
+	workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw, d)
 
 	apiAccessProfile := expandKubernetesClusterAPIAccessProfile(d)
 	if !(*apiAccessProfile.EnablePrivateCluster) && dnsPrefix == "" {
@@ -1892,7 +1923,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("workload_autoscaler_profile") {
 		updateCluster = true
 		workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
-		workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw)
+		workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw, d)
 		if workloadAutoscalerProfile == nil {
 			existing.Model.Properties.WorkloadAutoScalerProfile = &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
 				Keda: &managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{
@@ -1981,13 +2012,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// update the node pool using the separate API
 	if d.HasChange("default_node_pool") {
-		log.Printf("[DEBUG] Updating of Default Node Pool..")
-
 		agentProfiles, err := ExpandDefaultNodePool(d)
 		if err != nil {
 			return fmt.Errorf("expanding `default_node_pool`: %+v", err)
 		}
-
 		agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
 		defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, *agentProfile.Name)
 
@@ -2007,15 +2035,72 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, defaultNodePoolId, agentProfile)
-		if err != nil {
-			return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
-		}
+		// if the default node pool name has changed it means the initial attempt at resizing failed
+		if d.HasChange("default_node_pool.0.vm_size") || d.HasChange("default_node_pool.0.name") {
+			log.Printf("[DEBUG] Cycling Default Node Pool..")
+			// to provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
+			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
+			// bringing up the new one.
 
-		if err := agentPool.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("waiting for update of Default Node Pool %s: %+v", defaultNodePoolId, err)
+			if v := d.Get("default_node_pool.0.temporary_name_for_rotation").(string); v == "" {
+				return fmt.Errorf("`temporary_name_for_rotation` must be specified when updating `vm_size`")
+			}
+
+			temporaryNodePoolName := d.Get("default_node_pool.0.temporary_name_for_rotation").(string)
+			tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, temporaryNodePoolName)
+
+			tempExisting, err := nodePoolsClient.Get(ctx, tempNodePoolId)
+			if !response.WasNotFound(tempExisting.HttpResponse) && err != nil {
+				return fmt.Errorf("checking for existing temporary %s: %+v", tempNodePoolId, err)
+			}
+
+			defaultExisting, err := nodePoolsClient.Get(ctx, defaultNodePoolId)
+			if !response.WasNotFound(defaultExisting.HttpResponse) && err != nil {
+				return fmt.Errorf("checking for existing default %s: %+v", defaultNodePoolId, err)
+			}
+
+			tempAgentProfile := agentProfile
+			tempAgentProfile.Name = &temporaryNodePoolName
+			// if the temp node pool already exists due to a previous failure, don't bother spinning it up
+			if tempExisting.Model == nil {
+				if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
+					return fmt.Errorf("creating temporary %s: %+v", tempNodePoolId, err)
+				}
+			}
+
+			ignorePodDisruptionBudget := true
+			deleteOpts := agentpools.DeleteOperationOptions{
+				IgnorePodDisruptionBudget: &ignorePodDisruptionBudget,
+			}
+			// delete the old default node pool if it exists
+			if defaultExisting.Model != nil {
+				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, deleteOpts); err != nil {
+					return fmt.Errorf("deleting default %s: %+v", defaultNodePoolId, err)
+				}
+			}
+
+			// create the default node pool with the new vm size
+			if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
+				// if creation of the default node pool fails we automatically fall back to the temporary node pool
+				// in func findDefaultNodePool
+				log.Printf("[DEBUG] Creation of resized default node pool failed")
+				return fmt.Errorf("creating default %s: %+v", defaultNodePoolId, err)
+			}
+
+			if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, deleteOpts); err != nil {
+				return fmt.Errorf("deleting temporary %s: %+v", tempNodePoolId, err)
+			}
+
+			log.Printf("[DEBUG] Cycled Default Node Pool..")
+		} else {
+			log.Printf("[DEBUG] Updating of Default Node Pool..")
+
+			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile); err != nil {
+				return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
+			}
+
+			log.Printf("[DEBUG] Updated Default Node Pool.")
 		}
-		log.Printf("[DEBUG] Updated Default Node Pool.")
 	}
 
 	if d.HasChange("maintenance_window") {
@@ -2087,9 +2172,17 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("portal_fqdn", props.AzurePortalFQDN)
 		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 		d.Set("kubernetes_version", props.KubernetesVersion)
-		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 		d.Set("local_account_disabled", props.DisableLocalAccounts)
+
+		nodeResourceGroup := ""
+		if v := props.NodeResourceGroup; v != nil {
+			nodeResourceGroup = *props.NodeResourceGroup
+		}
+		d.Set("node_resource_group", nodeResourceGroup)
+
+		nodeResourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup)
+		d.Set("node_resource_group_id", nodeResourceGroupId.ID())
 
 		publicNetworkAccess := managedclusters.PublicNetworkAccessEnabled
 		if props.PublicNetworkAccess != nil {
@@ -2216,7 +2309,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `windows_profile`: %+v", err)
 		}
 
-		workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile, d)
+		workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
 		if err := d.Set("workload_autoscaler_profile", workloadAutoscalerProfile); err != nil {
 			return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
 		}
@@ -2588,20 +2681,28 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 	}
 }
 
-func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
+func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}, d *pluginsdk.ResourceData) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
 	config := input[0].(map[string]interface{})
-	kedaEnabled := managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{}
-	if v := config["keda_enabled"].(bool); v {
-		kedaEnabled.Enabled = v
+
+	var workloadAutoscalerProfile managedclusters.ManagedClusterWorkloadAutoScalerProfile
+
+	if v := config["keda_enabled"].(bool); v || d.HasChange("workload_autoscaler_profile.0.keda_enabled") {
+		workloadAutoscalerProfile.Keda = &managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{
+			Enabled: v,
+		}
 	}
 
-	return &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
-		Keda: &kedaEnabled,
+	if v := config["vertical_pod_autoscaler_enabled"].(bool); v || d.HasChange("workload_autoscaler_profile.0.vertical_pod_autoscaler_enabled") {
+		workloadAutoscalerProfile.VerticalPodAutoscaler = &managedclusters.ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler{
+			Enabled: v,
+		}
 	}
+
+	return &workloadAutoscalerProfile
 }
 
 func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile {
@@ -2647,19 +2748,32 @@ func flattenKubernetesClusterWindowsProfile(profile *managedclusters.ManagedClus
 	}
 }
 
-func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.ManagedClusterWorkloadAutoScalerProfile, d *pluginsdk.ResourceData) []interface{} {
-	if profile == nil || len(d.Get("workload_autoscaler_profile").([]interface{})) == 0 {
+func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.ManagedClusterWorkloadAutoScalerProfile) []interface{} {
+	// The API always returns an empty WorkloadAutoScalerProfile object even if none of these values have ever been set
+	if profile == nil || (profile.Keda == nil && profile.VerticalPodAutoscaler == nil) {
 		return []interface{}{}
 	}
 
 	kedaEnabled := false
-	if v := profile.Keda; v != nil {
-		kedaEnabled = profile.Keda.Enabled
+	if v := profile.Keda; v != nil && v.Enabled {
+		kedaEnabled = v.Enabled
+	}
+
+	vpaEnabled := false
+	controlledValues := ""
+	updateMode := ""
+	if v := profile.VerticalPodAutoscaler; v != nil && v.Enabled {
+		vpaEnabled = v.Enabled
+		controlledValues = string(v.ControlledValues)
+		updateMode = string(v.UpdateMode)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"keda_enabled": kedaEnabled,
+			"keda_enabled":                              kedaEnabled,
+			"vertical_pod_autoscaler_enabled":           vpaEnabled,
+			"vertical_pod_autoscaler_update_mode":       updateMode,
+			"vertical_pod_autoscaler_controlled_values": controlledValues,
 		},
 	}
 }
@@ -3800,4 +3914,16 @@ func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedC
 			"labels_allowed":      labelAllowList,
 		},
 	}
+}
+
+func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
+	// retries the creation of a system node pool 3 times
+	var err error
+	for attempt := 0; attempt < 3; attempt++ {
+		if err = client.CreateOrUpdateThenPoll(ctx, id, profile); err == nil {
+			return nil
+		}
+	}
+
+	return err
 }
