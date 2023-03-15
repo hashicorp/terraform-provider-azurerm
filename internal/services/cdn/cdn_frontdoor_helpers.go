@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	// TODO: Upgrade to use the new sdk (e.g. go-azure-sdk)...
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"             // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor" // nolint: staticcheck
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -422,10 +422,6 @@ func ruleSetExists(d *pluginsdk.ResourceData, meta interface{}, id *[]parse.Fron
 func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta interface{}, routes *[]parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
 	if len(*routes) != 0 && routes != nil {
 		for _, route := range *routes {
-			// lock the route resource for update...
-			locks.ByName(route.RouteName, cdnFrontDoorRouteResourceName)
-			defer locks.UnlockByName(route.RouteName, cdnFrontDoorRouteResourceName)
-
 			// Check to see if the route still exists and grab its properties...
 			// NOTE: cdnFrontDoorRouteResourceName is defined in the "cdn_frontdoor_route_disable_link_to_default_domain_resource" file
 			// ignore the error because that could just mean that the route has already been deleted...
@@ -511,10 +507,7 @@ func setRouteRuleSetAssociations(d *pluginsdk.ResourceData, meta interface{}, id
 		RouteUpdatePropertiesParameters: &updateProps,
 	}
 
-	// lock the route resource for update...
-	locks.ByName(id.AssociationName, cdnFrontDoorRouteResourceName)
-	defer locks.UnlockByName(id.AssociationName, cdnFrontDoorRouteResourceName)
-
+	// TODO: Upgrade this resource to use the new SDK instead of the Azure Hacks workaround...
 	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName, updateParams)
 	if err != nil {
 		return fmt.Errorf("%s %s: %+v", errorTxt, *id, err)
