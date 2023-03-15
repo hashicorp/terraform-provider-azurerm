@@ -1273,6 +1273,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
+			Deprecated:   "`docker_bridge_cidr` has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.",
 			ValidateFunc: validate.CIDR,
 		}
 	}
