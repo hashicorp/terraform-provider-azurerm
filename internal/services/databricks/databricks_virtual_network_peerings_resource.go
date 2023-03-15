@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/vnetpeering"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,7 +21,9 @@ import (
 
 // peerMutex is used to prevent multiple Peering resources being created, updated
 // or deleted at the same time
-var peerMutex = &sync.Mutex{}
+const resourceLock string = "databricks.VnetPeerings"
+
+var peerMutex = locks.NewMutexKV()
 
 func resourceDatabricksVirtualNetworkPeering() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -173,8 +175,8 @@ func resourceDatabricksVirtualNetworkPeeringCreateUpdate(d *pluginsdk.ResourceDa
 		Id: utils.String(virtualNetworkId),
 	}
 
-	peerMutex.Lock()
-	defer peerMutex.Unlock()
+	peerMutex.Lock(resourceLock)
+	defer peerMutex.Unlock(resourceLock)
 
 	if err := pluginsdk.Retry(300*time.Second, retryDatabricksVnetPeeringsClientCreateUpdate(d, id, peer, meta)); err != nil {
 		return err
@@ -258,8 +260,8 @@ func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, me
 		return nil
 	}
 
-	peerMutex.Lock()
-	defer peerMutex.Unlock()
+	peerMutex.Lock(resourceLock)
+	defer peerMutex.Unlock(resourceLock)
 
 	// this is a workaround for the SDK issue: https://github.com/hashicorp/go-azure-sdk/issues/351
 	// and will be cleaned up once the fix has been implemented.
