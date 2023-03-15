@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `signalr`: updating to API Version `2023-02-01` [GH-20910]
 * `webpubsub`: updating to API Version `2023-02-01` [GH-20910]
 * `azurerm_express_route_gateway` - support for the `allow_non_virtual_wan_traffic` property [GH-20667]
+* `azurerm_ssh_public_key` -  allow `.` for `name` validation [GH-20955]
 
 BUG FIXES:
 
