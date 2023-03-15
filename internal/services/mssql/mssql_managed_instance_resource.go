@@ -166,9 +166,11 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 			Default:  "SQL_Default",
-			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^SQL_Default$|^SQL_(EastUS|EastUS2|WestUS2|SoutheastAsia|AustraliaEast|NorthEurope|SouthCentralUS|UKSouth|WestEurope|AustraliaSoutheast|BrazilSouth|CanadaCentral|CanadaEast|CentralUS|EastAsia|FranceCentral|GermanyWestCentral|CentralIndia|JapanEast|JapanWest|NorthCentralUS|UKWest|WestUS|KoreaCentral|WestCentralUS|UAENorth|SwitzerlandWest|SwitzerlandNorth|FranceSouth|SouthAfricaNorth|KoreaSouth|UAECentral|SouthIndia|AustraliaCentral|AustraliaCentral2|WestIndia|SouthAfricaWest|GermanyNorth|NorwayEast|NorwayWest|BrazilSoutheast|WestUS3)_MI_[1,2]$`),
-				`This is not a valid maintenance configuration name.`,
+			ValidateFunc: validation.Any(
+				validation.StringInSlice([]string{
+					"SQL_Default",
+				}, false),
+				validation.StringMatch(regexp.MustCompile("^SQL_([A-Za-z0-9])+_MI_(\\d)+$"), "expected a name in the format `SQL_{Location}_MI_{Number}` or `SQL_Default`"),
 			),
 		},
 
