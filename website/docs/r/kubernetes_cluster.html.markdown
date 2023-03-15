@@ -111,8 +111,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `http_proxy_config` - (Optional) A `http_proxy_config` block as defined below.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/HTTPProxyConfigPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/http-proxy) for more information.
-
 * `identity` - (Optional) An `identity` block as defined below. One of either `identity` or `service_principal` must be specified.
 
 !> **Note:** A migration scenario from `service_principal` to `identity` is supported. When upgrading `service_principal` to `identity`, your cluster's control plane and addon pods will switch to use managed identity, but the kubelets will keep using your configured `service_principal` until you upgrade your Node Pool.
@@ -145,8 +143,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `microsoft_defender` - (Optional) A `microsoft_defender` block as defined below.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-AzureDefender` is enabled, see [the documentation](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-containers-enable?tabs=aks-deploy-portal%2Ck8s-deploy-asc%2Ck8s-verify-asc%2Ck8s-remove-arc%2Caks-removeprofile-api&pivots=defender-for-container-aks) for more information.
-
 * `monitor_metrics` - (Optional) Specifies a Prometheus add-on profile for the Kubernetes Cluster. A `monitor_metrics` block as defined below.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below. Changing this forces a new resource to be created.
@@ -157,7 +153,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise, the provisioning of the Kubernetes Service will fail.
 
-* `oidc_issuer_enabled` - (Optional) Enable or Disable the [OIDC issuer URL](https://docs.microsoft.com/azure/aks/cluster-configuration#oidc-issuer-preview)
+* `oidc_issuer_enabled` - (Optional) Enable or Disable the [OIDC issuer URL](https://learn.microsoft.com/en-gb/azure/aks/use-oidc-issuer)
 
 * `oms_agent` - (Optional) A `oms_agent` block as defined below.
 
@@ -168,8 +164,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 * `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise, the cluster will have issues after provisioning. Changing this forces a new resource to be created.
 
 * `private_cluster_public_fqdn_enabled` - (Optional) Specifies whether a Public FQDN for this Private Cluster should be added. Defaults to `false`.
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnablePrivateClusterPublicFQDN` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/private-clusters#create-a-private-aks-cluster-with-a-public-dns-address) for more information.
 
 -> **Note:** If you use BYO DNS Zone, the AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - the cluster should depend on the role assignment, like in this example:
 
@@ -360,7 +354,9 @@ A `default_node_pool` block supports the following:
 
 * `name` - (Required) The name which should be used for the default Kubernetes Node Pool. Changing this forces a new resource to be created.
 
-* `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`. Changing this forces a new resource to be created.
+* `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`.
+
+-> **Note:** Resizing the `default_node_pool` Virtual Machine is done by cycling the system node pool of the cluster. `temporary_name_for_rotation` must be specified when attempting a resize.
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
 
@@ -385,8 +381,6 @@ A `default_node_pool` block supports the following:
 * `linux_os_config` - (Optional) A `linux_os_config` block as defined below. Changing this forces a new resource to be created.
 
 * `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? Changing this forces a new resource to be created.
-
-~> **Note:** FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible values are `OS` and `Temporary`.
 
@@ -416,11 +410,11 @@ A `default_node_pool` block supports the following:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
-
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group. Changing this forces a new resource to be created.
 
 * `scale_down_mode` - (Optional) Specifies the autoscaling behaviour of the Kubernetes Cluster. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
+
+* `temporary_name_for_rotation` - (Optional) Specifies the name of the temporary node pool used to cycle the default node pool for VM resizing.
 
 * `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`. Changing this forces a new resource to be created.
 
@@ -542,7 +536,7 @@ A `node_network_profile` block supports the following:
 
 * `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered.
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/use-node-public-ips#use-public-ip-tags-on-node-public-ips-preview) for more information.
 
 ---
 
@@ -681,6 +675,8 @@ A `nat_gateway_profile` block supports the following:
 An `oms_agent` block supports the following:
 
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace which the OMS Agent should send data to.
+
+* `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
 
 ---
 
@@ -825,6 +821,10 @@ A `workload_autoscaler_profile` block supports the following:
 * `keda_enabled` - (Optional) Specifies whether KEDA Autoscaler can be used for workloads.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-KedaPreview` is enabled and the Resource Provider is re-registered, see [the documentation]([Microsoft.ContainerService/AKS-KedaPreview](https://docs.microsoft.com/azure/aks/keda-deploy-add-on-arm#register-the-aks-kedapreview-feature-flag) for more information.
+
+* `vertical_pod_autoscaler_enabled` - (Optional) Specifies whether Vertical Pod Autoscaler should be enabled.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-VPAPreview` is enabled and the Resource Provider is re-registered, see [the documentation]([Microsoft.ContainerService/AKS-VPAPreview](https://learn.microsoft.com/en-us/azure/aks/vertical-pod-autoscaler#register-the-aks-vpapreview-feature-flag) for more information.
 
 ---
 
@@ -1006,6 +1006,14 @@ The `secret_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity used by the Secret Provider.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Secret Provider.
+
+---
+
+A `workload_autoscaler_profile` block exports the following:
+
+* `vertical_pod_autoscaler_controlled_values` - Which resources values should be controlled.
+
+* `vertical_pod_autoscaler_update_mode` - How the autoscaler applies changes to pod resources.
 
 ---
 

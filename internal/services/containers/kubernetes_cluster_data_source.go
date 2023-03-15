@@ -996,17 +996,24 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 	omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey)
 	if enabled := omsAgent.Enabled; enabled {
 		workspaceID := ""
+		useAADAuth := false
+
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
 			if lawid, err := workspaces.ParseWorkspaceID(v); err == nil {
 				workspaceID = lawid.ID()
 			}
 		}
 
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "useAADAuth"); v != "false" && v != "" {
+			useAADAuth = true
+		}
+
 		omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
 
 		omsAgents = append(omsAgents, map[string]interface{}{
-			"log_analytics_workspace_id": workspaceID,
-			"oms_agent_identity":         omsAgentIdentity,
+			"log_analytics_workspace_id":      workspaceID,
+			"msi_auth_for_monitoring_enabled": useAADAuth,
+			"oms_agent_identity":              omsAgentIdentity,
 		})
 	}
 

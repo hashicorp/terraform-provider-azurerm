@@ -133,7 +133,7 @@ resource "azurerm_sentinel_metadata" "test" {
   source {
     kind = "Solution"
     name = "test Solution"
-    id = "b688a130-76f4-4a07-bf57-762222a3cadf"
+    id   = "b688a130-76f4-4a07-bf57-762222a3cadf"
   }
 
   author {
@@ -204,11 +204,11 @@ resource "azurerm_sentinel_metadata" "test" {
   threat_analysis_techniques = ["T1548", "t1548.001"]
   first_publish_date         = "2021-06-24"
   last_publish_date          = "2021-07-24"
-  version = "1.0.0"
+  version                    = "1.0.0"
   source {
     kind = "Solution"
     name = "test Solution"
-    id = azurerm_sentinel_alert_rule_nrt.test.id
+    id   = azurerm_sentinel_alert_rule_nrt.test.id
   }
 
   author {

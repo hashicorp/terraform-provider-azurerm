@@ -13,7 +13,7 @@ import (
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
-	redis_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01"
+	redis_v2022_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01"
 	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -227,7 +227,7 @@ type Client struct {
 	PrivateDnsResolver    *dnsresolver.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
-	Redis                 *redis_v2021_06_01.Client
+	Redis                 *redis_v2022_06_01.Client
 	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
 	Resource              *resource.Client
@@ -293,7 +293,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
 	client.CustomProviders = customproviders.NewClient(o)
-	client.Dashboard = dashboard.NewClient(o)
+	if client.Dashboard, err = dashboard.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Dashboard: %+v", err)
+	}
 	client.DatabaseMigration = datamigration.NewClient(o)
 	client.DataBricks = databricks.NewClient(o)
 	client.DataboxEdge = databoxedge.NewClient(o)
@@ -340,7 +342,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Maps: %+v", err)
 	}
 	client.MariaDB = mariadb.NewClient(o)
-	client.Media = media.NewClient(o)
+	if client.Media, err = media.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Media: %+v", err)
+	}
 	client.MixedReality = mixedreality.NewClient(o)
 	client.Monitor = monitor.NewClient(o)
 	client.MobileNetwork = mobilenetwork.NewClient(o)
@@ -366,7 +370,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Search = search.NewClient(o)
 	client.SecurityCenter = securityCenter.NewClient(o)
 	client.Sentinel = sentinel.NewClient(o)
-	client.ServiceBus = serviceBus.NewClient(o)
+	if client.ServiceBus, err = serviceBus.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ServiceBus: %+v", err)
+	}
 	client.ServiceConnector = serviceConnector.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
