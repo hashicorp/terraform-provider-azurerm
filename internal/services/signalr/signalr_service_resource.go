@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
@@ -104,13 +105,33 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("Upstream configurations are only allowed when the SignalR Service is in `Serverless` mode")
 	}
 
+	publicNetworkAcc := "Enabled"
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAcc = "Disabled"
+	}
+
+	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	resourceType := signalr.SignalRResource{
 		Location: utils.String(location),
+		Identity: identity,
 		Properties: &signalr.SignalRProperties{
 			Cors:                   expandSignalRCors(cors),
 			Features:               &expandedFeatures,
 			Upstream:               expandUpstreamSettings(upstreamSettings),
 			LiveTraceConfiguration: expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{})),
+			PublicNetworkAccess:    utils.String(publicNetworkAcc),
+			DisableAadAuth:         utils.Bool(!d.Get("aad_auth_enabled").(bool)),
+			DisableLocalAuth:       utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			Tls: &signalr.SignalRTlsSettings{
+				ClientCertEnabled: utils.Bool(d.Get("tls_client_cert_enabled").(bool)),
+			},
+			Serverless: &signalr.ServerlessSettings{
+				ConnectionTimeoutInSeconds: utils.Int64(int64(d.Get("serverless_connection_timeout_in_seconds").(int))),
+			},
 		},
 		Sku:  expandSignalRServiceSku(sku),
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -189,6 +210,34 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("live_trace_enabled", liveTraceEnabled)
 			d.Set("service_mode", serviceMode)
 
+			aadAuthEnabled := true
+			if props.DisableAadAuth != nil {
+				aadAuthEnabled = !(*props.DisableAadAuth)
+			}
+			d.Set("aad_auth_enabled", aadAuthEnabled)
+
+			localAuthEnabled := true
+			if props.DisableLocalAuth != nil {
+				localAuthEnabled = !(*props.DisableLocalAuth)
+			}
+			d.Set("local_auth_enabled", localAuthEnabled)
+
+			publicNetworkAccessEnabled := true
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccessEnabled = strings.EqualFold(*props.PublicNetworkAccess, "Enabled")
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+
+			tlsClientCertEnabled := false
+			if props.Tls != nil && props.Tls.ClientCertEnabled != nil {
+				tlsClientCertEnabled = *props.Tls.ClientCertEnabled
+			}
+			d.Set("tls_client_cert_enabled", tlsClientCertEnabled)
+
+			if props.Serverless != nil && props.Serverless.ConnectionTimeoutInSeconds != nil {
+				d.Set("serverless_connection_timeout_in_seconds", int(*props.Serverless.ConnectionTimeoutInSeconds))
+			}
+
 			if err := d.Set("cors", flattenSignalRCors(props.Cors)); err != nil {
 				return fmt.Errorf("setting `cors`: %+v", err)
 			}
@@ -199,6 +248,14 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			if err := d.Set("live_trace", flattenSignalRLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
 				return fmt.Errorf("setting `live_trace`:%+v", err)
+			}
+
+			identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := d.Set("identity", identity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
 			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -239,6 +296,50 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if d.HasChange("live_trace") {
 			resourceType.Properties.LiveTraceConfiguration = expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{}))
+		}
+
+		if d.HasChange("public_network_access_enabled") {
+			publicNetworkAcc := "Enabled"
+			if _, ok := d.GetOk("public_network_access_enabled"); ok && !d.Get("public_network_access_enabled").(bool) {
+				publicNetworkAcc = "Disabled"
+			}
+			resourceType.Properties.PublicNetworkAccess = utils.String(publicNetworkAcc)
+		}
+
+		if d.HasChange("local_auth_enabled") {
+			localAuthEnabled := true
+			if v, ok := d.GetOk("local_auth_enabled"); ok {
+				localAuthEnabled = v.(bool)
+			}
+			resourceType.Properties.DisableAadAuth = utils.Bool(!localAuthEnabled)
+		}
+
+		if d.HasChange("aad_auth_enabled") {
+			aadAuthEnabled := true
+			if v, ok := d.GetOk("aad_auth_enabled"); ok {
+				aadAuthEnabled = v.(bool)
+			}
+			resourceType.Properties.DisableAadAuth = utils.Bool(!aadAuthEnabled)
+		}
+
+		if d.HasChange("tls_client_cert_enabled") {
+			resourceType.Properties.Tls = &signalr.SignalRTlsSettings{
+				ClientCertEnabled: utils.Bool(d.Get("tls_client_cert_enabled").(bool)),
+			}
+		}
+
+		if d.HasChange("serverless_connection_timeout_in_seconds") {
+			resourceType.Properties.Serverless = &signalr.ServerlessSettings{
+				ConnectionTimeoutInSeconds: utils.Int64(d.Get("serverless_connection_timeout_in_seconds").(int64)),
+			}
+		}
+
+		if d.HasChange("identity") {
+			identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			resourceType.Identity = identity
 		}
 
 		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled") {
@@ -652,6 +753,36 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"local_auth_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"aad_auth_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"tls_client_cert_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"serverless_connection_timeout_in_seconds": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Default:  30,
+		},
+
 		"service_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -720,6 +851,8 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"hostname": {
 			Type:     pluginsdk.TypeString,

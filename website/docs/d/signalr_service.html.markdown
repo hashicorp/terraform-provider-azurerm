@@ -51,6 +51,32 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The secondary connection string of the SignalR service.
 
+* `public_network_access_enabled` - Is public network access enabled?
+
+* `local_auth_enabled` - Is local auth enabled?
+
+* `aad_auth_enabled` - Is aad auth enabled?
+
+* `tls_client_cert_enabled` - Is tls client cert enabled
+
+* `serverless_connection_timeout_in_seconds` - The serverless connection timeout.
+
+* `identity` - An `identity` block as documented below.
+
+---
+
+The `identity` block exports the following:
+
+* `type` - The type of identity used for the web pubsub.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity. This value will be empty when using system assigned identity.
+
+* `principal_id` - The principal id of the system assigned identity.
+
+* `tenant_id` - The tenant id of the system assigned identity.
+
+---
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
