@@ -508,6 +508,11 @@ func setRouteRuleSetAssociations(d *pluginsdk.ResourceData, meta interface{}, id
 	}
 
 	// TODO: Upgrade this resource to use the new SDK instead of the Azure Hacks workaround...
+	// when upgrading to the new Pandora SDK, convert this to use the 'CreateOrUpdate' call instead
+	// of using the 'Update' call, per TomBuildsStuff(PR #20859):
+	// "...'PATCH' API's (Update calls in the SDK) will be delta/patch API's, which is to say that if the
+	// JSON field is omitted then it won't be touched - however the 'PUT'/'POST' API's (CreateOrUpdate
+	// calls in the SDK) should remove these fields without the need for the azuresdkhacks folder)..."
 	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName, updateParams)
 	if err != nil {
 		return fmt.Errorf("%s %s: %+v", errorTxt, *id, err)
