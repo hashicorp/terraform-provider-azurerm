@@ -51,15 +51,15 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The secondary connection string of the SignalR service.
 
-* `public_network_access_enabled` - Is public network access enabled?
+* `public_network_access_enabled` - Is public network access enabled for this SignalR service?
 
-* `local_auth_enabled` - Is local auth enabled?
+* `local_auth_enabled` - Is local auth enable for this SignalR serviced?
 
-* `aad_auth_enabled` - Is aad auth enabled?
+* `aad_auth_enabled` - Is aad auth enabled for this SignalR service?
 
-* `tls_client_cert_enabled` - Is tls client cert enabled
+* `tls_client_cert_enabled` - Is tls client cert enabled for this SignalR service?
 
-* `serverless_connection_timeout_in_seconds` - The serverless connection timeout.
+* `serverless_connection_timeout_in_seconds` - The serverless connection timeout of this SignalR service.
 
 * `identity` - An `identity` block as documented below.
 
@@ -67,7 +67,7 @@ The following attributes are exported:
 
 The `identity` block exports the following:
 
-* `type` - The type of identity used for the web pubsub.
+* `type` - The type of identity used for the signalR service.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity. This value will be empty when using system assigned identity.
 

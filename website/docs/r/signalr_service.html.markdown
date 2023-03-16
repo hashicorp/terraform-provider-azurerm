@@ -3,7 +3,7 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_signalr_service"
 description: |-
-  Manages an Azure SignalR service.
+Manages an Azure SignalR service.
 ---
 
 # azurerm_signalr_service
@@ -129,9 +129,9 @@ A `sku` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Web PubSub. Possible values are `SystemAssigned`, `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this signalR. Possible values are `SystemAssigned`, `UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Web PubSub.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this signalR.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned`
 

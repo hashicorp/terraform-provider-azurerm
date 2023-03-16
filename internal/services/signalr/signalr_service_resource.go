@@ -286,7 +286,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	resourceType := signalr.SignalRResource{}
 
-	if d.HasChanges("cors", "features", "upstream_endpoint", "connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled", "live_trace") {
+	if d.HasChanges("cors", "features", "upstream_endpoint", "connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled", "live_trace", "public_network_access_enabled", "local_auth_enabled", "aad_auth_enabled", "tls_client_cert_enabled", "serverless_connection_timeout_in_seconds") {
 		resourceType.Properties = &signalr.SignalRProperties{}
 
 		if d.HasChange("cors") {
@@ -300,26 +300,18 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if d.HasChange("public_network_access_enabled") {
 			publicNetworkAcc := "Enabled"
-			if _, ok := d.GetOk("public_network_access_enabled"); ok && !d.Get("public_network_access_enabled").(bool) {
+			if !d.Get("public_network_access_enabled").(bool) {
 				publicNetworkAcc = "Disabled"
 			}
 			resourceType.Properties.PublicNetworkAccess = utils.String(publicNetworkAcc)
 		}
 
 		if d.HasChange("local_auth_enabled") {
-			localAuthEnabled := true
-			if v, ok := d.GetOk("local_auth_enabled"); ok {
-				localAuthEnabled = v.(bool)
-			}
-			resourceType.Properties.DisableAadAuth = utils.Bool(!localAuthEnabled)
+			resourceType.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_auth_enabled").(bool))
 		}
 
 		if d.HasChange("aad_auth_enabled") {
-			aadAuthEnabled := true
-			if v, ok := d.GetOk("aad_auth_enabled"); ok {
-				aadAuthEnabled = v.(bool)
-			}
-			resourceType.Properties.DisableAadAuth = utils.Bool(!aadAuthEnabled)
+			resourceType.Properties.DisableAadAuth = utils.Bool(!d.Get("aad_auth_enabled").(bool))
 		}
 
 		if d.HasChange("tls_client_cert_enabled") {
@@ -330,7 +322,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if d.HasChange("serverless_connection_timeout_in_seconds") {
 			resourceType.Properties.Serverless = &signalr.ServerlessSettings{
-				ConnectionTimeoutInSeconds: utils.Int64(d.Get("serverless_connection_timeout_in_seconds").(int64)),
+				ConnectionTimeoutInSeconds: utils.Int64(int64(d.Get("serverless_connection_timeout_in_seconds").(int))),
 			}
 		}
 
