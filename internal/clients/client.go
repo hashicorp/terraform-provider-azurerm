@@ -257,7 +257,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	// Disable the Azure SDK for Go's validation since it's unhelpful for our use-case
 	validation.Disabled = true
 
-	buildAutoClients(&client.autoClient, o)
+	if err := buildAutoClients(&client.autoClient, o); err != nil {
+		return fmt.Errorf("building auto-clients: %+v", err)
+	}
 
 	client.Features = o.Features
 	client.StopContext = ctx
