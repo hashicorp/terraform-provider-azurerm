@@ -581,7 +581,7 @@ resource "azurerm_signalr_service" "test" {
     capacity = 1
   }
 
-  public_network_access_enabled            = false
+  public_network_access_enabled            = true
   local_auth_enabled                       = false
   aad_auth_enabled                         = false
   tls_client_cert_enabled                  = false
@@ -620,7 +620,7 @@ resource "azurerm_signalr_service" "test" {
   public_network_access_enabled            = true
   local_auth_enabled                       = true
   aad_auth_enabled                         = true
-  tls_client_cert_enabled                  = true
+  tls_client_cert_enabled                  = false
   serverless_connection_timeout_in_seconds = 10
 
   identity {
@@ -652,7 +652,7 @@ resource "azurerm_signalr_service" "test" {
     capacity = 1
   }
 
-  public_network_access_enabled            = false
+  public_network_access_enabled            = true
   local_auth_enabled                       = false
   aad_auth_enabled                         = false
   tls_client_cert_enabled                  = false

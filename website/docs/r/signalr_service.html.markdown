@@ -3,7 +3,7 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_signalr_service"
 description: |-
-Manages an Azure SignalR service.
+  Manages an Azure SignalR service.
 ---
 
 # azurerm_signalr_service
@@ -71,11 +71,15 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether to enable public network access? Defaults to `true`.
 
+~> **Note:** `public_network_access_enabled` cannot be set to `false` in `Free` sku tier.
+
 * `local_auth_enabled` - (Optional) Whether to enable local auth? Defaults to `true`.
 
 * `aad_auth_enabled` - (Optional) Whether to enable AAD auth? Defaults to `true`.
 
 * `tls_client_cert_enabled` - (Optional) Whether to request client certificate during TLS handshake? Defaults to `false`.
+
+~> **Note:** `tls_client_cert_enabled` cannot be set to `true` in `Free` sku tier.
 
 * `serverless_connection_timeout_in_seconds` - (Optional) Specifies the client connection timeout. Defaults to `30`.
 

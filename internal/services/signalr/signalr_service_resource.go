@@ -110,6 +110,17 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkAcc = "Disabled"
 	}
 
+	tlsClientCertEnabled := d.Get("tls_client_cert_enabled").(bool)
+
+	if expandSignalRServiceSku(sku).Name == "Free_F1" {
+		if publicNetworkAcc == "Disabled" {
+			return fmt.Errorf("SKU Free_F1 does not support disabling public network access")
+		}
+		if tlsClientCertEnabled {
+			return fmt.Errorf("SKU Free_F1 does not support enabling tls client cert")
+		}
+	}
+
 	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -127,7 +138,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 			DisableAadAuth:         utils.Bool(!d.Get("aad_auth_enabled").(bool)),
 			DisableLocalAuth:       utils.Bool(!d.Get("local_auth_enabled").(bool)),
 			Tls: &signalr.SignalRTlsSettings{
-				ClientCertEnabled: utils.Bool(d.Get("tls_client_cert_enabled").(bool)),
+				ClientCertEnabled: utils.Bool(tlsClientCertEnabled),
 			},
 			Serverless: &signalr.ServerlessSettings{
 				ConnectionTimeoutInSeconds: utils.Int64(int64(d.Get("serverless_connection_timeout_in_seconds").(int))),
@@ -286,6 +297,22 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	resourceType := signalr.SignalRResource{}
 
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	currentSku := ""
+	if existing.Model != nil && existing.Model.Sku != nil {
+		currentSku = existing.Model.Sku.Name
+	}
+
+	if d.HasChange("sku") {
+		sku := d.Get("sku").([]interface{})
+		resourceType.Sku = expandSignalRServiceSku(sku)
+		currentSku = resourceType.Sku.Name
+	}
+
 	if d.HasChanges("cors", "features", "upstream_endpoint", "connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled", "live_trace", "public_network_access_enabled", "local_auth_enabled", "aad_auth_enabled", "tls_client_cert_enabled", "serverless_connection_timeout_in_seconds") {
 		resourceType.Properties = &signalr.SignalRProperties{}
 
@@ -303,6 +330,9 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if !d.Get("public_network_access_enabled").(bool) {
 				publicNetworkAcc = "Disabled"
 			}
+			if currentSku == "Free_F1" && publicNetworkAcc == "Disabled" {
+				return fmt.Errorf("SKU Free_F1 does not support disabling public network access")
+			}
 			resourceType.Properties.PublicNetworkAccess = utils.String(publicNetworkAcc)
 		}
 
@@ -315,8 +345,12 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		if d.HasChange("tls_client_cert_enabled") {
+			tlsClientCertEnabled := d.Get("tls_client_cert_enabled").(bool)
 			resourceType.Properties.Tls = &signalr.SignalRTlsSettings{
-				ClientCertEnabled: utils.Bool(d.Get("tls_client_cert_enabled").(bool)),
+				ClientCertEnabled: utils.Bool(tlsClientCertEnabled),
+			}
+			if currentSku == "Free_F1" && tlsClientCertEnabled {
+				return fmt.Errorf("SKU Free_F1 does not support enabling tls client cert")
 			}
 		}
 
@@ -374,11 +408,6 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			featuresRaw := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
 			resourceType.Properties.Upstream = expandUpstreamSettings(featuresRaw)
 		}
-	}
-
-	if d.HasChange("sku") {
-		sku := d.Get("sku").([]interface{})
-		resourceType.Sku = expandSignalRServiceSku(sku)
 	}
 
 	if d.HasChange("tags") {
