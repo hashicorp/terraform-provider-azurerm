@@ -1150,30 +1150,6 @@ resource "azurerm_redis_cache" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (RedisCacheResource) redisVersion6(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-redis-%d"
-  location = "%s"
-}
-
-resource "azurerm_redis_cache" "test" {
-  name                = "acctestRedis-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  capacity            = 3
-  family              = "P"
-  sku_name            = "Premium"
-  enable_non_ssl_port = false
-  redis_version       = "6"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (RedisCacheResource) tenantSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
