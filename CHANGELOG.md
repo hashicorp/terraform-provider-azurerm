@@ -1,3 +1,9 @@
+## 3.49.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_web_application_firewall_policy`: add option `Any` for `match_conditions.x.operator` [GH-20971]
+
 ## 3.48.0 (March 16, 2023)
 
 FEATURES: 
