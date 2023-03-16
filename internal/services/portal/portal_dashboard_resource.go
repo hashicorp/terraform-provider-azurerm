@@ -88,16 +88,14 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	var dashboardProperties dashboard.DashboardProperties
-
 	dashboardPropsRaw := d.Get("dashboard_properties").(string)
 	if dashboardPropsRaw != "" {
+		var dashboardProperties dashboard.DashboardProperties
 		if err := json.Unmarshal([]byte(dashboardPropsRaw), &dashboardProperties); err != nil {
 			return fmt.Errorf("parsing JSON: %+v", err)
 		}
+		props.Properties = &dashboardProperties
 	}
-
-	props.Properties = &dashboardProperties
 
 	if _, err := client.CreateOrUpdate(ctx, id, props); err != nil {
 		return fmt.Errorf("creating/updating %s %+v", id, err)
