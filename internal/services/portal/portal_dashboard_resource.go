@@ -91,8 +91,10 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	var dashboardProperties dashboard.DashboardProperties
 
 	dashboardPropsRaw := d.Get("dashboard_properties").(string)
-	if err := json.Unmarshal([]byte(dashboardPropsRaw), &dashboardProperties); err != nil {
-		return fmt.Errorf("parsing JSON: %+v", err)
+	if dashboardPropsRaw != "" {
+		if err := json.Unmarshal([]byte(dashboardPropsRaw), &dashboardProperties); err != nil {
+			return fmt.Errorf("parsing JSON: %+v", err)
+		}
 	}
 
 	props.Properties = &dashboardProperties
