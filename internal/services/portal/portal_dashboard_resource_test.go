@@ -86,6 +86,12 @@ resource "azurerm_portal_dashboard" "test" {
   name                = "my-test-dashboard"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  dashboard_properties = <<DASH
+{
+  "lenses": {}
+}
+DASH
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
