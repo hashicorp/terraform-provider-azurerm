@@ -330,7 +330,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.StringInSlice([]string{"4", "6"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"6"}, false),
 				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
 					n := strings.Split(old, ".")
 					if len(n) >= 1 {
