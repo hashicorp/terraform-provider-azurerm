@@ -95,6 +95,10 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("parsing JSON: %+v", err)
 		}
 		props.Properties = &dashboardProperties
+	} else {
+		props.Properties = &dashboard.DashboardProperties{
+			Lenses: &map[string]dashboard.DashboardLens{},
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, props); err != nil {
