@@ -50,7 +50,6 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:       pluginsdk.TypeList,
 		Optional:   true,
-		Computed:   true,
 		ConfigMode: pluginsdk.SchemaConfigModeAttr,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1124,7 +1123,7 @@ func GithubAuthSettingsSchemaComputed() *pluginsdk.Schema {
 }
 
 func ExpandIpRestrictions(restrictions []IpRestriction) (*[]web.IPSecurityRestriction, error) {
-	var expanded []web.IPSecurityRestriction
+	expanded := make([]web.IPSecurityRestriction, 0)
 	if len(restrictions) == 0 {
 		return &expanded, nil
 	}
