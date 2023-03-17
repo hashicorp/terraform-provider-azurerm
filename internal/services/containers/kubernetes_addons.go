@@ -195,29 +195,33 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 						},
 						ValidateFunc: subnetValidate.SubnetID,
 					},
-					"effective_gateway_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
 					"ingress_application_gateway_identity": {
 						Type:     pluginsdk.TypeList,
+						Optional: true,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"client_id": {
 									Type:     pluginsdk.TypeString,
+									Optional: true,
 									Computed: true,
 								},
 								"object_id": {
 									Type:     pluginsdk.TypeString,
+									Optional: true,
 									Computed: true,
 								},
 								"user_assigned_identity_id": {
 									Type:     pluginsdk.TypeString,
+									Optional: true,
 									Computed: true,
 								},
 							},
 						},
+					},
+					"effective_gateway_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 				},
 			},
