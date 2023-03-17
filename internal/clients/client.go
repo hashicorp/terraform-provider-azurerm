@@ -290,7 +290,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.ConfidentialLedger = confidentialledger.NewClient(o)
 	client.Connections = connections.NewClient(o)
 	client.Consumption = consumption.NewClient(o)
-	client.Containers = containerServices.NewContainersClient(o)
+	if client.Containers, err = containerServices.NewContainersClient(o); err != nil {
+		return fmt.Errorf("building clients for Containers: %+v", err)
+	}
 	client.ContainerApps = containerapps.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
