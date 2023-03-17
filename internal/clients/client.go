@@ -299,7 +299,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Dashboard: %+v", err)
 	}
 	client.DatabaseMigration = datamigration.NewClient(o)
-	client.DataBricks = databricks.NewClient(o)
+	if client.DataBricks, err = databricks.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataBricks: %+v", err)
+	}
 	client.DataboxEdge = databoxedge.NewClient(o)
 	client.Datadog = datadog.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
