@@ -1,5 +1,5 @@
 ---
-subcategory: "storagemover"
+subcategory: "Storage Mover"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_mover"
 description: |-
