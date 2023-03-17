@@ -2,17 +2,17 @@ package network
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -23,9 +23,9 @@ const virtualNetworkPeeringResourceType = "azurerm_virtual_network_peering"
 
 func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualNetworkPeeringCreateUpdate,
+		Create: resourceVirtualNetworkPeeringCreate,
 		Read:   resourceVirtualNetworkPeeringRead,
-		Update: resourceVirtualNetworkPeeringCreateUpdate,
+		Update: resourceVirtualNetworkPeeringUpdate,
 		Delete: resourceVirtualNetworkPeeringDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.VirtualNetworkPeeringID(id)
@@ -96,24 +96,22 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualNetworkPeeringCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetPeeringsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := parse.NewVirtualNetworkPeeringID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_virtual_network_peering", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_virtual_network_peering", id.ID())
 	}
 
 	peer := network.VirtualNetworkPeering{
@@ -167,6 +165,53 @@ func resourceVirtualNetworkPeeringCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	d.SetId(id.ID())
+
+	return resourceVirtualNetworkPeeringRead(d, meta)
+}
+
+func resourceVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VnetPeeringsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.VirtualNetworkPeeringID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	locks.ByID(virtualNetworkPeeringResourceType)
+	defer locks.UnlockByID(virtualNetworkPeeringResourceType)
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if d.HasChange("allow_forwarded_traffic") {
+		existing.VirtualNetworkPeeringPropertiesFormat.AllowForwardedTraffic = pointer.To(d.Get("allow_forwarded_traffic").(bool))
+	}
+	if d.HasChange("allow_gateway_transit") {
+		existing.VirtualNetworkPeeringPropertiesFormat.AllowGatewayTransit = pointer.To(d.Get("allow_gateway_transit").(bool))
+	}
+	if d.HasChange("allow_virtual_network_access") {
+		existing.VirtualNetworkPeeringPropertiesFormat.AllowVirtualNetworkAccess = pointer.To(d.Get("allow_virtual_network_access").(bool))
+	}
+	if d.HasChange("use_remote_gateways") {
+		existing.VirtualNetworkPeeringPropertiesFormat.UseRemoteGateways = pointer.To(d.Get("use_remote_gateways").(bool))
+	}
+	if d.HasChange("remote_virtual_network_id") {
+		existing.VirtualNetworkPeeringPropertiesFormat.RemoteVirtualNetwork = &network.SubResource{
+			ID: pointer.To(d.Get("remote_virtual_network_id").(string)),
+		}
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, existing, network.SyncRemoteAddressSpaceTrue)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
+	}
 
 	return resourceVirtualNetworkPeeringRead(d, meta)
 }
