@@ -16,11 +16,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type HybridComputeMachineExtensionResource struct{}
+type HybridComputeMachineExtensionResource struct {
+	template string
+}
 
 func TestAccHybridComputeMachineExtension_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hybrid_compute_machine_extension", "test")
-	r := HybridComputeMachineExtensionResource{}
+	r, _ := templateInit(data)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -36,7 +38,7 @@ func TestAccHybridComputeMachineExtension_basic(t *testing.T) {
 
 func TestAccHybridComputeMachineExtension_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hybrid_compute_machine_extension", "test")
-	r := HybridComputeMachineExtensionResource{}
+	r, _ := templateInit(data)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -50,7 +52,7 @@ func TestAccHybridComputeMachineExtension_requiresImport(t *testing.T) {
 
 func TestAccHybridComputeMachineExtension_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hybrid_compute_machine_extension", "test")
-	r := HybridComputeMachineExtensionResource{}
+	r, _ := templateInit(data)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -67,7 +69,7 @@ func TestAccHybridComputeMachineExtension_complete(t *testing.T) {
 
 func TestAccHybridComputeMachineExtension_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hybrid_compute_machine_extension", "test")
-	r := HybridComputeMachineExtensionResource{}
+	r, _ := templateInit(data)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -105,16 +107,20 @@ func (r HybridComputeMachineExtensionResource) Exists(ctx context.Context, clien
 	return &exists, nil
 }
 
-func (r HybridComputeMachineExtensionResource) template(data acceptance.TestData) string {
+func templateInit(data acceptance.TestData) (HybridComputeMachineExtensionResource, error) {
 	d := HybridComputeMachineDataSource{}
+	r := HybridComputeMachineExtensionResource{}
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	randomUUID, _ := uuid.GenerateUUID()
+	randomUUID, err := uuid.GenerateUUID()
+	if err != nil {
+		return r, err
+	}
 	password := generateRandomPassword(10)
-	return d.basic(data, clientSecret, randomUUID, password)
+	r.template = d.basic(data, clientSecret, randomUUID, password)
+	return r, nil
 }
 
 func (r HybridComputeMachineExtensionResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
 
@@ -125,7 +131,7 @@ resource "azurerm_hybrid_compute_machine_extension" "test" {
   type                      = "AzureMonitorLinuxAgent"
   location                  = "%s"
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, r.template, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r HybridComputeMachineExtensionResource) requiresImport(data acceptance.TestData) string {
@@ -144,7 +150,6 @@ resource "azurerm_hybrid_compute_machine_extension" "import" {
 }
 
 func (r HybridComputeMachineExtensionResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
@@ -157,11 +162,10 @@ resource "azurerm_hybrid_compute_machine_extension" "test" {
   type                               = "AzureMonitorLinuxAgent"
   type_handler_version               = "1.24"
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, r.template, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r HybridComputeMachineExtensionResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
 
@@ -174,5 +178,5 @@ resource "azurerm_hybrid_compute_machine_extension" "test" {
   type                               = "AzureMonitorLinuxAgent"
   type_handler_version               = "1.25"
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, r.template, data.RandomInteger, data.Locations.Primary)
 }
