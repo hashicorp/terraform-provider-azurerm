@@ -387,7 +387,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 			config["subnetId"] = subnetId.(string)
 		}
 
-		addonProfiles[ingressApplicationGatewayKey] = managedclusters.ManagedClusterAddonProfile{
+		ingressApplicationGatewayProfile := managedclusters.ManagedClusterAddonProfile{
 			Enabled: true,
 			Config:  &config,
 		}
@@ -407,7 +407,11 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 			if resourceID, ok := gatewayIdentity["user_assigned_identity_id"]; ok && resourceID != "" {
 				identity.ResourceId = utils.String(resourceID.(string))
 			}
+
+			ingressApplicationGatewayProfile.Identity = &identity
 		}
+
+		addonProfiles[ingressApplicationGatewayKey] = ingressApplicationGatewayProfile
 
 	} else if len(ingressApplicationGateway) == 0 && d.HasChange("ingress_application_gateway") {
 		addonProfiles[ingressApplicationGatewayKey] = disabled
