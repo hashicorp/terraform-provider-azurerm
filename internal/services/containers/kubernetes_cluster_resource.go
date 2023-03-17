@@ -817,14 +817,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validate.IPv4Address,
 						},
 
-						"docker_bridge_cidr": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							ValidateFunc: validate.CIDR,
-						},
-
 						"ebpf_data_plane": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -1275,6 +1267,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 			Deprecated:    "This property has been renamed to `authorized_ip_ranges` within the `api_server_access_profile` block and will be removed in v4.0 of the provider",
 			ConflictsWith: []string{"api_server_access_profile.0.authorized_ip_ranges"},
+		}
+		resource.Schema["network_profile"].Elem.(*pluginsdk.Resource).Schema["docker_bridge_cidr"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			Deprecated:   "`docker_bridge_cidr` has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.",
+			ValidateFunc: validate.CIDR,
 		}
 	}
 
