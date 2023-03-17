@@ -1334,6 +1334,12 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 	for _, config := range *input {
 		output := make(map[string]interface{})
 
+		// ignore built-in certificates. otherwise there would always be a diff between
+		// the configuration and what we get back from the API.
+		if config.CertificateSource == apimanagement.CertificateSourceBuiltIn {
+			continue
+		}
+
 		if config.HostName != nil {
 			output["host_name"] = *config.HostName
 		}
