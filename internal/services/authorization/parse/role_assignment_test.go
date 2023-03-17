@@ -181,6 +181,7 @@ func TestRoleAssignmentID(t *testing.T) {
 			Expected: &RoleAssignmentId{
 				IsSubscriptionAliasLevel: true,
 				Name:                     "23456781-2349-8764-5631-234567890121",
+				SubscriptionAlias:        "my-awesome-sub",
 			},
 		},
 
@@ -292,5 +293,18 @@ func TestRoleAssignmentID(t *testing.T) {
 		if actual.ManagementGroup != v.Expected.ManagementGroup {
 			t.Fatalf("Expected %q but got %q for Role Assignment Management Group", v.Expected.ManagementGroup, actual.ManagementGroup)
 		}
+
+		if actual.IsSubscriptionLevel != v.Expected.IsSubscriptionLevel {
+			t.Fatalf("Expected %v but got %v for Role Assignment SubscriptionLevel flag", v.Expected.IsSubscriptionLevel, actual.IsSubscriptionLevel)
+		}
+
+		if actual.IsSubscriptionAliasLevel != v.Expected.IsSubscriptionAliasLevel {
+			t.Fatalf("Expected %v but got %v for Role Assignment SubscriptionAliasLevel flag", v.Expected.IsSubscriptionAliasLevel, actual.IsSubscriptionAliasLevel)
+		}
+
+		if actual.SubscriptionAlias != v.Expected.SubscriptionAlias {
+			t.Fatalf("Expected %q but got %q for Role Assignment SubscriptionAlias", v.Expected.SubscriptionAlias, actual.SubscriptionAlias)
+		}
+
 	}
 }
