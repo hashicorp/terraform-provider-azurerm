@@ -19,19 +19,18 @@ import (
 )
 
 type MachineExtensionModel struct {
-	Name                    string                              `tfschema:"name"`
-	HybridComputeMachineId  string                              `tfschema:"hybrid_compute_machine_id"`
-	AutoUpgradeMinorVersion bool                                `tfschema:"auto_upgrade_minor_version_enabled"`
-	EnableAutomaticUpgrade  bool                                `tfschema:"automatic_upgrade_enabled"`
-	ForceUpdateTag          string                              `tfschema:"force_update_tag"`
-	InstanceView            []MachineExtensionInstanceViewModel `tfschema:"instance_view"`
-	Location                string                              `tfschema:"location"`
-	ProtectedSettings       string                              `tfschema:"protected_settings"`
-	Publisher               string                              `tfschema:"publisher"`
-	Settings                string                              `tfschema:"settings"`
-	Tags                    map[string]string                   `tfschema:"tags"`
-	Type                    string                              `tfschema:"type"`
-	TypeHandlerVersion      string                              `tfschema:"type_handler_version"`
+	Name                   string                              `tfschema:"name"`
+	HybridComputeMachineId string                              `tfschema:"hybrid_compute_machine_id"`
+	EnableAutomaticUpgrade bool                                `tfschema:"automatic_upgrade_enabled"`
+	ForceUpdateTag         string                              `tfschema:"force_update_tag"`
+	InstanceView           []MachineExtensionInstanceViewModel `tfschema:"instance_view"`
+	Location               string                              `tfschema:"location"`
+	ProtectedSettings      string                              `tfschema:"protected_settings"`
+	Publisher              string                              `tfschema:"publisher"`
+	Settings               string                              `tfschema:"settings"`
+	Tags                   map[string]string                   `tfschema:"tags"`
+	Type                   string                              `tfschema:"type"`
+	TypeHandlerVersion     string                              `tfschema:"type_handler_version"`
 }
 
 type MachineExtensionInstanceViewModel struct {
@@ -82,12 +81,6 @@ func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: machines.ValidateMachineID,
-		},
-
-		"auto_upgrade_minor_version_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
 		},
 
 		"automatic_upgrade_enabled": {
@@ -241,8 +234,7 @@ func (r HybridComputeMachineExtensionResource) Create() sdk.ResourceFunc {
 			properties := &machineextensions.MachineExtension{
 				Location: location.Normalize(model.Location),
 				Properties: &machineextensions.MachineExtensionProperties{
-					AutoUpgradeMinorVersion: &model.AutoUpgradeMinorVersion,
-					EnableAutomaticUpgrade:  &model.EnableAutomaticUpgrade,
+					EnableAutomaticUpgrade: &model.EnableAutomaticUpgrade,
 				},
 				Tags: &model.Tags,
 			}
@@ -315,10 +307,6 @@ func (r HybridComputeMachineExtensionResource) Update() sdk.ResourceFunc {
 			properties := resp.Model
 			if properties == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
-			}
-
-			if metadata.ResourceData.HasChange("auto_upgrade_minor_version_enabled") {
-				properties.Properties.AutoUpgradeMinorVersion = &model.AutoUpgradeMinorVersion
 			}
 
 			if metadata.ResourceData.HasChange("automatic_upgrade_enabled") {
@@ -424,10 +412,6 @@ func (r HybridComputeMachineExtensionResource) Read() sdk.ResourceFunc {
 			}
 
 			if properties := model.Properties; properties != nil {
-				if properties.AutoUpgradeMinorVersion != nil {
-					state.AutoUpgradeMinorVersion = *properties.AutoUpgradeMinorVersion
-				}
-
 				if properties.EnableAutomaticUpgrade != nil {
 					state.EnableAutomaticUpgrade = *properties.EnableAutomaticUpgrade
 				}
