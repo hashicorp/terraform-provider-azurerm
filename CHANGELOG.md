@@ -2,8 +2,9 @@
 
 ENHANCEMENTS:
 
-* `azurerm_web_application_firewall_policy` - add option `Any` for `match_conditions.x.operator` [GH-20971]
-
+* dependencies: updating to `v0.20230317.1100159` of `github.com/hashicorp/go-azure-sdk` [GH-21004]
+* `databricks`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21004]
+* `azurerm_web_application_firewall_policy` - the field `operator` within the `match_conditions` block can now be set to `Any` [GH-20971]
 
 BUG FIXES:
 
