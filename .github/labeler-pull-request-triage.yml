@@ -283,6 +283,9 @@ service/sql:
 service/storage:
   - internal/services/storage/**/*
 
+service/storagemover:
+  - internal/services/storagemover/**/*
+
 service/stream-analytics:
   - internal/services/streamanalytics/**/*
 
