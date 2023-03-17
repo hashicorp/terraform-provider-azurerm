@@ -388,18 +388,19 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 			Config:  &config,
 		}
 
-		identityRaw := value["ingress_application_gateway_identity"].([]interface{})
-		if len(identityRaw) > 0 && identityRaw[0] != nil {
+		ingressApplicationGatewayIdentity := value["ingress_application_gateway_identity"].([]interface{})
+		if len(ingressApplicationGatewayIdentity) > 0 && ingressApplicationGatewayIdentity[0] != nil {
+			gatewayIdentity := ingressApplicationGatewayIdentity[0].(map[string]interface{})
 			identity := managedclusters.UserAssignedIdentity{}
 
-			if clientID, ok := value["client_id"]; ok && clientID != "" {
+			if clientID, ok := gatewayIdentity["client_id"]; ok && clientID != "" {
 				identity.ClientId = utils.String(clientID.(string))
 			}
 
-			if objectID, ok := value["object_id"]; ok && objectID != "" {
+			if objectID, ok := gatewayIdentity["object_id"]; ok && objectID != "" {
 				identity.ObjectId = utils.String(objectID.(string))
 			}
-			if resourceID, ok := value["user_assigned_identity_id"]; ok && resourceID != "" {
+			if resourceID, ok := gatewayIdentity["user_assigned_identity_id"]; ok && resourceID != "" {
 				identity.ResourceId = utils.String(resourceID.(string))
 			}
 		}
