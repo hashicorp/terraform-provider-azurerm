@@ -2,7 +2,12 @@
 
 ENHANCEMENTS:
 
-* `azurerm_web_application_firewall_policy`: add option `Any` for `match_conditions.x.operator` [GH-20971]
+* `azurerm_web_application_firewall_policy` - add option `Any` for `match_conditions.x.operator` [GH-20971]
+
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - deprecate `docker_bridge_cidr` which is no longer supported by the API since docker is no longer a valid container runtime [GH-20952] 
 
 ## 3.48.0 (March 16, 2023)
 
