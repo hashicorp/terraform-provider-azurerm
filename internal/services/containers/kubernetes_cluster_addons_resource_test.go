@@ -937,7 +937,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 		ingress_application_gateway_identity {
 			client_id = azurerm_user_assigned_identity.agw_identity_test.client_id
-			object_id = azurerm_user_assigned_identity.agw_identity_test.object_id
+			object_id = azurerm_user_assigned_identity.agw_identity_test.principal_id
 			user_assigned_identity_id = azurerm_user_assigned_identity.agw_identity_test.id
 		}
 		
