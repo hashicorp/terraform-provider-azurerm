@@ -141,7 +141,7 @@ func (r HybridComputeMachineExtensionResource) requiresImport(data acceptance.Te
 
 resource "azurerm_hybrid_compute_machine_extension" "import" {
   name                      = azurerm_hybrid_compute_machine_extension.test.name
-  hybrid_compute_machine_id = azurerm_hybrid_compute_machine_extension.test.id
+  hybrid_compute_machine_id = azurerm_hybrid_compute_machine_extension.test.hybrid_compute_machine_id
   publisher                 = azurerm_hybrid_compute_machine_extension.test.publisher
   type                      = azurerm_hybrid_compute_machine_extension.test.type
   location                  = azurerm_hybrid_compute_machine_extension.test.location
