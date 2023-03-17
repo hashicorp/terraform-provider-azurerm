@@ -1146,10 +1146,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "%s"
-    dns_service_ip     = "10.10.0.10"
+    network_plugin = "%s"
+    dns_service_ip = "10.10.0.10"
     %s
-    service_cidr       = "10.10.0.0/16"
+    service_cidr = "10.10.0.0/16"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin, dockerCidr)
