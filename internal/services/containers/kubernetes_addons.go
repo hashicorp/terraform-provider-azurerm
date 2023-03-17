@@ -387,6 +387,23 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 			Enabled: true,
 			Config:  &config,
 		}
+
+		identityRaw := value["ingress_application_gateway_identity"].([]interface{})
+		if len(identityRaw) > 0 && identityRaw[0] != nil {
+			identity := managedclusters.UserAssignedIdentity{}
+
+			if clientID, ok := value["client_id"]; ok && clientID != "" {
+				identity.ClientId = utils.String(clientID.(string))
+			}
+
+			if objectID, ok := value["object_id"]; ok && objectID != "" {
+				identity.ObjectId = utils.String(objectID.(string))
+			}
+			if resourceID, ok := value["user_assigned_identity_id"]; ok && resourceID != "" {
+				identity.ResourceId = utils.String(resourceID.(string))
+			}
+		}
+
 	} else if len(ingressApplicationGateway) == 0 && d.HasChange("ingress_application_gateway") {
 		addonProfiles[ingressApplicationGatewayKey] = disabled
 	}
