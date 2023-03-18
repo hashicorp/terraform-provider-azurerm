@@ -1018,6 +1018,9 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 			client := meta.Client.Automation.SoftwareUpdateConfigClient
 			resp, err := client.SoftwareUpdateConfigurationsGetByName(ctx, *id, softwareupdateconfiguration.SoftwareUpdateConfigurationsGetByNameOperationOptions{})
 			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return meta.MarkAsGone(id)
+				}
 				return err
 			}
 			var output SoftwareUpdateConfigurationModel

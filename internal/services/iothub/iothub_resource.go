@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/migration"
@@ -215,20 +216,38 @@ func resourceIotHub() *pluginsdk.Resource {
 						"sas_ttl": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     !features.FourPointOhBeta(),
 							ValidateFunc: validate.ISO8601Duration,
+							Default: func() interface{} {
+								if !features.FourPointOhBeta() {
+									return nil
+								}
+								return "PT1H"
+							}(),
 						},
 						"default_ttl": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     !features.FourPointOhBeta(),
 							ValidateFunc: validate.ISO8601Duration,
+							Default: func() interface{} {
+								if !features.FourPointOhBeta() {
+									return nil
+								}
+								return "PT1H"
+							}(),
 						},
 						"lock_duration": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     !features.FourPointOhBeta(),
 							ValidateFunc: validate.ISO8601Duration,
+							Default: func() interface{} {
+								if !features.FourPointOhBeta() {
+									return nil
+								}
+								return "PT1M"
+							}(),
 						},
 					},
 				},
@@ -993,10 +1012,13 @@ func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.Stor
 		lockDuration := fileUploadMap["lock_duration"].(string)
 
 		storageEndpointProperties["$default"] = &devices.StorageEndpointProperties{
-			SasTTLAsIso8601:    &sasTTL,
 			AuthenticationType: authenticationType,
 			ConnectionString:   &connectionStr,
 			ContainerName:      &containerName,
+		}
+
+		if sasTTL != "" {
+			storageEndpointProperties["$default"].SasTTLAsIso8601 = &sasTTL
 		}
 
 		if identityId != "" {

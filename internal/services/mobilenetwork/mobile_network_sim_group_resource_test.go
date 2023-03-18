@@ -160,14 +160,14 @@ resource "azurerm_key_vault" "test" {
     tenant_id          = data.azurerm_client_config.test.tenant_id
     object_id          = data.azurerm_client_config.test.object_id
     secret_permissions = ["Delete", "Get", "Set"]
-    key_permissions    = ["Create", "Delete", "Get", "Import", "Purge"]
+    key_permissions    = ["Create", "Delete", "Get", "Import", "Purge", "GetRotationPolicy"]
   }
 
   access_policy {
     tenant_id          = data.azurerm_client_config.test.tenant_id
     object_id          = azurerm_user_assigned_identity.test.principal_id
     secret_permissions = ["Delete", "Get", "Set"]
-    key_permissions    = ["Create", "Delete", "Get", "Import", "Purge", "UnwrapKey", "WrapKey"]
+    key_permissions    = ["Create", "Delete", "Get", "Import", "Purge", "UnwrapKey", "WrapKey", "GetRotationPolicy"]
   }
 }
 
@@ -224,14 +224,14 @@ resource "azurerm_key_vault" "test" {
     tenant_id          = data.azurerm_client_config.test.tenant_id
     object_id          = data.azurerm_client_config.test.object_id
     secret_permissions = ["Delete", "Get", "Set"]
-    key_permissions    = ["Create", "Delete", "Get", "Import", "Purge"]
+    key_permissions    = ["Create", "Delete", "Get", "Import", "Purge", "GetRotationPolicy"]
   }
 
   access_policy {
     tenant_id          = data.azurerm_client_config.test.tenant_id
     object_id          = azurerm_user_assigned_identity.test.principal_id
     secret_permissions = ["Delete", "Get", "Set"]
-    key_permissions    = ["Create", "Delete", "Get", "Import", "Purge", "UnwrapKey", "WrapKey"]
+    key_permissions    = ["Create", "Delete", "Get", "Import", "Purge", "UnwrapKey", "WrapKey", "GetRotationPolicy"]
   }
 }
 
@@ -293,14 +293,14 @@ resource "azurerm_key_vault" "test" {
     tenant_id          = data.azurerm_client_config.test.tenant_id
     object_id          = data.azurerm_client_config.test.object_id
     secret_permissions = ["Delete", "Get", "Set"]
-    key_permissions    = ["Create", "Delete", "Get", "Import", "Purge"]
+    key_permissions    = ["Create", "Delete", "Get", "Import", "Purge", "GetRotationPolicy"]
   }
 
   access_policy {
     tenant_id          = data.azurerm_client_config.test.tenant_id
     object_id          = azurerm_user_assigned_identity.test.principal_id
     secret_permissions = ["Delete", "Get", "Set"]
-    key_permissions    = ["Create", "Delete", "Get", "Import", "Purge", "UnwrapKey", "WrapKey"]
+    key_permissions    = ["Create", "Delete", "Get", "Import", "Purge", "UnwrapKey", "WrapKey", "GetRotationPolicy"]
   }
 }
 

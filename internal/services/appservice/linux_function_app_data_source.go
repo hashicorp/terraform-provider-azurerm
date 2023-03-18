@@ -34,6 +34,7 @@ type LinuxFunctionAppDataSourceModel struct {
 
 	AppSettings               map[string]string                    `tfschema:"app_settings"`
 	AuthSettings              []helpers.AuthSettings               `tfschema:"auth_settings"`
+	AuthV2Settings            []helpers.AuthV2Settings             `tfschema:"auth_settings_v2"`
 	Backup                    []helpers.Backup                     `tfschema:"backup"` // Not supported on Dynamic or Basic plans
 	BuiltinLogging            bool                                 `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled         bool                                 `tfschema:"client_certificate_enabled"`
@@ -125,6 +126,8 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
+
+		"auth_settings_v2": helpers.AuthV2SettingsComputedSchema(),
 
 		"backup": helpers.BackupSchemaComputed(),
 
@@ -295,6 +298,11 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Auth Settings for Linux %s: %+v", id, err)
 			}
 
+			authV2, err := client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading authV2 settings for Linux %s: %+v", id, err)
+			}
+
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(backup.Response) {
@@ -351,6 +359,8 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
+
+			state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package environments
 
 const AzurePublicCloud = "Public"
@@ -10,12 +13,15 @@ func AzurePublic() *Environment {
 			"https://management.core.windows.net",
 			"https://management.azure.com",
 		},
-		LoginEndpoint: "https://login.microsoftonline.com",
+		IdentityProvider: "AAD",
+		LoginEndpoint:    "https://login.microsoftonline.com",
+		Tenant:           "common",
 	}
 	env.ResourceManager = ResourceManagerAPI("https://management.azure.com")
 	env.MicrosoftGraph = MicrosoftGraphAPI("https://graph.microsoft.com")
 
 	env.ApiManagement = ApiManagementAPI("azure-api.net")
+	env.Attestation = AttestationAPI("https://attest.azure.net")
 	env.Batch = BatchAPI("https://batch.core.windows.net")
 	env.CDNFrontDoor = CDNFrontDoorAPI("azurefd.net")
 	env.ContainerRegistry = ContainerRegistryAPI("azurecr.io")
