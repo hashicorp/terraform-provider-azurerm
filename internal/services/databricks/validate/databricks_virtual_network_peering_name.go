@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 )
 
-func DatabricksVirtualNetworkPeeringsName(i interface{}, k string) (_ []string, errors []error) {
+func DatabricksVirtualNetworkPeeringName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}

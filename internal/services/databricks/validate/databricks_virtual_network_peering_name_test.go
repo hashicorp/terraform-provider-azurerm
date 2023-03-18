@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestDatabricksVirtualNetworkPeeringsName(t *testing.T) {
+func TestDatabricksVirtualNetworkPeeringName(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -101,7 +101,7 @@ func TestDatabricksVirtualNetworkPeeringsName(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := DatabricksVirtualNetworkPeeringsName(tc.Input, "test")
+		_, errors := DatabricksVirtualNetworkPeeringName(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

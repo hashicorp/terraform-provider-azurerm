@@ -6,7 +6,7 @@ import (
 )
 
 // Evaluates if the passed CIDR is a valid IPv4 or IPv6 CIDR.
-func CIDR(input interface{}, key string) (warnings []string, errors []error) {
+func CIDRIsIPv4OrIPv6(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))

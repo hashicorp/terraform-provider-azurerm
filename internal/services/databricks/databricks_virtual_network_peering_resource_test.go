@@ -26,7 +26,7 @@ func TestAccDatabricksVirtualNetworkPeering_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("workspace_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -56,14 +56,14 @@ func TestAccDatabricksVirtualNetworkPeering_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("workspace_id"),
+		data.ImportStep(),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("workspace_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -78,7 +78,7 @@ func TestAccDatabricksVirtualNetworkPeering_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("workspace_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -93,14 +93,14 @@ func TestAccDatabricksVirtualNetworkPeering_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("workspace_id"),
+		data.ImportStep(),
 		{
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("workspace_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -118,14 +118,10 @@ func (DatabricksVirtualNetworkPeeringResource) Exists(ctx context.Context, clien
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (DatabricksVirtualNetworkPeeringResource) update(data acceptance.TestData) string {
+func (DatabricksVirtualNetworkPeeringResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -146,6 +142,13 @@ resource "azurerm_databricks_workspace" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
 }
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (DatabricksVirtualNetworkPeeringResource) update(data acceptance.TestData) string {
+	template := DatabricksVirtualNetworkPeeringResource{}.template(data)
+	return fmt.Sprintf(`
+%[2]s
 
 resource "azurerm_databricks_virtual_network_peering" "test" {
   name                = "acctest-%[1]d"
@@ -164,7 +167,7 @@ resource "azurerm_virtual_network_peering" "remote" {
   virtual_network_name      = azurerm_virtual_network.remote.name
   remote_virtual_network_id = azurerm_databricks_virtual_network_peering.test.virtual_network_id
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, template)
 }
 
 func (DatabricksVirtualNetworkPeeringResource) requiresImport(data acceptance.TestData) string {
@@ -184,33 +187,9 @@ resource "azurerm_databricks_virtual_network_peering" "import" {
 }
 
 func (DatabricksVirtualNetworkPeeringResource) basic(data acceptance.TestData) string {
+	template := DatabricksVirtualNetworkPeeringResource{}.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "remote" {
-  name                = "acctest-vnet-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.1.0/24"]
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_databricks_workspace" "test" {
-  name                = "acctest-ws-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "standard"
-}
+%[2]s
 
 resource "azurerm_databricks_virtual_network_peering" "test" {
   name                = "acctest-%[1]d"
@@ -227,37 +206,13 @@ resource "azurerm_virtual_network_peering" "remote" {
   virtual_network_name      = azurerm_virtual_network.remote.name
   remote_virtual_network_id = azurerm_databricks_virtual_network_peering.test.virtual_network_id
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, template)
 }
 
 func (DatabricksVirtualNetworkPeeringResource) complete(data acceptance.TestData) string {
+	template := DatabricksVirtualNetworkPeeringResource{}.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "remote" {
-  name                = "acctest-vnet-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.1.0/24"]
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_databricks_workspace" "test" {
-  name                = "acctest-ws-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "standard"
-}
+%[2]s
 
 resource "azurerm_databricks_virtual_network_peering" "test" {
   name                = "acctest-%[1]d"
@@ -279,37 +234,13 @@ resource "azurerm_virtual_network_peering" "remote" {
   virtual_network_name      = azurerm_virtual_network.remote.name
   remote_virtual_network_id = azurerm_databricks_virtual_network_peering.test.virtual_network_id
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, template)
 }
 
 func (DatabricksVirtualNetworkPeeringResource) completeUpdate(data acceptance.TestData) string {
+	template := DatabricksVirtualNetworkPeeringResource{}.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "remote" {
-  name                = "acctest-vnet-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.1.0/24"]
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_databricks_workspace" "test" {
-  name                = "acctest-ws-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "standard"
-}
+%[2]s
 
 resource "azurerm_databricks_virtual_network_peering" "test" {
   name                = "acctest-%[1]d"
@@ -331,5 +262,5 @@ resource "azurerm_virtual_network_peering" "remote" {
   virtual_network_name      = azurerm_virtual_network.remote.name
   remote_virtual_network_id = azurerm_databricks_virtual_network_peering.test.virtual_network_id
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, template)
 }

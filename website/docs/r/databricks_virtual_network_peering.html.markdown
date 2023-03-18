@@ -14,7 +14,7 @@ Manages a Databricks Virtual Network Peering
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "databricks-vnet-peering"
+  name     = "example-resources"
   location = "West Europe"
 }
 
@@ -55,17 +55,17 @@ resource "azurerm_virtual_network_peering" "remote" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Databricks Virtual Network Peering resource. Possible valid values must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens and must be between 1 and 80 characters in length. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Databricks Virtual Network Peering resource. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Databricks Virtual Network Peering should exist. Changing this forces a new resource to be created.
 
-* `workspace_id` - (Required) The Id of the Databricks Workspace that this Databricks Virtual Network Peering is bound. Changing this forces a new resource to be created.
+* `workspace_id` - (Required) The ID of the Databricks Workspace that this Databricks Virtual Network Peering is bound. Changing this forces a new resource to be created.
 
 * `address_space_prefixes` - (Required) A list of address blocks reserved for this virtual network in CIDR notation. Changing this forces a new resource to be created.
 
 * `remote_address_space_prefixes` - (Required) A list of address blocks reserved for the remote virtual network in CIDR notation. Changing this forces a new resource to be created.
 
-* `remote_virtual_network_id` - (Required) The Id of the remote virtual network. Changing this forces a new resource to be created.
+* `remote_virtual_network_id` - (Required) The ID of the remote virtual network. Changing this forces a new resource to be created.
 
 ~> **NOTE:** The remote virtual network should be in the same region as the databricks workspace. Please see the [product documentation](https://learn.microsoft.com/azure/databricks/administration-guide/cloud-configurations/azure/vnet-peering) for more information.
 
@@ -79,7 +79,7 @@ The following arguments are supported:
 
 ~> **NOTE:** If the `use_remote_gateways` is set to `true`, and `allow_gateway_transit` on the remote peering is also `true`, the virtual network will use the gateways of the remote virtual network for transit. Only one peering can have this flag set to `true`. `use_remote_gateways` cannot be set if the virtual network already has a gateway.
 
-* `virtual_network_id` - (Computed) The Id of the internal databricks virtual network.
+* `virtual_network_id` - The ID of the internal Virtual Network used by the DataBricks Workspace.
 
 ~> **NOTE:** The `virtual_network_id` field is the value you must supply to the `azurerm_virtual_network_peering` resources `remote_virtual_network_id` field to successfully peer the Databricks Virtual Network with the remote virtual network.
 
@@ -87,7 +87,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Databricks Virtual Network Peering in the Azure management plane.
+* `id` - The ID of the Databricks Virtual Network Peering.
 
 ## Timeouts
 

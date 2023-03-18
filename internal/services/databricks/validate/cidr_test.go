@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestCIDR(t *testing.T) {
+func TestCIDRIsIPv4OrIPv6(t *testing.T) {
 	cases := []struct {
 		Input interface{}
 		Valid bool
@@ -130,7 +130,7 @@ func TestCIDR(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := CIDR(tc.Input, "match_values")
+		_, errors := CIDRIsIPv4OrIPv6(tc.Input, "match_values")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
