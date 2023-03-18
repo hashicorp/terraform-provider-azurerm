@@ -12,7 +12,7 @@ import (
 type Client struct {
 	AccessConnectorClient *accessconnector.AccessConnectorClient
 	WorkspacesClient      *workspaces.WorkspacesClient
-	VnetPeeringsClient    *vnetpeering.VNetPeeringClient
+	VnetPeeringClient     *vnetpeering.VNetPeeringClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -28,8 +28,15 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(workspacesClient.Client, o.Authorizers.ResourceManager)
 
+	vnetPeeringClient, err := vnetpeering.NewVNetPeeringClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VNetPeering client: %+v", err)
+	}
+	o.Configure(vnetPeeringClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		AccessConnectorClient: accessConnectorClient,
 		WorkspacesClient:      workspacesClient,
+		VnetPeeringClient:     vnetPeeringClient,
 	}, nil
 }
