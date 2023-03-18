@@ -118,7 +118,7 @@ func resourceDatabricksVirtualNetworkPeering() *pluginsdk.Resource {
 }
 
 func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataBricks.VnetPeeringsClient
+	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +199,7 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 			if err != nil {
 				return resp, "Failed", fmt.Errorf("creating %s: %+v", id, err)
 			}
-			if err := resp.Poller.PollUntilDone(); err != nil {
+			if err := resp.Poller.PollUntilDone(ctx); err != nil {
 				return resp, "Failed", fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 			}
 			return resp, "Created", nil
@@ -218,7 +218,7 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 }
 
 func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataBricks.VnetPeeringsClient
+	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -276,7 +276,7 @@ func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta
 }
 
 func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataBricks.VnetPeeringsClient
+	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -334,7 +334,7 @@ func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, me
 			if err != nil {
 				return resp, "Failed", fmt.Errorf("updating %s: %+v", id, err)
 			}
-			if err := resp.Poller.PollUntilDone(); err != nil {
+			if err := resp.Poller.PollUntilDone(ctx); err != nil {
 				return resp, "Failed", fmt.Errorf("waiting for the update of %s: %+v", id, err)
 			}
 			return resp, "Updated", nil
@@ -353,7 +353,7 @@ func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, me
 }
 
 func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataBricks.VnetPeeringsClient
+	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

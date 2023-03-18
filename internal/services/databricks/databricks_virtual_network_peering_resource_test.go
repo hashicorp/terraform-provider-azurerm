@@ -110,7 +110,7 @@ func (DatabricksVirtualNetworkPeeringResource) Exists(ctx context.Context, clien
 		return nil, err
 	}
 
-	resp, err := clients.DataBricks.VnetPeeringsClient.Get(ctx, *id)
+	resp, err := clients.DataBricks.VnetPeeringClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("making Read request on Databricks %s: %+v", *id, err)
 	}
