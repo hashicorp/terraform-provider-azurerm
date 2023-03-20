@@ -3,11 +3,14 @@ package databricks
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/vnetpeering"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -19,8 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// peerMutex is used to prevent multiple Peering resources being created, updated
-// or deleted at the same time
 const databricksVnetPeeringsResourceType string = "azurerm_databricks_virtual_network_peering"
 
 func resourceDatabricksVirtualNetworkPeering() *pluginsdk.Resource {
@@ -55,7 +56,7 @@ func resourceDatabricksVirtualNetworkPeering() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DatabricksVirtualNetworkPeeringID,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
 			"remote_address_space_prefixes": {
@@ -135,9 +136,6 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 
 	id = vnetpeering.NewVirtualNetworkPeeringID(subscriptionId, d.Get("resource_group_name").(string), workspaceId.WorkspaceName, d.Get("name").(string))
 
-	locks.ByName(id.VirtualNetworkPeeringName, databricksVnetPeeringsResourceType)
-	defer locks.ByName(id.VirtualNetworkPeeringName, databricksVnetPeeringsResourceType)
-
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -158,11 +156,13 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	remoteAddressSpace := utils.ExpandStringSlice(d.Get("remote_address_space_prefixes").([]interface{}))
 
 	props := vnetpeering.VirtualNetworkPeeringPropertiesFormat{
-		AllowForwardedTraffic:     &allowForwardedTraffic,
-		AllowGatewayTransit:       &allowGatewayTransit,
-		AllowVirtualNetworkAccess: &allowVirtualNetworkAccess,
 		DatabricksAddressSpace: &vnetpeering.AddressSpace{
 			AddressPrefixes: databricksAddressSpace,
+		},
+		// The RP always creates the same vNet ID for the Databricks internal vNet in the below format:
+		// '/subscriptions/{subscription}/resourceGroups/{group1}/providers/Microsoft.Network/virtualNetworks/workers-vnet'
+		DatabricksVirtualNetwork: &vnetpeering.VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork{
+			Id: utils.String(networkParse.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, "workers-vnet").ID()),
 		},
 		RemoteAddressSpace: &vnetpeering.AddressSpace{
 			AddressPrefixes: remoteAddressSpace,
@@ -170,7 +170,10 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 		RemoteVirtualNetwork: vnetpeering.VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork{
 			Id: utils.String(remoteVirtualNetwork),
 		},
-		UseRemoteGateways: &useRemoteGateways,
+		AllowForwardedTraffic:     &allowForwardedTraffic,
+		AllowGatewayTransit:       &allowGatewayTransit,
+		AllowVirtualNetworkAccess: &allowVirtualNetworkAccess,
+		UseRemoteGateways:         &useRemoteGateways,
 	}
 
 	peer := vnetpeering.VirtualNetworkPeering{
@@ -178,13 +181,8 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 		Properties: props,
 	}
 
-	// The RP always creates the same vNet ID for the Databricks internal vNet in the below format:
-	// '/subscriptions/{subscription}/resourceGroups/{group1}/providers/Microsoft.Network/virtualNetworks/workers-vnet'
-	virtualNetworkId := networkParse.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, "workers-vnet").ID()
-
-	peer.Properties.DatabricksVirtualNetwork = &vnetpeering.VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork{
-		Id: utils.String(virtualNetworkId),
-	}
+	locks.ByID(databricksVnetPeeringsResourceType)
+	defer locks.UnlockByID(databricksVnetPeeringsResourceType)
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
@@ -192,24 +190,35 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{},
+		Pending: []string{"Pending"},
 		Target:  []string{"Created"},
+		Timeout: time.Until(deadline),
+		Delay:   15 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-			resp, err := client.CreateOrUpdate(ctx, id, peer)
+			future, err := client.CreateOrUpdate(ctx, id, peer)
 			if err != nil {
-				return resp, "Failed", fmt.Errorf("creating %s: %+v", id, err)
+				if utils.ResponseErrorIsRetryable(err) {
+					return future.HttpResponse, "Pending", err
+				} else {
+					if resp := future.HttpResponse; resp != nil && response.WasBadRequest(resp) && strings.Contains(err.Error(), "ReferencedResourceNotProvisioned") {
+						// Resource is not yet ready, this may be the case if the Vnet was just created or another peering was just initiated.
+						return future.HttpResponse, "Pending", err
+					}
+				}
+
+				return future.HttpResponse, "", err
 			}
-			if err := resp.Poller.PollUntilDone(ctx); err != nil {
-				return resp, "Failed", fmt.Errorf("waiting for the creation of %s: %+v", id, err)
+
+			if err = future.Poller.PollUntilDone(ctx); err != nil {
+				return future.HttpResponse, "", err
 			}
-			return resp, "Created", nil
+
+			return future.HttpResponse, "Created", nil
 		},
-		MinTimeout: 15 * time.Second,
-		Timeout:    time.Until(deadline),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+		return fmt.Errorf("waiting for Databricks %s to be created: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -234,7 +243,7 @@ func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving Databricks %s: %+v", *id, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroupName)
@@ -287,67 +296,39 @@ func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	locks.ByName(id.VirtualNetworkPeeringName, databricksVnetPeeringsResourceType)
-	defer locks.ByName(id.VirtualNetworkPeeringName, databricksVnetPeeringsResourceType)
-
-	// DatabricksVirtualNetwork is a required field in the update call...
-	virtualNetworkId := networkParse.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, "workers-vnet").ID()
-
-	peer := vnetpeering.VirtualNetworkPeering{
-		Name: &id.VirtualNetworkPeeringName,
-		Properties: vnetpeering.VirtualNetworkPeeringPropertiesFormat{
-			DatabricksVirtualNetwork: &vnetpeering.VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork{
-				Id: utils.String(virtualNetworkId),
-			},
-			RemoteVirtualNetwork: vnetpeering.VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork{
-				Id: utils.String(d.Get("remote_virtual_network_id").(string)),
-			},
-		},
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving Databricks %s: %+v", *id, err)
 	}
 
+	// these are the only updatable values, so everything else in the existing.Model should still be unchanged...
 	if d.HasChange("allow_forwarded_traffic") {
-		peer.Properties.AllowForwardedTraffic = utils.Bool(d.Get("allow_forwarded_traffic").(bool))
+		existing.Model.Properties.AllowForwardedTraffic = pointer.To(d.Get("allow_forwarded_traffic").(bool))
 	}
 
 	if d.HasChange("allow_gateway_transit") {
-		peer.Properties.AllowGatewayTransit = utils.Bool(d.Get("allow_gateway_transit").(bool))
+		existing.Model.Properties.AllowGatewayTransit = pointer.To(d.Get("allow_gateway_transit").(bool))
 	}
 
 	if d.HasChange("allow_virtual_network_access") {
-		peer.Properties.AllowVirtualNetworkAccess = utils.Bool(d.Get("allow_virtual_network_access").(bool))
+		existing.Model.Properties.AllowVirtualNetworkAccess = pointer.To(d.Get("allow_virtual_network_access").(bool))
 	}
 
 	if d.HasChange("use_remote_gateways") {
-		peer.Properties.UseRemoteGateways = utils.Bool(d.Get("use_remote_gateways").(bool))
+		existing.Model.Properties.UseRemoteGateways = pointer.To(d.Get("use_remote_gateways").(bool))
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+	locks.ByID(databricksVnetPeeringsResourceType)
+	defer locks.UnlockByID(databricksVnetPeeringsResourceType)
+
+	future, err := client.CreateOrUpdate(ctx, *id, *existing.Model)
+	if err != nil {
+		return fmt.Errorf("updating Databricks %s: %+v", *id, err)
 	}
 
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{},
-		Target:  []string{"Updated"},
-		Refresh: func() (interface{}, string, error) {
-			resp, err := client.CreateOrUpdate(ctx, *id, peer)
-			if err != nil {
-				return resp, "Failed", fmt.Errorf("updating %s: %+v", id, err)
-			}
-			if err := resp.Poller.PollUntilDone(ctx); err != nil {
-				return resp, "Failed", fmt.Errorf("waiting for the update of %s: %+v", id, err)
-			}
-			return resp, "Updated", nil
-		},
-		MinTimeout: 15 * time.Second,
-		Timeout:    time.Until(deadline),
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for update of Databricks %s: %+v", *id, err)
 	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
 
 	return resourceDatabricksVirtualNetworkPeeringRead(d, meta)
 }
@@ -362,11 +343,25 @@ func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	locks.ByName(id.VirtualNetworkPeeringName, databricksVnetPeeringsResourceType)
-	defer locks.ByName(id.VirtualNetworkPeeringName, databricksVnetPeeringsResourceType)
+	// Block all changes to any resource of this type...
+	locks.ByID(databricksVnetPeeringsResourceType)
+	defer locks.UnlockByID(databricksVnetPeeringsResourceType)
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+	future, err := client.Delete(ctx, *id)
+	if err != nil {
+		// work around for "json: cannot unmarshal string into Go value of type odata.odata" issue
+		if !strings.Contains(err.Error(), "odata.odata") {
+			return fmt.Errorf("deleting Databricks %s: %+v", *id, err)
+		}
+	}
+
+	if err = future.Poller.PollUntilDone(ctx); err != nil {
+		// work around for "json: cannot unmarshal string into Go value of type odata.odata"
+		// it appears that I cannot workaround the "internal-error: 'poller' was nil" in the
+		// same manner as I was to workaround the odata.odata issue.
+		if !strings.Contains(err.Error(), "odata.odata") {
+			return fmt.Errorf("waiting for deletion of Databricks %s: %+v", *id, err)
+		}
 	}
 
 	return nil
