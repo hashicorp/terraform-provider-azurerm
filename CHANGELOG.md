@@ -4,6 +4,8 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230317.1100159` of `github.com/hashicorp/go-azure-sdk` [GH-21004]
 * `databricks`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21004]
+* `azurerm_media_job` - updating to use API Version `2022-07-01` [GH-20956]
+* `azurerm_media_transform` - updating to use API Version `2022-07-01` [GH-20956]
 * `azurerm_virtual_network_gateway` - support for conditional/patch updates [GH-21009]
 * `azurerm_web_application_firewall_policy` - the field `operator` within the `match_conditions` block can now be set to `Any` [GH-20971]
 * `azurerm_kubernetes_cluster` - deprecate `docker_bridge_cidr` which is no longer supported by the API since docker is no longer a valid container runtime [GH-20952]
