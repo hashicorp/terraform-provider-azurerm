@@ -28,6 +28,8 @@ func (r Registration) Resources() []sdk.Resource {
 		SiteRecoveryReplicationRecoveryPlanResource{},
 		ReplicationPolicyHyperVResource{},
 		HyperVSiteResource{},
+		HyperVReplicationPolicyAssociationResource{},
+		VMWareReplicationPolicyResource{},
 	}
 }
 

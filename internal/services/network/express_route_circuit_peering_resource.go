@@ -3,9 +3,11 @@ package network
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -120,6 +122,15 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 							Optional: true,
 							Default:  "NONE",
 						},
+
+						"advertised_communities": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
 					},
 				},
 			},
@@ -157,6 +168,14 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 										Optional:     true,
 										Default:      "NONE",
 										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"advertised_communities": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
 									},
 								},
 							},
@@ -250,6 +269,16 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 	peerASN := d.Get("peer_asn").(int)
 	route_filter_id := d.Get("route_filter_id").(string)
 
+	circuitConnClient := meta.(*clients.Client).Network.ExpressRouteCircuitConnectionClient
+	connResp, err := circuitConnClient.List(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName)
+	if err != nil {
+		if v, ok := err.(autorest.DetailedError); ok && v.StatusCode == http.StatusNotFound {
+			log.Printf("[Debug]: Circuit connections not found. HTTP Code 404.")
+		} else {
+			return fmt.Errorf(" get Circuit Connections error %s: %+v", id, err)
+		}
+	}
+
 	parameters := network.ExpressRouteCircuitPeering{
 		ExpressRouteCircuitPeeringPropertiesFormat: &network.ExpressRouteCircuitPeeringPropertiesFormat{
 			PeeringType:        network.ExpressRoutePeeringType(id.PeeringName),
@@ -258,6 +287,7 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 			PeerASN:            utils.Int64(int64(peerASN)),
 			VlanID:             utils.Int32(int32(vlanId)),
 			GatewayManagerEtag: utils.String(d.Get("gateway_manager_etag").(string)),
+			Connections:        connResp.Response().Value,
 		},
 	}
 
@@ -415,10 +445,17 @@ func expandExpressRouteCircuitPeeringMicrosoftConfig(input []interface{}) *netwo
 		prefixes = append(prefixes, v.(string))
 	}
 
+	advertisedCommunities := make([]string, 0)
+	advertisedCommunitiesRaw := peering["advertised_communities"].([]interface{})
+	for _, v := range advertisedCommunitiesRaw {
+		advertisedCommunities = append(advertisedCommunities, v.(string))
+	}
+
 	return &network.ExpressRouteCircuitPeeringConfig{
 		AdvertisedPublicPrefixes: &prefixes,
 		CustomerASN:              &inputCustomerASN,
 		RoutingRegistryName:      &inputRoutingRegistryName,
+		AdvertisedCommunities:    &advertisedCommunities,
 	}
 }
 
@@ -474,6 +511,10 @@ func flattenExpressRouteCircuitPeeringMicrosoftConfig(input *network.ExpressRout
 	}
 	if ps := input.AdvertisedPublicPrefixes; ps != nil {
 		prefixes = *ps
+	}
+
+	if community := input.AdvertisedCommunities; community != nil {
+		config["advertised_communities"] = *community
 	}
 	config["advertised_public_prefixes"] = prefixes
 

@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -199,11 +200,15 @@ func TestAccKubernetesCluster_nodeResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
+	nodeResourceGroupName := fmt.Sprintf("acctestRGAKS-%d", data.RandomInteger)
+	nodeResourceGroupId := commonids.NewResourceGroupID(data.Subscriptions.Primary, nodeResourceGroupName)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.nodeResourceGroupConfig(data),
+			Config: r.nodeResourceGroupConfig(data, nodeResourceGroupName),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_resource_group_id").HasValue(nodeResourceGroupId.ID()),
 			),
 		},
 		data.ImportStep(),
@@ -1298,7 +1303,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, labelsStr)
 }
 
-func (KubernetesClusterResource) nodeResourceGroupConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) nodeResourceGroupConfig(data acceptance.TestData, nodeResourceGroupName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1314,7 +1319,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  node_resource_group = "acctestRGAKS-%d"
+  node_resource_group = "%s"
 
   default_node_pool {
     name       = "default"
@@ -1326,7 +1331,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, nodeResourceGroupName)
 }
 
 func (KubernetesClusterResource) nodePoolOther(data acceptance.TestData) string {

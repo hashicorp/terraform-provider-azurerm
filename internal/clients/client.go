@@ -2,6 +2,7 @@ package clients
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
@@ -12,7 +13,8 @@ import (
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
-	redis_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01"
+	redis_v2022_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01"
+	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -190,7 +192,7 @@ type Client struct {
 	HealthCare            *healthcare.Client
 	IoTCentral            *iotcentral.Client
 	IoTHub                *iothub.Client
-	IoTTimeSeriesInsights *timeseriesinsights.Client
+	IoTTimeSeriesInsights *timeseriesinsights_v2020_05_15.Client
 	KeyVault              *keyvault.Client
 	Kusto                 *kusto.Client
 	LabService            *labservice.Client
@@ -225,7 +227,7 @@ type Client struct {
 	PrivateDnsResolver    *dnsresolver.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
-	Redis                 *redis_v2021_06_01.Client
+	Redis                 *redis_v2022_06_01.Client
 	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
 	Resource              *resource.Client
@@ -255,12 +257,18 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	// Disable the Azure SDK for Go's validation since it's unhelpful for our use-case
 	validation.Disabled = true
 
-	buildAutoClients(&client.autoClient, o)
+	if err := buildAutoClients(&client.autoClient, o); err != nil {
+		return fmt.Errorf("building auto-clients: %+v", err)
+	}
 
 	client.Features = o.Features
 	client.StopContext = ctx
 
-	client.AadB2c = aadb2c.NewClient(o)
+	var err error
+
+	if client.AadB2c, err = aadb2c.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AadB2c: %+v", err)
+	}
 	client.Advisor = advisor.NewClient(o)
 	client.AnalysisServices = analysisServices.NewClient(o)
 	client.ApiManagement = apiManagement.NewClient(o)
@@ -287,9 +295,13 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
 	client.CustomProviders = customproviders.NewClient(o)
-	client.Dashboard = dashboard.NewClient(o)
+	if client.Dashboard, err = dashboard.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Dashboard: %+v", err)
+	}
 	client.DatabaseMigration = datamigration.NewClient(o)
-	client.DataBricks = databricks.NewClient(o)
+	if client.DataBricks, err = databricks.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataBricks: %+v", err)
+	}
 	client.DataboxEdge = databoxedge.NewClient(o)
 	client.Datadog = datadog.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
@@ -299,7 +311,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DevTestLabs = devtestlabs.NewClient(o)
 	client.DigitalTwins = digitaltwins.NewClient(o)
 	client.Disks = disks.NewClient(o)
-	client.Dns = dns.NewClient(o)
+	if client.Dns, err = dns.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Dns: %+v", err)
+	}
 	client.DomainServices = domainservices.NewClient(o)
 	client.Elastic = elastic.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
@@ -328,9 +342,13 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Maintenance = maintenance.NewClient(o)
 	client.ManagedApplication = managedapplication.NewClient(o)
 	client.ManagementGroups = managementgroup.NewClient(o)
-	client.Maps = maps.NewClient(o)
+	if client.Maps, err = maps.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Maps: %+v", err)
+	}
 	client.MariaDB = mariadb.NewClient(o)
-	client.Media = media.NewClient(o)
+	if client.Media, err = media.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Media: %+v", err)
+	}
 	client.MixedReality = mixedreality.NewClient(o)
 	client.Monitor = monitor.NewClient(o)
 	client.MobileNetwork = mobilenetwork.NewClient(o)
@@ -356,11 +374,15 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Search = search.NewClient(o)
 	client.SecurityCenter = securityCenter.NewClient(o)
 	client.Sentinel = sentinel.NewClient(o)
-	client.ServiceBus = serviceBus.NewClient(o)
+	if client.ServiceBus, err = serviceBus.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ServiceBus: %+v", err)
+	}
 	client.ServiceConnector = serviceConnector.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
-	client.SignalR = signalr.NewClient(o)
+	if client.SignalR, err = signalr.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for SignalR: %+v", err)
+	}
 	client.Sql = sql.NewClient(o)
 	client.Storage = storage.NewClient(o)
 	client.StreamAnalytics = streamAnalytics.NewClient(o)

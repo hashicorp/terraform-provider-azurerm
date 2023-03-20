@@ -30,6 +30,21 @@ func TestAccStreamingPolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccStreamingPolicy_clearKeyEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_streaming_policy", "test")
+	r := StreamingPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clearKeyEncryption(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStreamingPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_policy", "test")
 	r := StreamingPolicyResource{}
@@ -123,6 +138,60 @@ resource "azurerm_media_streaming_policy" "test" {
 `, r.template(data))
 }
 
+func (r StreamingPolicyResource) clearKeyEncryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_media_content_key_policy" "test" {
+  name                        = "Policy-1"
+  resource_group_name         = azurerm_resource_group.test.name
+  media_services_account_name = azurerm_media_services_account.test.name
+  description                 = "My Policy Description"
+  policy_option {
+    name                            = "ClearKeyOption"
+    clear_key_configuration_enabled = true
+    token_restriction {
+      issuer                      = "urn:issuer"
+      audience                    = "urn:audience"
+      token_type                  = "Swt"
+      primary_symmetric_token_key = "AAAAAAAAAAAAAAAAAAAAAA=="
+    }
+  }
+}
+
+resource "azurerm_media_streaming_policy" "test" {
+  name                            = "Policy-1"
+  resource_group_name             = azurerm_resource_group.test.name
+  media_services_account_name     = azurerm_media_services_account.test.name
+  default_content_key_policy_name = azurerm_media_content_key_policy.test.name
+  common_encryption_cenc {
+    default_content_key {
+      label = "aesDefaultKey"
+    }
+
+    clear_track {
+      condition {
+        property  = "FourCC"
+        operation = "Equal"
+        value     = "hev1"
+      }
+    }
+
+    enabled_protocols {
+      download         = false
+      dash             = true
+      hls              = false
+      smooth_streaming = true
+    }
+
+    clear_key_encryption {
+      custom_keys_acquisition_url_template = "https://contoso.com/{AlternativeMediaId}/clearkey/"
+    }
+  }
+}
+`, r.template(data))
+}
+
 func (r StreamingPolicyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -145,6 +214,23 @@ func (r StreamingPolicyResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_media_content_key_policy" "test" {
+  name                        = "Policy-1"
+  resource_group_name         = azurerm_resource_group.test.name
+  media_services_account_name = azurerm_media_services_account.test.name
+  description                 = "My Policy Description"
+  policy_option {
+    name                            = "ClearKeyOption"
+    clear_key_configuration_enabled = true
+    token_restriction {
+      issuer                      = "urn:issuer"
+      audience                    = "urn:audience"
+      token_type                  = "Swt"
+      primary_symmetric_token_key = "AAAAAAAAAAAAAAAAAAAAAA=="
+    }
+  }
+}
+
 resource "azurerm_media_streaming_policy" "test" {
   name                        = "Policy-1"
   resource_group_name         = azurerm_resource_group.test.name
@@ -156,6 +242,40 @@ resource "azurerm_media_streaming_policy" "test" {
       hls              = false
       smooth_streaming = false
     }
+
+    clear_track {
+      condition {
+        property  = "FourCC"
+        operation = "Equal"
+        value     = "hev2"
+      }
+    }
+
+    clear_track {
+      condition {
+        property  = "FourCC"
+        operation = "Equal"
+        value     = "hev1"
+      }
+    }
+
+    default_content_key {
+      label       = "aesDefaultKey"
+      policy_name = azurerm_media_content_key_policy.test.name
+    }
+
+    content_key_to_track_mapping {
+      label       = "aesKey"
+      policy_name = azurerm_media_content_key_policy.test.name
+      track {
+        condition {
+          property  = "FourCC"
+          operation = "Equal"
+          value     = "hev1"
+        }
+      }
+    }
+
     drm_playready {
       custom_license_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/playready/{ContentKeyId}"
       custom_attributes                       = "PlayReady CustomAttributes"
@@ -164,6 +284,10 @@ resource "azurerm_media_streaming_policy" "test" {
   }
 
   common_encryption_cbcs {
+    default_content_key {
+      label       = "aesDefaultKey"
+      policy_name = azurerm_media_content_key_policy.test.name
+    }
     enabled_protocols {
       download         = false
       dash             = true
@@ -173,6 +297,20 @@ resource "azurerm_media_streaming_policy" "test" {
     drm_fairplay {
       custom_license_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/fairplay/{ContentKeyId}"
       allow_persistent_license                = true
+    }
+  }
+
+  envelope_encryption {
+    default_content_key {
+      label       = "aesDefaultKey"
+      policy_name = azurerm_media_content_key_policy.test.name
+    }
+    custom_keys_acquisition_url_template = "https://contoso.com/{AssetAlternativeId}/envelope/{ContentKeyId}"
+    enabled_protocols {
+      dash             = true
+      download         = false
+      hls              = true
+      smooth_streaming = true
     }
   }
 }

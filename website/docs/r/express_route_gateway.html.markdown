@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `scale_units` - (Required) The number of scale units with which to provision the ExpressRoute gateway. Each scale unit is equal to 2Gbps, with support for up to 10 scale units (20Gbps).
 
+* `allow_non_virtual_wan_traffic` - (Optional) Specified whether this gateway accept traffic from non-Virtual WAN networks. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference

@@ -29,6 +29,27 @@ func TestAccMsSqlManagedDatabase_basic(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlManagedDatabase_withRetentionPolicies(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
+	r := MsSqlManagedDatabase{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withRetentionPolicies(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(""),
+		{
+			Config: r.withRetentionPoliciesUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (r MsSqlManagedDatabase) Exists(ctx context.Context, client *clients.Client, state *acceptance.InstanceState) (*bool, error) {
 	id, err := parse.ManagedDatabaseID(state.ID)
 	if err != nil {
@@ -53,6 +74,48 @@ func (r MsSqlManagedDatabase) basic(data acceptance.TestData) string {
 resource "azurerm_mssql_managed_database" "test" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
   name                = "acctest-%[2]d"
+}
+`, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
+}
+
+func (r MsSqlManagedDatabase) withRetentionPolicies(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_managed_database" "test" {
+  managed_instance_id = azurerm_mssql_managed_instance.test.id
+  name                = "acctest-%[2]d"
+
+  long_term_retention_policy {
+    weekly_retention  = "P1W"
+    monthly_retention = "P1M"
+    yearly_retention  = "P1Y"
+    week_of_year      = 1
+  }
+
+  short_term_retention_days = 3
+
+}
+`, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
+}
+
+func (r MsSqlManagedDatabase) withRetentionPoliciesUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_managed_database" "test" {
+  managed_instance_id = azurerm_mssql_managed_instance.test.id
+  name                = "acctest-%[2]d"
+
+  long_term_retention_policy {
+    weekly_retention  = "P10D"
+    monthly_retention = "P1M"
+    yearly_retention  = "P1Y"
+    week_of_year      = 4
+  }
+
+  short_term_retention_days = 4
+
 }
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
 }

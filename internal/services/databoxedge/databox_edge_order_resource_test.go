@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/orders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -79,17 +79,17 @@ func TestAccDataboxEdgeOrder_complete(t *testing.T) {
 }
 
 func (DataboxEdgeOrderResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.OrderID(state.ID)
+	id, err := orders.ParseDataBoxEdgeDeviceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataboxEdge.OrderClient.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
+	resp, err := clients.DataboxEdge.OrdersClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.OrderProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 // Location has to be hard coded due to limited support of locations for this resource

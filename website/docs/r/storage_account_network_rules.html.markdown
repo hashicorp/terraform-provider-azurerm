@@ -81,7 +81,7 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `ip_rules` to empty slice (`[]`) to remove it.
 
-* `virtual_network_subnet_ids` - (Optional) A list of virtual network subnet ids to to secure the storage account.
+* `virtual_network_subnet_ids` - (Optional) A list of virtual network subnet ids to secure the storage account.
 
 -> **NOTE** User has to explicitly set `virtual_network_subnet_ids` to empty slice (`[]`) to remove it.
 

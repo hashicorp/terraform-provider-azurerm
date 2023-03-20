@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -241,13 +240,10 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 		return err
 	}
 
-	breakPair, err := client.BreakPairing(ctx, *id)
-	if err != nil {
+	// @tombuildsstuff: whilst we previously checked the 200 response, since that's the only valid status
+	// code defined in the Swagger, anything else would raise an error thus the check is superfluous
+	if _, err := client.BreakPairing(ctx, *id); err != nil {
 		return fmt.Errorf("breaking pairing %s: %+v", id, err)
-	}
-
-	if breakPair.HttpResponse.StatusCode != http.StatusOK {
-		return fmt.Errorf("breaking pairing for %s: %+v", *id, err)
 	}
 
 	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
@@ -259,21 +255,30 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 	}
 
 	// no future for deletion so wait for it to vanish
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
 	deleteWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"200"},
 		Target:     []string{"404"},
 		MinTimeout: 30 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout:    time.Until(deadline),
 		Refresh: func() (interface{}, string, error) {
 			resp, err := client.Get(ctx, *id)
+			statusCode := "dropped connection"
+			if resp.HttpResponse != nil {
+				statusCode = strconv.Itoa(resp.HttpResponse.StatusCode)
+			}
+
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
+					return resp, statusCode, nil
 				}
 				return nil, "nil", fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
+			return resp, statusCode, nil
 		},
 	}
 
@@ -284,11 +289,15 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 	namespaceId := disasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	// it can take some time for the name to become available again
 	// this is mainly here 	to enable updating the resource in place
+	deadline, ok = ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
 	nameFreeWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"NameInUse"},
 		Target:     []string{"None"},
 		MinTimeout: 30 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout:    time.Until(deadline),
 		Refresh: func() (interface{}, string, error) {
 			resp, err := client.CheckNameAvailability(ctx, namespaceId, disasterrecoveryconfigs.CheckNameAvailability{
 				Name: id.DisasterRecoveryConfigName,

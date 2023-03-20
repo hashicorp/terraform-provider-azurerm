@@ -93,6 +93,11 @@ func (a *AzureCliAuthorizer) AuxiliaryTokens(_ context.Context, _ *http.Request)
 		return nil, fmt.Errorf("could not request token: conf is nil")
 	}
 
+	// Return early if no auxiliary tenants are configured
+	if len(a.conf.AuxiliaryTenantIDs) == 0 {
+		return []*oauth2.Token{}, nil
+	}
+
 	// Try to detect if we're running in Cloud Shell
 	if cloudShell := os.Getenv("AZUREPS_HOST_ENVIRONMENT"); strings.HasPrefix(cloudShell, "cloud-shell/") {
 		return nil, fmt.Errorf("auxiliary tokens not supported in Cloud Shell")

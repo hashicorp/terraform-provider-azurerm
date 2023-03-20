@@ -309,6 +309,9 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 			client := meta.Client.Nginx.NginxDeployment
 			result, err := client.DeploymentsGet(ctx, *id)
 			if err != nil {
+				if response.WasNotFound(result.HttpResponse) {
+					return meta.MarkAsGone(id)
+				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 

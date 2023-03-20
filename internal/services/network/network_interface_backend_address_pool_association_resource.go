@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	loadBalancerParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -28,7 +29,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociation() *pluginsdk.Resource
 			if _, err := parse.NetworkInterfaceIpConfigurationID(splitId[0]); err != nil {
 				return err
 			}
-			if _, err := parse.LoadBalancerBackendAddressPoolID(splitId[1]); err != nil {
+			if _, err := loadBalancerParse.LoadBalancerBackendAddressPoolID(splitId[1]); err != nil {
 				return err
 			}
 			return nil

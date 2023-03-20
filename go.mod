@@ -10,11 +10,11 @@ require (
 	github.com/btubbs/datetime v0.1.0
 	github.com/dave/jennifer v1.6.0
 	github.com/davecgh/go-spew v1.1.1
-	github.com/gofrs/uuid v4.0.0+incompatible
+	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.1.2
-	github.com/hashicorp/go-azure-helpers v0.52.0
-	github.com/hashicorp/go-azure-sdk v0.20230221.1105556
+	github.com/hashicorp/go-azure-helpers v0.55.0
+	github.com/hashicorp/go-azure-sdk v0.20230317.1100159
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/go-version v1.6.0
@@ -25,7 +25,7 @@ require (
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
 	github.com/tombuildsstuff/giovanni v0.20.0
-	github.com/tombuildsstuff/kermit v0.20230208.1135849
+	github.com/tombuildsstuff/kermit v0.20230307.1105329
 	golang.org/x/crypto v0.5.0
 	golang.org/x/net v0.7.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -80,6 +80,7 @@ require (
 	google.golang.org/genproto v0.0.0-20210629200056-84d6f6074151 // indirect
 	google.golang.org/grpc v1.51.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
+	software.sslmate.com/src/go-pkcs12 v0.2.0 // indirect
 )
 
 go 1.19
