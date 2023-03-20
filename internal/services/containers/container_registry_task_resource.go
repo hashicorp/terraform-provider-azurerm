@@ -3,6 +3,7 @@ package containers
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry" // nolint: staticcheck
@@ -652,7 +653,7 @@ func (r ContainerRegistryTaskResource) ModelObject() interface{} {
 }
 
 func (r ContainerRegistryTaskResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ContainerRegistryTaskID
+	return registries.ValidateRegistryID
 }
 
 func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
@@ -660,24 +661,24 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.TasksClient
-			registryClient := metadata.Client.Containers.RegistriesClient
+			registryClient := metadata.Client.Containers.ContainerRegistryClient.Registries
 
 			var model ContainerRegistryTaskModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			registryId, err := parse.RegistryID(model.ContainerRegistryId)
+			registryId, err := registries.ParseRegistryID(model.ContainerRegistryId)
 			if err != nil {
 				return err
 			}
 
-			registry, err := registryClient.Get(ctx, registryId.ResourceGroup, registryId.Name)
+			registry, err := registryClient.Get(ctx, *registryId)
 			if err != nil {
 				return fmt.Errorf("getting registry %s: %+v", registryId, err)
 			}
 
-			id := parse.NewContainerRegistryTaskID(registryId.SubscriptionId, registryId.ResourceGroup, registryId.Name, model.Name)
+			id := parse.NewContainerRegistryTaskID(registryId.SubscriptionId, registryId.ResourceGroupName, registryId.RegistryName, model.Name)
 			existing, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TaskName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
@@ -711,7 +712,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 				},
 
 				// The location of the task must be the same as the registry, otherwise the API will raise error complaining can't find the registry.
-				Location: utils.String(location.NormalizeNilable(registry.Location)),
+				Location: utils.String(location.Normalize(registry.Model.Location)),
 				Identity: expandedIdentity,
 				Tags:     tags.FromTypedObject(model.Tags),
 			}
