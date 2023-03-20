@@ -87,6 +87,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgresqlhsc"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver"
@@ -157,6 +158,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		network.Registration{},
 		nginx.Registration{},
 		policy.Registration{},
+		postgresqlhsc.Registration{},
 		privatednsresolver.Registration{},
 		recoveryservices.Registration{},
 		resource.Registration{},
