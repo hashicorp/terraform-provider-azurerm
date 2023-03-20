@@ -32,7 +32,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/%00",
 			},
-			expected: utils.String("https://appConf1.azconfig.io/kv/keyName?label=%00"),
+			expected: utils.String("https://appConf1.azconfig.io/kv/keyName?label="),
 		},
 	}
 	for _, test := range testData {

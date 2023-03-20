@@ -31,11 +31,11 @@ func TestNestedItemId(t *testing.T) {
 		},
 		{
 			Input:       "https://testappconf1.azconfig.io/kv/testKey",
-			ExpectError: false,
+			ExpectError: true,
 		},
 		{
 			Input:       "https://testappconf1.azconfig.io/kv/testKey?label",
-			ExpectError: false,
+			ExpectError: true,
 		},
 		{
 			Input:       "https://testappconf1.azconfig.io/kv/testKey?label=",
@@ -44,10 +44,6 @@ func TestNestedItemId(t *testing.T) {
 		{
 			Input:       "https://testappconf1.azconfig.io/kv/testKey?b=",
 			ExpectError: true,
-		},
-		{
-			Input:       "https://testappconf1.azconfig.io/kv/testKey?label=",
-			ExpectError: false,
 		},
 		{
 			Input:       "https://testappconf1.azconfig.io/kv/testKey?label=a&b=c",
@@ -63,7 +59,7 @@ func TestNestedItemId(t *testing.T) {
 		},
 		{
 			Input:       "https://testappconf1.azconfig.io/kv/testKey?label=%00",
-			ExpectError: false,
+			ExpectError: true,
 		},
 		{
 			Input:       "https://testappconf1.azconfig.io/kv/testKey?label=%2500",

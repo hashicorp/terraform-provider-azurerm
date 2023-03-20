@@ -43,7 +43,7 @@ func TestNewNestedItemID(t *testing.T) {
 			ConfigurationStoreEndpoint: "https://testappconf1.azconfig.io",
 			Key:                        "testKey",
 			Label:                      "",
-			Expected:                   "https://testappconf1.azconfig.io/kv/testKey?label=%00",
+			Expected:                   "https://testappconf1.azconfig.io/kv/testKey?label=",
 			ExpectError:                false,
 		},
 		{
@@ -107,21 +107,11 @@ func TestParseNestedItemID(t *testing.T) {
 		},
 		{
 			Input:       "https://testappconf1.azconfig.io/kv/testKey",
-			ExpectError: false,
-			Expected: NestedItemId{
-				ConfigurationStoreEndpoint: "https://testappconf1.azconfig.io",
-				Key:                        "testKey",
-				Label:                      "",
-			},
+			ExpectError: true,
 		},
 		{
 			Input:       "https://testappconf1.azconfig.io/kv/testKey?label",
-			ExpectError: false,
-			Expected: NestedItemId{
-				ConfigurationStoreEndpoint: "https://testappconf1.azconfig.io",
-				Key:                        "testKey",
-				Label:                      "",
-			},
+			ExpectError: true,
 		},
 		{
 			Input:       "https://testappconf1.azconfig.io/kv/testKey?label=",
@@ -137,13 +127,8 @@ func TestParseNestedItemID(t *testing.T) {
 			ExpectError: true,
 		},
 		{
-			Input:       "https://testappconf1.azconfig.io/kv/testKey?label=",
-			ExpectError: false,
-			Expected: NestedItemId{
-				ConfigurationStoreEndpoint: "https://testappconf1.azconfig.io",
-				Key:                        "testKey",
-				Label:                      "",
-			},
+			Input:       "https://testappconf1.azconfig.io/kv/testKey?label=%00",
+			ExpectError: true,
 		},
 		{
 			Input:       "https://testappconf1.azconfig.io/kv/testKey?label=a&b=c",
@@ -160,15 +145,6 @@ func TestParseNestedItemID(t *testing.T) {
 				ConfigurationStoreEndpoint: "https://testappconf1.azconfig.io",
 				Key:                        "testKey",
 				Label:                      "a,b,c",
-			},
-		},
-		{
-			Input:       "https://testappconf1.azconfig.io/kv/testKey?label=%00",
-			ExpectError: false,
-			Expected: NestedItemId{
-				ConfigurationStoreEndpoint: "https://testappconf1.azconfig.io",
-				Key:                        "testKey",
-				Label:                      "",
 			},
 		},
 		{
