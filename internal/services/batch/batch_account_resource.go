@@ -107,7 +107,6 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
-				ForceNew: true,
 			},
 
 			"key_vault_reference": {
