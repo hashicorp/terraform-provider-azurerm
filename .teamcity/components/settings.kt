@@ -138,6 +138,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // SQL has quota available in certain locations
         "sql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
+        "storagemover" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus2", "westus3", false), useDevTestSubscription = true),
+
         // StreamAnalytics has quota available in certain locations
         "streamanalytics" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
