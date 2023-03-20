@@ -463,6 +463,7 @@ func TestAccMySqlFlexibleServer_updateToCustomerManagedKey(t *testing.T) {
 	})
 }
 
+// this test can fail with a uninformative error, tracked here https://github.com/Azure/azure-rest-api-specs/issues/22980
 func TestAccMySqlFlexibleServer_enableGeoRedundantBackup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MySqlFlexibleServerResource{}
