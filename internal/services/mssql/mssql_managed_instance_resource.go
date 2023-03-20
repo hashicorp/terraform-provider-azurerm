@@ -170,7 +170,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 				validation.StringInSlice([]string{
 					"SQL_Default",
 				}, false),
-				validation.StringMatch(regexp.MustCompile(`^SQL_([A-Za-z0-9])+_MI_(\\d)+$`), "expected a name in the format `SQL_{Location}_MI_{Number}` or `SQL_Default`"),
+				validation.StringMatch(regexp.MustCompile(`^SQL_[A-Za-z0-9]+_MI_\d+$`), "expected a name in the format `SQL_{Location}_MI_{Number}` or `SQL_Default`"),
 			),
 		},
 
