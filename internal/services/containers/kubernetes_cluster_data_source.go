@@ -339,6 +339,10 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+						"msi_auth_for_monitoring_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
 						"oms_agent_identity": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
