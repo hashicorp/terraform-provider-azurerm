@@ -596,68 +596,6 @@ func TestAccApiManagement_softDeleteRecoveryDisabled(t *testing.T) {
 	})
 }
 
-func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ApiManagementID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-	resourceGroup := id.ResourceGroup
-	name := id.ServiceName
-
-	resp, err := clients.ApiManagement.ServiceClient.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
-	}
-
-	return utils.Bool(resp.ID != nil), nil
-}
-
-func (ApiManagementResource) testCheckHasNoProductsOrApis(resourceName string) pluginsdk.TestCheckFunc {
-	return func(state *pluginsdk.State) error {
-		client, err := testclient.Build()
-		if err != nil {
-			return fmt.Errorf("building client: %+v", err)
-		}
-		ctx := client.StopContext
-
-		rs, ok := state.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("%q was not found in the state", resourceName)
-		}
-
-		id, err := parse.ApiManagementID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		for apis, err := client.ApiManagement.ApiClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, "", nil); apis.NotDone(); err = apis.NextWithContext(ctx) {
-			if err != nil {
-				return fmt.Errorf("listing APIs for %s: %+v", id, err)
-			}
-			if apis.Response().IsEmpty() {
-				break
-			}
-			if count := len(apis.Values()); count > 0 {
-				return fmt.Errorf("%s has %d unexpected associated APIs", id, count)
-			}
-		}
-
-		for products, err := client.ApiManagement.ProductsClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, nil, ""); products.NotDone(); err = products.NextWithContext(ctx) {
-			if err != nil {
-				return fmt.Errorf("listing APIs for %s: %+v", id, err)
-			}
-			if products.Response().IsEmpty() {
-				break
-			}
-			if count := len(products.Values()); count > 0 {
-				return fmt.Errorf("%s has %d unexpected associated Products", id, count)
-			}
-		}
-
-		return nil
-	}
-}
-
 func TestAccApiManagement_identityUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
@@ -910,6 +848,68 @@ func TestAccApiManagement_additionalLocationGateway(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.ApiManagementID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resourceGroup := id.ResourceGroup
+	name := id.ServiceName
+
+	resp, err := clients.ApiManagement.ServiceClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
+}
+
+func (ApiManagementResource) testCheckHasNoProductsOrApis(resourceName string) pluginsdk.TestCheckFunc {
+	return func(state *pluginsdk.State) error {
+		client, err := testclient.Build()
+		if err != nil {
+			return fmt.Errorf("building client: %+v", err)
+		}
+		ctx := client.StopContext
+
+		rs, ok := state.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("%q was not found in the state", resourceName)
+		}
+
+		id, err := parse.ApiManagementID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		for apis, err := client.ApiManagement.ApiClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, "", nil); apis.NotDone(); err = apis.NextWithContext(ctx) {
+			if err != nil {
+				return fmt.Errorf("listing APIs for %s: %+v", id, err)
+			}
+			if apis.Response().IsEmpty() {
+				break
+			}
+			if count := len(apis.Values()); count > 0 {
+				return fmt.Errorf("%s has %d unexpected associated APIs", id, count)
+			}
+		}
+
+		for products, err := client.ApiManagement.ProductsClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, nil, ""); products.NotDone(); err = products.NextWithContext(ctx) {
+			if err != nil {
+				return fmt.Errorf("listing APIs for %s: %+v", id, err)
+			}
+			if products.Response().IsEmpty() {
+				break
+			}
+			if count := len(products.Values()); count > 0 {
+				return fmt.Errorf("%s has %d unexpected associated Products", id, count)
+			}
+		}
+
+		return nil
+	}
 }
 
 func (ApiManagementResource) basic(data acceptance.TestData) string {
