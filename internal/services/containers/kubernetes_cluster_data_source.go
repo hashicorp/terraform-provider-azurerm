@@ -827,7 +827,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				}
 
 				if adminCredentialModel := adminCredentials.Model; adminCredentialModel != nil {
-					adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterDataSourceCredentials(*adminCredentialModel, "clusterAdmin")
+					adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterCredentials(*adminCredentialModel, "clusterAdmin")
 					d.Set("kube_admin_config_raw", adminKubeConfigRaw)
 					if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
 						return fmt.Errorf("setting `kube_admin_config`: %+v", err)
@@ -848,7 +848,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceCredentials(*credentialsModel, "clusterUser")
+		kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentials(*credentialsModel, "clusterUser")
 		d.Set("kube_config_raw", kubeConfigRaw)
 		if err := d.Set("kube_config", kubeConfig); err != nil {
 			return fmt.Errorf("setting `kube_config`: %+v", err)
@@ -924,7 +924,7 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 	return storageProfile
 }
 
-func flattenKubernetesClusterDataSourceCredentials(model managedclusters.CredentialResults, configName string) (*string, []interface{}) {
+func flattenKubernetesClusterCredentials(model managedclusters.CredentialResults, configName string) (*string, []interface{}) {
 	if model.Kubeconfigs == nil || len(*model.Kubeconfigs) < 1 {
 		return nil, []interface{}{}
 	}
