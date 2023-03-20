@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_mobile_network_packet_core_control_plane` [GH-20730]
 * **New Resource:** `azurerm_mobile_network_packet_core_control_plane` [GH-20730]
+* **New Resource:** `azurerm_sentinel_threat_intelligence_indicator` [GH-20771]
 
 ENHANCEMENTS:
 
