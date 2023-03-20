@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
@@ -24,7 +25,7 @@ The following arguments are supported:
 
 * 'foo_enabled' - (Required) Should the TODO be enabled?
 
-* 'foo_id' - (Required) The ID of the TODO.
+* 'foo_id' - (Required) The ID of the TODO. The only possible value is 'foo'.
 
 * 'list' - (Required) Specifies a list of TODO.
 
@@ -56,7 +57,7 @@ A 'block2' block supports the following:
 
 * 'block3' - (Required) One or more 'block3' blocks as defined below.
 
-* 'nest_attr2' - (Optional) TODO.
+* 'nest_attr2' - (Optional) TODO. Possible values are 'foo' and 'bar'.
 
 ---
 
@@ -86,8 +87,9 @@ A 'block3' block supports the following:
 				Required: true,
 			},
 			"foo_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice([]string{"foo"}, false),
 			},
 			"block2": {
 				Type:     schema.TypeList,
@@ -95,8 +97,9 @@ A 'block3' block supports the following:
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"nest_attr2": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"foo", "bar"}, false),
 						},
 						//lintignore:XS003
 						"block1": {
