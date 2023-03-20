@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"strings"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -421,7 +421,7 @@ func (r HybridComputeMachineExtensionResource) Read() sdk.ResourceFunc {
 					state.ForceUpdateTag = *properties.ForceUpdateTag
 				}
 
-				instanceViewValue, err := flattenMachineExtensionInstanceViewModel(properties.InstanceView)
+				instanceViewValue := flattenMachineExtensionInstanceViewModel(properties.InstanceView)
 				if err != nil {
 					return err
 				}
@@ -489,10 +489,10 @@ func (r HybridComputeMachineExtensionResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func flattenMachineExtensionInstanceViewModel(input *machineextensions.MachineExtensionInstanceView) ([]MachineExtensionInstanceViewModel, error) {
+func flattenMachineExtensionInstanceViewModel(input *machineextensions.MachineExtensionInstanceView) []MachineExtensionInstanceViewModel {
 	var outputList []MachineExtensionInstanceViewModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := MachineExtensionInstanceViewModel{}
@@ -501,10 +501,7 @@ func flattenMachineExtensionInstanceViewModel(input *machineextensions.MachineEx
 		output.Name = *input.Name
 	}
 
-	statusValue, err := flattenMachineExtensionInstanceViewStatusModel(input.Status)
-	if err != nil {
-		return nil, err
-	}
+	statusValue := flattenMachineExtensionInstanceViewStatusModel(input.Status)
 
 	output.Status = statusValue
 
@@ -516,13 +513,13 @@ func flattenMachineExtensionInstanceViewModel(input *machineextensions.MachineEx
 		output.TypeHandlerVersion = *input.TypeHandlerVersion
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenMachineExtensionInstanceViewStatusModel(input *machineextensions.MachineExtensionInstanceViewStatus) ([]MachineExtensionInstanceViewStatusModel, error) {
+func flattenMachineExtensionInstanceViewStatusModel(input *machineextensions.MachineExtensionInstanceViewStatus) []MachineExtensionInstanceViewStatusModel {
 	var outputList []MachineExtensionInstanceViewStatusModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := MachineExtensionInstanceViewStatusModel{}
@@ -547,5 +544,5 @@ func flattenMachineExtensionInstanceViewStatusModel(input *machineextensions.Mac
 		output.Time = *input.Time
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
