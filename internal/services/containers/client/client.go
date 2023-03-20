@@ -20,6 +20,7 @@ type Client struct {
 	ContainerRegistryClient           *containterregistry_v2021_08_01_preview.Client
 	KubernetesClustersClient          *managedclusters.ManagedClustersClient
 	MaintenanceConfigurationsClient   *maintenanceconfigurations.MaintenanceConfigurationsClient
+	RegistriesClient                  *containerregistry.RegistriesClient
 	ReplicationsClient                *containerregistry.ReplicationsClient
 	ServicesClient                    *containerservices.ContainerServicesClient
 	WebhooksClient                    *containerregistry.WebhooksClient
@@ -39,8 +40,9 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	//registriesClient, err := registries.NewRegistriesClientWithBaseURI(o.ResourceManagerEndpoint)
-	//o.ConfigureClient(&registriesClient.Client, o.ResourceManagerAuthorizer)
+
+	registriesClient := containerregistry.NewRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&registriesClient.Client, o.ResourceManagerAuthorizer)
 
 	registryAgentPoolsClient := containerregistry.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&registryAgentPoolsClient.Client, o.ResourceManagerAuthorizer)
@@ -90,6 +92,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		ContainerRegistryClient:           containerRegistryClient,
 		MaintenanceConfigurationsClient:   &maintenanceConfigurationsClient,
 		WebhooksClient:                    &webhooksClient,
+		RegistriesClient:                  &registriesClient,
 		ReplicationsClient:                &replicationsClient,
 		ServicesClient:                    &servicesClient,
 		Environment:                       o.AzureEnvironment,
