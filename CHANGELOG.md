@@ -9,6 +9,10 @@ ENHANCEMENTS:
 * `azurerm_virtual_network_gateway` - support for conditional/patch updates [GH-21009]
 * `azurerm_web_application_firewall_policy` - the field `operator` within the `match_conditions` block can now be set to `Any` [GH-20971]
 * `azurerm_kubernetes_cluster` - deprecate `docker_bridge_cidr` which is no longer supported by the API since docker is no longer a valid container runtime [GH-20952]
+* `azurerm_management_group_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
+* `azurerm_resource_group_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
+* `azurerm_resource_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
+* `azurerm_subscription_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
 * `azurerm_sentinel_log_analytics_workspace_onboarding` - the `resource_group_name` and `workspace_name` properties have been deprecated in favour of workspace_id [GH-20661]
 * `azurerm_virtual_network_peering` - adding an explicit default value for `allow_forwarded_traffic`, `allow_gateway_transit` and `use_remote_gateways` [GH-21009]
 
