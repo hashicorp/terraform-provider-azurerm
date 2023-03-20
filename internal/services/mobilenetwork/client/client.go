@@ -3,6 +3,7 @@ package client
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/datanetwork"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcorecontrolplane"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/service"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simpolicy"
@@ -12,13 +13,14 @@ import (
 )
 
 type Client struct {
-	MobileNetworkClient *mobilenetwork.MobileNetworkClient
-	ServiceClient       *service.ServiceClient
-	SIMGroupClient      *simgroup.SIMGroupClient
-	SliceClient         *slice.SliceClient
-	SiteClient          *site.SiteClient
-	DataNetworkClient   *datanetwork.DataNetworkClient
-	SIMPolicyClient     *simpolicy.SIMPolicyClient
+	MobileNetworkClient          *mobilenetwork.MobileNetworkClient
+	ServiceClient                *service.ServiceClient
+	SIMGroupClient               *simgroup.SIMGroupClient
+	SliceClient                  *slice.SliceClient
+	SiteClient                   *site.SiteClient
+	DataNetworkClient            *datanetwork.DataNetworkClient
+	SIMPolicyClient              *simpolicy.SIMPolicyClient
+	PacketCoreControlPlaneClient *packetcorecontrolplane.PacketCoreControlPlaneClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -43,13 +45,17 @@ func NewClient(o *common.ClientOptions) *Client {
 	simPolicyClient := simpolicy.NewSIMPolicyClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&simPolicyClient.Client, o.ResourceManagerAuthorizer)
 
+	packetCoreControlPlaneClient := packetcorecontrolplane.NewPacketCoreControlPlaneClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&packetCoreControlPlaneClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		MobileNetworkClient: &mobileNetworkClient,
-		DataNetworkClient:   &dataNetworkClient,
-		ServiceClient:       &serviceClient,
-		SIMGroupClient:      &simGroupClient,
-		SiteClient:          &siteClient,
-		SliceClient:         &sliceClient,
-		SIMPolicyClient:     &simPolicyClient,
+		MobileNetworkClient:          &mobileNetworkClient,
+		DataNetworkClient:            &dataNetworkClient,
+		ServiceClient:                &serviceClient,
+		SIMGroupClient:               &simGroupClient,
+		SiteClient:                   &siteClient,
+		SliceClient:                  &sliceClient,
+		SIMPolicyClient:              &simPolicyClient,
+		PacketCoreControlPlaneClient: &packetCoreControlPlaneClient,
 	}
 }
