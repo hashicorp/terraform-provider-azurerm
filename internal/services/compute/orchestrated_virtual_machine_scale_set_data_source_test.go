@@ -11,7 +11,7 @@ import (
 type OrchestratedVirtualMachineScaleSetDataSource struct{}
 
 func TestAccOrchestratedVMSSDataSource_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_service_plan", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_orchestrated_virtual_machine_scale_set", "test")
 	d := OrchestratedVirtualMachineScaleSetDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -19,6 +19,7 @@ func TestAccOrchestratedVMSSDataSource_complete(t *testing.T) {
 			Config: d.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("network_interfaces.#").HasValue("1"),
 			),
 		},
 	})
@@ -28,7 +29,7 @@ func (OrchestratedVirtualMachineScaleSetDataSource) complete(data acceptance.Tes
 	return fmt.Sprintf(`
 %s
 
-data azurerm_service_plan test {
+data azurerm_orchestrated_virtual_machine_scale_set test {
   name                = azurerm_service_plan.test.name
   resource_group_name = azurerm_service_plan.test.resource_group_name
 }

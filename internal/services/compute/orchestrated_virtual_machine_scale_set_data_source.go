@@ -3,16 +3,17 @@ package compute
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 type OrchestratedVirtualMachineScaleSetDataSource struct{}
@@ -20,14 +21,11 @@ type OrchestratedVirtualMachineScaleSetDataSource struct{}
 var _ sdk.DataSource = OrchestratedVirtualMachineScaleSetDataSource{}
 
 type OrchestratedVirtualMachineScaleSetDataSourceModel struct {
-	Name                    string                                        `tfschema:"name"`
-	ResourceGroup           string                                        `tfschema:"resource_group_name"`
-	Location                string                                        `tfschema:"location"`
-	NetworkInterface        []VirtualMachineScaleSetNetworkInterface      `tfschema:"network_interface"`
-	OSDisk                  VirtualMachineScaleSetOSDisk                  `tfschema:"os_disk"`
-	SkuName                 string                                        `tfschema:"sku_name"`
-	OSProfile               VirtualMachineScaleSetOSProfile               `tfschema:"os_profile"`
-	AutomaticInstanceRepair VirtualMachineScaleSetAutomaticInstanceRepair `tfschema:"automatic_instance_repair"`
+	Name             string                                   `tfschema:"name"`
+	ResourceGroup    string                                   `tfschema:"resource_group_name"`
+	Location         string                                   `tfschema:"location"`
+	NetworkInterface []VirtualMachineScaleSetNetworkInterface `tfschema:"network_interface"`
+	Identity         []identity.ModelUserAssigned             `tfschema:"identity"`
 }
 
 type VirtualMachineScaleSetNetworkInterface struct {
@@ -41,14 +39,14 @@ type VirtualMachineScaleSetNetworkInterface struct {
 }
 
 type VirtualMachineScaleSetNetworkInterfaceIPConfiguration struct {
-	Name                                    string                                                                 `tfschema:"name"`
-	ApplicationGatewayBackendAddressPoolIds []string                                                               `tfschema:"application_gateway_backend_address_pool_ids"`
-	ApplicationSecurityGroupIds             []string                                                               `tfschema:"application_security_group_ids"`
-	LoadBalancerBackendAddressPoolIds       []string                                                               `tfschema:"load_balancer_backend_address_pool_ids"`
-	Primary                                 bool                                                                   `tfschema:"primary"`
-	PublicIPAddress                         []VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress `tfschema:"public_ip_address"`
-	SubnetId                                string                                                                 `tfschema:"subnet_id"`
-	Version                                 string                                                                 `tfschema:"version"`
+	Name                                    string                                                               `tfschema:"name"`
+	ApplicationGatewayBackendAddressPoolIds []string                                                             `tfschema:"application_gateway_backend_address_pool_ids"`
+	ApplicationSecurityGroupIds             []string                                                             `tfschema:"application_security_group_ids"`
+	LoadBalancerBackendAddressPoolIds       []string                                                             `tfschema:"load_balancer_backend_address_pool_ids"`
+	Primary                                 bool                                                                 `tfschema:"primary"`
+	PublicIPAddress                         VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress `tfschema:"public_ip_address"`
+	SubnetId                                string                                                               `tfschema:"subnet_id"`
+	Version                                 string                                                               `tfschema:"version"`
 }
 
 type VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress struct {
@@ -64,81 +62,6 @@ type VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress struct
 type VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddressIPTag struct {
 	Tag  string `tfschema:"tag"`
 	Type string `tfschema:"type"`
-}
-
-type VirtualMachineScaleSetOSDisk struct {
-	Caching                 string                                       `tfschema:"caching"`
-	StorageAccountType      string                                       `tfschema:"storage_account_type"`
-	DiffDiskSettings        VirtualMachineScaleSetOSDiskDiffDiskSettings `tfschema:"diff_disk_settings"`
-	DiskEncryptionSetId     string                                       `tfschema:"disk_encryption_set_id"`
-	DiskSizeGB              string                                       `tfschema:"disk_size_gb"`
-	WriteAcceleratorEnabled bool                                         `tfschema:"write_accelerator_enabled"`
-}
-
-type VirtualMachineScaleSetOSDiskDiffDiskSettings struct {
-	Option    string `tfschema:"option"`
-	Placement string `tfschema:"placement"`
-}
-
-type VirtualMachineScaleSetOSProfile struct {
-	CustomData           string                                              `tfschema:"custom_data"`
-	WindowsConfiguration VirtualMachineScaleSetOSProfileWindowsConfiguration `tfschema:"windows_configuration"`
-	LinuxConfiguration   VirtualMachineScaleSetOSProfileLinuxConfiguration   `tfschema:"linux_configuration"`
-}
-
-type VirtualMachineScaleSetOSProfileWindowsConfiguration struct {
-	AdminUsername           string                                                             `tfschema:"admin_username"`
-	AdminPassword           string                                                             `tfschema:"admin_password"`
-	ComputerNamePrefix      string                                                             `tfschema:"computer_name_prefix"`
-	AutomaticUpdatesEnabled bool                                                               `tfschema:"automatic_updates_enabled"`
-	HotpatchingEnabled      bool                                                               `tfschema:"hotpatching_enabled"`
-	ProvisionVMAgent        bool                                                               `tfschema:"provision_vm_agent"`
-	PatchAssessmentMode     string                                                             `tfschema:"patch_assessment_mode"`
-	PatchMode               string                                                             `tfschema:"patch_mode"`
-	Secret                  []VirtualMachineScaleSetOSProfileWindowsConfigurationSecret        `tfschema:"secret"`
-	Timezone                string                                                             `tfschema:"timezone"`
-	WinRMListener           []VirtualMachineScaleSetOSProfileWindowsConfigurationWinRMListener `tfschema:"winrm_listener"`
-}
-
-type VirtualMachineScaleSetOSProfileWindowsConfigurationSecret struct {
-	KeyVaultId  string                                                                `tfschema:"key_vault_id"`
-	Certificate []VirtualMachineScaleSetOSProfileWindowsConfigurationSecretCertficate `tfschema:"certificate"`
-}
-
-type VirtualMachineScaleSetOSProfileWindowsConfigurationSecretCertficate struct {
-	Store string `tfschema:"store"`
-	Url   string `tfschema:"url"`
-}
-
-type VirtualMachineScaleSetOSProfileWindowsConfigurationWinRMListener struct {
-	Protocol       string `tfschema:"protocol"`
-	CertificateUrl string `tfschema:"certificate_url"`
-}
-
-type VirtualMachineScaleSetOSProfileLinuxConfiguration struct {
-	AdminUsername                 string                                                         `tfschema:"admin_username"`
-	AdminPassword                 string                                                         `tfschema:"admin_password"`
-	AdminSSHKey                   []VirtualMachineScaleSetOSProfileLinuxConfigurationAdminSSHKey `tfschema:"admin_ssh_key"`
-	ComputerNamePrefix            string                                                         `tfschema:"computer_name_prefix"`
-	DisablePasswordAuthentication bool                                                           `tfschema:"disable_password_authentication"`
-	ProvisionVMAgent              bool                                                           `tfschema:"provision_vm_agent"`
-	PatchAssessmentMode           string                                                         `tfschema:"patch_assessment_mode"`
-	PatchMode                     string                                                         `tfschema:"patch_mode"`
-	Secret                        []VirtualMachineScaleSetOSProfileLinuxConfigurationSecret      `tfschema:"secret"`
-}
-
-type VirtualMachineScaleSetOSProfileLinuxConfigurationAdminSSHKey struct {
-	PublicKey string `tfschema:"public_key"`
-	Username  string `tfschema:"username"`
-}
-
-type VirtualMachineScaleSetOSProfileLinuxConfigurationSecret struct {
-	KeyVaultId  string                                                              `tfschema:"key_vault_id"`
-	Certificate []VirtualMachineScaleSetOSProfileLinuxConfigurationSecretCertficate `tfschema:"certificate"`
-}
-
-type VirtualMachineScaleSetOSProfileLinuxConfigurationSecretCertficate struct {
-	Url string `tfschema:"url"`
 }
 
 func (r OrchestratedVirtualMachineScaleSetDataSource) ModelObject() interface{} {
@@ -164,6 +87,8 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Arguments() map[string]*pl
 func (r OrchestratedVirtualMachineScaleSetDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
+
+		"network_interfaces": OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema(),
 	}
 }
 
@@ -191,9 +116,191 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Read() sdk.ResourceFunc {
 
 			orchestratedVMSS.Location = location.NormalizeNilable(existing.Location)
 
+			if profile := existing.VirtualMachineProfile; profile != nil {
+				if nwProfile := profile.NetworkProfile; nwProfile != nil {
+					orchestratedVMSS.NetworkInterface = flattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
+				}
+			}
+
+			userIdentity, err := flattenOrchestratedVirtualMachineScaleSetIdentityToModel(existing.Identity)
+			if err != nil {
+				return err
+			}
+			orchestratedVMSS.Identity = userIdentity
+
 			metadata.SetID(id)
 
 			return metadata.Encode(&orchestratedVMSS)
 		},
 	}
+}
+
+func flattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachineScaleSetNetworkConfiguration) []VirtualMachineScaleSetNetworkInterface {
+	if input == nil {
+		return []VirtualMachineScaleSetNetworkInterface{}
+	}
+
+	networkInterfaces := make([]VirtualMachineScaleSetNetworkInterface, 0)
+	for _, v := range *input {
+		var name, networkSecurityGroupId string
+		if v.Name != nil {
+			name = *v.Name
+		}
+		if v.NetworkSecurityGroup != nil && v.NetworkSecurityGroup.ID != nil {
+			networkSecurityGroupId = *v.NetworkSecurityGroup.ID
+		}
+		var acceleratedNetworkingEnabled, ipForwardingEnabled, primary bool
+		if v.EnableAcceleratedNetworking != nil {
+			acceleratedNetworkingEnabled = *v.EnableAcceleratedNetworking
+		}
+		if v.EnableIPForwarding != nil {
+			ipForwardingEnabled = *v.EnableIPForwarding
+		}
+		if v.Primary != nil {
+			primary = *v.Primary
+		}
+
+		var dnsServers []string
+		if settings := v.DNSSettings; settings != nil {
+			dnsServers = *v.DNSSettings.DNSServers
+		}
+
+		var ipConfigurations []interface{}
+		if v.IPConfigurations != nil {
+			for _, configRaw := range *v.IPConfigurations {
+				config := flattenVirtualMachineScaleSetIPConfiguration(configRaw)
+				ipConfigurations = append(ipConfigurations, config)
+			}
+		}
+		networkInterfaces = append(networkInterfaces, VirtualMachineScaleSetNetworkInterface{
+			Name:                         name,
+			NetworkSecurityGroupId:       networkSecurityGroupId,
+			AcceleratedNetworkingEnabled: acceleratedNetworkingEnabled,
+			IPForwardingEnabled:          ipForwardingEnabled,
+			Primary:                      primary,
+			DNSServers:                   dnsServers,
+			IPConfiguration:              flattenOrchestratedVirtualMachineScaleSetNetworkInterfaceIPConfiguration(v.IPConfigurations),
+		})
+	}
+
+	return networkInterfaces
+}
+
+func flattenOrchestratedVirtualMachineScaleSetNetworkInterfaceIPConfiguration(input *[]compute.VirtualMachineScaleSetIPConfiguration) []VirtualMachineScaleSetNetworkInterfaceIPConfiguration {
+	if input == nil {
+		return []VirtualMachineScaleSetNetworkInterfaceIPConfiguration{}
+	}
+
+	ipConfigurations := make([]VirtualMachineScaleSetNetworkInterfaceIPConfiguration, 0)
+	for _, v := range *input {
+		var name, subnetId string
+		if v.Name != nil {
+			name = *v.Name
+		}
+		if v.Subnet != nil && v.Subnet.ID != nil {
+			subnetId = *v.Subnet.ID
+		}
+
+		var primary bool
+		if v.Primary != nil {
+			primary = *v.Primary
+		}
+
+		ipConfigurations = append(ipConfigurations, VirtualMachineScaleSetNetworkInterfaceIPConfiguration{
+			Name:                                    name,
+			SubnetId:                                subnetId,
+			Primary:                                 primary,
+			PublicIPAddress:                         flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(v.PublicIPAddressConfiguration),
+			ApplicationGatewayBackendAddressPoolIds: flattenSubResourcesToStringIDs(v.ApplicationGatewayBackendAddressPools),
+			ApplicationSecurityGroupIds:             flattenSubResourcesToStringIDs(v.ApplicationSecurityGroups),
+			LoadBalancerBackendAddressPoolIds:       flattenSubResourcesToStringIDs(v.LoadBalancerBackendAddressPools),
+		})
+	}
+
+	return ipConfigurations
+}
+
+func flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input *compute.VirtualMachineScaleSetPublicIPAddressConfiguration) VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress {
+	if input == nil {
+		return VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress{}
+	}
+
+	ipTags := make([]VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddressIPTag, 0)
+	if input.IPTags != nil {
+		for _, rawTag := range *input.IPTags {
+			var tag, tagType string
+
+			if rawTag.IPTagType != nil {
+				tagType = *rawTag.IPTagType
+			}
+
+			if rawTag.Tag != nil {
+				tag = *rawTag.Tag
+			}
+
+			ipTags = append(ipTags, VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddressIPTag{
+				Tag:  tag,
+				Type: tagType,
+			})
+		}
+	}
+
+	var domainNameLabel, name, publicIPPrefixId, version string
+	if input.DNSSettings != nil && input.DNSSettings.DomainNameLabel != nil {
+		domainNameLabel = *input.DNSSettings.DomainNameLabel
+	}
+
+	if input.Name != nil {
+		name = *input.Name
+	}
+
+	if input.PublicIPPrefix != nil && input.PublicIPPrefix.ID != nil {
+		publicIPPrefixId = *input.PublicIPPrefix.ID
+	}
+
+	if input.PublicIPAddressVersion != "" {
+		version = string(input.PublicIPAddressVersion)
+	}
+
+	var idleTimeoutInMinutes int
+	if input.IdleTimeoutInMinutes != nil {
+		idleTimeoutInMinutes = int(*input.IdleTimeoutInMinutes)
+	}
+
+	return VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress{
+		Name:                 name,
+		DomainNameLabel:      domainNameLabel,
+		IdleTimeoutInMinutes: idleTimeoutInMinutes,
+		IPTag:                ipTags,
+		PublicIpPrefixId:     publicIPPrefixId,
+		Version:              version,
+	}
+}
+
+func flattenOrchestratedVirtualMachineScaleSetIdentityToModel(input *compute.VirtualMachineScaleSetIdentity) ([]identity.ModelUserAssigned, error) {
+	if input == nil {
+		return nil, nil
+	}
+
+	identityIds := make(map[string]identity.UserAssignedIdentityDetails, 0)
+	for k, v := range input.UserAssignedIdentities {
+		if v != nil {
+			identityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
+	}
+
+	tmp := identity.UserAssignedMap{
+		Type:        input.Type,
+		IdentityIds: identityIds,
+	}
+
+	output, err := identity.FlattenUserAssignedMapToModel(&tmp)
+	if err != nil {
+		return nil, fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	return *output, nil
 }
