@@ -202,7 +202,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IntBetween(0, 12),
 					},
 
-					"zones": commonschema.ZonesMultipleOptionalForceNew(),
+					"zones": commonschema.ZonesMultipleOptional(),
 
 					"gateway_regional_url": {
 						Type:     pluginsdk.TypeString,
@@ -563,7 +563,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+		"zones": commonschema.ZonesMultipleOptional(),
 
 		"gateway_url": {
 			Type:     pluginsdk.TypeString,

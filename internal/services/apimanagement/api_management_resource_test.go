@@ -850,6 +850,35 @@ func TestAccApiManagement_additionalLocationGateway(t *testing.T) {
 	})
 }
 
+func TestAccApiManagement_zones(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zones(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.zonesUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.zones(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ApiManagementID(state.ID)
 	if err != nil {
@@ -1563,53 +1592,29 @@ resource "azurerm_network_security_rule" "authenticate" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ApiManagementResource) virtualNetworkInternal(data acceptance.TestData) string {
+func (ApiManagementResource) virtualNetworkAdditionalLocationTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  publisher_name      = "pub1"
-  publisher_email     = "pub1@email.com"
-
-  sku_name = "Developer_1"
-
-  virtual_network_type = "Internal"
-  virtual_network_configuration {
-    subnet_id = azurerm_subnet.test.id
-  }
-}
-`, r.virtualNetworkTemplate(data), data.RandomInteger)
-}
-
-func (r ApiManagementResource) virtualNetworkInternalAdditionalLocation(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-%[2]d-2"
-  location = "%[3]s"
+  name     = "acctestRG-%[1]d-2"
+  location = "%[2]s"
 }
 
-// subnet2 from the second location
 resource "azurerm_virtual_network" "test2" {
-  name                = "acctestVNET2-%[2]d"
+  name                = "acctestVNET2-%[1]d"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "acctestSNET2-%[2]d"
+  name                 = "acctestSNET2-%[1]d"
   resource_group_name  = azurerm_resource_group.test2.name
   virtual_network_name = azurerm_virtual_network.test2.name
   address_prefixes     = ["10.1.1.0/24"]
 }
 
 resource "azurerm_network_security_group" "test2" {
-  name                = "acctest-NSG2-%[2]d"
+  name                = "acctest-NSG2-%[1]d"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
 }
@@ -1674,6 +1679,34 @@ resource "azurerm_network_security_rule" "authenticate2" {
   resource_group_name         = azurerm_resource_group.test2.name
   network_security_group_name = azurerm_network_security_group.test2.name
 }
+`, data.RandomInteger, data.Locations.Secondary)
+}
+
+func (r ApiManagementResource) virtualNetworkInternal(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  virtual_network_type = "Internal"
+  virtual_network_configuration {
+    subnet_id = azurerm_subnet.test.id
+  }
+}
+`, r.virtualNetworkTemplate(data), data.RandomInteger)
+}
+
+func (r ApiManagementResource) virtualNetworkInternalAdditionalLocation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+%[2]s
 
 resource "azurerm_public_ip" "test1" {
   name                = "acctest-IP1-%[4]s"
@@ -1694,7 +1727,7 @@ resource "azurerm_public_ip" "test2" {
 }
 
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%[2]d"
+  name                = "acctestAM-%[3]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
@@ -1723,7 +1756,7 @@ resource "azurerm_api_management" "test" {
     azurerm_subnet_network_security_group_association.test2,
   ]
 }
-`, r.virtualNetworkTemplate(data), data.RandomInteger, data.Locations.Secondary, data.RandomString)
+`, r.virtualNetworkTemplate(data), r.virtualNetworkAdditionalLocationTemplate(data), data.RandomInteger, data.RandomString)
 }
 
 func (ApiManagementResource) identityUserAssigned(data acceptance.TestData) string {
@@ -2454,4 +2487,99 @@ resource "azurerm_api_management" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r ApiManagementResource) zonesTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+%[2]s
+
+resource "azurerm_public_ip" "test1" {
+  name                = "acctest-IP1-%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  allocation_method   = "Static"
+  domain_name_label   = "acctest-ip1-%[3]s"
+}
+
+resource "azurerm_public_ip" "test2" {
+  name                = "acctest-IP2-%[3]s"
+  resource_group_name = azurerm_resource_group.test2.name
+  location            = azurerm_resource_group.test2.location
+  sku                 = "Standard"
+  allocation_method   = "Static"
+  domain_name_label   = "acctest-ip2-%[3]s"
+}
+`, r.virtualNetworkTemplate(data), r.virtualNetworkAdditionalLocationTemplate(data), data.RandomString)
+}
+
+func (r ApiManagementResource) zones(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-zones-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Premium_4"
+  zones    = ["1", "2"]
+
+  public_ip_address_id = azurerm_public_ip.test1.id
+  virtual_network_type = "Internal"
+
+  virtual_network_configuration {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  additional_location {
+    zones    = ["1", "2"]
+    location = azurerm_resource_group.test2.location
+
+    public_ip_address_id = azurerm_public_ip.test2.id
+
+    virtual_network_configuration {
+      subnet_id = azurerm_subnet.test2.id
+    }
+  }
+}
+`, r.zonesTemplate(data), data.RandomInteger)
+}
+
+func (r ApiManagementResource) zonesUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-zones-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Premium_2"
+  zones    = ["1"]
+
+  public_ip_address_id = azurerm_public_ip.test1.id
+  virtual_network_type = "Internal"
+
+  virtual_network_configuration {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  additional_location {
+    zones    = ["1"]
+    location = azurerm_resource_group.test2.location
+
+    public_ip_address_id = azurerm_public_ip.test2.id
+
+    virtual_network_configuration {
+      subnet_id = azurerm_subnet.test2.id
+    }
+  }
+}
+`, r.zonesTemplate(data), data.RandomInteger)
 }
