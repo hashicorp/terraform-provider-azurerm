@@ -60,8 +60,12 @@ The following arguments are supported:
 * `cors` - (Optional) A `cors` block as documented below.
 
 * `connectivity_logs_enabled` - (Optional) Specifies if Connectivity Logs are enabled or not. Defaults to `false`.
+  
+~> **Note:** `connectivity_logs_enabled` will be deprecated in 4.0 provider, and it will be only respected when `resource_logs` is not presented, please use `resource_logs` block to configure the resource logs for SignalR service.
 
 * `messaging_logs_enabled` - (Optional) Specifies if Messaging Logs are enabled or not. Defaults to `false`.
+
+~> **Note:** `messaging_logs_enabled` will be deprecated in 4.0 provider, and it will be only respected when `resource_logs` is not presented, please use `resource_logs` block to configure the resource logs for SignalR service. 
 
 * `live_trace_enabled` - (Optional) Specifies if Live Trace is enabled or not. Defaults to `false`.
 
@@ -70,6 +74,8 @@ The following arguments are supported:
 * `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
 
 * `live_trace` - (Optional) A `live_trace` block as defined below.
+
+* `resource_logs` - (Optional) A `resource_logs` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -96,6 +102,16 @@ An `upstream_endpoint` block supports the following:
 A `live_trace` block supports the following:
 
 * `enabled` - (Optional) Whether the live trace is enabled? Defaults to `true`.
+
+* `messaging_logs_enabled` - (Optional) Whether the log category `MessagingLogs` is enabled? Defaults to `true`
+
+* `connectivity_logs_enabled` - (Optional) Whether the log category `ConnectivityLogs` is enabled? Defaults to `true`
+
+* `http_request_logs_enabled` - (Optional) Whether the log category `HttpRequestLogs` is enabled? Defaults to `true`
+
+---
+
+A `resource_logs` block supports the following:
 
 * `messaging_logs_enabled` - (Optional) Whether the log category `MessagingLogs` is enabled? Defaults to `true`
 

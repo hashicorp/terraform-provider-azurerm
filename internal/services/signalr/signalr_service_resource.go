@@ -2,6 +2,7 @@ package signalr
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strconv"
 	"strings"
@@ -107,10 +108,11 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	resourceType := signalr.SignalRResource{
 		Location: utils.String(location),
 		Properties: &signalr.SignalRProperties{
-			Cors:                   expandSignalRCors(cors),
-			Features:               &expandedFeatures,
-			Upstream:               expandUpstreamSettings(upstreamSettings),
-			LiveTraceConfiguration: expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{})),
+			Cors:                     expandSignalRCors(cors),
+			Features:                 &expandedFeatures,
+			Upstream:                 expandUpstreamSettings(upstreamSettings),
+			LiveTraceConfiguration:   expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{})),
+			ResourceLogConfiguration: expandSignalRResourceLogConfig(d.Get("resource_logs").([]interface{})),
 		},
 		Sku:  expandSignalRServiceSku(sku),
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -201,6 +203,10 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `live_trace`:%+v", err)
 			}
 
+			if err := d.Set("resource_logs", flattenSignalRResourceLogConfig(props.ResourceLogConfiguration)); err != nil {
+				return fmt.Errorf("setting `resource_logs`:%+v", err)
+			}
+
 			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 				return err
 			}
@@ -239,6 +245,10 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if d.HasChange("live_trace") {
 			resourceType.Properties.LiveTraceConfiguration = expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{}))
+		}
+
+		if d.HasChange("resource_logs") {
+			resourceType.Properties.ResourceLogConfiguration = expandSignalRResourceLogConfig(d.Get("resource_logs").([]interface{}))
 		}
 
 		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled") {
@@ -562,8 +572,91 @@ func flattenSignalRLiveTraceConfig(input *signalr.LiveTraceConfiguration) []inte
 	}}
 }
 
+func expandSignalRResourceLogConfig(input []interface{}) *signalr.ResourceLogConfiguration {
+	resourceLogCategories := make([]signalr.ResourceLogCategory, 0)
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	messageLogEnabled := "false"
+	if v["messaging_logs_enabled"].(bool) {
+		messageLogEnabled = "true"
+	}
+	resourceLogCategories = append(resourceLogCategories, signalr.ResourceLogCategory{
+		Name:    utils.String("MessagingLogs"),
+		Enabled: utils.String(messageLogEnabled),
+	})
+
+	connectivityLogEnabled := "false"
+	if v["connectivity_logs_enabled"].(bool) {
+		connectivityLogEnabled = "true"
+	}
+	resourceLogCategories = append(resourceLogCategories, signalr.ResourceLogCategory{
+		Name:    utils.String("ConnectivityLogs"),
+		Enabled: utils.String(connectivityLogEnabled),
+	})
+
+	httpLogEnabled := "false"
+	if v["http_request_logs_enabled"].(bool) {
+		httpLogEnabled = "true"
+	}
+	resourceLogCategories = append(resourceLogCategories, signalr.ResourceLogCategory{
+		Name:    utils.String("HttpRequestLogs"),
+		Enabled: utils.String(httpLogEnabled),
+	})
+
+	return &signalr.ResourceLogConfiguration{
+		Categories: &resourceLogCategories,
+	}
+}
+
+func flattenSignalRResourceLogConfig(input *signalr.ResourceLogConfiguration) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	var (
+		messagingLogEnabled    bool
+		connectivityLogEnabled bool
+		httpLogsEnabled        bool
+	)
+
+	if input.Categories != nil {
+		for _, item := range *input.Categories {
+			name := ""
+			if item.Name != nil {
+				name = *item.Name
+			}
+
+			var cateEnabled string
+			if item.Enabled != nil {
+				cateEnabled = *item.Enabled
+			}
+
+			switch name {
+			case "MessagingLogs":
+				messagingLogEnabled = strings.EqualFold(cateEnabled, "true")
+			case "ConnectivityLogs":
+				connectivityLogEnabled = strings.EqualFold(cateEnabled, "true")
+			case "HttpRequestLogs":
+				httpLogsEnabled = strings.EqualFold(cateEnabled, "true")
+			default:
+				continue
+			}
+		}
+	}
+	return []interface{}{map[string]interface{}{
+		"messaging_logs_enabled":    messagingLogEnabled,
+		"connectivity_logs_enabled": connectivityLogEnabled,
+		"http_request_logs_enabled": httpLogsEnabled,
+	}}
+}
+
 func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -600,16 +693,31 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"connectivity_logs_enabled": {
-			Type:     pluginsdk.TypeBool,
+		"resource_logs": {
+			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Default:  false,
-		},
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"connectivity_logs_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  true,
+						Optional: true,
+					},
 
-		"messaging_logs_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+					"messaging_logs_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  true,
+						Optional: true,
+					},
+
+					"http_request_logs_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  true,
+						Optional: true,
+					},
+				},
+			},
 		},
 
 		"live_trace_enabled": {
@@ -767,4 +875,20 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+	if !features.FourPointOhBeta() {
+		s["connectivity_logs_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "`connectivity_logs_enabled` has been deprecated in favor of `resource_logs` and will be removed in 4.0.",
+		}
+
+		s["messaging_logs_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "`messaging_logs_enabled` has been deprecated in favor of `resource_logs` and will be removed in 4.0.",
+		}
+	}
+	return s
 }
