@@ -70,6 +70,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		SpringCloudAcceleratorResource{},
 		SpringCloudApplicationLiveViewResource{},
+		SpringCloudGatewaySsoResource{},
 		SpringCloudDevToolPortalResource{},
 		SpringCloudCustomizedAcceleratorResource{},
 	}
