@@ -82,7 +82,8 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
+    "GetRotationPolicy",
   ]
 }
 
