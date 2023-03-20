@@ -323,6 +323,7 @@ resource "azurerm_key_vault" "test" {
       "List",
       "Delete",
       "Purge",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [
@@ -341,6 +342,7 @@ resource "azurerm_key_vault" "test" {
       "Recover",
       "WrapKey",
       "UnwrapKey",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = []
