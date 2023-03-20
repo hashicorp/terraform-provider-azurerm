@@ -349,19 +349,11 @@ func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, me
 
 	future, err := client.Delete(ctx, *id)
 	if err != nil {
-		// work around for "json: cannot unmarshal string into Go value of type odata.odata" issue
-		if !strings.Contains(err.Error(), "odata.odata") {
-			return fmt.Errorf("deleting Databricks %s: %+v", *id, err)
-		}
+		return fmt.Errorf("deleting Databricks %s: %+v", *id, err)
 	}
 
 	if err = future.Poller.PollUntilDone(ctx); err != nil {
-		// work around for "json: cannot unmarshal string into Go value of type odata.odata"
-		// it appears that I cannot workaround the "internal-error: 'poller' was nil" in the
-		// same manner as I was to workaround the odata.odata issue.
-		if !strings.Contains(err.Error(), "odata.odata") {
-			return fmt.Errorf("waiting for deletion of Databricks %s: %+v", *id, err)
-		}
+		return fmt.Errorf("waiting for deletion of Databricks %s: %+v", *id, err)
 	}
 
 	return nil
