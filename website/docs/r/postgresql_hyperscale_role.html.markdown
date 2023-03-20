@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `server_group_id` - (Required) The ID of the PostgreSQL HyperScale Cluster. Changing this forces a new resource to be created.
 
-* `password` - (Required) The password of the PostgreSQL HyperScale Role.
+* `password` - (Required) The password of the PostgreSQL HyperScale Role. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

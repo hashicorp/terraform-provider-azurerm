@@ -53,6 +53,7 @@ func (r PostgreSQLHyperScaleRoleResource) Arguments() map[string]*pluginsdk.Sche
 		"password": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
