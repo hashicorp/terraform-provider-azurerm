@@ -57,7 +57,7 @@ func TestAccResourceProviderRegistration_feature(t *testing.T) {
 		{
 			PreConfig: func() {
 				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
-				if err := unRegisterProvider(); err != nil {
+				if err := r.unRegisterProviders("Microsoft.ApiSecurity"); err != nil {
 					t.Fatalf("Failed to reset feature registration with error: %+v", err)
 				}
 			},
@@ -132,16 +132,25 @@ resource "azurerm_resource_provider_registration" "import" {
 `, template)
 }
 
-func unRegisterProvider() error {
+func (r ResourceProviderRegistrationResource) unRegisterProviders(resourceProviders ...string) error {
 	client, err := testclient.Build()
 	if err != nil {
 		return fmt.Errorf("building client: %+v", err)
 	}
 
+	for _, rp := range resourceProviders {
+		if err = r.unRegisterProvider(client, rp); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r ResourceProviderRegistrationResource) unRegisterProvider(client *clients.Client, resourceProvider string) error {
 	ctx, cancel := context.WithDeadline(client.StopContext, time.Now().Add(30*time.Minute))
 	defer cancel()
 
-	const resourceProvider = "Microsoft.ApiSecurity"
 	providersClient := client.Resource.ProvidersClient
 	provider, err := providersClient.Get(ctx, resourceProvider, "")
 	if err != nil {
