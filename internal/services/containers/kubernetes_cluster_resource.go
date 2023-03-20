@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
@@ -3298,41 +3297,6 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *managedclus
 		map[string]interface{}{
 			"client_id":     clientId,
 			"client_secret": clientSecret,
-		},
-	}
-}
-
-func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interface{} {
-	// we don't size-check these since they're validated in the Parse method
-	cluster := config.Clusters[0].Cluster
-	user := config.Users[0].User
-	name := config.Users[0].Name
-
-	return []interface{}{
-		map[string]interface{}{
-			"client_certificate":     user.ClientCertificteData,
-			"client_key":             user.ClientKeyData,
-			"cluster_ca_certificate": cluster.ClusterAuthorityData,
-			"host":                   cluster.Server,
-			"password":               user.Token,
-			"username":               name,
-		},
-	}
-}
-
-func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []interface{} {
-	// we don't size-check these since they're validated in the Parse method
-	cluster := config.Clusters[0].Cluster
-	name := config.Users[0].Name
-
-	return []interface{}{
-		map[string]interface{}{
-			"client_certificate":     "",
-			"client_key":             "",
-			"cluster_ca_certificate": cluster.ClusterAuthorityData,
-			"host":                   cluster.Server,
-			"password":               "",
-			"username":               name,
 		},
 	}
 }
