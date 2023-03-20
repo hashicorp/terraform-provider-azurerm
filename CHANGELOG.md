@@ -13,6 +13,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_kusto_cluster` - `language_extensions` is now a Set rather than a List [GH-20951]
 * `azurerm_machine_learning_datastore_blobstorage` - fix an issue creating this resource in clouds other than public [GH-21016]
 
 ## 3.48.0 (March 16, 2023)
