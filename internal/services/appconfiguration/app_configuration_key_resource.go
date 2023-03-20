@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/migration"
@@ -56,7 +56,7 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
 		},
 		"key": {
 			Type:         pluginsdk.TypeString,
@@ -125,17 +125,32 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
-			if client == nil {
-				return fmt.Errorf("app configuration %q was not found", model.ConfigurationStoreId)
-			}
 			if err != nil {
 				return err
+			}
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", model.ConfigurationStoreId)
 			}
 
 			appCfgKeyResourceID := parse.AppConfigurationKeyId{
 				ConfigurationStoreId: model.ConfigurationStoreId,
 				Key:                  model.Key,
 				Label:                model.Label,
+			}
+
+			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
+			// allow up to 15 min for role permission to be done propagated
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be done propagated", model.Key)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:      []string{"Forbidden"},
+				Target:       []string{"Error", "Exists"},
+				Refresh:      appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
+				PollInterval: 20 * time.Second,
+				Timeout:      15 * time.Minute,
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Key %q read permission to be propagated: %+v", model.Key, err)
 			}
 
 			kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []string{})
@@ -189,7 +204,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			metadata.SetID(appCfgKeyResourceID)
 			return nil
 		},
-		Timeout: 30 * time.Minute,
+		Timeout: 45 * time.Minute,
 	}
 }
 
@@ -208,12 +223,12 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if err != nil {
+				return err
+			}
 			if client == nil {
 				// if the parent AppConfiguration is gone, all the data will be too
 				return metadata.MarkAsGone(resourceID)
-			}
-			if err != nil {
-				return err
 			}
 
 			kv, err := client.GetKeyValue(ctx, resourceID.Key, resourceID.Label, "", "", "", []string{})
@@ -272,11 +287,11 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
-			if client == nil {
-				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
-			}
 			if err != nil {
 				return err
+			}
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
 			}
 
 			var model KeyResourceModel
@@ -334,11 +349,12 @@ func (k KeyResource) Delete() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
-			if client == nil {
-				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
-			}
 			if err != nil {
 				return err
+
+			}
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
 			}
 
 			decodedKey, err := url.QueryUnescape(resourceID.Key)

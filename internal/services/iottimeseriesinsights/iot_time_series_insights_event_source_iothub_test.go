@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/eventsources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IoTTimeSeriesInsightsEventSourceIoTHubResource struct{}
@@ -59,17 +60,26 @@ func TestAccIoTTimeSeriesInsightsEventSourceIoTHub_update(t *testing.T) {
 }
 
 func (IoTTimeSeriesInsightsEventSourceIoTHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.EventSourceID(state.ID)
+	id, err := eventsources.ParseEventSourceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.IoTTimeSeriesInsights.EventSourcesClient.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
+	resp, err := clients.IoTTimeSeriesInsights.EventSources.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving IoT Time Series Insights EventSource IoTHub (%q): %+v", id.String(), err)
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(!utils.ResponseWasNotFound(resp.Response)), nil
+	// @tombuildsstuff: the API returns a 404 but this doesn't get surfaced as an error with the Track1 base layer
+	// re-evaluate once using `hashicorp/go-azure-sdk`'s base layer, since this should be raised as an error/caught above
+	if response.WasNotFound(resp.HttpResponse) {
+		return pointer.To(false), nil
+	}
+
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (IoTTimeSeriesInsightsEventSourceIoTHubResource) basic(data acceptance.TestData) string {

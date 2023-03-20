@@ -42,6 +42,16 @@ In addition to the arguments above, the following attributes are exported:
 * `names` - List containing names of certificates that exist in this Key Vault.
 
 * `key_vault_id` - The Key Vault ID.
+ 
+* `certificates` - One or more `certificates` blocks as defined below.
+
+---
+
+A `certificates` block supports following:
+
+* `name` - The name of secret.
+
+* `enabled` - Whether this secret is enabled.
 
 ## Timeouts
 

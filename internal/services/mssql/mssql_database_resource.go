@@ -555,7 +555,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		configurationName := ""
 		if v := props.MaintenanceConfigurationID; v != nil {
-			maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*v)
+			maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationIDInsensitively(*v)
 			if err != nil {
 				return err
 			}

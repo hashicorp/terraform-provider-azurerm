@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	privateLinkServiceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -305,6 +306,7 @@ func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 
 func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
+	workaroundClient := azuresdkhacks.NewCdnFrontDoorOriginsWorkaroundClient(client)
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -314,7 +316,7 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	params := cdn.AFDOriginUpdatePropertiesParameters{}
+	params := &azuresdkhacks.AFDOriginUpdatePropertiesParameters{}
 
 	if d.HasChange("certificate_name_check_enabled") {
 		params.EnforceCertificateNameCheck = utils.Bool(d.Get("certificate_name_check_enabled").(bool))
@@ -342,7 +344,10 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 		params.HTTPSPort = utils.Int32(int32(d.Get("https_port").(int)))
 	}
 
-	if d.HasChange("origin_host_header") {
+	// The API requires that an explicit null be passed as the 'origin_host_header' value to remove the origin host header, see issue #20617
+	// Since null is a valid value, we now have to always pass the value during update else we will inadvertently clear the value, see issue #20866
+	params.OriginHostHeader = nil
+	if d.Get("origin_host_header").(string) != "" {
 		params.OriginHostHeader = utils.String(d.Get("origin_host_header").(string))
 	}
 
@@ -382,11 +387,11 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 		params.Weight = utils.Int32(int32(d.Get("weight").(int)))
 	}
 
-	payload := cdn.AFDOriginUpdateParameters{
-		AFDOriginUpdatePropertiesParameters: &params,
+	payload := &azuresdkhacks.AFDOriginUpdateParameters{
+		AFDOriginUpdatePropertiesParameters: params,
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, payload)
+	future, err := workaroundClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, *payload)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}

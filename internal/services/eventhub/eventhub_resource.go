@@ -60,6 +60,7 @@ func resourceEventHub() *pluginsdk.Resource {
 			"partition_count": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubPartitionCount,
 			},
 

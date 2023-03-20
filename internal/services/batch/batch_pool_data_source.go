@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceBatchPool() *pluginsdk.Resource {
@@ -722,11 +722,11 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	id := pool.NewPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -734,142 +734,157 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
+	d.Set("name", id.PoolName)
 	d.Set("account_name", id.BatchAccountName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.PoolProperties; props != nil {
-		d.Set("vm_size", props.VMSize)
-		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
-		d.Set("inter_node_communication", string(props.InterNodeCommunication))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("display_name", props.DisplayName)
+			d.Set("vm_size", props.VMSize)
+			d.Set("inter_node_communication", props.InterNodeCommunication)
+			d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
 
-		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
-			if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
-				return fmt.Errorf("flattening `auto_scale`: %+v", err)
-			}
-			if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(d, scaleSettings.FixedScale)); err != nil {
-				return fmt.Errorf("flattening `fixed_scale `: %+v", err)
-			}
-		}
-
-		if props.UserAccounts != nil {
-			userAccounts := make([]interface{}, 0)
-			for _, userAccount := range *props.UserAccounts {
-				userAccounts = append(userAccounts, flattenBatchPoolUserAccount(d, &userAccount))
-			}
-			d.Set("user_accounts", userAccounts)
-		}
-
-		if props.MountConfiguration != nil {
-			mountConfigs := make([]interface{}, 0)
-			for _, mountConfig := range *props.MountConfiguration {
-				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
-			}
-			d.Set("mount_configuration", mountConfigs)
-		}
-
-		if props.DeploymentConfiguration != nil {
-			if props.DeploymentConfiguration.VirtualMachineConfiguration != nil {
-				config := props.DeploymentConfiguration.VirtualMachineConfiguration
-				if config.ContainerConfiguration != nil {
-					d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, config.ContainerConfiguration))
+			if scaleSettings := props.ScaleSettings; scaleSettings != nil {
+				if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
+					return fmt.Errorf("flattening `auto_scale`: %+v", err)
 				}
-				if config.DataDisks != nil {
-					dataDisks := make([]interface{}, 0)
-					for _, item := range *config.DataDisks {
-						dataDisk := make(map[string]interface{})
-						dataDisk["lun"] = *item.Lun
-						dataDisk["disk_size_gb"] = *item.DiskSizeGB
-						dataDisk["caching"] = string(item.Caching)
-						dataDisk["storage_account_type"] = string(item.StorageAccountType)
-						dataDisks = append(dataDisks, dataDisk)
+				if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(d, scaleSettings.FixedScale)); err != nil {
+					return fmt.Errorf("flattening `fixed_scale `: %+v", err)
+				}
+			}
+
+			if props.UserAccounts != nil {
+				userAccounts := make([]interface{}, 0)
+				for _, userAccount := range *props.UserAccounts {
+					userAccounts = append(userAccounts, flattenBatchPoolUserAccount(d, &userAccount))
+				}
+				d.Set("user_accounts", userAccounts)
+			}
+
+			if props.MountConfiguration != nil {
+				mountConfigs := make([]interface{}, 0)
+				for _, mountConfig := range *props.MountConfiguration {
+					mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
+				}
+				d.Set("mount_configuration", mountConfigs)
+			}
+
+			if props.DeploymentConfiguration != nil {
+				if props.DeploymentConfiguration.VirtualMachineConfiguration != nil {
+					config := props.DeploymentConfiguration.VirtualMachineConfiguration
+					if config.ContainerConfiguration != nil {
+						d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, config.ContainerConfiguration))
 					}
-					d.Set("data_disks", dataDisks)
-				}
-				if config.DiskEncryptionConfiguration != nil {
-					diskEncryptionConfiguration := make([]interface{}, 0)
-					if config.DiskEncryptionConfiguration.Targets != nil {
-						for _, item := range *config.DiskEncryptionConfiguration.Targets {
-							target := make(map[string]interface{})
-							target["disk_encryption_target"] = string(item)
-							diskEncryptionConfiguration = append(diskEncryptionConfiguration, target)
-						}
-					}
-					d.Set("disk_encryption", diskEncryptionConfiguration)
-				}
-				if config.Extensions != nil {
-					extensions := make([]interface{}, 0)
-					n := len(*config.Extensions)
-					for _, item := range *config.Extensions {
-						extension := make(map[string]interface{})
-						extension["name"] = *item.Name
-						extension["publisher"] = *item.Publisher
-						extension["type"] = *item.Type
-						if item.TypeHandlerVersion != nil {
-							extension["type_handler_version"] = *item.TypeHandlerVersion
-						}
-						if item.AutoUpgradeMinorVersion != nil {
-							extension["auto_upgrade_minor_version"] = *item.AutoUpgradeMinorVersion
-						}
-						if item.Settings != nil {
-							extension["settings_json"] = item.Settings
-						}
+					if config.DataDisks != nil {
+						dataDisks := make([]interface{}, 0)
+						for _, item := range *config.DataDisks {
+							dataDisk := make(map[string]interface{})
+							dataDisk["lun"] = item.Lun
+							dataDisk["disk_size_gb"] = item.DiskSizeGB
 
-						for i := 0; i < n; i++ {
-							if v, ok := d.GetOk(fmt.Sprintf("extensions.%d.name", i)); ok && v == *item.Name {
-								extension["protected_settings"] = d.Get(fmt.Sprintf("extensions.%d.protected_settings", i))
-								break
+							caching := ""
+							if item.Caching != nil {
+								caching = string(*item.Caching)
+							}
+							dataDisk["caching"] = caching
+
+							storageAccountType := ""
+							if item.StorageAccountType != nil {
+								storageAccountType = string(*item.StorageAccountType)
+							}
+							dataDisk["storage_account_type"] = storageAccountType
+
+							dataDisks = append(dataDisks, dataDisk)
+						}
+						d.Set("data_disks", dataDisks)
+					}
+					if config.DiskEncryptionConfiguration != nil {
+						diskEncryptionConfiguration := make([]interface{}, 0)
+						if config.DiskEncryptionConfiguration.Targets != nil {
+							for _, item := range *config.DiskEncryptionConfiguration.Targets {
+								target := make(map[string]interface{})
+								target["disk_encryption_target"] = string(item)
+								diskEncryptionConfiguration = append(diskEncryptionConfiguration, target)
 							}
 						}
+						d.Set("disk_encryption", diskEncryptionConfiguration)
+					}
+					if config.Extensions != nil {
+						extensions := make([]interface{}, 0)
+						n := len(*config.Extensions)
+						for _, item := range *config.Extensions {
+							extension := make(map[string]interface{})
+							extension["name"] = item.Name
+							extension["publisher"] = item.Publisher
+							extension["type"] = item.Type
+							if item.TypeHandlerVersion != nil {
+								extension["type_handler_version"] = *item.TypeHandlerVersion
+							}
+							if item.AutoUpgradeMinorVersion != nil {
+								extension["auto_upgrade_minor_version"] = *item.AutoUpgradeMinorVersion
+							}
+							if item.Settings != nil {
+								extension["settings_json"] = item.Settings
+							}
 
-						if item.ProvisionAfterExtensions != nil {
-							extension["provision_after_extensions"] = *item.ProvisionAfterExtensions
+							for i := 0; i < n; i++ {
+								if v, ok := d.GetOk(fmt.Sprintf("extensions.%d.name", i)); ok && v == item.Name {
+									extension["protected_settings"] = d.Get(fmt.Sprintf("extensions.%d.protected_settings", i))
+									break
+								}
+							}
+
+							if item.ProvisionAfterExtensions != nil {
+								extension["provision_after_extensions"] = *item.ProvisionAfterExtensions
+							}
+							extensions = append(extensions, extension)
 						}
-						extensions = append(extensions, extension)
+						d.Set("extensions", extensions)
 					}
-					d.Set("extensions", extensions)
-				}
-				if config.ImageReference != nil {
-					d.Set("storage_image_reference", flattenBatchPoolImageReference(config.ImageReference))
-				}
-				if config.LicenseType != nil {
-					d.Set("license_type", *config.LicenseType)
-				}
-				if config.NodeAgentSkuID != nil {
-					d.Set("node_agent_sku_id", *config.NodeAgentSkuID)
-				}
-				if config.NodePlacementConfiguration != nil {
-					nodePlacementConfiguration := make([]interface{}, 0)
-					nodePlacementConfig := make(map[string]interface{})
-					nodePlacementConfig["policy"] = string(config.NodePlacementConfiguration.Policy)
-					nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
-					d.Set("node_placement", nodePlacementConfiguration)
-				}
-				if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil {
-					d.Set("os_disk_placement", string(config.OsDisk.EphemeralOSDiskSettings.Placement))
-				}
-				if config.WindowsConfiguration != nil {
-					windowsConfig := []interface{}{
-						map[string]interface{}{
-							"enable_automatic_updates": *config.WindowsConfiguration.EnableAutomaticUpdates,
-						},
+
+					d.Set("storage_image_reference", flattenBatchPoolImageReference(&config.ImageReference))
+
+					if config.LicenseType != nil {
+						d.Set("license_type", *config.LicenseType)
 					}
-					d.Set("windows", windowsConfig)
+
+					d.Set("node_agent_sku_id", config.NodeAgentSkuId)
+
+					if config.NodePlacementConfiguration != nil {
+						nodePlacementConfiguration := make([]interface{}, 0)
+						nodePlacementConfig := make(map[string]interface{})
+						nodePlacementConfig["policy"] = string(*config.NodePlacementConfiguration.Policy)
+						nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
+						d.Set("node_placement", nodePlacementConfiguration)
+					}
+					osDiskPlacement := ""
+					if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil && config.OsDisk.EphemeralOSDiskSettings.Placement != nil {
+						osDiskPlacement = string(*config.OsDisk.EphemeralOSDiskSettings.Placement)
+					}
+					d.Set("os_disk_placement", osDiskPlacement)
+					if config.WindowsConfiguration != nil {
+						windowsConfig := []interface{}{
+							map[string]interface{}{
+								"enable_automatic_updates": *config.WindowsConfiguration.EnableAutomaticUpdates,
+							},
+						}
+						d.Set("windows", windowsConfig)
+					}
 				}
 			}
-		}
 
-		if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
-			return fmt.Errorf("setting `certificate`: %v", err)
-		}
+			if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
+				return fmt.Errorf("setting `certificate`: %v", err)
+			}
 
-		d.Set("start_task", flattenBatchPoolStartTask(d, props.StartTask))
-		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
+			d.Set("start_task", flattenBatchPoolStartTask(d, props.StartTask))
+			d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
-		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
-			return fmt.Errorf("setting `network_configuration`: %v", err)
+			if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
+				return fmt.Errorf("setting `network_configuration`: %v", err)
+			}
 		}
 	}
-
 	return nil
 }

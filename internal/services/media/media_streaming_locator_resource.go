@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -151,6 +150,16 @@ func resourceMediaStreamingLocator() *pluginsdk.Resource {
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
+			"filter_names": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"start_time": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -210,7 +219,7 @@ func resourceMediaStreamingLocatorCreate(d *pluginsdk.ResourceData, meta interfa
 
 	if endTimeRaw, ok := d.GetOk("end_time"); ok {
 		if endTimeRaw.(string) != "" {
-			endTime, err := date.ParseTime(time.RFC3339, endTimeRaw.(string))
+			endTime, err := time.Parse(time.RFC3339, endTimeRaw.(string))
 			if err != nil {
 				return err
 			}
@@ -218,9 +227,13 @@ func resourceMediaStreamingLocatorCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if filters, ok := d.GetOk("filter_names"); ok {
+		payload.Properties.Filters = utils.ExpandStringSlice(filters.([]interface{}))
+	}
+
 	if startTimeRaw, ok := d.GetOk("start_time"); ok {
 		if startTimeRaw.(string) != "" {
-			startTime, err := date.ParseTime(time.RFC3339, startTimeRaw.(string))
+			startTime, err := time.Parse(time.RFC3339, startTimeRaw.(string))
 			if err != nil {
 				return err
 			}
@@ -287,6 +300,7 @@ func resourceMediaStreamingLocatorRead(d *pluginsdk.ResourceData, meta interface
 				endTime = t.Format(time.RFC3339)
 			}
 			d.Set("end_time", endTime)
+			d.Set("filter_names", utils.FlattenStringSlice(props.Filters))
 
 			startTime := ""
 			if props.StartTime != nil {

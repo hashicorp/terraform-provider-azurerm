@@ -398,7 +398,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				properties.MaintenanceConfigurationID = utils.String(maintenanceConfigId.ID())
 			}
 
-			if metadata.ResourceData.HasChange("administrator_password") {
+			if metadata.ResourceData.HasChange("administrator_login_password") {
 				properties.AdministratorLoginPassword = utils.String(state.AdministratorLoginPassword)
 			}
 
@@ -475,7 +475,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					model.Fqdn = *props.FullyQualifiedDomainName
 				}
 				if props.MaintenanceConfigurationID != nil {
-					maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationID(*props.MaintenanceConfigurationID)
+					maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationIDInsensitively(*props.MaintenanceConfigurationID)
 					if err != nil {
 						return err
 					}

@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -79,20 +80,20 @@ func TestAccCapacityReservationGroup_tags(t *testing.T) {
 }
 
 func (r CapacityReservationGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CapacityReservationGroupID(state.ID)
+	id, err := capacityreservationgroups.ParseCapacityReservationGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Compute.CapacityReservationGroupsClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Compute.CapacityReservationGroupsClient.Get(ctx, *id, capacityreservationgroups.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r CapacityReservationGroupResource) template(data acceptance.TestData) string {

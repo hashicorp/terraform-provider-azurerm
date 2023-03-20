@@ -2,8 +2,8 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault" // nolint: staticcheck
-	keyvaultmgmt "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	keyvaultmgmt "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type Client struct {

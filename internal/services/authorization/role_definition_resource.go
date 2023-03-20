@@ -466,7 +466,9 @@ func expandRoleDefinitionAssignableScopes(d *pluginsdk.ResourceData) []string {
 		scopes = append(scopes, assignedScope)
 	} else {
 		for _, scope := range assignableScopes {
-			scopes = append(scopes, scope.(string))
+			if s, ok := scope.(string); ok {
+				scopes = append(scopes, s)
+			}
 		}
 	}
 

@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `client_certificate_enabled` - (Optional) Enforce a client certificate to be presented on each request to the gateway? This is only supported when SKU type is `Consumption`.
 
+* `delegation` - (Optional) A `delegation` block as defined below.
+
 * `gateway_disabled` - (Optional) Disable the gateway in main region? This is only supported when `additional_location` is set.
 
 * `min_api_version` - (Optional) The version which the control plane API calls to API Management service are limited with version equal to or newer than.
@@ -99,7 +101,7 @@ The following arguments are supported:
 
 * `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`.
 
-> **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://docs.microsoft.com/azure/api-management/api-management-using-with-vnet#-common-network-configuration-issues).
+> **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://learn.microsoft.com/azure/api-management/virtual-network-reference).
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
 
@@ -132,6 +134,18 @@ A `certificate` block supports the following:
 * `store_name` - (Required) The name of the Certificate Store where this certificate should be stored. Possible values are `CertificateAuthority` and `Root`.
 
 * `certificate_password` - (Optional) The password for the certificate.
+
+---
+
+A `delegation` block supports the following:
+
+* `subscriptions_enabled` - (Optional) Should subscription requests be delegated to an external url? Defaults to `false`.
+
+* `user_registration_enabled` - (Optional) Should user registration requests be delegated to an external url? Defaults to `false`.
+
+* `url` - (Optional) The delegation URL.
+
+* `validation_key` - (Optional) A base64-encoded validation key to validate, that a request is coming from Azure API Management.
 
 ---
 
@@ -287,30 +301,6 @@ A `security` block supports the following:
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` field
 
-* `disable_backend_ssl30` - (Optional) Should SSL 3.0 be disabled on the backend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
-
--> **Note:** This property has been deprecated in favour of the `enable_backend_ssl30` property and will be removed in version 2.0 of the provider.
-
-* `disable_backend_tls10` - (Optional) Should TLS 1.0 be disabled on the backend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
-
--> **Note:** This property has been deprecated in favour of the `enable_backend_tls10` property and will be removed in version 2.0 of the provider.
-
-* `disable_backend_tls11` - (Optional) Should TLS 1.1 be disabled on the backend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
-
--> **Note:** This property has been deprecated in favour of the `enable_backend_tls11` property and will be removed in version 2.0 of the provider.
-
-* `disable_frontend_ssl30` - (Optional) Should SSL 3.0 be disabled on the frontend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
-
--> **Note:** This property has been deprecated in favour of the `enable_frontend_ssl30` property and will be removed in version 2.0 of the provider.
-
-* `disable_frontend_tls10` - (Optional) Should TLS 1.0 be disabled on the frontend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
-
--> **Note:** This property has been deprecated in favour of the `enable_frontend_tls10` property and will be removed in version 2.0 of the provider.
-
-* `disable_frontend_tls11` - (Optional) Should TLS 1.1 be disabled on the frontend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
-
--> **Note:** This property has been deprecated in favour of the `enable_frontend_tls11` property and will be removed in version 2.0 of the provider.
-
 ---
 
 A `sign_in` block supports the following:
@@ -360,6 +350,8 @@ In addition to all arguments above, the following attributes are exported:
 * `gateway_regional_url` - The Region URL for the Gateway of the API Management Service.
 
 * `identity` - An `identity` block as defined below.
+
+* `hostname_configuration` - A `hostname_configuration` block as defined below.
 
 * `management_api_url` - The URL for the Management API associated with this API Management service.
 
@@ -417,11 +409,11 @@ The `certificate` block exports the following:
 
 The `hostname_configuration` block exports the following:
 
-* `expiry` - The expiration date of the certificate in RFC3339 format: `2000-01-02T03:04:05Z`.
+* `proxy` - A `proxy` block as defined below.
 
-* `thumbprint` - The thumbprint of the certificate.
+---
 
-* `subject` - The subject of the certificate.
+The `proxy` block exports the following:
 
 * `certificate_source` - The source of the certificate.
 

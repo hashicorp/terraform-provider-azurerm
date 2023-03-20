@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether to enabled public networks when data plane traffic coming from public networks while private endpoint is enabled. Defaults to `true`.
 
+* `tags` - (Optional) A mapping of tags to assign to the Healthcare DICOM Service.
+
 ---
 
 An `identity` block supports the following:
@@ -78,8 +80,8 @@ An `authentication` block supports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Healthcare DICOM Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Healthcare DICOM Service.
+* `create` - (Defaults to 90 minutes) Used when creating the Healthcare DICOM Service.
+* `update` - (Defaults to 90 minutes) Used when updating the Healthcare DICOM Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare DICOM Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare DICOM Service.
 

@@ -100,6 +100,8 @@ A `github_action_configuration` block supports the following:
 
 * `container_configuration` - (Optional) A `container_configuration` block as defined above.
 
+* `generate_workflow_file` - (Optional) Whether to generate the GitHub work flow file. Defaults to `true`. Changing this forces a new resource to be created.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
