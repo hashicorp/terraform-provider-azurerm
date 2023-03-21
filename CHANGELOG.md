@@ -2,8 +2,6 @@
 
 FEATURES: 
 
-* **New Data Source:** `azurerm_mobile_network_packet_core_control_plane` [GH-20730]
-* **New Resource:** `azurerm_mobile_network_packet_core_control_plane` [GH-20730]
 * **New Resource:** `azurerm_sentinel_threat_intelligence_indicator` [GH-20771]
 
 ENHANCEMENTS:
@@ -38,7 +36,7 @@ BUG FIXES:
 
 FEATURES: 
 
-* **New Data Source:** `azurerm_mobile_network_sim_policy` ([#20732](https://github.com/hashicorp/terraform-provider-azurerm/issues/20732))
+* **New Data Source:** `azurerm_mobile_network_sim_policy` [FGH-20732]
 * **New Resource:** `azurerm_express_route_port_authorization` ([#20736](https://github.com/hashicorp/terraform-provider-azurerm/issues/20736))
 * **New Resource:** `azurerm_mobile_network_sim_policy` ([#20732](https://github.com/hashicorp/terraform-provider-azurerm/issues/20732))
 * **New Resource:** `azurerm_site_recovery_vmware_replication_policy` ([#20881](https://github.com/hashicorp/terraform-provider-azurerm/issues/20881))
