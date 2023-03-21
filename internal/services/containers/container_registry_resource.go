@@ -337,8 +337,12 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+	// the PATCH operation returns a 201 which we need to check for otherwise we throw an error
+	resp, err := client.Update(ctx, *id, parameters)
+	if !response.WasStatusCode(resp.HttpResponse, 201) {
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	// downgrade to Basic or Standard SKU
