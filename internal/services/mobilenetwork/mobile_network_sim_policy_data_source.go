@@ -18,15 +18,15 @@ import (
 type SimPolicyDataSource struct{}
 
 type SimPolicyDataSourceModel struct {
-	Name                         string                              `tfschema:"name"`
-	MobileNetworkMobileNetworkId string                              `tfschema:"mobile_network_id"`
-	DefaultSliceId               string                              `tfschema:"default_slice_id"`
-	Location                     string                              `tfschema:"location"`
-	RegistrationTimer            int64                               `tfschema:"registration_timer_in_seconds"`
-	RfspIndex                    int64                               `tfschema:"rat_frequency_selection_priority_index"`
-	SliceConfigurations          []SliceConfigurationDataSourceModel `tfschema:"slice"`
-	Tags                         map[string]string                   `tfschema:"tags"`
-	UeAmbr                       []AmbrDataSourceModel               `tfschema:"user_equipment_aggregate_maximum_bit_rate"`
+	Name                string                              `tfschema:"name"`
+	MobileNetworkId     string                              `tfschema:"mobile_network_id"`
+	DefaultSliceId      string                              `tfschema:"default_slice_id"`
+	Location            string                              `tfschema:"location"`
+	RegistrationTimer   int64                               `tfschema:"registration_timer_in_seconds"`
+	RfspIndex           int64                               `tfschema:"rat_frequency_selection_priority_index"`
+	SliceConfigurations []SliceConfigurationDataSourceModel `tfschema:"slice"`
+	Tags                map[string]string                   `tfschema:"tags"`
+	UeAmbr              []AmbrDataSourceModel               `tfschema:"user_equipment_aggregate_maximum_bit_rate"`
 }
 
 type SliceConfigurationDataSourceModel struct {
@@ -230,7 +230,7 @@ func (r SimPolicyDataSource) Read() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.MobileNetwork.SIMPolicyClient
-			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(metaModel.MobileNetworkMobileNetworkId)
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(metaModel.MobileNetworkId)
 			if err != nil {
 				return err
 			}
@@ -247,8 +247,8 @@ func (r SimPolicyDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := SimPolicyDataSourceModel{
-				Name:                         id.SimPolicyName,
-				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
+				Name:            id.SimPolicyName,
+				MobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
 			}
 
 			if model := resp.Model; model != nil {

@@ -20,13 +20,13 @@ import (
 type ServiceResource struct{}
 
 type ServiceResourceModel struct {
-	Name                         string                                     `tfschema:"name"`
-	MobileNetworkMobileNetworkId string                                     `tfschema:"mobile_network_id"`
-	Location                     string                                     `tfschema:"location"`
-	PccRules                     []ServiceResourcePccRuleConfigurationModel `tfschema:"pcc_rule"`
-	ServicePrecedence            int64                                      `tfschema:"service_precedence"`
-	ServiceQosPolicy             []ServiceResourceQosPolicyModel            `tfschema:"service_qos_policy"`
-	Tags                         map[string]string                          `tfschema:"tags"`
+	Name              string                                     `tfschema:"name"`
+	MobileNetworkId   string                                     `tfschema:"mobile_network_id"`
+	Location          string                                     `tfschema:"location"`
+	PccRules          []ServiceResourcePccRuleConfigurationModel `tfschema:"pcc_rule"`
+	ServicePrecedence int64                                      `tfschema:"service_precedence"`
+	ServiceQosPolicy  []ServiceResourceQosPolicyModel            `tfschema:"service_qos_policy"`
+	Tags              map[string]string                          `tfschema:"tags"`
 }
 
 type ServiceResourcePccRuleConfigurationModel struct {
@@ -352,7 +352,7 @@ func (r ServiceResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.MobileNetwork.ServiceClient
-			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkMobileNetworkId)
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkId)
 			if err != nil {
 				return err
 			}
@@ -466,9 +466,9 @@ func (r ServiceResource) Read() sdk.ResourceFunc {
 			model := *resp.Model
 
 			state := ServiceResourceModel{
-				Name:                         id.ServiceName,
-				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
-				Location:                     location.Normalize(model.Location),
+				Name:            id.ServiceName,
+				MobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
+				Location:        location.Normalize(model.Location),
 			}
 
 			properties := model.Properties
