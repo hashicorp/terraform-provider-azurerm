@@ -426,8 +426,6 @@ func (r MobileNetworkServiceResource) Update() sdk.ResourceFunc {
 				properties.Properties.ServiceQosPolicy = expandQosPolicyModel(model.ServiceQosPolicy)
 			}
 
-			properties.SystemData = nil
-
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
 			}

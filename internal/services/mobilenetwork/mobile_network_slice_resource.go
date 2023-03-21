@@ -189,8 +189,6 @@ func (r SliceResource) Update() sdk.ResourceFunc {
 				updateModel.Properties.Snssai = expandSnssaiModel(model.Snssai)
 			}
 
-			updateModel.SystemData = nil
-
 			if metadata.ResourceData.HasChange("tags") {
 				updateModel.Tags = &model.Tags
 			}
