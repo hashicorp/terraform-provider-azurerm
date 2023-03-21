@@ -3990,8 +3990,8 @@ resource "azurerm_storage_account" "test" {
   }
 
   infrastructure_encryption_enabled = true
-  table_encryption_key_type = "Account"
-  queue_encryption_key_type = "Account"
+  table_encryption_key_type         = "Account"
+  queue_encryption_key_type         = "Account"
 
   tags = {
     environment = "production"
