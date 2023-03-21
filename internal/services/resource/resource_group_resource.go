@@ -120,6 +120,7 @@ func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) erro
 func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Resource.GroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	virtualCluster := meta.(*clients.Client).MSSQL.VirtualClusterClient
 	defer cancel()
 
 	id, err := parse.ResourceGroupID(d.Id())
@@ -141,6 +142,18 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 				val := results.Value()
 				if val.ID != nil {
 					nestedResourceIds = append(nestedResourceIds, *val.ID)
+
+					log.Printf("start => when the ListByResourceGroupComplete gets resources")
+					resp, err := virtualCluster.ListByResourceGroup(ctx, id.ResourceGroup)
+					if err != nil {
+						log.Printf("error calling virtualCluster.ListByResourceGroup API")
+					}
+					if v := resp.Values(); len(v) > 0 {
+						log.Printf("len(virtualCluster.ListByResourceGroup) is %d: ", len(v))
+					} else {
+						log.Printf("len(virtualCluster.ListByResourceGroup) is 0")
+					}
+					log.Printf("end => when the ListByResourceGroupComplete gets resources")
 				}
 
 				if err := results.NextWithContext(ctx); err != nil {
