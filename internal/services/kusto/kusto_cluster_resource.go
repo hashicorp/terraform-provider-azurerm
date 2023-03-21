@@ -167,7 +167,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			},
 
 			"language_extensions": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -377,7 +377,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	d.SetId(id.ID())
 
 	if v, ok := d.GetOk("language_extensions"); ok {
-		languageExtensions := expandKustoClusterLanguageExtensions(v.([]interface{}))
+		languageExtensions := expandKustoClusterLanguageExtensions(v.(*pluginsdk.Set).List())
 
 		currentLanguageExtensions, err := client.ListLanguageExtensions(ctx, id)
 		if err != nil {
