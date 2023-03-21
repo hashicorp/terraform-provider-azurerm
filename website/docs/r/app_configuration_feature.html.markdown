@@ -109,7 +109,7 @@ App Configuration Features can be imported using the `resource id`, e.g.
 terraform import azurerm_app_configuration_feature.test https://appconfname1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label=labelName
 ```
 
-If you wish to import a key with an empty label then substitute the label's name with empty, like this:
+If you wish to import with an empty label then simply leave the label's name blank:
 
 ```shell
 terraform import azurerm_app_configuration_feature.test https://appconfname1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label=

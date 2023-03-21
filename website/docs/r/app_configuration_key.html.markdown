@@ -127,8 +127,6 @@ The following arguments are supported:
 
 * `label` - (Optional) The label of the App Configuration Key. Changing this forces a new resource to be created.
 
-~> **NOTE:** `label` property should not contain `/Label/` literal to avoid conflict in ID parsing.
-
 * `value` - (Optional) The value of the App Configuration Key. This should only be set when type is set to `kv`.
 
 * `locked` - (Optional) Should this App Configuration Key be Locked to prevent changes?
@@ -168,7 +166,7 @@ App Configuration Keys can be imported using the `resource id`, e.g.
 terraform import azurerm_app_configuration_key.test https://appconfname1.azconfig.io/kv/keyName?label=labelName
 ```
 
-If you wish to import a key with an empty label then substitute the label's name with empty, like this:
+If you wish to import a key with an empty label then simply leave label's name blank:
 
 ```shell
 terraform import azurerm_app_configuration_key.test https://appconfname1.azconfig.io/kv/keyName?label=
