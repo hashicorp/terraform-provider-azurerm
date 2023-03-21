@@ -208,13 +208,6 @@ func flattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 			dnsServers = *v.DNSSettings.DNSServers
 		}
 
-		var ipConfigurations []interface{}
-		if v.IPConfigurations != nil {
-			for _, configRaw := range *v.IPConfigurations {
-				config := flattenVirtualMachineScaleSetIPConfiguration(configRaw)
-				ipConfigurations = append(ipConfigurations, config)
-			}
-		}
 		networkInterfaces = append(networkInterfaces, VirtualMachineScaleSetNetworkInterface{
 			Name:                         name,
 			NetworkSecurityGroupId:       networkSecurityGroupId,
