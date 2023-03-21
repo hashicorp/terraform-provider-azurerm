@@ -310,7 +310,7 @@ func authV2LoginSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeFloat,
 					Optional:     true,
 					Default:      72,
-					ValidateFunc: validation.FloatAtLeast(1),
+					ValidateFunc: validation.FloatAtLeast(0),
 					Description:  "The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.",
 				},
 
