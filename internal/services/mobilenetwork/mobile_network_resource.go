@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type MobileNetworkModel struct {
+type MobileNetworkResourceModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
@@ -34,7 +34,7 @@ func (r MobileNetworkResource) ResourceType() string {
 }
 
 func (r MobileNetworkResource) ModelObject() interface{} {
-	return &MobileNetworkModel{}
+	return &MobileNetworkResourceModel{}
 }
 
 func (r MobileNetworkResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -89,7 +89,7 @@ func (r MobileNetworkResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model MobileNetworkModel
+			var model MobileNetworkResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -139,7 +139,7 @@ func (r MobileNetworkResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model MobileNetworkModel
+			var model MobileNetworkResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -199,7 +199,7 @@ func (r MobileNetworkResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := MobileNetworkModel{
+			state := MobileNetworkResourceModel{
 				Name:              id.MobileNetworkName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
