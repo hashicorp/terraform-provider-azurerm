@@ -165,7 +165,8 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 		resp, err = getAlertRuleTemplateByName(ctx, client, workspaceID, name)
 	} else {
 		nameToLog = displayName
-		resp, err = getAlertRuleTemplateByDisplayName(ctx, client, workspaceID, displayName)
+		resp, name, err = getAlertRuleTemplateByDisplayName(ctx, client, workspaceID, displayName)
+		id.AlertRuleTemplateName = name
 	}
 	if err != nil {
 		return fmt.Errorf("retrieving Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q): %+v", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroupName, err)
@@ -203,53 +204,71 @@ func getAlertRuleTemplateByName(ctx context.Context, client *securityinsight.Ale
 	return template.Value, nil
 }
 
-func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsight.AlertRuleTemplatesClient, workspaceID *workspaces.WorkspaceId, name string) (res securityinsight.BasicAlertRuleTemplate, err error) {
+func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsight.AlertRuleTemplatesClient, workspaceID *workspaces.WorkspaceId, displayName string) (res securityinsight.BasicAlertRuleTemplate, name string, err error) {
 	templates, err := client.ListComplete(ctx, workspaceID.ResourceGroupName, workspaceID.WorkspaceName)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	var results []securityinsight.BasicAlertRuleTemplate
 	for templates.NotDone() {
 		template := templates.Value()
 		switch template := template.(type) {
 		case securityinsight.FusionAlertRuleTemplate:
-			if template.DisplayName != nil && *template.DisplayName == name {
+			if template.DisplayName != nil && *template.DisplayName == displayName {
 				results = append(results, templates.Value())
+				if template.Name != nil {
+					name = *template.Name
+				}
 			}
 		case securityinsight.MLBehaviorAnalyticsAlertRuleTemplate:
-			if template.DisplayName != nil && *template.DisplayName == name {
+			if template.DisplayName != nil && *template.DisplayName == displayName {
 				results = append(results, templates.Value())
+				if template.Name != nil {
+					name = *template.Name
+				}
 			}
 		case securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate:
-			if template.DisplayName != nil && *template.DisplayName == name {
+			if template.DisplayName != nil && *template.DisplayName == displayName {
 				results = append(results, templates.Value())
+				if template.Name != nil {
+					name = *template.Name
+				}
 			}
 		case securityinsight.ScheduledAlertRuleTemplate:
-			if template.DisplayName != nil && *template.DisplayName == name {
+			if template.DisplayName != nil && *template.DisplayName == displayName {
 				results = append(results, templates.Value())
+				if template.Name != nil {
+					name = *template.Name
+				}
 			}
 		case securityinsight.NrtAlertRuleTemplate:
-			if template.DisplayName != nil && *template.DisplayName == name {
+			if template.DisplayName != nil && *template.DisplayName == displayName {
 				results = append(results, templates.Value())
+				if template.Name != nil {
+					name = *template.Name
+				}
 			}
 		case securityinsight.ThreatIntelligenceAlertRuleTemplate:
-			if template.DisplayName != nil && *template.DisplayName == name {
+			if template.DisplayName != nil && *template.DisplayName == displayName {
 				results = append(results, templates.Value())
+				if template.Name != nil {
+					name = *template.Name
+				}
 			}
 		}
 
 		if err := templates.NextWithContext(ctx); err != nil {
-			return nil, fmt.Errorf("iterating Alert Rule Templates: %+v", err)
+			return nil, "", fmt.Errorf("iterating Alert Rule Templates: %+v", err)
 		}
 	}
 
 	if len(results) == 0 {
-		return nil, fmt.Errorf("no Alert Rule Template found with display name: %s", name)
+		return nil, "", fmt.Errorf("no Alert Rule Template found with display name: %s", displayName)
 	}
 	if len(results) > 1 {
-		return nil, fmt.Errorf("more than one Alert Rule Template found with display name: %s", name)
+		return nil, "", fmt.Errorf("more than one Alert Rule Template found with display name: %s", displayName)
 	}
-	return results[0], nil
+	return results[0], name, nil
 }
 
 func setForScheduledAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.ScheduledAlertRuleTemplate) error {
