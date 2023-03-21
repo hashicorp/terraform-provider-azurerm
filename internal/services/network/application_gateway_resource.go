@@ -4306,7 +4306,10 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 
 			rulePaths := make([]string, 0)
 			for _, rulePath := range ruleConfigMap["paths"].([]interface{}) {
-				rulePaths = append(rulePaths, rulePath.(string))
+				p, ok := rulePath.(string)
+				if ok {
+					rulePaths = append(rulePaths, p)
+				}
 			}
 
 			rule := network.ApplicationGatewayPathRule{

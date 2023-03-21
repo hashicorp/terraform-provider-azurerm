@@ -310,7 +310,8 @@ func clientCredentialsToken(ctx context.Context, endpoint string, params *url.Va
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := http.DefaultClient.Do(req)
+	client := httpClient(defaultHttpClientParams())
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("clientCredentialsToken: cannot request token: %v", err)
 	}
@@ -343,6 +344,7 @@ func clientCredentialsToken(ctx context.Context, endpoint string, params *url.Va
 		AccessToken: tokenRes.AccessToken,
 		TokenType:   tokenRes.TokenType,
 	}
+
 	var secs time.Duration
 	if exp, ok := tokenRes.ExpiresIn.(string); ok && exp != "" {
 		if v, err := strconv.Atoi(exp); err == nil {

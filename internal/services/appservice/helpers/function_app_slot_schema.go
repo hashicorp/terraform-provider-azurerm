@@ -254,7 +254,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Default:      0,
 					ValidateFunc: validation.IntBetween(2, 10),
 					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
@@ -572,7 +572,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Default:      0,
 					ValidateFunc: validation.IntBetween(2, 10),
 					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
@@ -669,10 +669,11 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
 		if windowsSlotSiteConfig.HealthCheckPath != "" && metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 			v := strconv.Itoa(windowsSlotSiteConfig.HealthCheckEvictionTime)
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("WEBSITE_HEALTHCHECK_MAXPINGFAILURES"),
-				Value: utils.String(v),
-			})
+			if v == "0" {
+				appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
+			} else {
+				appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
+			}
 		}
 	}
 
@@ -963,10 +964,11 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
 		if linuxSlotSiteConfig.HealthCheckPath != "" && metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 			v := strconv.Itoa(linuxSlotSiteConfig.HealthCheckEvictionTime)
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("WEBSITE_HEALTHCHECK_MAXPINGFAILURES"),
-				Value: utils.String(v),
-			})
+			if v == "0" {
+				appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
+			} else {
+				appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
+			}
 		}
 	}
 

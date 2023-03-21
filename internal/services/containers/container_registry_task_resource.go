@@ -917,9 +917,10 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 				}
 				existing.Identity = expandedIdentity
 			}
-			if metadata.ResourceData.HasChange("registry_credential") {
-				existing.TaskProperties.Credentials = expandRegistryTaskCredentials(model.RegistryCredential)
-			}
+
+			// Deliberately always set "registry_credential" as the custom registry's credentials are not returned by API, but are required for a PUT request.
+			existing.TaskProperties.Credentials = expandRegistryTaskCredentials(model.RegistryCredential)
+
 			if metadata.ResourceData.HasChange("agent_setting") {
 				existing.TaskProperties.AgentConfiguration = expandRegistryTaskAgentProperties(model.AgentConfig)
 			}

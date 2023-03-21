@@ -389,7 +389,22 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 			"registry_credential.0.custom.0.username",
 		),
 		{
-			Config: r.fileTaskStepRegistryCredentialIdentity(data),
+			Config: r.fileTaskStepRegistryCredentialIdentity(data, "foo"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"file_step.0.context_access_token",
+			"registry_credential.0.custom.#",
+			"registry_credential.0.custom.0.%",
+			"registry_credential.0.custom.0.identity",
+			"registry_credential.0.custom.0.login_server",
+			"registry_credential.0.custom.0.password",
+			"registry_credential.0.custom.0.username",
+		),
+		{
+			Config: r.fileTaskStepRegistryCredentialIdentity(data, "bar"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -963,7 +978,7 @@ resource "azurerm_container_registry_task" "test" {
 `, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, os.Getenv("ARM_CLIENT_ID"), os.Getenv("ARM_CLIENT_SECRET"))
 }
 
-func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialIdentity(data acceptance.TestData) string {
+func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialIdentity(data acceptance.TestData, tag string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -998,8 +1013,11 @@ resource "azurerm_container_registry_task" "test" {
       identity     = "[system]"
     }
   }
+  tags = {
+    foo = "%s"
+  }
 }
-`, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, tag)
 }
 
 func (r ContainerRegistryTaskResource) systemTask(data acceptance.TestData) string {

@@ -38,6 +38,7 @@ type LinuxFunctionAppSlotModel struct {
 	StorageKeyVaultSecretID       string                                   `tfschema:"storage_key_vault_secret_id"`
 	AppSettings                   map[string]string                        `tfschema:"app_settings"`
 	AuthSettings                  []helpers.AuthSettings                   `tfschema:"auth_settings"`
+	AuthV2Settings                []helpers.AuthV2Settings                 `tfschema:"auth_settings_v2"`
 	Backup                        []helpers.Backup                         `tfschema:"backup"` // Not supported on Dynamic or Basic plans
 	BuiltinLogging                bool                                     `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled             bool                                     `tfschema:"client_certificate_enabled"`
@@ -157,6 +158,8 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
+
+		"auth_settings_v2": helpers.AuthV2SettingsSchema(),
 
 		"backup": helpers.BackupSchema(),
 
@@ -526,6 +529,13 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			authv2 := helpers.ExpandAuthV2Settings(functionAppSlot.AuthV2Settings)
+			if authv2.SiteAuthSettingsV2Properties != nil {
+				if _, err = client.UpdateAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, *authv2, id.SlotName); err != nil {
+					return fmt.Errorf("updating AuthV2 settings for Linux %s: %+v", id, err)
+				}
+			}
+
 			connectionStrings := helpers.ExpandConnectionStrings(functionAppSlot.ConnectionStrings)
 			if connectionStrings.Properties != nil {
 				if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, *connectionStrings, id.SlotName); err != nil {
@@ -605,6 +615,14 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Auth Settings for Linux %s: %+v", id, err)
 			}
 
+			var authV2 web.SiteAuthSettingsV2
+			if strings.EqualFold(pointer.From(auth.ConfigVersion), "v2") {
+				authV2, err = client.GetAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+				if err != nil {
+					return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)
+				}
+			}
+
 			backup, err := client.GetBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(backup.Response) {
@@ -670,6 +688,8 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
+
+			state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
@@ -904,8 +924,29 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
+				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
+				if authUpdate.SiteAuthSettingsProperties == nil {
+					authUpdate.SiteAuthSettingsProperties = &web.SiteAuthSettingsProperties{
+						Enabled:                           pointer.To(false),
+						ClientSecret:                      pointer.To(""),
+						ClientSecretSettingName:           pointer.To(""),
+						ClientSecretCertificateThumbprint: pointer.To(""),
+						GoogleClientSecret:                pointer.To(""),
+						FacebookAppSecret:                 pointer.To(""),
+						GitHubClientSecret:                pointer.To(""),
+						TwitterConsumerSecret:             pointer.To(""),
+						MicrosoftAccountClientSecret:      pointer.To(""),
+					}
+				}
 				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *authUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("auth_settings_v2") {
+				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				if _, err := client.UpdateAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, *authV2Update, id.SlotName); err != nil {
+					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
 				}
 			}
 

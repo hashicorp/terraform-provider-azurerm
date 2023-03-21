@@ -412,20 +412,20 @@ func iothubdpsStateStatusCodeRefreshFunc(ctx context.Context, client *iotdpsreso
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
 
-		statusCode := -1
+		statusCode := "dropped connection"
 		if res.HttpResponse != nil {
-			statusCode = res.HttpResponse.StatusCode
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
 		}
-		log.Printf("Retrieving IoT Device Provisioning Service %q returned Status %d", id, statusCode)
+		log.Printf("Retrieving IoT Device Provisioning Service %q returned Status %q", id, statusCode)
 
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {
-				return res, strconv.Itoa(statusCode), nil
+				return res, statusCode, nil
 			}
 			return nil, "", fmt.Errorf("polling for the status of the IoT Device Provisioning Service %q: %+v", id, err)
 		}
 
-		return res, strconv.Itoa(statusCode), nil
+		return res, statusCode, nil
 	}
 }
 

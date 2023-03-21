@@ -259,6 +259,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsBase64,
 			},
+
+			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
 		},
 	}
 }
@@ -620,6 +622,13 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 
 			props.VirtualMachineScaleSetProperties.ZoneBalance = utils.Bool(v.(bool))
+		}
+
+		if v, ok := d.GetOk("priority_mix"); ok {
+			if virtualMachineProfile.Priority != compute.VirtualMachinePriorityTypesSpot {
+				return fmt.Errorf("a `priority_mix` can only be specified when `priority` is set to `Spot`")
+			}
+			props.VirtualMachineScaleSetProperties.PriorityMixPolicy = ExpandVirtualMachineScaleSetPriorityMixPolicy(v.([]interface{}))
 		}
 
 		props.VirtualMachineScaleSetProperties.VirtualMachineProfile = &virtualMachineProfile
@@ -1288,6 +1297,13 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 		d.Set("user_data_base64", profile.UserData)
 	}
+
+	if priorityMixPolicy := props.PriorityMixPolicy; priorityMixPolicy != nil {
+		if err := d.Set("priority_mix", FlattenOrchestratedVirtualMachineScaleSetPriorityMixPolicy(priorityMixPolicy)); err != nil {
+			return fmt.Errorf("setting `priority_mix`: %+v", err)
+		}
+	}
+
 	d.Set("extension_operations_enabled", extensionOperationsEnabled)
 
 	return tags.FlattenAndSet(d, resp.Tags)

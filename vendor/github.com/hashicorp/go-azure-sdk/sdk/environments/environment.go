@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package environments
 
 import (
@@ -5,8 +8,10 @@ import (
 )
 
 type Authorization struct {
-	Audiences     []string
-	LoginEndpoint string
+	Audiences        []string
+	IdentityProvider string
+	LoginEndpoint    string
+	Tenant           string
 }
 
 type Environment struct {

@@ -3,6 +3,7 @@ package eventhub
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -152,19 +153,13 @@ func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutDelete), func() *pluginsdk.RetryError {
 		future, err := client.ClustersDelete(ctx, *id)
 		if err != nil {
-			if response.WasNotFound(future.HttpResponse) {
-				return nil
-			}
-			if strings.Contains(err.Error(), "Cluster cannot be deleted until four hours after its creation time") || future.HttpResponse.StatusCode == 429 {
+			if strings.Contains(err.Error(), "Cluster cannot be deleted until four hours after its creation time") || response.WasStatusCode(future.HttpResponse, http.StatusTooManyRequests) {
 				return pluginsdk.RetryableError(fmt.Errorf("expected eventhub cluster to be deleted but was in pending creation state, retrying"))
 			}
 			return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
 		}
 
 		if err := future.Poller.PollUntilDone(); err != nil {
-			if response.WasNotFound(future.Poller.HttpResponse) {
-				return nil
-			}
 			return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
 		}
 
