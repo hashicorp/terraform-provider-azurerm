@@ -54,10 +54,10 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 
 			"dashboard_properties": {
-				Type:      pluginsdk.TypeString,
-				Optional:  true,
-				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.DashboardProperties,
+				StateFunc:    utils.NormalizeJson,
 			},
 		},
 	}

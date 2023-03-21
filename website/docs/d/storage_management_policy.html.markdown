@@ -65,11 +65,15 @@ The following arguments are supported:
 
 * `tier_to_cool_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cool storage. Supports blob currently at Hot tier.
 * `tier_to_cool_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to cool storage. Supports blob currently at Hot tier.
-* `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage. Supports blob currently at Hot or Cool tier.
-* `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage. Supports blob currently at Hot or Cool tier.
-* `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archived.
+* `tier_to_cool_after_days_since_creation_greater_than` - Optional The age in days after creation to cool storage. Supports blob currently at Hot tier.
+* `auto_tier_to_hot_from_cool_enabled` - Whether a blob should automatically be tiered from cool back to hot if it's accessed again after being tiered to cool.
+* `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage.
+* `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage.
+* `tier_to_archive_after_days_since_creation_greater_than` - The age in days after creation to archive storage.
+* `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved.
 * `delete_after_days_since_modification_greater_than` - The age in days after last modification to delete the blob.
 * `delete_after_days_since_last_access_time_greater_than` - The age in days after last access time to delete the blob.
+* `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob.
 
 ---
 

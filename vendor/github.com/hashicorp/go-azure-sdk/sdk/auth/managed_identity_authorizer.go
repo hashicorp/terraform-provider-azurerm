@@ -157,11 +157,8 @@ func (c *managedIdentityConfig) TokenSource(_ context.Context) (Authorizer, erro
 }
 
 func azureMetadata(ctx context.Context, url string) (body []byte, err error) {
-	ctx2, cancel := context.WithDeadline(ctx, time.Now().Add(time.Second*30))
-	defer cancel()
-
 	var req *http.Request
-	req, err = http.NewRequestWithContext(ctx2, http.MethodGet, url, http.NoBody)
+	req, err = http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return
 	}
@@ -175,7 +172,6 @@ func azureMetadata(ctx context.Context, url string) (body []byte, err error) {
 		retryWaitMin:  2 * time.Second,
 		retryWaitMax:  60 * time.Second,
 		retryMaxCount: 5,
-		timeout:       10 * time.Second,
 		useProxy:      false,
 	})
 

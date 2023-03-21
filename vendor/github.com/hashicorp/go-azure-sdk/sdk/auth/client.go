@@ -22,7 +22,6 @@ type httpClientParams struct {
 	retryWaitMin  time.Duration
 	retryWaitMax  time.Duration
 	retryMaxCount int
-	timeout       time.Duration
 	useProxy      bool
 }
 
@@ -33,7 +32,6 @@ func defaultHttpClientParams() httpClientParams {
 		retryWaitMin:  1 * time.Second,
 		retryWaitMax:  30 * time.Second,
 		retryMaxCount: 8,
-		timeout:       10 * time.Second,
 		useProxy:      true,
 	}
 }
@@ -96,8 +94,5 @@ func httpClient(params httpClientParams) *http.Client {
 		},
 	}
 
-	client := r.StandardClient()
-	client.Timeout = params.timeout
-
-	return client
+	return r.StandardClient()
 }

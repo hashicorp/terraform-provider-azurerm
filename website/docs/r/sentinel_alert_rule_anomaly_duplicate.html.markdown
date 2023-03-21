@@ -171,5 +171,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Built In Anomaly Alert Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_sentinel_alert_rule_anomaly_built_in.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/securityMLAnalyticsSettings/setting1
+terraform import azurerm_sentinel_alert_rule_anomaly_duplicate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/securityMLAnalyticsSettings/setting1
 ```

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -261,12 +261,12 @@ resource "azurerm_monitor_data_collection_rule" "test" {
 
   data_flow {
     streams      = ["Microsoft-InsightsMetrics", "Microsoft-Syslog", "Microsoft-Perf"]
-    destinations = ["test-destination-log1"]
+    destinations = ["test-destination-log2"]
   }
 
   data_flow {
     streams      = ["Microsoft-Event", "Microsoft-WindowsEvent"]
-    destinations = ["test-destination-log1", "test-destination-log2"]
+    destinations = ["test-destination-log1"]
   }
 
   data_sources {
