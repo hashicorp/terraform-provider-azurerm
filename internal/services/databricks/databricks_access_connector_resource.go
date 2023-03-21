@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/accessconnector"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,11 +22,10 @@ type AccessConnectorResource struct {
 var _ sdk.ResourceWithUpdate = AccessConnectorResource{}
 
 type AccessConnectorResourceModel struct {
-	Name          string                         `tfschema:"name"`
-	ResourceGroup string                         `tfschema:"resource_group_name"`
-	Location      string                         `tfschema:"location"`
-	Tags          map[string]string              `tfschema:"tags"`
-	Identity      []identity.ModelSystemAssigned `tfschema:"identity"`
+	Name          string            `tfschema:"name"`
+	ResourceGroup string            `tfschema:"resource_group_name"`
+	Location      string            `tfschema:"location"`
+	Tags          map[string]string `tfschema:"tags"`
 }
 
 func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
@@ -42,7 +41,7 @@ func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"identity": commonschema.SystemAssignedIdentityOptional(),
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -84,7 +83,7 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			expandedIdentity, err := identity.ExpandSystemAssignedFromModel(model.Identity)
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -170,7 +169,13 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 					state.Tags = *model.Tags
 				}
 				if model.Identity != nil {
-					state.Identity = identity.FlattenSystemAssignedToModel(model.Identity)
+					identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+					if err != nil {
+						return fmt.Errorf("flattening `identity`: %+v", err)
+					}
+					if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
+						return fmt.Errorf("setting `identity`: %+v", err)
+					}
 				}
 			}
 			return metadata.Encode(&state)

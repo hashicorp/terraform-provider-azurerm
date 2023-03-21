@@ -51,7 +51,13 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of identity to use for this Access Connector. `SystemAssigned` is the only possible value.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Access Connector. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Access Connector.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
 
 ## Attributes Reference
 
@@ -65,11 +71,14 @@ The following attributes are exported:
 
 An `identity` block exports the following:
 
-* `type` - The type of identity.
+* `type` - (Required) The type of Managed Service Identity that is configured on this Access Connector.
 
-* `principal_id` - The Principal ID associated with this system-assigned managed identity.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Access Connector.
 
-* `tenant_id` - The Tenant ID associated with this system-assigned managed identity.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Access Connector.
+
+* `identity_ids` - (Optional) The list of User Assigned Managed Identity IDs assigned to this Access Connector. 
+
 
 ## Timeouts
 
