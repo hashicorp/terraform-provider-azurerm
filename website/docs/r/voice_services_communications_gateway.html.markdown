@@ -31,7 +31,7 @@ resource "azurerm_voice_services_communications_gateway" "example" {
   e911_type           = "DirectToEsrp"
   platforms           = ["OperatorConnect", "TeamsPhoneMobile"]
 
-  service_locations {
+  service_location {
     location                                  = "eastus"
     allowed_media_source_address_prefixes     = ["10.1.2.0/24"]
     allowed_signaling_source_address_prefixes = ["10.1.1.0/24"]
@@ -39,7 +39,7 @@ resource "azurerm_voice_services_communications_gateway" "example" {
     operator_addresses                        = ["198.51.100.1"]
   }
 
-  service_locations {
+  service_location {
     location                                  = "eastus2"
     allowed_media_source_address_prefixes     = ["10.2.2.0/24"]
     allowed_signaling_source_address_prefixes = ["10.2.1.0/24"]
@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `platforms` - (Required) The Voice Services Communications GatewaysAvailable supports platform types. Possible values are `OperatorConnect`, `TeamsPhoneMobile`.
 
-* `service_locations` - (Required) A `service_locations` block as defined below.
+* `service_location` - (Required) A `service_location` block as defined below.
 
 * `auto_generated_domain_name_label_scope` - (Optional) Specifies the scope at which the auto-generated domain name can be re-used. Possible values are `TenantReuse`, `SubscriptionReuse`, `ResourceGroupReuse` and `NoReuse` . Changing this forces a new resource to be created.
 
@@ -92,7 +92,7 @@ The following arguments are supported:
 * `microsoft_teams_voicemail_pilot_number` - (Optional) This number is used in Teams Phone Mobile scenarios for access to the voicemail IVR from the native dialer.
 ---
 
-A `service_locations` block supports the following:
+A `service_location` block supports the following:
 
 * `location` - (Required) Specifies the region in which the resources needed for Teams Calling will be deployed.
 
@@ -104,7 +104,7 @@ A `service_locations` block supports the following:
 
 * `esrp_addresses` - (Optional) IP address to use to contact the ESRP from this region.
 
-!> **NOTE:** The `esrp_addresses` must be specified for each `service_locations` when the`e911_type` is set to `DirectToEsrp`.  The `esrp_addresses` must not be specified for each `service_locations` when the`e911_type` is set to `Standard`.
+!> **NOTE:** The `esrp_addresses` must be specified for each `service_location` when the`e911_type` is set to `DirectToEsrp`.  The `esrp_addresses` must not be specified for each `service_location` when the`e911_type` is set to `Standard`.
 
 ## Attributes Reference
 
