@@ -24,6 +24,12 @@ func (KeyResourceV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		oldId := rawState["id"].(string)
 		fixedId := oldId
 
+		// if the ID is like below, it should be bugs for no-label, see https://github.com/hashicorp/terraform-provider-azurerm/issues/20849
+		// /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/appConfKey1/Label/\000/AppConfigurationKey/appConfKey1/Label/
+		if index1, index2 := strings.Index(fixedId, "/AppConfigurationKey/"), strings.LastIndex(fixedId, "/AppConfigurationKey/"); index1 != index2 && fixedId[index2-1] == '\000' && fixedId[index1:index2-1] == fixedId[index2:] {
+			fixedId = fixedId[:index2]
+		}
+
 		if strings.HasSuffix(fixedId, "/Label/\000") {
 			fixedId = strings.TrimSuffix(fixedId, "/Label/\000") + "/Label/%00"
 		}
