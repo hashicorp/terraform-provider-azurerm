@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type SiteModel struct {
-	Name             string            `tfschema:"name"`
-	MobileNetworkId  string            `tfschema:"mobile_network_id"`
-	Location         string            `tfschema:"location"`
-	NetworkFunctions []string          `tfschema:"network_function_ids"`
-	Tags             map[string]string `tfschema:"tags"`
+type SiteResourceModel struct {
+	Name                string            `tfschema:"name"`
+	MobileNetworkId     string            `tfschema:"mobile_network_id"`
+	Location            string            `tfschema:"location"`
+	NetworkFunctionsIds []string          `tfschema:"network_function_ids"`
+	Tags                map[string]string `tfschema:"tags"`
 }
 
 type SiteResource struct{}
@@ -33,7 +33,7 @@ func (r SiteResource) ResourceType() string {
 }
 
 func (r SiteResource) ModelObject() interface{} {
-	return &SiteModel{}
+	return &SiteResourceModel{}
 }
 
 func (r SiteResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -78,7 +78,7 @@ func (r SiteResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model SiteModel
+			var model SiteResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -126,7 +126,7 @@ func (r SiteResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model SiteModel
+			var model SiteResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -179,14 +179,14 @@ func (r SiteResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := SiteModel{
+			state := SiteResourceModel{
 				Name:            id.SiteName,
 				MobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
 				Location:        location.Normalize(model.Location),
 			}
 
 			if properties := model.Properties; properties != nil {
-				state.NetworkFunctions = flattenSubResourceModel(properties.NetworkFunctions)
+				state.NetworkFunctionsIds = flattenSubResourceModel(properties.NetworkFunctions)
 			}
 			if model.Tags != nil {
 				state.Tags = *model.Tags
@@ -224,16 +224,14 @@ func (r SiteResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func flattenSubResourceModel(inputList *[]site.SubResource) []string {
-	var outputList []string
-	if inputList == nil {
-		return outputList
+func flattenSubResourceModel(input *[]site.SubResource) []string {
+	output := make([]string, 0)
+
+	if input != nil {
+		for _, v := range *input {
+			output = append(output, v.Id)
+		}
 	}
 
-	for _, input := range *inputList {
-		output := input.Id
-		outputList = append(outputList, output)
-	}
-
-	return outputList
+	return output
 }
