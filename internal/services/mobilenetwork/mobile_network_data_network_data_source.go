@@ -3,11 +3,11 @@ package mobilenetwork
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/datanetwork"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -18,11 +18,11 @@ import (
 type DataNetworkDataSource struct{}
 
 type DataNetworkDataSourceModel struct {
-	Name                         string            `tfschema:"name"`
-	MobileNetworkMobileNetworkId string            `tfschema:"mobile_network_id"`
-	Description                  string            `tfschema:"description"`
-	Location                     string            `tfschema:"location"`
-	Tags                         map[string]string `tfschema:"tags"`
+	Name            string            `tfschema:"name"`
+	MobileNetworkId string            `tfschema:"mobile_network_id"`
+	Description     string            `tfschema:"description"`
+	Location        string            `tfschema:"location"`
+	Tags            map[string]string `tfschema:"tags"`
 }
 
 var _ sdk.DataSource = DataNetworkDataSource{}
@@ -78,7 +78,7 @@ func (r DataNetworkDataSource) Read() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.MobileNetwork.DataNetworkClient
-			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(inputModel.MobileNetworkMobileNetworkId)
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(inputModel.MobileNetworkId)
 			if err != nil {
 				return err
 			}
@@ -96,8 +96,8 @@ func (r DataNetworkDataSource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 			state := DataNetworkDataSourceModel{
-				Name:                         id.DataNetworkName,
-				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
+				Name:            id.DataNetworkName,
+				MobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
 			}
 
 			if model := resp.Model; model != nil {

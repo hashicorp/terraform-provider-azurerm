@@ -17,11 +17,11 @@ import (
 )
 
 type DataNetworkResourceModel struct {
-	Name                         string            `tfschema:"name"`
-	MobileNetworkMobileNetworkId string            `tfschema:"mobile_network_id"`
-	Description                  string            `tfschema:"description"`
-	Location                     string            `tfschema:"location"`
-	Tags                         map[string]string `tfschema:"tags"`
+	Name            string            `tfschema:"name"`
+	MobileNetworkId string            `tfschema:"mobile_network_id"`
+	Description     string            `tfschema:"description"`
+	Location        string            `tfschema:"location"`
+	Tags            map[string]string `tfschema:"tags"`
 }
 
 type DataNetworkResource struct{}
@@ -82,7 +82,7 @@ func (r DataNetworkResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.MobileNetwork.DataNetworkClient
-			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkMobileNetworkId)
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkId)
 			if err != nil {
 				return err
 			}
@@ -182,8 +182,8 @@ func (r DataNetworkResource) Read() sdk.ResourceFunc {
 			}
 
 			state := DataNetworkResourceModel{
-				Name:                         id.DataNetworkName,
-				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
+				Name:            id.DataNetworkName,
+				MobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
 			}
 
 			if model := resp.Model; model != nil {
