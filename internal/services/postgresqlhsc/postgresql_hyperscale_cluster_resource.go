@@ -245,7 +245,7 @@ func (r PostgreSQLHyperScaleClusterResource) Attributes() map[string]*pluginsdk.
 
 func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model PostgreSQLHyperScaleClusterModel
 			if err := metadata.Decode(&model); err != nil {
@@ -331,7 +331,7 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 
 func (r PostgreSQLHyperScaleClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PostgreSQLHSC.ClustersClient
 
@@ -348,7 +348,8 @@ func (r PostgreSQLHyperScaleClusterResource) Update() sdk.ResourceFunc {
 			parameters := clusters.ClusterForUpdate{}
 
 			if metadata.ResourceData.HasChange("administrator_login_password") {
-				parameters.Properties.AdministratorLoginPassword = &model.AdministratorLoginPassword
+				administratorLoginPassword := metadata.ResourceData.Get("administrator_login_password").(string)
+				parameters.Properties.AdministratorLoginPassword = &administratorLoginPassword
 			}
 
 			if metadata.ResourceData.HasChange("citus_version") {
@@ -516,7 +517,7 @@ func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
 
 func (r PostgreSQLHyperScaleClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PostgreSQLHSC.ClustersClient
 
