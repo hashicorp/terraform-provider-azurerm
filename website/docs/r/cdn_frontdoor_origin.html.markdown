@@ -127,13 +127,13 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_origin" example {
-  name                          = "origin-example"
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
-  enabled                       = true
-  host_name                     = "example.com"
-  origin_host_header            = "example.com"
-  priority                      = 1
-  weight                        = 1000
+  name                           = "origin-example"
+  cdn_frontdoor_origin_group_id  = azurerm_cdn_frontdoor_origin_group.example.id
+  enabled                        = true
+  host_name                      = "example.com"
+  origin_host_header             = "example.com"
+  priority                       = 1
+  weight                         = 1000
   certificate_name_check_enabled = false
 
   private_link {
