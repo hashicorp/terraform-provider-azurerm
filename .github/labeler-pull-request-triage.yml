@@ -234,6 +234,9 @@ service/portal:
 service/postgresql:
   - internal/services/postgres/**/*
 
+service/postgresqlhsc:
+  - internal/services/postgresqlhsc/**/*
+
 service/power-bi:
   - internal/services/powerbi/**/*
 

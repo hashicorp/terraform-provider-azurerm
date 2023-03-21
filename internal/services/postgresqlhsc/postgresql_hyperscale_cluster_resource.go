@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgresqlhsc/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -70,7 +71,7 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.ClusterName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -81,12 +82,16 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.AdministratorLoginPassword,
 		},
 
 		"coordinator_storage_quota_in_mb": {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
+			ValidateFunc: validation.All(
+				validation.IntBetween(131072, 16777216),
+				validation.IntDivisibleBy(1024),
+			),
 		},
 
 		"coordinator_vcores": {
@@ -96,9 +101,12 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"node_count": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ValidateFunc: validation.IntNotInSlice([]int{1}),
+			Type:     pluginsdk.TypeInt,
+			Required: true,
+			ValidateFunc: validation.All(
+				validation.IntBetween(0, 20),
+				validation.IntNotInSlice([]int{1}),
+			),
 		},
 
 		"administrator_login": {
@@ -135,26 +143,6 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			Default:  false,
 		},
 
-		"node_public_ip_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"node_server_edition": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      "MemoryOptimized",
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"sql_version": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      "15",
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
 		"maintenance_window": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -183,6 +171,19 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 					},
 				},
 			},
+		},
+
+		"node_public_ip_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"node_server_edition": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "MemoryOptimized",
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"node_storage_quota_in_mb": {
@@ -219,6 +220,19 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: clusters.ValidateServerGroupsv2ID,
+		},
+
+		"sql_version": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "15",
+			ValidateFunc: validation.StringInSlice([]string{
+				"11",
+				"12",
+				"13",
+				"14",
+				"15",
+			}, false),
 		},
 
 		"tags": commonschema.Tags(),
@@ -267,7 +281,6 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 					NodeServerEdition:               &model.NodeServerEdition,
 					PostgresqlVersion:               &model.SqlVersion,
 				},
-				Tags: &model.Tags,
 			}
 
 			if v := model.MaintenanceWindow; v != nil {
@@ -300,6 +313,10 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 
 			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["shards_on_coordinator_enabled"]; !v.IsNull() {
 				parameters.Properties.EnableShardsOnCoordinator = &model.ShardsOnCoordinatorEnabled
+			}
+
+			if v := model.Tags; v != nil {
+				parameters.Tags = &v
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *parameters); err != nil {
@@ -452,7 +469,7 @@ func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
 
 			if props := model.Properties; props != nil {
 				state.AdministratorLogin = *props.AdministratorLogin
-				state.AdministratorLoginPassword = *props.AdministratorLoginPassword
+				state.AdministratorLoginPassword = metadata.ResourceData.Get("administrator_login_password").(string)
 				state.CitusVersion = *props.CitusVersion
 				state.CoordinatorPublicIPAccessEnabled = *props.CoordinatorEnablePublicIPAccess
 				state.CoordinatorServerEdition = *props.CoordinatorServerEdition
