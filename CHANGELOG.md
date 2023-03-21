@@ -24,6 +24,7 @@ ENHANCEMENTS:
 * `azurerm_subscription_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
 * `azurerm_sentinel_log_analytics_workspace_onboarding` - the `resource_group_name` and `workspace_name` properties have been deprecated in favour of workspace_id [GH-20661]
 * `azurerm_virtual_network_peering` - adding an explicit default value for `allow_forwarded_traffic`, `allow_gateway_transit` and `use_remote_gateways` [GH-21009]
+* `azurerm_virtual_hub` - support for the `hub_routing_preference` property [GH-21028]
 
 BUG FIXES:
 
