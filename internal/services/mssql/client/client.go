@@ -43,7 +43,6 @@ type Client struct {
 	ServerVulnerabilityAssessmentsClient               *sql.ServerVulnerabilityAssessmentsClient
 	ServersClient                                      *sql.ServersClient
 	TransparentDataEncryptionsClient                   *sql.TransparentDataEncryptionsClient
-	VirtualClusterClient                               *sql.VirtualClustersClient
 	VirtualMachinesClient                              *sqlvirtualmachines.SqlVirtualMachinesClient
 	VirtualNetworkRulesClient                          *sql.VirtualNetworkRulesClient
 }
@@ -157,9 +156,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	transparentDataEncryptionsClient := sql.NewTransparentDataEncryptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&transparentDataEncryptionsClient.Client, o.ResourceManagerAuthorizer)
 
-	virtualClustersClient := sql.NewVirtualClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&virtualClustersClient.Client, o.ResourceManagerAuthorizer)
-
 	virtualMachinesClient := sqlvirtualmachines.NewSqlVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&virtualMachinesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -203,7 +199,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServerVulnerabilityAssessmentsClient:             &serverVulnerabilityAssessmentsClient,
 		ServersClient:                                    &serversClient,
 		TransparentDataEncryptionsClient:                 &transparentDataEncryptionsClient,
-		VirtualClusterClient:                             &virtualClustersClient,
 		VirtualMachinesClient:                            &virtualMachinesClient,
 		VirtualNetworkRulesClient:                        &virtualNetworkRulesClient,
 	}

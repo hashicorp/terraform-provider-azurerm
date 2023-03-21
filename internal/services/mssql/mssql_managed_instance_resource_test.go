@@ -1233,6 +1233,14 @@ func (r MsSqlManagedInstanceResource) Exists(ctx context.Context, client *client
 
 func (r MsSqlManagedInstanceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_mssql_managed_instance" "test" {
@@ -1264,6 +1272,14 @@ resource "azurerm_mssql_managed_instance" "test" {
 
 func (r MsSqlManagedInstanceResource) premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_mssql_managed_instance" "test" {
@@ -1295,6 +1311,14 @@ resource "azurerm_mssql_managed_instance" "test" {
 
 func (r MsSqlManagedInstanceResource) storageType(data acceptance.TestData, storageAccountType string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_mssql_managed_instance" "test" {
@@ -1327,6 +1351,14 @@ resource "azurerm_mssql_managed_instance" "test" {
 
 func (r MsSqlManagedInstanceResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_mssql_managed_instance" "test" {
@@ -1362,6 +1394,14 @@ resource "azurerm_mssql_managed_instance" "test" {
 
 func (r MsSqlManagedInstanceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_mssql_managed_instance" "test" {
