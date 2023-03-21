@@ -2,6 +2,7 @@ package signalr
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"strconv"
 	"strings"
@@ -468,6 +469,45 @@ func signalRFeature(featureFlag signalr.FeatureFlags, value string) signalr.Sign
 	}
 }
 
+func expandUpstreamAuth(input []interface{}) *signalr.UpstreamAuthSettings {
+	if input == nil || len(input) == 0 {
+		return nil
+	}
+
+	result := signalr.UpstreamAuthSettings{}
+
+	inputRaw := input[0].(map[string]interface{})
+
+	authType := signalr.UpstreamAuthType(inputRaw["type"].(string))
+	result.Type = &authType
+
+	if inputRaw["managed_identity_resource_id"] != "" {
+		managedIdentityId := inputRaw["managed_identity_resource_id"].(string)
+		result.ManagedIdentity = &signalr.ManagedIdentitySettings{
+			Resource: utils.String(managedIdentityId),
+		}
+	}
+
+	return &result
+}
+
+func flattenUpstreamAuth(auth *signalr.UpstreamAuthSettings) []interface{} {
+	result := make([]interface{}, 0)
+	if auth == nil {
+		return result
+	}
+
+	outputAuth := make(map[string]interface{})
+	outputAuth["type"] = *auth.Type
+
+	if auth.ManagedIdentity != nil && auth.ManagedIdentity.Resource != nil {
+		outputAuth["managed_identity_resource_id"] = *auth.ManagedIdentity.Resource
+	}
+
+	result = append(result, outputAuth)
+	return result
+}
+
 func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSettings {
 	upstreamTemplates := make([]signalr.UpstreamTemplate, 0)
 
@@ -479,6 +519,7 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 			EventPattern:    utils.String(strings.Join(*utils.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
 			CategoryPattern: utils.String(strings.Join(*utils.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
 			UrlTemplate:     setting["url_template"].(string),
+			Auth:            expandUpstreamAuth(setting["upstream_auth"].([]interface{})),
 		}
 
 		upstreamTemplates = append(upstreamTemplates, upstreamTemplate)
@@ -519,6 +560,7 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 			"hub_pattern":      hubPattern,
 			"event_pattern":    eventPattern,
 			"category_pattern": categoryPattern,
+			"upstream_auth":    flattenUpstreamAuth(settings.Auth),
 		})
 	}
 	return result
@@ -851,6 +893,33 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: signalrValidate.UrlTemplate,
+					},
+
+					"upstream_auth": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"type": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(signalr.UpstreamAuthTypeManagedIdentity),
+										string(signalr.UpstreamAuthTypeNone),
+									}, false),
+								},
+
+								"managed_identity_resource_id": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.Any(
+										validation.StringIsEmpty,
+										commonids.ValidateUserAssignedIdentityID,
+									),
+								},
+							},
+						},
 					},
 				},
 			},

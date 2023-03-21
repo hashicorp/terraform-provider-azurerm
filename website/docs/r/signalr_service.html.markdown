@@ -109,6 +109,8 @@ An `upstream_endpoint` block supports the following:
 
 * `hub_pattern` - (Required) The hubs to match on, or `*` for all.
 
+* `upstream_auth` - (Optional) An `upstream_auth` block as defined below.
+
 ---
 
 A `live_trace` block supports the following:
@@ -138,6 +140,14 @@ An `identity` block supports the following:
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this signalR.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned`
+
+---
+
+An `upstream_auth` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this signalR upstream setting. Possible values are `None`, `ManagedIdentity`.
+
+* `managed_identity_resource_id` - (Optional) Specifies the Managed Identity IDs to be assigned to this signalR upstream setting.
 
 ## Attributes Reference
 
