@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2021-10-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
@@ -317,7 +318,8 @@ func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("account_name", id.DatabaseAccountName)
 	d.Set("database_name", id.MongodbDatabaseName)
 
-	accResp, err := accClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
+	databaseAccountId := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName)
+	accResp, err := accClient.DatabaseAccountsGet(ctx, databaseAccountId)
 	if err != nil {
 		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
 	}
@@ -334,11 +336,13 @@ func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interfa
 				d.Set("shard_key", k)
 			}
 			accountIsVersion36 := false
-			if accProps := accResp.DatabaseAccountGetProperties; accProps != nil {
-				if capabilities := accProps.Capabilities; capabilities != nil {
-					for _, v := range *capabilities {
-						if v.Name != nil && *v.Name == "EnableMongo" {
-							accountIsVersion36 = true
+			if model := accResp.Model; model != nil {
+				if accProps := model.Properties; accProps != nil {
+					if capabilities := accProps.Capabilities; capabilities != nil {
+						for _, v := range *capabilities {
+							if v.Name != nil && *v.Name == "EnableMongo" {
+								accountIsVersion36 = true
+							}
 						}
 					}
 				}

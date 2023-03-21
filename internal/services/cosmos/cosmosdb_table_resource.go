@@ -2,6 +2,7 @@ package cosmos
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2021-10-15/cosmosdb"
 	"log"
 	"time"
 
@@ -207,12 +208,13 @@ func resourceCosmosDbTableRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	accResp, err := accountClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
+	databaseAccountId := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName)
+	accResp, err := accountClient.DatabaseAccountsGet(ctx, databaseAccountId)
 	if err != nil {
 		return fmt.Errorf("reading CosmosDB Account %q (Resource Group %q): %+v", id.DatabaseAccountName, id.ResourceGroup, err)
 	}
 
-	if accResp.ID == nil || *accResp.ID == "" {
+	if accResp.Model == nil || accResp.Model.Id == nil || *accResp.Model.Id == "" {
 		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.DatabaseAccountName, id.ResourceGroup)
 	}
 

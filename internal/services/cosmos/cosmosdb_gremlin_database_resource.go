@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2021-10-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
@@ -211,7 +212,8 @@ func resourceCosmosGremlinDatabaseRead(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	accResp, err := accClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
+	databaseAccountId := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName)
+	accResp, err := accClient.DatabaseAccountsGet(ctx, databaseAccountId)
 	if err != nil {
 		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
 	}
