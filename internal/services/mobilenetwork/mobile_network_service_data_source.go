@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type MobileNetworkServiceDataSource struct{}
+type ServiceDataSource struct{}
 
 type ServiceDataSourceModel struct {
 	Name                         string                                       `tfschema:"name"`
@@ -64,21 +64,21 @@ type ServiceDataSourceQosPolicyModel struct {
 	PreemptionVulnerability             string                          `tfschema:"preemption_vulnerability"`
 }
 
-var _ sdk.DataSource = MobileNetworkServiceDataSource{}
+var _ sdk.DataSource = ServiceDataSource{}
 
-func (r MobileNetworkServiceDataSource) ResourceType() string {
+func (r ServiceDataSource) ResourceType() string {
 	return "azurerm_mobile_network_service"
 }
 
-func (r MobileNetworkServiceDataSource) ModelObject() interface{} {
+func (r ServiceDataSource) ModelObject() interface{} {
 	return &ServiceDataSourceModel{}
 }
 
-func (r MobileNetworkServiceDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ServiceDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return service.ValidateServiceID
 }
 
-func (r MobileNetworkServiceDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r ServiceDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -94,7 +94,7 @@ func (r MobileNetworkServiceDataSource) Arguments() map[string]*pluginsdk.Schema
 	}
 }
 
-func (r MobileNetworkServiceDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r ServiceDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 
 		"location": commonschema.LocationComputed(),
@@ -283,7 +283,7 @@ func (r MobileNetworkServiceDataSource) Attributes() map[string]*pluginsdk.Schem
 	}
 }
 
-func (r MobileNetworkServiceDataSource) Read() sdk.ResourceFunc {
+func (r ServiceDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

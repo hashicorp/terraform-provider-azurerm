@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type MobileNetworkServiceResource struct{}
+type ServiceResource struct{}
 
 type ServiceResourceModel struct {
 	Name                         string                                     `tfschema:"name"`
@@ -67,21 +67,21 @@ type ServiceResourceQosPolicyModel struct {
 	PreemptionVulnerability             string                        `tfschema:"preemption_vulnerability"`
 }
 
-var _ sdk.ResourceWithUpdate = MobileNetworkServiceResource{}
+var _ sdk.ResourceWithUpdate = ServiceResource{}
 
-func (r MobileNetworkServiceResource) ResourceType() string {
+func (r ServiceResource) ResourceType() string {
 	return "azurerm_mobile_network_service"
 }
 
-func (r MobileNetworkServiceResource) ModelObject() interface{} {
+func (r ServiceResource) ModelObject() interface{} {
 	return &ServiceResourceModel{}
 }
 
-func (r MobileNetworkServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return service.ValidateServiceID
 }
 
-func (r MobileNetworkServiceResource) Arguments() map[string]*pluginsdk.Schema {
+func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -338,11 +338,11 @@ func (r MobileNetworkServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r MobileNetworkServiceResource) Attributes() map[string]*pluginsdk.Schema {
+func (r ServiceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r MobileNetworkServiceResource) Create() sdk.ResourceFunc {
+func (r ServiceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -387,7 +387,7 @@ func (r MobileNetworkServiceResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r MobileNetworkServiceResource) Update() sdk.ResourceFunc {
+func (r ServiceResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -439,7 +439,7 @@ func (r MobileNetworkServiceResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r MobileNetworkServiceResource) Read() sdk.ResourceFunc {
+func (r ServiceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -488,7 +488,7 @@ func (r MobileNetworkServiceResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r MobileNetworkServiceResource) Delete() sdk.ResourceFunc {
+func (r ServiceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
