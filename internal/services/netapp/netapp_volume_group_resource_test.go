@@ -127,15 +127,15 @@ resource "azurerm_netapp_volume_group" "test" {
     volume_spec_name             = "data"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
-    protocols                    = ["NFSv3"]
+    protocols                    = ["NFSv4.1"]
     security_style               = "Unix"
     snapshot_directory_visible   = false
     
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      nfsv3_enabled         = true
-      nfsv41_enabled        = false
+      nfsv3_enabled         = false
+      nfsv41_enabled        = true
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
@@ -157,15 +157,15 @@ resource "azurerm_netapp_volume_group" "test" {
     volume_spec_name             = "log"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
-    protocols                    = ["NFSv3"]
+    protocols                    = ["NFSv4.1"]
     security_style               = "Unix"
     snapshot_directory_visible   = false
     
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      nfsv3_enabled         = true
-      nfsv41_enabled        = false
+      nfsv3_enabled         = false
+      nfsv41_enabled        = true
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
@@ -187,15 +187,15 @@ resource "azurerm_netapp_volume_group" "test" {
     volume_spec_name             = "shared"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
-    protocols                    = ["NFSv3"]
+    protocols                    = ["NFSv4.1"]
     security_style               = "Unix"
     snapshot_directory_visible   = false
     
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      nfsv3_enabled         = true
-      nfsv41_enabled        = false
+      nfsv3_enabled         = false
+      nfsv41_enabled        = true
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
@@ -217,15 +217,15 @@ resource "azurerm_netapp_volume_group" "test" {
     volume_spec_name             = "data-backup"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
-    protocols                    = ["NFSv3"]
+    protocols                    = ["NFSv4.1"]
     security_style               = "Unix"
     snapshot_directory_visible   = false
     
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      nfsv3_enabled         = true
-      nfsv41_enabled        = false
+      nfsv3_enabled         = false
+      nfsv41_enabled        = true
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
@@ -247,15 +247,15 @@ resource "azurerm_netapp_volume_group" "test" {
     volume_spec_name             = "log-backup"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
-    protocols                    = ["NFSv3"]
+    protocols                    = ["NFSv4.1"]
     security_style               = "Unix"
     snapshot_directory_visible   = false
     
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      nfsv3_enabled         = true
-      nfsv41_enabled        = false
+      nfsv3_enabled         = false
+      nfsv41_enabled        = true
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
@@ -320,15 +320,15 @@ resource "azurerm_netapp_volume_group" "test" {
     volume_spec_name             = "data"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
-    protocols                    = ["NFSv3"]
+    protocols                    = ["NFSv4.1"]
     security_style               = "Unix"
     snapshot_directory_visible   = false
     
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      nfsv3_enabled         = true
-      nfsv41_enabled        = false
+      nfsv3_enabled         = false
+      nfsv41_enabled        = true
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
@@ -354,15 +354,15 @@ resource "azurerm_netapp_volume_group" "test" {
     volume_spec_name             = "log"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
-    protocols                    = ["NFSv3"]
+    protocols                    = ["NFSv4.1"]
     security_style               = "Unix"
     snapshot_directory_visible   = false
     
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      nfsv3_enabled         = true
-      nfsv41_enabled        = false
+      nfsv3_enabled         = false
+      nfsv41_enabled        = true
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
@@ -388,15 +388,15 @@ resource "azurerm_netapp_volume_group" "test" {
     volume_spec_name             = "shared"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
-    protocols                    = ["NFSv3"]
+    protocols                    = ["NFSv4.1"]
     security_style               = "Unix"
     snapshot_directory_visible   = false
     
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      nfsv3_enabled         = true
-      nfsv41_enabled        = false
+      nfsv3_enabled         = false
+      nfsv41_enabled        = true
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
@@ -422,15 +422,15 @@ resource "azurerm_netapp_volume_group" "test" {
     volume_spec_name             = "data-backup"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
-    protocols                    = ["NFSv3"]
+    protocols                    = ["NFSv4.1"]
     security_style               = "Unix"
     snapshot_directory_visible   = false
     
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      nfsv3_enabled         = true
-      nfsv41_enabled        = false
+      nfsv3_enabled         = false
+      nfsv41_enabled        = true
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
@@ -456,15 +456,15 @@ resource "azurerm_netapp_volume_group" "test" {
     volume_spec_name             = "log-backup"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
-    protocols                    = ["NFSv3"]
+    protocols                    = ["NFSv4.1"]
     security_style               = "Unix"
     snapshot_directory_visible   = false
     
     export_policy_rule {
       rule_index            = 1
       allowed_clients       = "0.0.0.0/0"
-      nfsv3_enabled         = true
-      nfsv41_enabled        = false
+      nfsv3_enabled         = false
+      nfsv41_enabled        = true
       unix_read_only        = false
       unix_read_write       = true
       root_access_enabled   = false
