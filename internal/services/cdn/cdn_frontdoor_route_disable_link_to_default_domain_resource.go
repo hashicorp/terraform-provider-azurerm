@@ -84,18 +84,11 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 
 	id := parse.NewFrontDoorRouteDisableLinkToDefaultDomainID(routeId.SubscriptionId, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, uuid)
 
-	locks.ByName(routeId.RouteName, cdnFrontDoorRouteResourceName)
-	defer locks.UnlockByName(routeId.RouteName, cdnFrontDoorRouteResourceName)
+	locks.ByID(cdnFrontDoorRouteResourceType)
+	defer locks.UnlockByID(cdnFrontDoorRouteResourceType)
 
-	for _, v := range customDomains {
-		customDomainId, err := parse.FrontDoorCustomDomainID(v.(string))
-		if err != nil {
-			return fmt.Errorf("creating %s: %+v", id, err)
-		}
-
-		locks.ByName(customDomainId.CustomDomainName, cdnFrontDoorCustomDomainResourceName)
-		defer locks.UnlockByName(customDomainId.CustomDomainName, cdnFrontDoorCustomDomainResourceName)
-	}
+	locks.ByID(cdnFrontDoorCustomDomainResourceType)
+	defer locks.UnlockByID(cdnFrontDoorCustomDomainResourceType)
 
 	existing, err := routeClient.Get(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
 	if err != nil {
@@ -225,18 +218,11 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate(d *pluginsdk.Reso
 			return err
 		}
 
-		locks.ByName(routeId.RouteName, cdnFrontDoorRouteResourceName)
-		defer locks.UnlockByName(routeId.RouteName, cdnFrontDoorRouteResourceName)
+		locks.ByID(cdnFrontDoorRouteResourceType)
+		defer locks.UnlockByID(cdnFrontDoorRouteResourceType)
 
-		for _, v := range customDomains {
-			customDomainId, err := parse.FrontDoorCustomDomainID(v.(string))
-			if err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			locks.ByName(customDomainId.CustomDomainName, cdnFrontDoorCustomDomainResourceName)
-			defer locks.UnlockByName(customDomainId.CustomDomainName, cdnFrontDoorCustomDomainResourceName)
-		}
+		locks.ByID(cdnFrontDoorCustomDomainResourceType)
+		defer locks.UnlockByID(cdnFrontDoorCustomDomainResourceType)
 
 		existing, err := routeClient.Get(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
 		if err != nil {
@@ -320,8 +306,8 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.Reso
 		return err
 	}
 
-	locks.ByName(route.RouteName, cdnFrontDoorRouteResourceName)
-	defer locks.UnlockByName(route.RouteName, cdnFrontDoorRouteResourceName)
+	locks.ByID(cdnFrontDoorRouteResourceType)
+	defer locks.UnlockByID(cdnFrontDoorRouteResourceType)
 
 	resp, err := client.Get(ctx, route.ResourceGroup, route.ProfileName, route.AfdEndpointName, route.RouteName)
 	if err != nil {

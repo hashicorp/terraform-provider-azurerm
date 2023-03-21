@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var cdnFrontDoorRuleSetAssociationName = "azurerm_cdn_frontdoor_rule_set_association"
+const cdnFrontDoorRuleSetAssociationResourceType string = "azurerm_cdn_frontdoor_rule_set_association"
 
 func resourceCdnFrontDoorRuleSetAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -66,11 +66,11 @@ func resourceCdnFrontDoorRuleSetAssociationCreate(d *pluginsdk.ResourceData, met
 	id := parse.NewFrontDoorRuleSetAssociationID(routeId.SubscriptionId, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
 
 	// lock the route and rule set resource for create...
-	locks.ByName(id.AssociationName, cdnFrontDoorRouteResourceName)
-	defer locks.UnlockByName(id.AssociationName, cdnFrontDoorRouteResourceName)
+	locks.ByID(cdnFrontDoorRouteResourceType)
+	defer locks.UnlockByID(cdnFrontDoorRouteResourceType)
 
-	locks.ByName(id.AssociationName, cdnFrontDoorRuleSetAssociationName)
-	defer locks.UnlockByName(id.AssociationName, cdnFrontDoorRuleSetAssociationName)
+	locks.ByID(cdnFrontDoorRuleSetAssociationResourceType)
+	defer locks.UnlockByID(cdnFrontDoorRuleSetAssociationResourceType)
 
 	// make sure the route and the rule sets exist and are associated with the route...
 	if err := validateRuleSetsAssociation(d, meta, &id, true); err != nil {
@@ -113,11 +113,11 @@ func resourceCdnFrontDoorRuleSetAssociationUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	// lock the route and rule set resource for update...
-	locks.ByName(id.AssociationName, cdnFrontDoorRouteResourceName)
-	defer locks.UnlockByName(id.AssociationName, cdnFrontDoorRouteResourceName)
+	locks.ByID(cdnFrontDoorRouteResourceType)
+	defer locks.UnlockByID(cdnFrontDoorRouteResourceType)
 
-	locks.ByName(id.AssociationName, cdnFrontDoorRuleSetAssociationName)
-	defer locks.UnlockByName(id.AssociationName, cdnFrontDoorRuleSetAssociationName)
+	locks.ByID(cdnFrontDoorRuleSetAssociationResourceType)
+	defer locks.UnlockByID(cdnFrontDoorRuleSetAssociationResourceType)
 
 	if d.HasChange("cdn_frontdoor_rule_set_ids") {
 		// make sure the route and the rule sets exist and are associated with the route...
@@ -138,11 +138,11 @@ func resourceCdnFrontDoorRuleSetAssociationDelete(d *pluginsdk.ResourceData, met
 	}
 
 	// lock the route and rule set resource for delete...
-	locks.ByName(id.AssociationName, cdnFrontDoorRouteResourceName)
-	defer locks.UnlockByName(id.AssociationName, cdnFrontDoorRouteResourceName)
+	locks.ByID(cdnFrontDoorRouteResourceType)
+	defer locks.UnlockByID(cdnFrontDoorRouteResourceType)
 
-	locks.ByName(id.AssociationName, cdnFrontDoorRuleSetAssociationName)
-	defer locks.UnlockByName(id.AssociationName, cdnFrontDoorRuleSetAssociationName)
+	locks.ByID(cdnFrontDoorRuleSetAssociationResourceType)
+	defer locks.UnlockByID(cdnFrontDoorRuleSetAssociationResourceType)
 
 	// Check to see if the route still exists and grab its properties...
 	_, props, err := getRouteRuleSetProperties(d, meta, id)

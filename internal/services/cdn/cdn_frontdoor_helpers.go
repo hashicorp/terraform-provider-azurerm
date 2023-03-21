@@ -425,7 +425,7 @@ func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta int
 			// Check to see if the route still exists and grab its properties...
 			// NOTE: cdnFrontDoorRouteResourceName is defined in the "cdn_frontdoor_route_disable_link_to_default_domain_resource" file
 			// ignore the error because that could just mean that the route has already been deleted...
-			customDomains, props, err := getRouteProperties(d, meta, &route, cdnFrontDoorCustomDomainResourceName)
+			customDomains, props, err := getRouteProperties(d, meta, &route, cdnFrontDoorCustomDomainResourceType)
 			if err == nil {
 				// Check to make sure the custom domain is still associated with the route
 				isAssociated := sliceContainsString(customDomains, customDomainID.ID())

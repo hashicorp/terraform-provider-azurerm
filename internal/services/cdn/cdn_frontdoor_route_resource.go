@@ -411,8 +411,8 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// we need to lock the route for update because the custom domain
 	// association or the rule set association may also be trying to update the route as well...
-	locks.ByName(id.RouteName, cdnFrontDoorRouteResourceName)
-	defer locks.UnlockByName(id.RouteName, cdnFrontDoorRouteResourceName)
+	locks.ByID(cdnFrontDoorRouteResourceType)
+	defer locks.UnlockByID(cdnFrontDoorRouteResourceType)
 
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
