@@ -237,6 +237,7 @@ func (r ManagerSubscriptionConnectionResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("context had no deadline")
 			}
 
+			// https://github.com/Azure/azure-rest-api-specs/issues/23188
 			// confirm the connection is fully deleted
 			stateChangeConf := &pluginsdk.StateChangeConf{
 				Pending: []string{"Exists"},
