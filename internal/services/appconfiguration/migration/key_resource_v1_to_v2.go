@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
@@ -21,9 +22,19 @@ func (KeyResourceV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// new:
 		// 	https://appConf1.azconfig.io/kv/key:name%2Ftest?label=test%3Alabel%2Fname
 		oldId := rawState["id"].(string)
-		parsedOldId, err := parse.KeyId(oldId)
+		fixedId := oldId
+
+		if strings.HasSuffix(fixedId, "/Label/\000") {
+			fixedId = strings.TrimSuffix(fixedId, "/Label/\000") + "/Label/%00"
+		}
+
+		if strings.HasSuffix(fixedId, "/Label/") {
+			fixedId = strings.TrimSuffix(fixedId, "/Label/") + "/Label/%00"
+		}
+
+		parsedOldId, err := parse.KeyId(fixedId)
 		if err != nil {
-			return rawState, fmt.Errorf("parsing existing Key Resource %q: %+v", oldId, err)
+			return rawState, fmt.Errorf("parsing existing Key Resource %q: %+v", fixedId, err)
 		}
 
 		configurationStoreId, err := configurationstores.ParseConfigurationStoreIDInsensitively(parsedOldId.ConfigurationStoreId)

@@ -34,6 +34,20 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 			},
 			expected: utils.String("https://appConf1.azconfig.io/kv/keyName?label="),
 		},
+		{
+			name: "old id (\000 label)",
+			input: map[string]interface{}{
+				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/\000",
+			},
+			expected: utils.String("https://appConf1.azconfig.io/kv/keyName?label="),
+		},
+		{
+			name: "old id (empty label)",
+			input: map[string]interface{}{
+				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/",
+			},
+			expected: utils.String("https://appConf1.azconfig.io/kv/keyName?label="),
+		},
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q...", test.name)

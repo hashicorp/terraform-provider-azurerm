@@ -34,6 +34,20 @@ func TestFeatureResourceV0ToV1(t *testing.T) {
 			},
 			expected: utils.String("https://appConf1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label="),
 		},
+		{
+			name: "old id (\000 label)",
+			input: map[string]interface{}{
+				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/keyName/Label/\000",
+			},
+			expected: utils.String("https://appConf1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label="),
+		},
+		{
+			name: "old id (empty label)",
+			input: map[string]interface{}{
+				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/keyName/Label/",
+			},
+			expected: utils.String("https://appConf1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label="),
+		},
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q...", test.name)
