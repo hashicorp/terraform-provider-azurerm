@@ -145,11 +145,20 @@ func (s SpringCloudGatewaySsoResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 
-			existing.Properties.SsoProperties = &appplatform.SsoProperties{
-				Scope:        utils.ToPtr(model.Scope),
-				ClientID:     utils.String(model.ClientID),
-				ClientSecret: utils.String(model.ClientSecret),
-				IssuerURI:    utils.String(model.IssuerUri),
+			if existing.Properties.SsoProperties == nil {
+				existing.Properties.SsoProperties = &appplatform.SsoProperties{}
+			}
+			if metadata.ResourceData.HasChange("scope") {
+				existing.Properties.SsoProperties.Scope = utils.ToPtr(model.Scope)
+			}
+			if metadata.ResourceData.HasChange("client_id") {
+				existing.Properties.SsoProperties.ClientID = utils.String(model.ClientID)
+			}
+			if metadata.ResourceData.HasChange("client_secret") {
+				existing.Properties.SsoProperties.ClientSecret = utils.String(model.ClientSecret)
+			}
+			if metadata.ResourceData.HasChange("issuer_uri") {
+				existing.Properties.SsoProperties.IssuerURI = utils.String(model.IssuerUri)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, existing)
@@ -189,7 +198,7 @@ func (s SpringCloudGatewaySsoResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 			state := SpringCloudGatewaySsoModel{
-				SpringCloudGatewayId: id.ID(),
+				SpringCloudGatewayId: model.SpringCloudGatewayId,
 				ClientID:             model.ClientID,
 				ClientSecret:         model.ClientSecret,
 			}

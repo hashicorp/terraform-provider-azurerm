@@ -84,6 +84,12 @@ resource "azurerm_spring_cloud_service" "test" {
 resource "azurerm_spring_cloud_gateway" "test" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+
+  lifecycle {
+    ignore_changes = [
+      sso,
+    ]
+  }
 }
 `, data.Locations.Primary, data.RandomInteger)
 }
