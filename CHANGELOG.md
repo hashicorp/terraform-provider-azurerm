@@ -2,6 +2,7 @@
 
 FEATURES: 
 
+* **New Datasource:** `azurerm_orchestrated_virtual_machine_scale_set` [GH-21050]
 * **New Resource:** `azurerm_sentinel_threat_intelligence_indicator` [GH-20771]
 
 ENHANCEMENTS:
