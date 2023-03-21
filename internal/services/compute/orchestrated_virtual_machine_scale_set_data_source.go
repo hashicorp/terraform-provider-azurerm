@@ -293,7 +293,7 @@ func flattenOrchestratedVirtualMachineScaleSetIdentityToModel(input *compute.Vir
 	}
 
 	tmp := identity.UserAssignedMap{
-		Type:        input.Type,
+		Type:        identity.Type(input.Type),
 		IdentityIds: identityIds,
 	}
 
