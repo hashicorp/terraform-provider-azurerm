@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * `azurerm_resource_group_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
 * `azurerm_resource_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
 * `azurerm_role_assignment` - support subscription aliases scopes [GH-20895]
+* `azurerm_signalr_service` - support for `public_network_access_enabled`, `local_auth_enabled`, `aad_auth_enabled`, `tls_client_cert_enabled`, and `serverless_connection_timeout_in_seconds` properties [GH-20975]
 * `azurerm_subscription_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
 * `azurerm_sentinel_log_analytics_workspace_onboarding` - the `resource_group_name` and `workspace_name` properties have been deprecated in favour of workspace_id [GH-20661]
 * `azurerm_virtual_network_peering` - adding an explicit default value for `allow_forwarded_traffic`, `allow_gateway_transit` and `use_remote_gateways` [GH-21009]
