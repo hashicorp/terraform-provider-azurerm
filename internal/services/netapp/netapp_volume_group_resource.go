@@ -474,6 +474,8 @@ func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
 
 					if metadata.ResourceData.HasChange(volumeItem) {
 
+						volumeId := metadata.ResourceData.Get(fmt.Sprintf("%v.id", volumeItem))
+
 						update := volumes.VolumePatch{
 							Properties: &volumes.VolumePatchProperties{},
 						}
@@ -518,7 +520,7 @@ func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
 						}
 
 						// Wait for volume to complete update
-						if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, *id); err != nil {
+						if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, *volumeId); err != nil {
 							return err
 						}
 
