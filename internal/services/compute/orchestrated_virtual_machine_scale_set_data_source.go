@@ -29,24 +29,24 @@ type OrchestratedVirtualMachineScaleSetDataSourceModel struct {
 }
 
 type VirtualMachineScaleSetNetworkInterface struct {
-	Name                         string `tfschema:"name"`
-	IPConfiguration              []VirtualMachineScaleSetNetworkInterfaceIPConfiguration
-	DNSServers                   []string `tfschema:"dns_servers"`
-	AcceleratedNetworkingEnabled bool     `tfschema:"accelerated_networking_enabled"`
-	IPForwardingEnabled          bool     `tfschema:"ip_forwarding_enabled"`
-	NetworkSecurityGroupId       string   `tfschema:"network_security_group_id"`
-	Primary                      bool     `tfschema:"primary"`
+	Name                         string                                                  `tfschema:"name"`
+	IPConfiguration              []VirtualMachineScaleSetNetworkInterfaceIPConfiguration `tfschema:"ip_configuration"`
+	DNSServers                   []string                                                `tfschema:"dns_servers"`
+	AcceleratedNetworkingEnabled bool                                                    `tfschema:"accelerated_networking_enabled"`
+	IPForwardingEnabled          bool                                                    `tfschema:"ip_forwarding_enabled"`
+	NetworkSecurityGroupId       string                                                  `tfschema:"network_security_group_id"`
+	Primary                      bool                                                    `tfschema:"primary"`
 }
 
 type VirtualMachineScaleSetNetworkInterfaceIPConfiguration struct {
-	Name                                    string                                                               `tfschema:"name"`
-	ApplicationGatewayBackendAddressPoolIds []string                                                             `tfschema:"application_gateway_backend_address_pool_ids"`
-	ApplicationSecurityGroupIds             []string                                                             `tfschema:"application_security_group_ids"`
-	LoadBalancerBackendAddressPoolIds       []string                                                             `tfschema:"load_balancer_backend_address_pool_ids"`
-	Primary                                 bool                                                                 `tfschema:"primary"`
-	PublicIPAddress                         VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress `tfschema:"public_ip_address"`
-	SubnetId                                string                                                               `tfschema:"subnet_id"`
-	Version                                 string                                                               `tfschema:"version"`
+	Name                                    string                                                                 `tfschema:"name"`
+	ApplicationGatewayBackendAddressPoolIds []string                                                               `tfschema:"application_gateway_backend_address_pool_ids"`
+	ApplicationSecurityGroupIds             []string                                                               `tfschema:"application_security_group_ids"`
+	LoadBalancerBackendAddressPoolIds       []string                                                               `tfschema:"load_balancer_backend_address_pool_ids"`
+	Primary                                 bool                                                                   `tfschema:"primary"`
+	PublicIPAddress                         []VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress `tfschema:"public_ip_address"`
+	SubnetId                                string                                                                 `tfschema:"subnet_id"`
+	Version                                 string                                                                 `tfschema:"version"`
 }
 
 type VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress struct {
@@ -88,7 +88,50 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Attributes() map[string]*p
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
-		"network_interfaces": OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema(),
+		"network_interface": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"ip_configuration": virtualMachineScaleSetIPConfigurationSchemaForDataSource(),
+
+					"dns_servers": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"accelerated_networking_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+
+					"ip_forwarding_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+
+					"network_security_group_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"primary": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"identity": commonschema.UserAssignedIdentityComputed(),
 	}
 }
 
@@ -220,9 +263,9 @@ func flattenOrchestratedVirtualMachineScaleSetNetworkInterfaceIPConfiguration(in
 	return ipConfigurations
 }
 
-func flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input *compute.VirtualMachineScaleSetPublicIPAddressConfiguration) VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress {
+func flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input *compute.VirtualMachineScaleSetPublicIPAddressConfiguration) []VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress {
 	if input == nil {
-		return VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress{}
+		return []VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress{}
 	}
 
 	ipTags := make([]VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddressIPTag, 0)
@@ -267,14 +310,14 @@ func flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input *compute.Vir
 		idleTimeoutInMinutes = int(*input.IdleTimeoutInMinutes)
 	}
 
-	return VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress{
+	return []VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress{{
 		Name:                 name,
 		DomainNameLabel:      domainNameLabel,
 		IdleTimeoutInMinutes: idleTimeoutInMinutes,
 		IPTag:                ipTags,
 		PublicIpPrefixId:     publicIPPrefixId,
 		Version:              version,
-	}
+	}}
 }
 
 func flattenOrchestratedVirtualMachineScaleSetIdentityToModel(input *compute.VirtualMachineScaleSetIdentity) ([]identity.ModelUserAssigned, error) {

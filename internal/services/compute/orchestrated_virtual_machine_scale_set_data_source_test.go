@@ -19,7 +19,7 @@ func TestAccOrchestratedVMSSDataSource_complete(t *testing.T) {
 			Config: d.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
-				check.That(data.ResourceName).Key("network_interfaces.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network_interface.#").HasValue("1"),
 			),
 		},
 	})
@@ -30,8 +30,8 @@ func (OrchestratedVirtualMachineScaleSetDataSource) complete(data acceptance.Tes
 %s
 
 data azurerm_orchestrated_virtual_machine_scale_set test {
-  name                = azurerm_service_plan.test.name
-  resource_group_name = azurerm_service_plan.test.resource_group_name
+  name                = azurerm_orchestrated_virtual_machine_scale_set.test.name
+  resource_group_name = azurerm_orchestrated_virtual_machine_scale_set.test.resource_group_name
 }
 `, OrchestratedVirtualMachineScaleSetResource{}.linuxInstances(data))
 }
