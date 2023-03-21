@@ -652,6 +652,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 						"settings_json": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
+							StateFunc:        utils.NormalizeJson,
 							ValidateFunc:     validation.StringIsJSON,
 							DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 						},
@@ -1178,11 +1179,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 								extension["auto_upgrade_minor_version"] = *item.AutoUpgradeMinorVersion
 							}
 							if item.Settings != nil {
-								settings, jsonErr := flattenJsonToString(*item.Settings)
-								if jsonErr != nil {
-									return jsonErr
-								}
-								extension["settings_json"] = settings
+								extension["settings_json"] = item.Settings
 							}
 
 							for i := 0; i < n; i++ {
