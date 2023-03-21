@@ -205,17 +205,17 @@ func (r SecurityInsightsIndicatorResource) complete(data acceptance.TestData, pa
 			%s
 
 resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
-  workspace_id             = azurerm_log_analytics_workspace.test.id
-  pattern_type             = "%s"
-  pattern                  = "%s"
-  confidence               = 5
-  created_by               = "testcraeted@microsoft.com"
-  description              = "test indicator"
-  display_name             = "test"
-  language                 = "en"
-  pattern_version          = 1
-  revoked                  = true
-  tags                     = ["test-tags"]
+  workspace_id    = azurerm_log_analytics_workspace.test.id
+  pattern_type    = "%s"
+  pattern         = "%s"
+  confidence      = 5
+  created_by      = "testcraeted@microsoft.com"
+  description     = "test indicator"
+  display_name    = "test"
+  language        = "en"
+  pattern_version = 1
+  revoked         = true
+  tags            = ["test-tags"]
   kill_chain_phase {
     name = "testtest"
   }
@@ -229,7 +229,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
   source            = "test Sentinel"
   validate_from_utc = "2022-12-14T16:00:00Z"
 
-  depends_on        = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), patternType, pattern)
 }
@@ -239,17 +239,17 @@ func (r SecurityInsightsIndicatorResource) update(data acceptance.TestData, patt
 			%s
 
 resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
-  workspace_id             = azurerm_log_analytics_workspace.test.id
-  pattern_type             = "%s"
-  pattern                  = "%s"
-  confidence               = 5
-  created_by               = "testcraeted@microsoft.com"
-  description              = "updated indicator"
-  display_name             = "updated"
-  language                 = "en"
-  pattern_version          = 1
-  revoked                  = true
-  tags                     = ["updated-tags"]
+  workspace_id    = azurerm_log_analytics_workspace.test.id
+  pattern_type    = "%s"
+  pattern         = "%s"
+  confidence      = 5
+  created_by      = "testcraeted@microsoft.com"
+  description     = "updated indicator"
+  display_name    = "updated"
+  language        = "en"
+  pattern_version = 1
+  revoked         = true
+  tags            = ["updated-tags"]
   kill_chain_phase {
     name = "testtest"
   }
@@ -263,7 +263,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
   source            = "updated Sentinel"
   validate_from_utc = "2022-12-15T16:00:00Z"
 
-  depends_on        = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, r.template(data), patternType, pattern)
 }
