@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type DataNetworkModel struct {
+type DataNetworkResourceModel struct {
 	Name                         string            `tfschema:"name"`
 	MobileNetworkMobileNetworkId string            `tfschema:"mobile_network_id"`
 	Description                  string            `tfschema:"description"`
@@ -33,7 +33,7 @@ func (r DataNetworkResource) ResourceType() string {
 }
 
 func (r DataNetworkResource) ModelObject() interface{} {
-	return &DataNetworkModel{}
+	return &DataNetworkResourceModel{}
 }
 
 func (r DataNetworkResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -76,7 +76,7 @@ func (r DataNetworkResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model DataNetworkModel
+			var model DataNetworkResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -128,7 +128,7 @@ func (r DataNetworkResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model DataNetworkModel
+			var model DataNetworkResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -181,7 +181,7 @@ func (r DataNetworkResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := DataNetworkModel{
+			state := DataNetworkResourceModel{
 				Name:                         id.DataNetworkName,
 				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
 			}

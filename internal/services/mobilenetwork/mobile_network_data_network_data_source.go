@@ -3,11 +3,11 @@ package mobilenetwork
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/datanetwork"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -17,6 +17,14 @@ import (
 
 type DataNetworkDataSource struct{}
 
+type DataNetworkDataSourceModel struct {
+	Name                         string            `tfschema:"name"`
+	MobileNetworkMobileNetworkId string            `tfschema:"mobile_network_id"`
+	Description                  string            `tfschema:"description"`
+	Location                     string            `tfschema:"location"`
+	Tags                         map[string]string `tfschema:"tags"`
+}
+
 var _ sdk.DataSource = DataNetworkDataSource{}
 
 func (r DataNetworkDataSource) ResourceType() string {
@@ -24,7 +32,7 @@ func (r DataNetworkDataSource) ResourceType() string {
 }
 
 func (r DataNetworkDataSource) ModelObject() interface{} {
-	return &DataNetworkModel{}
+	return &DataNetworkDataSourceModel{}
 }
 
 func (r DataNetworkDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -64,7 +72,7 @@ func (r DataNetworkDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var inputModel DataNetworkModel
+			var inputModel DataNetworkDataSourceModel
 			if err := metadata.Decode(&inputModel); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -86,28 +94,26 @@ func (r DataNetworkDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			model := *resp.Model
-
-			state := DataNetworkModel{
+			metadata.SetID(id)
+			state := DataNetworkDataSourceModel{
 				Name:                         id.DataNetworkName,
 				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
-				Location:                     location.Normalize(model.Location),
 			}
 
-			if properties := model.Properties; properties != nil {
-				if properties.Description != nil {
-					state.Description = *properties.Description
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+
+				if properties := model.Properties; properties != nil {
+					if properties.Description != nil {
+						state.Description = *properties.Description
+					}
+				}
+
+				if model.Tags != nil {
+					state.Tags = *model.Tags
 				}
 			}
-			if model.Tags != nil {
-				state.Tags = *model.Tags
-			}
 
-			metadata.SetID(id)
 			return metadata.Encode(&state)
 		},
 	}
