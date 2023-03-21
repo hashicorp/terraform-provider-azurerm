@@ -470,7 +470,7 @@ func signalRFeature(featureFlag signalr.FeatureFlags, value string) signalr.Sign
 }
 
 func expandUpstreamAuth(input []interface{}) *signalr.UpstreamAuthSettings {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
