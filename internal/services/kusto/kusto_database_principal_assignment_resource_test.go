@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/databaseprincipalassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/databaseprincipalassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

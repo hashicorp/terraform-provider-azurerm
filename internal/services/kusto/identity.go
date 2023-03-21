@@ -1,7 +1,7 @@
 package kusto
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/clusters" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/clusters" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
