@@ -12,13 +12,40 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PostgreSQLHyperScaleClusterModel struct {
-	Name              string            `tfschema:"name"`
-	ResourceGroupName string            `tfschema:"resource_group_name"`
-	Location          string            `tfschema:"location"`
-	Tags              map[string]string `tfschema:"tags"`
+	Name                             string              `tfschema:"name"`
+	ResourceGroupName                string              `tfschema:"resource_group_name"`
+	Location                         string              `tfschema:"location"`
+	AdministratorLogin               string              `tfschema:"administrator_login"`
+	AdministratorLoginPassword       string              `tfschema:"administrator_login_password"`
+	CitusVersion                     string              `tfschema:"citus_version"`
+	CoordinatorPublicIPAccessEnabled bool                `tfschema:"coordinator_public_ip_access_enabled"`
+	CoordinatorServerEdition         string              `tfschema:"coordinator_server_edition"`
+	CoordinatorStorageQuotaInMb      int64               `tfschema:"coordinator_storage_quota_in_mb"`
+	CoordinatorVCores                int64               `tfschema:"coordinator_vcores"`
+	HaEnabled                        bool                `tfschema:"ha_enabled"`
+	ShardsOnCoordinatorEnabled       bool                `tfschema:"shards_on_coordinator_enabled"`
+	SourceLocation                   string              `tfschema:"source_location"`
+	SourceResourceId                 string              `tfschema:"source_resource_id"`
+	MaintenanceWindow                []MaintenanceWindow `tfschema:"maintenance_window"`
+	NodeCount                        int64               `tfschema:"node_count"`
+	NodePublicIPAccessEnabled        bool                `tfschema:"node_public_ip_access_enabled"`
+	NodeServerEdition                string              `tfschema:"node_server_edition"`
+	NodeStorageQuotaInMb             int64               `tfschema:"node_storage_quota_in_mb"`
+	NodeVCores                       int64               `tfschema:"node_vcores"`
+	PointInTimeInUTC                 string              `tfschema:"point_in_time_in_utc"`
+	PreferredPrimaryZone             string              `tfschema:"preferred_primary_zone"`
+	SqlVersion                       string              `tfschema:"sql_version"`
+	Tags                             map[string]string   `tfschema:"tags"`
+}
+
+type MaintenanceWindow struct {
+	DayOfWeek   int64 `tfschema:"day_of_week"`
+	StartHour   int64 `tfschema:"start_hour"`
+	StartMinute int64 `tfschema:"start_minute"`
 }
 
 type PostgreSQLHyperScaleClusterResource struct{}
@@ -50,6 +77,150 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 
 		"location": commonschema.Location(),
 
+		"administrator_login_password": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"coordinator_storage_quota_in_mb": {
+			Type:     pluginsdk.TypeInt,
+			Required: true,
+		},
+
+		"coordinator_vcores": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntAtMost(96),
+		},
+
+		"node_count": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntNotInSlice([]int{1}),
+		},
+
+		"administrator_login": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "citus",
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"citus_version": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "11.2",
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"coordinator_public_ip_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"coordinator_server_edition": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "GeneralPurpose",
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"ha_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"node_public_ip_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"node_server_edition": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "MemoryOptimized",
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"sql_version": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "15",
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"maintenance_window": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"day_of_week": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntBetween(0, 6),
+					},
+
+					"start_hour": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntBetween(0, 23),
+					},
+
+					"start_minute": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntBetween(0, 59),
+					},
+				},
+			},
+		},
+
+		"node_storage_quota_in_mb": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Computed: true,
+		},
+
+		"node_vcores": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Computed: true,
+		},
+
+		"point_in_time_in_utc": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsRFC3339Time,
+		},
+
+		"preferred_primary_zone": commonschema.ZoneSingleOptional(),
+
+		"shards_on_coordinator_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
+
+		"source_location": commonschema.LocationOptional(),
+
+		"source_resource_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: clusters.ValidateServerGroupsv2ID,
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -80,12 +251,58 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := &clusters.Cluster{
+			parameters := &clusters.Cluster{
 				Location: location.Normalize(model.Location),
-				Tags:     &model.Tags,
+				Properties: &clusters.ClusterProperties{
+					AdministratorLogin:              &model.AdministratorLogin,
+					AdministratorLoginPassword:      &model.AdministratorLoginPassword,
+					CitusVersion:                    &model.CitusVersion,
+					CoordinatorEnablePublicIPAccess: &model.CoordinatorPublicIPAccessEnabled,
+					CoordinatorServerEdition:        &model.CoordinatorServerEdition,
+					CoordinatorStorageQuotaInMb:     &model.CoordinatorStorageQuotaInMb,
+					CoordinatorVCores:               &model.CoordinatorVCores,
+					EnableHa:                        &model.HaEnabled,
+					NodeCount:                       &model.NodeCount,
+					NodeEnablePublicIPAccess:        &model.NodePublicIPAccessEnabled,
+					NodeServerEdition:               &model.NodeServerEdition,
+					PostgresqlVersion:               &model.SqlVersion,
+				},
+				Tags: &model.Tags,
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if v := model.MaintenanceWindow; v != nil {
+				parameters.Properties.MaintenanceWindow = expandMaintenanceWindow(v)
+			}
+
+			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["node_storage_quota_in_mb"]; !v.IsNull() {
+				parameters.Properties.NodeStorageQuotaInMb = utils.Int64(model.NodeStorageQuotaInMb)
+			}
+
+			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["node_vcores"]; !v.IsNull() {
+				parameters.Properties.NodeVCores = utils.Int64(model.NodeVCores)
+			}
+
+			if v := model.PointInTimeInUTC; v != "" {
+				parameters.Properties.PointInTimeUTC = &model.PointInTimeInUTC
+			}
+
+			if v := model.PreferredPrimaryZone; v != "" {
+				parameters.Properties.PreferredPrimaryZone = &model.PreferredPrimaryZone
+			}
+
+			if v := model.SourceLocation; v != "" {
+				parameters.Properties.SourceLocation = &model.SourceLocation
+			}
+
+			if v := model.SourceResourceId; v != "" {
+				parameters.Properties.SourceResourceId = &model.SourceResourceId
+			}
+
+			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["shards_on_coordinator_enabled"]; !v.IsNull() {
+				parameters.Properties.EnableShardsOnCoordinator = &model.ShardsOnCoordinatorEnabled
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, id, *parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -111,13 +328,89 @@ func (r PostgreSQLHyperScaleClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			properties := clusters.ClusterForUpdate{}
+			parameters := clusters.ClusterForUpdate{}
 
-			if metadata.ResourceData.HasChange("tags") {
-				properties.Tags = &model.Tags
+			if metadata.ResourceData.HasChange("administrator_login_password") {
+				parameters.Properties.AdministratorLoginPassword = &model.AdministratorLoginPassword
 			}
 
-			if err := client.UpdateThenPoll(ctx, *id, properties); err != nil {
+			if metadata.ResourceData.HasChange("citus_version") {
+				parameters.Properties.CitusVersion = &model.CitusVersion
+			}
+
+			if metadata.ResourceData.HasChange("coordinator_public_ip_access_enabled") {
+				parameters.Properties.CoordinatorEnablePublicIPAccess = &model.CoordinatorPublicIPAccessEnabled
+			}
+
+			if metadata.ResourceData.HasChange("coordinator_server_edition") {
+				parameters.Properties.CoordinatorServerEdition = &model.CoordinatorServerEdition
+			}
+
+			if metadata.ResourceData.HasChange("coordinator_storage_quota_in_mb") {
+				parameters.Properties.CoordinatorStorageQuotaInMb = &model.CoordinatorStorageQuotaInMb
+			}
+
+			if metadata.ResourceData.HasChange("coordinator_vcores") {
+				parameters.Properties.CoordinatorVCores = &model.CoordinatorVCores
+			}
+
+			if metadata.ResourceData.HasChange("ha_enabled") {
+				parameters.Properties.EnableHa = &model.HaEnabled
+			}
+
+			if metadata.ResourceData.HasChange("maintenance_window") {
+				parameters.Properties.MaintenanceWindow = expandMaintenanceWindow(model.MaintenanceWindow)
+			}
+
+			if metadata.ResourceData.HasChange("node_count") {
+				parameters.Properties.NodeCount = &model.NodeCount
+			}
+
+			if metadata.ResourceData.HasChange("node_public_ip_access_enabled") {
+				parameters.Properties.NodeEnablePublicIPAccess = &model.NodePublicIPAccessEnabled
+			}
+
+			if metadata.ResourceData.HasChange("node_server_edition") {
+				parameters.Properties.NodeServerEdition = &model.NodeServerEdition
+			}
+
+			if metadata.ResourceData.HasChange("node_storage_quota_in_mb") {
+				if v := metadata.ResourceData.GetRawConfig().AsValueMap()["node_storage_quota_in_mb"]; !v.IsNull() {
+					parameters.Properties.NodeStorageQuotaInMb = utils.Int64(model.NodeStorageQuotaInMb)
+				} else {
+					parameters.Properties.NodeStorageQuotaInMb = nil
+				}
+			}
+
+			if metadata.ResourceData.HasChange("node_vcores") {
+				if v := metadata.ResourceData.GetRawConfig().AsValueMap()["node_vcores"]; !v.IsNull() {
+					parameters.Properties.NodeVCores = utils.Int64(model.NodeVCores)
+				} else {
+					parameters.Properties.NodeVCores = nil
+				}
+			}
+
+			if metadata.ResourceData.HasChange("preferred_primary_zone") {
+				parameters.Properties.PreferredPrimaryZone = &model.PreferredPrimaryZone
+			}
+
+			if metadata.ResourceData.HasChange("shards_on_coordinator_enabled") {
+				if v := metadata.ResourceData.GetRawConfig().AsValueMap()["shards_on_coordinator_enabled"]; !v.IsNull() {
+					parameters.Properties.EnableShardsOnCoordinator = &model.ShardsOnCoordinatorEnabled
+				} else {
+					parameters.Properties.EnableShardsOnCoordinator = nil
+				}
+			}
+
+			if metadata.ResourceData.HasChange("sql_version") {
+				parameters.Properties.PostgresqlVersion = &model.SqlVersion
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				parameters.Tags = &model.Tags
+			}
+
+			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -157,7 +450,42 @@ func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
 				Location:          location.Normalize(model.Location),
 			}
 
-			if properties := model.Properties; properties != nil {
+			if props := model.Properties; props != nil {
+				state.AdministratorLogin = *props.AdministratorLogin
+				state.AdministratorLoginPassword = *props.AdministratorLoginPassword
+				state.CitusVersion = *props.CitusVersion
+				state.CoordinatorPublicIPAccessEnabled = *props.CoordinatorEnablePublicIPAccess
+				state.CoordinatorServerEdition = *props.CoordinatorServerEdition
+				state.CoordinatorStorageQuotaInMb = *props.CoordinatorStorageQuotaInMb
+				state.CoordinatorVCores = *props.CoordinatorVCores
+				state.HaEnabled = *props.EnableHa
+				state.NodeCount = *props.NodeCount
+				state.NodePublicIPAccessEnabled = *props.NodeEnablePublicIPAccess
+				state.NodeServerEdition = *props.NodeServerEdition
+				state.NodeStorageQuotaInMb = *props.NodeStorageQuotaInMb
+				state.NodeVCores = *props.NodeVCores
+				state.ShardsOnCoordinatorEnabled = *props.EnableShardsOnCoordinator
+				state.SqlVersion = *props.PostgresqlVersion
+
+				if v := props.MaintenanceWindow; v != nil {
+					state.MaintenanceWindow = flattenMaintenanceWindow(v)
+				}
+
+				if v := props.PointInTimeUTC; v != nil {
+					state.PointInTimeInUTC = *v
+				}
+
+				if v := props.PreferredPrimaryZone; v != nil {
+					state.PreferredPrimaryZone = *v
+				}
+
+				if v := props.SourceLocation; v != nil {
+					state.SourceLocation = *v
+				}
+
+				if v := props.SourceResourceId; v != nil {
+					state.SourceResourceId = *v
+				}
 			}
 
 			if model.Tags != nil {
@@ -187,4 +515,45 @@ func (r PostgreSQLHyperScaleClusterResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func expandMaintenanceWindow(input []MaintenanceWindow) *clusters.MaintenanceWindow {
+	if len(input) == 0 {
+		return &clusters.MaintenanceWindow{
+			CustomWindow: utils.String("Disabled"),
+		}
+	}
+
+	v := input[0]
+
+	maintenanceWindow := clusters.MaintenanceWindow{
+		CustomWindow: utils.String("Enabled"),
+		StartHour:    utils.Int64(v.StartHour),
+		StartMinute:  utils.Int64(v.StartMinute),
+		DayOfWeek:    utils.Int64(v.DayOfWeek),
+	}
+
+	return &maintenanceWindow
+}
+
+func flattenMaintenanceWindow(input *clusters.MaintenanceWindow) []MaintenanceWindow {
+	if input == nil || input.CustomWindow == nil || *input.CustomWindow == "Disabled" {
+		return nil
+	}
+
+	result := MaintenanceWindow{}
+
+	if input.DayOfWeek != nil {
+		result.DayOfWeek = *input.DayOfWeek
+	}
+
+	if input.StartHour != nil {
+		result.StartHour = *input.StartHour
+	}
+
+	if input.StartMinute != nil {
+		result.StartMinute = *input.StartMinute
+	}
+
+	return []MaintenanceWindow{result}
 }
