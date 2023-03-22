@@ -3,6 +3,7 @@ package databricks_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -106,6 +107,21 @@ func TestAccDatabricksVirtualNetworkPeering_completeUpdate(t *testing.T) {
 	})
 }
 
+// This is needed for subscriptions that have AzSecPack applied on them by policy,
+// tests will fail due to NSG's being automatically created for the resources
+// without the tests knowledge causing the delete to fail...
+func checkAzSecPackOverride() string {
+	if os.Getenv("ARM_TEST_AZSECPACK_OVERRIDE") != "" {
+		return (`
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  `)
+	}
+
+	return ""
+}
+
 func (DatabricksVirtualNetworkPeeringResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := vnetpeering.ParseVirtualNetworkPeeringID(state.ID)
 	if err != nil {
@@ -152,7 +168,7 @@ func (r DatabricksVirtualNetworkPeeringResource) update(data acceptance.TestData
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {%[3]s}
 }
 
 %[2]s
@@ -174,16 +190,12 @@ resource "azurerm_virtual_network_peering" "remote" {
   virtual_network_name      = azurerm_virtual_network.remote.name
   remote_virtual_network_id = azurerm_databricks_virtual_network_peering.test.virtual_network_id
 }
-`, data.RandomInteger, template)
+`, data.RandomInteger, template, checkAzSecPackOverride())
 }
 
 func (r DatabricksVirtualNetworkPeeringResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_databricks_virtual_network_peering" "import" {
@@ -201,7 +213,7 @@ func (r DatabricksVirtualNetworkPeeringResource) basic(data acceptance.TestData)
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {%[3]s}
 }
 
 %[2]s
@@ -221,14 +233,14 @@ resource "azurerm_virtual_network_peering" "remote" {
   virtual_network_name      = azurerm_virtual_network.remote.name
   remote_virtual_network_id = azurerm_databricks_virtual_network_peering.test.virtual_network_id
 }
-`, data.RandomInteger, template)
+`, data.RandomInteger, template, checkAzSecPackOverride())
 }
 
 func (r DatabricksVirtualNetworkPeeringResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {%[3]s}
 }
 
 %[2]s
@@ -253,14 +265,14 @@ resource "azurerm_virtual_network_peering" "remote" {
   virtual_network_name      = azurerm_virtual_network.remote.name
   remote_virtual_network_id = azurerm_databricks_virtual_network_peering.test.virtual_network_id
 }
-`, data.RandomInteger, template)
+`, data.RandomInteger, template, checkAzSecPackOverride())
 }
 
 func (r DatabricksVirtualNetworkPeeringResource) completeUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {%[3]s}
 }
 
 %[2]s
@@ -285,5 +297,5 @@ resource "azurerm_virtual_network_peering" "remote" {
   virtual_network_name      = azurerm_virtual_network.remote.name
   remote_virtual_network_id = azurerm_databricks_virtual_network_peering.test.virtual_network_id
 }
-`, data.RandomInteger, template)
+`, data.RandomInteger, template, checkAzSecPackOverride())
 }
