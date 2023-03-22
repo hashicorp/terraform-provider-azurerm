@@ -129,8 +129,6 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 				string(packetcorecontrolplane.BillingSkuGZero),
 				string(packetcorecontrolplane.BillingSkuGOne),
 				string(packetcorecontrolplane.BillingSkuGTwo),
-				string(packetcorecontrolplane.BillingSkuGThree),
-				string(packetcorecontrolplane.BillingSkuGFour),
 				string(packetcorecontrolplane.BillingSkuGFive),
 				string(packetcorecontrolplane.BillingSkuGOneZero),
 			}, false),
