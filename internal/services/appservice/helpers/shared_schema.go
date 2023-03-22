@@ -48,9 +48,8 @@ func (v IpRestriction) Validate() error {
 
 func IpRestrictionSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:       pluginsdk.TypeList,
-		Optional:   true,
-		ConfigMode: pluginsdk.SchemaConfigModeAttr,
+		Type:     pluginsdk.TypeList,
+		Optional: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ip_address": {
@@ -273,7 +272,7 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 				"allowed_origins": {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
-					MinItems: 1,
+					//MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
