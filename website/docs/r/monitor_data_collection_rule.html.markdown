@@ -71,14 +71,14 @@ resource "azurerm_monitor_data_collection_rule" "example" {
 
     performance_counter {
       streams                       = ["Microsoft-Perf", "Microsoft-InsightsMetrics"]
-      sampling_frequency_in_seconds = 10
+      sampling_frequency_in_seconds = 60
       counter_specifiers            = ["Processor(*)\\% Processor Time"]
       name                          = "test-datasource-perfcounter"
     }
 
     windows_event_log {
       streams        = ["Microsoft-WindowsEvent"]
-      x_path_queries = ["*[System/Level=1]"]
+      x_path_queries = ["*![System/Level=1]"]
       name           = "test-datasource-wineventlog"
     }
 
