@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
@@ -75,6 +76,29 @@ func TestAccPostgreSQLHyperScaleCluster_update(t *testing.T) {
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccPostgreSQLHyperScaleCluster_withSourceCluster(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_hyperscale_cluster", "test")
+	r := PostgreSQLHyperScaleClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			PreConfig: func() { time.Sleep(15 * time.Minute) },
+			Config:    r.withSourceCluster(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -229,17 +253,6 @@ func (r PostgreSQLHyperScaleClusterResource) withSourceCluster(data acceptance.T
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_postgresql_hyperscale_cluster" "source" {
-  name                 = "acctestscluster%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-
-  administrator_login_password    = "H@Sh1CoR3!"
-  coordinator_storage_quota_in_mb = 131072
-  coordinator_vcores              = 2
-  node_count                      = 0
-}
-
 resource "azurerm_postgresql_hyperscale_cluster" "test" {
   name                 = "acctestcluster%d"
   resource_group_name  = azurerm_resource_group.test.name
@@ -253,5 +266,5 @@ resource "azurerm_postgresql_hyperscale_cluster" "test" {
   coordinator_vcores              = 2
   node_count                      = 0
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.basic(data), data.RandomInteger)
 }
