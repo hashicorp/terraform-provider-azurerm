@@ -11,6 +11,8 @@ description: |-
 
 Manages a Redis Cache.
 
+-> **Note:** Redis version 4 is being retired and no longer supports creating new instances. Version 4 will be removed in a future release. [Redis Version 4 Retirement](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-retired-features#important-upgrade-timelines)
+
 ## Example Usage
 
 This example provisions a Standard Redis Cache. Other examples of the `azurerm_redis_cache` resource can be found in [the `./examples/redis-cache` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/redis-cache)
