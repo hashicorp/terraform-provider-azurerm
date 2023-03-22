@@ -489,6 +489,13 @@ func TestAccSignalRService_upstreamSettingAuth(t *testing.T) {
 	r := SignalRServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.withUpstreamEndpointsAuth(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.withUpstreamEndpoints(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -908,14 +915,11 @@ resource "azurerm_signalr_service" "test" {
   }
 
   upstream_endpoint {
-    category_pattern = ["connections", "messages"]
-    event_pattern    = ["*"]
-    hub_pattern      = ["hub1"]
-    url_template     = "http://foo.com"
-    upstream_auth {
-      type                         = "ManagedIdentity"
-      managed_identity_resource_id = azurerm_user_assigned_identity.test.id
-    }
+    category_pattern             = ["connections", "messages"]
+    event_pattern                = ["*"]
+    hub_pattern                  = ["hub1"]
+    url_template                 = "http://foo.com"
+    managed_identity_resource_id = azurerm_user_assigned_identity.test.client_id
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

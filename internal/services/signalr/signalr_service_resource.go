@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -469,57 +468,31 @@ func signalRFeature(featureFlag signalr.FeatureFlags, value string) signalr.Sign
 	}
 }
 
-func expandUpstreamAuth(input []interface{}) *signalr.UpstreamAuthSettings {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := signalr.UpstreamAuthSettings{}
-
-	inputRaw := input[0].(map[string]interface{})
-
-	authType := signalr.UpstreamAuthType(inputRaw["type"].(string))
-	result.Type = &authType
-
-	if inputRaw["managed_identity_resource_id"] != "" {
-		managedIdentityId := inputRaw["managed_identity_resource_id"].(string)
-		result.ManagedIdentity = &signalr.ManagedIdentitySettings{
-			Resource: utils.String(managedIdentityId),
-		}
-	}
-
-	return &result
-}
-
-func flattenUpstreamAuth(auth *signalr.UpstreamAuthSettings) []interface{} {
-	result := make([]interface{}, 0)
-	if auth == nil {
-		return result
-	}
-
-	outputAuth := make(map[string]interface{})
-	outputAuth["type"] = *auth.Type
-
-	if auth.ManagedIdentity != nil && auth.ManagedIdentity.Resource != nil {
-		outputAuth["managed_identity_resource_id"] = *auth.ManagedIdentity.Resource
-	}
-
-	result = append(result, outputAuth)
-	return result
-}
-
 func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSettings {
 	upstreamTemplates := make([]signalr.UpstreamTemplate, 0)
 
 	for _, upstreamSetting := range input {
 		setting := upstreamSetting.(map[string]interface{})
-
+		authTypeNone := signalr.UpstreamAuthTypeNone
+		authTypeManagedIdentity := signalr.UpstreamAuthTypeManagedIdentity
+		auth := signalr.UpstreamAuthSettings{
+			Type: &authTypeNone,
+		}
 		upstreamTemplate := signalr.UpstreamTemplate{
 			HubPattern:      utils.String(strings.Join(*utils.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
 			EventPattern:    utils.String(strings.Join(*utils.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
 			CategoryPattern: utils.String(strings.Join(*utils.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
 			UrlTemplate:     setting["url_template"].(string),
-			Auth:            expandUpstreamAuth(setting["upstream_auth"].([]interface{})),
+			Auth:            &auth,
+		}
+
+		if setting["managed_identity_resource_id"].(string) != "" {
+			upstreamTemplate.Auth = &signalr.UpstreamAuthSettings{
+				Type: &authTypeManagedIdentity,
+				ManagedIdentity: &signalr.ManagedIdentitySettings{
+					Resource: utils.String(setting["managed_identity_resource_id"].(string)),
+				},
+			}
 		}
 
 		upstreamTemplates = append(upstreamTemplates, upstreamTemplate)
@@ -555,12 +528,19 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 			hubPattern = utils.FlattenStringSlice(&hubPatterns)
 		}
 
+		var managedIdentityId string
+		if upstreamAuth := settings.Auth; upstreamAuth != nil && upstreamAuth.Type != nil && *upstreamAuth.Type != signalr.UpstreamAuthTypeNone {
+			if upstreamAuth.ManagedIdentity != nil && upstreamAuth.ManagedIdentity.Resource != nil {
+				managedIdentityId = *upstreamAuth.ManagedIdentity.Resource
+			}
+		}
+
 		result = append(result, map[string]interface{}{
-			"url_template":     settings.UrlTemplate,
-			"hub_pattern":      hubPattern,
-			"event_pattern":    eventPattern,
-			"category_pattern": categoryPattern,
-			"upstream_auth":    flattenUpstreamAuth(settings.Auth),
+			"url_template":                 settings.UrlTemplate,
+			"hub_pattern":                  hubPattern,
+			"event_pattern":                eventPattern,
+			"category_pattern":             categoryPattern,
+			"managed_identity_resource_id": managedIdentityId,
 		})
 	}
 	return result
@@ -895,31 +875,10 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: signalrValidate.UrlTemplate,
 					},
 
-					"upstream_auth": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(signalr.UpstreamAuthTypeManagedIdentity),
-										string(signalr.UpstreamAuthTypeNone),
-									}, false),
-								},
-
-								"managed_identity_resource_id": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									ValidateFunc: validation.Any(
-										validation.StringIsEmpty,
-										commonids.ValidateUserAssignedIdentityID,
-									),
-								},
-							},
-						},
+					"managed_identity_resource_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsUUID,
 					},
 				},
 			},
