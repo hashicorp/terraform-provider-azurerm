@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
@@ -2145,10 +2144,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving %s: no payload delivered", *id)
 	}
 
-	accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "clusterUser")
-	profile, err := client.GetAccessProfile(ctx, accessProfileId)
+	credentials, err := client.ListClusterUserCredentials(ctx, *id, managedclusters.ListClusterUserCredentialsOperationOptions{})
 	if err != nil {
-		return fmt.Errorf("retrieving Access Profile for %s: %+v", *id, err)
+		return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
+	}
+	if credentials.Model == nil {
+		return fmt.Errorf("retrieving User Credentials for %s: payload is empty", id)
 	}
 
 	d.Set("name", id.ManagedClusterName)
@@ -2365,16 +2366,14 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-			accessProfileId := managedclusters.NewAccessProfileID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "clusterAdmin")
-			adminProfile, err := client.GetAccessProfile(ctx, accessProfileId)
+			adminCredentials, err := client.ListClusterAdminCredentials(ctx, *id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
 			if err != nil {
-				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroupName, err)
+				return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
 			}
-
-			if adminProfile.Model == nil {
-				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): no payload found", id.ManagedClusterName, id.ResourceGroupName)
+			if adminCredentials.Model == nil {
+				return fmt.Errorf("retrieving Admin Credentials for Managed Kubernetes Cluster %q (Resource Group %q): no payload found", id.ManagedClusterName, id.ResourceGroupName)
 			}
-			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(*adminProfile.Model)
+			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterCredentials(*adminCredentials.Model, "clusterAdmin")
 			d.Set("kube_admin_config_raw", adminKubeConfigRaw)
 			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
 				return fmt.Errorf("setting `kube_admin_config`: %+v", err)
@@ -2394,7 +2393,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	kubeConfigRaw, kubeConfig := flattenKubernetesClusterAccessProfile(*profile.Model)
+	kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentials(*credentials.Model, "clusterUser")
 	d.Set("kube_config_raw", kubeConfigRaw)
 	if err := d.Set("kube_config", kubeConfig); err != nil {
 		return fmt.Errorf("setting `kube_config`: %+v", err)
@@ -2441,37 +2440,6 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return nil
-}
-
-func flattenKubernetesClusterAccessProfile(profile managedclusters.ManagedClusterAccessProfile) (*string, []interface{}) {
-	if accessProfile := profile.Properties; accessProfile != nil {
-		if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
-			rawConfig := *kubeConfigRaw
-			if base64IsEncoded(*kubeConfigRaw) {
-				rawConfig = base64Decode(*kubeConfigRaw)
-			}
-			var flattenedKubeConfig []interface{}
-
-			if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
-				kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
-				if err != nil {
-					return utils.String(rawConfig), []interface{}{}
-				}
-
-				flattenedKubeConfig = flattenKubernetesClusterKubeConfigAAD(*kubeConfigAAD)
-			} else {
-				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
-				if err != nil {
-					return utils.String(rawConfig), []interface{}{}
-				}
-
-				flattenedKubeConfig = flattenKubernetesClusterKubeConfig(*kubeConfig)
-			}
-
-			return utils.String(rawConfig), flattenedKubeConfig
-		}
-	}
-	return nil, []interface{}{}
 }
 
 func expandKubernetesClusterLinuxProfile(input []interface{}) *managedclusters.ContainerServiceLinuxProfile {
@@ -3329,41 +3297,6 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *managedclus
 		map[string]interface{}{
 			"client_id":     clientId,
 			"client_secret": clientSecret,
-		},
-	}
-}
-
-func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interface{} {
-	// we don't size-check these since they're validated in the Parse method
-	cluster := config.Clusters[0].Cluster
-	user := config.Users[0].User
-	name := config.Users[0].Name
-
-	return []interface{}{
-		map[string]interface{}{
-			"client_certificate":     user.ClientCertificteData,
-			"client_key":             user.ClientKeyData,
-			"cluster_ca_certificate": cluster.ClusterAuthorityData,
-			"host":                   cluster.Server,
-			"password":               user.Token,
-			"username":               name,
-		},
-	}
-}
-
-func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []interface{} {
-	// we don't size-check these since they're validated in the Parse method
-	cluster := config.Clusters[0].Cluster
-	name := config.Users[0].Name
-
-	return []interface{}{
-		map[string]interface{}{
-			"client_certificate":     "",
-			"client_key":             "",
-			"cluster_ca_certificate": cluster.ClusterAuthorityData,
-			"host":                   cluster.Server,
-			"password":               "",
-			"username":               name,
 		},
 	}
 }

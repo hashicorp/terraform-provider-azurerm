@@ -30,19 +30,14 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  workspace_name      = azurerm_log_analytics_workspace.example.name
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_sentinel_data_connector_microsoft_threat_intelligence" "example" {
   name                                         = "example-dc-msti"
-  log_analytics_workspace_id                   = azurerm_log_analytics_workspace.example.id
+  log_analytics_workspace_id                   = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   bing_safety_phishing_url_lookback_date       = "1970-01-01T00:00:00Z"
   microsoft_emerging_threat_feed_lookback_date = "1970-01-01T00:00:00Z"
-
-  depends_on = [
-    azurerm_sentinel_log_analytics_workspace_onboarding.test
-  ]
 }
 ```
 

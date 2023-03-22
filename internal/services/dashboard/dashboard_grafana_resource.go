@@ -287,8 +287,6 @@ func (r DashboardGrafanaResource) Update() sdk.ResourceFunc {
 				properties.Properties.PublicNetworkAccess = &publicNetworkAccess
 			}
 
-			properties.SystemData = nil
-
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
 			}
