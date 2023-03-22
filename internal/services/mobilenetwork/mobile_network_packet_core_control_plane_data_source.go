@@ -50,7 +50,25 @@ func (r PacketCoreControlPlaneDataSource) Attributes() map[string]*pluginsdk.Sch
 
 		"location": commonschema.LocationComputed(),
 
-		"control_plane_access_interface": interfacePropertiesSchemaDataSource(),
+		"control_plane_access_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"control_plane_access_ipv4_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"control_plane_access_ipv4_subnet": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"control_plane_access_ipv4_gateway": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 
 		"site_ids": {
 			Type:     pluginsdk.TypeList,
@@ -85,12 +103,12 @@ func (r PacketCoreControlPlaneDataSource) Attributes() map[string]*pluginsdk.Sch
 						Computed: true,
 					},
 
-					"azure_stack_hci_cluster_id": {
+					"stack_hci_cluster_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 
-					"azure_arc_connected_cluster_id": {
+					"arc_kubernetes_cluster_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -163,61 +181,75 @@ func (r PacketCoreControlPlaneDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-			model := *resp.Model
-
 			state := PacketCoreControlPlaneModel{
 				Name:              id.PacketCoreControlPlaneName,
 				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
 			}
 
-			if model.Properties.UeMtu != nil {
-				state.UeMtu = *model.Properties.UeMtu
-			}
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
 
-			identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
-
-			if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
-			}
-
-			properties := &model.Properties
-			state.ControlPlaneAccessInterface = flattenPacketCoreControlPlaneInterfacePropertiesModel(properties.ControlPlaneAccessInterface)
-
-			if properties.CoreNetworkTechnology != nil {
-				state.CoreNetworkTechnology = string(*properties.CoreNetworkTechnology)
-			}
-
-			if properties.InteropSettings != nil && *properties.InteropSettings != nil {
-				interopSettingsValue, err := json.Marshal(*properties.InteropSettings)
-				if err != nil {
-					return err
+				if model.Properties.UeMtu != nil {
+					state.UeMtu = *model.Properties.UeMtu
 				}
 
-				state.InteropSettings = string(interopSettingsValue)
+				identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+
+				if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
+					return fmt.Errorf("setting `identity`: %+v", err)
+				}
+
+				properties := model.Properties
+
+				if properties.ControlPlaneAccessInterface.IPv4Address != nil {
+					state.ControlPlaneAccessIPv4Address = *properties.ControlPlaneAccessInterface.IPv4Address
+				}
+
+				if properties.ControlPlaneAccessInterface.IPv4Gateway != nil {
+					state.ControlPlaneAccessIPv4Gateway = *properties.ControlPlaneAccessInterface.IPv4Gateway
+				}
+
+				if properties.ControlPlaneAccessInterface.IPv4Subnet != nil {
+					state.ControlPlaneAccessIPv4Subnet = *properties.ControlPlaneAccessInterface.IPv4Subnet
+				}
+
+				if properties.ControlPlaneAccessInterface.Name != nil {
+					state.ControlPlaneAccessName = *properties.ControlPlaneAccessInterface.Name
+				}
+
+				if properties.CoreNetworkTechnology != nil {
+					state.CoreNetworkTechnology = string(*properties.CoreNetworkTechnology)
+				}
+
+				if properties.InteropSettings != nil && *properties.InteropSettings != nil {
+					interopSettingsValue, err := json.Marshal(*properties.InteropSettings)
+					if err != nil {
+						return err
+					}
+
+					state.InteropSettings = string(interopSettingsValue)
+				}
+
+				state.LocalDiagnosticsAccess = flattenLocalPacketCoreControlLocalDiagnosticsAccessConfiguration(properties.LocalDiagnosticsAccess)
+
+				state.SiteIds = flattenPacketCoreControlPlaneSites(properties.Sites)
+
+				platformValue := flattenPlatformConfigurationModel(properties.Platform)
+				state.Platform = platformValue
+
+				state.Sku = string(properties.Sku)
+
+				if properties.Version != nil {
+					state.Version = *properties.Version
+				}
+				if model.Tags != nil {
+					state.Tags = *model.Tags
+				}
 			}
 
-			state.LocalDiagnosticsAccess = flattenLocalPacketCoreControlLocalDiagnosticsAccessConfiguration(properties.LocalDiagnosticsAccess)
-
-			state.SiteIds = flattenPacketCoreControlPlaneSites(properties.Sites)
-
-			platformValue := flattenPlatformConfigurationModel(properties.Platform)
-			state.Platform = platformValue
-
-			state.Sku = string(properties.Sku)
-
-			if properties.Version != nil {
-				state.Version = *properties.Version
-			}
-			if model.Tags != nil {
-				state.Tags = *model.Tags
-			}
 			metadata.SetID(id)
 
 			return metadata.Encode(&state)

@@ -12,10 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/devices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcorecontrolplane"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/site"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -23,20 +27,23 @@ import (
 )
 
 type PacketCoreControlPlaneModel struct {
-	Name                        string                                     `tfschema:"name"`
-	ResourceGroupName           string                                     `tfschema:"resource_group_name"`
-	ControlPlaneAccessInterface []InterfacePropertiesModel                 `tfschema:"control_plane_access_interface"`
-	CoreNetworkTechnology       string                                     `tfschema:"core_network_technology"`
-	LocalDiagnosticsAccess      []LocalDiagnosticsAccessConfigurationModel `tfschema:"local_diagnostics_access"`
-	Location                    string                                     `tfschema:"location"`
-	SiteIds                     []string                                   `tfschema:"site_ids"`
-	Platform                    []PlatformConfigurationModel               `tfschema:"platform"`
-	Sku                         string                                     `tfschema:"sku"`
-	UeMtu                       int64                                      `tfschema:"user_equipment_mtu_in_bytes"`
-	InteropSettings             string                                     `tfschema:"interop_json"`
-	Identity                    []identity.ModelUserAssigned               `tfschema:"identity"`
-	Tags                        map[string]string                          `tfschema:"tags"`
-	Version                     string                                     `tfschema:"version"`
+	Name                          string                                     `tfschema:"name"`
+	ResourceGroupName             string                                     `tfschema:"resource_group_name"`
+	ControlPlaneAccessIPv4Address string                                     `tfschema:"control_plane_access_ipv4_address"`
+	ControlPlaneAccessIPv4Gateway string                                     `tfschema:"control_plane_access_ipv4_gateway"`
+	ControlPlaneAccessIPv4Subnet  string                                     `tfschema:"control_plane_access_ipv4_subnet"`
+	ControlPlaneAccessName        string                                     `tfschema:"control_plane_access_name"`
+	CoreNetworkTechnology         string                                     `tfschema:"core_network_technology"`
+	LocalDiagnosticsAccess        []LocalDiagnosticsAccessConfigurationModel `tfschema:"local_diagnostics_access"`
+	Location                      string                                     `tfschema:"location"`
+	SiteIds                       []string                                   `tfschema:"site_ids"`
+	Platform                      []PlatformConfigurationModel               `tfschema:"platform"`
+	Sku                           string                                     `tfschema:"sku"`
+	UeMtu                         int64                                      `tfschema:"user_equipment_mtu_in_bytes"`
+	InteropSettings               string                                     `tfschema:"interop_json"`
+	Identity                      []identity.ModelUserAssigned               `tfschema:"identity"`
+	Tags                          map[string]string                          `tfschema:"tags"`
+	Version                       string                                     `tfschema:"version"`
 }
 
 type LocalDiagnosticsAccessConfigurationModel struct {
@@ -46,8 +53,8 @@ type LocalDiagnosticsAccessConfigurationModel struct {
 
 type PlatformConfigurationModel struct {
 	AzureStackEdgeDeviceId string `tfschema:"edge_device_id"`
-	AzureStackHciClusterId string `tfschema:"azure_stack_hci_cluster_id"`
-	ConnectedClusterId     string `tfschema:"azure_arc_connected_cluster_id"`
+	AzureStackHciClusterId string `tfschema:"stack_hci_cluster_id"`
+	ConnectedClusterId     string `tfschema:"arc_kubernetes_cluster_id"`
 	CustomLocationId       string `tfschema:"custom_location_id"`
 	Type                   string `tfschema:"type"`
 }
@@ -81,7 +88,29 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 
 		"location": commonschema.Location(),
 
-		"control_plane_access_interface": interfacePropertiesSchema(),
+		"control_plane_access_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"control_plane_access_ipv4_address": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsIPv4Address,
+		},
+
+		"control_plane_access_ipv4_subnet": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.CIDR,
+		},
+
+		"control_plane_access_ipv4_gateway": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsIPv6Address,
+		},
 
 		"site_ids": {
 			Type:     pluginsdk.TypeList,
@@ -133,37 +162,49 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
 						DiffSuppressFunc: suppress.CaseDifference,
-						AtLeastOneOf:     []string{"platform.0.edge_device_id", "platform.0.azure_stack_hci_cluster_id", "platform.0.azure_arc_connected_cluster_id", "platform.0.custom_location_id"},
+						AtLeastOneOf: []string{
+							"platform.0.edge_device_id",
+							"platform.0.stack_hci_cluster_id",
+							"platform.0.arc_kubernetes_cluster_id",
+							"platform.0.custom_location_id",
+						},
+						ValidateFunc: devices.ValidateDataBoxEdgeDeviceID,
+					},
 
-						ValidateFunc: func(i interface{}, s string) ([]string, []error) {
-							// a workaround, sometimes the id from user is with `DataBoxEdgeDevices` instead of `dataBoxEdgeDevices`.
-							// while the service accepts both format.
-							if v, ok := i.(string); ok {
-								i = strings.ReplaceAll(v, "DataBoxEdgeDevices", "dataBoxEdgeDevices")
-							}
-							return devices.ValidateDataBoxEdgeDeviceID(i, s)
+					"stack_hci_cluster_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: clusters.ValidateClusterID,
+						AtLeastOneOf: []string{
+							"platform.0.edge_device_id",
+							"platform.0.stack_hci_cluster_id",
+							"platform.0.arc_kubernetes_cluster_id",
+							"platform.0.custom_location_id",
 						},
 					},
 
-					"azure_stack_hci_cluster_id": {
+					"arc_kubernetes_cluster_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-						AtLeastOneOf: []string{"platform.0.edge_device_id", "platform.0.azure_stack_hci_cluster_id", "platform.0.azure_arc_connected_cluster_id", "platform.0.custom_location_id"},
-					},
-
-					"azure_arc_connected_cluster_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-						AtLeastOneOf: []string{"platform.0.edge_device_id", "platform.0.azure_stack_hci_cluster_id", "platform.0.azure_arc_connected_cluster_id", "platform.0.custom_location_id"},
+						ValidateFunc: managedclusters.ValidateManagedClusterID,
+						AtLeastOneOf: []string{
+							"platform.0.edge_device_id",
+							"platform.0.stack_hci_cluster_id",
+							"platform.0.arc_kubernetes_cluster_id",
+							"platform.0.custom_location_id",
+						},
 					},
 
 					"custom_location_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-						AtLeastOneOf: []string{"platform.0.edge_device_id", "platform.0.azure_stack_hci_cluster_id", "platform.0.azure_arc_connected_cluster_id", "platform.0.custom_location_id"},
+						ValidateFunc: azure.ValidateResourceID, // TODO: use the resource validate function after custom location onboarded.
+						AtLeastOneOf: []string{
+							"platform.0.edge_device_id",
+							"platform.0.stack_hci_cluster_id",
+							"platform.0.arc_kubernetes_cluster_id",
+							"platform.0.custom_location_id",
+						},
 					},
 
 					"type": {
@@ -172,7 +213,6 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 						ValidateFunc: validation.StringInSlice([]string{
 							string(packetcorecontrolplane.PlatformTypeAKSNegativeHCI),
 							string(packetcorecontrolplane.PlatformTypeThreePNegativeAZURENegativeSTACKNegativeHCI),
-							string("BaseVM"), // a workaround for there might be existing one with this value. allow user to import them.
 						}, false),
 					},
 				},
@@ -270,7 +310,23 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 				props.CoreNetworkTechnology = &value
 			}
 
-			props.ControlPlaneAccessInterface = expandPacketCoreControlPlaneInterfacePropertiesModel(model.ControlPlaneAccessInterface)
+			props.ControlPlaneAccessInterface = packetcorecontrolplane.InterfaceProperties{}
+
+			if model.ControlPlaneAccessName != "" {
+				props.ControlPlaneAccessInterface.Name = &model.ControlPlaneAccessName
+			}
+
+			if model.ControlPlaneAccessIPv4Address != "" {
+				props.ControlPlaneAccessInterface.IPv4Address = &model.ControlPlaneAccessIPv4Address
+			}
+
+			if model.ControlPlaneAccessIPv4Subnet != "" {
+				props.ControlPlaneAccessInterface.IPv4Subnet = &model.ControlPlaneAccessIPv4Subnet
+			}
+
+			if model.ControlPlaneAccessIPv4Gateway != "" {
+				props.ControlPlaneAccessInterface.IPv4Gateway = &model.ControlPlaneAccessIPv4Gateway
+			}
 
 			if model.InteropSettings != "" {
 				var interopSettingsValue interface{}
@@ -286,10 +342,6 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 			props.Platform, err = expandPlatformConfigurationModel(model.Platform)
 			if err != nil {
 				return err
-			}
-
-			if strings.EqualFold("basevm", string(props.Platform.Type)) {
-				return fmt.Errorf("it's not allowed to create new PCCP with BaseVm platform type")
 			}
 
 			if model.Version != "" {
@@ -342,8 +394,20 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 				model.Identity = identityValue
 			}
 
-			if metadata.ResourceData.HasChange("control_plane_access_interface") {
-				model.Properties.ControlPlaneAccessInterface = expandPacketCoreControlPlaneInterfacePropertiesModel(plan.ControlPlaneAccessInterface)
+			if metadata.ResourceData.HasChange("control_plane_access_name") {
+				model.Properties.ControlPlaneAccessInterface.Name = &plan.ControlPlaneAccessName
+			}
+
+			if metadata.ResourceData.HasChange("control_plane_access_ipv4_address") {
+				model.Properties.ControlPlaneAccessInterface.IPv4Address = &plan.ControlPlaneAccessIPv4Address
+			}
+
+			if metadata.ResourceData.HasChange("control_plane_access_ipv4_subnet") {
+				model.Properties.ControlPlaneAccessInterface.IPv4Subnet = &plan.ControlPlaneAccessIPv4Subnet
+			}
+
+			if metadata.ResourceData.HasChange("control_plane_access_ipv4_gateway") {
+				model.Properties.ControlPlaneAccessInterface.IPv4Gateway = &plan.ControlPlaneAccessIPv4Gateway
 			}
 
 			if metadata.ResourceData.HasChange("core_network_technology") {
@@ -435,7 +499,22 @@ func (r PacketCoreControlPlaneResource) Read() sdk.ResourceFunc {
 				}
 
 				properties := model.Properties
-				state.ControlPlaneAccessInterface = flattenPacketCoreControlPlaneInterfacePropertiesModel(properties.ControlPlaneAccessInterface)
+
+				if properties.ControlPlaneAccessInterface.IPv4Address != nil {
+					state.ControlPlaneAccessIPv4Address = *properties.ControlPlaneAccessInterface.IPv4Address
+				}
+
+				if properties.ControlPlaneAccessInterface.IPv4Gateway != nil {
+					state.ControlPlaneAccessIPv4Gateway = *properties.ControlPlaneAccessInterface.IPv4Gateway
+				}
+
+				if properties.ControlPlaneAccessInterface.IPv4Subnet != nil {
+					state.ControlPlaneAccessIPv4Subnet = *properties.ControlPlaneAccessInterface.IPv4Subnet
+				}
+
+				if properties.ControlPlaneAccessInterface.Name != nil {
+					state.ControlPlaneAccessName = *properties.ControlPlaneAccessInterface.Name
+				}
 
 				if properties.CoreNetworkTechnology != nil {
 					state.CoreNetworkTechnology = string(*properties.CoreNetworkTechnology)
@@ -541,33 +620,6 @@ func flattenLocalPacketCoreControlLocalDiagnosticsAccessConfiguration(input pack
 	return outputs
 }
 
-func expandPacketCoreControlPlaneInterfacePropertiesModel(inputList []InterfacePropertiesModel) packetcorecontrolplane.InterfaceProperties {
-	output := packetcorecontrolplane.InterfaceProperties{}
-	if len(inputList) == 0 {
-		return output
-	}
-
-	input := inputList[0]
-
-	if input.IPv4Address != "" {
-		output.IPv4Address = &input.IPv4Address
-	}
-
-	if input.IPv4Gateway != "" {
-		output.IPv4Gateway = &input.IPv4Gateway
-	}
-
-	if input.IPv4Subnet != "" {
-		output.IPv4Subnet = &input.IPv4Subnet
-	}
-
-	if input.Name != "" {
-		output.Name = &input.Name
-	}
-
-	return output
-}
-
 func expandPlatformConfigurationModel(inputList []PlatformConfigurationModel) (packetcorecontrolplane.PlatformConfiguration, error) {
 	output := packetcorecontrolplane.PlatformConfiguration{}
 	if len(inputList) == 0 {
@@ -578,7 +630,7 @@ func expandPlatformConfigurationModel(inputList []PlatformConfigurationModel) (p
 
 	output.Type = packetcorecontrolplane.PlatformType(input.Type)
 
-	if pass, err := vertifyPlatformConfigurationModel(input); !pass {
+	if pass, err := verifyPlatformConfigurationModel(input); !pass {
 		return output, err
 	}
 
@@ -609,7 +661,7 @@ func expandPlatformConfigurationModel(inputList []PlatformConfigurationModel) (p
 	return output, nil
 }
 
-func vertifyPlatformConfigurationModel(input PlatformConfigurationModel) (bool, error) {
+func verifyPlatformConfigurationModel(input PlatformConfigurationModel) (bool, error) {
 	idList := make([]string, 0)
 	if input.AzureStackEdgeDeviceId != "" {
 		idList = append(idList, input.AzureStackEdgeDeviceId)
@@ -622,42 +674,17 @@ func vertifyPlatformConfigurationModel(input PlatformConfigurationModel) (bool, 
 	}
 
 	if len(idList) == 0 {
-		return false, fmt.Errorf("at least one of `azure_arc_connected_cluster_id`, `azure_stack_hci_cluster_id` and `custom_location_id` should be specified")
+		return false, fmt.Errorf("at least one of `arc_kubernetes_cluster_id`, `stack_hci_cluster_id` and `custom_location_id` should be specified")
 	}
 
 	firstId := idList[0]
 	for _, id := range idList {
 		if !strings.EqualFold(firstId, id) {
-			return false, fmt.Errorf("if multiple of `azure_arc_connected_cluster_id`, `azure_stack_hci_cluster_id` and `custom_location_id` are specified, they should be consistent with each other")
+			return false, fmt.Errorf("if multiple of `arc_kubernetes_cluster_id`, `stack_hci_cluster_id` and `custom_location_id` are specified, they should be consistent with each other")
 		}
 	}
 
 	return true, nil
-}
-
-func flattenPacketCoreControlPlaneInterfacePropertiesModel(input packetcorecontrolplane.InterfaceProperties) []InterfacePropertiesModel {
-	var outputList []InterfacePropertiesModel
-
-	output := InterfacePropertiesModel{}
-
-	if input.IPv4Address != nil {
-		output.IPv4Address = *input.IPv4Address
-	}
-
-	if input.IPv4Gateway != nil {
-		output.IPv4Gateway = *input.IPv4Gateway
-	}
-
-	if input.IPv4Subnet != nil {
-		output.IPv4Subnet = *input.IPv4Subnet
-	}
-
-	if input.Name != nil {
-		output.Name = *input.Name
-	}
-
-	outputList = append(outputList, output)
-	return outputList
 }
 
 func flattenPlatformConfigurationModel(input packetcorecontrolplane.PlatformConfiguration) []PlatformConfigurationModel {

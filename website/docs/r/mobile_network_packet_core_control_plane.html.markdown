@@ -139,17 +139,17 @@ An `identity` block supports the following:
 
 A `platform` block supports the following:
 
-* `type` - (Required) Specifies the platform type where packet core is deployed. Possible values are `AKS-HCI`, `3P-AZURE-STACK-HCI` and `BaseVM`.
+* `type` - (Required) Specifies the platform type where packet core is deployed. Possible values are `AKS-HCI` and `3P-AZURE-STACK-HCI`.
 
 * `edge_device_id` - (Optional) The ID of the Azure Stack Edge device where the packet core is deployed. If the device is part of a fault-tolerant pair, either device in the pair can be specified.
 
-* `azure_arc_connected_cluster_id` - (Optional) The ID of the Azure Arc connected cluster where the packet core is deployed.
+* `arc_kubernetes_cluster_id` - (Optional) The ID of the Azure Arc connected cluster where the packet core is deployed.
 
-* `azure_stack_hci_cluster_id` - (Optional) The ID of the Azure Stack HCI clusterwhere the packet core is deployed.
+* `stack_hci_cluster_id` - (Optional) The ID of the Azure Stack HCI clusterwhere the packet core is deployed.
 
 * `custom_location_id` - (Optional) The ID of the Azure Arc custom location where the packet core is deployed.
 
-~> **NOTE:** At least one of `edge_device_id`, `azure_arc_connected_cluster_id`, `azure_stack_hci_cluster_id` and `custom_location_id` should be specified. If multiple are set, they must be consistent with each other.
+~> **NOTE:** At least one of `edge_device_id`, `arc_kubernetes_cluster_id`, `stack_hci_cluster_id` and `custom_location_id` should be specified. If multiple are set, they must be consistent with each other.
 
 ---
 

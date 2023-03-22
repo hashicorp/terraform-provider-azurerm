@@ -97,9 +97,9 @@ A `platform` block supports the following:
 
 * `edge_device_id` - The ID of Azure Stack Edge device where the packet core is deployed. 
 
-* `azure_arc_connected_cluster_id` - The ID of Azure Arc connected cluster where the packet core is deployed.
+* `arc_kubernetes_cluster_id` - The ID of Azure Arc connected cluster where the packet core is deployed.
 
-* `azure_stack_hci_cluster_id` - The ID of Azure Stack HCI clusterwhere the packet core is deployed.
+* `stack_hci_cluster_id` - The ID of Azure Stack HCI clusterwhere the packet core is deployed.
 
 * `custom_location_id` -  The ID of Azure Arc custom location where the packet core is deployed.
 
