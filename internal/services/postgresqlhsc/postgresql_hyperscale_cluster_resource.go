@@ -237,17 +237,17 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			}, false),
 		},
 
-		"earliest_restore_time": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"tags": commonschema.Tags(),
 	}
 }
 
 func (r PostgreSQLHyperScaleClusterResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"earliest_restore_time": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
@@ -468,6 +468,9 @@ func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
 
 			if props := model.Properties; props != nil {
 				state.AdministratorLoginPassword = metadata.ResourceData.Get("administrator_login_password").(string)
+				state.SourceResourceId = metadata.ResourceData.Get("source_resource_id").(string)
+				state.SourceLocation = metadata.ResourceData.Get("source_location").(string)
+				state.PointInTimeInUTC = metadata.ResourceData.Get("point_in_time_in_utc").(string)
 				state.CitusVersion = *props.CitusVersion
 				state.CoordinatorPublicIPAccessEnabled = *props.CoordinatorEnablePublicIPAccess
 				state.CoordinatorServerEdition = *props.CoordinatorServerEdition
@@ -481,26 +484,17 @@ func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
 				state.NodeVCores = *props.NodeVCores
 				state.ShardsOnCoordinatorEnabled = *props.EnableShardsOnCoordinator
 				state.SqlVersion = *props.PostgresqlVersion
-				state.EarliestRestoreTime = *props.EarliestRestoreTime
 
 				if v := props.MaintenanceWindow; v != nil {
 					state.MaintenanceWindow = flattenMaintenanceWindow(v)
-				}
-
-				if v := props.PointInTimeUTC; v != nil {
-					state.PointInTimeInUTC = *v
 				}
 
 				if v := props.PreferredPrimaryZone; v != nil {
 					state.PreferredPrimaryZone = *v
 				}
 
-				if v := props.SourceLocation; v != nil {
-					state.SourceLocation = *v
-				}
-
-				if v := props.SourceResourceId; v != nil {
-					state.SourceResourceId = *v
+				if v := props.EarliestRestoreTime; v != nil {
+					state.EarliestRestoreTime = *v
 				}
 			}
 

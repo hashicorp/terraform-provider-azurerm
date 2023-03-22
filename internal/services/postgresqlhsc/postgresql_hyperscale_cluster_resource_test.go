@@ -103,7 +103,7 @@ func TestAccPostgreSQLHyperScaleCluster_withSourceCluster(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password"),
+		data.ImportStep("administrator_login_password", "source_location", "source_resource_id", "point_in_time_in_utc"),
 	})
 }
 
@@ -183,7 +183,7 @@ resource "azurerm_postgresql_hyperscale_cluster" "test" {
   coordinator_vcores              = 2
   node_count                      = 0
 
-  citus_version                        = "11.2"
+  citus_version                        = "11.1"
   coordinator_public_ip_access_enabled = true
   ha_enabled                           = false
   coordinator_server_edition           = "GeneralPurpose"
@@ -253,13 +253,13 @@ func (r PostgreSQLHyperScaleClusterResource) withSourceCluster(data acceptance.T
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_postgresql_hyperscale_cluster" "test" {
-  name                 = "acctestcluster%d"
+resource "azurerm_postgresql_hyperscale_cluster" "test2" {
+  name                 = "acctesttcluster%d"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
-  source_location      = azurerm_postgresql_hyperscale_cluster.source.location
-  source_resource_id   = azurerm_postgresql_hyperscale_cluster.source.id
-  point_in_time_in_utc = azurerm_postgresql_hyperscale_cluster.source.earliest_restore_time
+  source_location      = azurerm_postgresql_hyperscale_cluster.test.location
+  source_resource_id   = azurerm_postgresql_hyperscale_cluster.test.id
+  point_in_time_in_utc = azurerm_postgresql_hyperscale_cluster.test.earliest_restore_time
 
   administrator_login_password    = "H@Sh1CoR3!"
   coordinator_storage_quota_in_mb = 131072
