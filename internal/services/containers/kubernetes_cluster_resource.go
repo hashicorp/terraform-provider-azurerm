@@ -930,6 +930,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										ValidateFunc:  validation.IntBetween(1, 100),
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
+									"multiple_standard_load_balancer_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+									},
 									"outbound_ip_prefix_ids": {
 										Type:          pluginsdk.TypeSet,
 										Optional:      true,
@@ -1805,6 +1809,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if key := "network_profile.0.load_balancer_profile.0.outbound_ports_allocated"; d.HasChange(key) {
 				allocatedOutboundPorts := d.Get(key).(int)
 				loadBalancerProfile.AllocatedOutboundPorts = utils.Int64(int64(allocatedOutboundPorts))
+			}
+			if key := "network_profile.0.load_balancer_profile.0.multiple_standard_load_balancer_enabled"; d.HasChange(key) {
+				multipleStandardLoadBalancerEnabled := d.Get(key).(bool)
+				loadBalancerProfile.EnableMultipleStandardLoadBalancers = utils.Bool(multipleStandardLoadBalancerEnabled)
 			}
 
 			existing.Model.Properties.NetworkProfile.LoadBalancerProfile = &loadBalancerProfile
@@ -2871,6 +2879,10 @@ func expandLoadBalancerProfile(d []interface{}) *managedclusters.ManagedClusterL
 		profile.AllocatedOutboundPorts = utils.Int64(int64(port))
 	}
 
+	if multipleStandardLoadbalancerEnabled, ok := config["multiple_standard_load_balancer_enabled"].(bool); ok {
+		profile.EnableMultipleStandardLoadBalancers = utils.Bool(multipleStandardLoadbalancerEnabled)
+	}
+
 	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil {
 		if c := int64(ipCount.(int)); c > 0 {
 			profile.ManagedOutboundIPs = &managedclusters.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
@@ -3027,6 +3039,10 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 
 		if v := lbp.AllocatedOutboundPorts; v != nil {
 			lb["outbound_ports_allocated"] = v
+		}
+
+		if v := lbp.EnableMultipleStandardLoadBalancers; v != nil {
+			lb["multiple_standard_load_balancer_enabled"] = v
 		}
 
 		if v := lbp.IdleTimeoutInMinutes; v != nil {
