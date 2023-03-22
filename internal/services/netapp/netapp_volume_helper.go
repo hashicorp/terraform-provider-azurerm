@@ -343,11 +343,14 @@ func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *vo
 	for _, item := range input {
 		if item != nil {
 			v := item.(map[string]interface{})
-			ruleIndex := int64(v["rule_index"].(int))
-			allowedClients := strings.Join(*utils.ExpandStringSlice(v["allowed_clients"].(*pluginsdk.Set).List()), ",")
 
-			nfsv3Enabled := false
-			nfsv41Enabled := false
+			ruleIndex := int64(v["rule_index"].(int))
+			allowedClients := v["allowed_clients"].(string)
+			nfsv3Enabled := v["nfsv3_enabled"].(bool)
+			nfsv41Enabled := v["nfsv41_enabled"].(bool)
+			unixReadOnly := v["unix_read_only"].(bool)
+			unixReadWrite := v["unix_read_write"].(bool)
+			rootAccessEnabled := v["root_access_enabled"].(bool)
 
 			// Hard-Coded values, for AVG these cannot be set diffrently
 			// they are not exposed as TF configuration
@@ -359,26 +362,6 @@ func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *vo
 			kerberos5iReadWrite := false
 			kerberos5pReadOnly := false
 			kerberos5pReadWrite := false
-
-			if vpe := v["protocols_enabled"]; vpe != nil {
-				protocolsEnabled := vpe.([]interface{})
-				if len(protocolsEnabled) != 0 {
-					for _, protocol := range protocolsEnabled {
-						if protocol != nil {
-							switch strings.ToLower(protocol.(string)) {
-							case "nfsv3":
-								nfsv3Enabled = true
-							case "nfsv4.1":
-								nfsv41Enabled = true
-							}
-						}
-					}
-				}
-			}
-
-			unixReadOnly := v["unix_read_only"].(bool)
-			unixReadWrite := v["unix_read_write"].(bool)
-			rootAccessEnabled := v["root_access_enabled"].(bool)
 
 			result := volumes.ExportPolicyRule{
 				AllowedClients:      utils.String(allowedClients),
