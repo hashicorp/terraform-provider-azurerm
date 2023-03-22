@@ -451,7 +451,7 @@ func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			volumeClient := metadata.Client.NetApp.VolumeClient
 
-			id, err := volumes.ParseVolumeID(metadata.ResourceData.Id())
+			id, err := volumegroups.ParseVolumeID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -474,7 +474,7 @@ func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
 
 					if metadata.ResourceData.HasChange(volumeItem) {
 
-						volumeId := metadata.ResourceData.Get(fmt.Sprintf("%v.id", volumeItem))
+						volumeId := volumes.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.PoolName, metadata.ResourceData.Get(fmt.Sprintf("%v.name", volumeItem)).(string))
 
 						update := volumes.VolumePatch{
 							Properties: &volumes.VolumePatchProperties{},
@@ -497,7 +497,7 @@ func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
 							dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
 
 							if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) == "dst" {
-								return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", id)
+								return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", volumeId)
 							}
 
 							dataProtectionSnapshotPolicyRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.data_protection_snapshot_policy", volumeItem)).([]interface{})
@@ -515,12 +515,12 @@ func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
 							update.Tags = tags.Expand(tagsRaw)
 						}
 
-						if err = volumeClient.UpdateThenPoll(ctx, *id, update); err != nil {
-							return fmt.Errorf("updating %s: %+v", id, err)
+						if err = volumeClient.UpdateThenPoll(ctx, volumeId, update); err != nil {
+							return fmt.Errorf("updating %s: %+v", volumeId, err)
 						}
 
 						// Wait for volume to complete update
-						if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, *volumeId); err != nil {
+						if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, volumeId); err != nil {
 							return err
 						}
 
