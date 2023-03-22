@@ -7,7 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230320.1165256` of `hashicorp/go-azure-sdk` [GH-21063]
+* dependencies: updating to `v0.20230322.1105901` of `hashicorp/go-azure-sdk` [GH-21079]
 * `databricks`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21004]
 * `azurerm_media_job` - updating to use API Version `2022-07-01` [GH-20956]
 * `azurerm_media_transform` - updating to use API Version `2022-07-01` [GH-20956]
