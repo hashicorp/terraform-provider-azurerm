@@ -3,7 +3,6 @@ package databricks
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -136,6 +135,9 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 
 	id = vnetpeering.NewVirtualNetworkPeeringID(subscriptionId, d.Get("resource_group_name").(string), workspaceId.WorkspaceName, d.Get("name").(string))
 
+	locks.ByID(databricksVnetPeeringsResourceType)
+	defer locks.UnlockByID(databricksVnetPeeringsResourceType)
+
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -181,44 +183,8 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 		Properties: props,
 	}
 
-	locks.ByID(databricksVnetPeeringsResourceType)
-	defer locks.UnlockByID(databricksVnetPeeringsResourceType)
-
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"Pending"},
-		Target:  []string{"Created"},
-		Timeout: time.Until(deadline),
-		Delay:   15 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			future, err := client.CreateOrUpdate(ctx, id, peer)
-			if err != nil {
-				if utils.ResponseErrorIsRetryable(err) {
-					return future.HttpResponse, "Pending", err
-				} else {
-					if resp := future.HttpResponse; resp != nil && response.WasBadRequest(resp) && strings.Contains(err.Error(), "ReferencedResourceNotProvisioned") {
-						// Resource is not yet ready, this may be the case if the Vnet was just created or another peering was just initiated.
-						return future.HttpResponse, "Pending", err
-					}
-				}
-
-				return future.HttpResponse, "", err
-			}
-
-			if err = future.Poller.PollUntilDone(ctx); err != nil {
-				return future.HttpResponse, "", err
-			}
-
-			return future.HttpResponse, "Created", nil
-		},
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Databricks %s to be created: %+v", id, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, peer); err != nil {
+		return fmt.Errorf("creating Databricks %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -296,6 +262,9 @@ func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, me
 		return err
 	}
 
+	locks.ByID(databricksVnetPeeringsResourceType)
+	defer locks.UnlockByID(databricksVnetPeeringsResourceType)
+
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving Databricks %s: %+v", *id, err)
@@ -318,16 +287,8 @@ func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, me
 		existing.Model.Properties.UseRemoteGateways = pointer.To(d.Get("use_remote_gateways").(bool))
 	}
 
-	locks.ByID(databricksVnetPeeringsResourceType)
-	defer locks.UnlockByID(databricksVnetPeeringsResourceType)
-
-	future, err := client.CreateOrUpdate(ctx, *id, *existing.Model)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 		return fmt.Errorf("updating Databricks %s: %+v", *id, err)
-	}
-
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for update of Databricks %s: %+v", *id, err)
 	}
 
 	return resourceDatabricksVirtualNetworkPeeringRead(d, meta)
@@ -347,8 +308,7 @@ func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, me
 	locks.ByID(databricksVnetPeeringsResourceType)
 	defer locks.UnlockByID(databricksVnetPeeringsResourceType)
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Databricks %s: %+v", *id, err)
 	}
 

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/vnetpeering"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -111,6 +113,11 @@ func (DatabricksVirtualNetworkPeeringResource) Exists(ctx context.Context, clien
 	}
 
 	resp, err := clients.DataBricks.VnetPeeringClient.Get(ctx, *id)
+
+	if response.WasNotFound(resp.HttpResponse) {
+		return pointer.To(false), nil
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("making Read request on Databricks %s: %+v", *id, err)
 	}
@@ -120,10 +127,6 @@ func (DatabricksVirtualNetworkPeeringResource) Exists(ctx context.Context, clien
 
 func (DatabricksVirtualNetworkPeeringResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-databricks-%[1]d"
   location = "%[2]s"
@@ -145,9 +148,13 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (DatabricksVirtualNetworkPeeringResource) update(data acceptance.TestData) string {
-	template := DatabricksVirtualNetworkPeeringResource{}.template(data)
+func (r DatabricksVirtualNetworkPeeringResource) update(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[2]s
 
 resource "azurerm_databricks_virtual_network_peering" "test" {
@@ -170,9 +177,13 @@ resource "azurerm_virtual_network_peering" "remote" {
 `, data.RandomInteger, template)
 }
 
-func (DatabricksVirtualNetworkPeeringResource) requiresImport(data acceptance.TestData) string {
-	template := DatabricksVirtualNetworkPeeringResource{}.basic(data)
+func (r DatabricksVirtualNetworkPeeringResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_databricks_virtual_network_peering" "import" {
@@ -186,9 +197,13 @@ resource "azurerm_databricks_virtual_network_peering" "import" {
 `, template, data.RandomInteger)
 }
 
-func (DatabricksVirtualNetworkPeeringResource) basic(data acceptance.TestData) string {
-	template := DatabricksVirtualNetworkPeeringResource{}.template(data)
+func (r DatabricksVirtualNetworkPeeringResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[2]s
 
 resource "azurerm_databricks_virtual_network_peering" "test" {
@@ -209,9 +224,13 @@ resource "azurerm_virtual_network_peering" "remote" {
 `, data.RandomInteger, template)
 }
 
-func (DatabricksVirtualNetworkPeeringResource) complete(data acceptance.TestData) string {
-	template := DatabricksVirtualNetworkPeeringResource{}.template(data)
+func (r DatabricksVirtualNetworkPeeringResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[2]s
 
 resource "azurerm_databricks_virtual_network_peering" "test" {
@@ -237,9 +256,13 @@ resource "azurerm_virtual_network_peering" "remote" {
 `, data.RandomInteger, template)
 }
 
-func (DatabricksVirtualNetworkPeeringResource) completeUpdate(data acceptance.TestData) string {
-	template := DatabricksVirtualNetworkPeeringResource{}.template(data)
+func (r DatabricksVirtualNetworkPeeringResource) completeUpdate(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[2]s
 
 resource "azurerm_databricks_virtual_network_peering" "test" {
