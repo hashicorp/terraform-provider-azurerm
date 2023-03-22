@@ -652,7 +652,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 						"settings_json": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							StateFunc:        utils.NormalizeJson,
 							ValidateFunc:     validation.StringIsJSON,
 							DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 						},
