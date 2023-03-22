@@ -3,6 +3,7 @@ package postgresqlhsc
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -20,7 +21,6 @@ type PostgreSQLHyperScaleClusterModel struct {
 	Name                             string              `tfschema:"name"`
 	ResourceGroupName                string              `tfschema:"resource_group_name"`
 	Location                         string              `tfschema:"location"`
-	AdministratorLogin               string              `tfschema:"administrator_login"`
 	AdministratorLoginPassword       string              `tfschema:"administrator_login_password"`
 	CitusVersion                     string              `tfschema:"citus_version"`
 	CoordinatorPublicIPAccessEnabled bool                `tfschema:"coordinator_public_ip_access_enabled"`
@@ -109,14 +109,6 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			),
 		},
 
-		"administrator_login": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      "citus",
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
 		"citus_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -203,6 +195,7 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.IsRFC3339Time,
+			RequiredWith: []string{"source_location", "source_resource_id"},
 		},
 
 		"preferred_primary_zone": commonschema.ZoneSingleOptional(),
@@ -213,13 +206,21 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			Computed: true,
 		},
 
-		"source_location": commonschema.LocationOptional(),
+		"source_location": {
+			Type:             schema.TypeString,
+			Optional:         true,
+			ForceNew:         true,
+			StateFunc:        location.StateFunc,
+			DiffSuppressFunc: location.DiffSuppressFunc,
+			RequiredWith:     []string{"source_resource_id", "point_in_time_in_utc"},
+		},
 
 		"source_resource_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: clusters.ValidateServerGroupsv2ID,
+			RequiredWith: []string{"source_location", "point_in_time_in_utc"},
 		},
 
 		"sql_version": {
@@ -268,7 +269,6 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 			parameters := &clusters.Cluster{
 				Location: location.Normalize(model.Location),
 				Properties: &clusters.ClusterProperties{
-					AdministratorLogin:              &model.AdministratorLogin,
 					AdministratorLoginPassword:      &model.AdministratorLoginPassword,
 					CitusVersion:                    &model.CitusVersion,
 					CoordinatorEnablePublicIPAccess: &model.CoordinatorPublicIPAccessEnabled,
@@ -287,10 +287,12 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 				parameters.Properties.MaintenanceWindow = expandMaintenanceWindow(v)
 			}
 
+			// API allows `0` for `node_storage_quota_in_mb` and this property is `int` so that we cannot use `model.NodeStorageQuotaInMb` to check if this property is set in tf config since it's always set to `0` as zero value when it isn't set
 			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["node_storage_quota_in_mb"]; !v.IsNull() {
 				parameters.Properties.NodeStorageQuotaInMb = utils.Int64(model.NodeStorageQuotaInMb)
 			}
 
+			// API allows `0` for `node_vcores` and this property is `int` so that we cannot use `model.NodeVCores` to check if this property is set in tf config since it's always set to `0` as zero value when it isn't set
 			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["node_vcores"]; !v.IsNull() {
 				parameters.Properties.NodeVCores = utils.Int64(model.NodeVCores)
 			}
@@ -311,6 +313,9 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 				parameters.Properties.SourceResourceId = &model.SourceResourceId
 			}
 
+			// If `shards_on_coordinator_enabled` isn't set, API would set it to `true` when `node_count` is `0`
+			// If `shards_on_coordinator_enabled` isn't set, API would set it to `false` when `node_count` is greater or equals to `2`
+			// As `shards_on_coordinator_enabled` is `bool` and it's always set to `false` as zero value when it isn't set, so we cannot use `model.ShardsOnCoordinatorEnabled` to check if this property is set in tf config
 			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["shards_on_coordinator_enabled"]; !v.IsNull() {
 				parameters.Properties.EnableShardsOnCoordinator = &model.ShardsOnCoordinatorEnabled
 			}
@@ -345,11 +350,12 @@ func (r PostgreSQLHyperScaleClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := clusters.ClusterForUpdate{}
+			parameters := clusters.ClusterForUpdate{
+				Properties: &clusters.ClusterPropertiesForUpdate{},
+			}
 
 			if metadata.ResourceData.HasChange("administrator_login_password") {
-				administratorLoginPassword := metadata.ResourceData.Get("administrator_login_password").(string)
-				parameters.Properties.AdministratorLoginPassword = &administratorLoginPassword
+				parameters.Properties.AdministratorLoginPassword = &model.AdministratorLoginPassword
 			}
 
 			if metadata.ResourceData.HasChange("citus_version") {
@@ -469,7 +475,6 @@ func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
 			}
 
 			if props := model.Properties; props != nil {
-				state.AdministratorLogin = *props.AdministratorLogin
 				state.AdministratorLoginPassword = metadata.ResourceData.Get("administrator_login_password").(string)
 				state.CitusVersion = *props.CitusVersion
 				state.CoordinatorPublicIPAccessEnabled = *props.CoordinatorEnablePublicIPAccess
