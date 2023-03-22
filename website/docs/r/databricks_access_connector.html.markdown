@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_databricks_access_connector" "example" {
-  name                = "databrickstest"
+  name                = "example-resource"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
@@ -51,7 +51,13 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of identity to use for this Access Connector. `SystemAssigned` is the only possible value.
+* `type` - (Required) The type of identity to use for this Access Connector. Possible values include `SystemAssigned` or `UserAssigned`.
+
+* `identity_ids` - (Optional)
+
+* `principal_id` - (Computed)
+
+* `tenant_id` - (Computed)
 
 ## Attributes Reference
 

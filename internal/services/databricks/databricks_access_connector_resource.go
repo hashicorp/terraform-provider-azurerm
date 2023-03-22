@@ -22,11 +22,11 @@ type AccessConnectorResource struct {
 var _ sdk.ResourceWithUpdate = AccessConnectorResource{}
 
 type AccessConnectorResourceModel struct {
-	Name          string                         `tfschema:"name"`
-	ResourceGroup string                         `tfschema:"resource_group_name"`
-	Location      string                         `tfschema:"location"`
-	Tags          map[string]string              `tfschema:"tags"`
-	Identity      []identity.ModelSystemAssigned `tfschema:"identity"`
+	Name          string            `tfschema:"name"`
+	ResourceGroup string            `tfschema:"resource_group_name"`
+	Location      string            `tfschema:"location"`
+	Tags          map[string]string `tfschema:"tags"`
+	Identity      []interface{}     `tfschema:"identity"`
 }
 
 func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
@@ -42,7 +42,7 @@ func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"identity": commonschema.SystemAssignedIdentityOptional(),
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -84,7 +84,7 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			expandedIdentity, err := identity.ExpandSystemAssignedFromModel(model.Identity)
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(model.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -170,7 +170,11 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 					state.Tags = *model.Tags
 				}
 				if model.Identity != nil {
-					state.Identity = identity.FlattenSystemAssignedToModel(model.Identity)
+					identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+					if err != nil {
+						return fmt.Errorf("flattening %s: %+v", *id, err)
+					}
+					state.Identity = *identity
 				}
 			}
 			return metadata.Encode(&state)
