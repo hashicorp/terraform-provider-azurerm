@@ -287,13 +287,11 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 				parameters.Properties.MaintenanceWindow = expandMaintenanceWindow(v)
 			}
 
-			// API allows `0` for `node_storage_quota_in_mb` and this property is `int` so that we cannot use `model.NodeStorageQuotaInMb` to check if this property is set in tf config since it's always set to `0` as zero value when it isn't set
-			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["node_storage_quota_in_mb"]; !v.IsNull() {
+			if v := model.NodeStorageQuotaInMb; v != 0 {
 				parameters.Properties.NodeStorageQuotaInMb = utils.Int64(model.NodeStorageQuotaInMb)
 			}
 
-			// API allows `0` for `node_vcores` and this property is `int` so that we cannot use `model.NodeVCores` to check if this property is set in tf config since it's always set to `0` as zero value when it isn't set
-			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["node_vcores"]; !v.IsNull() {
+			if v := model.NodeVCores; v != 0 {
 				parameters.Properties.NodeVCores = utils.Int64(model.NodeVCores)
 			}
 
@@ -313,9 +311,9 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 				parameters.Properties.SourceResourceId = &model.SourceResourceId
 			}
 
-			// If `shards_on_coordinator_enabled` isn't set, API would set it to `true` when `node_count` is `0`
-			// If `shards_on_coordinator_enabled` isn't set, API would set it to `false` when `node_count` is greater or equals to `2`
-			// As `shards_on_coordinator_enabled` is `bool` and it's always set to `false` as zero value when it isn't set, so we cannot use `model.ShardsOnCoordinatorEnabled` to check if this property is set in tf config
+			// If `shards_on_coordinator_enabled` isn't set, API would set it to `true` when `node_count` is `0`.
+			// If `shards_on_coordinator_enabled` isn't set, API would set it to `false` when `node_count` is greater than or equal to `2`.
+			// As `shards_on_coordinator_enabled` is `bool` and it's always set to `false` as zero value when it isn't set, so we cannot use `model.ShardsOnCoordinatorEnabled` to check if this property is set in tf config.
 			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["shards_on_coordinator_enabled"]; !v.IsNull() {
 				parameters.Properties.EnableShardsOnCoordinator = &model.ShardsOnCoordinatorEnabled
 			}
@@ -399,19 +397,11 @@ func (r PostgreSQLHyperScaleClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("node_storage_quota_in_mb") {
-				if v := metadata.ResourceData.GetRawConfig().AsValueMap()["node_storage_quota_in_mb"]; !v.IsNull() {
-					parameters.Properties.NodeStorageQuotaInMb = utils.Int64(model.NodeStorageQuotaInMb)
-				} else {
-					parameters.Properties.NodeStorageQuotaInMb = nil
-				}
+				parameters.Properties.NodeStorageQuotaInMb = utils.Int64(model.NodeStorageQuotaInMb)
 			}
 
 			if metadata.ResourceData.HasChange("node_vcores") {
-				if v := metadata.ResourceData.GetRawConfig().AsValueMap()["node_vcores"]; !v.IsNull() {
-					parameters.Properties.NodeVCores = utils.Int64(model.NodeVCores)
-				} else {
-					parameters.Properties.NodeVCores = nil
-				}
+				parameters.Properties.NodeVCores = utils.Int64(model.NodeVCores)
 			}
 
 			if metadata.ResourceData.HasChange("preferred_primary_zone") {
@@ -419,11 +409,7 @@ func (r PostgreSQLHyperScaleClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("shards_on_coordinator_enabled") {
-				if v := metadata.ResourceData.GetRawConfig().AsValueMap()["shards_on_coordinator_enabled"]; !v.IsNull() {
-					parameters.Properties.EnableShardsOnCoordinator = &model.ShardsOnCoordinatorEnabled
-				} else {
-					parameters.Properties.EnableShardsOnCoordinator = nil
-				}
+				parameters.Properties.EnableShardsOnCoordinator = &model.ShardsOnCoordinatorEnabled
 			}
 
 			if metadata.ResourceData.HasChange("sql_version") {
