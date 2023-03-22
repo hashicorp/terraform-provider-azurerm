@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	containterregistry_v2021_08_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/tokens"
@@ -247,10 +248,12 @@ func (r ContainerRegistryTokenPasswordResource) Delete() sdk.ResourceFunc {
 					},
 				},
 			}
-			if err := client.UpdateThenPoll(ctx, tokenId, param); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+			future, err := client.Update(ctx, tokenId, param)
+			if !response.WasStatusCode(future.HttpResponse, 201) {
+				if err != nil {
+					return fmt.Errorf("deleting %s: %+v", id, err)
+				}
 			}
-
 			return nil
 		},
 	}

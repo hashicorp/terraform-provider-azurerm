@@ -129,8 +129,11 @@ func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta int
 		},
 	}
 
-	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+	future, err := client.Update(ctx, *id, parameters)
+	if !response.WasStatusCode(future.HttpResponse, 201) {
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
