@@ -920,36 +920,28 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 
 func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirectory {
 	result := &web.AzureActiveDirectory{
-		Enabled: pointer.To(false),
+		Enabled:      pointer.To(false),
+		Registration: &web.AzureActiveDirectoryRegistration{},
 	}
 	if len(input) == 1 {
 		aad := input[0]
 		result = &web.AzureActiveDirectory{
 			Enabled: pointer.To(true),
 			Registration: &web.AzureActiveDirectoryRegistration{
-				OpenIDIssuer:                      pointer.To(aad.TenantAuthURI),
-				ClientID:                          pointer.To(aad.ClientId),
-				ClientSecretSettingName:           pointer.To(aad.ClientSecretSettingName),
-				ClientSecretCertificateThumbprint: pointer.To(aad.ClientSecretCertificateThumbprint),
+				OpenIDIssuer: pointer.To(aad.TenantAuthURI),
+				ClientID:     pointer.To(aad.ClientId),
 			},
 			Login: &web.AzureActiveDirectoryLogin{
-				LoginParameters:        pointer.To([]string{}),
 				DisableWWWAuthenticate: pointer.To(aad.DisableWWWAuth),
 			},
-			Validation: &web.AzureActiveDirectoryValidation{
-				JwtClaimChecks: &web.JwtClaimChecks{
-					AllowedGroups:             pointer.To(aad.JWTAllowedGroups),
-					AllowedClientApplications: pointer.To(aad.JWTAllowedClientApps),
-				},
-				DefaultAuthorizationPolicy: &web.DefaultAuthorizationPolicy{
-					AllowedPrincipals: &web.AllowedPrincipals{
-						Groups:     pointer.To(aad.AllowedGroups),
-						Identities: pointer.To(aad.AllowedIdentities),
-					},
-					AllowedApplications: pointer.To(aad.AllowedApplications),
-				},
-				AllowedAudiences: pointer.To(aad.AllowedAudiences),
-			},
+		}
+
+		if aad.ClientSecretSettingName != "" {
+			result.Registration.ClientSecretSettingName = pointer.To(aad.ClientSecretSettingName)
+		}
+
+		if aad.ClientSecretCertificateThumbprint != "" {
+			result.Registration.ClientSecretCertificateThumbprint = pointer.To(aad.ClientSecretCertificateThumbprint)
 		}
 
 		if len(aad.LoginParameters) > 0 {
@@ -959,13 +951,42 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirector
 			}
 			result.Login.LoginParameters = &params
 		}
+
+		if len(aad.JWTAllowedGroups) != 0 || len(aad.JWTAllowedClientApps) != 0 {
+			if result.Validation == nil {
+				result.Validation = &web.AzureActiveDirectoryValidation{}
+			}
+			result.Validation.JwtClaimChecks = &web.JwtClaimChecks{}
+			if len(aad.JWTAllowedGroups) != 0 {
+				result.Validation.JwtClaimChecks.AllowedGroups = pointer.To(aad.JWTAllowedGroups)
+			}
+			if len(aad.JWTAllowedClientApps) != 0 {
+				result.Validation.JwtClaimChecks.AllowedClientApplications = pointer.To(aad.JWTAllowedClientApps)
+			}
+		}
+
+		if len(aad.AllowedGroups) > 0 || len(aad.AllowedIdentities) > 0 {
+			if result.Validation == nil {
+				result.Validation = &web.AzureActiveDirectoryValidation{}
+			}
+			result.Validation.DefaultAuthorizationPolicy = &web.DefaultAuthorizationPolicy{}
+			if len(aad.AllowedGroups) > 0 {
+				result.Validation.DefaultAuthorizationPolicy.AllowedPrincipals.Groups = pointer.To(aad.AllowedGroups)
+			}
+			if len(aad.AllowedIdentities) > 0 {
+				result.Validation.DefaultAuthorizationPolicy.AllowedPrincipals.Identities = pointer.To(aad.AllowedIdentities)
+			}
+		}
+		if len(aad.AllowedAudiences) > 0 {
+			result.Validation.AllowedAudiences = pointer.To(aad.AllowedIdentities)
+		}
 	}
 
 	return result
 }
 
 func flattenAadAuthV2Settings(input *web.AzureActiveDirectory) []AadAuthV2Settings {
-	if input == nil || !pointer.From(input.Enabled) {
+	if input == nil {
 		return []AadAuthV2Settings{}
 	}
 
