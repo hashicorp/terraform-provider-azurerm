@@ -279,7 +279,10 @@ resource "azurerm_linux_function_app" "test" {
       client_secret_setting_name = "%[3]s"
       tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
     }
-    login {}
+
+    login {
+      token_store_enabled = true
+    }
   }
 }
 `, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue, data.Client().TenantID)

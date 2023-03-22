@@ -537,6 +537,7 @@ func flattenAuthV2LoginSettings(input *web.Login) []AuthV2Login {
 		result.LogoutEndpoint = pointer.From(routes.LogoutEndpoint)
 	}
 	if token := input.TokenStore; token != nil {
+		result.TokenStoreEnabled = pointer.From(token.Enabled)
 		result.TokenRefreshExtension = pointer.From(token.TokenRefreshExtensionHours)
 		if fs := token.FileSystem; fs != nil {
 			result.TokenFilesystemPath = pointer.From(fs.Directory)
