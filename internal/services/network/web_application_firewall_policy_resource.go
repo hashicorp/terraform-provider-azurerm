@@ -107,6 +107,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
+											string(network.WebApplicationFirewallOperatorAny),
 											string(network.WebApplicationFirewallOperatorIPMatch),
 											string(network.WebApplicationFirewallOperatorGeoMatch),
 											string(network.WebApplicationFirewallOperatorEqual),

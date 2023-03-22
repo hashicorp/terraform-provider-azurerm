@@ -260,9 +260,6 @@ func (r IotHubDeviceUpdateAccountResource) Update() sdk.ResourceFunc {
 				existing.Tags = &model.Tags
 			}
 
-			// todo remove this when https://github.com/hashicorp/pandora/issues/1096 is fixed
-			existing.SystemData = nil
-
 			if err := client.AccountsCreateThenPoll(ctx, *id, *existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}

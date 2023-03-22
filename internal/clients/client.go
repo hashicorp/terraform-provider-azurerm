@@ -257,7 +257,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	// Disable the Azure SDK for Go's validation since it's unhelpful for our use-case
 	validation.Disabled = true
 
-	buildAutoClients(&client.autoClient, o)
+	if err := buildAutoClients(&client.autoClient, o); err != nil {
+		return fmt.Errorf("building auto-clients: %+v", err)
+	}
 
 	client.Features = o.Features
 	client.StopContext = ctx
@@ -297,7 +299,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Dashboard: %+v", err)
 	}
 	client.DatabaseMigration = datamigration.NewClient(o)
-	client.DataBricks = databricks.NewClient(o)
+	if client.DataBricks, err = databricks.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataBricks: %+v", err)
+	}
 	client.DataboxEdge = databoxedge.NewClient(o)
 	client.Datadog = datadog.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)

@@ -1,26 +1,66 @@
-## 3.48.0 (Unreleased)
+## 3.49.0 (Unreleased)
+
+FEATURES: 
+
+* **New Datasource:** `azurerm_orchestrated_virtual_machine_scale_set` [GH-21050]
+* **New Resource:** `azurerm_sentinel_threat_intelligence_indicator` [GH-20771]
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20230320.1165256` of `hashicorp/go-azure-sdk` [GH-21063]
+* `databricks`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21004]
+* `azurerm_media_job` - updating to use API Version `2022-07-01` [GH-20956]
+* `azurerm_media_transform` - updating to use API Version `2022-07-01` [GH-20956]
+* `azurerm_virtual_network_gateway` - support for conditional/patch updates [GH-21009]
+* `azurerm_web_application_firewall_policy` - the field `operator` within the `match_conditions` block can now be set to `Any` [GH-20971]
+* `azurerm_kubernetes_cluster` - add missing property to `oms_agent` schema[GH-21046]
+* `azurerm_kubernetes_cluster` - deprecate `docker_bridge_cidr` which is no longer supported by the API since docker is no longer a valid container runtime [GH-20952]
+* `azurerm_management_group_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
+* `azurerm_mysql_flexible_server` - support for the `geo_backup_key_vault_key_id` and `geo_backup_user_assigned_identity_id` properties [GH-20796]
+* `azurerm_resource_group_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
+* `azurerm_resource_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
+* `azurerm_role_assignment` - support subscription aliases scopes [GH-20895]
+* `azurerm_signalr_service` - support for `public_network_access_enabled`, `local_auth_enabled`, `aad_auth_enabled`, `tls_client_cert_enabled`, and `serverless_connection_timeout_in_seconds` properties [GH-20975]
+* `azurerm_subscription_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
+* `azurerm_sentinel_log_analytics_workspace_onboarding` - the `resource_group_name` and `workspace_name` properties have been deprecated in favour of workspace_id [GH-20661]
+* `azurerm_virtual_network_peering` - adding an explicit default value for `allow_forwarded_traffic`, `allow_gateway_transit` and `use_remote_gateways` [GH-21009]
+* `azurerm_virtual_hub` - support for the `hub_routing_preference` property [GH-21028]
+
+BUG FIXES:
+
+* `azurerm_firewall` - Prevent duplicate name from being used for `ip_configuration` and `management_ip_configuration` [GH-21068]
+* `azurerm_kubernetes_cluster` - replace calls to the deprecated accessProfiles endpoint with listUserCredentials [GH-20927]
+* `azurerm_kusto_cluster` - `language_extensions` is now a Set rather than a List [GH-20951]
+* `azurerm_machine_learning_datastore_blobstorage` - fix an issue creating this resource in clouds other than public [GH-21016]
+* `azurerm_virtual_desktop_host_pool` - changing the `load_balancer_type` property no longer creates a new resource [GH-20947]
+
+## 3.48.0 (March 16, 2023)
 
 FEATURES: 
 
 * **New Data Source:** `azurerm_mobile_network_sim_policy` [FGH-20732]
-* **New Resource:** `azurerm_express_route_port_authorization` [GH-20736]
-* **New Resource:** `azurerm_mobile_network_sim_policy` [GH-20732]
-* **New Resource:** `azurerm_site_recovery_vmware_replication_policy` [GH-20881]
-* **New Resource:** `azurerm_sentinel_alert_rule_anomaly_duplicate` [GH-20760]
+* **New Resource:** `azurerm_express_route_port_authorization` ([#20736](https://github.com/hashicorp/terraform-provider-azurerm/issues/20736))
+* **New Resource:** `azurerm_mobile_network_sim_policy` ([#20732](https://github.com/hashicorp/terraform-provider-azurerm/issues/20732))
+* **New Resource:** `azurerm_site_recovery_vmware_replication_policy` ([#20881](https://github.com/hashicorp/terraform-provider-azurerm/issues/20881))
+* **New Resource:** `azurerm_sentinel_alert_rule_anomaly_duplicate` ([#20760](https://github.com/hashicorp/terraform-provider-azurerm/issues/20760))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230313.1140427` of `github.com/hashicorp/go-azure-sdk` [GH-20918]
-* `signalr`: updating to API Version `2023-02-01` [GH-20910]
-* `webpubsub`: updating to API Version `2023-02-01` [GH-20910]
-* `azurerm_express_route_gateway` - support for the `allow_non_virtual_wan_traffic` property [GH-20667]
+* dependencies: updating to `v0.20230316.1132628` of `github.com/hashicorp/go-azure-sdk` ([#20986](https://github.com/hashicorp/terraform-provider-azurerm/issues/20986))
+* `signalr`: updating to API Version `2023-02-01` ([#20910](https://github.com/hashicorp/terraform-provider-azurerm/issues/20910))
+* `webpubsub`: updating to API Version `2023-02-01` ([#20910](https://github.com/hashicorp/terraform-provider-azurerm/issues/20910))
+* `azurerm_express_route_gateway` - support for the `allow_non_virtual_wan_traffic` property ([#20667](https://github.com/hashicorp/terraform-provider-azurerm/issues/20667))
+* `azurerm_ssh_public_key` -  allow `.` for `name` validation ([#20955](https://github.com/hashicorp/terraform-provider-azurerm/issues/20955))
 
 BUG FIXES:
 
-* provider: fix an authentication bug which sometimes caused access tokens to be refreshed too late [GH-20894]
-* `azurerm_bot_channel_directline` - fixing an issue where an empty `site` was passed to the API [GH-20890]
-* `azurerm_healthcare_dicom_service` - extending the `create` and `update` timeouts to `90` minutes [GH-20932]
-* `azurerm_kusto_eventhub_data_connection` - fixing an issue where an existing resource wouldn't be flagged during creation [GH-20926]
+* provider: fix an authentication bug which sometimes caused access tokens to be refreshed too late ([#20894](https://github.com/hashicorp/terraform-provider-azurerm/issues/20894))
+* `azurerm_bot_channel_directline` - fixing an issue where an empty `site` was passed to the API ([#20890](https://github.com/hashicorp/terraform-provider-azurerm/issues/20890))
+* `azurerm_healthcare_dicom_service` - extending the `create` and `update` timeouts to `90` minutes ([#20932](https://github.com/hashicorp/terraform-provider-azurerm/issues/20932))
+* `azurerm_kusto_eventhub_data_connection` - fixing an issue where an existing resource wouldn't be flagged during creation ([#20926](https://github.com/hashicorp/terraform-provider-azurerm/issues/20926))
+* `azurerm_linux_function_app` - Fixed apply time validation when using `WEBSITE_CONTENTOVERVNET`  ([#18258](https://github.com/hashicorp/terraform-provider-azurerm/issues/18258))
+* `azurerm_windows_function_app` - Fixed apply time validation when using `WEBSITE_CONTENTOVERVNET` ([#18258](https://github.com/hashicorp/terraform-provider-azurerm/issues/18258))
+
 
 ## 3.47.0 (March 09, 2023)
 

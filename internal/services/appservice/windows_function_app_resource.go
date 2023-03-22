@@ -431,10 +431,20 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 				if !functionApp.StorageUsesMSI {
 					suffix := uuid.New().String()[0:4]
-					if _, present := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+					_, contentOverVnetEnabled := functionApp.AppSettings["WEBSITE_CONTENTOVERVNET"]
+					_, contentSharePresent := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]
+					_, contentShareConnectionString := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]
+
+					if !contentSharePresent {
+						if contentOverVnetEnabled {
+							return fmt.Errorf("the app_setting WEBSITE_CONTENTSHARE must be specified and set to a valid share when WEBSITE_CONTENTOVERVNET is specified")
+						}
 						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
 					}
-					if _, present := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+					if !contentShareConnectionString {
+						if contentOverVnetEnabled && contentSharePresent {
+							return fmt.Errorf("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING must be set when WEBSITE_CONTENTSHARE and WEBSITE_CONTENTOVERVNET are specified")
+						}
 						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
 				} else {
@@ -767,12 +777,37 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Windows %s: %v", id, err)
 			}
 
+			var serviceFarmId string
+			if metadata.ResourceData.HasChange("service_plan_id") {
+				serviceFarmId = state.ServicePlanId
+				existing.SiteProperties.ServerFarmID = utils.String(serviceFarmId)
+			}
+
 			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
 			if err != nil {
 				return err
 			}
 
-			// Only send for Dynamic and ElasticPremium
+			// Some service plan updates are allowed - see customiseDiff for exceptions
+			if metadata.ResourceData.HasChange("service_plan_id") {
+				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
+				servicePlanId, err := parse.ServicePlanID(state.ServicePlanId)
+				if err != nil {
+					return err
+				}
+
+				servicePlanClient := metadata.Client.AppService.ServicePlanClient
+				servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+				if err != nil {
+					return fmt.Errorf("reading new service plan (%s) for Windows %s: %+v", servicePlanId, id, err)
+				}
+
+				if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
+					planSKU = sku.Name
+				}
+			}
+
+			// Only send for ElasticPremium and consumption plan
 			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !state.ForceDisableContentShare
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
@@ -854,6 +889,30 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 					state.AppSettings = make(map[string]string)
 				}
 				state.AppSettings = helpers.ParseContentSettings(appSettingsResp, state.AppSettings)
+
+				if !state.StorageUsesMSI {
+					suffix := uuid.New().String()[0:4]
+					_, contentOverVnetEnabled := state.AppSettings["WEBSITE_CONTENTOVERVNET"]
+					_, contentSharePresent := state.AppSettings["WEBSITE_CONTENTSHARE"]
+					_, contentShareConnectionString := state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]
+
+					if !contentSharePresent {
+						if contentOverVnetEnabled {
+							return fmt.Errorf("the value of WEBSITE_CONTENTSHARE must be set to a predefined share when the storage account is restricted to a virtual network")
+						}
+						state.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(state.Name), suffix)
+					}
+					if !contentShareConnectionString {
+						if contentOverVnetEnabled && contentSharePresent {
+							return fmt.Errorf("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING must be set when WEBSITE_CONTENTSHARE and WEBSITE_CONTENTOVERVNET is specified")
+						}
+						state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+					}
+				} else {
+					if _, present := state.AppSettings["AzureWebJobsStorage__accountName"]; !present {
+						state.AppSettings["AzureWebJobsStorage__accountName"] = storageString
+					}
+				}
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
