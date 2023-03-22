@@ -41,6 +41,7 @@ type PostgreSQLHyperScaleClusterModel struct {
 	PreferredPrimaryZone             string              `tfschema:"preferred_primary_zone"`
 	SqlVersion                       string              `tfschema:"sql_version"`
 	Tags                             map[string]string   `tfschema:"tags"`
+	EarliestRestoreTime              string              `tfschema:"earliest_restore_time"`
 }
 
 type MaintenanceWindow struct {
@@ -234,6 +235,11 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 				"14",
 				"15",
 			}, false),
+		},
+
+		"earliest_restore_time": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"tags": commonschema.Tags(),
@@ -475,6 +481,7 @@ func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
 				state.NodeVCores = *props.NodeVCores
 				state.ShardsOnCoordinatorEnabled = *props.EnableShardsOnCoordinator
 				state.SqlVersion = *props.PostgresqlVersion
+				state.EarliestRestoreTime = *props.EarliestRestoreTime
 
 				if v := props.MaintenanceWindow; v != nil {
 					state.MaintenanceWindow = flattenMaintenanceWindow(v)

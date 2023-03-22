@@ -150,13 +150,37 @@ func (r PostgreSQLHyperScaleClusterResource) complete(data acceptance.TestData) 
 %s
 
 resource "azurerm_postgresql_hyperscale_cluster" "test" {
-  name                            = "acctestcluster%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
+  name                 = "acctestcluster%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+
   administrator_login_password    = "H@Sh1CoR3!"
   coordinator_storage_quota_in_mb = 131072
   coordinator_vcores              = 2
   node_count                      = 0
+
+  citus_version                        = "11.2"
+  coordinator_public_ip_access_enabled = true
+  ha_enabled                           = false
+  coordinator_server_edition           = "GeneralPurpose"
+
+  maintenance_window {
+    day_of_week  = 0
+    start_hour   = 8
+    start_minute = 0
+  }
+
+  node_public_ip_access_enabled = false
+  node_server_edition           = "MemoryOptimized"
+  sql_version                   = "14"
+  preferred_primary_zone        = 1
+  node_storage_quota_in_mb      = 131072
+  node_vcores                   = 2
+  shards_on_coordinator_enabled = true
+
+  tags = {
+    Env = "Test"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -166,13 +190,68 @@ func (r PostgreSQLHyperScaleClusterResource) update(data acceptance.TestData) st
 %s
 
 resource "azurerm_postgresql_hyperscale_cluster" "test" {
-  name                            = "acctestcluster%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
+  name                 = "acctestcluster%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+
   administrator_login_password    = "H@Sh1CoR4!"
   coordinator_storage_quota_in_mb = 262144
+  coordinator_vcores              = 4
+  node_count                      = 2
+
+  citus_version                        = "11.2"
+  coordinator_public_ip_access_enabled = false
+  ha_enabled                           = true
+  coordinator_server_edition           = "MemoryOptimized"
+
+  maintenance_window {
+    day_of_week  = 1
+    start_hour   = 9
+    start_minute = 1
+  }
+
+  node_public_ip_access_enabled = true
+  node_server_edition           = "GeneralPurpose"
+  sql_version                   = "15"
+  preferred_primary_zone        = 2
+  node_storage_quota_in_mb      = 262144
+  node_vcores                   = 4
+  shards_on_coordinator_enabled = false
+
+  tags = {
+    Env = "Test2"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PostgreSQLHyperScaleClusterResource) withSourceCluster(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_hyperscale_cluster" "source" {
+  name                 = "acctestscluster%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+
+  administrator_login_password    = "H@Sh1CoR3!"
+  coordinator_storage_quota_in_mb = 131072
   coordinator_vcores              = 2
   node_count                      = 0
 }
-`, r.template(data), data.RandomInteger)
+
+resource "azurerm_postgresql_hyperscale_cluster" "test" {
+  name                 = "acctestcluster%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  source_location      = azurerm_postgresql_hyperscale_cluster.source.location
+  source_resource_id   = azurerm_postgresql_hyperscale_cluster.source.id
+  point_in_time_in_utc = azurerm_postgresql_hyperscale_cluster.source.earliest_restore_time
+
+  administrator_login_password    = "H@Sh1CoR3!"
+  coordinator_storage_quota_in_mb = 131072
+  coordinator_vcores              = 2
+  node_count                      = 0
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
