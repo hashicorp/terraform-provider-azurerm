@@ -37,10 +37,8 @@ type BillingSku string
 
 const (
 	BillingSkuGFive    BillingSku = "G5"
-	BillingSkuGFour    BillingSku = "G4"
 	BillingSkuGOne     BillingSku = "G1"
 	BillingSkuGOneZero BillingSku = "G10"
-	BillingSkuGThree   BillingSku = "G3"
 	BillingSkuGTwo     BillingSku = "G2"
 	BillingSkuGZero    BillingSku = "G0"
 )
@@ -48,10 +46,8 @@ const (
 func PossibleValuesForBillingSku() []string {
 	return []string{
 		string(BillingSkuGFive),
-		string(BillingSkuGFour),
 		string(BillingSkuGOne),
 		string(BillingSkuGOneZero),
-		string(BillingSkuGThree),
 		string(BillingSkuGTwo),
 		string(BillingSkuGZero),
 	}
@@ -60,10 +56,8 @@ func PossibleValuesForBillingSku() []string {
 func parseBillingSku(input string) (*BillingSku, error) {
 	vals := map[string]BillingSku{
 		"g5":  BillingSkuGFive,
-		"g4":  BillingSkuGFour,
 		"g1":  BillingSkuGOne,
 		"g10": BillingSkuGOneZero,
-		"g3":  BillingSkuGThree,
 		"g2":  BillingSkuGTwo,
 		"g0":  BillingSkuGZero,
 	}
