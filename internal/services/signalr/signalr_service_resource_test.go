@@ -909,9 +909,6 @@ resource "azurerm_signalr_service" "test" {
     event_pattern    = ["*"]
     hub_pattern      = ["*"]
     url_template     = "http://foo.com/{hub}/api/{category}/{event}"
-    upstream_auth {
-      type = "None"
-    }
   }
 
   upstream_endpoint {
