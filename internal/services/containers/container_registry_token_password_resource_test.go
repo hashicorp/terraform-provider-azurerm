@@ -124,7 +124,7 @@ func (r ContainerRegistryTokenPasswordResource) Exists(ctx context.Context, clie
 		return nil, err
 	}
 
-	tokenId := tokens.NewTokenID(id.SubscriptionId, id.ResourceGroup, id.ResourceGroup, id.TokenName)
+	tokenId := tokens.NewTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName)
 
 	resp, err := client.Get(ctx, tokenId)
 	if err != nil {
@@ -228,6 +228,7 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
+  admin_enabled       = true
 }
 
 # use system wide scope map for tests
