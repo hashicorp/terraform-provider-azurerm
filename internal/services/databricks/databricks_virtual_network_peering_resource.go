@@ -347,13 +347,9 @@ func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, me
 	locks.ByID(databricksVnetPeeringsResourceType)
 	defer locks.UnlockByID(databricksVnetPeeringsResourceType)
 
-	future, err := client.Delete(ctx, *id)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting Databricks %s: %+v", *id, err)
-	}
-
-	if err = future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for deletion of Databricks %s: %+v", *id, err)
 	}
 
 	return nil
