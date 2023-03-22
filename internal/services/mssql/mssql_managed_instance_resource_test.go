@@ -2395,6 +2395,15 @@ resource "azurerm_subnet_route_table_association" "secondary_2" {
 
 func (r MsSqlManagedInstanceResource) withMaintenanceConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_mssql_managed_instance" "test" {
