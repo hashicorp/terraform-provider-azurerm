@@ -30,21 +30,6 @@ func TestAccDatabricksAccessConnector_basic(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksAccessConnector_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
-	r := DatabricksAccessConnectorResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccDatabricksAccessConnector_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
 	r := DatabricksAccessConnectorResource{}
@@ -57,6 +42,21 @@ func TestAccDatabricksAccessConnector_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccDatabricksAccessConnector_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
+	r := DatabricksAccessConnectorResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -74,28 +74,6 @@ func (DatabricksAccessConnectorResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (DatabricksAccessConnectorResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%d"
-  location = "%s"
-}
-
-resource "azurerm_databricks_access_connector" "test" {
-  name                = "acctestDBAC%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (DatabricksAccessConnectorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -111,6 +89,8 @@ resource "azurerm_databricks_access_connector" "test" {
   name                = "acctestDBAC%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  identity {}
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -124,6 +104,31 @@ resource "azurerm_databricks_access_connector" "import" {
   name                = azurerm_databricks_access_connector.test.name
   resource_group_name = azurerm_databricks_access_connector.test.resource_group_name
   location            = azurerm_databricks_access_connector.test.location
+
+  identity {}
 }
 `, template)
+}
+
+func (DatabricksAccessConnectorResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-databricks-%d"
+  location = "%s"
+}
+
+resource "azurerm_databricks_access_connector" "test" {
+  name                = "acctestDBAC%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

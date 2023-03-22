@@ -6,13 +6,16 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -42,7 +45,44 @@ func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+		"identity": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"type": {
+						Type:     schema.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(identity.TypeUserAssigned),
+							string(identity.TypeSystemAssigned),
+						}, false),
+						Default: string(identity.TypeSystemAssigned),
+					},
+
+					"identity_ids": {
+						Type:     schema.TypeSet,
+						Optional: true,
+						ForceNew: true,
+						Elem: &schema.Schema{
+							Type:         schema.TypeString,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+					},
+
+					"principal_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+
+					"tenant_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 
 		"tags": commonschema.Tags(),
 	}
