@@ -36,6 +36,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_application_insights` - the `workspace_id` can now be updated without creating a new resource [GH-21029]
 * `azurerm_firewall` - Prevent duplicate name from being used for `ip_configuration` and `management_ip_configuration` [GH-21068]
 * `azurerm_kubernetes_cluster` - replace calls to the deprecated accessProfiles endpoint with listUserCredentials [GH-20927]
 * `azurerm_kusto_cluster` - `language_extensions` is now a Set rather than a List [GH-20951]
