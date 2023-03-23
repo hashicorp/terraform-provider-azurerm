@@ -171,7 +171,7 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"protocols": {
-						Type:     pluginsdk.TypeSet,
+						Type:     pluginsdk.TypeList,
 						ForceNew: true,
 						Required: true,
 						MaxItems: 1,
@@ -205,7 +205,7 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"export_policy_rule": {
-						Type:     pluginsdk.TypeSet,
+						Type:     pluginsdk.TypeList,
 						Required: true,
 						MaxItems: 5,
 						Elem: &pluginsdk.Resource{
@@ -451,7 +451,7 @@ func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			volumeClient := metadata.Client.NetApp.VolumeClient
 
-			id, err := volumegroups.ParseVolumeID(metadata.ResourceData.Id())
+			id, err := volumegroups.ParseVolumeGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -471,10 +471,16 @@ func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
 
 					// Checking if individual volume has a change
 					volumeItem := fmt.Sprintf("volume.%v", i)
+					capacityPoolId := metadata.ResourceData.Get(fmt.Sprintf("%v.capacity_pool_id", volumeItem)).(string)
+					capacityPoolName := getResourceNameString(&capacityPoolId)
 
 					if metadata.ResourceData.HasChange(volumeItem) {
 
-						volumeId := volumes.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.PoolName, metadata.ResourceData.Get(fmt.Sprintf("%v.name", volumeItem)).(string))
+						volumeId := volumes.NewVolumeID(id.SubscriptionId,
+							id.ResourceGroupName,
+							id.AccountName,
+							capacityPoolName,
+							metadata.ResourceData.Get(fmt.Sprintf("%v.name", volumeItem)).(string))
 
 						update := volumes.VolumePatch{
 							Properties: &volumes.VolumePatchProperties{},
