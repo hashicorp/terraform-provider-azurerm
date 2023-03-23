@@ -6,7 +6,6 @@ App Service `site_config`
 * `scm_ip_restriction` blocks are no longer computed - changes to SCM IP restrictions outside of Terraform will now present a diff
 * `cors` blocks no longer require `allowed_origins`, however, if the property is supplied it must contain at least one item. Omitting this property will set the array empty
 
-
 FEATURES: 
 
 * **New Datasource:** `azurerm_orchestrated_virtual_machine_scale_set` [GH-21050]
@@ -17,6 +16,8 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230322.1105901` of `hashicorp/go-azure-sdk` [GH-21079]
 * `databricks`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21004]
+* `azurerm_app_configuration_key` - the resource's ID has been changed to match the Data Plane URL format to work around a number of bugs in the previous parsing logic [GH-20082]
+* `azurerm_app_configuration_feature` - the resource's ID has been changed to match the Data Plane URL format to work around a number of bugs in the previous parsing logic [GH-20082]
 * `azurerm_media_job` - updating to use API Version `2022-07-01` [GH-20956]
 * `azurerm_media_transform` - updating to use API Version `2022-07-01` [GH-20956]
 * `azurerm_virtual_network_gateway` - support for conditional/patch updates [GH-21009]
