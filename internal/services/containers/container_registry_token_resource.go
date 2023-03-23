@@ -70,7 +70,7 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 }
 
 func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -118,7 +118,7 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -156,7 +156,7 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -200,7 +200,7 @@ func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceContainerRegistryTokenDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

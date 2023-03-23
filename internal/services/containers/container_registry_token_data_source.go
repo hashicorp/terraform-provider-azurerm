@@ -50,7 +50,7 @@ func dataSourceContainerRegistryToken() *pluginsdk.Resource {
 }
 
 func dataSourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

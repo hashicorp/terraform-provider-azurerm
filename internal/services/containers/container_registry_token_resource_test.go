@@ -94,7 +94,7 @@ func (t ContainerRegistryTokenResource) Exists(ctx context.Context, clients *cli
 		return nil, err
 	}
 
-	resp, err := clients.Containers.ContainerRegistryClient.Tokens.Get(ctx, *id)
+	resp, err := clients.Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

@@ -596,7 +596,7 @@ func (t ContainerRegistryResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	resp, err := clients.Containers.ContainerRegistryClient.Registries.Get(ctx, *id)
+	resp, err := clients.Containers.ContainerRegistryClient_v2021_08_01_preview.Registries.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

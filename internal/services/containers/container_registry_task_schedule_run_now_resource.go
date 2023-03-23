@@ -3,14 +3,16 @@ package containers
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/runs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/taskruns"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerRegistryTaskScheduleResource struct{}
@@ -52,78 +54,91 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			taskClient := metadata.Client.Containers.TasksClient
+			taskClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Tasks
 
 			var model ContainerRegistryTaskScheduleModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			taskId, err := parse.ContainerRegistryTaskID(model.TaskId)
+			taskId, err := tasks.ParseTaskID(model.TaskId)
 			if err != nil {
-				return fmt.Errorf("parsing container registry task ID: %v", err)
+				return err
 			}
 
-			resp, err := taskClient.Get(ctx, taskId.ResourceGroup, taskId.RegistryName, taskId.TaskName)
+			resp, err := taskClient.Get(ctx, *taskId)
 			if err != nil {
 				return fmt.Errorf("retrieving %q: %+v", taskId, err)
 			}
-			if resp.TaskProperties == nil {
-				return fmt.Errorf("unexpected nil `taskProperties` of %q", taskId)
+			if resp.Model == nil {
+				return fmt.Errorf("model was nil for %s", taskId)
 			}
-			if resp.TaskProperties.Step == nil {
-				return fmt.Errorf("unexpected nil `taskProperties.step` of %q", taskId)
-			}
-
-			req := containerregistry.TaskRunRequest{
-				TaskID: utils.String(taskId.ID()),
-			}
-			switch resp.TaskProperties.Step.(type) {
-			case containerregistry.DockerBuildStep:
-				req.Type = containerregistry.TypeDockerBuildRequest
-			case containerregistry.FileTaskStep:
-				req.Type = containerregistry.TypeFileTaskRunRequest
-			case containerregistry.EncodedTaskStep:
-				req.Type = containerregistry.TypeEncodedTaskRunRequest
-			default:
-				return fmt.Errorf("unexpected container registry task step type: %T", resp.TaskProperties.Step)
+			if resp.Model.Properties.Step == nil {
+				return fmt.Errorf("properties was nil for %s", taskId)
 			}
 
-			registryClient := metadata.Client.Containers.RegistriesClient
-			future, err := registryClient.ScheduleRun(ctx, taskId.ResourceGroup, taskId.RegistryName, req)
-			if err != nil {
+			req := registries.TaskRunRequest{
+				TaskId: taskId.ID(),
+			}
+
+			//step := resp.Model.Properties.Step
+
+			//if _, ok := step.(registries.DockerBuildRequest); ok {
+			//}
+			//switch resp.TaskProperties.Step.(type) {
+			//case tasks.DockerBuildStep:
+			//	req.Type = tasks.TypeDockerBuildRequest
+			//case tasks.FileTaskStep:
+			//	req.Type = tasks.TypeFileTaskRunRequest
+			//case tasks.EncodedTaskStep:
+			//	req.Type = tasks.TypeEncodedTaskRunRequest
+			//default:
+			//	return fmt.Errorf("unexpected container registry task step type: %T", resp.TaskProperties.Step)
+			//}
+
+			registryId := registries.NewRegistryID(taskId.SubscriptionId, taskId.ResourceGroupName, taskId.RegistryName)
+			registryClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Registries
+			if err := registryClient.ScheduleRunThenPoll(ctx, registryId, req); err != nil {
 				return fmt.Errorf("scheduling the task: %v", err)
 			}
-			if err := future.WaitForCompletionRef(ctx, registryClient.Client); err != nil {
-				return fmt.Errorf("waiting for schedule: %v", err)
+
+			taskRunsClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.TaskRuns
+			run, err := taskRunsClient.List(ctx, taskruns.RegistryId(registryId))
+
+			if run.Model == nil {
+				return fmt.Errorf("model was nil for %s", registryId)
 			}
 
-			run, err := future.Result(*registryClient)
-			if err != nil {
-				return fmt.Errorf("getting the scheduled run: %v", err)
+			runName := ""
+			for _, v := range *run.Model {
+				if *v.Id == taskId.ID() {
+					runName = *v.Name
+				}
 			}
 
-			if run.Name == nil {
+			if runName == "" {
 				return fmt.Errorf("unexpected nil scheduled run name")
 			}
 
-			runsClient := metadata.Client.Containers.RunsClient
+			runsClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Runs
+
+			runId := runs.NewRunID(registryId.SubscriptionId, registryId.ResourceGroupName, registryId.RegistryName, runName)
 
 			timeout, _ := ctx.Deadline()
 			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{string(containerregistry.RunStatusQueued), string(containerregistry.RunStatusStarted), string(containerregistry.RunStatusRunning)},
-				Target:  []string{string(containerregistry.RunStatusSucceeded)},
+				Pending: []string{string(registries.RunStatusQueued), string(registries.RunStatusStarted), string(registries.RunStatusRunning)},
+				Target:  []string{string(registries.RunStatusSucceeded)},
 				Refresh: func() (interface{}, string, error) {
-					resp, err := runsClient.Get(ctx, taskId.ResourceGroup, taskId.RegistryName, *run.Name)
+					resp, err := runsClient.Get(ctx, runId)
 					if err != nil {
 						return nil, "", fmt.Errorf("getting the scheduled run: %v", err)
 					}
 
-					if resp.RunProperties == nil {
-						return nil, "", fmt.Errorf("unexpected nil properties of the scheduled run")
+					if resp.Model == nil {
+						return nil, "", fmt.Errorf("model was nil for %s", runId)
 					}
 
-					return run, string(resp.RunProperties.Status), nil
+					return run, string(*resp.Model.Properties.Status), nil
 				},
 				ContinuousTargetOccurence: 1,
 				PollInterval:              5 * time.Second,
@@ -133,7 +148,7 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for scheduled task to finish: %+v", err)
 			}
 
-			metadata.SetID(parse.NewContainerRegistryTaskScheduleID(taskId.SubscriptionId, taskId.ResourceGroup, taskId.RegistryName, taskId.TaskName, "schedule"))
+			metadata.SetID(parse.NewContainerRegistryTaskScheduleID(taskId.SubscriptionId, taskId.ResourceGroupName, taskId.RegistryName, taskId.TaskName, "schedule"))
 			return nil
 		},
 	}
@@ -148,7 +163,7 @@ func (r ContainerRegistryTaskScheduleResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			model := ContainerRegistryTaskScheduleModel{TaskId: parse.NewContainerRegistryTaskID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TaskName).ID()}
+			model := ContainerRegistryTaskScheduleModel{TaskId: tasks.NewTaskID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TaskName).ID()}
 			return metadata.Encode(&model)
 		},
 	}

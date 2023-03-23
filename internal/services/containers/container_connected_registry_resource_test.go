@@ -135,7 +135,7 @@ func TestAccContainerConnectedRegistry_requiresImport(t *testing.T) {
 }
 
 func (r ContainerConnectedRegistryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Containers.ContainerRegistryClient.ConnectedRegistries
+	client := clients.Containers.ContainerRegistryClient_v2021_08_01_preview.ConnectedRegistries
 
 	id, err := connectedregistries.ParseConnectedRegistryID(state.ID)
 	if err != nil {
