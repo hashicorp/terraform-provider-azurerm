@@ -89,7 +89,7 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			Type:     pluginsdk.TypeInt,
 			Required: true,
 			ValidateFunc: validation.All(
-				validation.IntBetween(131072, 16777216),
+				validation.IntBetween(32768, 16777216),
 				validation.IntDivisibleBy(1024),
 			),
 		},
@@ -98,6 +98,7 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			Type:     pluginsdk.TypeInt,
 			Required: true,
 			ValidateFunc: validation.IntInSlice([]int{
+				1,
 				2,
 				4,
 				8,
@@ -205,7 +206,7 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			Optional: true,
 			Computed: true,
 			ValidateFunc: validation.All(
-				validation.IntBetween(131072, 16777216),
+				validation.IntBetween(32768, 16777216),
 				validation.IntDivisibleBy(1024),
 			),
 		},
@@ -215,6 +216,7 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			Optional: true,
 			Computed: true,
 			ValidateFunc: validation.IntInSlice([]int{
+				1,
 				2,
 				4,
 				8,

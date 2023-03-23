@@ -41,9 +41,9 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The password of the administrator login.
 
-* `coordinator_storage_quota_in_mb` - (Required) The coordinator storage allowed for the PostgreSQL HyperScale Cluster. Possible values are `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608` and `16777216`.
+* `coordinator_storage_quota_in_mb` - (Required) The coordinator storage allowed for the PostgreSQL HyperScale Cluster. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608` and `16777216`.
 
-* `coordinator_vcores` - (Required) The coordinator vCores count for the PostgreSQL HyperScale Cluster. Possible values are `2`, `4`, `8`, `16`, `32`, `64` and `96`.
+* `coordinator_vcores` - (Required) The coordinator vCores count for the PostgreSQL HyperScale Cluster. Possible values are `1`, `2`, `4`, `8`, `16`, `32`, `64` and `96`.
 
 * `node_count` - (Required) The worker node count of the PostgreSQL HyperScale Cluster. Possible value is between `0` and `20` except `1`.
 
@@ -61,9 +61,9 @@ The following arguments are supported:
 
 * `node_server_edition` - (Optional) The edition of the node server. Defaults to `MemoryOptimized`.
 
-* `node_storage_quota_in_mb` - (Optional) The storage quota in MB on each worker node. Possible values are `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608` and `16777216`.
+* `node_storage_quota_in_mb` - (Optional) The storage quota in MB on each worker node. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608` and `16777216`.
 
-* `node_vcores` - (Optional) The vCores count on each worker node. Possible values are `2`, `4`, `8`, `16`, `32`, `64`, `96` and `104`.
+* `node_vcores` - (Optional) The vCores count on each worker node. Possible values are `1`, `2`, `4`, `8`, `16`, `32`, `64`, `96` and `104`.
 
 * `point_in_time_in_utc` - (Optional) The date and time in UTC (ISO8601 format) for the PostgreSQL HyperScale cluster restore. Changing this forces a new resource to be created.
 
