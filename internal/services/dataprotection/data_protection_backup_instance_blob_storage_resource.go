@@ -17,6 +17,7 @@ import (
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -50,23 +51,26 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 			"location": commonschema.Location(),
 
 			"vault_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: backupinstances.ValidateBackupVaultID,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateFunc:     backupinstances.ValidateBackupVaultID,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"storage_account_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateFunc:     storageValidate.StorageAccountID,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"backup_policy_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: backuppolicies.ValidateBackupPolicyID,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateFunc:     backuppolicies.ValidateBackupPolicyID,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 		},
 	}
