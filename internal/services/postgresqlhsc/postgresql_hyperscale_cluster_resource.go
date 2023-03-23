@@ -3,7 +3,6 @@ package postgresqlhsc
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -186,9 +185,10 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"node_vcores": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Computed: true,
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntAtMost(104),
 		},
 
 		"point_in_time_in_utc": {
@@ -208,7 +208,7 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"source_location": {
-			Type:             schema.TypeString,
+			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ForceNew:         true,
 			StateFunc:        location.StateFunc,
