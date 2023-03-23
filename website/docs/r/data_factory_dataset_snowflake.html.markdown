@@ -25,17 +25,15 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_snowflake" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_id     = azurerm_data_factory.example.id
-  connection_string   = "jdbc:snowflake://account.region.snowflakecomputing.com/?user=user&db=db&warehouse=wh"
+  name              = "example"
+  data_factory_id   = azurerm_data_factory.example.id
+  connection_string = "jdbc:snowflake://account.region.snowflakecomputing.com/?user=user&db=db&warehouse=wh"
 }
 
 resource "azurerm_data_factory_dataset_snowflake" "example" {
   name                = "example"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  linked_service_name = azurerm_data_factory_linked_service_snowflake.test.name
+  data_factory_id     = azurerm_data_factory.example.id
+  linked_service_name = azurerm_data_factory_linked_service_snowflake.example.name
 
   schema_name = "foo_schema"
   table_name  = "foo_table"
@@ -46,17 +44,9 @@ resource "azurerm_data_factory_dataset_snowflake" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Data Factory Dataset Snowflake. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Dataset Snowflake. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Dataset Snowflake. Changing this forces a new resource
-
-* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
-
-* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
-
--> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
-
--> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `linked_service_name` - (Required) The Data Factory Linked Service name in which to associate the Dataset with.
 
@@ -78,19 +68,7 @@ The following arguments are supported:
 
 ---
 
-~> **NOTE:** This block has been deprecated in favour of the `schema_column`.
-
-A `structure_column` block supports the following (Conflicts with `schema_column`):
-
-* `name` - (Required) The name of the column.
-
-* `type` - (Optional) Type of the column. Valid values are `Byte`, `Byte[]`, `Boolean`, `Date`, `DateTime`,`DateTimeOffset`, `Decimal`, `Double`, `Guid`, `Int16`, `Int32`, `Int64`, `Single`, `String`, `TimeSpan`. Please note these values are case sensitive.
-
-* `description` - (Optional) The description of the column.
-
----
-
-A `schema_column` block supports the following (Conflicts with `structure_column`):
+A `schema_column` block supports the following:
 
 * `name` - (Required) The name of the column.
 
@@ -108,7 +86,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Snowflake Dataset.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Snowflake Dataset.

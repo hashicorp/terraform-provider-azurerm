@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -121,21 +121,28 @@ func dataSourceArmRoleDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	// search by name
 	var role authorization.RoleDefinition
 	if name != "" {
-		roleDefinitions, err := client.List(ctx, scope, fmt.Sprintf("roleName eq '%s'", name))
-		if err != nil {
-			return fmt.Errorf("loading Role Definition List: %+v", err)
-		}
-		if len(roleDefinitions.Values()) != 1 {
-			return fmt.Errorf("loading Role Definition List: could not find role '%s'", name)
-		}
-		if roleDefinitions.Values()[0].ID == nil {
-			return fmt.Errorf("loading Role Definition List: values[0].ID is nil '%s'", name)
-		}
+		// Accounting for eventual consistency
+		err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutRead), func() *pluginsdk.RetryError {
+			roleDefinitions, err := client.List(ctx, scope, fmt.Sprintf("roleName eq '%s'", name))
+			if err != nil {
+				return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: %+v", err))
+			}
+			if len(roleDefinitions.Values()) != 1 {
+				return pluginsdk.RetryableError(fmt.Errorf("loading Role Definition List: could not find role '%s'", name))
+			}
+			if roleDefinitions.Values()[0].ID == nil {
+				return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: values[0].ID is nil '%s'", name))
+			}
 
-		defId = *roleDefinitions.Values()[0].ID
-		role, err = client.GetByID(ctx, defId)
+			defId = *roleDefinitions.Values()[0].ID
+			role, err = client.GetByID(ctx, defId)
+			if err != nil {
+				return pluginsdk.NonRetryableError(fmt.Errorf("getting Role Definition by ID %s: %+v", defId, err))
+			}
+			return nil
+		})
 		if err != nil {
-			return fmt.Errorf("Getting Role Definition by ID %s: %+v", defId, err)
+			return err
 		}
 	} else {
 		var err error

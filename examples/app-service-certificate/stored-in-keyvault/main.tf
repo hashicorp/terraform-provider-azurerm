@@ -25,8 +25,8 @@ resource "azurerm_key_vault_access_policy" "current_user" {
   object_id = data.azurerm_client_config.current.object_id
 
   certificate_permissions = [
-    "get",
-    "import"
+    "Get",
+    "Import"
   ]
 }
 
@@ -41,11 +41,11 @@ resource "azurerm_key_vault_access_policy" "web_app_resource_provider" {
   object_id = data.azuread_service_principal.web_app_resource_provider.id
 
   secret_permissions = [
-    "get"
+    "Get"
   ]
 
   certificate_permissions = [
-    "get"
+    "Get"
   ]
 }
 

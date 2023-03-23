@@ -11,15 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/sdk/2017-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -52,9 +50,9 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 				ValidateFunc: validate.ServerName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -109,7 +107,7 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: hashAnalysisServicesServerIpv4FirewallRule,
+				Set: hashAnalysisServicesServerIPv4FirewallRule,
 			},
 
 			"querypool_connection_mode": {
@@ -119,8 +117,7 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.ConnectionModeAll),
 					string(servers.ConnectionModeReadOnly),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"backup_blob_container_uri": {
@@ -141,7 +138,7 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 }
 
 func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AnalysisServices.ServerClient
+	client := meta.(*clients.Client).AnalysisServices.Servers
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +178,7 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AnalysisServices.ServerClient
+	client := meta.(*clients.Client).AnalysisServices.Servers
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -200,8 +197,8 @@ func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ServerName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := server.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
@@ -241,7 +238,7 @@ func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AnalysisServices.ServerClient
+	client := meta.(*clients.Client).AnalysisServices.Servers
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -303,7 +300,7 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceAnalysisServicesServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AnalysisServices.ServerClient
+	client := meta.(*clients.Client).AnalysisServices.Servers
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -326,7 +323,7 @@ func expandAnalysisServicesServerProperties(d *pluginsdk.ResourceData) *servers.
 		AsAdministrators: adminUsers,
 	}
 
-	serverProperties.IpV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
+	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
 	if querypoolConnectionMode, ok := d.GetOk("querypool_connection_mode"); ok {
 		connectionMode := servers.ConnectionMode(querypoolConnectionMode.(string))
@@ -347,7 +344,7 @@ func expandAnalysisServicesServerMutableProperties(d *pluginsdk.ResourceData) *s
 		AsAdministrators: adminUsers,
 	}
 
-	serverProperties.IpV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
+	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
 	connectionMode := servers.ConnectionMode(d.Get("querypool_connection_mode").(string))
 	serverProperties.QuerypoolConnectionMode = &connectionMode
@@ -396,11 +393,11 @@ func expandAnalysisServicesServerFirewallSettings(d *pluginsdk.ResourceData) *se
 }
 
 func flattenAnalysisServicesServerFirewallSettings(serverProperties *servers.AnalysisServicesServerProperties) (*bool, *pluginsdk.Set) {
-	if serverProperties == nil || serverProperties.IpV4FirewallSettings == nil {
-		return utils.Bool(false), pluginsdk.NewSet(hashAnalysisServicesServerIpv4FirewallRule, make([]interface{}, 0))
+	if serverProperties == nil || serverProperties.IPV4FirewallSettings == nil {
+		return utils.Bool(false), pluginsdk.NewSet(hashAnalysisServicesServerIPv4FirewallRule, make([]interface{}, 0))
 	}
 
-	firewallSettings := serverProperties.IpV4FirewallSettings
+	firewallSettings := serverProperties.IPV4FirewallSettings
 
 	enablePowerBi := utils.Bool(false)
 	if firewallSettings.EnablePowerBIService != nil {
@@ -427,10 +424,10 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *servers.Ana
 		}
 	}
 
-	return enablePowerBi, pluginsdk.NewSet(hashAnalysisServicesServerIpv4FirewallRule, fwRules)
+	return enablePowerBi, pluginsdk.NewSet(hashAnalysisServicesServerIPv4FirewallRule, fwRules)
 }
 
-func hashAnalysisServicesServerIpv4FirewallRule(v interface{}) int {
+func hashAnalysisServicesServerIPv4FirewallRule(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 

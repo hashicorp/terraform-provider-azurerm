@@ -10,6 +10,8 @@ description: |-
 
 Manages a Disk Pool Managed Disk Attachment.
 
+!> **Note:** Azure are officially [halting](https://learn.microsoft.com/en-us/azure/azure-vmware/attach-disk-pools-to-azure-vmware-solution-hosts?tabs=azure-cli) the preview of Azure Disk Pools, and it **will not** be made generally available. New customers will not be able to register the Microsoft.StoragePool resource provider on their subscription and deploy new Disk Pools. Existing subscriptions registered with Microsoft.StoragePool may continue to deploy and manage disk pools for the time being.
+
 ~> **Note:** Must be either a premium SSD, standard SSD, or an ultra disk in the same region and availability zone as the disk pool.
 
 ~> **Note:** Ultra disks must have a disk sector size of 512 bytes.
@@ -65,7 +67,7 @@ resource "azurerm_managed_disk" "example" {
   storage_account_type = "Premium_LRS"
   disk_size_gb         = 4
   max_shares           = 2
-  zones                = ["1"]
+  zone                 = "1"
 }
 
 data "azuread_service_principal" "example" {
@@ -100,17 +102,17 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Disk Pool Managed Disk Attachment.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Disks Pool Managed Disk Attachment.
+* `create` - (Defaults to 60 minutes) Used when creating the Disks Pool Managed Disk Attachment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Disks Pool Managed Disk Attachment.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Disks Pool Managed Disk Attachment.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Disks Pool Managed Disk Attachment.
 
 ## Import
 

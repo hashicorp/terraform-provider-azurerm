@@ -33,7 +33,7 @@ service/attestation:
 
 service/authorization:
   - internal/services/authorization/**/*
-  - internal/services/msi/**/*
+  - internal/services/managedidentity/**/*
 
 service/automation:
   - internal/services/automation/**/*
@@ -74,11 +74,11 @@ service/cost-management:
 service/custom-resource-provider:
   - internal/services/customproviders/**/*
 
+service/dashboard:
+  - internal/services/dashboard/**/*
+
 service/data-factory:
   - internal/services/datafactory/**/*
-
-service/data-lake:
-  - internal/services/datalake/**/*
 
 service/data-protection:
   - internal/services/dataprotection/**/*
@@ -111,6 +111,9 @@ service/dns:
 service/domain-services:
   - internal/services/domainservices/**/*
 
+service/elastic:
+  - internal/services/elastic/**/*
+
 service/event-grid:
   - internal/services/eventgrid/**/*
 
@@ -135,6 +138,9 @@ service/hpc-cache:
 service/hsm:
   - internal/services/hsm/**/*
 
+service/hybrid-compute:
+  - internal/services/hybridcompute/**/*
+
 service/iot-central:
   - internal/services/iotcentral/**/*
 
@@ -150,6 +156,9 @@ service/key-vault:
 service/kusto:
   - internal/services/kusto/**/*
 
+service/labservice:
+  - internal/services/labservice/**/*
+
 service/lighthouse:
   - internal/services/lighthouse/**/*
 
@@ -157,7 +166,7 @@ service/load-balancers:
   - internal/services/loadbalancer/**/*
 
 service/load-test:
-  - internal/services/loadtest/**/*
+  - internal/services/loadtestservice/**/*
 
 service/log-analytics:
   - internal/services/loganalytics/**/*
@@ -192,6 +201,9 @@ service/media:
 service/mixed-reality:
   - internal/services/mixedreality/**/*
 
+service/mobile-network:
+  - internal/services/mobilenetwork/**/*
+
 service/monitor:
   - internal/services/monitor/**/*
 
@@ -203,6 +215,12 @@ service/mysql:
 
 service/netapp:
   - internal/services/netapp/**/*
+
+service/network:
+  - internal/services/network/**/*
+
+service/nginx:
+  - internal/services/nginx/**/*
 
 service/notifications:
   - internal/services/notificationhub/**/*
@@ -218,6 +236,9 @@ service/postgresql:
 
 service/power-bi:
   - internal/services/powerbi/**/*
+
+service/private-dns-resolver:
+  - internal/services/privatednsresolver/**/*
 
 service/purview:
   - internal/services/purview/**/*

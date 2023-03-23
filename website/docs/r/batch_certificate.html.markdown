@@ -64,7 +64,9 @@ The following arguments are supported:
 
 * `password` - (Optional) The password to access the certificate's private key. This can only be specified when `format` is `Pfx`.
 
-* `thumbprint` - (Required) The thumbprint of the certificate. At this time the only supported value is 'SHA1'.
+* `thumbprint` - (Required) The thumbprint of the certificate. Changing this forces a new resource to be created.
+
+* `thumbprint_algorithm` - (Required) The algorithm of the certificate thumbprint. At this time the only supported value is `SHA1`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -78,7 +80,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Batch Certificate.
 * `update` - (Defaults to 30 minutes) Used when updating the Batch Certificate.
@@ -90,5 +92,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Batch Certificates can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_batch_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Batch/batchAccounts/batch1/certificates/certificate1
+terraform import azurerm_batch_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Batch/batchAccounts/batch1/certificates/certificate1
 ```

@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KustoClusterResource struct{}
@@ -40,6 +38,11 @@ func TestAccKustoCluster_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allowed_fqdns.#").HasValue("1"),
+				check.That(data.ResourceName).Key("allowed_fqdns.0").HasValue("255.255.255.0/24"),
+				check.That(data.ResourceName).Key("allowed_ip_ranges.#").HasValue("1"),
+				check.That(data.ResourceName).Key("allowed_ip_ranges.0").HasValue("0.0.0.0/0"),
+				check.That(data.ResourceName).Key("outbound_network_access_restricted").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -58,6 +61,7 @@ func TestAccKustoCluster_update(t *testing.T) {
 				check.That(data.ResourceName).Key("disk_encryption_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("streaming_ingestion_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("purge_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("public_ip_type").HasValue("IPv4"),
 			),
 		},
 		data.ImportStep(),
@@ -68,6 +72,7 @@ func TestAccKustoCluster_update(t *testing.T) {
 				check.That(data.ResourceName).Key("disk_encryption_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("streaming_ingestion_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("purge_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("public_ip_type").HasValue("DualStack"),
 			),
 		},
 		data.ImportStep(),
@@ -78,6 +83,7 @@ func TestAccKustoCluster_update(t *testing.T) {
 				check.That(data.ResourceName).Key("disk_encryption_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("streaming_ingestion_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("purge_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("public_ip_type").HasValue("IPv4"),
 			),
 		},
 		data.ImportStep(),
@@ -245,8 +251,6 @@ func TestAccKustoCluster_languageExtensions(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("language_extensions.#").HasValue("2"),
-				check.That(data.ResourceName).Key("language_extensions.0").HasValue("PYTHON"),
-				check.That(data.ResourceName).Key("language_extensions.1").HasValue("R"),
 			),
 		},
 		data.ImportStep(),
@@ -313,48 +317,6 @@ func TestAccKustoCluster_engineV3(t *testing.T) {
 }
 
 func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
-	if features.ThreePointOhBeta() {
-		t.Skip("Skipping since 3.0 mode is enabled")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
-	r := KustoClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("trusted_external_tenants"),
-		{
-			Config: r.trustedExternalTenants(data, "[\"*\"]"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.trustedExternalTenants(data, "[\"MyTenantOnly\"]"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.trustedExternalTenants(data, "[data.azurerm_client_config.current.tenant_id]"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKustoCluster_trustedExternalTenantsThreePointOh(t *testing.T) {
-	if !features.ThreePointOhBeta() {
-		t.Skip("Skipping since 3.0 mode is disabled")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 	r := KustoClusterResource{}
 
@@ -390,18 +352,45 @@ func TestAccKustoCluster_trustedExternalTenantsThreePointOh(t *testing.T) {
 	})
 }
 
+func TestAccKustoCluster_newSkus(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.newSkus(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_L8s_v3"),
+				check.That(data.ResourceName).Key("allowed_fqdns.#").HasValue("1"),
+				check.That(data.ResourceName).Key("allowed_fqdns.0").HasValue("255.255.255.0/24"),
+				check.That(data.ResourceName).Key("allowed_ip_ranges.#").HasValue("1"),
+				check.That(data.ResourceName).Key("allowed_ip_ranges.0").HasValue("0.0.0.0/0"),
+				check.That(data.ResourceName).Key("outbound_network_access_restricted").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KustoClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ClusterID(state.ID)
+	id, err := clusters.ParseClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Kusto.ClustersClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Kusto.ClustersClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ClusterProperties != nil), nil
+	if resp.Model == nil {
+		return nil, fmt.Errorf("response model is empty")
+	}
+
+	exists := resp.Model.Properties != nil
+
+	return &exists, nil
 }
 
 func (KustoClusterResource) basic(data acceptance.TestData) string {
@@ -439,13 +428,17 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kusto_cluster" "test" {
-  name                          = "acctestkc%s"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  public_network_access_enabled = false
+  name                               = "acctestkc%s"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  allowed_fqdns                      = ["255.255.255.0/24"]
+  allowed_ip_ranges                  = ["0.0.0.0/0"]
+  public_network_access_enabled      = false
+  public_ip_type                     = "DualStack"
+  outbound_network_access_restricted = true
   sku {
-    name     = "Dev(No SLA)_Standard_D11_v2"
-    capacity = 1
+    name     = "Standard_D13_v2"
+    capacity = 2
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -631,6 +624,7 @@ resource "azurerm_kusto_cluster" "test" {
   disk_encryption_enabled     = true
   streaming_ingestion_enabled = true
   purge_enabled               = true
+  public_ip_type              = "DualStack"
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
@@ -899,7 +893,7 @@ resource "azurerm_network_security_group" "test" {
 
 resource "azurerm_network_security_rule" "test_allow_management_inbound" {
   name                        = "AllowAzureDataExplorerManagement"
-  priority                    = 106
+  priority                    = 1000
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
@@ -977,6 +971,32 @@ resource "azurerm_kusto_cluster" "test" {
     capacity = 1
   }
   engine = "V3"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (KustoClusterResource) newSkus(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_kusto_cluster" "test" {
+  name                               = "acctestkc%s"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  allowed_fqdns                      = ["255.255.255.0/24"]
+  allowed_ip_ranges                  = ["0.0.0.0/0"]
+  public_network_access_enabled      = false
+  public_ip_type                     = "DualStack"
+  outbound_network_access_restricted = true
+  sku {
+    name     = "Standard_L8s_v3"
+    capacity = 2
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

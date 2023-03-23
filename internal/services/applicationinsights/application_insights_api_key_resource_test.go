@@ -24,7 +24,7 @@ func TestAccApplicationInsightsAPIKey_no_permission(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basic(data, "[]", "[]"),
-			ExpectError: regexp.MustCompile("The API Key needs to have a Role"),
+			ExpectError: regexp.MustCompile("at least one read or write permission must be defined"),
 		},
 	})
 }

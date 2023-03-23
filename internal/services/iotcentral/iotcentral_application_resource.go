@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -30,7 +30,7 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 		Delete: resourceIotCentralAppDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ApplicationID(id)
+			_, err := apps.ParseIotAppID(id)
 			return err
 		}),
 
@@ -54,9 +54,9 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 				ValidateFunc: validate.ApplicationName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sub_domain": {
 				Type:         pluginsdk.TypeString,
@@ -71,26 +71,33 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 				ValidateFunc: validate.ApplicationDisplayName,
 			},
 
+			"identity": commonschema.SystemAssignedIdentityOptional(),
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(iotcentral.F1),
-					string(iotcentral.S1),
-					string(iotcentral.ST1),
-					string(iotcentral.ST2),
-				}, !features.ThreePointOhBeta()),
-				Default:          iotcentral.ST1,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+					string(apps.AppSkuSTOne),
+					string(apps.AppSkuSTTwo),
+					string(apps.AppSkuSTZero),
+				}, false),
+				Default: string(apps.AppSkuSTOne),
 			},
 			"template": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				Computed:     true,
 				ValidateFunc: validate.ApplicationTemplateName,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -101,59 +108,74 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	id := parse.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, resourceGroup, name)
+	id := apps.NewIotAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_iotcentral_application", id.ID())
 	}
 
-	resp, err := client.CheckNameAvailability(ctx, iotcentral.OperationInputs{
-		Name: utils.String(name),
-	})
-	if err != nil {
-		return fmt.Errorf("checking if the name %q was globally available:  %+v", id.IoTAppName, err)
+	inputs := apps.OperationInputs{
+		Name: id.IotAppName,
 	}
-	if !*resp.NameAvailable {
-		return fmt.Errorf("the name %q cannot be used. Reason: %q Message: %q", name, *resp.Reason, *resp.Message)
+
+	resp, err := client.CheckNameAvailability(ctx, commonids.NewSubscriptionID(id.SubscriptionId), inputs)
+	if err != nil {
+		return fmt.Errorf("checking if the name %q was globally available: %+v", id.IotAppName, err)
+	}
+	if model := resp.Model; model != nil {
+		if !*model.NameAvailable {
+			return fmt.Errorf("the name %q cannot be used. Reason: %q Message: %q", id.IotAppName, *model.Reason, *model.Message)
+		}
 	}
 
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
-		displayName = name
+		displayName = id.IotAppName
+		if !features.FourPointOhBeta() {
+			displayName = id.ResourceGroupName
+		}
+	}
+
+	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	subdomain := d.Get("sub_domain").(string)
 	template := d.Get("template").(string)
-	location := d.Get("location").(string)
-	app := iotcentral.App{
-		AppProperties: &iotcentral.AppProperties{
-			DisplayName: &displayName,
-			Subdomain:   &subdomain,
-			Template:    &template,
+	publicNetworkAccess := apps.PublicNetworkAccessEnabled
+	app := apps.App{
+		Properties: &apps.AppProperties{
+			DisplayName:         &displayName,
+			PublicNetworkAccess: &publicNetworkAccess,
+			Subdomain:           &subdomain,
+			Template:            &template,
 		},
-		Sku: &iotcentral.AppSkuInfo{
-			Name: iotcentral.AppSku(d.Get("sku").(string)),
+		Sku: apps.AppSkuInfo{
+			Name: apps.AppSku(d.Get("sku").(string)),
 		},
-		Location: &location,
+		Identity: identity,
+		Location: d.Get("location").(string),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IoTAppName, app)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, app); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+	// Public Network Access can only be disabled after creation
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess := apps.PublicNetworkAccessDisabled
+		app.Properties.PublicNetworkAccess = &publicNetworkAccess
+		if err := client.CreateOrUpdateThenPoll(ctx, id, app); err != nil {
+			return fmt.Errorf("updating `public_network_access_enabled` to false for %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -165,33 +187,60 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApplicationID(d.Id())
+	id, err := apps.ParseIotAppID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	displayName := d.Get("display_name").(string)
-	if displayName == "" {
-		displayName = id.IoTAppName
+	existing, err := client.Get(ctx, *id)
+	if err != nil || existing.Model == nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	subdomain := d.Get("sub_domain").(string)
-	template := d.Get("template").(string)
-	appPatch := iotcentral.AppPatch{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-		AppProperties: &iotcentral.AppProperties{
-			DisplayName: &displayName,
-			Subdomain:   &subdomain,
-			Template:    &template,
-		},
+	if existing.Model.Properties == nil {
+		existing.Model.Properties = &apps.AppProperties{}
 	}
-	future, err := client.Update(ctx, id.ResourceGroup, id.IoTAppName, appPatch)
-	if err != nil {
+
+	if d.HasChange("sub_domain") {
+		existing.Model.Properties.Subdomain = utils.String(d.Get("sub_domain").(string))
+	}
+
+	if d.HasChange("display_name") {
+		existing.Model.Properties.DisplayName = utils.String(d.Get("display_name").(string))
+	}
+
+	if d.HasChange("sku") {
+		existing.Model.Sku = apps.AppSkuInfo{
+			Name: apps.AppSku(d.Get("sku").(string)),
+		}
+	}
+
+	if d.HasChange("template") {
+		existing.Model.Properties.Template = utils.String(d.Get("template").(string))
+	}
+
+	if d.HasChange("tags") {
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("identity") {
+		identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		existing.Model.Identity = identity
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := apps.PublicNetworkAccessDisabled
+		if d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = apps.PublicNetworkAccessEnabled
+		}
+		existing.Model.Properties.PublicNetworkAccess = &publicNetworkAccess
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
 	return resourceIotCentralAppRead(d, meta)
@@ -202,35 +251,50 @@ func resourceIotCentralAppRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApplicationID(d.Id())
+	id, err := apps.ParseIotAppID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.IoTAppName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.IoTAppName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.IotAppName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if err := d.Set("sku", resp.Sku.Name); err != nil {
-		return fmt.Errorf("setting `sku`: %+v", err)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		d.Set("sku", model.Sku.Name)
+
+		if props := model.Properties; props != nil {
+			d.Set("sub_domain", props.Subdomain)
+			d.Set("display_name", props.DisplayName)
+			d.Set("template", props.Template)
+
+			publicNetworkAccess := true
+			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == apps.PublicNetworkAccessDisabled {
+				publicNetworkAccess = false
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccess)
+		}
+
+		if err := d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	if props := resp.AppProperties; props != nil {
-		d.Set("sub_domain", props.Subdomain)
-		d.Set("display_name", props.DisplayName)
-		d.Set("template", props.Template)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceIotCentralAppDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -238,19 +302,13 @@ func resourceIotCentralAppDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApplicationID(d.Id())
+	id, err := apps.ParseIotAppID(d.Id())
 	if err != nil {
 		return err
 	}
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.IoTAppName)
-	if err != nil {
-		if !response.WasNotFound(resp.Response()) {
-			return fmt.Errorf("deleting %s: %+v", *id, err)
-		}
-	}
 
-	if err := resp.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

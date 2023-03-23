@@ -16,10 +16,10 @@ resource "azurerm_key_vault" "example" {
     object_id = "${data.azurerm_client_config.current.object_id}"
 
     certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
+      "Create",
+      "Delete",
+      "Get",
+      "Update",
     ]
 
     key_permissions    = []

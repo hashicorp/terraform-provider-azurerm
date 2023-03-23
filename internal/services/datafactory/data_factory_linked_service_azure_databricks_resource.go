@@ -6,11 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	databricksValidator "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -46,35 +45,19 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
-			// TODO remove in 3.0
-			"data_factory_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryName(),
-				Deprecated:   "`data_factory_name` is deprecated in favour of `data_factory_id` and will be removed in version 3.0 of the AzureRM provider",
-				ExactlyOneOf: []string{"data_factory_id"},
-			},
-
 			"data_factory_id": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true, // TODO set to Required in 3.0
-				Computed:     true, // TODO remove in 3.0
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryID,
-				ExactlyOneOf: []string{"data_factory_name"},
 			},
-
-			// There's a bug in the Azure API where this is returned in lower-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			// Authentication types
 			"msi_work_space_resource_id": {
+				// TODO: rename this to `msi_workspace_id` in v4.0
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: databricksValidator.WorkspaceID,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 				ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password"},
 			},
 
@@ -152,12 +135,12 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      "1",
-							ValidateFunc: validation.IntBetween(1, 10),
+							ValidateFunc: validation.IntBetween(1, 25000),
 						},
 						"max_number_of_workers": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 10),
+							ValidateFunc: validation.IntBetween(1, 25000),
 						},
 						"cluster_version": {
 							Type:         pluginsdk.TypeString,
@@ -213,12 +196,12 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      1,
-							ValidateFunc: validation.IntBetween(1, 10),
+							ValidateFunc: validation.IntBetween(1, 25000),
 						},
 						"max_number_of_workers": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 10),
+							ValidateFunc: validation.IntBetween(1, 25000),
 						},
 						"instance_pool_id": {
 							Type:         pluginsdk.TypeString,
@@ -274,18 +257,9 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// TODO 3.0: remove/simplify this after deprecation
-	var err error
-	var dataFactoryId *parse.DataFactoryId
-	if v := d.Get("data_factory_name").(string); v != "" {
-		newDataFactoryId := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string))
-		dataFactoryId = &newDataFactoryId
-	}
-	if v := d.Get("data_factory_id").(string); v != "" {
-		dataFactoryId, err = parse.DataFactoryID(v)
-		if err != nil {
-			return err
-		}
+	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	if err != nil {
+		return err
 	}
 
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
@@ -470,9 +444,6 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	// TODO 3.0: remove
-	d.Set("data_factory_name", id.FactoryName)
 	d.Set("data_factory_id", dataFactoryId.ID())
 
 	databricks, ok := resp.Properties.AsAzureDatabricksLinkedService()

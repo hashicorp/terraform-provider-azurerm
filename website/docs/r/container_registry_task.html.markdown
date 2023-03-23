@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 resource "azurerm_container_registry" "example" {
-  name                = "example-acr"
+  name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku                 = "Basic"
@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should this Container Registry Task be enabled? Defaults to `true`.
 
-* `identity` - (Optional) A `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `platform` - (Optional) A `platform` block as defined below.
 
@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Container Registry Task.
 
-* `timeout_in_seconds` - (Optional) The timeout of this Container Registry Task in seconds. The valid range lies from 300 to 28800. Defaults to 3600.
+* `timeout_in_seconds` - (Optional) The timeout of this Container Registry Task in seconds. The valid range lies from 300 to 28800. Defaults to `3600`.
 
 ---
 
@@ -129,7 +129,7 @@ A `custom` block supports the following:
 
 * `login_server` - (Required) The login server of the custom Container Registry.
 
-* `identity` - (Optional) The managed identity assigned to this custom credential. For user assigned identity, the value is the client ID of the identity. For system assigned identity, the value is `system`.
+* `identity` - (Optional) The managed identity assigned to this custom credential. For user assigned identity, the value is the client ID of the identity. For system assigned identity, the value is `[system]`.
 
 * `password` - (Optional) The password for logging into the custom Container Registry. It can be either a plain text of password, or a Keyvault Secret ID.
 
@@ -143,7 +143,7 @@ A `docker_step` block supports the following:
 
 * `context_path` - (Required) The URL (absolute or relative) of the source context for this step.
 
-* `dockerfile_path` - (Required) The  Dockerfile path relative to the source context.
+* `dockerfile_path` - (Required) The Dockerfile path relative to the source context.
 
 * `arguments` - (Optional) Specifies a map of arguments to be used when executing this step.
 
@@ -163,9 +163,9 @@ A `encoded_step` block supports the following:
 
 * `task_content` - (Required) The (optionally base64 encoded) content of the build template.
 
-* `context_access_token` - (Required) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
+* `context_access_token` - (Optional) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
 
-* `context_path` - (Required) The URL (absolute or relative) of the source context for this step.
+* `context_path` - (Optional) The URL (absolute or relative) of the source context for this step.
 
 * `secret_values` - (Optional) Specifies a map of secret values that can be passed when running a task.
 
@@ -179,9 +179,9 @@ A `file_step` block supports the following:
 
 * `task_file_path` - (Required) The task template file path relative to the source context.
 
-* `context_access_token` - (Required) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
+* `context_access_token` - (Optional) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
 
-* `context_path` - (Required) The URL (absolute or relative) of the source context for this step.
+* `context_path` - (Optional) The URL (absolute or relative) of the source context for this step.
 
 * `secret_values` - (Optional) Specifies a map of secret values that can be passed when running a task.
 
@@ -191,11 +191,13 @@ A `file_step` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of the identity. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Container Registry Task. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of user assigned identity IDs.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Container Registry Task.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -251,13 +253,23 @@ A `timer_trigger` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container Registry Task.
 
+* `identity` - An `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry Task.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry Task.

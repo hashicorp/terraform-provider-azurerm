@@ -5,7 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2020-03-30/healthcareapis"
+	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -47,18 +48,18 @@ func resourceHealthcareService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"kind": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(healthcareapis.Fhir),
+				Default:  string(healthcareapis.KindFhir),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(healthcareapis.Fhir),
-					string(healthcareapis.FhirR4),
-					string(healthcareapis.FhirStu3),
+					string(healthcareapis.KindFhir),
+					string(healthcareapis.KindFhirR4),
+					string(healthcareapis.KindFhirStu3),
 				}, false),
 			},
 
@@ -66,7 +67,7 @@ func resourceHealthcareService() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1000,
-				ValidateFunc: validation.IntBetween(1, 10000),
+				ValidateFunc: validation.IntBetween(1, 100000),
 			},
 
 			"cosmosdb_key_vault_key_versionless_id": {
@@ -246,9 +247,9 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	publicNetworkAccess := d.Get("public_network_access_enabled").(bool)
 	if !publicNetworkAccess {
-		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.Disabled
+		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.PublicNetworkAccessDisabled
 	} else {
-		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.Enabled
+		healthcareServiceDescription.Properties.PublicNetworkAccess = healthcareapis.PublicNetworkAccessEnabled
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, healthcareServiceDescription)
@@ -311,7 +312,7 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		d.Set("cosmosdb_key_vault_key_versionless_id", cosmodDbKeyVaultKeyVersionlessId)
 		d.Set("cosmosdb_throughput", cosmosDbThroughput)
-		if props.PublicNetworkAccess == healthcareapis.Enabled {
+		if props.PublicNetworkAccess == healthcareapis.PublicNetworkAccessEnabled {
 			d.Set("public_network_access_enabled", true)
 		} else {
 			d.Set("public_network_access_enabled", false)

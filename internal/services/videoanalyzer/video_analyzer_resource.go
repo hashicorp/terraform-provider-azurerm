@@ -6,16 +6,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/videoanalyzer/2021-05-01-preview/videoanalyzers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/sdk/2021-05-01-preview/videoanalyzer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -36,9 +35,11 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := videoanalyzer.ParseVideoAnalyzerID(id)
+			_, err := videoanalyzers.ParseVideoAnalyzerID(id)
 			return err
 		}),
+
+		DeprecationMessage: `Video Analyzer (Preview) is now Deprecated and will be Retired on 2022-11-30 - as such the 'azurerm_video_analyzer' resource is deprecated and will be removed in v4.0 of the AzureRM Provider`,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -48,9 +49,9 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 				ValidateFunc: validate.VideoAnalyzerName(),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"storage_account": {
 				Type:     pluginsdk.TypeList,
@@ -67,7 +68,7 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 						"user_assigned_identity_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: msivalidate.UserAssignedIdentityID,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 					},
 				},
@@ -86,7 +87,7 @@ func resourceVideoAnalyzerCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := videoanalyzer.NewVideoAnalyzerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := videoanalyzers.NewVideoAnalyzerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.VideoAnalyzersGet(ctx, id)
 		if err != nil {
@@ -104,13 +105,13 @@ func resourceVideoAnalyzerCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-	parameters := videoanalyzer.VideoAnalyzer{
-		Properties: &videoanalyzer.VideoAnalyzerPropertiesUpdate{
+	parameters := videoanalyzers.VideoAnalyzer{
+		Properties: &videoanalyzers.VideoAnalyzerPropertiesUpdate{
 			StorageAccounts: expandVideoAnalyzerStorageAccounts(d),
 		},
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
 		Identity: identity,
-		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.VideoAnalyzersCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -126,7 +127,7 @@ func resourceVideoAnalyzerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := videoanalyzer.ParseVideoAnalyzerID(d.Id())
+	id, err := videoanalyzers.ParseVideoAnalyzerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -142,21 +143,20 @@ func resourceVideoAnalyzerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.AccountName)
+	d.Set("name", id.VideoAnalyzerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
 
-		props := resp.Model.Properties
-		if props != nil {
+		if props := model.Properties; props != nil {
 			accounts := flattenVideoAnalyzerStorageAccounts(props.StorageAccounts)
 			if err := d.Set("storage_account", accounts); err != nil {
 				return fmt.Errorf("flattening `storage_account`: %s", err)
 			}
 		}
 
-		flattenedIdentity, err := flattenAzureRmVideoServiceIdentity(resp.Model.Identity)
+		flattenedIdentity, err := flattenAzureRmVideoServiceIdentity(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %s", err)
 		}
@@ -165,7 +165,7 @@ func resourceVideoAnalyzerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("setting `identity`: %s", err)
 		}
 
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 	return nil
 }
@@ -175,7 +175,7 @@ func resourceVideoAnalyzerDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := videoanalyzer.ParseVideoAnalyzerID(d.Id())
+	id, err := videoanalyzers.ParseVideoAnalyzerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -187,13 +187,13 @@ func resourceVideoAnalyzerDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandVideoAnalyzerStorageAccounts(d *pluginsdk.ResourceData) *[]videoanalyzer.StorageAccount {
+func expandVideoAnalyzerStorageAccounts(d *pluginsdk.ResourceData) *[]videoanalyzers.StorageAccount {
 	storageAccountRaw := d.Get("storage_account").([]interface{})[0].(map[string]interface{})
 
-	results := []videoanalyzer.StorageAccount{
+	results := []videoanalyzers.StorageAccount{
 		{
 			Id: utils.String(storageAccountRaw["id"].(string)),
-			Identity: &videoanalyzer.ResourceIdentity{
+			Identity: &videoanalyzers.ResourceIdentity{
 				UserAssignedIdentity: storageAccountRaw["user_assigned_identity_id"].(string),
 			},
 		},
@@ -202,7 +202,7 @@ func expandVideoAnalyzerStorageAccounts(d *pluginsdk.ResourceData) *[]videoanaly
 	return &results
 }
 
-func flattenVideoAnalyzerStorageAccounts(input *[]videoanalyzer.StorageAccount) []interface{} {
+func flattenVideoAnalyzerStorageAccounts(input *[]videoanalyzers.StorageAccount) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -228,13 +228,13 @@ func flattenVideoAnalyzerStorageAccounts(input *[]videoanalyzer.StorageAccount) 
 	return results
 }
 
-func expandAzureRmVideoAnalyzerIdentity(d *pluginsdk.ResourceData) (*videoanalyzer.VideoAnalyzerIdentity, error) {
+func expandAzureRmVideoAnalyzerIdentity(d *pluginsdk.ResourceData) (*videoanalyzers.VideoAnalyzerIdentity, error) {
 	identityRaw := d.Get("identity").([]interface{})
 	if identityRaw[0] == nil {
 		return nil, fmt.Errorf("an `identity` block is required")
 	}
 	identity := identityRaw[0].(map[string]interface{})
-	result := &videoanalyzer.VideoAnalyzerIdentity{
+	result := &videoanalyzers.VideoAnalyzerIdentity{
 		Type: identity["type"].(string),
 	}
 	var identityIdSet []interface{}
@@ -242,16 +242,16 @@ func expandAzureRmVideoAnalyzerIdentity(d *pluginsdk.ResourceData) (*videoanalyz
 		identityIdSet = identityIds.(*pluginsdk.Set).List()
 	}
 
-	userAssignedIdentities := make(map[string]videoanalyzer.UserAssignedManagedIdentity)
+	userAssignedIdentities := make(map[string]videoanalyzers.UserAssignedManagedIdentity)
 	for _, id := range identityIdSet {
-		userAssignedIdentities[id.(string)] = videoanalyzer.UserAssignedManagedIdentity{}
+		userAssignedIdentities[id.(string)] = videoanalyzers.UserAssignedManagedIdentity{}
 	}
 	result.UserAssignedIdentities = &userAssignedIdentities
 
 	return result, nil
 }
 
-func flattenAzureRmVideoServiceIdentity(identity *videoanalyzer.VideoAnalyzerIdentity) ([]interface{}, error) {
+func flattenAzureRmVideoServiceIdentity(identity *videoanalyzers.VideoAnalyzerIdentity) ([]interface{}, error) {
 	if identity == nil {
 		return make([]interface{}, 0), nil
 	}
@@ -267,7 +267,7 @@ func flattenAzureRmVideoServiceIdentity(identity *videoanalyzer.VideoAnalyzerIde
 		   }
 		*/
 		for key := range *identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}

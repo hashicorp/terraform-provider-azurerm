@@ -1,5 +1,5 @@
 ---
-subcategory: "Web PubSub"
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub_network_acl"
 description: |-
@@ -70,7 +70,7 @@ resource "azurerm_web_pubsub_network_acl" "example" {
   }
 
   depends_on = [
-    azurerm_private_endpoint.test
+    azurerm_private_endpoint.example
   ]
 }
 ```
@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `web_pubsub_id` - (Required) The ID of the Web Pubsub service. Changing this forces a new resource to be created.
 
-* `default_action` - (Required) The default action to control the network access when no other rule matches. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+* `default_action` - (Optional) The default action to control the network access when no other rule matches. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
 
 * `public_network` - (Required) A `public_network` block as defined below.
 
@@ -117,7 +117,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network ACL of the Web Pubsub service
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network ACL of the Web Pubsub service

@@ -6,13 +6,28 @@ exampleDirs=$(find ./examples -mindepth 2 -maxdepth 2 -type d '!' -exec test -e 
 examplesWithErrors=()
 hasError=false
 
+# Setup a local Terraform config file for setting up the dev_overrides for this provider.
+terraformrc=$(mktemp)
+cat << EOF > $terraformrc
+provider_installation {
+  dev_overrides {
+    "hashicorp/azurerm" = "$(go env GOPATH)/bin"
+  }
+  direct {}
+}
+EOF
+
 # first check each example validates via `terraform validate`..
 for d in $exampleDirs; do
   echo "Validating $d.."
   exampleHasErrors=false
-  terraform -chdir=$d init > /dev/null || exampleHasErrors=true
+  # Though we are using the local built azurerm provider to validate example,
+  # we still need to call `terraform init` here as examples might contain other providers.
+  TF_CLI_CONFIG_FILE=$terraformrc terraform -chdir=$d init > /dev/null || exampleHasErrors=true
   if ! ${exampleHasErrors}; then
-    terraform -chdir=$d validate > /dev/null || exampleHasErrors=true
+    # Always use the local built azurerm provider to validate examples, to avoid examples using
+    # unreleased features leading to error during CI.
+    TF_CLI_CONFIG_FILE=$terraformrc terraform -chdir=$d validate > /dev/null || exampleHasErrors=true
   fi
   if ${exampleHasErrors}; then
     examplesWithErrors[${#examplesWithErrors[@]}]=$d

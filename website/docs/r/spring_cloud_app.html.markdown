@@ -49,15 +49,21 @@ The following arguments are supported:
 
 * `service_name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
 
+* `addon_json` - (Optional) A JSON object that contains the addon configurations of the Spring Cloud Service.
+
 * `custom_persistent_disk` - (Optional) A `custom_persistent_disk` block as defined below.
   
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `is_public` - (Optional) Does the Spring Cloud Application have public endpoint? Defaults to `false`.
 
-* `https_only` - (Optional) Is only https allowed? Defaults to `false`.
+* `https_only` - (Optional) Is only HTTPS allowed? Defaults to `false`.
+
+* `ingress_settings` - (Optional) An `ingress_settings` block as defined below.
 
 * `persistent_disk` - (Optional) An `persistent_disk` block as defined below.
+
+* `public_endpoint_enabled` - (Optional) Should the App in vnet injection instance exposes endpoint which could be accessed from Internet?
 
 * `tls_enabled` - (Optional) Is End to End TLS Enabled? Defaults to `false`.
 
@@ -78,7 +84,25 @@ An `custom_persistent_disk` block exports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Spring Cloud Application. Possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Spring Cloud Application. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Spring Cloud Application.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+An `ingress_settings` block supports the following:
+
+* `backend_protocol` - (Optional) Specifies how ingress should communicate with this app backend service. Allowed values are `GRPC` and `Default`. Defaults to `Default`.
+
+* `read_timeout_in_seconds` - (Optional) Specifies the ingress read time out in seconds. Defaults to `300`.
+
+* `send_timeout_in_seconds` - (Optional) Specifies the ingress send time out in seconds. Defaults to `60`.
+
+* `session_affinity` - (Optional) Specifies the type of the affinity, set this to `Cookie` to enable session affinity. Allowed values are `Cookie` and `None`. Defaults to `None`.
+
+* `session_cookie_max_age` - (Optional) Specifies the time in seconds until the cookie expires.
 
 ---
 
@@ -108,7 +132,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Application.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Application.
@@ -120,5 +144,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Spring Cloud Application can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_app.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.AppPlatform/Spring/myservice/apps/myapp
+terraform import azurerm_spring_cloud_app.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.AppPlatform/spring/myservice/apps/myapp
 ```

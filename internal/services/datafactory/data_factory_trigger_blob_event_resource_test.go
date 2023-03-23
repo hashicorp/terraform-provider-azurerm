@@ -245,9 +245,8 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name                = "acctest%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  name            = "acctest%d"
+  data_factory_id = azurerm_data_factory.test.id
 
   parameters = {
     test = "testparameter"
@@ -289,8 +288,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "blob_link" {
   name                 = "acctestsalink%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  data_factory_name    = azurerm_data_factory.test.name
+  data_factory_id      = azurerm_data_factory.test.id
   use_managed_identity = true
 
   service_endpoint = azurerm_storage_account.test.primary_blob_endpoint

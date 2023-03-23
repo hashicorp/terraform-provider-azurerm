@@ -33,11 +33,15 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the App Configuration.
 
 * `endpoint` - The Endpoint used to access this App Configuration.
+
+* `encryption` - An `encryption` block as defined below.
+
+* `local_auth_enabled` - Whether local authentication methods is enabled.
 
 * `location` - The Azure Region where the App Configuration exists.
 
@@ -45,11 +49,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `primary_write_key` - A `primary_write_key` block as defined below containing the primary write access key.
 
+* `public_network_access` - The Public Network Access setting of this App Configuration.
+
+* `purge_protection_enabled` - Whether Purge Protection is enabled.
+
 * `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.
 
 * `secondary_write_key` - A `secondary_write_key` block as defined below containing the secondary write access key.
 
 * `sku` - The name of the SKU used for this App Configuration.
+
+* `soft_delete_retention_days` - The number of days that items should be retained for once soft-deleted.
 
 * `tags` - A mapping of tags assigned to the App Configuration.
 
@@ -95,6 +105,6 @@ A `secondary_write_key` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration.

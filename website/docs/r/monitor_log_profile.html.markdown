@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_monitor_log_profile
 
-Manages a [Log Profile](https://docs.microsoft.com/en-us/azure/monitoring-and-diagnostics/monitoring-overview-activity-logs#export-the-activity-log-with-a-log-profile). A Log Profile configures how Activity Logs are exported.
+Manages a [Log Profile](https://docs.microsoft.com/azure/monitoring-and-diagnostics/monitoring-overview-activity-logs#export-the-activity-log-with-a-log-profile). A Log Profile configures how Activity Logs are exported.
 
 -> **NOTE:** It's only possible to configure one Log Profile per Subscription. If you are trying to create more than one Log Profile, an error with `StatusCode=409` will occur.
 
@@ -65,8 +65,7 @@ resource "azurerm_monitor_log_profile" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Log Profile. Changing this forces a
-    new resource to be created.
+* `name` - (Required) The name of the Log Profile. Changing this forces a new resource to be created.
 
 * `categories` - (Required) List of categories of the logs.
 
@@ -84,7 +83,7 @@ The `retention_policy` block supports:
 
 * `enabled` - (Required) A boolean value to indicate whether the retention policy is enabled.
 
-* `days` - (Optional) The number of days for the retention policy. Defaults to 0.
+* `days` - (Optional) The number of days for the retention policy. Defaults to `0`.
 
 ## Attributes Reference
 
@@ -94,7 +93,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Log Profile.
 * `update` - (Defaults to 30 minutes) Used when updating the Log Profile.

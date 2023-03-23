@@ -167,6 +167,16 @@ func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
+
+						"tag": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+
+						"filter": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
 					},
 				},
 			},
@@ -258,6 +268,14 @@ func BuildPermissionsString(perms map[string]interface{}) string {
 
 	if val, pres := perms["process"].(bool); pres && val {
 		retVal += "p"
+	}
+
+	if val, pres := perms["tag"].(bool); pres && val {
+		retVal += "t"
+	}
+
+	if val, pres := perms["filter"].(bool); pres && val {
+		retVal += "f"
 	}
 
 	return retVal

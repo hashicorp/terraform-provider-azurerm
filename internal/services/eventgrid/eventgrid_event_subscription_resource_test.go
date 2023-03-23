@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -421,7 +421,7 @@ func TestAccEventGridEventSubscription_userIdentity(t *testing.T) {
 	})
 }
 
-func (EventGridEventSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (EventGridEventSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.EventSubscriptionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -644,8 +644,7 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
@@ -674,8 +673,7 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
@@ -1162,8 +1160,7 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 
@@ -1216,8 +1213,7 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 
@@ -1262,8 +1258,7 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 
@@ -1321,8 +1316,7 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 

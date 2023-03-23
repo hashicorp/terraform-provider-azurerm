@@ -1,32 +1,36 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/firewallrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ConfigurationsClient      *mariadb.ConfigurationsClient
-	DatabasesClient           *mariadb.DatabasesClient
-	FirewallRulesClient       *mariadb.FirewallRulesClient
-	ServersClient             *mariadb.ServersClient
-	VirtualNetworkRulesClient *mariadb.VirtualNetworkRulesClient
+	ConfigurationsClient      *configurations.ConfigurationsClient
+	DatabasesClient           *databases.DatabasesClient
+	FirewallRulesClient       *firewallrules.FirewallRulesClient
+	ServersClient             *servers.ServersClient
+	VirtualNetworkRulesClient *virtualnetworkrules.VirtualNetworkRulesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	configurationsClient := mariadb.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	configurationsClient := configurations.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&configurationsClient.Client, o.ResourceManagerAuthorizer)
 
-	DatabasesClient := mariadb.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	DatabasesClient := databases.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DatabasesClient.Client, o.ResourceManagerAuthorizer)
 
-	FirewallRulesClient := mariadb.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	FirewallRulesClient := firewallrules.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	ServersClient := mariadb.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	ServersClient := servers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
 
-	VirtualNetworkRulesClient := mariadb.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	VirtualNetworkRulesClient := virtualnetworkrules.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

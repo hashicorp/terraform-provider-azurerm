@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_application_insights" "example" {
   name                = "tf-test-appinsights"
-  location            = "West Europe"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   application_type    = "web"
 }
@@ -59,8 +59,7 @@ output "webtests_synthetic_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Application Insights WebTest. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the Application Insights WebTest. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Application Insights WebTest. Changing this forces a new resource
 
@@ -68,13 +67,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. It needs to correlate with location of parent resource (azurerm_application_insights).
 
-* `kind` = (Required) The kind of web test that this web test watches. Choices are `ping` and `multistep`. Changing this forces a new resource to be created.
+* `kind` - (Required) The kind of web test that this web test watches. Choices are `ping` and `multistep`. Changing this forces a new resource to be created.
 
 * `geo_locations` - (Required) A list of where to physically run the tests from to give global coverage for accessibility of your application.
 
-~> **Note:** [Valid options for geo locations are described here](https://docs.microsoft.com/en-us/azure/azure-monitor/app/monitor-web-app-availability#location-population-tags)
+~> **Note:** [Valid options for geo locations are described here](https://docs.microsoft.com/azure/azure-monitor/app/monitor-web-app-availability#location-population-tags)
 
-* `configuration` - (Required) An XML configuration specification for a WebTest ([see here for more information](https://docs.microsoft.com/en-us/rest/api/application-insights/webtests/createorupdate/)).
+* `configuration` - (Required) An XML configuration specification for a WebTest ([see here for more information](https://docs.microsoft.com/rest/api/application-insights/webtests/createorupdate/)).
 
 * `frequency` - (Optional) Interval in seconds between test runs for this WebTest. Valid options are `300`, `600` and `900`. Defaults to `300`.
 
@@ -90,7 +89,7 @@ The following arguments are supported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Application Insights Web Test.
 * `update` - (Defaults to 30 minutes) Used when updating the Application Insights Web Test.

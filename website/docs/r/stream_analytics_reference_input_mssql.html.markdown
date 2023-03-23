@@ -8,13 +8,14 @@ description: |-
 
 # azurerm_stream_analytics_reference_input_mssql
 
-Manages a Stream Analytics Reference Input from MS SQL. Reference data (also known as a lookup table) is a finite data set that is static or slowly changing in nature, used to perform a lookup or to correlate with your data stream. Learn more [here](https://docs.microsoft.com/en-us/azure/stream-analytics/stream-analytics-use-reference-data#azure-sql-database).
+Manages a Stream Analytics Reference Input from MS SQL. Reference data (also known as a lookup table) is a finite data set that is static or slowly changing in nature, used to perform a lookup or to correlate with your data stream. Learn more [here](https://docs.microsoft.com/azure/stream-analytics/stream-analytics-use-reference-data#azure-sql-database).
 
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 data "azurerm_stream_analytics_job" "example" {
@@ -38,8 +39,8 @@ resource "azurerm_mssql_database" "example" {
 
 resource "azurerm_stream_analytics_reference_input_mssql" "example" {
   name                      = "example-reference-input"
-  resource_group_name       = azurerm_stream_analytics_job.example.resource_group_name
-  stream_analytics_job_name = azurerm_stream_analytics_job.example.name
+  resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
+  stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
   server                    = azurerm_mssql_server.example.fully_qualified_domain_name
   database                  = azurerm_mssql_database.example.name
   username                  = "exampleuser"
@@ -71,7 +72,7 @@ The following arguments are supported:
 
 * `username` - (Required) The username to connect to the MS SQL database.
 
-* `password` - (Required) The username to connect to the MS SQL database.
+* `password` - (Required) The password to connect to the MS SQL database.
 
 * `refresh_type` - (Required) Defines whether and how the reference data should be refreshed. Accepted values are `Static`, `RefreshPeriodicallyWithFull` and `RefreshPeriodicallyWithDelta`.
 
@@ -81,15 +82,17 @@ The following arguments are supported:
 
 * `delta_snapshot_query` - (Optional) The query used to retrieve incremental changes in the reference data from the MS SQL database. Cannot be set when `refresh_type` is `Static`.
 
+* `table` - (Optional) The name of the table in the Azure SQL database.
+
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Stream Analytics.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics.
@@ -101,5 +104,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Stream Analytics can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_reference_input_mssql.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/inputs/input1
+terraform import azurerm_stream_analytics_reference_input_mssql.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1/inputs/input1
 ```

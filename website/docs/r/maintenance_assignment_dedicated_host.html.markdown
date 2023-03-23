@@ -41,7 +41,7 @@ resource "azurerm_maintenance_configuration" "example" {
   name                = "example-mc"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  scope               = "All"
+  scope               = "Host"
 }
 
 resource "azurerm_maintenance_assignment_dedicated_host" "example" {
@@ -69,7 +69,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Maintenance Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Maintenance Assignment.
@@ -80,5 +80,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Maintenance Assignment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_maintenance_assignment_dedicated_host.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/hostGroups/group1/hosts/host1/providers/Microsoft.Maintenance/configurationAssignments/assign1
+terraform import azurerm_maintenance_assignment_dedicated_host.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/hostGroups/group1/hosts/host1/providers/Microsoft.Maintenance/configurationAssignments/assign1
 ```

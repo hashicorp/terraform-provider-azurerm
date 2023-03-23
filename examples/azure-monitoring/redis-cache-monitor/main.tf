@@ -1,8 +1,6 @@
 ## This code demonstrate how to setup Azure Redis Cache monitors
 
-
 provider "azurerm" {
-  version = "=2.0.0"
   features {}
 }
 

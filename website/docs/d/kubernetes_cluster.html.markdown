@@ -10,8 +10,8 @@ description: |-
 
 Use this data source to access information about an existing Managed Kubernetes Cluster (AKS).
 
-~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+~> **Note:** All arguments including the client secret will be stored in the raw state as plain text.
+[Read more about sensitive data in the state](/docs/state/sensitive-data.html).
 
 ## Example Usage
 
@@ -38,11 +38,9 @@ The following attributes are exported:
 
 * `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the primaries.
 
--> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
-
 * `aci_connector_linux` - An `aci_connector_linux` block as documented below.
 
-* `azure_active_directory_role_based_access_control` - An `azure_active_directory_role_based_access_control` block as documented below. 
+* `azure_active_directory_role_based_access_control` - An `azure_active_directory_role_based_access_control` block as documented below.
 
 * `azure_policy_enabled` - Is Azure Policy enabled on this managed Kubernetes Cluster?
 
@@ -58,9 +56,11 @@ The following attributes are exported:
 
 * `ingress_application_gateway` - An `ingress_application_gateway` block as documented below.
 
+* `key_management_service` - A `key_management_service` block as documented below.
+
 * `key_vault_secrets_provider` - A `key_vault_secrets_provider` block as documented below.
 
-* `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located                   
+* `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located
 
 -> **NOTE:**  At this time Private Link is in Public Preview.
 
@@ -74,9 +74,15 @@ The following attributes are exported:
 
 * `kubernetes_version` - The version of Kubernetes used on the managed Kubernetes Cluster.
 
-* `private_cluster_enabled` - If the cluster has the Kubernetes API only exposed on internal IP addresses.                           
+* `private_cluster_enabled` - If the cluster has the Kubernetes API only exposed on internal IP addresses.
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
+
+* `microsoft_defender` - A `microsoft_defender` block as defined below.
+
+* `oidc_issuer_enabled` - Whether or not the OIDC feature is enabled or disabled.
+
+* `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
 
 * `oms_agent` - An `oms_agent` block as documented below.
 
@@ -92,11 +98,15 @@ The following attributes are exported:
 
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
 
-* `role_based_access_control_enabled` - Is Role Based Access Control enabled for this managed Kubernetes Cluster.
+* `node_resource_group_id` - The ID of the Resource Group containing the resources for this Managed Kubernetes Cluster.
+
+* `role_based_access_control_enabled` - Is Role Based Access Control enabled for this managed Kubernetes Cluster?
 
 * `service_principal` - A `service_principal` block as documented below.
 
-* `identity` - A `identity` block as documented below.
+* `storage_profile` - A `storage_profile` block as documented below.
+
+* `identity` - An `identity` block as documented below.
 
 * `kubelet_identity` - A `kubelet_identity` block as documented below.
 
@@ -104,23 +114,25 @@ The following attributes are exported:
 
 ---
 
-A `aci_connector_linux` block exports the following:
+An `aci_connector_linux` block exports the following:
 
 * `subnet_name` - The subnet name for the virtual nodes to run.
 
 ---
 
-A `agent_pool_profile` block exports the following:
+An `agent_pool_profile` block exports the following:
 
 * `type` - The type of the Agent Pool.
 
-* `count` - The number of Agents (VM's) in the Pool.
+* `count` - The number of Agents (VMs) in the Pool.
 
 * `max_pods` - The maximum number of pods that can run on each agent.
 
 * `enable_auto_scaling` - If the auto-scaler is enabled.
 
 * `enable_node_public_ip` - If the Public IPs for the nodes in this Agent Pool are enabled.
+
+* `host_group_id` - The ID of a Dedicated Host Group that this Node Pool should be run on. Changing this forces a new resource to be created.
 
 * `min_count` - Minimum number of nodes for auto-scaling
 
@@ -144,13 +156,13 @@ A `agent_pool_profile` block exports the following:
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
-* `zones` - Specifies the Availability Zones where the Nodes within this Agent Pool exist.
+* `zones` - A list of Availability Zones in which this Kubernetes Cluster is located.
 
 ---
 
 An `azure_active_directory_role_based_access_control` block exports the following:
 
-* `managed` - Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
+* `managed` - Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration?
 
 * `tenant_id` - The Tenant ID used for Azure Active Directory Application.
 
@@ -166,7 +178,15 @@ An `azure_active_directory_role_based_access_control` block exports the followin
 
 A `upgrade_settings` block exports the following:
 
-* `max_surge` - The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
+* `max_surge` - The maximum number or percentage of nodes that will be added to the Node Pool size during an upgrade.
+
+---
+
+A `key_management_service` block supports the following:
+
+* `key_vault_key_id` - Identifier of Azure Key Vault key. See [key identifier format](https://learn.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details.
+
+* `key_vault_network_access` - Network access of the key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link.
 
 ---
 
@@ -180,7 +200,7 @@ A `key_vault_secrets_provider` block exports the following:
 
 ---
 
-The `kube_admin_config` and `kube_config` blocks exports the following:
+The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
 
@@ -217,6 +237,12 @@ A `linux_profile` block exports the following:
 
 ---
 
+A `microsoft_defender` block exports the following:
+
+* `log_analytics_workspace_id` - The ID of the Log Analytics Workspace which Microsoft Defender uses to send audit logs to.
+
+---
+
 A `windows_profile` block exports the following:
 
 * `admin_username` - The username associated with the administrator account of the Windows VMs.
@@ -231,11 +257,9 @@ A `network_profile` block exports the following:
 
 * `network_plugin` - Network plugin used such as `azure` or `kubenet`.
 
-* `network_policy` - Network policy to be used with Azure CNI. Eg: `calico` or `azure`
-
-* `network_mode` - Network mode to be used with Azure CNI. Eg: `bridge` or `transparent`
-
--> **NOTE:** `network_mode` Is currently in Preview on an opt-in basis. To use it, enable feature `AKSNetworkModePreview` for `namespace Microsoft.ContainerService`.
+* `network_policy` - Network policy to be used with Azure CNI. e.g. `calico` or `azure`
+  
+* `network_mode` - Network mode to be used with Azure CNI. e.g. `bridge` or `transparent`
 
 * `pod_cidr` - The CIDR used for pod IP addresses.
 
@@ -245,7 +269,9 @@ A `network_profile` block exports the following:
 
 An `oms_agent` block exports the following:
 
-* `log_analytics_workspace_id` - The ID of the Log Analytics Workspace which the OMS Agent should send data to.
+* `log_analytics_workspace_id` - The ID of the Log Analytics Workspace to which the OMS Agent should send data.
+
+* `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
 
 * `oms_agent_identity` - An `oms_agent_identity` block as defined below.  
 
@@ -295,21 +321,37 @@ The `secret_identity` block exports the following:
 
 ---
 
-A `service_principal` block supports the following:
+A `service_principal` block exports the following:
 
 * `client_id` - The Client ID of the Service Principal used by this Managed Kubernetes Cluster.
 
 ---
 
-The `identity` block exports the following:
+A `storage_profile` block exports the following:
 
-* `type` - The type of identity used for the managed cluster.
+* `blob_driver_enabled` Is the Blob CSI driver enabled?
 
-* `principal_id` - The principal id of the system assigned identity which is used by primary components.
+* `disk_driver_enabled` Is the Disk CSI driver enabled?
 
-* `tenant_id` - The tenant id of the system assigned identity which is used by primary components.
+* `disk_driver_version` The configured Disk CSI Driver version.
 
-* `user_assigned_identity_id` - The ID of the User Assigned Identity which is used by primary components. This value will be empty when using system assigned identity.
+* `file_driver_enabled` Is the File CSI driver enabled?
+
+* `snapshot_controller_enabled` Is the Snapshot Controller enabled?
+
+---
+
+An `identity` block exports the following:
+
+* `type` - The type of Managed Service Identity that is configured on this Kubernetes Cluster.
+
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Kubernetes Cluster.
+
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Kubernetes Cluster.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Kubernetes Cluster.
+
+-> **NOTE:** Currently only one User Assigned Identity is supported.
 
 ---
 
@@ -329,6 +371,6 @@ A `ssh_key` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed Kubernetes Cluster (AKS).

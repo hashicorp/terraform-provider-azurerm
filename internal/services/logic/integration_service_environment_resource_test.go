@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationserviceenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -16,6 +16,8 @@ import (
 type IntegrationServiceEnvironmentResource struct{}
 
 func TestAccIntegrationServiceEnvironment_basic(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
@@ -42,6 +44,8 @@ func TestAccIntegrationServiceEnvironment_basic(t *testing.T) {
 }
 
 func TestAccIntegrationServiceEnvironment_complete(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
@@ -69,6 +73,8 @@ func TestAccIntegrationServiceEnvironment_complete(t *testing.T) {
 }
 
 func TestAccIntegrationServiceEnvironment_developer(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
@@ -96,6 +102,8 @@ func TestAccIntegrationServiceEnvironment_developer(t *testing.T) {
 }
 
 func TestAccIntegrationServiceEnvironment_update(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
@@ -158,6 +166,8 @@ func TestAccIntegrationServiceEnvironment_update(t *testing.T) {
 }
 
 func TestAccIntegrationServiceEnvironment_requiresImport(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -184,17 +194,17 @@ func TestAccIntegrationServiceEnvironment_requiresImport(t *testing.T) {
 }
 
 func (IntegrationServiceEnvironmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IntegrationServiceEnvironmentID(state.ID)
+	id, err := integrationserviceenvironments.ParseIntegrationServiceEnvironmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Logic.IntegrationServiceEnvironmentClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Logic.IntegrationServiceEnvironmentClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Integration Service Environment %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.ID(), err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (IntegrationServiceEnvironmentResource) template(data acceptance.TestData) string {
@@ -219,7 +229,7 @@ resource "azurerm_subnet" "isesubnet1" {
   name                 = "isesubnet1"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/26"]
+  address_prefixes     = ["10.0.1.0/27"]
 
   delegation {
     name = "integrationServiceEnvironments"
@@ -234,21 +244,21 @@ resource "azurerm_subnet" "isesubnet2" {
   name                 = "isesubnet2"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.64/26"]
+  address_prefixes     = ["10.0.1.32/27"]
 }
 
 resource "azurerm_subnet" "isesubnet3" {
   name                 = "isesubnet3"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.128/26"]
+  address_prefixes     = ["10.0.1.64/27"]
 }
 
 resource "azurerm_subnet" "isesubnet4" {
   name                 = "isesubnet4"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.192/26"]
+  address_prefixes     = ["10.0.1.96/27"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

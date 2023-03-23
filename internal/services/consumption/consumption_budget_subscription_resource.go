@@ -1,13 +1,10 @@
 package consumption
 
 import (
-	"strings"
-
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -31,28 +28,10 @@ func (r SubscriptionConsumptionBudget) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 		"subscription_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-				if !features.ThreePointOhBeta() {
-					return nil
-				}
-				return commonids.ValidateSubscriptionID
-			}(),
-			DiffSuppressFunc: func() pluginsdk.SchemaDiffSuppressFunc {
-				if !features.ThreePointOh() {
-					return func(k, old, new string, d *pluginsdk.ResourceData) bool {
-						n := strings.Split(old, "/")
-						if len(n) >= 3 {
-							subscriptionID := n[2]
-							return new == subscriptionID
-						}
-						return false
-					}
-				}
-				return nil
-			}(),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateSubscriptionID,
 		},
 	}
 	return r.base.arguments(schema)
@@ -71,7 +50,7 @@ func (r SubscriptionConsumptionBudget) ResourceType() string {
 }
 
 func (r SubscriptionConsumptionBudget) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ConsumptionBudgetSubscriptionID
+	return budgets.ValidateScopedBudgetID
 }
 
 func (r SubscriptionConsumptionBudget) Create() sdk.ResourceFunc {
@@ -91,7 +70,7 @@ func (r SubscriptionConsumptionBudget) Update() sdk.ResourceFunc {
 }
 
 func (r SubscriptionConsumptionBudget) CustomImporter() sdk.ResourceRunFunc {
-	return r.base.importerFunc("subscription")
+	return r.base.importerFunc()
 }
 
 func (r SubscriptionConsumptionBudget) StateUpgraders() sdk.StateUpgradeData {

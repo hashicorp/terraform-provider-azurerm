@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -68,7 +68,7 @@ func (r FunctionAppFunctionResource) Arguments() map[string]*pluginsdk.Schema {
 		"function_app_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.WebAppID,
+			ValidateFunc: validate.FunctionAppID,
 			ForceNew:     true,
 			Description:  "The ID of the Function App in which this function should reside.",
 		},
@@ -479,7 +479,8 @@ func expandFunctionFiles(input []FunctionFiles) map[string]*string {
 	}
 	result := make(map[string]*string)
 	for _, v := range input {
-		result[v.Name] = &v.Content
+		content := v.Content
+		result[v.Name] = &content
 	}
 
 	return result

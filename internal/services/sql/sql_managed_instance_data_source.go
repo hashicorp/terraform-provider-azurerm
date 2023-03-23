@@ -20,6 +20,8 @@ func dataSourceArmSqlMiServer() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmSqlMiServerRead,
 
+		DeprecationMessage: "The `azurerm_sql_managed_instance` data source is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_managed_instance` data source instead.",
+
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},

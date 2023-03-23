@@ -3,7 +3,7 @@ package common
 import (
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -55,8 +55,12 @@ func FlattenCosmosDbAutoscaleSettings(throughputResponse documentdb.ThroughputSe
 
 func ExpandCosmosDbAutoscaleSettingsResource(d *pluginsdk.ResourceData) *documentdb.AutoscaleSettingsResource {
 	autoscaleSettings := ExpandCosmosDbAutoscaleSettings(d)
-	autoscaleSettingResource := documentdb.AutoscaleSettingsResource{}
 
-	autoscaleSettingResource.MaxThroughput = autoscaleSettings.MaxThroughput
-	return &autoscaleSettingResource
+	if autoscaleSettings == nil {
+		return nil
+	}
+
+	return &documentdb.AutoscaleSettingsResource{
+		MaxThroughput: autoscaleSettings.MaxThroughput,
+	}
 }

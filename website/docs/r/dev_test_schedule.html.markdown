@@ -10,7 +10,6 @@ description: |-
 
 Manages automated startup and shutdown schedules for Azure Dev Test Lab.
 
-
 ## Example Usage
 
 ```hcl
@@ -52,7 +51,7 @@ resource "azurerm_dev_test_schedule" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the dev test lab schedule. Valid value for name depends on the `task_type`. For instance for task_type `LabVmsStartupTask` the name needs to be `LabVmAutoStart`.
+* `name` - (Required) The name of the dev test lab schedule. Valid value for name depends on the `task_type`. For instance for task_type `LabVmsStartupTask` the name needs to be `LabVmAutoStart`. Changing this forces a new resource to be created.
 
 * `location` - (Required) The location where the schedule is created. Changing this forces a new resource to be created.
 
@@ -60,7 +59,7 @@ The following arguments are supported:
 
 * `lab_name` - (Required) The name of the dev test lab. Changing this forces a new resource to be created.
 
-* `status` - The status of this schedule. Possible values are `Enabled` and `Disabled`. Defaults to `Disabled`.
+* `status` - (Optional) The status of this schedule. Possible values are `Enabled` and `Disabled`. Defaults to `Disabled`.
 
 * `task_type` - (Required) The task type of the schedule. Possible values include `LabVmsShutdownTask` and `LabVmAutoStart`.
 
@@ -68,29 +67,43 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
----
+* `notification_settings` - (Required) The notification setting of a schedule. A `notification_settings` as defined below.
 
-A `weekly_recurrence` - block supports the following:
+* `weekly_recurrence` - (Optional) The properties of a weekly schedule. If the schedule occurs only some days of the week, specify the weekly recurrence. A `weekly_recurrence` block as defined below.
 
-* `time` - The time when the schedule takes effect.
+* `daily_recurrence` - (Optional) The properties of a daily schedule. If the schedule occurs once each day of the week, specify the daily recurrence. A `daily_recurrence` block as defined below.
 
-* `week_days` -  A list of days that this schedule takes effect . Possible values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`.
-
----
-
-A `daily_recurrence` - block supports the following:
-
-* `time` - The time each day when the schedule takes effect.
+* `hourly_recurrence` - (Optional) The properties of an hourly schedule. If the schedule occurs multiple times a day, specify the hourly recurrence. A `hourly_recurrence` block as defined below.
 
 ---
 
-A `notification_settings` - (Required)  - block supports the following:
+A `weekly_recurrence` block supports the following:
 
-* `status` - The status of the notification. Possible values are `Enabled` and `Disabled`. Defaults to `Disabled`
+* `time` - (Required) The time when the schedule takes effect.
 
-* `time_in_minutes` - Time in minutes before event at which notification will be sent.
+* `week_days` - (Optional) A list of days that this schedule takes effect . Possible values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`.
 
-* `webhook_url` - The webhook URL to which the notification will be sent.
+---
+
+A `daily_recurrence` block supports the following:
+
+* `time` - (Required) The time each day when the schedule takes effect.
+
+---
+
+A `hourly_recurrence` block supports the following:
+
+* `minute` - (Required) Minutes of the hour the schedule will run.
+
+---
+
+A `notification_settings` block supports the following:
+
+* `status` - (Optional) The status of the notification. Possible values are `Enabled` and `Disabled`. Defaults to `Disabled`
+
+* `time_in_minutes` - (Optional) Time in minutes before event at which notification will be sent.
+
+* `webhook_url` - (Optional) The webhook URL to which the notification will be sent.
 
 ## Attributes Reference
 
@@ -100,9 +113,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-
-
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DevTest Schedule.
 * `update` - (Defaults to 30 minutes) Used when updating the DevTest Schedule.

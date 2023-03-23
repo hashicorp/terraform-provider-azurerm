@@ -2,23 +2,23 @@ package network
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var networkSecurityGroupResourceName = "azurerm_network_security_group"
@@ -49,9 +49,9 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"security_rule": {
 				Type:       pluginsdk.TypeSet,
@@ -81,8 +81,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 								string(network.SecurityRuleProtocolIcmp),
 								string(network.SecurityRuleProtocolAh),
 								string(network.SecurityRuleProtocolEsp),
-							}, !features.ThreePointOhBeta()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 
 						"source_port_range": {
@@ -153,8 +152,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.SecurityRuleAccessAllow),
 								string(network.SecurityRuleAccessDeny),
-							}, !features.ThreePointOhBeta()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 
 						"priority": {
@@ -169,8 +167,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.SecurityRuleDirectionInbound),
 								string(network.SecurityRuleDirectionOutbound),
-							}, !features.ThreePointOhBeta()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 					},
 				},
@@ -399,6 +396,13 @@ func expandAzureRmSecurityRules(d *pluginsdk.ResourceData) ([]network.SecurityRu
 func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 
+	// For fixing the case insensitive issue for the NSR protocol in Azure
+	// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/16092
+	protocolMap := map[string]network.SecurityRuleProtocol{}
+	for _, protocol := range network.PossibleSecurityRuleProtocolValues() {
+		protocolMap[strings.ToLower(string(protocol))] = protocol
+	}
+
 	if rules != nil {
 		for _, rule := range *rules {
 			sgRule := make(map[string]interface{})
@@ -452,7 +456,7 @@ func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []map[string]int
 					sgRule["source_port_ranges"] = set.FromStringSlice(*props.SourcePortRanges)
 				}
 
-				sgRule["protocol"] = string(props.Protocol)
+				sgRule["protocol"] = string(protocolMap[strings.ToLower(string(props.Protocol))])
 				sgRule["priority"] = int(*props.Priority)
 				sgRule["access"] = string(props.Access)
 				sgRule["direction"] = string(props.Direction)

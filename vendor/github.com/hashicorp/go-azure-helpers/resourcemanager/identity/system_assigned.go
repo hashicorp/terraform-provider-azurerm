@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package identity
 
 import (
@@ -51,6 +54,38 @@ func FlattenSystemAssigned(input *SystemAssigned) []interface{} {
 			"type":         input.Type,
 			"principal_id": input.PrincipalId,
 			"tenant_id":    input.TenantId,
+		},
+	}
+}
+
+func ExpandSystemAssignedFromModel(input []ModelSystemAssigned) (*SystemAssigned, error) {
+	if len(input) == 0 {
+		return &SystemAssigned{
+			Type: TypeNone,
+		}, nil
+	}
+
+	return &SystemAssigned{
+		Type: TypeSystemAssigned,
+	}, nil
+}
+
+func FlattenSystemAssignedToModel(input *SystemAssigned) []ModelSystemAssigned {
+	if input == nil {
+		return []ModelSystemAssigned{}
+	}
+
+	input.Type = normalizeType(input.Type)
+
+	if input.Type == TypeNone {
+		return []ModelSystemAssigned{}
+	}
+
+	return []ModelSystemAssigned{
+		{
+			Type:        input.Type,
+			PrincipalId: input.PrincipalId,
+			TenantId:    input.TenantId,
 		},
 	}
 }

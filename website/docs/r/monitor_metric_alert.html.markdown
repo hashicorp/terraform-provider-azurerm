@@ -13,22 +13,22 @@ Manages a Metric Alert within Azure Monitor.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "main" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_storage_account" "to_monitor" {
   name                     = "examplestorageaccount"
-  resource_group_name      = azurerm_resource_group.main.name
-  location                 = azurerm_resource_group.main.location
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_monitor_action_group" "main" {
   name                = "example-actiongroup"
-  resource_group_name = azurerm_resource_group.main.name
+  resource_group_name = azurerm_resource_group.example.name
   short_name          = "exampleact"
 
   webhook_receiver {
@@ -39,7 +39,7 @@ resource "azurerm_monitor_action_group" "main" {
 
 resource "azurerm_monitor_metric_alert" "example" {
   name                = "example-metricalert"
-  resource_group_name = azurerm_resource_group.main.name
+  resource_group_name = azurerm_resource_group.example.name
   scopes              = [azurerm_storage_account.to_monitor.id]
   description         = "Action will be triggered when Transactions count is greater than 50."
 
@@ -68,7 +68,7 @@ resource "azurerm_monitor_metric_alert" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the Metric Alert. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the Metric Alert instance.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Metric Alert instance. Changing this forces a new resource to be created.
 * `scopes` - (Required) A set of strings of resource IDs at which the metric criteria should be applied.
 * `criteria` - (Optional) One or more (static) `criteria` blocks as defined below.
 
@@ -128,10 +128,10 @@ A `dynamic_criteria` block supports the following:
 * `operator` - (Required) The criteria operator. Possible values are `LessThan`, `GreaterThan` and `GreaterOrLessThan`.
 * `alert_sensitivity` - (Required) The extent of deviation required to trigger an alert. Possible values are `Low`, `Medium` and `High`.
 * `dimension` - (Optional) One or more `dimension` blocks as defined below.
-* `evaluation_total_count` - (Optional) The number of aggregated lookback points. The lookback time window is calculated based on the aggregation granularity (`window_size`) and the selected number of aggregated points.
-* `evaluation_failure_count` - (Optional) The number of violations to trigger an alert. Should be smaller or equal to `evaluation_total_count`.
+* `evaluation_total_count` - (Optional) The number of aggregated lookback points. The lookback time window is calculated based on the aggregation granularity (`window_size`) and the selected number of aggregated points. Defaults to `4`.
+* `evaluation_failure_count` - (Optional) The number of violations to trigger an alert. Should be smaller or equal to `evaluation_total_count`. Defaults to `4`.
 * `ignore_data_before` - (Optional) The [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) date from which to start learning the metric historical data and calculate the dynamic thresholds.
-* `skip_metric_validation` - (Optional) Skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted? Defaults to `false`.
+* `skip_metric_validation` - (Optional) Skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted? 
 
 ---
 
@@ -157,7 +157,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Metric Alert.
 * `update` - (Defaults to 30 minutes) Used when updating the Metric Alert.

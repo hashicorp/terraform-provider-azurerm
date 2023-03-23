@@ -59,13 +59,13 @@ A `feature` block supports the following:
 
 * `name` - (Required) Specifies the name of the feature to register.
 
-~> **Note:** Only Preview Features which have an `ApprovalType` of `AutoApproval` can be managed in Terraform, features which require manual approval by Service Teams are unsupported. [More information on Resource Provider Preview Features can be found in this document](https://docs.microsoft.com/en-us/rest/api/resources/features)
+~> **Note:** Only Preview Features which have an `ApprovalType` of `AutoApproval` can be managed in Terraform, features which require manual approval by Service Teams are unsupported. [More information on Resource Provider Preview Features can be found in this document](https://docs.microsoft.com/rest/api/resources/features)
 
 * `registered` - (Required) Should this feature be Registered or Unregistered?
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 120 minutes) Used when registering the Resource Provider/Features.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Provider.

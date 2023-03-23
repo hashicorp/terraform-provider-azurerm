@@ -3,7 +3,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/clusters"
 )
 
 func ClusterID(input interface{}, key string) (warnings []string, errors []error) {

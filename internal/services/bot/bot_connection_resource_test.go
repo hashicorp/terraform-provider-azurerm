@@ -66,7 +66,7 @@ func (t BotConnectionResource) Exists(ctx context.Context, clients *clients.Clie
 	return utils.Bool(resp.Properties != nil), nil
 }
 
-func (BotConnectionResource) basicConfig(data acceptance.TestData) string {
+func (r BotConnectionResource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -76,13 +76,13 @@ resource "azurerm_bot_connection" "test" {
   location              = azurerm_bot_channels_registration.test.location
   resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "box"
-  client_id             = "test"
-  client_secret         = "secret"
+  client_id             = data.azurerm_client_config.current.client_id
+  client_secret         = "86546868-e7ed-429f-b0e5-3a1caea7db64"
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (BotConnectionResource) completeConfig(data acceptance.TestData) string {
+func (r BotConnectionResource) completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -92,20 +92,26 @@ resource "azurerm_bot_connection" "test" {
   location              = azurerm_bot_channels_registration.test.location
   resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Salesforce"
-  client_id             = "test"
-  client_secret         = "secret"
-  scopes                = "testscope"
+  client_id             = data.azurerm_client_config.current.client_id
+  client_secret         = "60a97b1d-0894-4c5a-9968-7d1d29d77aed"
+  scopes                = "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
 
   parameters = {
-    loginUri = "www.example.com"
+    loginUri = "https://www.google.com"
   }
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (BotConnectionResource) completeUpdateConfig(data acceptance.TestData) string {
+func (r BotConnectionResource) completeUpdateConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
 
 resource "azurerm_bot_connection" "test" {
   name                  = "acctestBc%d"
@@ -113,13 +119,37 @@ resource "azurerm_bot_connection" "test" {
   location              = azurerm_bot_channels_registration.test.location
   resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Salesforce"
-  client_id             = "test2"
-  client_secret         = "secret2"
-  scopes                = "testscope2"
+  client_id             = azurerm_user_assigned_identity.test.client_id
+  client_secret         = "32ea21cb-cb20-4df9-ad39-b55e985e9117"
+  scopes                = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}"
 
   parameters = {
-    loginUri = "www.example2.com"
+    loginUri = "https://www.terraform.io"
   }
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r BotConnectionResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_bot_channels_registration" "test" {
+  name                = "acctestdf%d"
+  location            = "global"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "F0"
+  microsoft_app_id    = data.azurerm_client_config.current.client_id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

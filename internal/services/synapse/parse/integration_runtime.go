@@ -36,7 +36,7 @@ func (id IntegrationRuntimeId) String() string {
 }
 
 func (id IntegrationRuntimeId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s/integrationruntimes/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s/integrationRuntimes/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.Name)
 }
 
@@ -63,7 +63,63 @@ func IntegrationRuntimeID(input string) (*IntegrationRuntimeId, error) {
 	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("integrationruntimes"); err != nil {
+	if resourceId.Name, err = id.PopSegment("integrationRuntimes"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// IntegrationRuntimeIDInsensitively parses an IntegrationRuntime ID into an IntegrationRuntimeId struct, insensitively
+// This should only be used to parse an ID for rewriting, the IntegrationRuntimeID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func IntegrationRuntimeIDInsensitively(input string) (*IntegrationRuntimeId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := IntegrationRuntimeId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'workspaces' segment
+	workspacesKey := "workspaces"
+	for key := range id.Path {
+		if strings.EqualFold(key, workspacesKey) {
+			workspacesKey = key
+			break
+		}
+	}
+	if resourceId.WorkspaceName, err = id.PopSegment(workspacesKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'integrationRuntimes' segment
+	integrationRuntimesKey := "integrationRuntimes"
+	for key := range id.Path {
+		if strings.EqualFold(key, integrationRuntimesKey) {
+			integrationRuntimesKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(integrationRuntimesKey); err != nil {
 		return nil, err
 	}
 

@@ -8,8 +8,8 @@ import (
 )
 
 /*
-	--Testing for Failure--
-	Validation Function Tests - Invalid Name Validations
+--Testing for Failure--
+Validation Function Tests - Invalid Name Validations
 */
 func TestVirtualNetworkRuleInvalidNameValidation(t *testing.T) {
 	cases := []struct {
@@ -83,8 +83,8 @@ func TestVirtualNetworkRuleInvalidNameValidation(t *testing.T) {
 }
 
 /*
-	--Testing for Success--
-	Validation Function Tests - (Barely) Valid Name Validations
+--Testing for Success--
+Validation Function Tests - (Barely) Valid Name Validations
 */
 func TestVirtualNetworkRuleValidNameValidation(t *testing.T) {
 	cases := []struct {

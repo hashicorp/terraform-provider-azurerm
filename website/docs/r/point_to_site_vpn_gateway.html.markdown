@@ -97,13 +97,15 @@ The following arguments are supported:
 
 * `connection_configuration` - (Required) A `connection_configuration` block as defined below.
 
-* `scale_unit` - (Required) The [Scale Unit](https://docs.microsoft.com/en-us/azure/virtual-wan/virtual-wan-faq#what-is-a-virtual-wan-gateway-scale-unit) for this Point-to-Site VPN Gateway.
+* `scale_unit` - (Required) The [Scale Unit](https://docs.microsoft.com/azure/virtual-wan/virtual-wan-faq#what-is-a-virtual-wan-gateway-scale-unit) for this Point-to-Site VPN Gateway.
 
 * `virtual_hub_id` - (Required) The ID of the Virtual Hub where this Point-to-Site VPN Gateway should exist. Changing this forces a new resource to be created.
 
 * `vpn_server_configuration_id` - (Required) The ID of the VPN Server Configuration which this Point-to-Site VPN Gateway should use. Changing this forces a new resource to be created.
 
 * `dns_servers` - (Optional) A list of IP Addresses of DNS Servers for the Point-to-Site VPN Gateway.
+
+* `routing_preference_internet_enabled` - (Optional) Is the Routing Preference for the Public IP Interface of the VPN Gateway enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Point-to-Site VPN Gateway.
 
@@ -117,7 +119,7 @@ A `connection_configuration` block supports the following:
 
 * `route` - (Optional) A `route` block as defined below.
 
-* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to false.
+* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to `false`.
 
 ---
 
@@ -130,6 +132,10 @@ A `vpn_client_address_pool` block supports the following:
 A `route` block supports the following:
 
 * `associated_route_table_id` - (Required) The Virtual Hub Route Table resource id associated with this Routing Configuration.
+
+* `inbound_route_map_id` - (Optional) The resource ID of the Route Map associated with this Routing Configuration for inbound learned routes.
+
+* `outbound_route_map_id` - (Optional) The resource ID of the Route Map associated with this Routing Configuration for outbound advertised routes.
 
 * `propagated_route_table` - (Optional) A `propagated_route_table` block as defined below.
 
@@ -149,7 +155,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Point-to-Site VPN Gateway.
 * `update` - (Defaults to 90 minutes) Used when updating the Point-to-Site VPN Gateway.
@@ -161,5 +167,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Point-to-Site VPN Gateway's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_point_to_site_vpn_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/p2svpnGateways/gateway1
+terraform import azurerm_point_to_site_vpn_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/p2sVpnGateways/gateway1
 ```

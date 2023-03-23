@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -61,25 +60,6 @@ func TestAccSynapseRoleAssignment_sparkPool(t *testing.T) {
 	})
 }
 
-// CLEANUP: to be removed in 3.0
-func TestAccSynapseRoleAssignment_oldRole(t *testing.T) {
-	if features.ThreePointOh() {
-		t.Skip("This test does not apply on 3.0 or later")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_synapse_role_assignment", "test")
-	r := SynapseRoleAssignmentResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.oldRole(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r SynapseRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.RoleAssignmentID(state.ID)
 	if err != nil {
@@ -91,8 +71,13 @@ func (r SynapseRoleAssignmentResource) Exists(ctx context.Context, client *clien
 		return nil, err
 	}
 
-	environment := client.Account.Environment
-	roleAssignmentsClient, err := client.Synapse.RoleAssignmentsClient(workspaceName, environment.SynapseEndpointSuffix)
+	env := client.Account.Environment
+	suffix, ok := env.Synapse.DomainSuffix()
+	if !ok {
+		return nil, fmt.Errorf("could not determine the domain suffix for synapse in environment %q: %+v", env.Name, env.Storage)
+	}
+
+	roleAssignmentsClient, err := client.Synapse.RoleAssignmentsClient(workspaceName, *suffix)
 	if err != nil {
 		return nil, err
 	}
@@ -158,22 +143,6 @@ resource "azurerm_synapse_role_assignment" "test" {
 `, template, data.RandomString)
 }
 
-// CLEANUP: to be removed in 3.0
-func (r SynapseRoleAssignmentResource) oldRole(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_synapse_role_assignment" "test" {
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
-  role_name            = "Sql Admin"
-  principal_id         = data.azurerm_client_config.current.object_id
-
-  depends_on = [azurerm_synapse_firewall_rule.test]
-}
-`, template)
-}
-
 func (r SynapseRoleAssignmentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -206,6 +175,9 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_synapse_firewall_rule" "test" {

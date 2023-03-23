@@ -29,7 +29,7 @@ output "azurerm_data_protection_backup_vault_principal_id" {
 
 ## Arguments Reference
 
-* `name` - (Required) Specifies the name of the Backup Vault. 
+* `name` - (Required) Specifies the name of the Backup Vault.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Backup Vault exists.
 
@@ -37,7 +37,7 @@ output "azurerm_data_protection_backup_vault_principal_id" {
 
 * `id` - The ID of the Backup Vault.
 
-* `location` -  The Azure Region where the Backup Vault exists. 
+* `location` -  The Azure Region where the Backup Vault exists.
 
 * `datastore_type` - Specifies the type of the data store.
 
@@ -49,16 +49,16 @@ output "azurerm_data_protection_backup_vault_principal_id" {
 
 ---
 
-`identity` exports the following:
+An `identity` block exports the following:
 
-* `type` -  Specifies the identity type of the Backup Vault.
+* `type` - The type of Managed Service Identity that is configured on this Backup Vault.
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Backup Vault.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Backup Vault.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Backup Vault.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Backup Vault.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Vault.

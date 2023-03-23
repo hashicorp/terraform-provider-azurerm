@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
@@ -55,9 +55,9 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 				ValidateFunc: validation.StringDoesNotContainAny("<>*%&:\\?+/"),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"authorized_resource_ids": {
 				Type:     pluginsdk.TypeSet,
@@ -85,7 +85,6 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 						"custom_webhook_payload": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     !features.ThreePointOhBeta(),
 							ValidateFunc: validation.StringIsJSON,
 						},
 						"email_subject": {
@@ -133,6 +132,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 				Default:  "ResultCount",
 				ValidateFunc: validation.StringInSlice([]string{
 					"ResultCount",
+					"Number",
 				}, false),
 			},
 			"severity": {

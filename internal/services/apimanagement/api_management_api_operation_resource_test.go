@@ -121,6 +121,21 @@ func TestAccApiManagementApiOperation_representations(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementApiOperation_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
+	r := ApiManagementApiOperationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementApiOperationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ApiOperationID(state.ID)
 	if err != nil {
@@ -147,6 +162,97 @@ resource "azurerm_api_management_api_operation" "test" {
   display_name        = "DELETE Resource"
   method              = "DELETE"
   url_template        = "/resource"
+}
+`, r.template(data))
+}
+
+func (r ApiManagementApiOperationResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_operation" "test" {
+  operation_id        = "acctest-operation"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  display_name        = "DELETE Resource"
+  method              = "DELETE"
+  url_template        = "/resource"
+
+  response {
+    status_code = 200
+
+    header {
+      name          = "test"
+      required      = true
+      type          = "string"
+      default_value = "default"
+      description   = "This is a test description"
+      values        = ["multipart/form-data"]
+    }
+
+    representation {
+      content_type = "multipart/form-data"
+
+      form_parameter {
+        default_value = "multipart/form-data"
+        description   = "This is a test description"
+        name          = "test"
+        required      = true
+        type          = "string"
+        values        = ["multipart/form-data"]
+      }
+
+      example {
+        name           = "test"
+        description    = "This is a test description"
+        external_value = "https://example.com/foo/bar"
+        summary        = "This is a test summary"
+      }
+    }
+  }
+
+  request {
+    description = "Created user object"
+
+    query_parameter {
+      default_value = "multipart/form-data"
+      description   = "This is a test description"
+      name          = "test"
+      required      = true
+      type          = "string"
+      values        = ["multipart/form-data"]
+    }
+
+    header {
+      name          = "test"
+      required      = true
+      type          = "string"
+      default_value = "default"
+      description   = "This is a test description"
+    }
+
+    representation {
+      content_type = "multipart/form-data"
+
+      example {
+        description    = "This is a test description"
+        external_value = "https://example.com/foo/bar"
+        name           = "test"
+        summary        = "This is a test summary"
+        value          = "backend-Request-Test"
+      }
+
+      form_parameter {
+        default_value = "multipart/form-data"
+        description   = "This is a test description"
+        name          = "test"
+        required      = true
+        type          = "string"
+        values        = ["multipart/form-data"]
+      }
+    }
+  }
 }
 `, r.template(data))
 }
@@ -238,6 +344,14 @@ resource "azurerm_api_management_api_operation" "test" {
 func (r ApiManagementApiOperationResource) headers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+resource "azurerm_api_management_api_schema" "test" {
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management_api.test.api_management_name
+  resource_group_name = azurerm_api_management_api.test.resource_group_name
+  schema_id           = "acctestSchema%d"
+  content_type        = "application/json"
+  value               = file("testdata/api_management_api_schema_swagger.json")
+}
 
 resource "azurerm_api_management_api_operation" "test" {
   operation_id        = "acctest-operation"
@@ -273,6 +387,16 @@ resource "azurerm_api_management_api_operation" "test" {
       name     = "X-Test-Operation"
       required = true
       type     = "string"
+
+      type_name = "User"
+      schema_id = azurerm_api_management_api_schema.test.schema_id
+      example {
+        description    = "This is a test description"
+        external_value = "https://example.com/foo/bar"
+        name           = "test"
+        summary        = "This is a test summary"
+        value          = "backend-Request-Test"
+      }
     }
 
     representation {
@@ -295,7 +419,7 @@ SAMPLE
     }
   }
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ApiManagementApiOperationResource) representation(data acceptance.TestData) string {
@@ -327,6 +451,7 @@ resource "azurerm_api_management_api_operation" "test" {
 
     representation {
       content_type = "application/xml"
+      type_name    = "User"
 
       example {
         name  = "sample"

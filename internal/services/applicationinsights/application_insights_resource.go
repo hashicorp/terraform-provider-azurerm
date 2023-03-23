@@ -7,14 +7,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"                              // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
+	monitorParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -40,7 +42,7 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -53,9 +55,9 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"application_type": {
 				Type:     pluginsdk.TypeString,
@@ -76,7 +78,8 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				ForceNew:     true,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
 			"retention_in_days": {
@@ -169,6 +172,7 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 
 func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
+	ruleClient := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -179,7 +183,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	resourceId := parse.NewComponentID(subscriptionId, resGroup, name).ID()
+	resourceId := parse.NewComponentID(subscriptionId, resGroup, name)
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
@@ -189,7 +193,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_application_insights", resourceId)
+			return tf.ImportAsExistsError("azurerm_application_insights", resourceId.ID())
 		}
 	}
 
@@ -224,7 +228,11 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {
-		applicationInsightsComponentProperties.WorkspaceResourceID = utils.String(workspaceRaw.(string))
+		workspaceID, err := workspaces.ParseWorkspaceID(workspaceRaw.(string))
+		if err != nil {
+			return err
+		}
+		applicationInsightsComponentProperties.WorkspaceResourceID = utils.String(workspaceID.ID())
 	}
 
 	if v, ok := d.GetOk("retention_in_days"); ok {
@@ -274,7 +282,41 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("update Application Insights Billing Feature %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	d.SetId(resourceId)
+	// https://github.com/hashicorp/terraform-provider-azurerm/issues/10563
+	// Azure creates a rule and action group when creating this resource that are very noisy
+	// We would like to delete them but deleting them just causes them to be recreated after a few minutes.
+	// Instead, we'll opt to disable them here
+	if d.IsNewResource() && meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
+		// TODO: replace this with a StateWait func
+		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+			time.Sleep(30 * time.Second)
+			ruleName := fmt.Sprintf("Failure Anomalies - %s", resourceId.Name)
+			ruleId := monitorParse.NewSmartDetectorAlertRuleID(resourceId.SubscriptionId, resourceId.ResourceGroup, ruleName)
+			result, err := ruleClient.Get(ctx, ruleId.ResourceGroup, ruleId.Name, utils.Bool(true))
+			if err != nil {
+				if utils.ResponseWasNotFound(result.Response) {
+					return pluginsdk.RetryableError(fmt.Errorf("expected %s to be created but was not found, retrying", ruleId))
+				}
+				return pluginsdk.NonRetryableError(fmt.Errorf("making Read request for %s: %+v", ruleId, err))
+			}
+
+			if result.AlertRuleProperties != nil {
+				result.AlertRuleProperties.State = alertsmanagement.AlertRuleStateDisabled
+				updateRuleResult, err := ruleClient.CreateOrUpdate(ctx, ruleId.ResourceGroup, ruleId.Name, result)
+				if err != nil {
+					if !utils.ResponseWasNotFound(updateRuleResult.Response) {
+						return pluginsdk.NonRetryableError(fmt.Errorf("issuing disable request for %s: %+v", ruleId, err))
+					}
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	d.SetId(resourceId.ID())
 
 	return resourceApplicationInsightsRead(d, meta)
 }
@@ -332,9 +374,15 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("internet_query_enabled", resp.PublicNetworkAccessForQuery == insights.PublicNetworkAccessTypeEnabled)
 		d.Set("force_customer_storage_for_profiler", props.ForceCustomerStorageForProfiler)
 
+		workspaceId := ""
 		if v := props.WorkspaceResourceID; v != nil {
-			d.Set("workspace_id", v)
+			id, err := workspaces.ParseWorkspaceIDInsensitively(*v)
+			if err != nil {
+				return err
+			}
+			workspaceId = id.ID()
 		}
+		d.Set("workspace_id", workspaceId)
 
 		if v := props.RetentionInDays; v != nil {
 			d.Set("retention_in_days", v)
@@ -351,6 +399,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 
 func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
+	ruleClient := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -367,6 +416,16 @@ func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface
 			return nil
 		}
 		return fmt.Errorf("issuing AzureRM delete request for Application Insights %q: %+v", id.Name, err)
+	}
+
+	// if disable_generated_rule=true, the generated rule is not automatically deleted.
+	if meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
+		ruleName := fmt.Sprintf("Failure Anomalies - %s", id.Name)
+		ruleId := monitorParse.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroup, ruleName)
+		deleteResp, deleteErr := ruleClient.Delete(ctx, ruleId.ResourceGroup, ruleId.Name)
+		if deleteErr != nil && deleteResp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("deleting %s: %+v", ruleId, deleteErr)
+		}
 	}
 
 	return err

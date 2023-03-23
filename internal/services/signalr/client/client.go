@@ -1,30 +1,30 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	webpubsub_v2023_02_01 "github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
 )
 
 type Client struct {
-	SignalRClient       *signalr.SignalRClient
-	WebPubsubClient     *webpubsub.Client
-	WebPubsubHubsClient *webpubsub.HubsClient
+	SignalRClient   *signalr.SignalRClient
+	WebPubSubClient *webpubsub_v2023_02_01.Client
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	signalRClient := signalr.NewSignalRClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&signalRClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	signalRClient, err := signalr.NewSignalRClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, err
+	}
+	o.Configure(signalRClient.Client, o.Authorizers.ResourceManager)
 
-	webpubsubClient := webpubsub.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&webpubsubClient.Client, o.ResourceManagerAuthorizer)
-
-	webpubsubHubsClient := webpubsub.NewHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&webpubsubHubsClient.Client, o.ResourceManagerAuthorizer)
+	webPubSubClient := webpubsub_v2023_02_01.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
+		c.Authorizer = o.ResourceManagerAuthorizer
+	})
 
 	return &Client{
-		SignalRClient:       &signalRClient,
-		WebPubsubClient:     &webpubsubClient,
-		WebPubsubHubsClient: &webpubsubHubsClient,
-	}
+		SignalRClient:   signalRClient,
+		WebPubSubClient: &webPubSubClient,
+	}, nil
 }

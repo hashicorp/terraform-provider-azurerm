@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -26,14 +25,14 @@ func TestAccMsSqlManagedInstanceActiveDirectoryAdministrator_basic(t *testing.T)
 		},
 		{
 			Config: r.basic(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.basic(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -41,7 +40,7 @@ func TestAccMsSqlManagedInstanceActiveDirectoryAdministrator_basic(t *testing.T)
 	})
 }
 
-func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ManagedInstanceAzureActiveDirectoryAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -60,10 +59,12 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Exists(ctx con
 
 func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+%[1]s
+
 data "azuread_client_config" "test" {}
 
 resource "azuread_application" "test" {
-  display_name     = "acctest-ManagedInstance-%[1]d"
+  display_name     = "acctest-ManagedInstance-%[2]d"
   sign_in_audience = "AzureADMyOrg"
 }
 
@@ -77,16 +78,9 @@ resource "azuread_directory_role" "reader" {
 
 resource "azuread_directory_role_member" "test" {
   role_object_id   = azuread_directory_role.reader.object_id
-  member_object_id = data.azurerm_mssql_managed_instance.test.identity.0.principal_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
 }
-
-data "azurerm_mssql_managed_instance" "test" {
-  name                = "aaa-tbamford-testing"
-  resource_group_name = "aaa-tbamford-sqlmanagedinstance-testing"
-}
-
-%[2]s
-`, data.RandomInteger, MsSqlManagedInstanceResource{}.identity(data))
+`, MsSqlManagedInstanceResource{}.identity(data), data.RandomInteger)
 }
 
 func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) basic(data acceptance.TestData, aadOnly bool) string {

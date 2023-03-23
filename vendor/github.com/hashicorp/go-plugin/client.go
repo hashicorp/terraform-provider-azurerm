@@ -26,6 +26,14 @@ import (
 	"google.golang.org/grpc"
 )
 
+const unrecognizedRemotePluginMessage = `Unrecognized remote plugin message: %s
+This usually means
+  the plugin was not compiled for this architecture,
+  the plugin is missing dynamic-link libraries necessary to run,
+  the plugin is not executable by this process due to file permissions, or
+  the plugin failed to negotiate the initial go-plugin protocol handshake
+%s`
+
 // If this is 1, then we've called CleanupClients. This can be used
 // by plugin RPC implementations to change error behavior since you
 // can expected network connection errors at this point. This should be
@@ -473,7 +481,17 @@ func (c *Client) Kill() {
 	c.l.Unlock()
 }
 
-// Starts the underlying subprocess, communicating with it to negotiate
+// peTypes is a list of Portable Executable (PE) machine types from https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
+// mapped to GOARCH types. It is not comprehensive, and only includes machine types that Go supports.
+var peTypes = map[uint16]string{
+	0x14c:  "386",
+	0x1c0:  "arm",
+	0x6264: "loong64",
+	0x8664: "amd64",
+	0xaa64: "arm64",
+}
+
+// Start the underlying subprocess, communicating with it to negotiate
 // a port for RPC connections, and returning the address to connect via RPC.
 //
 // This method is safe to call multiple times. Subsequent calls have no effect.
@@ -547,7 +565,9 @@ func (c *Client) Start() (addr net.Addr, err error) {
 		return nil, err
 	}
 
-	if c.config.SecureConfig != nil {
+	if c.config.SecureConfig == nil {
+		c.logger.Warn("plugin configured with a nil SecureConfig")
+	} else {
 		if ok, err := c.config.SecureConfig.Check(cmd.Path); err != nil {
 			return nil, fmt.Errorf("error verifying checksum: %s", err)
 		} else if !ok {
@@ -574,6 +594,8 @@ func (c *Client) Start() (addr net.Addr, err error) {
 
 		c.config.TLSConfig = &tls.Config{
 			Certificates: []tls.Certificate{cert},
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+			MinVersion:   tls.VersionTLS12,
 			ServerName:   "localhost",
 		}
 	}
@@ -629,17 +651,19 @@ func (c *Client) Start() (addr net.Addr, err error) {
 		// Wait for the command to end.
 		err := cmd.Wait()
 
-		debugMsgArgs := []interface{}{
+		msgArgs := []interface{}{
 			"path", path,
 			"pid", pid,
 		}
 		if err != nil {
-			debugMsgArgs = append(debugMsgArgs,
+			msgArgs = append(msgArgs,
 				[]interface{}{"error", err.Error()}...)
+			c.logger.Error("plugin process exited", msgArgs...)
+		} else {
+			// Log and make sure to flush the logs right away
+			c.logger.Info("plugin process exited", msgArgs...)
 		}
 
-		// Log and make sure to flush the logs write away
-		c.logger.Debug("plugin process exited", debugMsgArgs...)
 		os.Stderr.Sync()
 
 		// Set that we exited, which takes a lock
@@ -691,10 +715,7 @@ func (c *Client) Start() (addr net.Addr, err error) {
 		line = strings.TrimSpace(line)
 		parts := strings.SplitN(line, "|", 6)
 		if len(parts) < 4 {
-			err = fmt.Errorf(
-				"Unrecognized remote plugin message: %s\n\n"+
-					"This usually means that the plugin is either invalid or simply\n"+
-					"needs to be recompiled to support the latest protocol.", line)
+			err = fmt.Errorf(unrecognizedRemotePluginMessage, line, additionalNotesAboutCommand(cmd.Path))
 			return
 		}
 
@@ -774,7 +795,7 @@ func (c *Client) Start() (addr net.Addr, err error) {
 }
 
 // loadServerCert is used by AutoMTLS to read an x.509 cert returned by the
-// server, and load it as the RootCA for the client TLSConfig.
+// server, and load it as the RootCA and ClientCA for the client TLSConfig.
 func (c *Client) loadServerCert(cert string) error {
 	certPool := x509.NewCertPool()
 
@@ -791,6 +812,7 @@ func (c *Client) loadServerCert(cert string) error {
 	certPool.AddCert(x509Cert)
 
 	c.config.TLSConfig.RootCAs = certPool
+	c.config.TLSConfig.ClientCAs = certPool
 	return nil
 }
 

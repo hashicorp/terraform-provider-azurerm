@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	identity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/galleryapplicationversions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
@@ -55,7 +55,6 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *compute.Addition
 	}
 
 	ultraSsdEnabled := false
-
 	if input.UltraSSDEnabled != nil {
 		ultraSsdEnabled = *input.UltraSSDEnabled
 	}
@@ -76,9 +75,9 @@ func expandVirtualMachineScaleSetIdentity(input []interface{}) (*compute.Virtual
 		Type: compute.ResourceIdentityType(string(expanded.Type)),
 	}
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
+		out.UserAssignedIdentities = make(map[string]*compute.UserAssignedIdentitiesValue)
 		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{
+			out.UserAssignedIdentities[k] = &compute.UserAssignedIdentitiesValue{
 				// intentionally empty
 			}
 		}
@@ -176,6 +175,393 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 			},
+		},
+	}
+}
+
+func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 100,
+		Computed: !features.FourPointOhBeta(),
+		ConflictsWith: func() []string {
+			if !features.FourPointOhBeta() {
+				return []string{"gallery_applications"}
+			}
+			return []string{}
+		}(),
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"version_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
+				},
+
+				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
+				"configuration_blob_uri": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+				},
+
+				"order": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ForceNew:     true,
+					ValidateFunc: validation.IntBetween(0, 2147483647),
+				},
+
+				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
+				"tag": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
+		Optional:      true,
+		MaxItems:      100,
+		Computed:      !features.FourPointOhBeta(),
+		ConflictsWith: []string{"gallery_application"},
+		Deprecated:    "`gallery_applications` has been renamed to `gallery_application` and will be deprecated in 4.0",
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"package_reference_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
+					Deprecated:   "`package_reference_id` has been renamed to `version_id` and will be deprecated in 4.0",
+				},
+
+				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
+				"configuration_reference_blob_uri": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					Deprecated:   "`configuration_reference_blob_uri` has been renamed to `configuration_blob_uri` and will be deprecated in 4.0",
+				},
+
+				"order": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ForceNew:     true,
+					ValidateFunc: validation.IntBetween(0, 2147483647),
+				},
+
+				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
+				"tag": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func expandVirtualMachineScaleSetGalleryApplication(input []interface{}) *[]compute.VMGalleryApplication {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]compute.VMGalleryApplication, 0)
+
+	for _, v := range input {
+		packageReferenceId := v.(map[string]interface{})["version_id"].(string)
+		configurationReference := v.(map[string]interface{})["configuration_blob_uri"].(string)
+		order := v.(map[string]interface{})["order"].(int)
+		tag := v.(map[string]interface{})["tag"].(string)
+
+		app := &compute.VMGalleryApplication{
+			PackageReferenceID:     utils.String(packageReferenceId),
+			ConfigurationReference: utils.String(configurationReference),
+			Order:                  utils.Int32(int32(order)),
+			Tags:                   utils.String(tag),
+		}
+
+		out = append(out, *app)
+	}
+
+	return &out
+}
+
+func flattenVirtualMachineScaleSetGalleryApplication(input *[]compute.VMGalleryApplication) []interface{} {
+	if len(*input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, 0)
+
+	for _, v := range *input {
+		var packageReferenceId, configurationReference, tag string
+		var order int
+
+		if v.PackageReferenceID != nil {
+			packageReferenceId = *v.PackageReferenceID
+		}
+
+		if v.ConfigurationReference != nil {
+			configurationReference = *v.ConfigurationReference
+		}
+
+		if v.Order != nil {
+			order = int(*v.Order)
+		}
+
+		if v.Tags != nil {
+			tag = *v.Tags
+		}
+
+		app := map[string]interface{}{
+			"version_id":             packageReferenceId,
+			"configuration_blob_uri": configurationReference,
+			"order":                  order,
+			"tag":                    tag,
+		}
+
+		out = append(out, app)
+	}
+
+	return out
+}
+
+func expandVirtualMachineScaleSetGalleryApplications(input []interface{}) *[]compute.VMGalleryApplication {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]compute.VMGalleryApplication, 0)
+
+	for _, v := range input {
+		packageReferenceId := v.(map[string]interface{})["package_reference_id"].(string)
+		configurationReference := v.(map[string]interface{})["configuration_reference_blob_uri"].(string)
+		order := v.(map[string]interface{})["order"].(int)
+		tag := v.(map[string]interface{})["tag"].(string)
+
+		app := &compute.VMGalleryApplication{
+			PackageReferenceID:     utils.String(packageReferenceId),
+			ConfigurationReference: utils.String(configurationReference),
+			Order:                  utils.Int32(int32(order)),
+			Tags:                   utils.String(tag),
+		}
+
+		out = append(out, *app)
+	}
+
+	return &out
+}
+
+func flattenVirtualMachineScaleSetGalleryApplications(input *[]compute.VMGalleryApplication) []interface{} {
+	if len(*input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, 0)
+
+	for _, v := range *input {
+		var packageReferenceId, configurationReference, tag string
+		var order int
+
+		if v.PackageReferenceID != nil {
+			packageReferenceId = *v.PackageReferenceID
+		}
+
+		if v.ConfigurationReference != nil {
+			configurationReference = *v.ConfigurationReference
+		}
+
+		if v.Order != nil {
+			order = int(*v.Order)
+		}
+
+		if v.Tags != nil {
+			tag = *v.Tags
+		}
+
+		app := map[string]interface{}{
+			"package_reference_id":             packageReferenceId,
+			"configuration_reference_blob_uri": configurationReference,
+			"order":                            order,
+			"tag":                              tag,
+		}
+
+		out = append(out, app)
+	}
+
+	return out
+}
+
+func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
+	if !features.FourPointOhBeta() {
+		return &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			Computed:      !features.FourPointOhBeta(),
+			MaxItems:      1,
+			ConflictsWith: []string{"scale_in_policy"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"rule": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+							string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
+							string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
+						}, false),
+					},
+
+					"force_deletion_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		}
+	}
+
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"rule": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+						string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
+						string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
+					}, false),
+				},
+
+				"force_deletion_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+			},
+		},
+	}
+}
+
+func ExpandVirtualMachineScaleSetScaleInPolicy(input []interface{}) *compute.ScaleInPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	rule := input[0].(map[string]interface{})["rule"].(string)
+	forceDeletion := input[0].(map[string]interface{})["force_deletion_enabled"].(bool)
+
+	return &compute.ScaleInPolicy{
+		Rules:         &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(rule)},
+		ForceDeletion: utils.Bool(forceDeletion),
+	}
+}
+
+func FlattenVirtualMachineScaleSetScaleInPolicy(input *compute.ScaleInPolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	rule := string(compute.VirtualMachineScaleSetScaleInRulesDefault)
+	var forceDeletion bool
+	if rules := input.Rules; rules != nil && len(*rules) > 0 {
+		rule = string((*rules)[0])
+	}
+
+	if input.ForceDeletion != nil {
+		forceDeletion = *input.ForceDeletion
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"rule":                   rule,
+			"force_deletion_enabled": forceDeletion,
+		},
+	}
+}
+
+func VirtualMachineScaleSetSpotRestorePolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+					ForceNew: true,
+				},
+
+				"timeout": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      "PT1H",
+					ForceNew:     true,
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
+				},
+			},
+		},
+	}
+}
+
+func ExpandVirtualMachineScaleSetSpotRestorePolicy(input []interface{}) *compute.SpotRestorePolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	enabled := input[0].(map[string]interface{})["enabled"].(bool)
+	timeout := input[0].(map[string]interface{})["timeout"].(string)
+
+	return &compute.SpotRestorePolicy{
+		Enabled:        utils.Bool(enabled),
+		RestoreTimeout: utils.String(timeout),
+	}
+}
+
+func FlattenVirtualMachineScaleSetSpotRestorePolicy(input *compute.SpotRestorePolicy) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	var enabled bool
+	if input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+
+	var restore string
+	if input.RestoreTimeout != nil {
+		restore = *input.RestoreTimeout
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
+			"timeout": restore,
 		},
 	}
 }
@@ -372,7 +758,6 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				// Optional
 				"domain_name_label": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -405,6 +790,16 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 							},
 						},
 					},
+				},
+				"version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					Default:  string(compute.IPVersionIPv4),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.IPVersionIPv4),
+						string(compute.IPVersionIPv6),
+					}, false),
 				},
 				// TODO: preview feature
 				// $ az feature register --namespace Microsoft.Network --name AllowBringYourOwnPublicIpAddress
@@ -459,6 +854,11 @@ func virtualMachineScaleSetPublicIPAddressSchemaForDataSource() *pluginsdk.Schem
 				},
 
 				"public_ip_prefix_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"version": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -560,6 +960,7 @@ func expandVirtualMachineScaleSetIPConfiguration(raw map[string]interface{}) (*c
 }
 
 func expandVirtualMachineScaleSetPublicIPAddress(raw map[string]interface{}) *compute.VirtualMachineScaleSetPublicIPAddressConfiguration {
+	version := compute.IPVersion(raw["version"].(string))
 	ipTagsRaw := raw["ip_tag"].([]interface{})
 	ipTags := make([]compute.VirtualMachineScaleSetIPTag, 0)
 	for _, ipTagV := range ipTagsRaw {
@@ -573,7 +974,8 @@ func expandVirtualMachineScaleSetPublicIPAddress(raw map[string]interface{}) *co
 	publicIPAddressConfig := compute.VirtualMachineScaleSetPublicIPAddressConfiguration{
 		Name: utils.String(raw["name"].(string)),
 		VirtualMachineScaleSetPublicIPAddressConfigurationProperties: &compute.VirtualMachineScaleSetPublicIPAddressConfigurationProperties{
-			IPTags: &ipTags,
+			IPTags:                 &ipTags,
+			PublicIPAddressVersion: version,
 		},
 	}
 
@@ -659,7 +1061,7 @@ func expandVirtualMachineScaleSetIPConfigurationUpdate(raw map[string]interface{
 	version := compute.IPVersion(raw["version"].(string))
 
 	if primary && version == compute.IPVersionIPv6 {
-		return nil, fmt.Errorf("An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
+		return nil, fmt.Errorf("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
 	ipConfiguration := compute.VirtualMachineScaleSetUpdateIPConfiguration{
@@ -724,7 +1126,6 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 		if v.NetworkSecurityGroup != nil && v.NetworkSecurityGroup.ID != nil {
 			networkSecurityGroupId = *v.NetworkSecurityGroup.ID
 		}
-
 		var enableAcceleratedNetworking, enableIPForwarding, primary bool
 		if v.EnableAcceleratedNetworking != nil {
 			enableAcceleratedNetworking = *v.EnableAcceleratedNetworking
@@ -821,15 +1222,21 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input compute.VirtualMachineSc
 		}
 	}
 
-	var domainNameLabel, name, publicIPPrefixId string
+	var domainNameLabel, name, publicIPPrefixId, version string
 	if input.DNSSettings != nil && input.DNSSettings.DomainNameLabel != nil {
 		domainNameLabel = *input.DNSSettings.DomainNameLabel
 	}
+
 	if input.Name != nil {
 		name = *input.Name
 	}
+
 	if input.PublicIPPrefix != nil && input.PublicIPPrefix.ID != nil {
 		publicIPPrefixId = *input.PublicIPPrefix.ID
+	}
+
+	if input.PublicIPAddressVersion != "" {
+		version = string(input.PublicIPAddressVersion)
 	}
 
 	var idleTimeoutInMinutes int
@@ -843,16 +1250,23 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input compute.VirtualMachineSc
 		"idle_timeout_in_minutes": idleTimeoutInMinutes,
 		"ip_tag":                  ipTags,
 		"public_ip_prefix_id":     publicIPPrefixId,
+		"version":                 version,
 	}
 }
 
 func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
-	out := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		// TODO: does this want to be a Set?
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
 				"caching": {
 					Type:     pluginsdk.TypeString,
 					Required: true,
@@ -900,8 +1314,11 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.StorageAccountTypesPremiumLRS),
+						string(compute.StorageAccountTypesPremiumV2LRS),
+						string(compute.StorageAccountTypesPremiumZRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesStandardSSDZRS),
 						string(compute.StorageAccountTypesUltraSSDLRS),
 					}, false),
 				},
@@ -926,26 +1343,6 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		o := out.Elem.(*pluginsdk.Resource)
-
-		o.Schema["disk_iops_read_write"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeInt,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This property has been renamed to `ultra_ssd_disk_iops_read_write` and will be removed in v3.0 of the provider",
-		}
-
-		o.Schema["disk_mbps_read_write"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeInt,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This property has been renamed to `ultra_ssd_disk_mbps_read_write` and will be removed in v3.0 of the provider",
-		}
-	}
-
-	return out
 }
 
 func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled bool) (*[]compute.VirtualMachineScaleSetDataDisk, error) {
@@ -963,6 +1360,10 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 			},
 			WriteAcceleratorEnabled: utils.Bool(raw["write_accelerator_enabled"].(bool)),
 			CreateOption:            compute.DiskCreateOptionTypes(raw["create_option"].(string)),
+		}
+
+		if name := raw["name"]; name != nil && name.(string) != "" {
+			disk.Name = utils.String(name.(string))
 		}
 
 		if id := raw["disk_encryption_set_id"].(string); id != "" {
@@ -1017,6 +1418,11 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 	output := make([]interface{}, 0)
 
 	for _, v := range *input {
+		var name string
+		if v.Name != nil {
+			name = *v.Name
+		}
+
 		diskSizeGb := 0
 		if v.DiskSizeGB != nil && *v.DiskSizeGB != 0 {
 			diskSizeGb = int(*v.DiskSizeGB)
@@ -1052,6 +1458,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 		}
 
 		dataDisk := map[string]interface{}{
+			"name":                      name,
 			"caching":                   string(v.Caching),
 			"create_option":             string(v.CreateOption),
 			"lun":                       lun,
@@ -1063,20 +1470,12 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 
 		// Do not set value unless value is greater than 0 - issue 15516
 		if iops > 0 {
-			if !features.ThreePointOhBeta() {
-				dataDisk["disk_iops_read_write"] = iops
-			} else {
-				dataDisk["ultra_ssd_disk_iops_read_write"] = iops
-			}
+			dataDisk["ultra_ssd_disk_iops_read_write"] = iops
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
 		if mbps > 0 {
-			if !features.ThreePointOhBeta() {
-				dataDisk["disk_mbps_read_write"] = mbps
-			} else {
-				dataDisk["ultra_ssd_disk_mbps_read_write"] = mbps
-			}
+			dataDisk["ultra_ssd_disk_mbps_read_write"] = mbps
 		}
 
 		output = append(output, dataDisk)
@@ -1108,10 +1507,12 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// note: OS Disks don't support Ultra SSDs
+						// note: OS Disks don't support Ultra SSDs or PremiumV2_LRS
 						string(compute.StorageAccountTypesPremiumLRS),
+						string(compute.StorageAccountTypesPremiumZRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesStandardSSDZRS),
 					}, false),
 				},
 
@@ -1130,6 +1531,16 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 									string(compute.DiffDiskOptionsLocal),
 								}, false),
 							},
+							"placement": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ForceNew: true,
+								Default:  string(compute.DiffDiskPlacementCacheDisk),
+								ValidateFunc: validation.StringInSlice([]string{
+									string(compute.DiffDiskPlacementCacheDisk),
+									string(compute.DiffDiskPlacementResourceDisk),
+								}, false),
+							},
 						},
 					},
 				},
@@ -1140,8 +1551,9 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					// whilst the API allows updating this value, it's never actually set at Azure's end
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
 					// however for now let's make this ForceNew since it can't be (successfully) updated
-					ForceNew:     true,
-					ValidateFunc: validate.DiskEncryptionSetID,
+					ForceNew:      true,
+					ValidateFunc:  validate.DiskEncryptionSetID,
+					ConflictsWith: []string{"os_disk.0.secure_vm_disk_encryption_set_id"},
 				},
 
 				"disk_size_gb": {
@@ -1149,6 +1561,24 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
+				},
+
+				"secure_vm_disk_encryption_set_id": {
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ForceNew:      true,
+					ValidateFunc:  validate.DiskEncryptionSetID,
+					ConflictsWith: []string{"os_disk.0.disk_encryption_set_id"},
+				},
+
+				"security_encryption_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.SecurityEncryptionTypesVMGuestStateOnly),
+						string(compute.SecurityEncryptionTypesDiskWithVMGuestState),
+					}, false),
 				},
 
 				"write_accelerator_enabled": {
@@ -1161,10 +1591,11 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.OperatingSystemTypes) *compute.VirtualMachineScaleSetOSDisk {
+func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.OperatingSystemTypes) (*compute.VirtualMachineScaleSetOSDisk, error) {
 	raw := input[0].(map[string]interface{})
+	caching := raw["caching"].(string)
 	disk := compute.VirtualMachineScaleSetOSDisk{
-		Caching: compute.CachingTypes(raw["caching"].(string)),
+		Caching: compute.CachingTypes(caching),
 		ManagedDisk: &compute.VirtualMachineScaleSetManagedDiskParameters{
 			StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
 		},
@@ -1173,6 +1604,21 @@ func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.Oper
 		// these have to be hard-coded so there's no point exposing them
 		CreateOption: compute.DiskCreateOptionTypesFromImage,
 		OsType:       osType,
+	}
+
+	securityEncryptionType := raw["security_encryption_type"].(string)
+	if securityEncryptionType != "" {
+		disk.ManagedDisk.SecurityProfile = &compute.VMDiskSecurityProfile{
+			SecurityEncryptionType: compute.SecurityEncryptionTypes(securityEncryptionType),
+		}
+	}
+	if secureVMDiskEncryptionId := raw["secure_vm_disk_encryption_set_id"].(string); secureVMDiskEncryptionId != "" {
+		if compute.SecurityEncryptionTypesDiskWithVMGuestState != compute.SecurityEncryptionTypes(securityEncryptionType) {
+			return nil, fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`")
+		}
+		disk.ManagedDisk.SecurityProfile.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+			ID: utils.String(secureVMDiskEncryptionId),
+		}
 	}
 
 	if diskEncryptionSetId := raw["disk_encryption_set_id"].(string); diskEncryptionSetId != "" {
@@ -1186,13 +1632,19 @@ func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.Oper
 	}
 
 	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 {
+		if caching != string(compute.CachingTypesReadOnly) {
+			// Restriction per https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
+			return nil, fmt.Errorf("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
+		}
+
 		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]interface{})
 		disk.DiffDiskSettings = &compute.DiffDiskSettings{
-			Option: compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
+			Option:    compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
+			Placement: compute.DiffDiskPlacement(diffDiskRaw["placement"].(string)),
 		}
 	}
 
-	return &disk
+	return &disk, nil
 }
 
 func ExpandVirtualMachineScaleSetOSDiskUpdate(input []interface{}) *compute.VirtualMachineScaleSetUpdateOSDisk {
@@ -1226,7 +1678,8 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 	diffDiskSettings := make([]interface{}, 0)
 	if input.DiffDiskSettings != nil {
 		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
-			"option": string(input.DiffDiskSettings.Option),
+			"option":    string(input.DiffDiskSettings.Option),
+			"placement": string(input.DiffDiskSettings.Placement),
 		})
 	}
 
@@ -1237,10 +1690,19 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 
 	storageAccountType := ""
 	diskEncryptionSetId := ""
+	secureVMDiskEncryptionSetId := ""
+	securityEncryptionType := ""
 	if input.ManagedDisk != nil {
 		storageAccountType = string(input.ManagedDisk.StorageAccountType)
 		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.ID != nil {
 			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.ID
+		}
+
+		if securityProfile := input.ManagedDisk.SecurityProfile; securityProfile != nil {
+			securityEncryptionType = string(securityProfile.SecurityEncryptionType)
+			if securityProfile.DiskEncryptionSet != nil && securityProfile.DiskEncryptionSet.ID != nil {
+				secureVMDiskEncryptionSetId = *securityProfile.DiskEncryptionSet.ID
+			}
 		}
 	}
 
@@ -1251,12 +1713,14 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 
 	return []interface{}{
 		map[string]interface{}{
-			"caching":                   string(input.Caching),
-			"disk_size_gb":              diskSizeGb,
-			"diff_disk_settings":        diffDiskSettings,
-			"storage_account_type":      storageAccountType,
-			"write_accelerator_enabled": writeAcceleratorEnabled,
-			"disk_encryption_set_id":    diskEncryptionSetId,
+			"caching":                          string(input.Caching),
+			"disk_size_gb":                     diskSizeGb,
+			"diff_disk_settings":               diffDiskSettings,
+			"storage_account_type":             storageAccountType,
+			"write_accelerator_enabled":        writeAcceleratorEnabled,
+			"disk_encryption_set_id":           diskEncryptionSetId,
+			"secure_vm_disk_encryption_set_id": secureVMDiskEncryptionSetId,
+			"security_encryption_type":         securityEncryptionType,
 		},
 	}
 }
@@ -1326,6 +1790,10 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"cross_zone_upgrades_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
 				"max_batch_instance_percent": {
 					Type:     pluginsdk.TypeInt,
 					Required: true,
@@ -1343,29 +1811,49 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: azValidate.ISO8601Duration,
 				},
+				"prioritize_unhealthy_instances_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
 			},
 		},
 	}
 }
 
-func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}) *compute.RollingUpgradePolicy {
+func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZonal bool) (*compute.RollingUpgradePolicy, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	raw := input[0].(map[string]interface{})
 
-	return &compute.RollingUpgradePolicy{
+	rollingUpgradePolicy := &compute.RollingUpgradePolicy{
 		MaxBatchInstancePercent:             utils.Int32(int32(raw["max_batch_instance_percent"].(int))),
 		MaxUnhealthyInstancePercent:         utils.Int32(int32(raw["max_unhealthy_instance_percent"].(int))),
 		MaxUnhealthyUpgradedInstancePercent: utils.Int32(int32(raw["max_unhealthy_upgraded_instance_percent"].(int))),
 		PauseTimeBetweenBatches:             utils.String(raw["pause_time_between_batches"].(string)),
+		PrioritizeUnhealthyInstances:        utils.Bool(raw["prioritize_unhealthy_instances_enabled"].(bool)),
 	}
+
+	enableCrossZoneUpgrade := raw["cross_zone_upgrades_enabled"].(bool)
+	if isZonal {
+		// EnableCrossZoneUpgrade can only be set when for zonal scale set
+		rollingUpgradePolicy.EnableCrossZoneUpgrade = utils.Bool(enableCrossZoneUpgrade)
+	} else if enableCrossZoneUpgrade {
+		return nil, fmt.Errorf("`rolling_upgrade_policy.0.cross_zone_upgrades_enabled` can only be set to `true` when `zones` is specified")
+	}
+
+	return rollingUpgradePolicy, nil
 }
 
 func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpgradePolicy) []interface{} {
 	if input == nil {
 		return []interface{}{}
+	}
+
+	enableCrossZoneUpgrade := false
+	if input.EnableCrossZoneUpgrade != nil {
+		enableCrossZoneUpgrade = *input.EnableCrossZoneUpgrade
 	}
 
 	maxBatchInstancePercent := 0
@@ -1388,17 +1876,50 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpg
 		pauseTimeBetweenBatches = *input.PauseTimeBetweenBatches
 	}
 
+	prioritizeUnhealthyInstances := false
+	if input.PrioritizeUnhealthyInstances != nil {
+		prioritizeUnhealthyInstances = *input.PrioritizeUnhealthyInstances
+	}
+
 	return []interface{}{
 		map[string]interface{}{
+			"cross_zone_upgrades_enabled":             enableCrossZoneUpgrade,
 			"max_batch_instance_percent":              maxBatchInstancePercent,
 			"max_unhealthy_instance_percent":          maxUnhealthyInstancePercent,
 			"max_unhealthy_upgraded_instance_percent": maxUnhealthyUpgradedInstancePercent,
 			"pause_time_between_batches":              pauseTimeBetweenBatches,
+			"prioritize_unhealthy_instances_enabled":  prioritizeUnhealthyInstances,
 		},
 	}
 }
 
+// TODO remove VirtualMachineScaleSetTerminateNotificationSchema in 4.0
 func VirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:       pluginsdk.TypeList,
+		Optional:   true,
+		Computed:   true,
+		MaxItems:   1,
+		Deprecated: "`terminate_notification` has been renamed to `termination_notification` and will be removed in 4.0.",
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"enabled": {
+					Type:     pluginsdk.TypeBool,
+					Required: true,
+				},
+				"timeout": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
+					Default:      "PT5M",
+				},
+			},
+		},
+		ConflictsWith: []string{"termination_notification"},
+	}
+}
+
+func VirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1413,11 +1934,17 @@ func VirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
 				"timeout": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azValidate.ISO8601Duration,
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
 				},
 			},
 		},
+		ConflictsWith: func() []string {
+			if !features.FourPointOhBeta() {
+				return []string{"terminate_notification"}
+			}
+			return []string{}
+		}(),
 	}
 }
 
@@ -1573,6 +2100,9 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsJSON,
 				},
 
+				// Need to check `protected_settings_from_key_vault` conflicting with `protected_settings` in iteration
+				"protected_settings_from_key_vault": protectedSettingsFromKeyVaultSchema(false),
+
 				"provision_after_extensions": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -1635,6 +2165,14 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 				}
 			}
 		}
+
+		if v, ok := m["protected_settings_from_key_vault"]; ok {
+			protectedSettingsFromKeyVault := v.([]interface{})
+			if len(protectedSettingsFromKeyVault) > 0 {
+				buf.WriteString(fmt.Sprintf("%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["secret_url"].(string)))
+				buf.WriteString(fmt.Sprintf("%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["source_vault_id"].(string)))
+			}
+		}
 	}
 
 	return pluginsdk.HashString(buf.String())
@@ -1679,7 +2217,14 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 			extensionProps.Settings = settings
 		}
 
+		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVault(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
+		extensionProps.ProtectedSettingsFromKeyVault = protectedSettingsFromKeyVault
+
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
+			if protectedSettingsFromKeyVault != nil {
+				return nil, false, fmt.Errorf("`protected_settings_from_key_vault` cannot be used with `protected_settings`")
+			}
+
 			protectedSettings, err := pluginsdk.ExpandJsonFromString(val.(string))
 			if err != nil {
 				return nil, false, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
@@ -1726,6 +2271,7 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 		forceUpdateTag := ""
 		provisionAfterExtension := make([]interface{}, 0)
 		protectedSettings := ""
+		var protectedSettingsFromKeyVault *compute.KeyVaultSecretReference
 		extPublisher := ""
 		extSettings := ""
 		extType := ""
@@ -1767,6 +2313,8 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 				}
 				extSettings = extSettingsRaw
 			}
+
+			protectedSettingsFromKeyVault = props.ProtectedSettingsFromKeyVault
 		}
 		// protected_settings isn't returned, so we attempt to get it from state otherwise set to empty string
 		if ext, ok := extensionsFromState[name]; ok {
@@ -1778,16 +2326,17 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 		}
 
 		result = append(result, map[string]interface{}{
-			"name":                       name,
-			"auto_upgrade_minor_version": autoUpgradeMinorVersion,
-			"automatic_upgrade_enabled":  enableAutomaticUpgrade,
-			"force_update_tag":           forceUpdateTag,
-			"provision_after_extensions": provisionAfterExtension,
-			"protected_settings":         protectedSettings,
-			"publisher":                  extPublisher,
-			"settings":                   extSettings,
-			"type":                       extType,
-			"type_handler_version":       extTypeVersion,
+			"name":                              name,
+			"auto_upgrade_minor_version":        autoUpgradeMinorVersion,
+			"automatic_upgrade_enabled":         enableAutomaticUpgrade,
+			"force_update_tag":                  forceUpdateTag,
+			"provision_after_extensions":        provisionAfterExtension,
+			"protected_settings":                protectedSettings,
+			"protected_settings_from_key_vault": flattenProtectedSettingsFromKeyVault(protectedSettingsFromKeyVault),
+			"publisher":                         extPublisher,
+			"settings":                          extSettings,
+			"type":                              extType,
+			"type_handler_version":              extTypeVersion,
 		})
 	}
 	return result, nil

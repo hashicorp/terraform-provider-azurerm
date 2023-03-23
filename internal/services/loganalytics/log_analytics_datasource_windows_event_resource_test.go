@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/datasources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -90,17 +90,17 @@ func TestAccLogAnalyticsDataSourceWindowsEvent_requiresImport(t *testing.T) {
 }
 
 func (t LogAnalyticsDataSourceWindowsEventResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DataSourceID(state.ID)
+	id, err := datasources.ParseDataSourceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.LogAnalytics.DataSourcesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := clients.LogAnalytics.DataSourcesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("readingLog Analytics Data Source Windows Event (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r LogAnalyticsDataSourceWindowsEventResource) basic(data acceptance.TestData) string {
@@ -112,7 +112,7 @@ resource "azurerm_log_analytics_datasource_windows_event" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
   event_log_name      = "Application"
-  event_types         = ["error"]
+  event_types         = ["Error"]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -126,7 +126,7 @@ resource "azurerm_log_analytics_datasource_windows_event" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
   event_log_name      = "Application"
-  event_types         = ["InforMation", "warning", "Error"]
+  event_types         = ["Information", "Warning", "Error"]
 }
 `, r.template(data), data.RandomInteger)
 }

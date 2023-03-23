@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceNetAppVolume() *pluginsdk.Resource {
@@ -33,6 +32,8 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"location": commonschema.LocationComputed(),
+
+			"zone": commonschema.ZoneSingleComputed(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -65,6 +66,11 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"subnet_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"network_features": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -102,13 +108,6 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						// todo remove this in version 3.0 of the provider
-						"replication_schedule": {
-							Type:       pluginsdk.TypeString,
-							Computed:   true,
-							Deprecated: "This property is not in use and will be removed in version 3.0 of the provider. Please use `replication_frequency` instead",
-						},
-
 						"replication_frequency": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -126,10 +125,10 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVolumeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("pool_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
+	id := volumes.NewVolumeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("pool_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -137,17 +136,27 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
+	d.Set("name", id.VolumeName)
 	d.Set("pool_name", id.CapacityPoolName)
 	d.Set("account_name", id.NetAppAccountName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
 
-	if props := resp.VolumeProperties; props != nil {
+		zone := ""
+		if model.Zones != nil {
+			if zones := *model.Zones; len(zones) > 0 {
+				zone = zones[0]
+			}
+		}
+		d.Set("zone", zone)
+
+		props := model.Properties
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
-		d.Set("subnet_id", props.SubnetID)
+		d.Set("subnet_id", props.SubnetId)
+		d.Set("network_features", props.NetworkFeatures)
 
 		protocolTypes := make([]string, 0)
 		if prtclTypes := props.ProtocolTypes; prtclTypes != nil {
@@ -157,9 +166,7 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		d.Set("security_style", props.SecurityStyle)
 
-		if props.UsageThreshold != nil {
-			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
-		}
+		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
 		if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
 			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
 		}

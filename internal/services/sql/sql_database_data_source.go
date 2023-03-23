@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,6 +18,8 @@ import (
 func dataSourceSqlDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceArmSqlDatabaseRead,
+
+		DeprecationMessage: "The `azurerm_sql_database` data source is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_database` data source instead.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),

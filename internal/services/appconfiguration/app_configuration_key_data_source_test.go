@@ -11,7 +11,7 @@ import (
 
 type AppConfigurationKeyDataSource struct{}
 
-func TestAccAppServicePlanDataSource_basic(t *testing.T) {
+func TestAccAppConfigurationKeyDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_configuration_key", "test")
 	d := AppConfigurationKeyDataSource{}
 
@@ -31,7 +31,7 @@ func TestAccAppServicePlanDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccAppServicePlanDataSource_basicNoLabel(t *testing.T) {
+func TestAccAppConfigurationKeyDataSource_basicNoLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_configuration_key", "test")
 	d := AppConfigurationKeyDataSource{}
 
@@ -51,7 +51,7 @@ func TestAccAppServicePlanDataSource_basicNoLabel(t *testing.T) {
 	})
 }
 
-func TestAccAppServicePlanDataSource_basicVault(t *testing.T) {
+func TestAccAppConfigurationKeyDataSource_basicVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_configuration_key", "test")
 	d := AppConfigurationKeyDataSource{}
 

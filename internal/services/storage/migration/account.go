@@ -70,10 +70,9 @@ func accountSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 		},
 
 		"account_type": {
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This field has been split into `account_tier` and `account_replication_type`",
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
 		},
 
 		"account_tier": {
@@ -114,19 +113,16 @@ func accountSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_blob_encryption": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_file_encryption": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_https_traffic_only": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -325,7 +321,6 @@ func accountSchemaForV2() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_https_traffic_only": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,

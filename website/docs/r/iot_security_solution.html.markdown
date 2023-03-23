@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Optional) Specifies the Log Analytics Workspace ID to which the security data will be sent.
 
-* `log_unmasked_ips_enabled` - (Optional) Should ip addressed be unmasked in the log? Defaults to `false`.
+* `log_unmasked_ips_enabled` - (Optional) Should IP addressed be unmasked in the log? Defaults to `false`.
 
 * `recommendations_enabled` - (Optional) A `recommendations_enabled` block of options to enable or disable as defined below.
 
@@ -124,7 +124,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Iot Security Solution.
 * `update` - (Defaults to 30 minutes) Used when updating the Iot Security Solution.
@@ -136,5 +136,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Iot Security Solution can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iot_security_solution.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Security/IoTSecuritySolutions/solution1
+terraform import azurerm_iot_security_solution.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Security/iotSecuritySolutions/solution1
 ```

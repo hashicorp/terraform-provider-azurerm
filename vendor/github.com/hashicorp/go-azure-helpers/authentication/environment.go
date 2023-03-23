@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package authentication
 
 import (
@@ -113,11 +116,17 @@ func AzureEnvironmentByNameFromEndpoint(ctx context.Context, endpoint string, en
 
 	// while the array contains values
 	for _, env := range environments {
-		if strings.EqualFold(env.Name, environmentName) {
+		if strings.EqualFold(env.Name, environmentName) || (environmentName == "" && len(environments) == 1) {
+			// if resourceManager endpoint is empty, assume it's the provided endpoint
+			if env.ResourceManager == "" {
+				env.ResourceManager = fmt.Sprintf("https://%s/", endpoint)
+			}
+
 			aEnv, err := buildAzureEnvironment(env)
 			if err != nil {
 				return nil, err
 			}
+
 			return aEnv, nil
 		}
 	}
@@ -154,7 +163,7 @@ func IsEnvironmentAzureStack(ctx context.Context, endpoint string, environmentNa
 
 func getSupportedEnvironments(ctx context.Context, endpoint string) ([]Environment, error) {
 	uri := fmt.Sprintf("https://%s/metadata/endpoints?api-version=2020-06-01", endpoint)
-	client := http.Client{
+	client := &http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 		},

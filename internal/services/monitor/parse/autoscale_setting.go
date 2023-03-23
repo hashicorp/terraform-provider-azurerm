@@ -33,7 +33,7 @@ func (id AutoscaleSettingId) String() string {
 }
 
 func (id AutoscaleSettingId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/autoscaleSettings/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Insights/autoScaleSettings/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
@@ -57,7 +57,7 @@ func AutoscaleSettingID(input string) (*AutoscaleSettingId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.Name, err = id.PopSegment("autoscaleSettings"); err != nil {
+	if resourceId.Name, err = id.PopSegment("autoScaleSettings"); err != nil {
 		return nil, err
 	}
 
@@ -93,15 +93,15 @@ func AutoscaleSettingIDInsensitively(input string) (*AutoscaleSettingId, error) 
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	// find the correct casing for the 'autoscaleSettings' segment
-	autoscaleSettingsKey := "autoscaleSettings"
+	// find the correct casing for the 'autoScaleSettings' segment
+	autoScaleSettingsKey := "autoScaleSettings"
 	for key := range id.Path {
-		if strings.EqualFold(key, autoscaleSettingsKey) {
-			autoscaleSettingsKey = key
+		if strings.EqualFold(key, autoScaleSettingsKey) {
+			autoScaleSettingsKey = key
 			break
 		}
 	}
-	if resourceId.Name, err = id.PopSegment(autoscaleSettingsKey); err != nil {
+	if resourceId.Name, err = id.PopSegment(autoScaleSettingsKey); err != nil {
 		return nil, err
 	}
 

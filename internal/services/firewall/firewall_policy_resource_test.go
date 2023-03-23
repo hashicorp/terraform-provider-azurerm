@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -55,6 +54,11 @@ func TestAccFirewallPolicy_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dns.0.servers.#").HasValue("3"),
+				check.That(data.ResourceName).Key("dns.0.servers.0").HasValue("1.1.1.1"),
+				check.That(data.ResourceName).Key("dns.0.servers.1").HasValue("3.3.3.3"),
+				check.That(data.ResourceName).Key("dns.0.servers.2").HasValue("2.2.2.2"),
+				check.That(data.ResourceName).Key("dns.0.proxy_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -119,13 +123,6 @@ func TestAccFirewallPolicy_updatePremium(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.completePremium(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -216,6 +213,9 @@ resource "azurerm_firewall_policy" "test" {
   name                = "acctest-networkfw-Policy-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  tags = {
+    Env = "Test"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -248,8 +248,17 @@ resource "azurerm_firewall_policy" "test" {
     ip_addresses = ["1.1.1.1", "2.2.2.2", "10.0.0.0/16"]
     fqdns        = ["foo.com", "bar.com"]
   }
+  explicit_proxy {
+    enabled         = true
+    http_port       = 8087
+    https_port      = 8088
+    enable_pac_file = true
+    pac_file_port   = 8089
+    pac_file        = "https://tinawstorage.file.core.windows.net/?sv=2020-02-10&ss=bfqt&srt=sco&sp=rwdlacuptfx&se=2021-06-04T07:01:12Z&st=2021-06-03T23:01:12Z&sip=68.65.171.11&spr=https&sig=Plsa0RRVpGbY0IETZZOT6znOHcSro71LLTTbzquYPgs%%3D"
+  }
+  auto_learn_private_ranges_enabled = true
   dns {
-    servers       = ["1.1.1.1", "2.2.2.2"]
+    servers       = ["1.1.1.1", "3.3.3.3", "2.2.2.2"]
     proxy_enabled = true
   }
   tags = {
@@ -262,62 +271,6 @@ resource "azurerm_firewall_policy" "test" {
 func (FirewallPolicyResource) completePremium(data acceptance.TestData) string {
 	r := FirewallPolicyResource{}
 	template := r.templatePremium(data)
-
-	if !features.ThreePointOhBeta() {
-
-		return fmt.Sprintf(`
-%s
-resource "azurerm_firewall_policy" "test" {
-  name                     = "acctest-networkfw-Policy-%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  sku                      = "Premium"
-  threat_intelligence_mode = "Off"
-  threat_intelligence_allowlist {
-    ip_addresses = ["1.1.1.1", "2.2.2.2", "10.0.0.0/16"]
-    fqdns        = ["foo.com", "bar.com"]
-  }
-  dns {
-    servers       = ["1.1.1.1", "2.2.2.2"]
-    proxy_enabled = true
-  }
-  intrusion_detection {
-    mode = "Alert"
-    signature_overrides {
-      state = "Alert"
-      id    = "1"
-    }
-    traffic_bypass {
-      name              = "Name bypass traffic settings"
-      description       = "Description bypass traffic settings"
-      protocol          = "Any"
-      destination_ports = ["*"]
-      source_ip_groups = [
-        azurerm_ip_group.test_source.id,
-      ]
-      destination_ip_groups = [
-        azurerm_ip_group.test_destination.id,
-      ]
-    }
-  }
-  identity {
-    type = "UserAssigned"
-    user_assigned_identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
-  }
-  tls_certificate {
-    key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
-    name                = azurerm_key_vault_certificate.test.name
-  }
-  private_ip_ranges = ["172.16.0.0/12", "192.168.0.0/16"]
-  tags = {
-    env = "Test"
-  }
-}
-`, template, data.RandomInteger)
-	}
-
 	return fmt.Sprintf(`
 %s
 resource "azurerm_firewall_policy" "test" {
@@ -330,6 +283,15 @@ resource "azurerm_firewall_policy" "test" {
     ip_addresses = ["1.1.1.1", "2.2.2.2", "10.0.0.0/16"]
     fqdns        = ["foo.com", "bar.com"]
   }
+  explicit_proxy {
+    enabled         = true
+    http_port       = 8087
+    https_port      = 8088
+    enable_pac_file = true
+    pac_file_port   = 8089
+    pac_file        = "https://tinawstorage.file.core.windows.net/?sv=2020-02-10&ss=bfqt&srt=sco&sp=rwdlacuptfx&se=2021-06-04T07:01:12Z&st=2021-06-03T23:01:12Z&sip=68.65.171.11&spr=https&sig=Plsa0RRVpGbY0IETZZOT6znOHcSro71LLTTbzquYPgs%%3D"
+  }
+  auto_learn_private_ranges_enabled = true
   dns {
     servers       = ["1.1.1.1", "2.2.2.2"]
     proxy_enabled = true
@@ -340,11 +302,14 @@ resource "azurerm_firewall_policy" "test" {
       state = "Alert"
       id    = "1"
     }
+    private_ranges = ["172.111.111.111"]
     traffic_bypass {
-      name              = "Name bypass traffic settings"
-      description       = "Description bypass traffic settings"
-      protocol          = "Any"
-      destination_ports = ["*"]
+      name                  = "Name bypass traffic settings"
+      description           = "Description bypass traffic settings"
+      destination_addresses = []
+      source_addresses      = []
+      protocol              = "Any"
+      destination_ports     = ["*"]
       source_ip_groups = [
         azurerm_ip_group.test_source.id,
       ]
@@ -353,6 +318,7 @@ resource "azurerm_firewall_policy" "test" {
       ]
     }
   }
+  sql_redirect_allowed = true
   identity {
     type = "UserAssigned"
     identity_ids = [
@@ -472,10 +438,9 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
-  key_vault_id   = azurerm_key_vault.test.id
-  application_id = azurerm_user_assigned_identity.test.client_id
-  tenant_id      = data.azurerm_client_config.current.tenant_id
-  object_id      = azurerm_user_assigned_identity.test.principal_id
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
 
   key_permissions = [
     "Backup",
@@ -556,26 +521,10 @@ resource "azurerm_key_vault_certificate" "test" {
 
   certificate {
     contents = filebase64("testdata/certificate.pfx")
+    password = "somepassword"
   }
 
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-  }
-
-  depends_on = [azurerm_key_vault_access_policy.test2]
+  depends_on = [azurerm_key_vault_access_policy.test, azurerm_key_vault_access_policy.test2]
 }
 `, data.RandomInteger, "westeurope", data.RandomInteger, data.RandomInteger)
 }

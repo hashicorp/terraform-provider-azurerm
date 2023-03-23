@@ -14,7 +14,7 @@ Manages a Synapse Private Link Hub.
 
 ```hcl
 resource "azurerm_synapse_private_link_hub" "example" {
-  name                = "example-resource"
+  name                = "example"
   resource_group_name = "example-rg"
   location            = "West Europe"
 }
@@ -40,7 +40,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse Private Link Hub.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Private Link Hub.

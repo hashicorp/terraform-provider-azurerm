@@ -211,6 +211,22 @@ func TestAccPrivateLinkService_complete(t *testing.T) {
 	})
 }
 
+func TestAccPrivateLinkService_withAlias(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
+	r := PrivateLinkServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAlias(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("visibility_subscription_ids.0").HasValue("*"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t PrivateLinkServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PrivateLinkServiceID(state.ID)
 	if err != nil {
@@ -233,7 +249,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsnet-basic-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.4.0/24"
+  address_prefixes     = ["10.5.4.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
@@ -264,7 +280,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsnet-update-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.3.0/24"
+  address_prefixes     = ["10.5.3.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
@@ -319,7 +335,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsnet-basic-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.4.0/24"
+  address_prefixes     = ["10.5.4.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
@@ -351,7 +367,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsnet-update-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.3.0/24"
+  address_prefixes     = ["10.5.3.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
@@ -414,7 +430,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsnet-move-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.2.0/24"
+  address_prefixes     = ["10.5.2.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
@@ -453,7 +469,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsnet-move-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.2.0/24"
+  address_prefixes     = ["10.5.2.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
@@ -516,7 +532,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsnet-move-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.2.0/24"
+  address_prefixes     = ["10.5.2.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
@@ -579,7 +595,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsnet-move-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.2.0/24"
+  address_prefixes     = ["10.5.2.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
@@ -642,7 +658,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsnet-move-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.2.0/24"
+  address_prefixes     = ["10.5.2.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
@@ -705,7 +721,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsnet-complete-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.1.0/24"
+  address_prefixes     = ["10.5.1.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
@@ -716,6 +732,7 @@ resource "azurerm_private_link_service" "test" {
   resource_group_name            = azurerm_resource_group.test.name
   auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
   visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
+  fqdns                          = ["foo.com", "bar.com"]
 
   nat_ip_configuration {
     name                       = "primaryIpConfiguration-%d"
@@ -742,6 +759,39 @@ resource "azurerm_private_link_service" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PrivateLinkServiceResource) withAlias(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsnet-basic-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.4.0/24"]
+
+  enforce_private_link_service_network_policies = true
+}
+
+resource "azurerm_private_link_service" "test" {
+  name                = "acctestPLS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  visibility_subscription_ids = ["*"]
+
+  nat_ip_configuration {
+    name      = "primaryIpConfiguration-%d"
+    subnet_id = azurerm_subnet.test.id
+    primary   = true
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (PrivateLinkServiceResource) template(data acceptance.TestData) string {

@@ -2,17 +2,19 @@ package hdinsight
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
-	"github.com/hashicorp/go-getter/helper/url"
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -42,8 +44,7 @@ func SchemaHDInsightTier() *pluginsdk.Schema {
 		ValidateFunc: validation.StringInSlice([]string{
 			string(hdinsight.TierStandard),
 			string(hdinsight.TierPremium),
-		}, !features.ThreePointOhBeta()),
-		DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+		}, false),
 	}
 }
 
@@ -94,21 +95,6 @@ func SchemaHDInsightsGateway() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				// TODO 3.0: remove this attribute
-				"enabled": {
-					Type:       pluginsdk.TypeBool,
-					Optional:   true,
-					Default:    true,
-					Deprecated: "HDInsight doesn't support disabling gateway anymore",
-					ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
-						enabled := i.(bool)
-
-						if !enabled {
-							errors = append(errors, fmt.Errorf("Only true is supported, because HDInsight doesn't support disabling gateway anymore. Provided value %t", enabled))
-						}
-						return warnings, errors
-					},
-				},
 				// NOTE: these are Required since if these aren't present you get a `500 bad request`
 				"username": {
 					Type:     pluginsdk.TypeString,
@@ -123,6 +109,29 @@ func SchemaHDInsightsGateway() *pluginsdk.Schema {
 					DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 						return (new == d.Get(k).(string)) && (old == "*****")
 					},
+				},
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsComputeIsolation() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*schema.Schema{
+				"compute_isolation_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"host_sku": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},
@@ -202,6 +211,32 @@ func SchemaHDInsightsMonitor() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 					// Azure doesn't return the key
 					DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+						return (new == d.Get(k).(string)) && (old == "*****")
+					},
+				},
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsExtension() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"log_analytics_workspace_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsUUID,
+				},
+				"primary_key": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 						return (new == d.Get(k).(string)) && (old == "*****")
 					},
 				},
@@ -290,7 +325,7 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: msiValidate.UserAssignedIdentityID,
+					ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 				},
 
 				"cluster_users_group_dns": {
@@ -304,6 +339,126 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 				},
 			},
 		},
+	}
+}
+
+func SchemaHDInsightsScriptActions() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MinItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"uri": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+				},
+
+				"parameters": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"access_modes": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+
+				"destination_port": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: azValidate.PortNumber,
+				},
+
+				"disable_gateway_auth": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+
+				"private_ip_address": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.IsIPAddress,
+				},
+
+				"sub_domain_suffix": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+type HttpEndpointModel struct {
+	AccessModes        []string `tfschema:"access_modes"`
+	DestinationPort    int32    `tfschema:"destination_port"`
+	DisableGatewayAuth bool     `tfschema:"disable_gateway_auth"`
+	PrivateIpAddress   string   `tfschema:"private_ip_address"`
+	SubDomainSuffix    string   `tfschema:"sub_domain_suffix"`
+}
+
+func ExpandHDInsightsRolesScriptActions(input []interface{}) *[]hdinsight.ScriptAction {
+	if len(input) == 0 {
+		return nil
+	}
+
+	scriptActions := make([]hdinsight.ScriptAction, 0)
+
+	for _, vs := range input {
+		v := vs.(map[string]interface{})
+
+		name := v["name"].(string)
+		uri := v["uri"].(string)
+		parameters := v["parameters"].(string)
+
+		scriptAction := hdinsight.ScriptAction{
+			Name:       utils.String(name),
+			URI:        utils.String(uri),
+			Parameters: utils.String(parameters),
+		}
+		scriptActions = append(scriptActions, scriptAction)
+	}
+
+	return &scriptActions
+}
+
+func ExpandHDInsightComputeIsolationProperties(input []interface{}) *hdinsight.ComputeIsolationProperties {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	enableComputeIsolation := v["compute_isolation_enabled"].(bool)
+	hostSku := v["host_sku"].(string)
+
+	return &hdinsight.ComputeIsolationProperties{
+		EnableComputeIsolation: &enableComputeIsolation,
+		HostSku:                &hostSku,
 	}
 }
 
@@ -440,6 +595,29 @@ func ExpandHDInsightsNetwork(input []interface{}) *hdinsight.NetworkProperties {
 	}
 }
 
+func FlattenHDInsightComputeIsolationProperties(input hdinsight.ComputeIsolationProperties) []interface{} {
+	var hostSku string
+	var enableComputeIsolation bool
+
+	if input.EnableComputeIsolation != nil {
+		enableComputeIsolation = *input.EnableComputeIsolation
+	}
+	if input.HostSku != nil {
+		hostSku = *input.HostSku
+	}
+
+	if !enableComputeIsolation {
+		return nil
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"compute_isolation_enabled": enableComputeIsolation,
+			"host_sku":                  hostSku,
+		},
+	}
+}
+
 func FlattenHDInsightsNetwork(input *hdinsight.NetworkProperties) []interface{} {
 	if input == nil {
 		return nil
@@ -464,8 +642,6 @@ func FlattenHDInsightsNetwork(input *hdinsight.NetworkProperties) []interface{} 
 }
 
 func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.ResourceData) []interface{} {
-	enabled := true
-
 	username := ""
 	if v, exists := input["restAuthCredential.username"]; exists && v != nil {
 		username = *v
@@ -478,13 +654,12 @@ func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.Reso
 		password = d.Get("gateway.0.password").(string)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":  enabled,
-			"username": username,
-			"password": password,
-		},
+	out := map[string]interface{}{
+		"username": username,
+		"password": password,
 	}
+
+	return []interface{}{out}
 }
 
 func FlattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*string) []interface{} {
@@ -663,6 +838,107 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 	}
 }
 
+func SchemaHDInsightsDiskEncryptionProperties() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"encryption_algorithm": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(hdinsight.JSONWebKeyEncryptionAlgorithmRSA15),
+						string(hdinsight.JSONWebKeyEncryptionAlgorithmRSAOAEP),
+						string(hdinsight.JSONWebKeyEncryptionAlgorithmRSAOAEP256),
+					}, false),
+				},
+
+				"encryption_at_host_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+
+				"key_vault_managed_identity_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+				},
+
+				"key_vault_key_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: keyVault.NestedItemId,
+				},
+			},
+		},
+	}
+}
+
+func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*hdinsight.DiskEncryptionProperties, error) {
+	v := input[0].(map[string]interface{})
+
+	encryptionAlgorithm := v["encryption_algorithm"].(string)
+	encryptionAtHost := v["encryption_at_host_enabled"].(bool)
+	keyVaultManagedIdentityId := v["key_vault_managed_identity_id"].(string)
+
+	diskEncryptionProps := &hdinsight.DiskEncryptionProperties{
+		EncryptionAlgorithm: hdinsight.JSONWebKeyEncryptionAlgorithm(encryptionAlgorithm),
+		EncryptionAtHost:    &encryptionAtHost,
+		MsiResourceID:       &keyVaultManagedIdentityId,
+	}
+
+	if id, ok := v["key_vault_key_id"]; ok && id.(string) != "" {
+		keyVaultKeyId, err := parse.ParseNestedItemID(id.(string))
+		if err != nil {
+			return nil, err
+		}
+		diskEncryptionProps.KeyName = &keyVaultKeyId.Name
+		diskEncryptionProps.KeyVersion = &keyVaultKeyId.Version
+		diskEncryptionProps.VaultURI = &keyVaultKeyId.KeyVaultBaseUrl
+	}
+
+	return diskEncryptionProps, nil
+}
+
+func FlattenHDInsightsDiskEncryptionProperties(input hdinsight.DiskEncryptionProperties) ([]interface{}, error) {
+	var encryptionAlgorithm string
+	var encryptionAtHost bool
+	var keyName string
+	var keyVersion string
+	var msiResourceId string
+	var keyVaultKeyId string
+
+	if input.EncryptionAtHost != nil {
+		encryptionAtHost = *input.EncryptionAtHost
+	}
+	encryptionAlgorithm = string(input.EncryptionAlgorithm)
+	if input.KeyName != nil {
+		keyName = *input.KeyName
+	}
+	if input.KeyVersion != nil {
+		keyVersion = *input.KeyVersion
+	}
+	msiResourceId = *input.MsiResourceID
+
+	if keyName != "" || keyVersion != "" {
+		keyVaultKeyIdRaw, err := parse.NewNestedItemID(*input.VaultURI, "keys", keyName, keyVersion)
+		if err != nil {
+			return nil, err
+		}
+		keyVaultKeyId = keyVaultKeyIdRaw.ID()
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"encryption_algorithm":          encryptionAlgorithm,
+			"encryption_at_host_enabled":    encryptionAtHost,
+			"key_vault_key_id":              keyVaultKeyId,
+			"key_vault_managed_identity_id": msiResourceId,
+		},
+	}, nil
+}
+
 // ExpandHDInsightsStorageAccounts returns an array of StorageAccount structs, as well as a ClusterIdentity
 // populated with any managed identities required for accessing Data Lake Gen2 storage.
 func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageAccounts []interface{}) (*[]hdinsight.StorageAccount, *hdinsight.ClusterIdentity, error) {
@@ -745,11 +1021,10 @@ type HDInsightNodeDefinition struct {
 func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNodeDefinition, required bool) *pluginsdk.Schema {
 	result := map[string]*pluginsdk.Schema{
 		"vm_size": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-			ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, !features.ThreePointOhBeta()),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(validate.NodeDefinitionVMSize, false),
 		},
 		"username": {
 			Type:     pluginsdk.TypeString,
@@ -789,6 +1064,8 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			ForceNew:     true,
 			ValidateFunc: azure.ValidateResourceIDOrEmpty,
 		},
+
+		"script_actions": SchemaHDInsightsScriptActions(),
 	}
 
 	if definition.CanSpecifyInstanceCount {
@@ -797,15 +1074,6 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			countValidation = validation.IntBetween(definition.MinInstanceCount, *definition.MaxInstanceCount)
 		}
 
-		// TODO 3.0: remove this property
-		result["min_instance_count"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ForceNew:     true,
-			Computed:     true,
-			Deprecated:   "this has been deprecated from the API and will be removed in version 3.0 of the provider",
-			ValidateFunc: countValidation,
-		}
 		result["target_instance_count"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
@@ -944,6 +1212,7 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	password := v["password"].(string)
 	virtualNetworkId := v["virtual_network_id"].(string)
 	subnetId := v["subnet_id"].(string)
+	scriptActions := v["script_actions"].([]interface{})
 
 	role := hdinsight.Role{
 		Name: utils.String(name),
@@ -955,6 +1224,7 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 				Username: utils.String(username),
 			},
 		},
+		ScriptActions: ExpandHDInsightsRolesScriptActions(scriptActions),
 	}
 
 	virtualNetworkSpecified := virtualNetworkId != ""
@@ -989,11 +1259,6 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	}
 
 	if definition.CanSpecifyInstanceCount {
-		minInstanceCount := v["min_instance_count"].(int)
-		if minInstanceCount > 0 {
-			role.MinInstanceCount = utils.Int32(int32(minInstanceCount))
-		}
-
 		targetInstanceCount := v["target_instance_count"].(int)
 		role.TargetInstanceCount = utils.Int32(int32(targetInstanceCount))
 
@@ -1140,6 +1405,7 @@ func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{
 		"ssh_keys":           pluginsdk.NewSet(pluginsdk.HashString, []interface{}{}),
 		"subnet_id":          "",
 		"virtual_network_id": "",
+		"script_actions":     make([]interface{}, 0),
 	}
 
 	if profile := input.OsProfile; profile != nil {
@@ -1165,6 +1431,9 @@ func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{
 		// we should be "safe" to try and pull it from the state instead, but clearly this isn't ideal
 		vmSize := existingV["vm_size"].(string)
 		output["vm_size"] = vmSize
+
+		scriptActions := existingV["script_actions"].([]interface{})
+		output["script_actions"] = scriptActions
 	}
 
 	if profile := input.VirtualNetworkProfile; profile != nil {
@@ -1177,12 +1446,7 @@ func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{
 	}
 
 	if definition.CanSpecifyInstanceCount {
-		output["min_instance_count"] = 0
 		output["target_instance_count"] = 0
-
-		if input.MinInstanceCount != nil {
-			output["min_instance_count"] = int(*input.MinInstanceCount)
-		}
 
 		if input.TargetInstanceCount != nil {
 			output["target_instance_count"] = int(*input.TargetInstanceCount)

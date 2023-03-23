@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -70,7 +70,7 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 				}, false),
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"input_mapping_fields": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -112,7 +112,7 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"input_mapping_default_values": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -387,20 +387,31 @@ func expandAzureRmEventgridTopicInputMapping(d *pluginsdk.ResourceData) *eventgr
 		if len(mappings) > 0 && mappings[0] != nil {
 			if mapping := mappings[0].(map[string]interface{}); mapping != nil {
 				if dataVersion := mapping["data_version"].(string); dataVersion != "" {
-					jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
+					if v := jismp.DataVersion; v != nil && v.SourceField != nil {
+						jismp.DataVersion = &eventgrid.JSONFieldWithDefault{SourceField: v.SourceField, DefaultValue: &dataVersion}
+					} else {
+						jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
+					}
 				}
 
 				if subject := mapping["subject"].(string); subject != "" {
-					jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
+					if v := jismp.Subject; v != nil && v.SourceField != nil {
+						jismp.Subject = &eventgrid.JSONFieldWithDefault{SourceField: v.SourceField, DefaultValue: &subject}
+					} else {
+						jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
+					}
 				}
 
 				if eventType := mapping["event_type"].(string); eventType != "" {
-					jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+					if v := jismp.EventType; v != nil && v.SourceField != nil {
+						jismp.EventType = &eventgrid.JSONFieldWithDefault{SourceField: v.SourceField, DefaultValue: &eventType}
+					} else {
+						jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+					}
 				}
 			}
 		}
 	}
-
 	jsonMapping := eventgrid.JSONInputSchemaMapping{
 		JSONInputSchemaMappingProperties: &jismp,
 		InputSchemaMappingType:           eventgrid.InputSchemaMappingTypeJSON,

@@ -54,7 +54,6 @@ resource "azurerm_automation_webhook" "example" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -75,7 +74,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) Map of input parameters passed to runbook.
 
-* `uri` - (Optional) URI to initiate the webhook. Can be generated using [Generate URI API](https://docs.microsoft.com/en-us/rest/api/automation/webhook/generate-uri). By default, new URI is generated on each new resource creation.
+* `uri` - (Optional) URI to initiate the webhook. Can be generated using [Generate URI API](https://docs.microsoft.com/rest/api/automation/webhook/generate-uri). By default, new URI is generated on each new resource creation. Changing this forces a new resource to be created. 
 
 ## Attributes Reference
 
@@ -83,11 +82,11 @@ The following attributes are exported:
 
 * `id` - The Automation Webhook ID.
 
-* `uri` - (Sensitive) Generated URI for this Webhook.
+* `uri` - (Optional) (Sensitive) Generated URI for this Webhook. Changing this forces a new resource to be created.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Webhook.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation Webhook.
@@ -99,5 +98,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Automation Webhooks can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_automation_webhook.TestRunbook_webhook /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/webhooks/TestRunbook_webhook
+terraform import azurerm_automation_webhook.TestRunbook_webhook /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/webHooks/TestRunbook_webhook
 ```

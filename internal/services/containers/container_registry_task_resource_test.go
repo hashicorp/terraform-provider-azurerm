@@ -6,12 +6,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -53,24 +52,24 @@ func TestAccContainerRegistryTask_dockerStep(t *testing.T) {
 		},
 	}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dockerStepBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("docker_step.0.context_access_token"),
 		{
 			Config: r.dockerStepUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("docker_step.0.context_access_token", "docker_step.0.secret_arguments"),
 		{
 			Config: r.dockerStepBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -90,24 +89,24 @@ func TestAccContainerRegistryTask_fileTaskStep(t *testing.T) {
 		},
 	}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.fileTaskStepBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("file_step.0.context_access_token"),
 		{
 			Config: r.fileTaskStepUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("file_step.0.context_access_token", "file_step.0.secret_values"),
 		{
 			Config: r.fileTaskStepBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -127,24 +126,24 @@ func TestAccContainerRegistryTask_encodedTaskStep(t *testing.T) {
 		},
 	}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.encodedTaskStepBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("encoded_step.0.context_access_token"),
 		{
 			Config: r.encodedTaskStepUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("encoded_step.0.context_access_token", "encoded_step.0.secret_values"),
 		{
 			Config: r.encodedTaskStepBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -164,24 +163,24 @@ func TestAccContainerRegistryTask_dockerStepBaseImageTrigger(t *testing.T) {
 		},
 	}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dockerStepBaseImageTrigger(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("docker_step.0.context_access_token"),
 		{
 			Config: r.dockerStepBaseImageTriggerUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("docker_step.0.context_access_token", "base_image_trigger.0.update_trigger_endpoint"),
 		{
 			Config: r.dockerStepBaseImageTrigger(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -201,10 +200,25 @@ func TestAccContainerRegistryTask_dockerStepSourceTrigger(t *testing.T) {
 		},
 	}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dockerStepSourceTrigger(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"docker_step.0.context_access_token",
+			"source_trigger.0.authentication.#",
+			"source_trigger.0.authentication.0.%",
+			"source_trigger.0.authentication.0.expire_in_seconds",
+			"source_trigger.0.authentication.0.refresh_token",
+			"source_trigger.0.authentication.0.scope",
+			"source_trigger.0.authentication.0.token",
+		),
+		{
+			Config: r.dockerStepSourceTriggerUpdateDockerStep(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -219,7 +233,7 @@ func TestAccContainerRegistryTask_dockerStepSourceTrigger(t *testing.T) {
 		),
 		{
 			Config: r.dockerStepSourceTriggerUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -234,7 +248,7 @@ func TestAccContainerRegistryTask_dockerStepSourceTrigger(t *testing.T) {
 		),
 		{
 			Config: r.dockerStepSourceTrigger(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -262,24 +276,24 @@ func TestAccContainerRegistryTask_dockerStepTimerTrigger(t *testing.T) {
 		},
 	}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dockerStepTimerTrigger(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("docker_step.0.context_access_token"),
 		{
 			Config: r.dockerStepTimerTriggerUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("docker_step.0.context_access_token"),
 		{
 			Config: r.dockerStepTimerTrigger(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -299,10 +313,10 @@ func TestAccContainerRegistryTask_identity(t *testing.T) {
 		},
 	}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dockerStepBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -311,7 +325,7 @@ func TestAccContainerRegistryTask_identity(t *testing.T) {
 		),
 		{
 			Config: r.dockerStepSystemIdentity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -320,7 +334,7 @@ func TestAccContainerRegistryTask_identity(t *testing.T) {
 		),
 		{
 			Config: r.dockerStepUserAssignedIdentity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -329,7 +343,7 @@ func TestAccContainerRegistryTask_identity(t *testing.T) {
 		),
 		{
 			Config: r.dockerStepSystemUserAssignedIdentity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -351,17 +365,47 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 		},
 	}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.fileTaskStepBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("file_step.0.context_access_token"),
 		{
-			Config: r.fileTaskStepRegistryCredential(data),
-			Check: resource.ComposeTestCheckFunc(
+			Config: r.fileTaskStepRegistryCredentialPassword(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"file_step.0.context_access_token",
+			"registry_credential.0.custom.#",
+			"registry_credential.0.custom.0.%",
+			"registry_credential.0.custom.0.identity",
+			"registry_credential.0.custom.0.login_server",
+			"registry_credential.0.custom.0.password",
+			"registry_credential.0.custom.0.username",
+		),
+		{
+			Config: r.fileTaskStepRegistryCredentialIdentity(data, "foo"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"file_step.0.context_access_token",
+			"registry_credential.0.custom.#",
+			"registry_credential.0.custom.0.%",
+			"registry_credential.0.custom.0.identity",
+			"registry_credential.0.custom.0.login_server",
+			"registry_credential.0.custom.0.password",
+			"registry_credential.0.custom.0.username",
+		),
+		{
+			Config: r.fileTaskStepRegistryCredentialIdentity(data, "bar"),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -376,7 +420,7 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 		),
 		{
 			Config: r.fileTaskStepBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -388,10 +432,10 @@ func TestAccContainerRegistryTask_systemTask(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_task", "test")
 	r := ContainerRegistryTaskResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.systemTask(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -411,10 +455,10 @@ func TestAccContainerRegistryTask_requiresImport(t *testing.T) {
 		},
 	}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dockerStepBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -422,7 +466,7 @@ func TestAccContainerRegistryTask_requiresImport(t *testing.T) {
 	})
 }
 
-func (r ContainerRegistryTaskResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r ContainerRegistryTaskResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Containers.TasksClient
 
 	id, err := parse.ContainerRegistryTaskID(state.ID)
@@ -691,6 +735,38 @@ resource "azurerm_container_registry_task" "test" {
 `, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, r.githubRepo.url, r.githubRepo.token)
 }
 
+func (r ContainerRegistryTaskResource) dockerStepSourceTriggerUpdateDockerStep(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry_task" "test" {
+  name                  = "testacccrTask%d"
+  container_registry_id = azurerm_container_registry.test.id
+  platform {
+    os = "Linux"
+  }
+  docker_step {
+    dockerfile_path      = "Dockerfile"
+    context_path         = "%s"
+    context_access_token = "%s"
+    image_names          = ["helloworld2:{{.Run.ID}}"]
+  }
+  source_trigger {
+    name           = "default"
+    events         = ["commit"]
+    source_type    = "Github"
+    repository_url = "%s"
+    branch         = "main"
+    authentication {
+      token_type = "PAT"
+      token      = "%s"
+    }
+  }
+}
+`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, r.githubRepo.url, r.githubRepo.token)
+}
+
 func (r ContainerRegistryTaskResource) dockerStepSourceTriggerUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -865,7 +941,7 @@ resource "azurerm_container_registry_task" "test" {
 `, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
 }
 
-func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredential(data acceptance.TestData) string {
+func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialPassword(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -900,6 +976,48 @@ resource "azurerm_container_registry_task" "test" {
   }
 }
 `, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, os.Getenv("ARM_CLIENT_ID"), os.Getenv("ARM_CLIENT_SECRET"))
+}
+
+func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialIdentity(data acceptance.TestData, tag string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry" "test2" {
+  name                = "testacccrtask2%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Basic"
+}
+
+resource "azurerm_container_registry_task" "test" {
+  name                  = "testacccrTask%d"
+  container_registry_id = azurerm_container_registry.test.id
+  identity {
+    type = "SystemAssigned"
+  }
+  platform {
+    os = "Linux"
+  }
+  file_step {
+    task_file_path       = "taskmulti-multiregistry.yaml"
+    context_path         = "%s"
+    context_access_token = "%s"
+    values = {
+      regDate = azurerm_container_registry.test2.login_server
+    }
+  }
+  registry_credential {
+    custom {
+      login_server = azurerm_container_registry.test2.login_server
+      identity     = "[system]"
+    }
+  }
+  tags = {
+    foo = "%s"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, tag)
 }
 
 func (r ContainerRegistryTaskResource) systemTask(data acceptance.TestData) string {

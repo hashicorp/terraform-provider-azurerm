@@ -8,9 +8,9 @@ description: |-
 
 # azurerm_cdn_endpoint
 
-A CDN Endpoint is the entity within a CDN Profile containing configuration information regarding caching behaviours and origins. The CDN Endpoint is exposed using the URL format <endpointname>.azureedge.net.
+A CDN Endpoint is the entity within a CDN Profile containing configuration information regarding caching behaviours and origins. The CDN Endpoint is exposed using the URL format `<endpointname>.azureedge.net`.
 
-!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April which may cause issues with the CDN/FrontDoor resources. [More information is available in this Github issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the Github issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
 ## Example Usage
 
@@ -46,9 +46,9 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the CDN Endpoint. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the CDN Endpoint.
+* `resource_group_name` - (Required) The name of the resource group in which to create the CDN Endpoint. Changing this forces a new resource to be created.
 
-* `profile_name` - (Required) The CDN Profile to which to attach the CDN Endpoint.
+* `profile_name` - (Required) The CDN Profile to which to attach the CDN Endpoint. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `optimization_type` - (Optional) What types of optimization should this CDN Endpoint optimize for? Possible values include `DynamicSiteAcceleration`, `GeneralMediaStreaming`, `GeneralWebDelivery`, `LargeFileDownload` and `VideoOnDemandMediaStreaming`.
 
-* `origin` - (Required) The set of origins of the CDN endpoint. When multiple origins exist, the first origin will be used as primary and rest will be used as failover options. Each `origin` block supports fields documented below.
+* `origin` - (Required) The set of origins of the CDN endpoint. When multiple origins exist, the first origin will be used as primary and rest will be used as failover options. Each `origin` block supports fields documented below. Changing this forces a new resource to be created.
 
 * `origin_host_header` - (Optional) The host header CDN provider will send along with content requests to origins.
 
@@ -82,6 +82,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
 The `origin` block supports:
 
 * `name` - (Required) The name of the origin. This is an arbitrary value. However, this value needs to be unique under the endpoint. Changing this forces a new resource to be created.
@@ -91,6 +93,8 @@ The `origin` block supports:
 * `http_port` - (Optional) The HTTP port of the origin. Defaults to `80`. Changing this forces a new resource to be created.
 
 * `https_port` - (Optional) The HTTPS port of the origin. Defaults to `443`. Changing this forces a new resource to be created.
+
+---
 
 The `geo_filter` block supports:
 
@@ -206,7 +210,7 @@ A `url_redirect_action` block supports the following:
 
 * `redirect_type` - (Required) Type of the redirect. Valid values are `Found`, `Moved`, `PermanentRedirect` and `TemporaryRedirect`.
 
-* `protocol` - (Optional) Specifies the protocol part of the URL. Valid values are `Http` and `Https`.
+* `protocol` - (Optional) Specifies the protocol part of the URL. Valid values are `MatchRequest`, `Http` and `Https`.
 
 * `hostname` - (Optional) Specifies the hostname part of the URL.
 
@@ -238,9 +242,7 @@ A `cookies_condition` block supports the following:
 
 * `match_values` - (Optional) List of values for the cookie. This is required if `operator` is not `Any`.
 
-
-
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -274,7 +276,7 @@ A `post_arg_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -286,7 +288,7 @@ A `query_string_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -308,7 +310,7 @@ A `request_body_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -322,7 +324,7 @@ A `request_header_condition` block supports the following:
 
 * `match_values` - (Optional) List of header values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -354,7 +356,7 @@ A `request_uri_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -366,7 +368,7 @@ A `url_file_extension_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -378,19 +380,19 @@ A `url_file_name_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
 A `url_path_condition` block supports the following:
 
-* `operator` - (Required) Valid values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan` and `LessThanOrEqual`.
+* `operator` - (Required) Valid values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`, `LessThanOrEqual`, `RegEx` and `Wildcard`.
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -400,9 +402,11 @@ The following attributes are exported:
 
 * `id` - The ID of the CDN Endpoint.
 
+* `fqdn` - The Fully Qualified Domain Name of the CDN Endpoint.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CDN Endpoint.
 * `update` - (Defaults to 30 minutes) Used when updating the CDN Endpoint.

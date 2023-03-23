@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
-	loganalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type WatchlistResource struct{}
@@ -28,6 +27,7 @@ type WatchlistModel struct {
 	Description             string   `tfschema:"description"`
 	Labels                  []string `tfschema:"labels"`
 	DefaultDuration         string   `tfschema:"default_duration"`
+	ItemSearchKey           string   `tfschema:"item_search_key"`
 }
 
 func (r WatchlistResource) Arguments() map[string]*pluginsdk.Schema {
@@ -42,9 +42,15 @@ func (r WatchlistResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
 		},
 		"display_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"item_search_key": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -101,14 +107,14 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			workspaceId, err := loganalyticsParse.LogAnalyticsWorkspaceID(model.LogAnalyticsWorkspaceId)
+			workspaceId, err := workspaces.ParseWorkspaceID(model.LogAnalyticsWorkspaceId)
 			if err != nil {
 				return fmt.Errorf("parsing Log Analytics Workspace ID: %w", err)
 			}
 
-			id := parse.NewWatchlistID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.WorkspaceName, model.Name)
+			id := parse.NewWatchlistID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -124,10 +130,7 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 					// The only supported provider for now is "Microsoft"
 					Provider: utils.String("Microsoft"),
 
-					// The "source" and "contentType" represent the source file name which contains the watchlist items and its content type.
-					// Setting them here is merely to make the API happy.
-					Source:      securityinsight.Source("a.csv"),
-					ContentType: utils.String("Text/Csv"),
+					ItemsSearchKey: utils.String(model.ItemSearchKey),
 				},
 			}
 
@@ -141,7 +144,7 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 				param.WatchlistProperties.DefaultDuration = &model.DefaultDuration
 			}
 
-			_, err = client.Create(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param)
+			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, param)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -163,7 +166,7 @@ func (r WatchlistResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
@@ -173,7 +176,7 @@ func (r WatchlistResource) Read() sdk.ResourceFunc {
 
 			model := WatchlistModel{
 				Name:                    id.Name,
-				LogAnalyticsWorkspaceId: loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID(),
+				LogAnalyticsWorkspaceId: workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID(),
 			}
 
 			if props := resp.WatchlistProperties; props != nil {
@@ -188,6 +191,9 @@ func (r WatchlistResource) Read() sdk.ResourceFunc {
 				}
 				if props.DefaultDuration != nil {
 					model.DefaultDuration = *props.DefaultDuration
+				}
+				if props.ItemsSearchKey != nil {
+					model.ItemSearchKey = *props.ItemsSearchKey
 				}
 			}
 
@@ -207,7 +213,7 @@ func (r WatchlistResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
+			if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

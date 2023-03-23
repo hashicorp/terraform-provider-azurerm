@@ -32,6 +32,8 @@ resource "azurerm_signalr_service" "example" {
     allowed_origins = ["http://www.example.com"]
   }
 
+  public_network_access_enabled = false
+
   connectivity_logs_enabled = true
   messaging_logs_enabled    = true
   service_mode              = "Default"
@@ -55,23 +57,37 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the SignalR service exists. Changing this forces a new resource to be created.
 
-* `sku` - A `sku` block as documented below.
+* `sku` - (Required) A `sku` block as documented below.
 
 * `cors` - (Optional) A `cors` block as documented below.
 
-* `features` - (Optional) A `features` block as documented below.
+* `connectivity_logs_enabled` - (Optional) Specifies if Connectivity Logs are enabled or not. Defaults to `false`.
 
-~> **NOTE:** The `features` block is deprecated, use `connectivity_logs_enabled`, `messaging_logs_enabled`, `live_trace_enabled` and `service_mode` instead.
+* `messaging_logs_enabled` - (Optional) Specifies if Messaging Logs are enabled or not. Defaults to `false`.
 
-* `connectivity_logs_enabled`- (Optional) Specifies if Connectivity Logs are enabled or not. Defaults to `false`.
+* `live_trace_enabled` - (Optional) Specifies if Live Trace is enabled or not. Defaults to `false`.
 
-* `messaging_logs_enabled`- (Optional) Specifies if Messaging Logs are enabled or not. Defaults to `false`.
+* `identity` - (Optional) An `identity` block as defined below.
 
-* `live_trace_enabled`- (Optional) Specifies if Live Trace is enabled or not. Defaults to `false`.
+* `public_network_access_enabled` - (Optional) Whether to enable public network access? Defaults to `true`.
 
-* `service_mode`- (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`. Defaults to `Default`.
+~> **Note:** `public_network_access_enabled` cannot be set to `false` in `Free` sku tier.
+
+* `local_auth_enabled` - (Optional) Whether to enable local auth? Defaults to `true`.
+
+* `aad_auth_enabled` - (Optional) Whether to enable AAD auth? Defaults to `true`.
+
+* `tls_client_cert_enabled` - (Optional) Whether to request client certificate during TLS handshake? Defaults to `false`.
+
+~> **Note:** `tls_client_cert_enabled` cannot be set to `true` in `Free` sku tier.
+
+* `serverless_connection_timeout_in_seconds` - (Optional) Specifies the client connection timeout. Defaults to `30`.
+
+* `service_mode` - (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`. Defaults to `Default`.
 
 * `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
+
+* `live_trace` - (Optional) A `live_trace` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -83,31 +99,45 @@ A `cors` block supports the following:
 
 ---
 
-A `features` block supports the following:
-
-* `flag` - (Required) The kind of Feature. Possible values are `EnableConnectivityLogs`, `EnableMessagingLogs`, `EnableLiveTrace` and `ServiceMode`.
-
-* `value` - (Required) A value of a feature flag. Possible values are `Classic`, `Default` and `Serverless`.
-
----
-
 An `upstream_endpoint` block supports the following:
 
 * `url_template` - (Required) The upstream URL Template. This can be a url or a template such as `http://host.com/{hub}/api/{category}/{event}`.
 
-* `category_pattern` - (Optional) The categories to match on, or `*` for all.
+* `category_pattern` - (Required) The categories to match on, or `*` for all.
 
-* `event_pattern` - (Optional) The events to match on, or `*` for all.
+* `event_pattern` - (Required) The events to match on, or `*` for all.
 
-* `hub_pattern` - (Optional) The hubs to match on, or `*` for all.
+* `hub_pattern` - (Required) The hubs to match on, or `*` for all.
+
+---
+
+A `live_trace` block supports the following:
+
+* `enabled` - (Optional) Whether the live trace is enabled? Defaults to `true`.
+
+* `messaging_logs_enabled` - (Optional) Whether the log category `MessagingLogs` is enabled? Defaults to `true`
+
+* `connectivity_logs_enabled` - (Optional) Whether the log category `ConnectivityLogs` is enabled? Defaults to `true`
+
+* `http_request_logs_enabled` - (Optional) Whether the log category `HttpRequestLogs` is enabled? Defaults to `true`
 
 ---
 
 A `sku` block supports the following:
 
-* `name` - (Required) Specifies which tier to use. Valid values are `Free_F1` and `Standard_S1`.
+* `name` - (Required) Specifies which tier to use. Valid values are `Free_F1`, `Standard_S1` and `Premium_P1`.
 
 * `capacity` - (Required) Specifies the number of units associated with this SignalR service. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this signalR. Possible values are `SystemAssigned`, `UserAssigned`.
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this signalR.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned`
 
 ## Attributes Reference
 
@@ -133,7 +163,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the SignalR Service.
 * `update` - (Defaults to 30 minutes) Used when updating the SignalR Service.

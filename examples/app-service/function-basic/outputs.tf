@@ -1,3 +1,3 @@
-output "function_app_name" {
-  value = azurerm_function_app.main.name
+output "app_name" {
+  value = azurerm_linux_function_app.example.name
 }

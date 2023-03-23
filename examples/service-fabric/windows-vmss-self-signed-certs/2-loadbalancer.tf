@@ -18,9 +18,8 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "${var.prefix}BEAPool"
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "${var.prefix}BEAPool"
 }
 
 resource "azurerm_lb_nat_pool" "example" {
@@ -35,38 +34,33 @@ resource "azurerm_lb_nat_pool" "example" {
 }
 
 resource "azurerm_lb_rule" "example_tcp" {
-  resource_group_name            = azurerm_resource_group.example.name
   loadbalancer_id                = azurerm_lb.example.id
   name                           = "${var.prefix}LBRuleTcp"
   protocol                       = "Tcp"
   frontend_port                  = 19000
   backend_port                   = 19000
   frontend_ip_configuration_name = azurerm_lb.example.frontend_ip_configuration[0].name
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.example.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.example.id]
 }
 
 resource "azurerm_lb_rule" "example_http" {
-  resource_group_name            = azurerm_resource_group.example.name
   loadbalancer_id                = azurerm_lb.example.id
   name                           = "${var.prefix}LBRuleHttp"
   protocol                       = "Tcp"
   frontend_port                  = 19080
   backend_port                   = 19080
   frontend_ip_configuration_name = azurerm_lb.example.frontend_ip_configuration[0].name
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.example.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.example.id]
 }
 
 resource "azurerm_lb_probe" "example_tcp" {
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "${var.prefix}SFTcpGatewayProbe"
-  port                = 19000
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "${var.prefix}SFTcpGatewayProbe"
+  port            = 19000
 }
 
 resource "azurerm_lb_probe" "example_http" {
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "${var.prefix}SFHttpGatewayProbe"
-  port                = 19080
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "${var.prefix}SFHttpGatewayProbe"
+  port            = 19080
 }
-

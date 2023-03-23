@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `certificate_name` - (Required) The name of the public certificate. Changing this forces a new App Service Public Certificate to be created.
 
-* `certificate_location` - (Required) The location of the certificate. Possible values are `CurrentUserMy`, `LocalMachineMy` and `Unknown`.
+* `certificate_location` - (Required) The location of the certificate. Possible values are `CurrentUserMy`, `LocalMachineMy` and `Unknown`. Changing this forces a new App Service Public Certificate to be created.
 
 * `blob` - (Required) The base64-encoded contents of the certificate. Changing this forces a new App Service Public Certificate to be created.
 
@@ -69,7 +69,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Public Certificate.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Public Certificate.

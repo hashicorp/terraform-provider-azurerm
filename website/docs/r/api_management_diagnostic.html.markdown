@@ -101,7 +101,7 @@ resource "azurerm_api_management_diagnostic" "example" {
 
 The following arguments are supported:
 
-* `identifier` - (Required) The diagnostic identifier for the API Management Service. At this time the only supported value is `applicationinsights`. Changing this forces a new resource to be created.
+* `identifier` - (Required) The diagnostic identifier for the API Management Service. At this time the supported values are `applicationinsights` and `azuremonitor`. Changing this forces a new resource to be created.
 
 * `api_management_name` - (Required) The Name of the API Management Service where this Diagnostic should be created. Changing this forces a new resource to be created.
 
@@ -110,7 +110,6 @@ The following arguments are supported:
 * `api_management_logger_id` - (Required) The id of the target API Management Logger where the API Management Diagnostic should be saved.
 
 ---
-
 
 * `always_log_errors` - (Optional) Always log errors. Send telemetry if there is an erroneous condition, regardless of sampling settings.
 
@@ -140,6 +139,24 @@ A `backend_request`, `backend_response`, `frontend_request` or `frontend_respons
 
 * `headers_to_log` - (Optional) Specifies a list of headers to log.
 
+* `data_masking` - (Optional) A `data_masking` block as defined below.
+
+---
+
+A `data_masking` block supports the following:
+
+* `query_params` - (Optional) A `query_params` block as defined below.
+
+* `headers` - (Optional) A `headers` block as defined below.
+
+---
+
+The `query_params` and `headers` blocks support the following:
+
+* `mode` - (Required) The data masking mode. Possible values are `Mask` and `Hide` for `query_params`. The only possible value is `Mask` for `headers`.
+
+* `value` - (Required) The name of the header or the query parameter to mask.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -148,7 +165,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Diagnostic.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management Diagnostic.

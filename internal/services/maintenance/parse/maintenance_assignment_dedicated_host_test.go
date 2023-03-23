@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 )
 
 func TestMaintenanceAssignmentDedicatedHostID(t *testing.T) {
@@ -55,11 +55,11 @@ func TestMaintenanceAssignmentDedicatedHostID(t *testing.T) {
 			Error: false,
 			Expect: &MaintenanceAssignmentDedicatedHostId{
 				DedicatedHostIdRaw: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/hostGroups/group1/hosts/host1",
-				DedicatedHostId: &parseCompute.DedicatedHostId{
-					SubscriptionId: "00000000-0000-0000-0000-000000000000",
-					ResourceGroup:  "resGroup1",
-					HostGroupName:  "group1",
-					HostName:       "host1",
+				DedicatedHostId: dedicatedhosts.HostId{
+					SubscriptionId:    "00000000-0000-0000-0000-000000000000",
+					ResourceGroupName: "resGroup1",
+					HostGroupName:     "group1",
+					HostName:          "host1",
 				},
 				Name: "assign1",
 			},

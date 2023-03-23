@@ -7,32 +7,28 @@ resource "azurerm_resource_group" "example" {
   location = var.location
 }
 
-resource "azurerm_app_service_plan" "example" {
-  name                = "${var.prefix}-asp"
+resource "azurerm_service_plan" "example" {
+  name                = "${var.prefix}-sp"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  kind                = "xenon"
-  is_xenon            = true
-
-  sku {
-    tier = "PremiumV3"
-    size = "P1V3"
-  }
+  os_type             = "Windows"
+  sku_name            = "P1v3"
 }
 
-resource "azurerm_app_service" "example" {
-  name                = "${var.prefix}-appservice"
+resource "azurerm_windows_web_app" "example" {
+  name                = "${var.prefix}-container-example"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  app_service_plan_id = azurerm_app_service_plan.example.id
-
-  site_config {
-    windows_fx_version = "DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"
-  }
+  service_plan_id     = azurerm_service_plan.example.id
 
   app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"      = "https://mcr.microsoft.com",
-    "DOCKER_REGISTRY_SERVER_USERNAME" = "",
-    "DOCKER_REGISTRY_SERVER_PASSWORD" = "",
+    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
+  }
+
+  site_config {
+    application_stack {
+      docker_container_name = "jackofallops/azure-containerapps-python-acctest"
+      docker_container_tag  = "v0.0.1"
+    }
   }
 }

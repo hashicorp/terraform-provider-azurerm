@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/globalschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -104,17 +104,17 @@ func TestAccDevTestGlobalVMShutdownSchedule_autoShutdownUpdate(t *testing.T) {
 }
 
 func (DevTestGlobalVMShutdownScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ScheduleID(state.ID)
+	id, err := globalschedules.ParseScheduleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DevTestLabs.GlobalLabSchedulesClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.DevTestLabs.GlobalLabSchedulesClient.Get(ctx, *id, globalschedules.GetOperationOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Dev Test Lab Global Schedule %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ScheduleProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DevTestGlobalVMShutdownScheduleResource) template(data acceptance.TestData) string {
@@ -139,7 +139,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestSN-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {

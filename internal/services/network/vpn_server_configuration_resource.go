@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceVPNServerConfiguration() *pluginsdk.Resource {
@@ -43,9 +44,9 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"vpn_authentication_types": {
 				Type:     pluginsdk.TypeList,
@@ -280,50 +281,6 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 
 						"server_root_certificate": {
 							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-
-									"public_cert_data": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-								},
-							},
-						},
-					},
-				},
-				ConflictsWith: []string{
-					"radius_server",
-				},
-			},
-
-			"radius_server": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				MaxItems:   1,
-				Deprecated: "Deprecated in favour of `radius`",
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"address": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"secret": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							Sensitive:    true,
-						},
-
-						"client_root_certificate": {
-							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -332,24 +289,6 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 										Required: true,
 									},
 
-									"thumbprint": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-								},
-							},
-						},
-
-						"server_root_certificate": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-
 									"public_cert_data": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
@@ -358,9 +297,6 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 							},
 						},
 					},
-				},
-				ConflictsWith: []string{
-					"radius",
 				},
 			},
 
@@ -415,11 +351,7 @@ func resourceVPNServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta 
 	ipSecPoliciesRaw := d.Get("ipsec_policy").([]interface{})
 	ipSecPolicies := expandVpnServerConfigurationIPSecPolicies(ipSecPoliciesRaw)
 
-	radiusRaw := d.Get("radius").([]interface{})
-	if len(radiusRaw) == 0 {
-		radiusRaw = d.Get("radius_server").([]interface{})
-	}
-	radius := expandVpnServerConfigurationRadius(radiusRaw)
+	radius := expandVpnServerConfigurationRadius(d.Get("radius").([]interface{}))
 
 	vpnProtocolsRaw := d.Get("vpn_protocols").(*pluginsdk.Set).List()
 	vpnProtocols := expandVpnServerConfigurationVPNProtocols(vpnProtocolsRaw)
@@ -557,14 +489,8 @@ func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interfac
 
 		flattenedRadius := flattenVpnServerConfigurationRadius(props)
 		if len(flattenedRadius) > 0 {
-			if flattenedRadius[0].(map[string]interface{})["server"] != nil {
-				if err := d.Set("radius", flattenedRadius); err != nil {
-					return fmt.Errorf("setting `radius`: %+v", err)
-				}
-			} else {
-				if err := d.Set("radius_server", flattenedRadius); err != nil {
-					return fmt.Errorf("setting `radius_server`: %+v", err)
-				}
+			if err := d.Set("radius", flattenedRadius); err != nil {
+				return fmt.Errorf("setting `radius`: %+v", err)
 			}
 		}
 
@@ -791,7 +717,7 @@ type vpnServerConfigurationRadius struct {
 }
 
 func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigurationRadius {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
@@ -846,7 +772,7 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 }
 
 func flattenVpnServerConfigurationRadius(input *network.VpnServerConfigurationProperties) []interface{} {
-	if input == nil || (input.RadiusServerAddress == nil && input.RadiusServers == nil) || input.RadiusServerRootCertificates == nil || len(*input.RadiusServerRootCertificates) == 0 {
+	if input == nil || (input.RadiusServerAddress == nil && (input.RadiusServers == nil || len(*input.RadiusServers) == 0)) {
 		return []interface{}{}
 	}
 

@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -69,7 +68,7 @@ func (r SentinelDataConnectorAzureSecurityCenterResource) Exists(ctx context.Con
 		return nil, err
 	}
 
-	if resp, err := client.Get(ctx, id.ResourceGroup, sentinel.OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
+	if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
@@ -86,8 +85,7 @@ func (r SentinelDataConnectorAzureSecurityCenterResource) basic(data acceptance.
 
 resource "azurerm_sentinel_data_connector_azure_security_center" "test" {
   name                       = "accTestDC-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  depends_on                 = [azurerm_log_analytics_solution.test]
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 `, template, data.RandomInteger)
 }
@@ -101,9 +99,8 @@ data "azurerm_client_config" "test" {}
 
 resource "azurerm_sentinel_data_connector_azure_security_center" "test" {
   name                       = "accTestDC-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   subscription_id            = data.azurerm_client_config.test.subscription_id
-  depends_on                 = [azurerm_log_analytics_solution.test]
 }
 `, template, data.RandomInteger)
 }
@@ -115,7 +112,7 @@ func (r SentinelDataConnectorAzureSecurityCenterResource) requiresImport(data ac
 
 resource "azurerm_sentinel_data_connector_azure_security_center" "import" {
   name                       = azurerm_sentinel_data_connector_azure_security_center.test.name
-  log_analytics_workspace_id = azurerm_sentinel_data_connector_azure_security_center.test.log_analytics_workspace_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 `, template)
 }
@@ -138,17 +135,8 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

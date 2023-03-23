@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -193,18 +193,39 @@ func TestAccLighthouseDefinition_plan(t *testing.T) {
 	})
 }
 
+func TestAccLighthouseDefinition_eligibleAuthorization(t *testing.T) {
+	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
+	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
+	if secondTenantID == "" || principalID == "" {
+		t.Skip("Skipping as ARM_TENANT_ID_ALT and/or ARM_PRINCIPAL_ID_ALT_TENANT are not specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_lighthouse_definition", "test")
+	r := LighthouseDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.eligibleAuthorization(uuid.New().String(), secondTenantID, principalID, data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("lighthouse_definition_id"),
+	})
+}
+
 func (LighthouseDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LighthouseDefinitionID(state.ID)
+	id, err := registrationdefinitions.ParseScopedRegistrationDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Lighthouse.DefinitionsClient.Get(ctx, id.Scope, id.LighthouseDefinitionID)
+	resp, err := clients.Lighthouse.DefinitionsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Lighthouse Definition %q (Scope: %q) does not exist", id.LighthouseDefinitionID, id.Scope)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LighthouseDefinitionResource) basic(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
@@ -382,4 +403,51 @@ resource "azurerm_lighthouse_definition" "test" {
   }
 }
 `, data.RandomInteger, secondTenantID, principalID, planName, planPublisher, planProduct, planVersion)
+}
+
+func (LighthouseDefinitionResource) eligibleAuthorization(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_role_definition" "contributor" {
+  role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c" // Contributor role
+}
+
+data "azurerm_role_definition" "reader" {
+  role_definition_id = "acdd72a7-3385-48ef-bd42-f606fba81ae7"
+}
+
+data "azurerm_subscription" "test" {}
+
+resource "azurerm_lighthouse_definition" "test" {
+  lighthouse_definition_id = "%s"
+  name                     = "acctest-LD-%d"
+  managing_tenant_id       = "%s"
+  scope                    = data.azurerm_subscription.test.id
+
+  authorization {
+    principal_id           = "%s"
+    role_definition_id     = data.azurerm_role_definition.reader.role_definition_id
+    principal_display_name = "Reader"
+  }
+
+  eligible_authorization {
+    principal_id           = "%s"
+    role_definition_id     = data.azurerm_role_definition.contributor.role_definition_id
+    principal_display_name = "Tier 1 Support"
+
+    just_in_time_access_policy {
+      multi_factor_auth_provider  = "Azure"
+      maximum_activation_duration = "PT7H"
+
+      approver {
+        principal_id           = "%s"
+        principal_display_name = "Tier 2 Support"
+      }
+    }
+  }
+}
+`, id, data.RandomInteger, secondTenantID, principalID, principalID, principalID)
 }

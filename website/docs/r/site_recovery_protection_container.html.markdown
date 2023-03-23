@@ -49,13 +49,13 @@ resource "azurerm_site_recovery_protection_container" "protection-container" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the protection container.
+* `name` - (Required) The name of the protection container. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Name of the resource group where the vault that should be updated is located.
+* `resource_group_name` - (Required) Name of the resource group where the vault that should be updated is located. Changing this forces a new resource to be created.
 
-* `recovery_vault_name` - (Required) The name of the vault that should be updated.
+* `recovery_vault_name` - (Required) The name of the vault that should be updated. Changing this forces a new resource to be created.
 
-* `recovery_fabric_name` - (Required) Name of fabric that should contain this protection container.
+* `recovery_fabric_name` - (Required) Name of fabric that should contain this protection container. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -65,7 +65,7 @@ In addition to the arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Site Recovery Protection Container.
 * `update` - (Defaults to 30 minutes) Used when updating the Site Recovery Protection Container.

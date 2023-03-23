@@ -33,9 +33,11 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Application Gateway.
+
+* `backend_address_pool` - A `backend_address_pool` block as defined below.
 
 * `identity` - A `identity` block as defined below.
 
@@ -45,14 +47,26 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
+A `backend_address_pool` block exports the following:
+
+* `id` - The ID of the Backend Address Pool.
+
+* `name` - The name of the Backend Address Pool.
+
+* `fqdns` - A list of FQDN's that are included in the Backend Address Pool.
+
+* `ip_addresses` - A list of IP Addresses that are included in the Backend Address Pool.
+
+---
+
 A `identity` block exports the following:
 
-* `identity_ids` - A list of Managed Identity ID's assigned to this Application Gateway.
+* `identity_ids` - A list of Managed Identity IDs assigned to this Application Gateway.
 
 * `type` - The type of Managed Identity assigned to this Application Gateway.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway.

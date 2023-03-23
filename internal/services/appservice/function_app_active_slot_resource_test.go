@@ -162,7 +162,7 @@ resource "azurerm_windows_function_app_slot" "update" {
 
   site_config {
     application_stack {
-      dotnet_version = "6"
+      dotnet_version = "v6.0"
     }
 
     cors {
@@ -243,13 +243,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  account_kind             = "Storage"
-  allow_blob_public_access = true
+  name                            = "acctestsa%[3]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  account_kind                    = "Storage"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_service_plan" "test" {
@@ -368,7 +368,7 @@ resource "azurerm_windows_function_app" "test" {
 
   site_config {
     application_stack {
-      dotnet_version = "6"
+      dotnet_version = "v6.0"
     }
 
     cors {
@@ -400,7 +400,7 @@ resource "azurerm_windows_function_app_slot" "test" {
 
   site_config {
     application_stack {
-      dotnet_version = "6"
+      dotnet_version = "v6.0"
     }
 
     cors {

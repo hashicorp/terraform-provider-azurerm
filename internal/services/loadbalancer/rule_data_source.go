@@ -2,12 +2,9 @@ package loadbalancer
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,12 +20,82 @@ func dataSourceArmLoadBalancerRule() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: dataSourceArmLoadBalancerSchema(),
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.RuleName,
+			},
+
+			"loadbalancer_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.LoadBalancerID,
+			},
+
+			"frontend_ip_configuration_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"protocol": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"frontend_port": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"backend_port": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"backend_address_pool_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"probe_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			// TODO 4.0: change this from enable_* to *_enabled
+			"enable_floating_ip": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			// TODO 4.0: change this from enable_* to *_enabled
+			"enable_tcp_reset": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"disable_outbound_snat": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"idle_timeout_in_minutes": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"load_distribution": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+		},
 	}
 }
 
 func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	lbRuleClient := meta.(*clients.Client).LoadBalancers.LoadBalancingRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -41,23 +108,13 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 	loadBalancer, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(loadBalancer.Response) {
-			d.SetId("")
-			log.Printf("[INFO] Load Balancer %q not found. Removing from state", loadBalancerId.Name)
-			return nil
+			return fmt.Errorf("parent %s was not found", *loadBalancerId)
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Rule %q: %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, name, err)
+		return fmt.Errorf("retrieving parent %s: %+v", *loadBalancerId, err)
 	}
-
-	lbRuleClient := meta.(*clients.Client).LoadBalancers.LoadBalancingRulesClient
-	ctx, cancel = timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	id := parse.NewLoadBalancingRuleID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, name)
-	resourceGroup := id.ResourceGroup
-	if !features.ThreePointOhBeta() {
-		resourceGroup = d.Get("resource_group_name").(string)
-	}
-	resp, err := lbRuleClient.Get(ctx, resourceGroup, *loadBalancer.Name, name)
+	resp, err := lbRuleClient.Get(ctx, id.ResourceGroup, *loadBalancer.Name, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)
@@ -112,83 +169,4 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
-}
-
-func dataSourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.RuleName,
-		},
-
-		"loadbalancer_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.LoadBalancerID,
-		},
-
-		"frontend_ip_configuration_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"protocol": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"frontend_port": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
-		"backend_port": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
-		"backend_address_pool_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"probe_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_floating_ip": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_tcp_reset": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"disable_outbound_snat": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"idle_timeout_in_minutes": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
-		"load_distribution": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
-
-	if !features.ThreePointOhBeta() {
-		out["resource_group_name"] = commonschema.ResourceGroupNameForDataSource()
-	}
-
-	return out
 }

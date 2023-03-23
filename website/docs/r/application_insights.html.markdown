@@ -67,16 +67,13 @@ output "app_id" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Application Insights component. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the Application Insights component. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the Application Insights component.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Application Insights component. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -88,17 +85,17 @@ The following arguments are supported:
 
 * `retention_in_days` - (Optional) Specifies the retention period in days. Possible values are `30`, `60`, `90`, `120`, `180`, `270`, `365`, `550` or `730`. Defaults to `90`.
 
-* `sampling_percentage` - (Optional) Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry.
+* `sampling_percentage` - (Optional) Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry. Defaults to `100`.
 
-* `disable_ip_masking` - (Optional) By default the real client ip is masked as `0.0.0.0` in the logs. Use this argument to disable masking and log the real client ip. Defaults to `false`.
+* `disable_ip_masking` - (Optional) By default the real client IP is masked as `0.0.0.0` in the logs. Use this argument to disable masking and log the real client IP. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource
+* `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource. Changing this forces a new resource to be created.
 
 * `local_authentication_disabled` - (Optional) Disable Non-Azure AD based Auth. Defaults to `false`.
 
-* `internet_ingestion_enabled ` - (Optional) Should the Application Insights component support ingestion over the Public Internet? Defaults to `true`.
+* `internet_ingestion_enabled` - (Optional) Should the Application Insights component support ingestion over the Public Internet? Defaults to `true`.
 
 * `internet_query_enabled` - (Optional) Should the Application Insights component support querying over the Public Internet? Defaults to `true`.
 
@@ -118,9 +115,9 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Application Insights Component.
+* `create` - (Defaults to 60 minutes) Used when creating the Application Insights Component.
 * `update` - (Defaults to 30 minutes) Used when updating the Application Insights Component.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Component.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Component.

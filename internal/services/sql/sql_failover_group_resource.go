@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -26,6 +26,8 @@ func resourceSqlFailoverGroup() *pluginsdk.Resource {
 		Read:   resourceSqlFailoverGroupRead,
 		Update: resourceSqlFailoverGroupCreateUpdate,
 		Delete: resourceSqlFailoverGroupDelete,
+
+		DeprecationMessage: "The `azurerm_sql_failover_group` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_failover_group` resource instead.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FailoverGroupID(id)

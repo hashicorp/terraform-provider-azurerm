@@ -89,6 +89,8 @@ data "azurerm_storage_account_sas" "test" {
     create  = true
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, ipAddresses, startDate, endDate)
@@ -146,6 +148,8 @@ func TestAccDataSourceStorageAccountSas_permissionsString(t *testing.T) {
 		{map[string]interface{}{"create": true}, "c"},
 		{map[string]interface{}{"update": true}, "u"},
 		{map[string]interface{}{"process": true}, "p"},
+		{map[string]interface{}{"tag": true}, "t"},
+		{map[string]interface{}{"filter": true}, "f"},
 		{map[string]interface{}{"read": true, "write": true, "add": true, "create": true}, "rwac"},
 	}
 

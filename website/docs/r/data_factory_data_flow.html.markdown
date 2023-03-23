@@ -45,8 +45,7 @@ JSON
 
 resource "azurerm_data_factory_dataset_json" "example1" {
   name                = "dataset1"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   linked_service_name = azurerm_data_factory_linked_custom_service.example.name
 
   azure_blob_storage_location {
@@ -60,8 +59,7 @@ resource "azurerm_data_factory_dataset_json" "example1" {
 
 resource "azurerm_data_factory_dataset_json" "example2" {
   name                = "dataset2"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  data_factory_id     = azurerm_data_factory.example.id
   linked_service_name = azurerm_data_factory_linked_custom_service.example.name
 
   azure_blob_storage_location {
@@ -80,6 +78,13 @@ resource "azurerm_data_factory_data_flow" "example" {
   source {
     name = "source1"
 
+    flowlet {
+      name = azurerm_data_factory_flowlet_data_flow.example1.name
+      parameters = {
+        "Key1" = "value1"
+      }
+    }
+
     dataset {
       name = azurerm_data_factory_dataset_json.example1.name
     }
@@ -88,8 +93,85 @@ resource "azurerm_data_factory_data_flow" "example" {
   sink {
     name = "sink1"
 
+    flowlet {
+      name = azurerm_data_factory_flowlet_data_flow.example2.name
+      parameters = {
+        "Key1" = "value1"
+      }
+    }
+
     dataset {
       name = azurerm_data_factory_dataset_json.example2.name
+    }
+  }
+
+  script = <<EOT
+source(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  limit: 100, 
+  ignoreNoFilesFound: false, 
+  documentForm: 'documentPerLine') ~> source1 
+source1 sink(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  skipDuplicateMapInputs: true, 
+  skipDuplicateMapOutputs: true) ~> sink1
+EOT
+}
+
+resource "azurerm_data_factory_flowlet_data_flow" "example1" {
+  name            = "example"
+  data_factory_id = azurerm_data_factory.test.id
+
+  source {
+    name = "source1"
+
+    linked_service {
+      name = azurerm_data_factory_linked_custom_service.test.name
+    }
+  }
+
+  sink {
+    name = "sink1"
+
+    linked_service {
+      name = azurerm_data_factory_linked_custom_service.test.name
+    }
+  }
+
+  script = <<EOT
+source(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  limit: 100, 
+  ignoreNoFilesFound: false, 
+  documentForm: 'documentPerLine') ~> source1 
+source1 sink(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  skipDuplicateMapInputs: true, 
+  skipDuplicateMapOutputs: true) ~> sink1
+EOT
+}
+
+resource "azurerm_data_factory_flowlet_data_flow" "example2" {
+  name            = "example"
+  data_factory_id = azurerm_data_factory.test.id
+
+  source {
+    name = "source1"
+
+    linked_service {
+      name = azurerm_data_factory_linked_custom_service.test.name
+    }
+  }
+
+  sink {
+    name = "sink1"
+
+    linked_service {
+      name = azurerm_data_factory_linked_custom_service.test.name
     }
   }
 
@@ -117,7 +199,9 @@ The following arguments are supported:
 
 * `data_factory_id` - (Required) The ID of Data Factory in which to associate the Data Flow with. Changing this forces a new resource.
 
-* `script` - (Required) The script for the Data Factory Data Flow.
+* `script` - (Optional) The script for the Data Factory Data Flow.
+
+* `script_lines` - (Optional) The script lines for the Data Factory Data Flow.
 
 * `source` - (Required) One or more `source` blocks as defined below.
 
@@ -141,7 +225,11 @@ A `source` block supports the following:
 
 * `dataset` - (Optional) A `dataset` block as defined below.
 
+* `flowlet` - (Optional) A `flowlet` block as defined below.
+
 * `linked_service` - (Optional) A `linked_service` block as defined below.
+
+* `rejected_linked_service` - (Optional) A `rejected_linked_service` block as defined below.
 
 * `schema_linked_service` - (Optional) A `schema_linked_service` block as defined below.
 
@@ -155,7 +243,11 @@ A `sink` block supports the following:
 
 * `dataset` - (Optional) A `dataset` block as defined below.
 
+* `flowlet` - (Optional) A `flowlet` block as defined below.
+
 * `linked_service` - (Optional) A `linked_service` block as defined below.
+
+* `rejected_linked_service` - (Optional) A `rejected_linked_service` block as defined below.
 
 * `schema_linked_service` - (Optional) A `schema_linked_service` block as defined below.
 
@@ -169,9 +261,27 @@ A `dataset` block supports the following:
 
 ---
 
+A `flowlet` block supports the following:
+
+* `name` - (Required) The name for the Data Factory Flowlet.
+
+* `dataset_parameters` - (Optional) Specifies the reference data flow parameters from dataset.
+
+* `parameters` - (Optional) A map of parameters to associate with the Data Factory Flowlet.
+
+---
+
 A `linked_service` block supports the following:
 
 * `name` - (Required) The name for the Data Factory Linked Service.
+
+* `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service.
+
+---
+
+A `rejected_linked_service` block supports the following:
+
+* `name` - (Required) The name for the Data Factory Linked Service with schema.
 
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service.
 
@@ -191,6 +301,12 @@ A `transformation` block supports the following:
 
 * `description` - (Optional) The description for the Data Flow transformation.
 
+* `dataset` - (Optional) A `dataset` block as defined below.
+
+* `flowlet` - (Optional) A `flowlet` block as defined below.
+
+* `linked_service` - (Optional) A `linked_service` block as defined below.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -199,7 +315,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Data Flow.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Data Flow.

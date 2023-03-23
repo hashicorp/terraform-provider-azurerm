@@ -6,25 +6,28 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/diskpools"
 	disksValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 var _ sdk.ResourceWithUpdate = DiskPoolResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = DiskPoolResource{}
 
 type DiskPoolResource struct{}
+
+func (DiskPoolResource) DeprecationMessage() string {
+	return "The `azurerm_disk_pool` resource is deprecated and will be removed in v4.0 of the AzureRM Provider."
+}
 
 type DiskPoolResourceModel struct {
 	Name              string                 `tfschema:"name"`
@@ -116,8 +119,13 @@ func (r DiskPoolResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
+			}
+
 			//lintignore:R006
-			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
+			return pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
 				if err := r.retryError("waiting for creation", id.ID(), future.Poller.PollUntilDone()); err != nil {
 					return err
 				}
@@ -153,7 +161,7 @@ func (DiskPoolResource) Read() sdk.ResourceFunc {
 				if model.Sku != nil {
 					m.Sku = model.Sku.Name
 				}
-				m.Tags = flattenTags(model.Tags)
+				m.Tags = tags.Flatten(model.Tags)
 
 				m.Location = location.Normalize(model.Location)
 				m.SubnetId = model.Properties.SubnetId
@@ -183,8 +191,13 @@ func (r DiskPoolResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id)
+			}
+
 			//lintignore:R006
-			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete), func() *resource.RetryError {
+			return pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
 				return r.retryError("waiting for deletion", id.ID(), future.Poller.PollUntilDone())
 			})
 		},
@@ -226,15 +239,21 @@ func (r DiskPoolResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
+			}
+
 			//lintignore:R006
-			return pluginsdk.Retry(metadata.ResourceData.Timeout(pluginsdk.TimeoutUpdate), func() *resource.RetryError {
+			return pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
 				return r.retryError("waiting for update", id.ID(), future.Poller.PollUntilDone())
 			})
 		},
 	}
 }
 
-func (DiskPoolResource) retryError(action string, id string, err error) *resource.RetryError {
+func (DiskPoolResource) retryError(action string, id string, err error) *pluginsdk.RetryError {
 	if err == nil {
 		return nil
 	}

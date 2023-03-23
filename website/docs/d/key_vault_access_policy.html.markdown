@@ -28,7 +28,6 @@ output "access_policy_key_permissions" {
 `Secret Management`, `Certificate Management`, `Key & Secret Management`, `Key & Certificate Management`,
 `Secret & Certificate Management`,  `Key, Secret, & Certificate Management`
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -43,6 +42,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Access Policy.

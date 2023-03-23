@@ -39,6 +39,8 @@ output "location" {
 
 * `zone_redundant` - Whether or not this ServiceBus Namespace is zone redundant.
 
+* `endpoint` - The URL to access the ServiceBus Namespace.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 The following attributes are exported only if there is an authorization rule named
@@ -56,6 +58,6 @@ The following attributes are exported only if there is an authorization rule nam
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace.

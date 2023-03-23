@@ -13,8 +13,9 @@ Manages a Stream Analytics Output to Microsoft SQL Server Database.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
 }
 
 data "azurerm_stream_analytics_job" "example" {
@@ -44,8 +45,8 @@ resource "azurerm_sql_database" "example" {
 
 resource "azurerm_stream_analytics_output_mssql" "example" {
   name                      = "example-output-sql"
-  stream_analytics_job_name = azurerm_stream_analytics_job.example.name
-  resource_group_name       = azurerm_stream_analytics_job.example.resource_group_name
+  stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
+  resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
 
   server   = azurerm_sql_server.example.fully_qualified_domain_name
   user     = azurerm_sql_server.example.administrator_login
@@ -67,11 +68,19 @@ The following arguments are supported:
 
 * `server` - (Required) The SQL server url. Changing this forces a new resource to be created.
 
-* `user` - (Required) Username used to login to the Microsoft SQL Server. Changing this forces a new resource to be created.
+* `user` - (Optional) Username used to login to the Microsoft SQL Server. Changing this forces a new resource to be created. Required if `authentication_mode` is `ConnectionString`. 
 
-* `password` - (Required) Password used together with username, to login to the Microsoft SQL Server. Changing this forces a new resource to be created.
+* `database` - (Required) The MS SQL database name where the reference table exists. Changing this forces a new resource to be created.
+
+* `password` - (Optional) Password used together with username, to login to the Microsoft SQL Server. Required if `authentication_mode` is `ConnectionString`.
 
 * `table` - (Required) Table in the database that the output points to. Changing this forces a new resource to be created.
+
+* `max_batch_count` - (Optional) The max batch count to write to the SQL Database. Defaults to `10000`. Possible values are between `1` and `1073741824`.
+
+* `max_writer_count` - (Optional) The max writer count for the SQL Database. Defaults to `1`. Possible values are `0` which bases the writer count on the query partition and `1` which corresponds to a single writer.
+
+* `authentication_mode` - (Optional) The authentication mode for the Stream Output. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
 
 ## Attributes Reference
 
@@ -81,7 +90,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output Microsoft SQL Server Database.
 * `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Output Microsoft SQL Server Database.
@@ -93,5 +102,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Stream Analytics Outputs to Microsoft SQL Server Database can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_output_mssql.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
+terraform import azurerm_stream_analytics_output_mssql.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1/outputs/output1
 ```

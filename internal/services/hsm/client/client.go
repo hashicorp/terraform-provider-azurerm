@@ -1,16 +1,16 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/hardwaresecuritymodules/mgmt/2018-10-31-preview/hardwaresecuritymodules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	DedicatedHsmClient *hardwaresecuritymodules.DedicatedHsmClient
+	DedicatedHsmClient *dedicatedhsms.DedicatedHsmsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	dedicatedHsmClient := hardwaresecuritymodules.NewDedicatedHsmClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	dedicatedHsmClient := dedicatedhsms.NewDedicatedHsmsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&dedicatedHsmClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

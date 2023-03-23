@@ -10,6 +10,8 @@ description: |-
 
 Use this data source to access information about an existing SQL Azure Database Server.
 
+-> **Note:** The `azurerm_sql_server` data source is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_server`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/mssql_server) data source instead.
+
 ## Example Usage
 
 ```hcl
@@ -49,14 +51,14 @@ output "sql_server_id" {
 
 An `identity` block exports the following:
 
-* `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Azure Active Directory Tenant.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
-* `type` - The identity type of the SQL Server.
+* `type` - The identity type of this Managed Service Identity.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the SQL Azure Database Server.

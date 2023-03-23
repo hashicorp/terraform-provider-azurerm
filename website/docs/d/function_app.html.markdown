@@ -11,6 +11,8 @@ description: |-
 
 Use this data source to access information about a Function App.
 
+!> **Note:** The `azurerm_function_app` data source is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_linux_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/linux_function_app) and [`azurerm_windows_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/windows_function_app) data sources instead.
+
 ## Example Usage
 
 ```hcl
@@ -54,7 +56,7 @@ The following attributes are exported:
 
 * `os_type` - A string indicating the Operating System type for this function app.
 
-~> **NOTE:** This value will be `linux` for Linux Derivatives, or an empty string for Windows. 
+~> **NOTE:** This value will be `linux` for Linux Derivatives, or an empty string for Windows.
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses.
 
@@ -67,7 +69,7 @@ The following attributes are exported:
 The `connection_string` supports the following:
 
 * `name` - The name of the Connection String.
-* `type` - The type of the Connection String. 
+* `type` - The type of the Connection String.
 * `value` - The value for the Connection String.
 
 ---
@@ -118,7 +120,7 @@ A `site_config` block exports the following:
 
 * `cors` - A `cors` block as defined above.
 
-* `dotnet_framework_version` - The version of the .net framework's CLR used in this App Service.
+* `dotnet_framework_version` - The version of the .NET framework's CLR used in this App Service.
 
 * `elastic_instance_minimum` - The number of minimum instances for this function app. Only applicable to apps on the Premium plan.
 
@@ -156,13 +158,13 @@ A `source_control` block exports the following:
 
 * `repo_url` -  The URL of the source code repository.
 
-* `branch` - The branch of the remote repository in use. 
+* `branch` - The branch of the remote repository in use.
 
 * `manual_integration` - Limits to manual integration.  
 
 * `rollback_enabled` - Is roll-back enabled for the repository.
 
-* `use_mercurial` - Uses Mercurial if `true`, otherwise uses Git. 
+* `use_mercurial` - Uses Mercurial if `true`, otherwise uses Git.
 
 ---
 
@@ -178,6 +180,6 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Function App.

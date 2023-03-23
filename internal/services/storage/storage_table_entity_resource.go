@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -163,7 +164,7 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 	input := entities.GetEntityInput{
 		PartitionKey:  id.PartitionKey,
 		RowKey:        id.RowKey,
-		MetaDataLevel: entities.NoMetaData,
+		MetaDataLevel: entities.FullMetaData,
 	}
 
 	result, err := client.Get(ctx, id.AccountName, id.TableName, input)
@@ -223,5 +224,53 @@ func flattenEntity(entity map[string]interface{}) map[string]interface{} {
 	delete(entity, "RowKey")
 	delete(entity, "Timestamp")
 
-	return entity
+	result := map[string]interface{}{}
+	for k, v := range entity {
+		// skip ODATA annotation returned with fullmetadata
+		if strings.HasPrefix(k, "odata.") || strings.HasSuffix(k, "@odata.type") {
+			continue
+		}
+		if dtype, ok := entity[k+"@odata.type"]; ok {
+			switch dtype {
+			case "Edm.Boolean":
+				result[k] = fmt.Sprint(v)
+			case "Edm.Double":
+				result[k] = fmt.Sprintf("%f", v)
+			case "Edm.Int32":
+				fallthrough
+			case "Edm.Int64":
+				result[k] = fmt.Sprintf("%d", int64(v.(float64)))
+			case "Edm.String":
+				result[k] = v
+			default:
+				log.Printf("[WARN] key %q with unexpected @odata.type %q", k, dtype)
+				continue
+			}
+
+			result[k+"@odata.type"] = dtype
+		} else {
+			// special handling for property types that do not require the annotation to be present
+			// https://docs.microsoft.com/en-us/rest/api/storageservices/payload-format-for-table-service-operations#property-types-in-a-json-feed
+			switch c := v.(type) {
+			case bool:
+				result[k] = fmt.Sprint(v)
+				result[k+"@odata.type"] = "Edm.Boolean"
+			case float64:
+				f64 := v.(float64)
+				if v == float64(int64(f64)) {
+					result[k] = fmt.Sprintf("%d", int64(f64))
+					result[k+"@odata.type"] = "Edm.Int32"
+				} else {
+					result[k] = fmt.Sprintf("%f", v)
+					result[k+"@odata.type"] = "Edm.Double"
+				}
+			case string:
+				result[k] = v
+			default:
+				log.Printf("[WARN] key %q with unexpected type %T", k, c)
+			}
+		}
+	}
+
+	return result
 }

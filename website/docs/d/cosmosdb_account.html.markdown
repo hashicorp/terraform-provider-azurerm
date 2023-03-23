@@ -47,11 +47,11 @@ The following attributes are exported:
 
 * `key_vault_key_id` - The Key Vault key URI for CMK encryption.
 
-~> **NOTE:** The CosmosDB service always uses the latest version of the specified key. 
+~> **NOTE:** The CosmosDB service always uses the latest version of the specified key.
 
 * `ip_range_filter` - The current IP Filter for this CosmosDB account
 
-* `enable_free_tier` - If Free Tier pricing option is enabled for this CosmosDB Account.
+* `enable_free_tier` - If Free Tier pricing option is enabled for this CosmosDB Account. You can have up to one free tier Azure Cosmos DB account per Azure subscription.
 
 * `enable_automatic_failover` - If automatic failover is enabled for this CosmosDB Account.
 
@@ -69,7 +69,6 @@ The following attributes are exported:
 * `max_interval_in_seconds` - The amount of staleness (in seconds) tolerated when the consistency level is Bounded Staleness.
 * `max_staleness_prefix` - The number of stale requests tolerated when the consistency level is Bounded Staleness.
 
-
 `geo_location` The geographic locations data is replicated to with the following properties:
 
 * `id` - The ID of the location.
@@ -86,16 +85,24 @@ The following attributes are exported:
 
 * `write_endpoints` - A list of write endpoints available for this CosmosDB account.
 
-* `primary_key` - The Primary key for the CosmosDB Account.
+* `primary_key` - The primary key for the CosmosDB account.
 
-* `secondary_key` - The Secondary key for the CosmosDB Account.
+* `secondary_key` - The secondary key for the CosmosDB account.
 
-* `primary_readonly_key` - The Primary read-only Key for the CosmosDB Account.
+* `primary_readonly_key` - The primary read-only Key for the CosmosDB account.
 
-* `secondary_readonly_key` - The Secondary read-only key for the CosmosDB Account.
+* `secondary_readonly_key` - The secondary read-only key for the CosmosDB account.
+
+* `primary_sql_connection_string` - The primary SQL connection string for the CosmosDB account.
+
+* `secondary_sql_connection_string` - The secondary SQL connection string for the CosmosDB account.
+
+* `primary_readonly_sql_connection_string` - The primary read-only SQL connection string for the CosmosDB account.
+
+* `secondary_readonly_sql_connection_string` - The secondary read-only SQL connection string for the CosmosDB account.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Account.

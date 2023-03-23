@@ -13,8 +13,9 @@ Manages a Stream Analytics Output Table.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
 }
 
 data "azurerm_stream_analytics_job" "example" {
@@ -24,8 +25,8 @@ data "azurerm_stream_analytics_job" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "examplesa"
-  resource_group_name      = data.azurerm_resource_group.example.name
-  location                 = data.azurerm_resource_group.example.location
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -37,8 +38,8 @@ resource "azurerm_storage_table" "example" {
 
 resource "azurerm_stream_analytics_output_table" "example" {
   name                      = "output-to-storage-table"
-  stream_analytics_job_name = azurerm_stream_analytics_job.example.name
-  resource_group_name       = azurerm_stream_analytics_job.example.resource_group_name
+  stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
+  resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
   storage_account_name      = azurerm_storage_account.example.name
   storage_account_key       = azurerm_storage_account.example.primary_access_key
   table                     = azurerm_storage_table.example.name
@@ -70,15 +71,17 @@ The following arguments are supported:
 
 * `batch_size` - (Required) The number of records for a batch operation. Must be between `1` and `100`.
 
+* `columns_to_remove` - (Optional) A list of the column names to be removed from output event entities.
+
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Stream Analytics Output Table.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics.
@@ -90,5 +93,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Stream Analytics Output to Table can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_output_table.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
+terraform import azurerm_stream_analytics_output_table.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1/outputs/output1
 ```

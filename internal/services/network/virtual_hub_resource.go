@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 const virtualHubResourceName = "azurerm_virtual_hub"
@@ -50,9 +51,9 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				ValidateFunc: networkValidate.VirtualHubName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"address_prefix": {
 				Type:         pluginsdk.TypeString,
@@ -78,6 +79,19 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"virtual_router_asn": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"virtual_router_ips": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"route": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -101,6 +115,17 @@ func resourceVirtualHub() *pluginsdk.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"hub_routing_preference": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(network.HubRoutingPreferenceExpressRoute),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.HubRoutingPreferenceExpressRoute),
+					string(network.HubRoutingPreferenceVpnGateway),
+					string(network.HubRoutingPreferenceASPath),
+				}, false),
+			},
 
 			"default_route_table_id": {
 				Type:     pluginsdk.TypeString,
@@ -141,10 +166,13 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	route := d.Get("route").(*pluginsdk.Set).List()
 	t := d.Get("tags").(map[string]interface{})
 
+	hubRoutingPreference := d.Get("hub_routing_preference").(string)
+
 	parameters := network.VirtualHub{
 		Location: utils.String(location),
 		VirtualHubProperties: &network.VirtualHubProperties{
-			RouteTable: expandVirtualHubRoute(route),
+			RouteTable:           expandVirtualHubRoute(route),
+			HubRoutingPreference: network.HubRoutingPreference(hubRoutingPreference),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -229,11 +257,25 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `route`: %+v", err)
 		}
 
+		d.Set("hub_routing_preference", props.HubRoutingPreference)
+
 		var virtualWanId *string
 		if props.VirtualWan != nil {
 			virtualWanId = props.VirtualWan.ID
 		}
 		d.Set("virtual_wan_id", virtualWanId)
+
+		var virtualRouterAsn *int64
+		if props.VirtualRouterAsn != nil {
+			virtualRouterAsn = props.VirtualRouterAsn
+		}
+		d.Set("virtual_router_asn", virtualRouterAsn)
+
+		var virtualRouterIps *[]string
+		if props.VirtualRouterIps != nil {
+			virtualRouterIps = props.VirtualRouterIps
+		}
+		d.Set("virtual_router_ips", virtualRouterIps)
 	}
 
 	defaultRouteTable := parse.NewHubRouteTableID(id.SubscriptionId, id.ResourceGroup, id.Name, "defaultRouteTable")

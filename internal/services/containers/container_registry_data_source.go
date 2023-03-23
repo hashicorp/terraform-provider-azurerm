@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -54,14 +53,12 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 	if props := resp.RegistryProperties; props != nil {
 		d.Set("admin_enabled", resp.AdminUserEnabled)
 		d.Set("login_server", resp.LoginServer)
+		d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
 	}
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Tier))
 	}
-
-	// Deprecated as it is not returned by the API now.
-	d.Set("storage_account_id", "")
 
 	if *resp.AdminUserEnabled {
 		credsResp, err := client.ListCredentials(ctx, id.ResourceGroup, id.Name)
@@ -83,7 +80,7 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -109,6 +106,11 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"data_endpoint_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"login_server": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -121,13 +123,4 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.SchemaDataSource(),
 	}
-	if !features.ThreePointOhBeta() {
-		out["storage_account_id"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
-		}
-	}
-
-	return out
 }

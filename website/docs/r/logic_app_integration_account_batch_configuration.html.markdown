@@ -26,7 +26,7 @@ resource "azurerm_logic_app_integration_account" "example" {
 }
 
 resource "azurerm_logic_app_integration_account_batch_configuration" "example" {
-  name                     = "example-iabc"
+  name                     = "exampleiabc"
   resource_group_name      = azurerm_resource_group.example.name
   integration_account_name = azurerm_logic_app_integration_account.example.name
   batch_group_name         = "TestBatchGroup"
@@ -41,7 +41,7 @@ resource "azurerm_logic_app_integration_account_batch_configuration" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Logic App Integration Account Batch Configuration. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this Logic App Integration Account Batch Configuration. Only Alphanumeric characters allowed. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Logic App Integration Account Batch Configuration should exist. Changing this forces a new resource to be created.
 
@@ -67,7 +67,7 @@ A `release_criteria` block exports the following:
 
 A `recurrence` block exports the following:
 
-* `frequency` - (Required) The frequency of the schedule. Possible values are `Day`, `Hour`, `Minute`, `Month`, `Second`, `Week` and `Year`.
+* `frequency` - (Required) The frequency of the schedule. Possible values are `Day`, `Hour`, `Minute`, `Month`, `NotSpecified`, `Second`, `Week` and `Year`.
 
 * `interval` - (Required) The number of `frequency`s between runs.
 
@@ -109,7 +109,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App Integration Account Batch Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Integration Account Batch Configuration.

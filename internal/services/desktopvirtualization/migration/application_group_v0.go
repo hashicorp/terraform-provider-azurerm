@@ -4,7 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/applicationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -66,7 +67,7 @@ func (ApplicationGroupV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (ApplicationGroupV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		id, err := parse.ApplicationGroupIDInsensitively(oldId)
+		id, err := applicationgroup.ParseApplicationGroupIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}
@@ -75,7 +76,7 @@ func (ApplicationGroupV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		rawState["id"] = newId
 
 		oldHostPoolId := rawState["host_pool_id"].(string)
-		hostPoolId, err := parse.HostPoolIDInsensitively(oldHostPoolId)
+		hostPoolId, err := hostpool.ParseHostPoolIDInsensitively(oldHostPoolId)
 		if err != nil {
 			return nil, err
 		}

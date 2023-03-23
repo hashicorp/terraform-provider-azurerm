@@ -60,9 +60,9 @@ The following arguments are supported:
 
 A `subnet` block supports the following:
 
-* `use_public_ip_address` - (Required) Can Virtual Machines in this Subnet use Public IP Addresses? Possible values are `Allow`, `Default` and `Deny`.
+* `use_public_ip_address` - (Optional) Can Virtual Machines in this Subnet use Public IP Addresses? Possible values are `Allow`, `Default` and `Deny`.
 
-* `use_in_virtual_machine_creation` - (Required) Can this subnet be used for creating Virtual Machines? Possible values are `Allow`, `Default` and `Deny`.
+* `use_in_virtual_machine_creation` - (Optional) Can this subnet be used for creating Virtual Machines? Possible values are `Allow`, `Default` and `Deny`.
 
 ## Attributes Reference
 
@@ -82,9 +82,7 @@ A `subnet` block exports the following:
 
 ## Timeouts
 
-
-
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DevTest Virtual Network.
 * `update` - (Defaults to 30 minutes) Used when updating the DevTest Virtual Network.
@@ -96,5 +94,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 DevTest Virtual Networks can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dev_test_virtual_network.network1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualnetworks/network1
+terraform import azurerm_dev_test_virtual_network.network1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualNetworks/network1
 ```

@@ -1,12 +1,6 @@
 package parse
 
-import (
-	"testing"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
-)
-
-var _ resourceid.Formatter = TenantTemplateDeploymentId{}
+import "testing"
 
 func TestTenantTemplateDeploymentIDFormatter(t *testing.T) {
 	actual := NewTenantTemplateDeploymentID("deploy1").ID()

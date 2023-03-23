@@ -104,10 +104,8 @@ output "storageAccountName" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the template deployment. Changing this forces a
-    new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the template deployment.
+* `name` - (Required) Specifies the name of the template deployment. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the template deployment. Changing this forces a new resource to be created.
 * `deployment_mode` - (Required) Specifies the mode that is used to deploy resources. This value could be either `Incremental` or `Complete`.
     Note that you will almost *always* want this to be set to `Incremental` otherwise the deployment will destroy all infrastructure not
     specified within the template, and Terraform will not be aware of this.
@@ -133,11 +131,11 @@ The following attributes are exported:
 
 ## Note
 
-Terraform does not know about the individual resources created by Azure using a deployment template and therefore cannot delete these resources during a destroy. Destroying a template deployment removes the associated deployment operations, but will not delete the Azure resources created by the deployment. In order to delete these resources, the containing resource group must also be destroyed. [More information](https://docs.microsoft.com/en-us/rest/api/resources/deployments#Deployments_Delete).
+Terraform does not know about the individual resources created by Azure using a deployment template and therefore cannot delete these resources during a destroy. Destroying a template deployment removes the associated deployment operations, but will not delete the Azure resources created by the deployment. In order to delete these resources, the containing resource group must also be destroyed. [More information](https://docs.microsoft.com/rest/api/resources/deployments#Deployments_Delete).
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Template Deployment.
 * `update` - (Defaults to 3 hours) Used when updating the Template Deployment.

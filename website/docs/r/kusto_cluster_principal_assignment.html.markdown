@@ -15,15 +15,15 @@ Manages a Kusto Cluster Principal Assignment.
 ```hcl
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "KustoRG"
   location = "West Europe"
 }
 
 resource "azurerm_kusto_cluster" "example" {
-  name                = "KustoCluster"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  name                = "kustocluster"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name     = "Standard_D13_v2"
@@ -33,7 +33,7 @@ resource "azurerm_kusto_cluster" "example" {
 
 resource "azurerm_kusto_cluster_principal_assignment" "example" {
   name                = "KustoPrincipalAssignment"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.example.name
   cluster_name        = azurerm_kusto_cluster.example.name
 
   tenant_id      = data.azurerm_client_config.current.tenant_id
@@ -63,7 +63,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kusto Cluster Principal Assignment.
 
@@ -73,7 +73,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Data Explorer Cluster Principal Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Explorer Cluster Principal Assignment.
@@ -85,5 +85,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Data Explorer Cluster Principal Assignments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kusto_cluster_principal_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/PrincipalAssignments/assignment1
+terraform import azurerm_kusto_cluster_principal_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1/principalAssignments/assignment1
 ```

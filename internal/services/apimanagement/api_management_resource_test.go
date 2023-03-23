@@ -3,14 +3,13 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -120,12 +119,6 @@ func TestAccApiManagement_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("hostname_configuration.0.portal.0.expiry").Exists(),
 				check.That(data.ResourceName).Key("hostname_configuration.0.portal.0.subject").Exists(),
 				check.That(data.ResourceName).Key("hostname_configuration.0.portal.0.thumbprint").Exists(),
-				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.0.expiry").Exists(),
-				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.0.subject").Exists(),
-				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.0.thumbprint").Exists(),
-				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.1.expiry").Exists(),
-				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.1.subject").Exists(),
-				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.1.thumbprint").Exists(),
 			),
 		},
 		{
@@ -143,10 +136,10 @@ func TestAccApiManagement_complete(t *testing.T) {
 				"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 				"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
 				"hostname_configuration.0.developer_portal.0.certificate_password", // not returned from API, sensitive
-				"hostname_configuration.0.proxy.0.certificate",                     // not returned from API, sensitive
-				"hostname_configuration.0.proxy.0.certificate_password",            // not returned from API, sensitive
 				"hostname_configuration.0.proxy.1.certificate",                     // not returned from API, sensitive
 				"hostname_configuration.0.proxy.1.certificate_password",            // not returned from API, sensitive
+				"hostname_configuration.0.proxy.2.certificate",                     // not returned from API, sensitive
+				"hostname_configuration.0.proxy.2.certificate_password",            // not returned from API, sensitive
 			},
 		},
 	})
@@ -168,10 +161,10 @@ func TestAccApiManagement_completeUpdateAdditionalLocations(t *testing.T) {
 			"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate_password", // not returned from API, sensitive
-			"hostname_configuration.0.proxy.0.certificate",                     // not returned from API, sensitive
-			"hostname_configuration.0.proxy.0.certificate_password",            // not returned from API, sensitive
 			"hostname_configuration.0.proxy.1.certificate",                     // not returned from API, sensitive
 			"hostname_configuration.0.proxy.1.certificate_password",            // not returned from API, sensitive
+			"hostname_configuration.0.proxy.2.certificate",                     // not returned from API, sensitive
+			"hostname_configuration.0.proxy.2.certificate_password",            // not returned from API, sensitive
 		),
 		{
 			Config: r.completeUpdateAdditionalLocations(data),
@@ -184,10 +177,10 @@ func TestAccApiManagement_completeUpdateAdditionalLocations(t *testing.T) {
 			"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate_password", // not returned from API, sensitive
-			"hostname_configuration.0.proxy.0.certificate",                     // not returned from API, sensitive
-			"hostname_configuration.0.proxy.0.certificate_password",            // not returned from API, sensitive
 			"hostname_configuration.0.proxy.1.certificate",                     // not returned from API, sensitive
 			"hostname_configuration.0.proxy.1.certificate_password",            // not returned from API, sensitive
+			"hostname_configuration.0.proxy.2.certificate",                     // not returned from API, sensitive
+			"hostname_configuration.0.proxy.2.certificate_password",            // not returned from API, sensitive
 		),
 	})
 }
@@ -199,6 +192,49 @@ func TestAccApiManagement_signInSignUpSettings(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.signInSignUpSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_delegationSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.delegationSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.delegationSettingsDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.delegationSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -381,6 +417,28 @@ func TestAccApiManagement_consumption(t *testing.T) {
 	})
 }
 
+func TestAccApiManagement_consumptionWithTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumptionWithTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiManagement_clientCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
@@ -475,36 +533,7 @@ func TestAccApiManagement_minApiVersion(t *testing.T) {
 	})
 }
 
-func TestAccApiManagement_purgeSoftDelete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-	r := ApiManagementResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.consumptionPurgeSoftDeleteRecovery(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.consumptionPurgeSoftDelete(data),
-		},
-		{
-			Config: r.consumptionPurgeSoftDeleteRecovery(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccApiManagement_removeSamples(t *testing.T) {
-	if !features.ThreePointOh() {
-		t.Skip("Skipping since 3.0 mode is disabled")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
@@ -517,6 +546,53 @@ func TestAccApiManagement_removeSamples(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_softDeleteRecovery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.softDelete(data),
+		},
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_softDeleteRecoveryDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.softDelete(data),
+		},
+		{
+			Config:      r.consumptionRecoveryDisabled(data),
+			ExpectError: regexp.MustCompile(`An existing soft-deleted API Management exists with the Name "[^"]+" in the location "[^"]+"`),
+		},
 	})
 }
 
@@ -537,7 +613,7 @@ func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client
 }
 
 func (ApiManagementResource) testCheckHasNoProductsOrApis(resourceName string) pluginsdk.TestCheckFunc {
-	return func(state *terraform.State) error {
+	return func(state *pluginsdk.State) error {
 		client, err := testclient.Build()
 		if err != nil {
 			return fmt.Errorf("building client: %+v", err)
@@ -822,6 +898,20 @@ func TestAccApiManagement_tenantAccess(t *testing.T) {
 	})
 }
 
+func TestAccApiManagement_additionalLocationGateway(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.additionalLocationGateway(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -843,6 +933,40 @@ resource "azurerm_api_management" "test" {
   sku_name = "Developer_1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) additionalLocationGateway(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-%[1]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Premium_2"
+
+  additional_location {
+    location         = azurerm_resource_group.test2.location
+    gateway_disabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
 func (ApiManagementResource) standardSku(data acceptance.TestData) string {
@@ -1036,6 +1160,64 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (ApiManagementResource) delegationSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  delegation {
+    url                       = "https://google.com"
+    subscriptions_enabled     = true
+    validation_key            = "aW50ZWdyYXRpb24mMjAyMzAzMTAxODMwJkxRaUxzcUVsaUpEaHJRK01YZkJYV3paUi9qdzZDSWMrazhjUXB0bVdyTGxKcVYrd0R4OXRqMGRzTWZXU3hmeGQ0a2V0WjcrcE44U0dJdDNsYUQ3Rk5BPT0="
+    user_registration_enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) delegationSettingsDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  delegation {
+    subscriptions_enabled     = false
+    user_registration_enabled = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (ApiManagementResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1066,10 +1248,12 @@ resource "azurerm_api_management" "test" {
   sku_name = "Premium_2"
 
   additional_location {
+    zones    = []
     location = azurerm_resource_group.test2.location
   }
 
   additional_location {
+    zones    = []
     location = azurerm_resource_group.test3.location
   }
 
@@ -1120,6 +1304,11 @@ resource "azurerm_api_management" "test" {
 
   hostname_configuration {
     proxy {
+      host_name                    = "acctestAM-%d.azure-api.net"
+      negotiate_client_certificate = true
+    }
+
+    proxy {
       host_name                    = "api.terraform.io"
       certificate                  = filebase64("testdata/api_management_api_test.pfx")
       certificate_password         = "terraform"
@@ -1154,7 +1343,7 @@ resource "azurerm_api_management" "test" {
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.Locations.Ternary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, data.RandomInteger)
 }
 
 func (ApiManagementResource) completeUpdateAdditionalLocations(data acceptance.TestData) string {
@@ -1188,7 +1377,7 @@ resource "azurerm_api_management" "test" {
 
   additional_location {
     location = azurerm_resource_group.test2.location
-    capacity = 1
+    capacity = 2
   }
 
   certificate {
@@ -1238,6 +1427,11 @@ resource "azurerm_api_management" "test" {
 
   hostname_configuration {
     proxy {
+      host_name                    = "acctestAM-%d.azure-api.net"
+      negotiate_client_certificate = true
+    }
+
+    proxy {
       host_name                    = "api.terraform.io"
       certificate                  = filebase64("testdata/api_management_api_test.pfx")
       certificate_password         = "terraform"
@@ -1272,7 +1466,7 @@ resource "azurerm_api_management" "test" {
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.Locations.Ternary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, data.RandomInteger)
 }
 
 func (ApiManagementResource) virtualNetworkTemplate(data acceptance.TestData) string {
@@ -1411,7 +1605,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctestSNET2-%[2]d"
   resource_group_name  = azurerm_resource_group.test2.name
   virtual_network_name = azurerm_virtual_network.test2.name
-  address_prefix       = "10.1.1.0/24"
+  address_prefixes     = ["10.1.1.0/24"]
 }
 
 resource "azurerm_network_security_group" "test2" {
@@ -1689,7 +1883,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Import",
     "List",
     "ListIssuers",
-    "Managecontacts",
+    "ManageContacts",
     "ManageIssuers",
     "SetIssuers",
     "Update",
@@ -1792,6 +1986,11 @@ resource "azurerm_api_management" "test" {
 
   hostname_configuration {
     proxy {
+      host_name                    = "acctestAM-%d.azure-api.net"
+      negotiate_client_certificate = true
+    }
+
+    proxy {
       host_name                    = "api.pluginsdk.io"
       key_vault_id                 = azurerm_key_vault_certificate.test.versionless_secret_id
       default_ssl_binding          = true
@@ -1799,7 +1998,7 @@ resource "azurerm_api_management" "test" {
     }
   }
 }
-`, r.identitySystemAssignedUpdateHostnameConfigurationsTemplate(data), data.RandomInteger)
+`, r.identitySystemAssignedUpdateHostnameConfigurationsTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r ApiManagementResource) identitySystemAssignedUpdateHostnameConfigurationsVersionedKeyVaultIdUpdateCD(data acceptance.TestData) string {
@@ -1821,6 +2020,11 @@ resource "azurerm_api_management" "test" {
 
   hostname_configuration {
     proxy {
+      host_name                    = "acctestAM-%d.azure-api.net"
+      negotiate_client_certificate = true
+    }
+
+    proxy {
       host_name                    = "api.pluginsdk.io"
       key_vault_id                 = azurerm_key_vault_certificate.test.secret_id
       default_ssl_binding          = true
@@ -1828,7 +2032,7 @@ resource "azurerm_api_management" "test" {
     }
   }
 }
-`, r.identitySystemAssignedUpdateHostnameConfigurationsTemplate(data), data.RandomInteger)
+`, r.identitySystemAssignedUpdateHostnameConfigurationsTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (ApiManagementResource) identityUserAssignedHostnameConfigurationsKeyVaultId(data acceptance.TestData) string {
@@ -1865,7 +2069,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Import",
     "List",
     "ListIssuers",
-    "Managecontacts",
+    "ManageContacts",
     "ManageIssuers",
     "SetIssuers",
     "Update",
@@ -1944,6 +2148,11 @@ resource "azurerm_api_management" "test" {
 
   hostname_configuration {
     proxy {
+      host_name                    = "acctestAM-%[1]d.azure-api.net"
+      negotiate_client_certificate = true
+    }
+
+    proxy {
       host_name                       = "api.terraform.io"
       key_vault_id                    = azurerm_key_vault_certificate.test.secret_id
       default_ssl_binding             = true
@@ -1982,6 +2191,32 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Consumption_0"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) consumptionWithTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Consumption_0"
+
+  tags = {
+    Hello = "World"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -2129,10 +2364,14 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r ApiManagementResource) consumptionPurgeSoftDeleteRecovery(data acceptance.TestData) string {
+func (ApiManagementResource) consumptionRecoveryDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    api_management {
+      recover_soft_deleted = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -2151,12 +2390,12 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ApiManagementResource) consumptionPurgeSoftDelete(data acceptance.TestData) string {
+func (ApiManagementResource) softDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
     api_management {
-      purge_soft_delete_on_destroy = true
+      purge_soft_delete_on_destroy = false
     }
   }
 }

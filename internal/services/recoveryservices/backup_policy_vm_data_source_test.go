@@ -21,7 +21,6 @@ func TestAccDataSourceBackupPolicyVm_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("recovery_vault_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
 	})
@@ -36,5 +35,5 @@ data "azurerm_backup_policy_vm" "test" {
   recovery_vault_name = azurerm_recovery_services_vault.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, BackupProtectionPolicyVMResource{}.basicDaily(data))
+`, BackupProtectionPolicyVMResource{}.basicDaily(data, "V1"))
 }

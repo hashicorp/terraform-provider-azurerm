@@ -13,6 +13,10 @@ Manages the Assignment of an API Management API Tag to an API.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -26,7 +30,7 @@ data "azurerm_api_management" "example" {
 resource "azurerm_api_management_api" "example" {
   name                = "example-api"
   resource_group_name = azurerm_resource_group.example.name
-  api_management_name = azurerm_api_management.example.name
+  api_management_name = data.azurerm_api_management.example.name
   revision            = "1"
 }
 
@@ -37,7 +41,7 @@ resource "azurerm_api_management_tag" "example" {
 
 resource "azurerm_api_management_api_tag" "example" {
   api_id = azurerm_api_management_api.example.id
-  name   = "example-tag"
+  name   = azurerm_api_management_tag.example.name
 }
 ```
 
@@ -51,13 +55,13 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the API Management API Tag.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Tag.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management API Tag.

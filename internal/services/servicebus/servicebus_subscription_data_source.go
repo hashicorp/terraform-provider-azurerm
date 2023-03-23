@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceServiceBusSubscription() *pluginsdk.Resource {
@@ -30,7 +31,7 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 			"topic_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.TopicID,
+				ValidateFunc: topics.ValidateTopicID,
 				AtLeastOneOf: []string{"topic_id", "resource_group_name", "namespace_name", "topic_name"},
 			},
 
@@ -119,23 +120,23 @@ func dataSourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interf
 	var nsName string
 	var topicName string
 	if v, ok := d.Get("topic_id").(string); ok && v != "" {
-		topicId, err := parse.TopicID(v)
+		topicId, err := subscriptions.ParseTopicID(v)
 		if err != nil {
 			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
 		}
-		rgName = topicId.ResourceGroup
+		rgName = topicId.ResourceGroupName
 		nsName = topicId.NamespaceName
-		topicName = topicId.Name
+		topicName = topicId.TopicName
 	} else {
 		rgName = d.Get("resource_group_name").(string)
 		nsName = d.Get("namespace_name").(string)
 		topicName = d.Get("topic_name").(string)
 	}
 
-	id := parse.NewSubscriptionID(subscriptionId, rgName, nsName, topicName, d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.Name)
+	id := subscriptions.NewSubscriptions2ID(subscriptionId, rgName, nsName, topicName, d.Get("name").(string))
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(existing.Response) {
+		if response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -144,23 +145,25 @@ func dataSourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interf
 
 	d.SetId(id.ID())
 
-	if props := existing.SBSubscriptionProperties; props != nil {
-		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
-		d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
-		d.Set("lock_duration", props.LockDuration)
-		d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
-		d.Set("dead_lettering_on_filter_evaluation_error", props.DeadLetteringOnFilterEvaluationExceptions)
-		d.Set("enable_batched_operations", props.EnableBatchedOperations)
-		d.Set("requires_session", props.RequiresSession)
-		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
-		d.Set("forward_to", props.ForwardTo)
+	if model := existing.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
+			d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
+			d.Set("lock_duration", props.LockDuration)
+			d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
+			d.Set("dead_lettering_on_filter_evaluation_error", props.DeadLetteringOnFilterEvaluationExceptions)
+			d.Set("enable_batched_operations", props.EnableBatchedOperations)
+			d.Set("requires_session", props.RequiresSession)
+			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
+			d.Set("forward_to", props.ForwardTo)
 
-		maxDeliveryCount := 0
-		if props.MaxDeliveryCount != nil {
-			maxDeliveryCount = int(*props.MaxDeliveryCount)
+			maxDeliveryCount := 0
+			if props.MaxDeliveryCount != nil {
+				maxDeliveryCount = int(*props.MaxDeliveryCount)
+			}
+
+			d.Set("max_delivery_count", maxDeliveryCount)
 		}
-
-		d.Set("max_delivery_count", maxDeliveryCount)
 	}
 
 	return nil

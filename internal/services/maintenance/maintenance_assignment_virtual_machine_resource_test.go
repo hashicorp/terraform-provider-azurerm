@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -46,18 +47,36 @@ func TestAccMaintenanceAssignmentVirtualMachine_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccMaintenanceAssignmentVirtualMachine_linkMultipleMaintenanceAssignmentsToOneVM(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_virtual_machine", "test")
+	r := MaintenanceAssignmentVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linkMultipleMaintenanceAssignmentsToOneVM(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// location not returned by list rest api
+		data.ImportStep("location"),
+	})
+}
+
 func (MaintenanceAssignmentVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MaintenanceAssignmentVirtualMachineID(state.ID)
+	maintenanceAssignmentVirtualMachineId, err := parse.MaintenanceAssignmentVirtualMachineID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.List(ctx, id.VirtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", id.VirtualMachineId.Name)
+	id := configurationassignments.NewProviderID(maintenanceAssignmentVirtualMachineId.VirtualMachineId.SubscriptionId, maintenanceAssignmentVirtualMachineId.VirtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", maintenanceAssignmentVirtualMachineId.VirtualMachineId.Name)
+
+	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.List(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Maintenance Assignment Virtual Machine (target resource id: %q): %v", id.VirtualMachineIdRaw, err)
+		return nil, fmt.Errorf("retrieving Maintenance Assignment Virtual Machine (target resource id: %q): %v", maintenanceAssignmentVirtualMachineId.VirtualMachineIdRaw, err)
 	}
 
-	return utils.Bool(resp.Value != nil && len(*resp.Value) != 0), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Value != nil && len(*resp.Model.Value) != 0), nil
 }
 
 func (r MaintenanceAssignmentVirtualMachineResource) basic(data acceptance.TestData) string {
@@ -99,7 +118,7 @@ resource "azurerm_maintenance_configuration" "test" {
   name                = "acctest-MC%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  scope               = "All"
+  scope               = "SQLDB"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -113,7 +132,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -132,7 +151,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   name                = "acctestVM-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_G5"
+  size                = "Standard_F2"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
 
@@ -155,4 +174,29 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MaintenanceAssignmentVirtualMachineResource) linkMultipleMaintenanceAssignmentsToOneVM(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_maintenance_configuration" "test2" {
+  name                = "acctest-MC2%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scope               = "SQLDB"
+}
+
+resource "azurerm_maintenance_assignment_virtual_machine" "test" {
+  location                     = azurerm_resource_group.test.location
+  maintenance_configuration_id = azurerm_maintenance_configuration.test.id
+  virtual_machine_id           = azurerm_linux_virtual_machine.test.id
+}
+
+resource "azurerm_maintenance_assignment_virtual_machine" "test2" {
+  location                     = azurerm_resource_group.test.location
+  maintenance_configuration_id = azurerm_maintenance_configuration.test2.id
+  virtual_machine_id           = azurerm_linux_virtual_machine.test.id
+}
+`, r.template(data), data.RandomInteger)
 }

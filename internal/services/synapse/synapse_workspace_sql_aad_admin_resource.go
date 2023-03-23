@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -109,9 +109,11 @@ func resourceSynapseWorkspaceSqlAADAdminRead(d *pluginsdk.ResourceData, meta int
 
 	aadAdmin, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(aadAdmin.Response) {
-			return fmt.Errorf("retrieving Synapse Workspace %q Sql AAD Admin (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
+		if utils.ResponseWasNotFound(aadAdmin.Response) {
+			d.SetId("")
+			return nil
 		}
+		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
 	workspaceID := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)

@@ -64,12 +64,13 @@ resource "azurerm_media_live_event" "example" {
 resource "azurerm_media_live_event_output" "example" {
   name                         = "exampleoutput"
   live_event_id                = azurerm_media_live_event.example.id
-  archive_window_length        = "PT5M"
+  archive_window_duration      = "PT5M"
   asset_name                   = azurerm_media_asset.example.name
   description                  = "Test live output 1"
   manifest_name                = "testmanifest"
   output_snap_time_in_seconds  = 0
   hls_fragments_per_ts_segment = 5
+  rewind_window_duration       = "PT5M"
 }
 ```
 
@@ -93,17 +94,19 @@ The following arguments are supported:
 
 * `manifest_name` - (Optional) The manifest file name. If not provided, the service will generate one automatically. Changing this forces a new Live Output to be created.
 
-* `output_snap_timestamp_in_seconds` - (Optional) The initial timestamp that the live output will start at, any content before this value will not be archived. Changing this forces a new Live Output to be created.
+* `output_snap_time_in_seconds` - (Optional) The initial timestamp that the live output will start at, any content before this value will not be archived. Changing this forces a new Live Output to be created.
+
+* `rewind_windown_duration` - (Optional) `ISO 8601` time between 1 minute to the duration of `archive_window_duration` to control seek-able window length during Live. The service won't use this property once LiveOutput stops. The archived VOD will have full content with original ArchiveWindowLength. For example, use `PT1H30M` to indicate 1 hour and 30 minutes of rewind window length. Service will use implicit default value 30m only if Live Event enables LL. Changing this forces a new Live Output to be created.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Live Output.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Live Output.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Live Output.
@@ -115,5 +118,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Live Outputs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_live_output.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/account1/liveevents/event1/liveoutputs/output1
+terraform import azurerm_media_live_event_output.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaServices/account1/liveEvents/event1/liveOutputs/output1
 ```

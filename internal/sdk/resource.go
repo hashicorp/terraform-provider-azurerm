@@ -4,20 +4,30 @@ import (
 	"context"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type resourceBase interface {
+// resourceWithPluginSdkSchema defines the Arguments and Attributes for this resource
+// using the types defined in Plugin SDKv2
+type resourceWithPluginSdkSchema interface {
 	// Arguments is a list of user-configurable (that is: Required, Optional, or Optional and Computed)
 	// arguments for this Resource
 	Arguments() map[string]*schema.Schema
 
 	// Attributes is a list of read-only (e.g. Computed-only) attributes
 	Attributes() map[string]*schema.Schema
+}
+
+type resourceBase interface {
+	// resourceWithPluginSdkSchema ensure that the Arguments and Attributes are sourced
+	// from Plugin SDKv2 for now - longer term we'll likely introduce a `Typed Schema`
+	// which will cross-compile down to both the Plugin SDKv2 and Plugin Framework, but
+	// that's a story for another day.
+	resourceWithPluginSdkSchema
 
 	// ModelObject is an instance of the object the Schema is decoded/encoded into
 	ModelObject() interface{}
@@ -167,7 +177,7 @@ type ResourceMetaData struct {
 }
 
 // MarkAsGone marks this resource as removed in the Remote API, so this is no longer available
-func (rmd ResourceMetaData) MarkAsGone(idFormatter resourceid.Formatter) error {
+func (rmd ResourceMetaData) MarkAsGone(idFormatter resourceids.Id) error {
 	rmd.Logger.Infof("[DEBUG] %s was not found - removing from state", idFormatter)
 	rmd.ResourceData.SetId("")
 	return nil
@@ -175,7 +185,7 @@ func (rmd ResourceMetaData) MarkAsGone(idFormatter resourceid.Formatter) error {
 
 // ResourceRequiresImport returns an error saying that this resource must be imported with instructions
 // on how to do this (namely, using `terraform import`
-func (rmd ResourceMetaData) ResourceRequiresImport(resourceName string, idFormatter resourceid.Formatter) error {
+func (rmd ResourceMetaData) ResourceRequiresImport(resourceName string, idFormatter resourceids.Id) error {
 	resourceId := idFormatter.ID()
 	return tf.ImportAsExistsError(resourceName, resourceId)
 }

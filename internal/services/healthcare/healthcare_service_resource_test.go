@@ -142,7 +142,8 @@ func (HealthCareServiceResource) complete(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -182,6 +183,7 @@ resource "azurerm_key_vault" "test" {
       "Get",
       "Purge",
       "Update",
+      "GetRotationPolicy"
     ]
   }
 
@@ -193,6 +195,7 @@ resource "azurerm_key_vault" "test" {
       "Get",
       "UnwrapKey",
       "WrapKey",
+      "GetRotationPolicy"
     ]
   }
 }
@@ -255,7 +258,8 @@ func (HealthCareServiceResource) publicNetworkAccessDisabled(data acceptance.Tes
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -295,6 +299,7 @@ resource "azurerm_key_vault" "test" {
       "Get",
       "Purge",
       "Update",
+      "GetRotationPolicy"
     ]
   }
 
@@ -306,6 +311,7 @@ resource "azurerm_key_vault" "test" {
       "Get",
       "UnwrapKey",
       "WrapKey",
+      "GetRotationPolicy"
     ]
   }
 }

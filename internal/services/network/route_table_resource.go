@@ -5,20 +5,19 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var routeTableResourceName = "azurerm_route_table"
@@ -50,12 +49,12 @@ func resourceRouteTable() *pluginsdk.Resource {
 				ValidateFunc: validate.RouteTableName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"route": {
-				Type:       pluginsdk.TypeList,
+				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,
@@ -82,8 +81,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 								string(network.RouteNextHopTypeInternet),
 								string(network.RouteNextHopTypeVirtualAppliance),
 								string(network.RouteNextHopTypeNone),
-							}, !features.ThreePointOhBeta()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 
 						"next_hop_in_ip_address": {
@@ -226,7 +224,7 @@ func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]network.Route {
-	configs := d.Get("route").([]interface{})
+	configs := d.Get("route").(*pluginsdk.Set).List()
 	routes := make([]network.Route, 0, len(configs))
 
 	for _, configRaw := range configs {
@@ -262,7 +260,7 @@ func flattenRouteTableRoutes(input *[]network.Route) []interface{} {
 			if props := route.RoutePropertiesFormat; props != nil {
 				r["address_prefix"] = *props.AddressPrefix
 				r["next_hop_type"] = string(props.NextHopType)
-				if ip := props.NextHopIPAddress; ip != nil {
+				if ip := props.NextHopIPAddress; ip != nil && *ip != "" {
 					r["next_hop_in_ip_address"] = *ip
 				}
 			}

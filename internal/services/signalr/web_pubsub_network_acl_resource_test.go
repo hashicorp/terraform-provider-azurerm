@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/webpubsub/mgmt/2021-10-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -115,30 +114,32 @@ func TestAccWebPubsubNetworkACL_updateMultiplePrivateEndpoints(t *testing.T) {
 }
 
 func (r WebPubsubNetworkACLResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WebPubsubID(state.ID)
+	id, err := webpubsub.ParseWebPubSubID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.SignalR.WebPubsubClient.Get(ctx, id.ResourceGroup, id.WebPubSubName)
+	resp, err := clients.SignalR.WebPubSubClient.WebPubSub.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	isDefaultConfiguration := false
-	if props := resp.Properties; props != nil {
-		if acls := props.NetworkACLs; acls != nil {
-			hasDefaultAction := false
-			if acls.DefaultAction != "" {
-				hasDefaultAction = acls.DefaultAction == webpubsub.ACLActionDeny
-			}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if acls := props.NetworkACLs; acls != nil {
+				hasDefaultAction := false
+				if acls.DefaultAction != nil && *acls.DefaultAction != "" {
+					hasDefaultAction = *acls.DefaultAction == webpubsub.ACLActionDeny
+				}
 
-			hasDefaultMatches := false
-			if acls.PublicNetwork != nil && acls.PublicNetwork.Allow != nil {
-				hasDefaultMatches = len(*acls.PublicNetwork.Allow) == 4
-			}
+				hasDefaultMatches := false
+				if acls.PublicNetwork != nil && acls.PublicNetwork.Allow != nil {
+					hasDefaultMatches = len(*acls.PublicNetwork.Allow) == 4
+				}
 
-			isDefaultConfiguration = hasDefaultAction && hasDefaultMatches
+				isDefaultConfiguration = hasDefaultAction && hasDefaultMatches
+			}
 		}
 	}
 
@@ -327,7 +328,11 @@ resource "azurerm_web_pubsub_network_acl" "test" {
 func (r WebPubsubNetworkACLResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {

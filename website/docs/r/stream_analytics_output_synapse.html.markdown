@@ -13,8 +13,9 @@ Manages a Stream Analytics Output to an Azure Synapse Analytics Workspace.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
 }
 
 data "azurerm_stream_analytics_job" "example" {
@@ -44,16 +45,20 @@ resource "azurerm_synapse_workspace" "example" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.example.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_stream_analytics_output_synapse" "example" {
   name                      = "example-output-synapse"
-  stream_analytics_job_name = azurerm_stream_analytics_job.example.name
-  resource_group_name       = azurerm_stream_analytics_job.example.resource_group_name
+  stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
+  resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
 
-  server   = azurerm_synapse_workspace.test.connectivity_endpoints["sqlOnDemand"]
-  user     = azurerm_synapse_workspace.test.sql_administrator_login
-  password = azurerm_synapse_workspace.test.sql_administrator_login_password
+  server   = azurerm_synapse_workspace.example.connectivity_endpoints["sqlOnDemand"]
+  user     = azurerm_synapse_workspace.example.sql_administrator_login
+  password = azurerm_synapse_workspace.example.sql_administrator_login_password
   database = "master"
   table    = "ExampleTable"
 }
@@ -75,7 +80,7 @@ The following arguments are supported:
 
 * `user` - (Required) The user name that will be used to connect to the Azure SQL database. Changing this forces a new resource to be created.
 
-* `password` - (Required) The password that will be used to connect to the Azure SQL database. Changing this forces a new resource to be created.
+* `password` - (Required) The password that will be used to connect to the Azure SQL database. 
 
 * `table` - (Required) The name of the table in the Azure SQL database. Changing this forces a new resource to be created.
 
@@ -87,7 +92,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output to an Azure Synapse Analytics Workspace.
 * `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Output to an Azure Synapse Analytics Workspace.
@@ -99,5 +104,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 A Stream Analytics Output to an Azure Synapse Analytics Workspace can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_output_synapse.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
+terraform import azurerm_stream_analytics_output_synapse.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1/outputs/output1
 ```

@@ -98,25 +98,27 @@ The following arguments are supported:
   
 * `database_id` - (Required) The ID of the Kusto Database. Changing this forces a new Kusto Script to be created.
 
-* `sas_token` - (Required) The SAS token used to access the script.
-
-* `url` - (Required) The url to the KQL script blob file. Please reference [this documentation](https://docs.microsoft.com/en-us/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
-
 ---
 
 * `continue_on_errors_enabled` - (Optional) Flag that indicates whether to continue if one of the command fails.
 
 * `force_an_update_when_value_changed` - (Optional) A unique string. If changed the script will be applied again.
 
+* `script_content` - (Optional) The script content. This property should be used when the script is provide inline and not through file in a SA. Must not be used together with `url` and `sas_token` properties. Changing this forces a new resource to be created.
+
+* `sas_token` - (Optional) The SAS token used to access the script. Must be provided when using scriptUrl property. Changing this forces a new resource to be created.
+
+* `url` - (Optional) The url to the KQL script blob file. Must not be used together with scriptContent property. Please reference [this documentation](https://docs.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
+
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kusto Script.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Kusto Script.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Script.
@@ -128,5 +130,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Kusto Scripts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kusto_script.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1/Scripts/script1
+terraform import azurerm_kusto_script.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/clusters/cluster1/databases/database1/scripts/script1
 ```

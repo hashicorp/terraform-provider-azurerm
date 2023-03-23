@@ -30,6 +30,16 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	}
 }
 
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		IotCentralApplicationNetworkRuleSetResource{},
+	}
+}
+
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{

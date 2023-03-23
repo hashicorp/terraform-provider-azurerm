@@ -29,7 +29,6 @@ output "cidrs" {
 
 * `resource_group_name` - Specifies the Name of the Resource Group within which the IP Group exists
 
-
 ## Attributes Reference
 
 * `id` - The ID of the IP Group.
@@ -40,9 +39,8 @@ output "cidrs" {
 
 * `tags` - A mapping of tags assigned to the resource.
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the IP Group.

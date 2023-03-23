@@ -6,11 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -29,24 +29,6 @@ func TestAccKeyVaultAccessPolicy_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Get"),
 				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
 				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("Set"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKeyVaultAccessPolicy_mixedCasePermissions(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
-	r := KeyVaultAccessPolicyResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicMixedCase(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Get"),
-				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
-				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("set"),
 			),
 		},
 		data.ImportStep(),
@@ -140,27 +122,23 @@ func TestAccKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
 		{
 			Config:             r.nonExistentVault(data),
 			ExpectNonEmptyPlan: true,
-			ExpectError:        regexp.MustCompile(`retrieving Key Vault`),
+			ExpectError:        regexp.MustCompile(`retrieving parent`),
 		},
 	})
 }
 
 func (t KeyVaultAccessPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.AccessPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	objectId := id.Path["objectId"]
-	applicationId := id.Path["applicationId"]
 
-	resp, err := clients.KeyVault.VaultsClient.Get(ctx, resGroup, vaultName)
+	resp, err := clients.KeyVault.VaultsClient.Get(ctx, id.KeyVaultId().ResourceGroup, id.KeyVaultId().Name)
 	if err != nil {
 		return nil, fmt.Errorf("reading Key Vault (%s): %+v", id, err)
 	}
 
-	return utils.Bool(keyvault.FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId) != nil), nil
+	return utils.Bool(keyvault.FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, id.ObjectID(), id.ApplicationId()) != nil), nil
 }
 
 func (r KeyVaultAccessPolicyResource) basic(data acceptance.TestData) string {
@@ -182,33 +160,6 @@ resource "azurerm_key_vault_access_policy" "test" {
   secret_permissions = [
     "Get",
     "Set",
-  ]
-
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.object_id
-}
-`, template)
-}
-
-func (r KeyVaultAccessPolicyResource) basicMixedCase(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_key_vault_access_policy" "test" {
-  key_vault_id = azurerm_key_vault.test.id
-
-  key_permissions = [
-    "Get",
-  ]
-
-  secret_permissions = [
-    "Get",
-    "set",
   ]
 
   tenant_id = data.azurerm_client_config.current.tenant_id

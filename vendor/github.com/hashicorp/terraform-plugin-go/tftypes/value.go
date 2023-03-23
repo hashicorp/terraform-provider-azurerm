@@ -2,14 +2,13 @@ package tftypes
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"math/big"
 	"sort"
 	"strconv"
 	"strings"
 
-	"github.com/vmihailenco/msgpack"
+	msgpack "github.com/vmihailenco/msgpack/v4"
 )
 
 // ValueConverter is an interface that provider-defined types can implement to
@@ -261,17 +260,13 @@ func (val Value) Copy() Value {
 //
 // The builtin Value representations are:
 //
-// * String: string, *string
-//
-// * Number: *big.Float, int64, *int64, int32, *int32, int16, *int16, int8,
-//           *int8, int, *int, uint64, *uint64, uint32, *uint32, uint16,
-//           *uint16, uint8, *uint8, uint, *uint, float64, *float64
-//
-// * Bool: bool, *bool
-//
-// * Map and Object: map[string]Value
-//
-// * Tuple, List, and Set: []Value
+//   - String: string, *string
+//   - Number: *big.Float, int64, *int64, int32, *int32, int16, *int16, int8,
+//     *int8, int, *int, uint64, *uint64, uint32, *uint32, uint16,
+//     *uint16, uint8, *uint8, uint, *uint, float64, *float64
+//   - Bool: bool, *bool
+//   - Map and Object: map[string]Value
+//   - Tuple, List, and Set: []Value
 func NewValue(t Type, val interface{}) Value {
 	v, err := newValue(t, val)
 	if err != nil {
@@ -294,10 +289,6 @@ func newValue(t Type, val interface{}) (Value, error) {
 			typ:   t,
 			value: val,
 		}, nil
-	}
-
-	if t.Is(DynamicPseudoType) {
-		return Value{}, errors.New("cannot have DynamicPseudoType with known value, DynamicPseudoType can only contain null or unknown values")
 	}
 
 	if creator, ok := val.(ValueCreator); ok {
@@ -353,6 +344,12 @@ func newValue(t Type, val interface{}) (Value, error) {
 		return v, nil
 	case t.Is(Tuple{}):
 		v, err := valueFromTuple(t.(Tuple).ElementTypes, val)
+		if err != nil {
+			return Value{}, err
+		}
+		return v, nil
+	case t.Is(DynamicPseudoType):
+		v, err := valueFromDynamicPseudoType(val)
 		if err != nil {
 			return Value{}, err
 		}
@@ -439,7 +436,7 @@ func (val Value) As(dst interface{}) error {
 		if !ok {
 			return fmt.Errorf("can't unmarshal %s into %T, expected *big.Float", val.Type(), dst)
 		}
-		target.Set(v)
+		target.Copy(v)
 		return nil
 	case **big.Float:
 		if val.IsNull() {

@@ -3,10 +3,10 @@ package apimanagement
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -37,7 +37,7 @@ func resourceApiManagementEmailTemplate() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
@@ -47,20 +47,20 @@ func resourceApiManagementEmailTemplate() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					strings.Title(string(apimanagement.TemplateNameAccountClosedDeveloper)),
-					strings.Title(string(apimanagement.TemplateNameApplicationApprovedNotificationMessage)),
-					strings.Title(string(apimanagement.TemplateNameConfirmSignUpIdentityDefault)),
-					strings.Title(string(apimanagement.TemplateNameEmailChangeIdentityDefault)),
-					strings.Title(string(apimanagement.TemplateNameInviteUserNotificationMessage)),
-					strings.Title(string(apimanagement.TemplateNameNewCommentNotificationMessage)),
-					strings.Title(string(apimanagement.TemplateNameNewDeveloperNotificationMessage)),
-					strings.Title(string(apimanagement.TemplateNameNewIssueNotificationMessage)),
-					strings.Title(string(apimanagement.TemplateNamePasswordResetByAdminNotificationMessage)),
-					strings.Title(string(apimanagement.TemplateNamePasswordResetIdentityDefault)),
-					strings.Title(string(apimanagement.TemplateNamePurchaseDeveloperNotificationMessage)),
-					strings.Title(string(apimanagement.TemplateNameQuotaLimitApproachingDeveloperNotificationMessage)),
-					strings.Title(string(apimanagement.TemplateNameRejectDeveloperNotificationMessage)),
-					strings.Title(string(apimanagement.TemplateNameRequestDeveloperNotificationMessage)),
+					azure.TitleCase(string(apimanagement.TemplateNameAccountClosedDeveloper)),
+					azure.TitleCase(string(apimanagement.TemplateNameApplicationApprovedNotificationMessage)),
+					azure.TitleCase(string(apimanagement.TemplateNameConfirmSignUpIdentityDefault)),
+					azure.TitleCase(string(apimanagement.TemplateNameEmailChangeIdentityDefault)),
+					azure.TitleCase(string(apimanagement.TemplateNameInviteUserNotificationMessage)),
+					azure.TitleCase(string(apimanagement.TemplateNameNewCommentNotificationMessage)),
+					azure.TitleCase(string(apimanagement.TemplateNameNewDeveloperNotificationMessage)),
+					azure.TitleCase(string(apimanagement.TemplateNameNewIssueNotificationMessage)),
+					azure.TitleCase(string(apimanagement.TemplateNamePasswordResetByAdminNotificationMessage)),
+					azure.TitleCase(string(apimanagement.TemplateNamePasswordResetIdentityDefault)),
+					azure.TitleCase(string(apimanagement.TemplateNamePurchaseDeveloperNotificationMessage)),
+					azure.TitleCase(string(apimanagement.TemplateNameQuotaLimitApproachingDeveloperNotificationMessage)),
+					azure.TitleCase(string(apimanagement.TemplateNameRejectDeveloperNotificationMessage)),
+					azure.TitleCase(string(apimanagement.TemplateNameRequestDeveloperNotificationMessage)),
 				}, false),
 			},
 			"body": {

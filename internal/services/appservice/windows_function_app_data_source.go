@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -28,15 +28,18 @@ type WindowsFunctionAppDataSourceModel struct {
 	ServicePlanId      string `tfschema:"service_plan_id"`
 	StorageAccountName string `tfschema:"storage_account_name"`
 
-	StorageAccountKey string `tfschema:"storage_account_access_key"`
-	StorageUsesMSI    bool   `tfschema:"storage_uses_managed_identity"`
+	StorageAccountKey       string `tfschema:"storage_account_access_key"`
+	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"`
+	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
 	AppSettings               map[string]string                      `tfschema:"app_settings"`
 	AuthSettings              []helpers.AuthSettings                 `tfschema:"auth_settings"`
+	AuthV2Settings            []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
 	Backup                    []helpers.Backup                       `tfschema:"backup"`
 	BuiltinLogging            bool                                   `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled         bool                                   `tfschema:"client_certificate_enabled"`
 	ClientCertMode            string                                 `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths  string                                 `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings         []helpers.ConnectionString             `tfschema:"connection_string"`
 	DailyMemoryTimeQuota      int                                    `tfschema:"daily_memory_time_quota"`
 	Enabled                   bool                                   `tfschema:"enabled"`
@@ -44,7 +47,9 @@ type WindowsFunctionAppDataSourceModel struct {
 	ForceDisableContentShare  bool                                   `tfschema:"content_share_force_disabled"`
 	HttpsOnly                 bool                                   `tfschema:"https_only"`
 	SiteConfig                []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
+	StickySettings            []helpers.StickySettings               `tfschema:"sticky_settings"`
 	Tags                      map[string]string                      `tfschema:"tags"`
+	VirtualNetworkSubnetId    string                                 `tfschema:"virtual_network_subnet_id"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
@@ -103,6 +108,12 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Computed: true,
 		},
 
+		"storage_key_vault_secret_id": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The Key Vault Secret ID, including version, that contains the Connection String used to connect to the storage account for this Function App.",
+		},
+
 		"app_settings": {
 			Type:     pluginsdk.TypeMap,
 			Computed: true,
@@ -112,6 +123,8 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 		},
 
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
+
+		"auth_settings_v2": helpers.AuthV2SettingsComputedSchema(),
 
 		"backup": helpers.BackupSchemaComputed(),
 
@@ -128,6 +141,12 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 		"client_certificate_mode": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
 		},
 
 		"connection_string": helpers.ConnectionStringSchemaComputed(),
@@ -203,9 +222,16 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppComputed(),
 
+		"sticky_settings": helpers.StickySettingsComputedSchema(),
+
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"tags": tags.SchemaDataSource(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -242,9 +268,23 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.Location = location.NormalizeNilable(existing.Location)
 			functionApp.Enabled = utils.NormaliseNilableBool(existing.Enabled)
 			functionApp.ClientCertMode = string(existing.ClientCertMode)
+			functionApp.ClientCertExclusionPaths = utils.NormalizeNilableString(existing.ClientCertExclusionPaths)
 			functionApp.DailyMemoryTimeQuota = int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota))
 			functionApp.Tags = tags.ToTypedObject(existing.Tags)
 			functionApp.Kind = utils.NormalizeNilableString(existing.Kind)
+			functionApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
+			functionApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
+			functionApp.VirtualNetworkSubnetId = utils.NormalizeNilableString(props.VirtualNetworkSubnetID)
+
+			if v := props.OutboundIPAddresses; v != nil {
+				functionApp.OutboundIPAddresses = *v
+				functionApp.OutboundIPAddressList = strings.Split(*v, ",")
+			}
+
+			if v := props.PossibleOutboundIPAddresses; v != nil {
+				functionApp.PossibleOutboundIPAddresses = *v
+				functionApp.PossibleOutboundIPAddressList = strings.Split(*v, ",")
+			}
 
 			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
@@ -254,6 +294,11 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
+			}
+
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Sticky Settings for Windows %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
@@ -272,6 +317,11 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			auth, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
+			}
+
+			authV2, err := client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading authV2 settings for Windows %s: %+v", id, err)
 			}
 
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
@@ -306,9 +356,13 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			functionApp.AuthSettings = helpers.FlattenAuthSettings(auth)
 
+			functionApp.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
+
 			functionApp.Backup = helpers.FlattenBackupConfig(backup)
 
 			functionApp.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
+
+			functionApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
 
 			functionApp.HttpsOnly = utils.NormaliseNilableBool(existing.HTTPSOnly)
 
@@ -372,7 +426,12 @@ func (m *WindowsFunctionAppDataSourceModel) unpackWindowsFunctionAppSettings(inp
 			m.SiteConfig[0].AppInsightsConnectionString = utils.NormalizeNilableString(v)
 
 		case "AzureWebJobsStorage":
-			m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
+			if v != nil && strings.HasPrefix(*v, "@Microsoft.KeyVault") {
+				trimmed := strings.TrimPrefix(strings.TrimSuffix(*v, ")"), "@Microsoft.KeyVault(")
+				m.StorageKeyVaultSecretID = trimmed
+			} else {
+				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
+			}
 
 		case "AzureWebJobsDashboard":
 			m.BuiltinLogging = true

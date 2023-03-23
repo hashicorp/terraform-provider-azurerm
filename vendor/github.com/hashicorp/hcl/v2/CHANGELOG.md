@@ -1,5 +1,77 @@
 # HCL Changelog
 
+## v2.15.0 (November 10, 2022)
+
+### Bugs Fixed
+
+* ext/typeexpr: Skip null objects when applying defaults. This prevents crashes when null objects are creating inside collections, and stops incomplete objects being created with only optional attributes set. ([#567](https://github.com/hashicorp/hcl/pull/567))
+* ext/typeexpr: Ensure default values do not have optional metadata attached. This prevents crashes when default values are inserted into concrete go-cty values that have also been stripped of their optional metadata. ([#568](https://github.com/hashicorp/hcl/pull/568))
+
+### Enhancements
+
+* ext/typeexpr: With the [go-cty](https://github.com/zclconf/go-cty) upstream depenendency updated to v1.12.0, the `Defaults` struct and associated functions can apply additional and more flexible 'unsafe' conversions (examples include tuples into collections such as lists and sets, and additional safety around null and dynamic values). ([#564](https://github.com/hashicorp/hcl/pull/564))
+* ext/typeexpr: With the [go-cty](https://github.com/zclconf/go-cty) upstream depenendency updated to v1.12.0, users should now apply the go-cty convert functionality *before* setting defaults on a given `cty.Value`, rather than after, if they require a specific `cty.Type`.  ([#564](https://github.com/hashicorp/hcl/pull/564))
+
+## v2.14.1 (September 23, 2022)
+
+### Bugs Fixed
+
+* ext/typeexpr: Type convert defaults for optional object attributes when applying them. This prevents crashes in certain cases when the objects in question are part of a collection. ([#555](https://github.com/hashicorp/hcl/pull/555))
+
+## v2.14.0 (September 1, 2022)
+
+### Enhancements
+
+* ext/typeexpr: Added support for optional object attributes to `TypeConstraint`. Attributes can be wrapped in the special `optional(…)` modifier, allowing the attribute to be omitted while still meeting the type constraint. For more information, [cty's documentation on conversion between object types](https://github.com/zclconf/go-cty/blob/main/docs/convert.md#conversion-between-object-types). ([#549](https://github.com/hashicorp/hcl/pull/549))
+* ext/typeexpr: New function: `TypeConstraintWithDefaults`. In this mode, the `optional(…)` modifier accepts a second argument which can be used as the default value for omitted object attributes. The function returns both a `cty.Type` and associated `Defaults`, the latter of which has an `Apply` method to apply defaults to a given value. ([#549](https://github.com/hashicorp/hcl/pull/549))
+
+## v2.13.0 (June 22, 2022)
+
+### Enhancements
+
+* hcl: `hcl.Diagnostic` now has an additional field `Extra` which is intended for carrying arbitrary supporting data ("extra information") related to the diagnostic message, intended to allow diagnostic renderers to optionally tailor the presentation of messages for particular situations. ([#539](https://github.com/hashicorp/hcl/pull/539))
+* hclsyntax: When an error occurs during a function call, the returned diagnostics will include _extra information_ (as described in the previous point) about which function was being called and, if the message is about an error returned by the function itself, that raw `error` value without any post-processing. ([#539](https://github.com/hashicorp/hcl/pull/539))
+
+### Bugs Fixed
+
+* hclwrite: Fixed a potential data race for any situation where `hclwrite.Format` runs concurrently with itself. ([#534](https://github.com/hashicorp/hcl/pull/534))
+
+## v2.12.0 (April 22, 2022)
+
+### Enhancements
+
+* hclsyntax: Evaluation of conditional expressions will now produce more precise error messages about inconsistencies between the types of the true and false result expressions, particularly in cases where both are of the same structural type kind but differ in their nested elements. ([#530](https://github.com/hashicorp/hcl/pull/530))
+* hclsyntax: The lexer will no longer allocate a small object on the heap for each token. Instead, in that situation it will allocate only when needed to return a diagnostic message with source location information. ([#490](https://github.com/hashicorp/hcl/pull/490))
+* hclwrite: New functions `TokensForTuple`, `TokensForObject`, and `TokensForFunctionCall` allow for more easily constructing the three constructs which are supported for static analysis and which HCL-based languages typically use in contexts where an expression is used only for its syntax, and not evaluated to produce a real value. For example, these new functions together are sufficient to construct all valid type constraint expressions from [the Type Expressions Extension](./ext/typeexpr/), which is the basis of variable type constraints in the Terraform language at the time of writing. ([#502](https://github.com/hashicorp/hcl/pull/502))
+* json: New functions `IsJSONExpression` and `IsJSONBody` to determine if a given expression or body was created by the JSON syntax parser. In normal situations it's better not to worry about what syntax a particular expression/body originated in, but this can be useful in some trickier cases where an application needs to shim for backwards-compatibility or for static analysis that needs to have special handling of the JSON syntax's embedded expression/template conventions. ([#524](https://github.com/hashicorp/hcl/pull/524))
+
+### Bugs Fixed
+
+* gohcl: Fix docs about supported types for blocks. ([#507](https://github.com/hashicorp/hcl/pull/507))
+
+## v2.11.1 (December 1, 2021)
+
+### Bugs Fixed
+
+* hclsyntax: The type for an upgraded unknown value with a splat expression cannot be known ([#495](https://github.com/hashicorp/hcl/pull/495))
+
+## v2.11.0 (December 1, 2021)
+
+### Enhancements
+
+* hclsyntax: Various error messages related to unexpectedly reaching end of file while parsing a delimited subtree will now return specialized messages describing the opening tokens as "unclosed", instead of returning a generic diagnostic that just happens to refer to the empty source range at the end of the file. This gives better feedback when error messages are being presented alongside a source code snippet, as is common in HCL-based applications, because it shows which innermost container the parser was working on when it encountered the error. ([#492](https://github.com/hashicorp/hcl/pull/492))
+
+### Bugs Fixed
+
+* hclsyntax: Upgrading an unknown single value to a list using a splat expression must return unknown ([#493](https://github.com/hashicorp/hcl/pull/493))
+
+## v2.10.1 (July 21, 2021)
+
+* dynblock: Decode unknown dynamic blocks in order to obtain any diagnostics even though the decoded value is not used ([#476](https://github.com/hashicorp/hcl/pull/476))
+* hclsyntax: Calling functions is now more robust in the face of an incorrectly-implemented function which returns a `function.ArgError` whose argument index is out of range for the length of the arguments. Previously this would often lead to a panic, but now it'll return a less-precice error message instead. Functions that return out-of-bounds argument indices still ought to be fixed so that the resulting error diagnostics can be as precise as possible. ([#472](https://github.com/hashicorp/hcl/pull/472))
+* hclsyntax: Ensure marks on unknown values are maintained when processing string templates. ([#478](https://github.com/hashicorp/hcl/pull/478))
+* hcl: Improved error messages for various common error situtions in `hcl.Index` and `hcl.GetAttr`. These are part of the implementation of indexing and attribute lookup in the native syntax expression language too, so the new error messages will apply to problems using those operators. ([#474](https://github.com/hashicorp/hcl/pull/474))
+
 ## v2.10.0 (April 20, 2021)
 
 ### Enhancements

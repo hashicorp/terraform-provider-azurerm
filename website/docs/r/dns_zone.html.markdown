@@ -23,11 +23,12 @@ resource "azurerm_dns_zone" "example-public" {
   resource_group_name = azurerm_resource_group.example.name
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS Zone. Must be a valid domain name.
+* `name` - (Required) The name of the DNS Zone. Must be a valid domain name. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
@@ -41,7 +42,7 @@ The `soa_record` block supports:
 
 * `email` - (Required) The email contact for the SOA record.
 
-* `host_name` - (Required) The domain name of the authoritative name server for the SOA record. Defaults to `ns1-03.azure-dns.com.`.
+* `host_name` - (Required) The domain name of the authoritative name server for the SOA record.
 
 * `expire_time` - (Optional) The expire time for the SOA record. Defaults to `2419200`.
 
@@ -62,19 +63,23 @@ The `soa_record` block supports:
 The following attributes are exported:
 
 * `id` - The DNS Zone ID.
+
 * `max_number_of_record_sets` - (Optional) Maximum number of Records in the zone. Defaults to `1000`.
+
 * `number_of_record_sets` - (Optional) The number of records already in the zone.
+
 * `name_servers` - (Optional) A list of values that make up the NS record for the zone.
 
 ## Timeouts
 
-
-
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS Zone.
+
 * `update` - (Defaults to 30 minutes) Used when updating the DNS Zone.
+
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS Zone.
+
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS Zone.
 
 ## Import
@@ -82,5 +87,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 DNS Zones can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_zone.zone1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1
+terraform import azurerm_dns_zone.zone1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1
 ```

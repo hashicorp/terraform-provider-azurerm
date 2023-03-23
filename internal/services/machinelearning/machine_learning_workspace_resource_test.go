@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -180,6 +181,22 @@ func TestAccMachineLearningWorkspace_identityUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.userAssignedIdentityUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMachineLearningWorkspace_identityTypeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	r := WorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
 			Config: r.systemAssignedUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -188,10 +205,17 @@ func TestAccMachineLearningWorkspace_identityUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.systemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.systemAssignedUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -237,20 +261,20 @@ func TestAccMachineLearningWorkspace_systemAssignedAndCustomManagedKey(t *testin
 
 func (r WorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	workspacesClient := client.MachineLearning.WorkspacesClient
-	id, err := parse.WorkspaceID(state.ID)
+	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := workspacesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := workspacesClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Machine Learning Workspace %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.WorkspaceProperties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (r WorkspaceResource) basic(data acceptance.TestData) string {
@@ -270,7 +294,7 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomIntOfLength(16))
+`, template, data.RandomInteger)
 }
 
 func (r WorkspaceResource) basicUpdated(data acceptance.TestData) string {
@@ -344,6 +368,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   high_business_impact          = true
   public_network_access_enabled = true
   image_build_compute_name      = "terraformCompute"
+  v1_legacy_mode_enabled        = false
 
   identity {
     type = "SystemAssigned"
@@ -405,7 +430,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   sku_name                      = "Basic"
   high_business_impact          = true
   public_network_access_enabled = true
-  image_build_compute_name      = "terraformCompute"
+  image_build_compute_name      = "terraformComputeUpdate"
 
   identity {
     type = "SystemAssigned"
@@ -449,7 +474,8 @@ func (r WorkspaceResource) template(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -538,6 +564,55 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 `, r.template(data), data.RandomInteger)
 }
+func (r WorkspaceResource) userAssignedIdentityUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctestUAI-%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Reader"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test2" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Reader"
+  principal_id         = azurerm_user_assigned_identity.test2.principal_id
+}
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                           = "acctest-MLW-%[2]d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  application_insights_id        = azurerm_application_insights.test.id
+  key_vault_id                   = azurerm_key_vault.test.id
+  storage_account_id             = azurerm_storage_account.test.id
+  primary_user_assigned_identity = azurerm_user_assigned_identity.test.id
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+      azurerm_user_assigned_identity.test2.id,
+    ]
+  }
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, r.template(data), data.RandomInteger, data.RandomIntOfLength(8))
+}
 
 func (r WorkspaceResource) systemAssignedUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
@@ -562,6 +637,31 @@ resource "azurerm_machine_learning_workspace" "test" {
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r WorkspaceResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctest-MLW-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  identity {
+    type = "SystemAssigned"
   }
 }
 `, r.template(data), data.RandomInteger)

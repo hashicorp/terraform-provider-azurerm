@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-08-01/containerservice"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -27,150 +26,135 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: func() map[string]*pluginsdk.Schema {
-			s := map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validate.KubernetesAgentPoolName,
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.KubernetesAgentPoolName,
+			},
+
+			"kubernetes_cluster_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			// TODO 4.0: change this from enable_* to *_enabled
+			"enable_auto_scaling": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			// TODO 4.0: change this from enable_* to *_enabled
+			"enable_node_public_ip": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"eviction_policy": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"max_count": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"max_pods": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"mode": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"min_count": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"node_count": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"node_labels": {
+				Type:     pluginsdk.TypeMap,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
+			},
 
-				"kubernetes_cluster_name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+			"node_public_ip_prefix_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"node_taints": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
+			},
 
-				"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+			"orchestrator_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_auto_scaling": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
+			"os_disk_size_gb": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
 
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_node_public_ip": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
+			"os_disk_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"eviction_policy": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+			"os_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"max_count": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
-				},
+			"priority": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"max_pods": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
-				},
+			"proximity_placement_group_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"mode": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+			"spot_max_price": {
+				Type:     pluginsdk.TypeFloat,
+				Computed: true,
+			},
 
-				"min_count": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
-				},
+			"tags": commonschema.TagsDataSource(),
 
-				"node_count": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
-				},
+			"upgrade_settings": upgradeSettingsForDataSourceSchema(),
 
-				"node_labels": {
-					Type:     pluginsdk.TypeMap,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
+			"vm_size": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"node_public_ip_prefix_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+			"vnet_subnet_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"node_taints": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"orchestrator_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"os_disk_size_gb": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
-				},
-
-				"os_disk_type": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"os_type": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"priority": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"proximity_placement_group_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"spot_max_price": {
-					Type:     pluginsdk.TypeFloat,
-					Computed: true,
-				},
-
-				"tags": commonschema.TagsDataSource(),
-
-				"upgrade_settings": upgradeSettingsForDataSourceSchema(),
-
-				"vm_size": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"vnet_subnet_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"zones": commonschema.ZonesMultipleComputed(),
-			}
-
-			if !features.ThreePointOhBeta() {
-				// TODO: document that this is replaced by `zones` in 3.0
-				s["availability_zones"] = &schema.Schema{
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				}
-			}
-
-			return s
-		}(),
+			"zones": commonschema.ZonesMultipleComputed(),
+		},
 	}
 }
 
@@ -181,22 +165,22 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterId := parse.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("kubernetes_cluster_name").(string))
+	clusterId := managedclusters.NewManagedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("kubernetes_cluster_name").(string))
 
 	// if the parent cluster doesn't exist then the node pool won't
-	cluster, err := clustersClient.Get(ctx, clusterId.ResourceGroup, clusterId.ManagedClusterName)
+	cluster, err := clustersClient.Get(ctx, clusterId)
 	if err != nil {
-		if utils.ResponseWasNotFound(cluster.Response) {
+		if response.WasNotFound(cluster.HttpResponse) {
 			return fmt.Errorf("%s was not found", clusterId)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", clusterId, err)
 	}
 
-	id := parse.NewNodePoolID(clusterId.SubscriptionId, clusterId.ResourceGroup, clusterId.ManagedClusterName, d.Get("name").(string))
-	resp, err := poolsClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
+	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
+	resp, err := poolsClient.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -206,22 +190,18 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 	d.SetId(id.ID())
 	d.Set("name", id.AgentPoolName)
 	d.Set("kubernetes_cluster_name", id.ManagedClusterName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.ManagedClusterAgentPoolProfileProperties; props != nil {
-		if !features.ThreePointOhBeta() {
-			if err := d.Set("availability_zones", utils.FlattenStringSlice(props.AvailabilityZones)); err != nil {
-				return fmt.Errorf("setting `availability_zones`: %+v", err)
-			}
-		}
-		d.Set("zones", zones.Flatten(props.AvailabilityZones))
+	if model := resp.Model; model != nil && model.Properties != nil {
+		props := model.Properties
+		d.Set("zones", zones.FlattenUntyped(props.AvailabilityZones))
 
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 
 		evictionPolicy := ""
-		if props.ScaleSetEvictionPolicy != "" {
-			evictionPolicy = string(props.ScaleSetEvictionPolicy)
+		if props.ScaleSetEvictionPolicy != nil && *props.ScaleSetEvictionPolicy != "" {
+			evictionPolicy = string(*props.ScaleSetEvictionPolicy)
 		}
 		d.Set("eviction_policy", evictionPolicy)
 
@@ -243,9 +223,9 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		}
 		d.Set("min_count", minCount)
 
-		mode := string(containerservice.AgentPoolModeUser)
-		if props.Mode != "" {
-			mode = string(props.Mode)
+		mode := string(agentpools.AgentPoolModeUser)
+		if props.Mode != nil && *props.Mode != "" {
+			mode = string(*props.Mode)
 		}
 		d.Set("mode", mode)
 
@@ -272,17 +252,20 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		}
 		d.Set("os_disk_size_gb", osDiskSizeGB)
 
-		osDiskType := containerservice.OSDiskTypeManaged
-		if props.OsDiskType != "" {
-			osDiskType = props.OsDiskType
+		osDiskType := agentpools.OSDiskTypeManaged
+		if props.OsDiskType != nil && *props.OsDiskType != "" {
+			osDiskType = *props.OsDiskType
 		}
 		d.Set("os_disk_type", string(osDiskType))
-		d.Set("os_type", string(props.OsType))
+
+		if props.OsDiskType != nil {
+			d.Set("os_type", string(*props.OsType))
+		}
 
 		// not returned from the API if not Spot
-		priority := string(containerservice.ScaleSetPriorityRegular)
-		if props.ScaleSetPriority != "" {
-			priority = string(props.ScaleSetPriority)
+		priority := string(agentpools.ScaleSetPriorityRegular)
+		if props.ScaleSetPriority != nil && *props.ScaleSetPriority != "" {
+			priority = string(*props.ScaleSetPriority)
 		}
 		d.Set("priority", priority)
 
@@ -298,13 +281,15 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		}
 		d.Set("spot_max_price", spotMaxPrice)
 
-		if err := d.Set("upgrade_settings", flattenUpgradeSettings(props.UpgradeSettings)); err != nil {
+		if err := d.Set("upgrade_settings", flattenAgentPoolUpgradeSettings(props.UpgradeSettings)); err != nil {
 			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
 		}
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
 		d.Set("vm_size", props.VMSize)
+
+		d.Set("tags", tags.Flatten(props.Tags))
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

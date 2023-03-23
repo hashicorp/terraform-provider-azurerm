@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `maps_account_id` - (Required) The ID of the Azure Maps Creator. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region where the Azure Maps Creator should exist.
+* `location` - (Required) The Azure Region where the Azure Maps Creator should exist. Changing this forces a new resource to be created.
 
 * `storage_units` - (Required) The storage units to be allocated. Integer values from 1 to 100, inclusive.
 
@@ -62,7 +62,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Maps Creator.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Maps Creator.

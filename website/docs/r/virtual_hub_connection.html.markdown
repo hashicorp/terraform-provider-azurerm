@@ -58,9 +58,9 @@ The following arguments are supported:
 
 ---
 
-* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to `false`.
+* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Defaults to `false`.
 
-* `routing` - (Optional)  A `routing` block as defined below.
+* `routing` - (Optional) A `routing` block as defined below.
 
 ---
 
@@ -68,9 +68,9 @@ A `routing` block supports the following:
 
 * `associated_route_table_id` - (Optional) The ID of the route table associated with this Virtual Hub connection.
 
-* `propagated_route_table` - (Optional)  A `propagated_route_table` block as defined below.
+* `propagated_route_table` - (Optional) A `propagated_route_table` block as defined below.
 
-* `static_vnet_route` - (Optional)  A `static_vnet_route` block as defined below.
+* `static_vnet_route` - (Optional) A `static_vnet_route` block as defined below.
 
 ---
 
@@ -78,7 +78,7 @@ A `propagated_route_table` block supports the following:
 
 * `labels` - (Optional) The list of labels to assign to this route table.
 
-* `route_table_ids` - (Optional) A list of Route Table ID's to associated with this Virtual Hub Connection.
+* `route_table_ids` - (Optional) A list of Route Table IDs to associated with this Virtual Hub Connection.
 
 ---
 
@@ -98,7 +98,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Virtual Hub Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub Connection.
@@ -110,5 +110,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Virtual Hub Connection's can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_virtual_hub_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/hub1/hubVirtualNetworkConnections/connection1
+terraform import azurerm_virtual_hub_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/hub1/hubVirtualNetworkConnections/connection1
 ```

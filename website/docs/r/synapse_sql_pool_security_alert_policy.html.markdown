@@ -48,6 +48,10 @@ resource "azurerm_synapse_workspace" "example" {
     tenant_id = "00000000-0000-0000-0000-000000000000"
   }
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   tags = {
     Env = "production"
   }
@@ -87,20 +91,19 @@ The following arguments are supported:
 
 * `sql_pool_id` - (Required) Specifies the ID of the Synapse SQL Pool. Changing this forces a new resource to be created.
 
-* `policy_state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific SQL pool. Allowed values are: `Disabled`, `Enabled`.
+* `policy_state` - (Required) Specifies the state of the policy, whether it is enabled or disabled or a policy has not been applied yet on the specific SQL pool. Possible values are `Disabled`, `Enabled` and `New`.
 
 * `disabled_alerts` - (Optional) Specifies an array of alerts that are disabled. Allowed values are: `Sql_Injection`, `Sql_Injection_Vulnerability`, `Access_Anomaly`, `Data_Exfiltration`, `Unsafe_Action`.
 
 * `email_account_admins_enabled` - (Optional) Boolean flag which specifies if the alert is sent to the account administrators or not. Defaults to `false`.
 
-* `email_addresses` - (Optional) Specifies an array of e-mail addresses to which the alert is sent.
+* `email_addresses` - (Optional) Specifies an array of email addresses to which the alert is sent.
 
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs. Defaults to `0`.
 
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account.
 
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
-
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all Threat Detection audit logs.
 
 ## Attributes Reference
 
@@ -110,7 +113,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse SQL Pool Security Alert Policy.
 * `update` - (Defaults to 30 minutes) Used when updating the Synapse SQL Pool Security Alert Policy.
@@ -122,5 +125,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Synapse SQL Pool Security Alert Policies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_synapse_sql_pool_security_alert_policy.example  /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Synapse/workspaces/workspace1/sqlPools/sqlPool1/securityAlertPolicies/default
+terraform import azurerm_synapse_sql_pool_security_alert_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Synapse/workspaces/workspace1/sqlPools/sqlPool1/securityAlertPolicies/default
 ```

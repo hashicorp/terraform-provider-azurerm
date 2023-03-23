@@ -3,10 +3,9 @@ package storage
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -49,33 +48,23 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile(`^[a-zA-Z0-9-]*$`),
-								"A rule name can contain any combination of alpha numeric characters.",
-							),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
-						//lintignore:XS003
 						"filters": {
 							Type:     pluginsdk.TypeList,
-							Optional: true,
+							Required: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"prefix_match": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-										Set:      pluginsdk.HashString,
-									},
 									"blob_types": {
 										Type:     pluginsdk.TypeSet,
-										Optional: true,
+										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
@@ -85,7 +74,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 										},
 										Set: pluginsdk.HashString,
 									},
-
+									"prefix_match": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+										Set:      pluginsdk.HashString,
+									},
 									"match_blob_index_tag": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
@@ -117,14 +111,14 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 								},
 							},
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"actions": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									//lintignore:XS003
+									// lintignore:XS003
 									"base_blob": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -132,11 +126,9 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"tier_to_cool_after_days_since_modification_greater_than": {
-													Type:     pluginsdk.TypeInt,
-													Optional: true,
-													Default:  nil,
-													// todo: default change to -1 to allow value 0 in 3.0
-													// for issue https://github.com/hashicorp/terraform-provider-azurerm/issues/6158
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"tier_to_cool_after_days_since_last_access_time_greater_than": {
@@ -145,12 +137,20 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
-												"tier_to_archive_after_days_since_modification_greater_than": {
-													Type:     pluginsdk.TypeInt,
+												"auto_tier_to_hot_from_cool_enabled": {
+													Type:     pluginsdk.TypeBool,
 													Optional: true,
-													Default:  nil,
-													// todo: default change to -1 to allow value 0 in 3.0
-													// for issue https://github.com/hashicorp/terraform-provider-azurerm/issues/6158
+												},
+												"tier_to_cool_after_days_since_creation_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
+												"tier_to_archive_after_days_since_modification_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"tier_to_archive_after_days_since_last_access_time_greater_than": {
@@ -159,12 +159,22 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
+												"tier_to_archive_after_days_since_last_tier_change_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
+												"tier_to_archive_after_days_since_creation_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
 												"delete_after_days_since_modification_greater_than": {
-													Type:     pluginsdk.TypeInt,
-													Optional: true,
-													Default:  nil,
-													// todo: default change to -1 to allow value 0 in 3.0
-													// for issue https://github.com/hashicorp/terraform-provider-azurerm/issues/6158
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"delete_after_days_since_last_access_time_greater_than": {
@@ -173,10 +183,16 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
+												"delete_after_days_since_creation_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
 											},
 										},
 									},
-									//lintignore:XS003
+									// lintignore:XS003
 									"snapshot": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -189,6 +205,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
+												"tier_to_archive_after_days_since_last_tier_change_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
 												"change_tier_to_cool_after_days_since_creation": {
 													Type:         pluginsdk.TypeInt,
 													Optional:     true,
@@ -196,10 +218,9 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 												"delete_after_days_since_creation_greater_than": {
-													Type:     pluginsdk.TypeInt,
-													Optional: true,
-													// todo: default change to -1 to allow value 0 in 3.0
-													// for issue https://github.com/hashicorp/terraform-provider-azurerm/issues/6158
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
 											},
@@ -212,6 +233,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"change_tier_to_archive_after_days_since_creation": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
+												"tier_to_archive_after_days_since_last_tier_change_greater_than": {
 													Type:         pluginsdk.TypeInt,
 													Optional:     true,
 													Default:      -1,
@@ -394,17 +421,39 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 		if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob", ruleIndex)); ok {
 			baseBlob := &storage.ManagementPolicyBaseBlob{}
 			var (
-				sinceMod, sinceAccess     interface{}
-				sinceModOK, sinceAccessOK bool
+				sinceMod, sinceAccess, sinceCreate       interface{}
+				sinceModOK, sinceAccessOK, sinceCreateOK bool
 			)
 
-			sinceMod, sinceModOK = d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than", ruleIndex))
+			sinceMod = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than", ruleIndex))
+			sinceModOK = sinceMod != -1
+
 			sinceAccess = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_cool_after_days_since_last_access_time_greater_than", ruleIndex))
 			sinceAccessOK = sinceAccess != -1
-			if sinceModOK && sinceAccessOK {
-				return nil, fmt.Errorf("can't specify `tier_to_cool_after_days_since_modification_greater_than` and `tier_to_cool_after_days_since_last_access_time_greater_than` at the same time")
+
+			sinceCreate = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_cool_after_days_since_creation_greater_than", ruleIndex))
+			sinceCreateOK = sinceCreate != -1
+
+			autoTierToHotOK := d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.auto_tier_to_hot_from_cool_enabled", ruleIndex)).(bool)
+			if autoTierToHotOK && !sinceAccessOK {
+				return nil, fmt.Errorf("`auto_tier_to_hot_from_cool_enabled` must be used together with `tier_to_cool_after_days_since_last_access_time_greater_than`")
 			}
-			if sinceModOK || sinceAccessOK {
+
+			var cnt int
+			if sinceModOK {
+				cnt++
+			}
+			if sinceAccessOK {
+				cnt++
+			}
+			if sinceCreateOK {
+				cnt++
+			}
+			if cnt > 1 {
+				return nil, fmt.Errorf("Only one of `tier_to_cool_after_days_since_modification_greater_than`, `tier_to_cool_after_days_since_last_access_time_greater_than`, `tier_to_cool_after_days_since_creation_greater_than` can be specified at the same time")
+			}
+
+			if sinceModOK || sinceAccessOK || sinceCreateOK {
 				baseBlob.TierToCool = &storage.DateAfterModification{}
 				if sinceModOK {
 					baseBlob.TierToCool.DaysAfterModificationGreaterThan = utils.Float(float64(sinceMod.(int)))
@@ -412,15 +461,36 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 				if sinceAccessOK {
 					baseBlob.TierToCool.DaysAfterLastAccessTimeGreaterThan = utils.Float(float64(sinceAccess.(int)))
 				}
+				if sinceCreateOK {
+					baseBlob.TierToCool.DaysAfterCreationGreaterThan = utils.Float(float64(sinceCreate.(int)))
+				}
+				if autoTierToHotOK {
+					baseBlob.EnableAutoTierToHotFromCool = utils.Bool(autoTierToHotOK)
+				}
 			}
 
-			sinceMod, sinceModOK = d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than", ruleIndex))
+			sinceMod = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than", ruleIndex))
+			sinceModOK = sinceMod != -1
 			sinceAccess = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_archive_after_days_since_last_access_time_greater_than", ruleIndex))
 			sinceAccessOK = sinceAccess != -1
-			if sinceModOK && sinceAccessOK {
-				return nil, fmt.Errorf("can't specify `tier_to_archive_after_days_since_modification_greater_than` and `tier_to_archive_after_days_since_last_access_time_greater_than` at the same time")
+			sinceCreate = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_archive_after_days_since_creation_greater_than", ruleIndex))
+			sinceCreateOK = sinceCreate != -1
+
+			cnt = 0
+			if sinceModOK {
+				cnt++
 			}
-			if sinceModOK || sinceAccessOK {
+			if sinceAccessOK {
+				cnt++
+			}
+			if sinceCreateOK {
+				cnt++
+			}
+			if cnt > 1 {
+				return nil, fmt.Errorf("Only one of `tier_to_archive_after_days_since_modification_greater_than`, `tier_to_archive_after_days_since_last_access_time_greater_than` and `tier_to_archive_after_days_since_creation_greater_than` can be specified at the same time")
+			}
+
+			if sinceModOK || sinceAccessOK || sinceCreateOK {
 				baseBlob.TierToArchive = &storage.DateAfterModification{}
 				if sinceModOK {
 					baseBlob.TierToArchive.DaysAfterModificationGreaterThan = utils.Float(float64(sinceMod.(int)))
@@ -428,21 +498,44 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 				if sinceAccessOK {
 					baseBlob.TierToArchive.DaysAfterLastAccessTimeGreaterThan = utils.Float(float64(sinceAccess.(int)))
 				}
+				if sinceCreateOK {
+					baseBlob.TierToArchive.DaysAfterCreationGreaterThan = utils.Float(float64(sinceCreate.(int)))
+				}
+				if v := d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_archive_after_days_since_last_tier_change_greater_than", ruleIndex)); v != -1 {
+					baseBlob.TierToArchive.DaysAfterLastTierChangeGreaterThan = utils.Float(float64(v.(int)))
+				}
 			}
 
-			sinceMod, sinceModOK = d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob.0.delete_after_days_since_modification_greater_than", ruleIndex))
+			sinceMod = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.delete_after_days_since_modification_greater_than", ruleIndex))
+			sinceModOK = sinceMod != -1
 			sinceAccess = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.delete_after_days_since_last_access_time_greater_than", ruleIndex))
 			sinceAccessOK = sinceAccess != -1
-			if sinceModOK && sinceAccessOK {
-				return nil, fmt.Errorf("can't specify `delete_after_days_since_modification_greater_than` and `delete_after_days_since_last_access_time_greater_than` at the same time")
+			sinceCreate = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.delete_after_days_since_creation_greater_than", ruleIndex))
+			sinceCreateOK = sinceCreate != -1
+
+			cnt = 0
+			if sinceModOK {
+				cnt++
 			}
-			if sinceModOK || sinceAccessOK {
+			if sinceAccessOK {
+				cnt++
+			}
+			if sinceCreateOK {
+				cnt++
+			}
+			if cnt > 1 {
+				return nil, fmt.Errorf("Only one of `delete_after_days_since_modification_greater_than`, `delete_after_days_since_last_access_time_greater_than` and `delete_after_days_since_creation_greater_than` can be specified at the same time")
+			}
+			if sinceModOK || sinceAccessOK || sinceCreateOK {
 				baseBlob.Delete = &storage.DateAfterModification{}
 				if sinceModOK {
 					baseBlob.Delete.DaysAfterModificationGreaterThan = utils.Float(float64(sinceMod.(int)))
 				}
 				if sinceAccessOK {
 					baseBlob.Delete.DaysAfterLastAccessTimeGreaterThan = utils.Float(float64(sinceAccess.(int)))
+				}
+				if sinceCreateOK {
+					baseBlob.Delete.DaysAfterCreationGreaterThan = utils.Float(float64(sinceCreate.(int)))
 				}
 			}
 
@@ -451,13 +544,18 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 
 		if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.snapshot", ruleIndex)); ok {
 			snapshot := &storage.ManagementPolicySnapShot{}
-			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.snapshot.0.delete_after_days_since_creation_greater_than", ruleIndex)); ok {
+
+			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.delete_after_days_since_creation_greater_than", ruleIndex)); v != -1 {
 				v2 := float64(v.(int))
 				snapshot.Delete = &storage.DateAfterCreation{DaysAfterCreationGreaterThan: &v2}
 			}
+
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.change_tier_to_archive_after_days_since_creation", ruleIndex)); v != -1 {
 				snapshot.TierToArchive = &storage.DateAfterCreation{
 					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
+				}
+				if vv := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.tier_to_archive_after_days_since_last_tier_change_greater_than", ruleIndex)); vv != -1 {
+					snapshot.TierToArchive.DaysAfterLastTierChangeGreaterThan = utils.Float(float64(vv.(int)))
 				}
 			}
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.change_tier_to_cool_after_days_since_creation", ruleIndex)); v != -1 {
@@ -478,6 +576,9 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.change_tier_to_archive_after_days_since_creation", ruleIndex)); v != -1 {
 				version.TierToArchive = &storage.DateAfterCreation{
 					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
+				}
+				if vv := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.tier_to_archive_after_days_since_last_tier_change_greater_than", ruleIndex)); vv != -1 {
+					version.TierToArchive.DaysAfterLastTierChangeGreaterThan = utils.Float(float64(vv.(int)))
 				}
 			}
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.change_tier_to_cool_after_days_since_creation", ruleIndex)); v != -1 {
@@ -543,19 +644,31 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 				armActionBaseBlob := armAction.BaseBlob
 				if armActionBaseBlob != nil {
 					var (
-						tierToCoolSinceMod       = 0
-						tierToCoolSinceAccess    = -1
-						tierToArchiveSinceMod    = 0
-						tierToArchiveSinceAccess = -1
-						deleteSinceMod           = 0
-						deleteSinceAccess        = -1
+						tierToCoolSinceMod               = -1
+						tierToCoolSinceAccess            = -1
+						tierToCoolSinceCreate            = -1
+						autoTierToHotOK                  = false
+						tierToArchiveSinceMod            = -1
+						tierToArchiveSinceAccess         = -1
+						tierToArchiveSinceCreate         = -1
+						tierToArchiveSinceLastTierChange = -1
+						deleteSinceMod                   = -1
+						deleteSinceAccess                = -1
+						deleteSinceCreate                = -1
 					)
+
+					if v := armActionBaseBlob.EnableAutoTierToHotFromCool; v != nil {
+						autoTierToHotOK = *v
+					}
 					if props := armActionBaseBlob.TierToCool; props != nil {
 						if props.DaysAfterModificationGreaterThan != nil {
 							tierToCoolSinceMod = int(*props.DaysAfterModificationGreaterThan)
 						}
 						if props.DaysAfterLastAccessTimeGreaterThan != nil {
 							tierToCoolSinceAccess = int(*props.DaysAfterLastAccessTimeGreaterThan)
+						}
+						if props.DaysAfterCreationGreaterThan != nil {
+							tierToCoolSinceCreate = int(*props.DaysAfterCreationGreaterThan)
 						}
 					}
 					if props := armActionBaseBlob.TierToArchive; props != nil {
@@ -565,6 +678,12 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 						if props.DaysAfterLastAccessTimeGreaterThan != nil {
 							tierToArchiveSinceAccess = int(*props.DaysAfterLastAccessTimeGreaterThan)
 						}
+						if props.DaysAfterLastTierChangeGreaterThan != nil {
+							tierToArchiveSinceLastTierChange = int(*props.DaysAfterLastTierChangeGreaterThan)
+						}
+						if props.DaysAfterCreationGreaterThan != nil {
+							tierToArchiveSinceCreate = int(*props.DaysAfterCreationGreaterThan)
+						}
 					}
 					if props := armActionBaseBlob.Delete; props != nil {
 						if props.DaysAfterModificationGreaterThan != nil {
@@ -573,53 +692,71 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 						if props.DaysAfterLastAccessTimeGreaterThan != nil {
 							deleteSinceAccess = int(*props.DaysAfterLastAccessTimeGreaterThan)
 						}
+						if props.DaysAfterCreationGreaterThan != nil {
+							deleteSinceCreate = int(*props.DaysAfterCreationGreaterThan)
+						}
 					}
 					action["base_blob"] = []interface{}{
 						map[string]interface{}{
+							"auto_tier_to_hot_from_cool_enabled":                             autoTierToHotOK,
 							"tier_to_cool_after_days_since_modification_greater_than":        tierToCoolSinceMod,
 							"tier_to_cool_after_days_since_last_access_time_greater_than":    tierToCoolSinceAccess,
+							"tier_to_cool_after_days_since_creation_greater_than":            tierToCoolSinceCreate,
 							"tier_to_archive_after_days_since_modification_greater_than":     tierToArchiveSinceMod,
 							"tier_to_archive_after_days_since_last_access_time_greater_than": tierToArchiveSinceAccess,
+							"tier_to_archive_after_days_since_last_tier_change_greater_than": tierToArchiveSinceLastTierChange,
+							"tier_to_archive_after_days_since_creation_greater_than":         tierToArchiveSinceCreate,
 							"delete_after_days_since_modification_greater_than":              deleteSinceMod,
 							"delete_after_days_since_last_access_time_greater_than":          deleteSinceAccess,
+							"delete_after_days_since_creation_greater_than":                  deleteSinceCreate,
 						},
 					}
 				}
 
 				armActionSnaphost := armAction.Snapshot
 				if armActionSnaphost != nil {
-					deleteAfterCreation, archiveAfterCreation, coolAfterCreation := 0, -1, -1
+					deleteAfterCreation, archiveAfterCreation, archiveAfterLastTierChange, coolAfterCreation := -1, -1, -1, -1
 					if armActionSnaphost.Delete != nil && armActionSnaphost.Delete.DaysAfterCreationGreaterThan != nil {
 						deleteAfterCreation = int(*armActionSnaphost.Delete.DaysAfterCreationGreaterThan)
 					}
 					if armActionSnaphost.TierToArchive != nil && armActionSnaphost.TierToArchive.DaysAfterCreationGreaterThan != nil {
 						archiveAfterCreation = int(*armActionSnaphost.TierToArchive.DaysAfterCreationGreaterThan)
+
+						if v := armActionSnaphost.TierToArchive.DaysAfterLastTierChangeGreaterThan; v != nil {
+							archiveAfterLastTierChange = int(*v)
+						}
 					}
 					if armActionSnaphost.TierToCool != nil && armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan != nil {
 						coolAfterCreation = int(*armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan)
 					}
 					action["snapshot"] = []interface{}{map[string]interface{}{
-						"delete_after_days_since_creation_greater_than":    deleteAfterCreation,
-						"change_tier_to_archive_after_days_since_creation": archiveAfterCreation,
-						"change_tier_to_cool_after_days_since_creation":    coolAfterCreation,
+						"delete_after_days_since_creation_greater_than":                  deleteAfterCreation,
+						"change_tier_to_archive_after_days_since_creation":               archiveAfterCreation,
+						"tier_to_archive_after_days_since_last_tier_change_greater_than": archiveAfterLastTierChange,
+						"change_tier_to_cool_after_days_since_creation":                  coolAfterCreation,
 					}}
 				}
 
 				if armActionVersion := armAction.Version; armActionVersion != nil {
-					deleteAfterCreation, archiveAfterCreation, coolAfterCreation := -1, -1, -1
+					deleteAfterCreation, archiveAfterCreation, archiveAfterLastTierChange, coolAfterCreation := -1, -1, -1, -1
 					if armActionVersion.Delete != nil && armActionVersion.Delete.DaysAfterCreationGreaterThan != nil {
 						deleteAfterCreation = int(*armActionVersion.Delete.DaysAfterCreationGreaterThan)
 					}
 					if armActionVersion.TierToArchive != nil && armActionVersion.TierToArchive.DaysAfterCreationGreaterThan != nil {
 						archiveAfterCreation = int(*armActionVersion.TierToArchive.DaysAfterCreationGreaterThan)
+
+						if v := armActionVersion.TierToArchive.DaysAfterLastTierChangeGreaterThan; v != nil {
+							archiveAfterLastTierChange = int(*v)
+						}
 					}
 					if armActionVersion.TierToCool != nil && armActionVersion.TierToCool.DaysAfterCreationGreaterThan != nil {
 						coolAfterCreation = int(*armActionVersion.TierToCool.DaysAfterCreationGreaterThan)
 					}
 					action["version"] = []interface{}{map[string]interface{}{
-						"delete_after_days_since_creation":                 deleteAfterCreation,
-						"change_tier_to_archive_after_days_since_creation": archiveAfterCreation,
-						"change_tier_to_cool_after_days_since_creation":    coolAfterCreation,
+						"delete_after_days_since_creation":                               deleteAfterCreation,
+						"change_tier_to_archive_after_days_since_creation":               archiveAfterCreation,
+						"tier_to_archive_after_days_since_last_tier_change_greater_than": archiveAfterLastTierChange,
+						"change_tier_to_cool_after_days_since_creation":                  coolAfterCreation,
 					}}
 				}
 

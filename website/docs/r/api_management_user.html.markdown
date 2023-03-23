@@ -43,7 +43,6 @@ resource "azurerm_api_management_user" "example" {
 
 The following arguments are supported:
 
-
 * `api_management_name` - (Required) The name of the API Management Service in which the User should be created. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
@@ -76,7 +75,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 45 minutes) Used when creating the API Management User.
 * `update` - (Defaults to 45 minutes) Used when updating the API Management User.

@@ -63,7 +63,7 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_endpoint_eventhub" "example" {
   resource_group_name = azurerm_resource_group.example.name
-  iothub_name         = azurerm_iothub.example.name
+  iothub_id           = azurerm_iothub.example.id
   name                = "example"
 
   connection_string = azurerm_eventhub_authorization_rule.example.primary_connection_string
@@ -74,7 +74,7 @@ resource "azurerm_iothub_endpoint_eventhub" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved:  `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`.
+* `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved: `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group under which the Event Hub has been created. Changing this forces a new resource to be created.
 
@@ -90,11 +90,7 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) The connection string for the endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `keyBased`.
 
-* `iothub_name` - (Optional) The IoTHub name for the endpoint.
-
-~> **NOTE:** The `iothub_name` property is deprecated, use `iothub_id` instead.
-
-* `iothub_id` - (Optional) The IoTHub ID for the endpoint.
+* `iothub_id` - (Required) The IoTHub ID for the endpoint. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -104,9 +100,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-
-
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub EventHub Endpoint.
 * `update` - (Defaults to 30 minutes) Used when updating the IotHub EventHub Endpoint.
@@ -118,5 +112,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 IoTHub EventHub Endpoint can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iothub_endpoint_eventhub.eventhub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1/Endpoints/eventhub_endpoint1
+terraform import azurerm_iothub_endpoint_eventhub.eventhub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/iotHubs/hub1/endpoints/eventhub_endpoint1
 ```

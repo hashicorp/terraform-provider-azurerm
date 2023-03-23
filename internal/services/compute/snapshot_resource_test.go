@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -55,6 +55,13 @@ func TestAccSnapshot_encryption(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.encryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("source_uri"),
+		{
+			Config: r.encryptionUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -125,18 +132,34 @@ func TestAccSnapshot_fromUnmanagedDisk(t *testing.T) {
 	})
 }
 
+func TestAccSnapshot_trustedLaunch(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	r := SnapshotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.trustedLaunch(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("trusted_launch_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("source_uri"),
+	})
+}
+
 func (t SnapshotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SnapshotID(state.ID)
+	id, err := snapshots.ParseSnapshotID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.SnapshotsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Compute.SnapshotsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Shared Image Gallery %q", id)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (SnapshotResource) fromManagedDisk(data acceptance.TestData) string {
@@ -217,13 +240,15 @@ resource "azurerm_snapshot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (SnapshotResource) encryption(data acceptance.TestData) string {
+func (SnapshotResource) encryptionTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
     key_vault {
-      recover_soft_deleted_key_vaults = false
-      purge_soft_delete_on_destroy    = false
+      recover_soft_deleted_key_vaults       = false
+      purge_soft_delete_on_destroy          = false
+      purge_soft_deleted_keys_on_destroy    = false
+      purge_soft_deleted_secrets_on_destroy = false
     }
   }
 }
@@ -245,10 +270,11 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  name                     = "acctestkv%s"
+  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  tenant_id                = "${data.azurerm_client_config.current.tenant_id}"
+  purge_protection_enabled = true
 
   sku_name = "standard"
 
@@ -260,6 +286,8 @@ resource "azurerm_key_vault" "test" {
       "Create",
       "Delete",
       "Get",
+      "Purge",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [
@@ -293,6 +321,12 @@ resource "azurerm_key_vault_secret" "test" {
   value        = "szechuan"
   key_vault_id = azurerm_key_vault.test.id
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
+}
+
+func (r SnapshotResource) encryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_snapshot" "test" {
   name                = "acctestss_%d"
@@ -303,8 +337,6 @@ resource "azurerm_snapshot" "test" {
   disk_size_gb        = "20"
 
   encryption_settings {
-    enabled = true
-
     disk_encryption_key {
       secret_url      = "${azurerm_key_vault_secret.test.id}"
       source_vault_id = "${azurerm_key_vault.test.id}"
@@ -316,7 +348,87 @@ resource "azurerm_snapshot" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.encryptionTemplate(data), data.RandomInteger)
+}
+
+func (r SnapshotResource) encryptionUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_key_vault" "test2" {
+  name                     = "acctestkv2%[2]s"
+  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  tenant_id                = "${data.azurerm_client_config.current.tenant_id}"
+  purge_protection_enabled = true
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.object_id}"
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "GetRotationPolicy",
+    ]
+
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+  }
+
+  enabled_for_disk_encryption = true
+}
+
+resource "azurerm_key_vault_key" "test2" {
+  name         = "generated-certificate"
+  key_vault_id = azurerm_key_vault.test2.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_key_vault_secret" "test2" {
+  name         = "secret-sauce"
+  value        = "szechuan"
+  key_vault_id = azurerm_key_vault.test2.id
+}
+
+resource "azurerm_snapshot" "test" {
+  name                = "acctestss_%[3]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  create_option       = "Copy"
+  source_uri          = "${azurerm_managed_disk.test.id}"
+  disk_size_gb        = "20"
+
+  encryption_settings {
+    disk_encryption_key {
+      secret_url      = "${azurerm_key_vault_secret.test2.id}"
+      source_vault_id = "${azurerm_key_vault.test2.id}"
+    }
+
+    key_encryption_key {
+      key_url         = "${azurerm_key_vault_key.test2.id}"
+      source_vault_id = "${azurerm_key_vault.test2.id}"
+    }
+  }
+}
+`, r.encryptionTemplate(data), data.RandomString, data.RandomInteger)
 }
 
 func (SnapshotResource) extendingManagedDisk(data acceptance.TestData) string {
@@ -410,7 +522,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -492,4 +604,44 @@ resource "azurerm_snapshot" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (SnapshotResource) trustedLaunch(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_platform_image" "test" {
+  location  = "%[2]s"
+  publisher = "Canonical"
+  offer     = "UbuntuServer"
+  sku       = "18_04-LTS-gen2"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                   = "acctestd-%[1]d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  os_type                = "Linux"
+  create_option          = "FromImage"
+  image_reference_id     = data.azurerm_platform_image.test.id
+  storage_account_type   = "Standard_LRS"
+  hyper_v_generation     = "V2"
+  trusted_launch_enabled = true
+}
+
+resource "azurerm_snapshot" "test" {
+  name                = "acctestss_%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  create_option       = "Copy"
+  source_uri          = azurerm_managed_disk.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

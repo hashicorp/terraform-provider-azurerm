@@ -13,15 +13,15 @@ Manages a Kusto (also known as Azure Data Explorer) Database
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "my-kusto-rg"
   location = "West Europe"
 }
 
 resource "azurerm_kusto_cluster" "cluster" {
   name                = "kustocluster"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name     = "Standard_D13_v2"
@@ -31,8 +31,8 @@ resource "azurerm_kusto_cluster" "cluster" {
 
 resource "azurerm_kusto_database" "database" {
   name                = "my-kusto-database"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   cluster_name        = azurerm_kusto_cluster.cluster.name
 
   hot_cache_period   = "P7D"
@@ -56,7 +56,6 @@ The following arguments are supported:
 
 * `soft_delete_period` - (Optional) The time the data should be kept before it stops being accessible to queries as ISO 8601 timespan. Default is unlimited. For more information see: [ISO 8601 Timespan](https://en.wikipedia.org/wiki/ISO_8601#Durations)
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -67,9 +66,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-
-
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Kusto Database.
 * `update` - (Defaults to 60 minutes) Used when updating the Kusto Database.
@@ -81,5 +78,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Kusto Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kusto_database.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1
+terraform import azurerm_kusto_database.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1/databases/database1
 ```

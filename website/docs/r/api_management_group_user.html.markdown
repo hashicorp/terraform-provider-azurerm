@@ -10,7 +10,6 @@ description: |-
 
 Manages an API Management User Assignment to a Group.
 
-
 ## Example Usage
 
 ```hcl
@@ -27,7 +26,6 @@ resource "azurerm_api_management_group_user" "example" {
   api_management_name = data.azurerm_api_management_user.example.api_management_name
 }
 ```
-
 
 ## Argument Reference
 
@@ -49,7 +47,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Group User.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management Group User.

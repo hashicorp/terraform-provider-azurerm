@@ -42,7 +42,7 @@ output "compliance_status" {
 
 * `assignment_hash` - Combined hash of the configuration package and parameters.
 
-* `compliance_status` - A value indicating compliance status of the machine for the assigned guest configuration. Possible return values are `Compliant`, `NonCompliant` and `Pending`. 
+* `compliance_status` - A value indicating compliance status of the machine for the assigned guest configuration. Possible return values are `Compliant`, `NonCompliant` and `Pending`.
 
 * `last_compliance_status_checked` - Date and time, in RFC3339 format, when the machines compliance status was last checked.
 
@@ -50,6 +50,6 @@ output "compliance_status" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Guest Configuration Assignment.

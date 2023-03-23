@@ -12,7 +12,7 @@ Links an Automation Runbook and Schedule.
 
 ## Example Usage
 
-This is an example of just the Job Schedule. A full example of the `azurerm_automation_job_schedule` resource can be found in [the `./examples/automation-account` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/automation-account)
+This is an example of just the Job Schedule. A full example of the `azurerm_automation_job_schedule` resource can be found in [the `./examples/automation-account` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/automation-account)
 
 ```hcl
 resource "azurerm_automation_job_schedule" "example" {
@@ -38,11 +38,13 @@ The following arguments are supported:
 
 * `runbook_name` - (Required) The name of a Runbook to link to a Schedule. It needs to be in the same Automation Account as the Schedule and Job Schedule. Changing this forces a new resource to be created.
 
-* `parameters` -  (Optional) A map of key/value pairs corresponding to the arguments that can be passed to the Runbook. Changing this forces a new resource to be created.
+* `schedule_name` - (Required) The name of the Schedule. Changing this forces a new resource to be created.
+
+* `parameters` - (Optional) A map of key/value pairs corresponding to the arguments that can be passed to the Runbook. Changing this forces a new resource to be created.
 
 -> **NOTE:** The parameter keys/names must strictly be in lowercase, even if this is not the case in the runbook. This is due to a limitation in Azure Automation where the parameter names are normalized. The values specified don't have this limitation.
 
-* `run_on` -  (Optional) Name of a Hybrid Worker Group the Runbook will be executed on. Changing this forces a new resource to be created.
+* `run_on` - (Optional) Name of a Hybrid Worker Group the Runbook will be executed on. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -50,11 +52,11 @@ The following attributes are exported:
 
 * `id` - The ID of the Automation Job Schedule.
 
-* `job_schedule_id` - The UUID identifying the Automation Job Schedule.
+* `job_schedule_id` - (Optional) The UUID identifying the Automation Job Schedule.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Job Schedule.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation Job Schedule.

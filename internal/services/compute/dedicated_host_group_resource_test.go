@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -80,17 +78,17 @@ func TestAccDedicatedHostGroup_complete(t *testing.T) {
 }
 
 func (r DedicatedHostGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.HostGroupID(state.ID)
+	id, err := dedicatedhostgroups.ParseHostGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.DedicatedHostGroupsClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Compute.DedicatedHostGroupsClient.Get(ctx, *id, dedicatedhostgroups.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Dedicated Host Group %q", id)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DedicatedHostGroupResource) basic(data acceptance.TestData) string {
@@ -126,30 +124,6 @@ resource "azurerm_dedicated_host_group" "import" {
 }
 
 func (DedicatedHostGroupResource) complete(data acceptance.TestData) string {
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-compute-%d"
-  location = "%s"
-}
-
-resource "azurerm_dedicated_host_group" "test" {
-  name                        = "acctestDHG-compute-%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  platform_fault_domain_count = 2
-  zones                       = ["1"]
-  tags = {
-    ENV = "prod"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

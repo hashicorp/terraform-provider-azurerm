@@ -5,14 +5,14 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = ApplicationGatewayPrivateLinkConfigurationId{}
+var _ resourceids.Id = ApplicationGatewayPrivateLinkConfigurationId{}
 
 func TestApplicationGatewayPrivateLinkConfigurationIDFormatter(t *testing.T) {
-	actual := NewApplicationGatewayPrivateLinkConfigurationID("00d16aa6-089c-400f-98eb-926adb838ee1", "cbuk-core-testoce-appgatewayshared-uksouth", "cbuk-core-testoce-appgatewayshared-uksouth", "hbtest").ID()
-	expected := "/subscriptions/00d16aa6-089c-400f-98eb-926adb838ee1/resourceGroups/cbuk-core-testoce-appgatewayshared-uksouth/providers/Microsoft.Network/applicationGateways/cbuk-core-testoce-appgatewayshared-uksouth/privateLinkConfigurations/hbtest"
+	actual := NewApplicationGatewayPrivateLinkConfigurationID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "privateLinkConfiguration1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/privateLinkConfigurations/privateLinkConfiguration1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -24,6 +24,7 @@ func TestApplicationGatewayPrivateLinkConfigurationID(t *testing.T) {
 		Error    bool
 		Expected *ApplicationGatewayPrivateLinkConfigurationId
 	}{
+
 		{
 			// empty
 			Input: "",
@@ -44,54 +45,54 @@ func TestApplicationGatewayPrivateLinkConfigurationID(t *testing.T) {
 
 		{
 			// missing ResourceGroup
-			Input: "/subscriptions/00d16aa6-089c-400f-98eb-926adb838ee1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Error: true,
 		},
 
 		{
 			// missing value for ResourceGroup
-			Input: "/subscriptions/00d16aa6-089c-400f-98eb-926adb838ee1/resourceGroups/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
 
 		{
 			// missing ApplicationGatewayName
-			Input: "/subscriptions/00d16aa6-089c-400f-98eb-926adb838ee1/resourceGroups/cbuk-core-testoce-appgatewayshared-uksouth/providers/Microsoft.Network/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/",
 			Error: true,
 		},
 
 		{
 			// missing value for ApplicationGatewayName
-			Input: "/subscriptions/00d16aa6-089c-400f-98eb-926adb838ee1/resourceGroups/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/",
 			Error: true,
 		},
 
 		{
 			// missing PrivateLinkConfigurationName
-			Input: "/subscriptions/00d16aa6-089c-400f-98eb-926adb838ee1/resourceGroups/cbuk-core-testoce-appgatewayshared-uksouth/providers/Microsoft.Network/applicationGateways/cbuk-core-testoce-appgatewayshared-uksouth/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/",
 			Error: true,
 		},
 
 		{
 			// missing value for PrivateLinkConfigurationName
-			Input: "/subscriptions/00d16aa6-089c-400f-98eb-926adb838ee1/resourceGroups/cbuk-core-testoce-appgatewayshared-uksouth/providers/Microsoft.Network/applicationGateways/cbuk-core-testoce-appgatewayshared-uksouth/privateLinkConfigurations/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/privateLinkConfigurations/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/00d16aa6-089c-400f-98eb-926adb838ee1/resourceGroups/cbuk-core-testoce-appgatewayshared-uksouth/providers/Microsoft.Network/applicationGateways/cbuk-core-testoce-appgatewayshared-uksouth/privateLinkConfigurations/hbtest",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/privateLinkConfigurations/privateLinkConfiguration1",
 			Expected: &ApplicationGatewayPrivateLinkConfigurationId{
-				SubscriptionId:               "00d16aa6-089c-400f-98eb-926adb838ee1",
-				ResourceGroup:                "cbuk-core-testoce-appgatewayshared-uksouth",
-				ApplicationGatewayName:       "cbuk-core-testoce-appgatewayshared-uksouth",
-				PrivateLinkConfigurationName: "hbtest",
+				SubscriptionId:               "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:                "group1",
+				ApplicationGatewayName:       "applicationGateway1",
+				PrivateLinkConfigurationName: "privateLinkConfiguration1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/00D16AA6-089C-400F-98EB-926ADB838EE1/RESOURCEGROUPS/CBUK-CORE-TESTOCE-APPGATEWAYSHARED-UKSOUTH/PROVIDERS/MICROSOFT.NETWORK/APPLICATIONGATEWAYS/CBUK-CORE-TESTOCE-APPGATEWAYSHARED-UKSOUTH/PRIVATELINKCONFIGURATIONS/HBTEST",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.NETWORK/APPLICATIONGATEWAYS/APPLICATIONGATEWAY1/PRIVATELINKCONFIGURATIONS/PRIVATELINKCONFIGURATION1",
 			Error: true,
 		},
 	}
@@ -100,6 +101,142 @@ func TestApplicationGatewayPrivateLinkConfigurationID(t *testing.T) {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := ApplicationGatewayPrivateLinkConfigurationID(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
+			}
+
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
+		}
+
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
+		}
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+		if actual.ApplicationGatewayName != v.Expected.ApplicationGatewayName {
+			t.Fatalf("Expected %q but got %q for ApplicationGatewayName", v.Expected.ApplicationGatewayName, actual.ApplicationGatewayName)
+		}
+		if actual.PrivateLinkConfigurationName != v.Expected.PrivateLinkConfigurationName {
+			t.Fatalf("Expected %q but got %q for PrivateLinkConfigurationName", v.Expected.PrivateLinkConfigurationName, actual.PrivateLinkConfigurationName)
+		}
+	}
+}
+
+func TestApplicationGatewayPrivateLinkConfigurationIDInsensitively(t *testing.T) {
+	testData := []struct {
+		Input    string
+		Error    bool
+		Expected *ApplicationGatewayPrivateLinkConfigurationId
+	}{
+
+		{
+			// empty
+			Input: "",
+			Error: true,
+		},
+
+		{
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
+		},
+
+		{
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
+		},
+
+		{
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
+		},
+
+		{
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
+		},
+
+		{
+			// missing ApplicationGatewayName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/",
+			Error: true,
+		},
+
+		{
+			// missing value for ApplicationGatewayName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/",
+			Error: true,
+		},
+
+		{
+			// missing PrivateLinkConfigurationName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/",
+			Error: true,
+		},
+
+		{
+			// missing value for PrivateLinkConfigurationName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/privateLinkConfigurations/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/privateLinkConfigurations/privateLinkConfiguration1",
+			Expected: &ApplicationGatewayPrivateLinkConfigurationId{
+				SubscriptionId:               "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:                "group1",
+				ApplicationGatewayName:       "applicationGateway1",
+				PrivateLinkConfigurationName: "privateLinkConfiguration1",
+			},
+		},
+
+		{
+			// lower-cased segment names
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationgateways/applicationGateway1/privatelinkconfigurations/privateLinkConfiguration1",
+			Expected: &ApplicationGatewayPrivateLinkConfigurationId{
+				SubscriptionId:               "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:                "group1",
+				ApplicationGatewayName:       "applicationGateway1",
+				PrivateLinkConfigurationName: "privateLinkConfiguration1",
+			},
+		},
+
+		{
+			// upper-cased segment names
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/APPLICATIONGATEWAYS/applicationGateway1/PRIVATELINKCONFIGURATIONS/privateLinkConfiguration1",
+			Expected: &ApplicationGatewayPrivateLinkConfigurationId{
+				SubscriptionId:               "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:                "group1",
+				ApplicationGatewayName:       "applicationGateway1",
+				PrivateLinkConfigurationName: "privateLinkConfiguration1",
+			},
+		},
+
+		{
+			// mixed-cased segment names
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/ApPlIcAtIoNgAtEwAyS/applicationGateway1/PrIvAtElInKcOnFiGuRaTiOnS/privateLinkConfiguration1",
+			Expected: &ApplicationGatewayPrivateLinkConfigurationId{
+				SubscriptionId:               "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:                "group1",
+				ApplicationGatewayName:       "applicationGateway1",
+				PrivateLinkConfigurationName: "privateLinkConfiguration1",
+			},
+		},
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q", v.Input)
+
+		actual, err := ApplicationGatewayPrivateLinkConfigurationIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

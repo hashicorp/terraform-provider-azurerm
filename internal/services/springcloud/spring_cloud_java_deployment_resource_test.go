@@ -161,12 +161,13 @@ func (r SpringCloudJavaDeploymentResource) complete(data acceptance.TestData) st
 resource "azurerm_spring_cloud_java_deployment" "test" {
   name                = "acctest-scjd%s"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
-  cpu                 = 2
-  memory_in_gb        = 4
   instance_count      = 2
   jvm_options         = "-XX:+PrintGC"
   runtime_version     = "Java_11"
-
+  quota {
+    cpu    = "2"
+    memory = "2Gi"
+  }
   environment_variables = {
     "Foo" : "Bar"
     "Env" : "Staging"

@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service should be exist. Changing this forces a new resource to be created.
 
-* `subscription_required` - (Required) Is a Subscription required to access API's included in this Product?
+* `subscription_required` - (Optional) Is a Subscription required to access API's included in this Product? Defaults to `true`.
 
 ---
 
@@ -77,7 +77,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Product.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management Product.

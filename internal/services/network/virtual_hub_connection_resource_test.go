@@ -105,7 +105,14 @@ func TestAccVirtualHubConnection_enableInternetSecurity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.enableInternetSecurity(data),
+			Config: r.enableInternetSecurity(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enableInternetSecurity(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -343,7 +350,7 @@ resource "azurerm_virtual_hub_connection" "test2" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r VirtualHubConnectionResource) enableInternetSecurity(data acceptance.TestData) string {
+func (r VirtualHubConnectionResource) enableInternetSecurity(data acceptance.TestData, internetSecurityEnabled bool) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -351,9 +358,9 @@ resource "azurerm_virtual_hub_connection" "test" {
   name                      = "acctestbasicvhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
-  internet_security_enabled = true
+  internet_security_enabled = %t
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, internetSecurityEnabled)
 }
 
 func (VirtualHubConnectionResource) template(data acceptance.TestData) string {

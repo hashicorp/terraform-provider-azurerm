@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `scope_name` - (Required) The name of the Azure Monitor Private Link Scope. Changing this forces a new resource to be created.
 
-* `linked_resource_id` - (Required) The ID of the linked resource. It must be the Log Analytics Workspace or the Application Insights component. Changing this forces a new resource to be created.
+* `linked_resource_id` - (Required) The ID of the linked resource. It must be the Log Analytics workspace or the Application Insights component or the Data Collection endpoint. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -58,11 +58,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Monitor Private Link Scope.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Monitor Private Link Scope.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Azure Monitor Private Link Scope.
+* `update` - (Defaults to 30 minutes) Used when updating the Monitor Private Link Scoped Service.
 
 ## Import
 

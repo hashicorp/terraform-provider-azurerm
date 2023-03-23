@@ -10,8 +10,6 @@ description: |-
 
 Use this data source to access information about an existing Windows Web App.
 
-!> **Note:** This Data Source is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -35,13 +33,15 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Windows Web App.
 
 * `app_settings` - A map of key-value pairs of App Settings.
 
 * `auth_settings` - A `auth_settings` block as defined below.
+
+* `auth_settings_v2` - An `auth_settings_v2` block as defined below.
 
 * `backup` - A `backup` block as defined below.
 
@@ -50,6 +50,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `client_certificate_enabled` - Are Client Certificates enabled?
 
 * `client_certificate_mode` - The Client Certificate mode.
+
+* `client_certificate_exclusion_paths` - Paths to exclude when using client certificates, separated by ;
 
 * `connection_string` - A `connection_string` block as defined below.
 
@@ -83,9 +85,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `site_credential` - A `site_credential` block as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account` - A `storage_account` block as defined below.
 
 * `tags` - A mapping of tags assigned to the Windows Web App.
+
+* `virtual_network_subnet_id` - The subnet id which the Windows Web App is vNet Integrated with.
 
 ---
 
@@ -129,7 +135,7 @@ An `application_stack` block exports the following:
 
 * `docker_container_tag` - The Docker Container Tag of the Container in use.
 
-* `dotnet_version` - The version of .Net in use.
+* `dotnet_version` - The version of .NET in use.
 
 * `java_container` - The Java Container in use.
 
@@ -179,6 +185,204 @@ A `auth_settings` block exports the following:
 
 ---
 
+An `auth_settings_v2` block exports the following:
+
+* `auth_enabled` - Are the AuthV2 Settings enabled.
+
+* `runtime_version` - The Runtime Version of the Authentication and Authorisation feature of this App.
+
+* `config_file_path` - The path to the App Auth settings.
+
+* `require_authentication` - Is the authentication flow used for all requests.
+
+* `unauthenticated_action` - The action to take for requests made without authentication.
+
+* `default_provider` -The Default Authentication Provider used when more than one Authentication Provider is configured and the `unauthenticated_action` is set to `RedirectToLoginPage`.
+
+* `excluded_paths` - The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.
+
+* `require_https` -Is HTTPS required on connections?
+
+* `http_route_api_prefix` - The prefix that should precede all the authentication and authorisation paths.
+
+* `forward_proxy_convention` - The convention used to determine the url of the request made.
+
+* `forward_proxy_custom_host_header_name` -The name of the custom header containing the host of the request.
+
+* `forward_proxy_custom_scheme_header_name` - The name of the custom header containing the scheme of the request.
+
+* `apple_v2` - An `apple_v2` block as defined below.
+
+* `active_directory_v2` - An `active_directory_v2` block as defined below.
+
+* `azure_static_web_app_v2` - An `azure_static_web_app_v2` block as defined below.
+
+* `custom_oidc_v2` - Zero or more `custom_oidc_v2` blocks as defined below.
+
+* `facebook_v2` - A `facebook_v2` block as defined below.
+
+* `github_v2` - A `github_v2` block as defined below.
+
+* `google_v2` - A `google_v2` block as defined below.
+
+* `microsoft_v2` - A `microsoft_v2` block as defined below.
+
+* `twitter_v2` - A `twitter_v2` block as defined below.
+
+* `login` - A `login` block as defined below.
+
+---
+
+An `apple_v2` block supports the following:
+
+* `client_id` - The OpenID Connect Client ID for the Apple web application.
+
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Apple Login.
+
+* `login_scopes` - A list of Login Scopes provided by this Authentication Provider.
+
+---
+
+An `active_directory_v2` block supports the following:
+
+* `client_id` - The ID of the Client used to authenticate with Azure Active Directory.
+
+* `tenant_auth_endpoint` - The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`
+
+* `client_secret_setting_name` - The App Setting name that contains the client secret of the Client.
+
+* `client_secret_certificate_thumbprint` - The thumbprint of the certificate used for signing purposes.
+
+* `jwt_allowed_groups` - The list of Allowed Groups in the JWT Claim.
+
+* `jwt_allowed_client_applications` - The list of Allowed Client Applications in the JWT Claim.
+
+* `www_authentication_disabled` - Is the www-authenticate provider omitted from the request?
+
+* `allowed_groups` -The list of allowed Group Names for the Default Authorisation Policy.
+
+* `allowed_identities` - The list of allowed Identities for the Default Authorisation Policy.
+
+* `allowed_applications` - The list of allowed Applications for the Default Authorisation Policy.
+
+* `login_parameters` - A map of key-value pairs sent to the Authorisation Endpoint when a user logs in.
+
+* `allowed_audiences` - Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
+
+---
+
+An `azure_static_web_app_v2` block supports the following:
+
+* `client_id` - The ID of the Client to use to authenticate with Azure Static Web App Authentication.
+
+---
+
+A `custom_oidc_v2` block supports the following:
+
+* `name` - The name of the Custom OIDC Authentication Provider.
+
+* `client_id` - The ID of the Client to use to authenticate with the Custom OIDC.
+
+* `openid_configuration_endpoint` - The app setting name that contains the `client_secret` value used for the Custom OIDC Login.
+
+* `name_claim_type` - The name of the claim that contains the users name.
+
+* `scopes` - The list of the scopes that are requested while authenticating.
+
+* `client_credential_method` - The Client Credential Method used.
+
+* `client_secret_setting_name` - The App Setting name that contains the secret for this Custom OIDC Client. This is generated from `name` above and suffixed with `_PROVIDER_AUTHENTICATION_SECRET`.
+
+* `authorisation_endpoint` - The endpoint to make the Authorisation Request as supplied by `openid_configuration_endpoint` response.
+
+* `token_endpoint` - The endpoint used to request a Token as supplied by `openid_configuration_endpoint` response.
+
+* `issuer_endpoint` - The endpoint that issued the Token as supplied by `openid_configuration_endpoint` response.
+
+* `certification_uri` - The endpoint that provides the keys necessary to validate the token as supplied by `openid_configuration_endpoint` response.
+
+---
+
+A `facebook_v2` block supports the following:
+
+* `app_id` - The App ID of the Facebook app used for login.
+
+* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook Login.
+
+* `graph_api_version` - The version of the Facebook API to be used while logging in.
+
+* `login_scopes` - The list of scopes that are requested as part of Facebook Login authentication.
+
+---
+
+A `github_v2` block supports the following:
+
+* `client_id` - The ID of the GitHub app used for login..
+
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub Login.
+
+* `login_scopes` - The list of OAuth 2.0 scopes that are requested as part of GitHub Login authentication.
+
+---
+
+A `google_v2` block supports the following:
+
+* `client_id` - The OpenID Connect Client ID for the Google web application.
+
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google Login.
+
+* `allowed_audiences` - The list of Allowed Audiences that are requested as part of Google Sign-In authentication.
+
+* `login_scopes` - (Optional) The list of OAuth 2.0 scopes that should be requested as part of Google Sign-In authentication.
+
+---
+
+A `microsoft_v2` block supports the following:
+
+* `client_id` - The OAuth 2.0 client ID that was created for the app used for authentication.
+
+* `client_secret_setting_name` - The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.
+
+* `allowed_audiences` - The list of Allowed Audiences that are be requested as part of Microsoft Sign-In authentication.
+
+* `login_scopes` - The list of Login scopes that are requested as part of Microsoft Account authentication.
+
+---
+
+A `twitter_v2` block supports the following:
+
+* `consumer_key` - The OAuth 1.0a consumer key of the Twitter application used for sign-in.
+
+* `consumer_secret_setting_name` - The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in.
+
+---
+
+A `login` block supports the following:
+
+* `logout_endpoint` - The endpoint to which logout requests are made.
+
+* `token_store_enabled` - Is the Token Store configuration Enabled.
+
+* `token_refresh_extension_time` - The number of hours after session token expiration that a session token can be used to call the token refresh API.
+
+* `token_store_path` - The directory path in the App Filesystem in which the tokens are stored.
+
+* `token_store_sas_setting_name` - The name of the app setting which contains the SAS URL of the blob storage containing the tokens.
+
+* `preserve_url_fragments_for_logins` - Are the fragments from the request preserved after the login request is made.
+
+* `allowed_external_redirect_urls` - External URLs that can be redirected to as part of logging in or logging out of the app.
+
+* `cookie_expiration_convention` - The method by which cookies expire.
+
+* `cookie_expiration_time` - The time after the request is made when the session cookie should expire.
+
+* `validate_nonce` - Is the nonce validated while completing the login flow.
+
+* `nonce_expiration_time` - The time after the request is made when the nonce should expire.
+
+---
+
 A `auto_heal_setting` block exports the following:
 
 * `action` - A `action` block as defined above.
@@ -188,6 +392,8 @@ A `auto_heal_setting` block exports the following:
 ---
 
 A `azure_blob_storage` block exports the following:
+
+* `level` - The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
 * `retention_in_days` - The time in days after which blobs will be removed.
 
@@ -237,11 +443,11 @@ A `facebook` block exports the following:
 
 * `app_id` - The App ID of the Facebook app used for login.
 
-* `app_secret` - The App Secret of the Facebook app used for Facebook Login.
+* `app_secret` - The App Secret of the Facebook app used for Facebook login.
 
-* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook Login.
+* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook login authentication.
 
 ---
 
@@ -257,11 +463,11 @@ A `github` block exports the following:
 
 * `client_id` - The ID of the GitHub app used for login.
 
-* `client_secret` - The Client Secret of the GitHub app used for GitHub Login.
+* `client_secret` - The Client Secret of the GitHub app used for GitHub login.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub login authentication.
 
 ---
 
@@ -271,7 +477,7 @@ A `google` block exports the following:
 
 * `client_secret` - The client secret associated with the Google web application.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google login.
 
 * `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Google Sign-In authentication.
 
@@ -347,7 +553,7 @@ A `schedule` block exports the following:
 
 A `site_config` block exports the following:
 
-* `always_on` - Is this Linux Web App is Always On enabled.
+* `always_on` - Is this Windows Web App is Always On enabled.
 
 * `api_definition_url` - The ID of the APIM configuration for this Windows Web App.
 
@@ -407,6 +613,8 @@ A `site_config` block exports the following:
 
 * `virtual_application` - A `virtual_application` block as defined below.
 
+* `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
+
 * `websockets_enabled` - Are Web Sockets enabled?
 
 * `windows_fx_version` - The string representation of the Windows FX Version.
@@ -451,6 +659,14 @@ A `status_code` block exports the following:
 
 ---
 
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - A list of `app_setting` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - A list of `connection_string` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
+
+---
+
 A `storage_account` block exports the following:
 
 * `access_key` - The Access key for the storage account.
@@ -464,7 +680,6 @@ A `storage_account` block exports the following:
 * `share_name` - The Name of the File Share.
 
 * `type` - The Azure Storage Type.
-
 
 ---
 
@@ -510,6 +725,6 @@ A `virtual_directory` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 10 minutes) Used when retrieving the Windows Web App.

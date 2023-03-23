@@ -26,7 +26,6 @@ resource "azurerm_data_factory" "example" {
 
 resource "azurerm_data_factory_linked_service_web" "example" {
   name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
   data_factory_id     = azurerm_data_factory.example.id
   authentication_type = "Anonymous"
   url                 = "https://www.bing.com"
@@ -34,7 +33,6 @@ resource "azurerm_data_factory_linked_service_web" "example" {
 
 resource "azurerm_data_factory_dataset_http" "example" {
   name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
   data_factory_id     = azurerm_data_factory.example.id
   linked_service_name = azurerm_data_factory_linked_service_web.example.name
 
@@ -49,17 +47,9 @@ resource "azurerm_data_factory_dataset_http" "example" {
 
 The following supported arguments are common across all Azure Data Factory Datasets:
 
-* `name` - (Required) Specifies the name of the Data Factory Dataset. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Dataset. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Dataset. Changing this forces a new resource
-
-* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
-
-* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
-
--> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
-
--> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `linked_service_name` - (Required) The Data Factory Linked Service name in which to associate the Dataset with.
 
@@ -77,11 +67,11 @@ The following supported arguments are common across all Azure Data Factory Datas
 
 The following supported arguments are specific to HTTP Dataset:
 
-* `relative_url` - (Required) The relative URL based on the URL in the HTTP Linked Service.
+* `relative_url` - (Optional) The relative URL based on the URL in the HTTP Linked Service.
 
-* `request_body` - (Required) The body for the HTTP request.
+* `request_body` - (Optional) The body for the HTTP request.
 
-* `request_method` - (Required) The HTTP method for the HTTP request. (e.g. GET, POST)
+* `request_method` - (Optional) The HTTP method for the HTTP request. (e.g. GET, POST)
 
 ---
 
@@ -93,7 +83,6 @@ A `schema_column` block supports the following:
 
 * `description` - (Optional) The description of the column.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -102,7 +91,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Dataset.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Dataset.

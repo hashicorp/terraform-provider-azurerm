@@ -41,9 +41,9 @@ resource "azurerm_storage_container" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Container which should be created within the Storage Account.
+* `name` - (Required) The name of the Container which should be created within the Storage Account. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) The name of the Storage Account where the Container should be created.
+* `storage_account_name` - (Required) The name of the Storage Account where the Container should be created. Changing this forces a new resource to be created.
 
 * `container_access_type` - (Optional) The Access Level configured for this Container. Possible values are `blob`, `container` or `private`. Defaults to `private`.
 
@@ -63,7 +63,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Container.
 * `update` - (Defaults to 30 minutes) Used when updating the Storage Container.

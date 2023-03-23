@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
@@ -41,7 +41,7 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"display_name": {
 				Type:     pluginsdk.TypeString,
@@ -205,17 +205,27 @@ func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("method", props.Method)
 		d.Set("url_template", props.URLTemplate)
 
-		flattenedRequest := flattenApiManagementOperationRequestContract(props.Request)
+		flattenedRequest, err := flattenApiManagementOperationRequestContract(props.Request)
+		if err != nil {
+			return err
+		}
 		if err := d.Set("request", flattenedRequest); err != nil {
 			return fmt.Errorf("flattening `request`: %+v", err)
 		}
 
-		flattenedResponse := flattenApiManagementOperationResponseContract(props.Responses)
+		flattenedResponse, err := flattenApiManagementOperationResponseContract(props.Responses)
+		if err != nil {
+			return err
+		}
 		if err := d.Set("response", flattenedResponse); err != nil {
 			return fmt.Errorf("flattening `response`: %+v", err)
 		}
 
-		flattenedTemplateParams := schemaz.FlattenApiManagementOperationParameterContract(props.TemplateParameters)
+		flattenedTemplateParams, err := schemaz.FlattenApiManagementOperationParameterContract(props.TemplateParameters)
+		if err != nil {
+			return err
+		}
+
 		if err := d.Set("template_parameter", flattenedTemplateParams); err != nil {
 			return fmt.Errorf("flattening `template_parameter`: %+v", err)
 		}
@@ -284,9 +294,9 @@ func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, sche
 	}, nil
 }
 
-func flattenApiManagementOperationRequestContract(input *apimanagement.RequestContract) []interface{} {
+func flattenApiManagementOperationRequestContract(input *apimanagement.RequestContract) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	output := make(map[string]interface{})
@@ -295,11 +305,25 @@ func flattenApiManagementOperationRequestContract(input *apimanagement.RequestCo
 		output["description"] = *input.Description
 	}
 
-	output["header"] = schemaz.FlattenApiManagementOperationParameterContract(input.Headers)
-	output["query_parameter"] = schemaz.FlattenApiManagementOperationParameterContract(input.QueryParameters)
-	output["representation"] = schemaz.FlattenApiManagementOperationRepresentation(input.Representations)
+	header, err := schemaz.FlattenApiManagementOperationParameterContract(input.Headers)
+	if err != nil {
+		return nil, err
+	}
+	output["header"] = header
 
-	return []interface{}{output}
+	queryParameter, err := schemaz.FlattenApiManagementOperationParameterContract(input.QueryParameters)
+	if err != nil {
+		return nil, err
+	}
+	output["query_parameter"] = queryParameter
+
+	representation, err := schemaz.FlattenApiManagementOperationRepresentation(input.Representations)
+	if err != nil {
+		return nil, err
+	}
+	output["representation"] = representation
+
+	return []interface{}{output}, nil
 }
 
 func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.ResponseContract, error) {
@@ -337,9 +361,9 @@ func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, sch
 	return &outputs, nil
 }
 
-func flattenApiManagementOperationResponseContract(input *[]apimanagement.ResponseContract) []interface{} {
+func flattenApiManagementOperationResponseContract(input *[]apimanagement.ResponseContract) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	outputs := make([]interface{}, 0)
@@ -355,11 +379,20 @@ func flattenApiManagementOperationResponseContract(input *[]apimanagement.Respon
 			output["status_code"] = int(*v.StatusCode)
 		}
 
-		output["header"] = schemaz.FlattenApiManagementOperationParameterContract(v.Headers)
-		output["representation"] = schemaz.FlattenApiManagementOperationRepresentation(v.Representations)
+		header, err := schemaz.FlattenApiManagementOperationParameterContract(v.Headers)
+		if err != nil {
+			return nil, err
+		}
+		output["header"] = header
+
+		representation, err := schemaz.FlattenApiManagementOperationRepresentation(v.Representations)
+		if err != nil {
+			return nil, err
+		}
+		output["representation"] = representation
 
 		outputs = append(outputs, output)
 	}
 
-	return outputs
+	return outputs, nil
 }

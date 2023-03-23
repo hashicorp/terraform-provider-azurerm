@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -90,17 +90,20 @@ func TestAccLighthouseAssignment_emptyID(t *testing.T) {
 }
 
 func (LighthouseAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LighthouseAssignmentID(state.ID)
+	id, err := registrationassignments.ParseScopedRegistrationAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Lighthouse.AssignmentsClient.Get(ctx, id.Scope, id.Name, utils.Bool(false))
+	options := registrationassignments.GetOperationOptions{
+		ExpandRegistrationDefinition: utils.Bool(false),
+	}
+	resp, err := clients.Lighthouse.AssignmentsClient.Get(ctx, *id, options)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Lighthouse Assignment %q (Scope: %q) does not exist", id.Name, id.Scope)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LighthouseAssignmentResource) basic(id string, secondTenantID string, principalID string, data acceptance.TestData) string {

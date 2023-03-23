@@ -45,8 +45,12 @@ The following attributes are exported:
 
 * `default_route_table_id` - The ID of the default Route Table in the Virtual Hub.
 
+* `virtual_router_asn` - The Autonomous System Number of the Virtual Hub BGP router.
+
+* `virtual_router_ips` - The IP addresses of the Virtual Hub BGP router.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub.

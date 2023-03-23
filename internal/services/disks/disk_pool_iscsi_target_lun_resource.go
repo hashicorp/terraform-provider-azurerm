@@ -9,25 +9,30 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/diskpools"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/iscsitargets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = DiskPoolIscsiTargetLunModel{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = DiskPoolIscsiTargetLunModel{}
 
 type DiskPoolIscsiTargetLunModel struct {
 	IscsiTargetId           string `tfschema:"iscsi_target_id"`
 	ManagedDiskAttachmentId string `tfschema:"disk_pool_managed_disk_attachment_id"`
 	Name                    string `tfschema:"name"`
 	Lun                     int64  `tfschema:"lun"`
+}
+
+func (DiskPoolIscsiTargetLunModel) DeprecationMessage() string {
+	return "The `azurerm_disk_pool_iscsi_target_lun` resource is deprecated and will be removed in v4.0 of the AzureRM Provider."
 }
 
 func (d DiskPoolIscsiTargetLunModel) Arguments() map[string]*schema.Schema {
@@ -75,7 +80,7 @@ func (d DiskPoolIscsiTargetLunModel) ResourceType() string {
 
 func (d DiskPoolIscsiTargetLunModel) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			m := DiskPoolIscsiTargetLunModel{}
 			err := metadata.Decode(&m)
@@ -86,11 +91,11 @@ func (d DiskPoolIscsiTargetLunModel) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			attachmentId, err := diskpools.DiskPoolManagedDiskAttachmentID(m.ManagedDiskAttachmentId)
+			attachmentId, err := parse.DiskPoolManagedDiskAttachmentID(m.ManagedDiskAttachmentId)
 			if err != nil {
 				return err
 			}
-			id := iscsitargets.NewDiskPoolIscsiTargetLunId(*iscsiTargetId, attachmentId.ManagedDiskId)
+			id := parse.NewDiskPoolIscsiTargetLunId(*iscsiTargetId, attachmentId.ManagedDiskId)
 
 			locks.ByID(iscsiTargetId.ID())
 			defer locks.UnlockByID(iscsiTargetId.ID())
@@ -126,7 +131,11 @@ func (d DiskPoolIscsiTargetLunModel) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = d.RetryError(metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate), "waiting for creation DisksPool iscsi target", id.ID(), func() error {
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
+			}
+			err = d.RetryError(time.Until(deadline), "waiting for creation DisksPool iscsi target", id.ID(), func() error {
 				return client.UpdateThenPoll(ctx, *iscsiTargetId, patch)
 			})
 			if err != nil {
@@ -142,7 +151,7 @@ func (d DiskPoolIscsiTargetLunModel) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := iscsitargets.ParseIscsiTargetLunID(metadata.ResourceData.Id())
+			id, err := parse.IscsiTargetLunID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -166,11 +175,11 @@ func (d DiskPoolIscsiTargetLunModel) Read() sdk.ResourceFunc {
 			for _, lun := range *resp.Model.Properties.Luns {
 				if lun.ManagedDiskAzureResourceId == id.ManagedDiskId.ID() {
 					diskPoolId := diskpools.NewDiskPoolID(iscsiTargetId.SubscriptionId, iscsiTargetId.ResourceGroupName, iscsiTargetId.DiskPoolName)
-					diskId, err := computeParse.ManagedDiskID(lun.ManagedDiskAzureResourceId)
+					diskId, err := disks.ParseDiskIDInsensitively(lun.ManagedDiskAzureResourceId)
 					if err != nil {
 						return fmt.Errorf("invalid managed disk id in iscsi target response %q : %q", iscsiTargetId.ID(), lun.ManagedDiskAzureResourceId)
 					}
-					attachmentId := diskpools.NewDiskPoolManagedDiskAttachmentId(diskPoolId, *diskId)
+					attachmentId := parse.NewDiskPoolManagedDiskAttachmentId(diskPoolId, *diskId)
 					if lun.Lun == nil {
 						return fmt.Errorf("malformed Iscsi Target response %q : %+v", iscsiTargetId.ID(), resp)
 					}
@@ -191,7 +200,7 @@ func (d DiskPoolIscsiTargetLunModel) Read() sdk.ResourceFunc {
 
 func (d DiskPoolIscsiTargetLunModel) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			m := DiskPoolIscsiTargetLunModel{}
 			err := metadata.Decode(&m)
@@ -202,11 +211,11 @@ func (d DiskPoolIscsiTargetLunModel) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			attachmentId, err := diskpools.DiskPoolManagedDiskAttachmentID(m.ManagedDiskAttachmentId)
+			attachmentId, err := parse.DiskPoolManagedDiskAttachmentID(m.ManagedDiskAttachmentId)
 			if err != nil {
 				return err
 			}
-			id := iscsitargets.NewDiskPoolIscsiTargetLunId(*iscsiTargetId, attachmentId.ManagedDiskId)
+			id := parse.NewDiskPoolIscsiTargetLunId(*iscsiTargetId, attachmentId.ManagedDiskId)
 
 			locks.ByID(iscsiTargetId.ID())
 			defer locks.UnlockByID(iscsiTargetId.ID())
@@ -240,7 +249,11 @@ func (d DiskPoolIscsiTargetLunModel) Delete() sdk.ResourceFunc {
 				},
 			}
 
-			return d.RetryError(metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete), "waiting for delete DisksPool iscsi target lun", id.ID(), func() error {
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
+			}
+			return d.RetryError(time.Until(deadline), "waiting for delete DisksPool iscsi target lun", id.ID(), func() error {
 				return client.UpdateThenPoll(ctx, *iscsiTargetId, patch)
 			})
 		},
@@ -252,7 +265,7 @@ func (d DiskPoolIscsiTargetLunModel) IDValidationFunc() pluginsdk.SchemaValidate
 }
 
 func (DiskPoolIscsiTargetLunModel) RetryError(timeout time.Duration, action string, id string, retryFunc func() error) error {
-	return pluginsdk.Retry(timeout, func() *resource.RetryError {
+	return pluginsdk.Retry(timeout, func() *pluginsdk.RetryError {
 		err := retryFunc()
 		if err == nil {
 			return nil

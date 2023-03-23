@@ -1,0 +1,48 @@
+---
+name: "Pull Request Reviewed Workflow"
+
+on:
+  workflow_run:
+    workflows:
+      - "Pull Request Reviewed"
+    types:
+      - completed
+
+permissions:
+  pull-requests: write
+
+jobs:
+  add-or-remove-waiting-response:
+    runs-on: ubuntu-latest
+    outputs:
+      ghrepo: ${{ steps.env_vars.outputs.ghrepo }}
+      ghowner: ${{ steps.env_vars.outputs.ghowner }}
+      prnumber: ${{ steps.env_vars.outputs.prnumber }}
+      action: ${{ steps.env_vars.outputs.action }}
+    steps:
+      - name: Get Artifact
+        id: get_artifact
+        continue-on-error: true
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          workflow: pull-request-reviewed.yaml
+
+      - name: env_vars
+        id: env_vars
+        if: steps.get_artifact.outcome == 'success'
+        run: |
+          echo "::set-output name=ghrepo::$(cat artifact/ghrepo.txt)"
+          echo "::set-output name=ghowner::$(cat artifact/ghowner.txt)"
+          echo "::set-output name=prnumber::$(cat artifact/prnumber.txt)"
+          echo "::set-output name=action::$(cat artifact/action.txt)"
+
+      - name: add waiting-reponse
+        if: steps.get_artifact.outcome == 'success' && steps.env_vars.outputs.action == 'add-waiting-response'
+        run: |
+          curl -X POST -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos${{ steps.env_vars.outputs.ghowner }}/${{ steps.env_vars.outputs.ghrepo }}/issues/${{ steps.env_vars.outputs.prnumber }}/labels" -d '{"labels":["waiting-response"]}'
+
+      - name: remove waiting-reponse
+        if: steps.get_artifact.outcome == 'success' && steps.env_vars.outputs.action == 'remove-waiting-response'
+        run: |
+          curl -X DELETE -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos${{ steps.env_vars.outputs.ghowner }}/${{ steps.env_vars.outputs.ghrepo }}/issues/${{ steps.env_vars.outputs.prnumber }}/labels/waiting-response"

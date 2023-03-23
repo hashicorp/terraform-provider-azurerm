@@ -1,7 +1,7 @@
-output "app_service_name" {
-  value = azurerm_app_service.main.name
+output "linux_web_app_name" {
+  value = azurerm_linux_web_app.example.name
 }
 
-output "app_service_default_hostname" {
-  value = "https://${azurerm_app_service.main.default_site_hostname}"
+output "app_url" {
+  value = "https://${azurerm_linux_web_app.example.default_hostname}"
 }

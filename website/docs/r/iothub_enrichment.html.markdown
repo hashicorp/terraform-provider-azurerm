@@ -51,7 +51,7 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_endpoint_storage_container" "example" {
   resource_group_name = azurerm_resource_group.example.name
-  iothub_name         = azurerm_iothub.example.name
+  iothub_id           = azurerm_iothub.example.id
   name                = "example"
 
   connection_string          = azurerm_storage_account.example.primary_blob_connection_string
@@ -87,7 +87,11 @@ resource "azurerm_iothub_enrichment" "example" {
 
 The following arguments are supported:
 
-* `key` - (Required) The key of the enrichment.
+* `iothub_name` - (Required) The IoTHub name of the enrichment. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the resource group under which the IoTHub resource is created. Changing this forces a new resource to be created.
+
+* `key` - (Required) The key of the enrichment. Changing this forces a new resource to be created.
 
 * `value` - (Required) The value of the enrichment. Value can be any static string, the name of the IoT hub sending the message (use `$iothubname`) or information from the device twin (ex: `$twin.tags.latitude`)
 
@@ -101,7 +105,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub Enrichment.
 * `update` - (Defaults to 30 minutes) Used when updating the IotHub Enrichment.
@@ -113,5 +117,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 IoTHub Enrichment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iothub_enrichment.enrichment1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1/Enrichments/enrichment1
+terraform import azurerm_iothub_enrichment.enrichment1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/iotHubs/hub1/enrichments/enrichment1
 ```

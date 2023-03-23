@@ -10,7 +10,6 @@ description: |-
 
 Manages an API Management Group.
 
-
 ## Example Usage
 
 ```hcl
@@ -38,7 +37,6 @@ resource "azurerm_api_management_group" "example" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -53,9 +51,9 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of this API Management Group.
 
-* `external_id` - (Optional) The identifier of the external Group. For example, an Azure Active Directory group `aad://<tenant>.onmicrosoft.com/groups/<group object id>`.
+* `external_id` - (Optional) The identifier of the external Group. For example, an Azure Active Directory group `aad://<tenant id>/groups/<group object id>`. Changing this forces a new resource to be created.
 
-* `type` - (Optional) The type of this API Management Group. Possible values are `custom` and `external`. Default is `custom`.
+* `type` - (Optional) The type of this API Management Group. Possible values are `custom`, `external` and `system`. Default is `custom`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -65,7 +63,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Group.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management Group.

@@ -10,7 +10,7 @@ description: |-
 
 Manages a Template Deployment at a Management Group Scope.
 
-~> **Note:** Deleting a Deployment at the Management Group Scope will not delete any resources created by the deployment. 
+~> **Note:** Deleting a Deployment at the Management Group Scope will not delete any resources created by the deployment.
 
 ~> **Note:** Deployments to a Management Group are always Incrementally applied. Existing resources that are not part of the template will not be removed.
 
@@ -113,26 +113,25 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Template should exist. Changing this forces a new Template to be created.
 
-* `management_group_name` - (Required) The Name of the Management Group to apply the Deployment Template to.
+* `management_group_id` - (Required) The ID of the Management Group to apply the Deployment Template to. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name which should be used for this Template Deployment. Changing this forces a new Template Deployment to be created.
 
 ---
 
-* `debug_level` - (Optional) The Debug Level which should be used for this Resource Group Template Deployment. Possible values are `none`, `requestContent`, `responseContent` and `requestContent, responseContent`. 
+* `debug_level` - (Optional) The Debug Level which should be used for this Resource Group Template Deployment. Possible values are `none`, `requestContent`, `responseContent` and `requestContent, responseContent`.
 
 * `parameters_content` - (Optional) The contents of the ARM Template parameters file - containing a JSON list of parameters.
 
-* `template_content` - (Optional) The contents of the ARM Template which should be deployed into this Resource Group. Cannot be specified with `template_spec_version_id`. 
+* `template_content` - (Optional) The contents of the ARM Template which should be deployed into this Resource Group. Cannot be specified with `template_spec_version_id`.
 
 * `template_spec_version_id` - (Optional) The ID of the Template Spec Version to deploy. Cannot be specified with `template_content`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Template.
 
-
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Management Group Template Deployment.
 
@@ -140,7 +139,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Management Group Template Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Management Group Template Deployment.

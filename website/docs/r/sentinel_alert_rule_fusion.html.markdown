@@ -22,7 +22,7 @@ resource "azurerm_log_analytics_workspace" "example" {
   name                = "example-workspace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  sku                 = "pergb2018"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "example" {
@@ -57,15 +57,37 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should this Sentinel Fusion Alert Rule be enabled? Defaults to `true`.
 
+* `source` - (Optional) One or more `source` blocks as defined below.
+
+---
+
+A `source` block supports the following:
+
+* `name` - (Required) The name of the Fusion source signal. Refer to Fusion alert rule template for supported values.
+
+* `enabled` - (Optional) Whether this source signal is enabled or disabled in Fusion detection? Defaults to `true`.
+
+* `sub_type` - (Optional) One or more `sub_type` blocks as defined below.
+
+---
+
+A `sub_type` block supports the following:
+
+* `name` - (Required) The Name of the source subtype under a given source signal in Fusion detection. Refer to Fusion alert rule template for supported values.
+
+* `enabled` - (Optional) Whether this source subtype under source signal is enabled or disabled in Fusion detection. Defaults to `true`.
+
+* `severities_allowed` - (Required) A list of severities that are enabled for this source subtype consumed in Fusion detection. Possible values for each element are `High`, `Medium`, `Low`, `Informational`.
+
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Sentinel Fusion Alert Rule.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Sentinel Fusion Alert Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Sentinel Fusion Alert Rule.

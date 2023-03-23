@@ -29,6 +29,16 @@ provider "azurerm" {
   features {
     api_management {
       purge_soft_delete_on_destroy = true
+      recover_soft_deleted         = true
+    }
+
+    app_configuration {
+      purge_soft_delete_on_destroy = true
+      recover_soft_deleted         = true
+    }
+
+    application_insights {
+      disable_generated_rule = false
     }
 
     cognitive_account {
@@ -36,12 +46,16 @@ provider "azurerm" {
     }
 
     key_vault {
-      recover_soft_deleted_key_vaults = true
       purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
     }
 
     log_analytics_workspace {
       permanently_delete_on_destroy = true
+    }
+
+    managed_disk {
+      expand_without_downtime = true
     }
 
     resource_group {
@@ -67,17 +81,23 @@ provider "azurerm" {
 }
 ```
 
-## Arguments
+## Arguments Reference
 
 The `features` block supports the following:
 
 * `api_management` - (Optional) An `api_management` block as defined below.
+
+* `app_configuration` - (Optional) An `app_configuration` block as defined below.
+
+* `application_insights` - (Optional) An `application_insights` block as defined below.
 
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
+
+* `managed_disk` - (Optional) A `managed_disk` block as defined below.
 
 * `resource_group` - (Optional) A `resource_group` block as defined below.
 
@@ -91,7 +111,24 @@ The `features` block supports the following:
 
 The `api_management` block supports the following:
 
-* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+* `recover_soft_deleted` - (Optional) Should the `azurerm_api_management` resources recover a Soft-Deleted API Management service? Defaults to `true`
+
+---
+
+The `app_configuration` block supports the following:
+
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_app_configuration` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+* `recover_soft_deleted` - (Optional) Should the `azurerm_app_configuration` resources recover a Soft-Deleted App Configuration service? Defaults to `true`
+*
+
+---
+
+The `application_insights` block supports the following:
+
+* `disable_generated_rule` - (Optional) Should the `azurerm_application_insights` resources disable the Azure generated Alert Rule during the create step? Defaults to `false`.
 
 ---
 
@@ -103,27 +140,49 @@ The `cognitive_account` block supports the following:
 
 The `key_vault` block supports the following:
 
-* `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault`, `azurerm_key_vault_certificate`, `azurerm_key_vault_key` and `azurerm_key_vault_secret` resources recover a Soft-Deleted Key Vault/Item? Defaults to `true`.
-
-~> **Note:** When recovering soft-deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
-
-* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault`, `azurerm_key_vault_certificate`, `azurerm_key_vault_key` and `azurerm_key_vault_secret` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 ~> **Note:** When purge protection is enabled, a key vault or an object in the deleted state cannot be purged until the retention period (7-90 days) has passed.
+
+* `purge_soft_deleted_certificates_on_destroy` - (Optional) Should the `azurerm_key_vault_certificate` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+* `purge_soft_deleted_keys_on_destroy` - (Optional) Should the `azurerm_key_vault_key` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+* `purge_soft_deleted_secrets_on_destroy` - (Optional) Should the `azurerm_key_vault_secret` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+* `purge_soft_deleted_hardware_security_modules_on_destroy` - (Optional) Should the `azurerm_key_vault_managed_hardware_security_module` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+* `recover_soft_deleted_certificates` - (Optional) Should the `azurerm_key_vault_certificate` resource recover a Soft-Deleted Certificate? Defaults to `true`.
+
+* `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault` resource recover a Soft-Deleted Key Vault? Defaults to `true`.
+
+* `recover_soft_deleted_keys` - (Optional) Should the `azurerm_key_vault_key` resource recover a Soft-Deleted Key? Defaults to `true`.
+
+* `recover_soft_deleted_secrets` - (Optional) Should the `azurerm_key_vault_secret` resource recover a Soft-Deleted Secret? Defaults to `true`.
+
+~> **Note:** When recovering soft-deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
 
 ---
 
 The `log_analytics_workspace` block supports the following:
 
-* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
+* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+-> **Note:** This will be defaulted to `false` in the next major version of the Azure Provider (4.0).
+
+---
+
+The `managed_disk` block supports the following:
+
+* `expand_without_downtime` - (Optional) Specifies whether Managed Disks which can be Expanded without Downtime (on either [a Linux VM](https://learn.microsoft.com/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime) [or a Windows VM](https://learn.microsoft.com/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime)) should be expanded without restarting the associated Virtual Machine. Defaults to `true`.
+
+~> **Note:** Expand Without Downtime requires a specific configuration for the Managed Disk and Virtual Machine - Terraform will use Expand Without Downtime when the Managed Disk and Virtual Machine meet these requirements, and shut the Virtual Machine down as needed if this is inapplicable. More information on when Expand Without Downtime is applicable can be found in the [Linux VM](https://learn.microsoft.com/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime) [or Windows VM](https://learn.microsoft.com/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime) documentation.
 
 ---
 
 The `resource_group` block supports the following:
 
-* `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `false`.
-
--> **Note:** This will be defaulted to `true` in the next major version of the Azure Provider (3.0).
+* `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `true`.
 
 ---
 

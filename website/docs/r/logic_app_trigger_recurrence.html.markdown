@@ -48,19 +48,19 @@ The following arguments are supported:
 
 * `start_time` - (Optional) Specifies the start date and time for this trigger in RFC3339 format: `2000-01-02T03:04:05Z`.
 
-* `time_zone` - (Optional) Specifies the time zone for this trigger.  Supported time zone options are listed [here](https://support.microsoft.com/en-us/help/973627/microsoft-time-zone-index-values)
+* `time_zone` - (Optional) Specifies the time zone for this trigger. Supported time zone options are listed [here](https://support.microsoft.com/en-us/help/973627/microsoft-time-zone-index-values)
 
 * `schedule` - (Optional) A `schedule` block as specified below.
 
 ---
 
-A `schedule` block supports the following: 
+A `schedule` block supports the following:
 
-* `at_these_minutes` - Specifies a list of minutes when the trigger should run. Valid values are between 0 and 59.
+* `at_these_minutes` - (Optional) Specifies a list of minutes when the trigger should run. Valid values are between 0 and 59.
 
-* `at_these_hours` - Specifies a list of hours when the trigger should run. Valid values are between 0 and 23.
+* `at_these_hours` - (Optional) Specifies a list of hours when the trigger should run. Valid values are between 0 and 23.
 
-* `on_these_days` - Specifies a list of days when the trigger should run. Valid values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`.
+* `on_these_days` - (Optional) Specifies a list of days when the trigger should run. Valid values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`.
 
 ## Attributes Reference
 
@@ -70,7 +70,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App Recurrence Trigger.
 * `update` - (Defaults to 30 minutes) Used when updating the Logic App Recurrence Trigger.

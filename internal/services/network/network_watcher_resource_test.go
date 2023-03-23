@@ -35,13 +35,6 @@ func TestAccNetworkWatcher(t *testing.T) {
 		"DataSource": {
 			"basic": testAccDataSourceNetworkWatcher_basic,
 		},
-		"PacketCaptureOld": {
-			"localDisk":                  testAccPacketCapture_localDisk,
-			"storageAccount":             testAccPacketCapture_storageAccount,
-			"storageAccountAndLocalDisk": testAccPacketCapture_storageAccountAndLocalDisk,
-			"withFilters":                testAccPacketCapture_withFilters,
-			"requiresImport":             testAccPacketCapture_requiresImport,
-		},
 		"ConnectionMonitor": {
 			"addressBasic":                   testAccNetworkConnectionMonitor_addressBasic,
 			"addressComplete":                testAccNetworkConnectionMonitor_addressComplete,
@@ -56,7 +49,6 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"httpConfiguration":              testAccNetworkConnectionMonitor_httpConfiguration,
 			"icmpConfiguration":              testAccNetworkConnectionMonitor_icmpConfiguration,
 			"bothAddressAndVirtualMachineId": testAccNetworkConnectionMonitor_withAddressAndVirtualMachineId,
-			"endpointType":                   testAccNetworkConnectionMonitor_endpointDeprecated,
 			"updateEndpoint":                 testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel,
 		},
 		"PacketCapture": {
@@ -65,6 +57,21 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"storageAccountAndLocalDisk": testAccNetworkPacketCapture_storageAccountAndLocalDisk,
 			"withFilters":                testAccNetworkPacketCapture_withFilters,
 			"requiresImport":             testAccNetworkPacketCapture_requiresImport,
+		},
+		"VMPacketCapture": {
+			"localDisk":                  testAccVirtualMachinePacketCapture_localDisk,
+			"storageAccount":             testAccVirtualMachinePacketCapture_storageAccount,
+			"storageAccountAndLocalDisk": testAccVirtualMachinePacketCapture_storageAccountAndLocalDisk,
+			"withFilters":                testAccVirtualMachinePacketCapture_withFilters,
+			"requiresImport":             testAccVirtualMachinePacketCapture_requiresImport,
+		},
+		"VMSSPacketCapture": {
+			"localDisk":                  testAccVirtualMachineScaleSetPacketCapture_localDisk,
+			"storageAccount":             testAccVirtualMachineScaleSetPacketCapture_storageAccount,
+			"storageAccountAndLocalDisk": testAccVirtualMachineScaleSetPacketCapture_storageAccountAndLocalDisk,
+			"withFilters":                testAccVirtualMachineScaleSetPacketCapture_withFilters,
+			"requiresImport":             testAccVirtualMachineScaleSetPacketCapture_requiresImport,
+			"machineScope":               testAccVirtualMachineScaleSetPacketCapture_machineScope,
 		},
 		"FlowLog": {
 			"basic":                testAccNetworkWatcherFlowLog_basic,

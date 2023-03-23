@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -109,32 +109,27 @@ func TestAccPostgreSQLVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 }
 
 func (r PostgreSQLVirtualNetworkRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualNetworkRuleID(state.ID)
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.VirtualNetworkRulesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := clients.Postgres.VirtualNetworkRulesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Postgresql Virtual Network Rule (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r PostgreSQLVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualNetworkRuleID(state.ID)
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := client.Postgres.VirtualNetworkRulesClient.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		return nil, fmt.Errorf("deleting Postgresql Virtual Network Rule (%s): %+v", id.String(), err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Postgres.VirtualNetworkRulesClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of Postgresql Virtual Network Rule (%s): %+v", id.String(), err)
+	if err := client.Postgres.VirtualNetworkRulesClient.DeleteThenPoll(ctx, *id); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return utils.Bool(true), nil
@@ -162,7 +157,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-SN-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/29"
+  address_prefixes     = ["10.7.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -177,11 +172,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "test" {
@@ -228,7 +221,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "acctest-SN1-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/25"
+  address_prefixes     = ["10.7.29.0/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -236,7 +229,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctest-SN2-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.128/25"
+  address_prefixes     = ["10.7.29.128/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -251,11 +244,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "test" {
@@ -289,7 +280,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "acctest-SN1-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/25"
+  address_prefixes     = ["10.7.29.0/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -297,7 +288,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctest-SN2-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.128/25"
+  address_prefixes     = ["10.7.29.128/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -312,11 +303,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "test" {
@@ -357,7 +346,7 @@ resource "azurerm_subnet" "vnet1_subnet1" {
   name                 = "acctestsubnet1%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
-  address_prefix       = "10.7.29.0/29"
+  address_prefixes     = ["10.7.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -365,7 +354,7 @@ resource "azurerm_subnet" "vnet1_subnet2" {
   name                 = "acctestsubnet2%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
-  address_prefix       = "10.7.29.128/29"
+  address_prefixes     = ["10.7.29.128/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -373,7 +362,7 @@ resource "azurerm_subnet" "vnet2_subnet1" {
   name                 = "acctestsubnet3%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.vnet2.name
-  address_prefix       = "10.1.29.0/29"
+  address_prefixes     = ["10.1.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -388,11 +377,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "rule1" {
@@ -443,7 +430,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-SN-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/29"
+  address_prefixes     = ["10.7.29.0/29"]
   service_endpoints    = ["Microsoft.Storage"]
 }
 
@@ -454,11 +441,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"

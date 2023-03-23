@@ -5,12 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -20,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
@@ -54,14 +54,12 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			//lintignore: S013
 			"name": {
 				Type:         pluginsdk.TypeString,
-				Required:     features.ThreePointOhBeta(),
-				Computed:     !features.ThreePointOhBeta(),
-				Optional:     !features.ThreePointOhBeta(),
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.NetworkWatcherFlowLogName,
 			},
@@ -155,7 +153,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			"location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         !features.ThreePointOhBeta(),
+				Computed:         true,
 				ForceNew:         true,
 				ValidateFunc:     location.EnhancedValidate,
 				StateFunc:        location.StateFunc,
@@ -309,7 +307,7 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if nsgIdLit := prop.TargetResourceID; nsgIdLit != nil {
-			id, err := parse.NetworkSecurityGroupID(*nsgIdLit)
+			id, err := parse.NetworkSecurityGroupIDInsensitively(*nsgIdLit)
 			if err != nil {
 				return err
 			}

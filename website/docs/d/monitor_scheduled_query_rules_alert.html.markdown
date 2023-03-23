@@ -31,6 +31,7 @@ output "query_rule_id" {
 ## Attributes Reference
 
 * `id` - The ID of the scheduled query rule.
+* `location` - Specifies the Azure Region where the resource should exist.
 * `action` - An `action` block as defined below.
 * `authorized_resource_ids` - The list of Resource IDs referred into query.
 * `data_source_id` - The resource URI over which log search query is to be run.
@@ -38,6 +39,7 @@ output "query_rule_id" {
 * `enabled` - Whether this scheduled query rule is enabled.
 * `frequency` - Frequency at which rule condition should be evaluated.
 * `query` - Log search query.
+* `query_type` - The type of query results.
 * `time_window` - Time window for which data needs to be fetched for query.
 * `severity` - Severity of the alert.
 * `throttling` - Time for which alerts should be throttled or suppressed.
@@ -70,6 +72,6 @@ output "query_rule_id" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Environment.

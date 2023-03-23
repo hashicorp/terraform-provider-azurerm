@@ -23,7 +23,6 @@ output "netapp_account_id" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -31,7 +30,6 @@ The following arguments are supported:
 * `name` - The name of the NetApp Account.
 
 * `resource_group_name` - The Name of the Resource Group where the NetApp Account exists.
-
 
 ## Attributes Reference
 
@@ -41,6 +39,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Account.

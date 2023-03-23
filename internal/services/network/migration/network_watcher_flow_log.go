@@ -110,10 +110,8 @@ func (NetworkWatcherFlowLogV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"location": {
-			// TODO: `computed` should be removed in 3.0
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
 			ForceNew: true,
 		},
 

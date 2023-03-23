@@ -41,6 +41,8 @@ The following attributes are exported:
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
 
+* `data_endpoint_enabled` - Whether dedicated data endpoints for this Container Registry are enabled?
+
 * `location` - The Azure Region in which this Container Registry exists.
 
 * `admin_enabled` - Is the Administrator account enabled for this Container Registry.
@@ -51,6 +53,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry.

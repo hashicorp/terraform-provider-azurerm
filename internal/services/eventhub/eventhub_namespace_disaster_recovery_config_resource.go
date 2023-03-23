@@ -8,12 +8,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/checknameavailabilitydisasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/disasterrecoveryconfigs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/checknameavailabilitydisasterrecoveryconfigs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/disasterrecoveryconfigs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -54,20 +55,12 @@ func resourceEventHubNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"partner_namespace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
-			},
-
-			// this property is broken and should not be reimplemented after 3.0 until this is addressed: https://github.com/Azure/azure-sdk-for-go/issues/5893
-			"alternate_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.ValidateEventHubNamespaceName(),
-				Deprecated:   "This property has been deprecated and will be removed in v3.0 of the provider as any DRC created with an alternate name cannot be deleted and the service is not going to change this. Please see: https://github.com/Azure/azure-sdk-for-go/issues/5893",
 			},
 		},
 	}
@@ -105,10 +98,6 @@ func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resource
 		},
 	}
 
-	if v, ok := d.GetOk("alternate_name"); ok {
-		parameters.Properties.AlternateName = utils.String(v.(string))
-	}
-
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -134,25 +123,36 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	if d.HasChange("partner_namespace_id") {
+	pairingStatus, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("checking the status of eventhub disaster recovery error: %+v", err)
+	}
+
+	// need to check if DCR needs pair-breaking first
+	breakPairFirst := false
+	if model := pairingStatus.Model; model != nil {
+		if model.Properties != nil {
+			if model.Properties.PartnerNamespace != nil && *model.Properties.PartnerNamespace != "" {
+				breakPairFirst = true
+			}
+		}
+	}
+
+	if d.HasChange("partner_namespace_id") && breakPairFirst {
 		// break pairing
 		if _, err := client.BreakPairing(ctx, *id); err != nil {
 			return fmt.Errorf("breaking the pairing for %s: %+v", *id, err)
 		}
+	}
 
-		if err := resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
-			return fmt.Errorf("waiting for the pairing to be broken for %s: %+v", *id, err)
-		}
+	if err := resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
+		return fmt.Errorf("waiting for the pairing to be broken for %s: %+v", *id, err)
 	}
 
 	parameters := disasterrecoveryconfigs.ArmDisasterRecovery{
 		Properties: &disasterrecoveryconfigs.ArmDisasterRecoveryProperties{
 			PartnerNamespace: utils.String(d.Get("partner_namespace_id").(string)),
 		},
-	}
-
-	if v, ok := d.GetOk("alternate_name"); ok {
-		parameters.Properties.AlternateName = utils.String(v.(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
@@ -185,13 +185,12 @@ func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Alias)
+	d.Set("name", id.DisasterRecoveryConfigName)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil && model.Properties != nil {
 		d.Set("partner_namespace_id", model.Properties.PartnerNamespace)
-		d.Set("alternate_name", model.Properties.AlternateName)
 	}
 
 	return nil
@@ -210,12 +209,28 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	if _, err := client.BreakPairing(ctx, *id); err != nil {
-		return fmt.Errorf("breaking pairing of %s: %+v", *id, err)
+	pairingStatus, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("checking the status of eventhub disaster recovery error: %+v", err)
 	}
 
-	if err := resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
-		return fmt.Errorf("waiting for pairing to break for %s: %+v", *id, err)
+	// need to check if DCR needs pair-breaking first
+	breakPairFirst := false
+	if model := pairingStatus.Model; model != nil {
+		if model.Properties != nil {
+			if model.Properties.PartnerNamespace != nil && *model.Properties.PartnerNamespace != "" {
+				breakPairFirst = true
+			}
+		}
+	}
+
+	if breakPairFirst {
+		if _, err := client.BreakPairing(ctx, *id); err != nil {
+			return fmt.Errorf("breaking pairing of %s: %+v", *id, err)
+		}
+		if err := resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
+			return fmt.Errorf("waiting for pairing to break for %s: %+v", *id, err)
+		}
 	}
 
 	if _, err := client.Delete(ctx, *id); err != nil {
@@ -237,12 +252,18 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
+					return resp, "404", nil
 				}
 				return nil, "nil", fmt.Errorf("polling to check the deletion state for %s: %+v", *id, err)
 			}
 
-			return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
+			// if resp.HttpResponse is nil it's a dropped connection, which is normally checked
+			// via `response.WasNotFound` however since we want the status code here for the poller
+			status := "dropped connection"
+			if resp.HttpResponse != nil {
+				status = strconv.Itoa(resp.HttpResponse.StatusCode)
+			}
+			return resp, status, nil
 		},
 	}
 
@@ -252,22 +273,28 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 
 	// it can take some time for the name to become available again
 	// this is mainly here	to enable updating the resource in place
+	deadline, ok = ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context has no deadline")
+	}
 	parentNamespaceId := checknameavailabilitydisasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	availabilityClient := meta.(*clients.Client).Eventhub.DisasterRecoveryNameAvailabilityClient
 	nameFreeWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"NameInUse"},
 		Target:     []string{"None"},
 		MinTimeout: 30 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout:    time.Until(deadline),
 		Refresh: func() (interface{}, string, error) {
 			input := checknameavailabilitydisasterrecoveryconfigs.CheckNameAvailabilityParameter{
-				Name: id.Alias,
+				Name: id.DisasterRecoveryConfigName,
 			}
 			resp, err := availabilityClient.DisasterRecoveryConfigsCheckNameAvailability(ctx, parentNamespaceId, input)
 			if err != nil {
 				return resp, "Error", fmt.Errorf("waiting for the name of %s to become free: %v", *id, err)
 			}
-			// TODO: new crash to handle here
+			if resp.Model == nil || resp.Model.Reason == nil {
+				return resp, "Error", fmt.Errorf("`model` or `model.Reason` was nil")
+			}
 			return resp, string(*resp.Model.Reason), nil
 		},
 	}

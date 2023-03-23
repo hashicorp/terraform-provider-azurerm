@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
@@ -39,7 +39,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 
 		// (@jackofallops - lintignore needed as we need to make sure the JSON is usable in `output_content`)
 
-		//lintignore:S033
+		// lintignore:S033
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -48,7 +48,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				ValidateFunc: validate.TemplateDeploymentName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"deployment_mode": {
 				Type:     pluginsdk.TypeString,

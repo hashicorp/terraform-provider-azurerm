@@ -10,7 +10,7 @@ description: |-
 
 Manages an Express Route Connection.
 
-~> **NOTE:** The provider status of the Express Route Circuit must be set as provisioned while creating the Express Route Connection. See more details [here](https://docs.microsoft.com/en-us/azure/expressroute/expressroute-howto-circuit-portal-resource-manager#send-the-service-key-to-your-connectivity-provider-for-provisioning).
+~> **NOTE:** The provider status of the Express Route Circuit must be set as provisioned while creating the Express Route Connection. See more details [here](https://docs.microsoft.com/azure/expressroute/expressroute-howto-circuit-portal-resource-manager#send-the-service-key-to-your-connectivity-provider-for-provisioning).
 
 ## Example Usage
 
@@ -96,7 +96,9 @@ The following arguments are supported:
 
 * `enable_internet_security` - (Optional) Is Internet security enabled for this Express Route Connection?
 
-* `routing` - (Optional)  A `routing` block as defined below.
+* `express_route_gateway_bypass_enabled` - (Optional) Specified whether Fast Path is enabled for Virtual Wan Firewall Hub. Defaults to `false`.
+
+* `routing` - (Optional) A `routing` block as defined below.
 
 * `routing_weight` - (Optional) The routing weight associated to the Express Route Connection. Possible value is between `0` and `32000`. Defaults to `0`.
 
@@ -106,7 +108,11 @@ A `routing` block supports the following:
 
 * `associated_route_table_id` - (Optional) The ID of the Virtual Hub Route Table associated with this Express Route Connection.
 
-* `propagated_route_table` - (Optional)  A `propagated_route_table` block as defined below.
+* `inbound_route_map_id` - (Optional) The ID of the Route Map associated with this Express Route Connection for inbound routes.
+ 
+* `outbound_route_map_id` - (Optional) The ID of the Route Map associated with this Express Route Connection for outbound routes.
+
+* `propagated_route_table` - (Optional) A `propagated_route_table` block as defined below.
 
 ---
 
@@ -124,7 +130,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Express Route Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Express Route Connection.

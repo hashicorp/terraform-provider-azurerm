@@ -40,11 +40,11 @@ The following arguments are supported:
   
 * `bandwidth_in_gbps` - (Required) Bandwidth of the Express Route Port in Gbps. Changing this forces a new Express Route Port to be created.
 
-* `encapsulation` - (Required)  The encapsulation method used for the Express Route Port. Changing this forces a new Express Route Port to be created. Possible values are: `Dot1Q`, `QinQ`.
+* `encapsulation` - (Required) The encapsulation method used for the Express Route Port. Changing this forces a new Express Route Port to be created. Possible values are: `Dot1Q`, `QinQ`.
 
 * `peering_location` - (Required) The name of the peering location that this Express Route Port is physically mapped to. Changing this forces a new Express Route Port to be created.
 
-* `link1` - (Optional) A list of `link` blocks as defined below. 
+* `link1` - (Optional) A list of `link` blocks as defined below.
 
 * `link2` - (Optional) A list of `link` blocks as defined below.
 
@@ -56,11 +56,11 @@ The following arguments are supported:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of the identity used for the Express Route Port. Currently, the only possible values is `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Express Route Port. Only possible value is `UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list with a single user managed identity id to be assigned to the Express Route Port. Currently, exactly one id is allowed to specify.
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Express Route Port.
 
 ---
 
@@ -70,6 +70,8 @@ A `link` block supports the following:
   
 * `macsec_cipher` - (Optional) The MACSec cipher used for this Express Route Port Link. Possible values are `GcmAes128` and `GcmAes256`. Defaults to `GcmAes128`.
 
+* `billing_type` - (Optional) The billing type of the Express Route Port. Possible values are `MeteredData` and `UnlimitedData`.
+
 * `macsec_ckn_keyvault_secret_id` - (Optional) The ID of the Key Vault Secret that contains the MACSec CKN key for this Express Route Port Link.
 
 * `macsec_cak_keyvault_secret_id` - (Optional) The ID of the Key Vault Secret that contains the Mac security CAK key for this Express Route Port Link.
@@ -78,13 +80,15 @@ A `link` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Express Route Port.
 
 * `identity` - A `identity` block as defined below.
   
-* `link` - A list of `link` block as defined below.
+* `link1` - A list of `link` blocks as defined below.
+
+* `link2` - A list of `link` blocks as defined below.
 
 * `guid` - The resource GUID of the Express Route Port.
   
@@ -110,7 +114,7 @@ A `link` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Express Route Port.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Express Route Port.

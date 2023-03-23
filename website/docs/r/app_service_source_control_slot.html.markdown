@@ -1,7 +1,7 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "app_service_source_control_slot: azurerm_app_service_source_control_slot"
+page_title: "Azure Resource Manager: azurerm_app_service_source_control_slot"
 description: |-
   Manages an App Service Source Control Slot.
 ---
@@ -9,8 +9,6 @@ description: |-
 # azurerm_app_service_source_control_slot
 
 Manages an App Service Source Control Slot.
-
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
 
 ## Example Usage
 
@@ -27,9 +25,9 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_service_plan" "example" {
   name                = "example-plan"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "West Europe"
+  location            = azurerm_resource_group.example.location
   os_type             = "Linux"
-  sku_name            = "P1V2"
+  sku_name            = "P1v2"
 }
 
 resource "azurerm_linux_web_app" "example" {
@@ -68,7 +66,7 @@ The following arguments are supported:
 
 * `branch` - (Optional) The URL for the repository. Changing this forces a new resource to be created.
 
-* `github_action_configuration` - (Optional) A `github_action_configuration` block as detailed below.
+* `github_action_configuration` - (Optional) A `github_action_configuration` block as detailed below. Changing this forces a new resource to be created.
 
 * `repo_url` - (Optional) The branch name to use for deployments. Changing this forces a new resource to be created.
 
@@ -84,19 +82,19 @@ The following arguments are supported:
 
 A `github_action_configuration` block supports the following:
 
-* `code_configuration` - (Optional) A `code_configuration` block as detailed below.
+* `code_configuration` - (Optional) A `code_configuration` block as detailed below. Changing this forces a new resource to be created.
 
 * `container_configuration` - (Optional) A `container_configuration` block as detailed below.
 
 * `generate_workflow_file` - (Optional) Should the service generate the GitHub Action Workflow file. Defaults to `true` Changing this forces a new resource to be created.
 
-* `linux_action` -  Denotes this action uses a Linux base image.
+* `linux_action` - Denotes this action uses a Linux base image.
 
 ---
 
 A `code_configuration` block supports the following:
 
-* `runtime_stack` - (Required) The value to use for the Runtime Stack in the workflow file content for code base apps. Changing this forces a new resource to be created.
+* `runtime_stack` - (Required) The value to use for the Runtime Stack in the workflow file content for code base apps. Changing this forces a new resource to be created. Possible values are `dotnetcore`, `spring`, `tomcat`, `node` and `python`.
 
 * `runtime_version` - (Required) The value to use for the Runtime Version in the workflow file content for code base apps. Changing this forces a new resource to be created.
 
@@ -122,10 +120,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `uses_github_action` - Indicates if the Slot uses a GitHub action for deployment. This value is decoded by the service from the repository information supplied.
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Source Control Slot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Source Control Slot.
@@ -136,5 +133,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 an App Service Source Control Slot can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import app_service_source_control_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
+terraform import azurerm_app_service_source_control_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
 ```

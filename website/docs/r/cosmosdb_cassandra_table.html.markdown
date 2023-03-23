@@ -13,14 +13,15 @@ Manages a Cassandra Table within a Cosmos DB Cassandra Keyspace.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "tflex-cosmosdb-account-rg"
+resource "azurerm_resource_group" "example" {
+  name     = "tflex-cosmosdb-account-rg"
+  location = "West Europe"
 }
 
 resource "azurerm_cosmosdb_account" "example" {
   name                = "tfex-cosmosdb-account"
-  resource_group_name = data.azurerm_resource_group.example.name
-  location            = data.azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   offer_type          = "Standard"
 
   capabilities {
@@ -32,14 +33,14 @@ resource "azurerm_cosmosdb_account" "example" {
   }
 
   geo_location {
-    location          = "West US"
+    location          = azurerm_resource_group.example.location
     failover_priority = 0
   }
 }
 
 resource "azurerm_cosmosdb_cassandra_keyspace" "example" {
   name                = "tfex-cosmos-cassandra-keyspace"
-  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
   account_name        = azurerm_cosmosdb_account.example.name
   throughput          = 400
 }
@@ -74,13 +75,13 @@ The following arguments are supported:
 
 * `cassandra_keyspace_id` - (Required) The ID of the Cosmos DB Cassandra Keyspace to create the table within. Changing this forces a new resource to be created.
 
-* `schema` - (Required) A `schema` block as defined below. Changing this forces a new resource to be created.
+* `schema` - (Required) A `schema` block as defined below.
 
 * `throughput` - (Optional) The throughput of Cassandra KeySpace (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
 * `default_ttl` - (Optional) Time to live of the Cosmos DB Cassandra table. Possible values are at least `-1`. `-1` means the Cassandra table never expires.
 
-* `analytical_storage_ttl` - (Optional) Time to live of the Analytical Storage. Possible values are at least `-1`. `-1` means the Analytical Storage never expires. Changing this forces a new resource to be created.
+* `analytical_storage_ttl` - (Optional) Time to live of the Analytical Storage. Possible values are between `-1` and `2147483647` except `0`. `-1` means the Analytical Storage never expires. Changing this forces a new resource to be created.
 
 ~> **Note:** throughput has a maximum value of `1000000` unless a higher limit is requested via Azure Support
 
@@ -92,7 +93,7 @@ The following arguments are supported:
 
 An `autoscale_settings` block supports the following:
 
-* `max_throughput` - (Optional) The maximum throughput of the Cassandra Table (RU/s). Must be between `4,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
+* `max_throughput` - (Optional) The maximum throughput of the Cassandra Table (RU/s). Must be between `1,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
 
 ---
 
@@ -130,7 +131,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CosmosDB Cassandra KeySpace.
 * `update` - (Defaults to 30 minutes) Used when updating the CosmosDB Cassandra KeySpace.

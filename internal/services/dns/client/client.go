@@ -1,24 +1,17 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
+	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-type Client struct {
-	RecordSetsClient *dns.RecordSetsClient
-	ZonesClient      *dns.ZonesClient
-}
-
-func NewClient(o *common.ClientOptions) *Client {
-	RecordSetsClient := dns.NewRecordSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&RecordSetsClient.Client, o.ResourceManagerAuthorizer)
-
-	ZonesClient := dns.NewZonesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ZonesClient.Client, o.ResourceManagerAuthorizer)
-
-	return &Client{
-		RecordSetsClient: &RecordSetsClient,
-		ZonesClient:      &ZonesClient,
+func NewClient(o *common.ClientOptions) (*dns_v2018_05_01.Client, error) {
+	client, err := dns_v2018_05_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+		o.Configure(c, o.Authorizers.ResourceManager)
+	})
+	if err != nil {
+		return nil, err
 	}
+	return client, nil
 }

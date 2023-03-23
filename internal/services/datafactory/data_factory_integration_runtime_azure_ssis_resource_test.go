@@ -26,8 +26,6 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("managed-integration-runtime"),
-				check.That(data.ResourceName).Key("data_factory_name").Exists(),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("node_size").HasValue("Standard_D8_v3"),
 			),
@@ -149,6 +147,36 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_aadAuth(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_expressVnetInjection(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
+	r := IntegrationRuntimeManagedSsisResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.expressVnetInjection(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_withElasticPool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
+	r := IntegrationRuntimeManagedSsisResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withElasticPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("catalog_info.0.administrator_password"),
+	})
+}
+
 func (IntegrationRuntimeManagedSsisResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -167,11 +195,10 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-  name                = "managed-integration-runtime"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  node_size           = "Standard_D8_v3"
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  node_size       = "Standard_D8_v3"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -198,7 +225,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[1]d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test1" {
@@ -299,17 +326,15 @@ JSON
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
-  name                = "acctestSIRsh%[1]d"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
+  name            = "acctestSIRsh%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-  name                = "acctestiras%[1]d"
-  description         = "acctest"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name            = "acctestiras%[1]d"
+  description     = "acctest"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
 
   node_size                        = "Standard_D8_v3"
   number_of_nodes                  = 2
@@ -396,7 +421,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[1]d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_data_factory" "test" {
@@ -406,11 +431,10 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-  name                = "acctestiras%[1]d"
-  description         = "acctest"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name            = "acctestiras%[1]d"
+  description     = "acctest"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
 
   node_size = "Standard_D8_v3"
 
@@ -466,7 +490,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[1]d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test1" {
@@ -567,24 +591,21 @@ JSON
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name                = "acctestlinkkv%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  key_vault_id        = azurerm_key_vault.test.id
+  name            = "acctestlinkkv%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
-  name                = "acctestSIRsh%[1]d"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
+  name            = "acctestSIRsh%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-  name                = "acctestiras%[1]d"
-  description         = "acctest"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name            = "acctestiras%[1]d"
+  description     = "acctest"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
 
   node_size                        = "Standard_D8_v3"
   number_of_nodes                  = 2
@@ -693,24 +714,19 @@ resource "azurerm_sql_server" "test" {
   administrator_login_password = "my-s3cret-p4ssword!"
 }
 
-data "azuread_service_principal" "test" {
-  display_name = azurerm_data_factory.test.name
-}
-
 resource "azurerm_sql_active_directory_administrator" "test" {
   server_name         = azurerm_sql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
   login               = azurerm_data_factory.test.name
   tenant_id           = azurerm_data_factory.test.identity.0.tenant_id
-  object_id           = data.azuread_service_principal.test.application_id
+  object_id           = azurerm_data_factory.test.identity.0.principal_id
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-  name                = "managed-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  node_size           = "Standard_D8_v3"
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  node_size       = "Standard_D8_v3"
 
   catalog_info {
     server_endpoint = azurerm_sql_server.test.fully_qualified_domain_name
@@ -720,6 +736,111 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   depends_on = [azurerm_sql_active_directory_administrator.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (IntegrationRuntimeManagedSsisResource) expressVnetInjection(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfirm%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  node_size       = "Standard_D8_v3"
+  express_vnet_integration {
+    subnet_id = azurerm_subnet.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (IntegrationRuntimeManagedSsisResource) withElasticPool(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+}
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-ssis-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_mssql_server.test.name
+  max_size_gb         = 4.8828125
+
+  sku {
+    name     = "BasicPool"
+    tier     = "Basic"
+    capacity = 50
+  }
+
+  per_database_settings {
+    min_capacity = 0
+    max_capacity = 5
+  }
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfirm%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  node_size       = "Standard_D8_v3"
+
+  catalog_info {
+    server_endpoint        = "${azurerm_mssql_server.test.fully_qualified_domain_name}"
+    administrator_login    = "ssis_catalog_admin"
+    administrator_password = "my-s3cret-p4ssword!"
+    elastic_pool_name      = "${azurerm_mssql_elasticpool.test.name}"
+    dual_standby_pair_name = "dual_name"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (t IntegrationRuntimeManagedSsisResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

@@ -1,17 +1,20 @@
 package monitor
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	eventHubParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/parse"
-	eventHubValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
@@ -23,7 +26,7 @@ import (
 )
 
 func resourceMonitorActionGroup() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceMonitorActionGroupCreateUpdate,
 		Read:   resourceMonitorActionGroupRead,
 		Update: resourceMonitorActionGroupCreateUpdate,
@@ -54,7 +57,22 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"location": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "global",
+				ValidateFunc: validation.Any(
+					location.EnhancedValidate,
+					validation.StringInSlice([]string{
+						"global",
+					}, false),
+				),
+				StateFunc:        location.StateFunc,
+				DiffSuppressFunc: location.DiffSuppressFunc,
+			},
 
 			"short_name": {
 				Type:         pluginsdk.TypeString,
@@ -373,43 +391,108 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 				},
 			},
 
-			"event_hub_receiver": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"event_hub_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: eventHubValidation.EventhubID,
-						},
-						"tenant_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-						"use_common_alert_schema": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-					},
-				},
-			},
 			"tags": tags.Schema(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["event_hub_receiver"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"event_hub_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: eventhubs.ValidateEventhubID,
+						Deprecated:   "This property is deprecated and will be removed in version 4.0 of the provider, please use 'event_hub_name' and 'event_hub_namespace' instead.",
+					},
+					"event_hub_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"event_hub_namespace": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"tenant_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+					"use_common_alert_schema": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+					"subscription_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+				},
+			},
+		}
+	} else {
+		resource.Schema["event_hub_receiver"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"event_hub_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"event_hub_namespace": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"tenant_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+					"use_common_alert_schema": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+					"subscription_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+				},
+			},
+		}
+	}
+	return resource
 }
 
 func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	tenantId := meta.(*clients.Client).Account.TenantId
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	location := location.Normalize(d.Get("location").(string))
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -443,7 +526,12 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	armRoleReceiversRaw := d.Get("arm_role_receiver").([]interface{})
 	eventHubReceiversRaw := d.Get("event_hub_receiver").([]interface{})
 
-	expandedEventHubReceiver, err := expandMonitorActionGroupEventHubReceiver(tenantId, eventHubReceiversRaw)
+	expandedEventHubReceiver, err := expandMonitorActionGroupEventHubReceiver(tenantId, subscriptionId, eventHubReceiversRaw)
+	if err != nil {
+		return err
+	}
+
+	expandedItsmReceiver, err := expandMonitorActionGroupItsmReceiver(itsmReceiversRaw)
 	if err != nil {
 		return err
 	}
@@ -452,13 +540,13 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	expandedTags := tags.Expand(t)
 
 	parameters := insights.ActionGroupResource{
-		Location: utils.String(azure.NormalizeLocation("Global")),
+		Location: utils.String(location),
 		ActionGroup: &insights.ActionGroup{
 			GroupShortName:             utils.String(shortName),
 			Enabled:                    utils.Bool(enabled),
 			EmailReceivers:             expandMonitorActionGroupEmailReceiver(emailReceiversRaw),
 			AzureAppPushReceivers:      expandMonitorActionGroupAzureAppPushReceiver(azureAppPushReceiversRaw),
-			ItsmReceivers:              expandMonitorActionGroupItsmReceiver(itsmReceiversRaw),
+			ItsmReceivers:              expandedItsmReceiver,
 			SmsReceivers:               expandMonitorActionGroupSmsReceiver(smsReceiversRaw),
 			WebhookReceivers:           expandMonitorActionGroupWebHookReceiver(tenantId, webhookReceiversRaw),
 			AutomationRunbookReceivers: expandMonitorActionGroupAutomationRunbookReceiver(automationRunbookReceiversRaw),
@@ -501,6 +589,7 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if group := resp.ActionGroup; group != nil {
 		d.Set("short_name", group.GroupShortName)
@@ -585,20 +674,36 @@ func expandMonitorActionGroupEmailReceiver(v []interface{}) *[]insights.EmailRec
 	return &receivers
 }
 
-func expandMonitorActionGroupItsmReceiver(v []interface{}) *[]insights.ItsmReceiver {
+func expandMonitorActionGroupItsmReceiver(v []interface{}) (*[]insights.ItsmReceiver, error) {
 	receivers := make([]insights.ItsmReceiver, 0)
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
+		ticketConfiguration := utils.String(val["ticket_configuration"].(string))
 		receiver := insights.ItsmReceiver{
 			Name:                utils.String(val["name"].(string)),
 			WorkspaceID:         utils.String(val["workspace_id"].(string)),
 			ConnectionID:        utils.String(val["connection_id"].(string)),
-			TicketConfiguration: utils.String(val["ticket_configuration"].(string)),
+			TicketConfiguration: ticketConfiguration,
 			Region:              utils.String(azure.NormalizeLocation(val["region"].(string))),
+		}
+
+		// https://github.com/Azure/azure-rest-api-specs/issues/20488 ticket_configuration should have `PayloadRevision` and `WorkItemType` keys
+		if ticketConfiguration != nil {
+			j := make(map[string]interface{})
+			err := json.Unmarshal([]byte(*ticketConfiguration), &j)
+			if err != nil {
+				return nil, fmt.Errorf("`itsm_receiver.ticket_configuration` %s unmarshall json error: %+v", *ticketConfiguration, err)
+			}
+
+			_, existKeyPayloadRevision := j["PayloadRevision"]
+			_, existKeyWorkItemType := j["WorkItemType"]
+			if !(existKeyPayloadRevision && existKeyWorkItemType) {
+				return nil, fmt.Errorf("`itsm_receiver.ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys")
+			}
 		}
 		receivers = append(receivers, receiver)
 	}
-	return &receivers
+	return &receivers, nil
 }
 
 func expandMonitorActionGroupAzureAppPushReceiver(v []interface{}) *[]insights.AzureAppPushReceiver {
@@ -730,20 +835,28 @@ func expandMonitorActionGroupRoleReceiver(v []interface{}) *[]insights.ArmRoleRe
 	return &receivers
 }
 
-func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) (*[]insights.EventHubReceiver, error) {
+func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId string, v []interface{}) (*[]insights.EventHubReceiver, error) {
 	receivers := make([]insights.EventHubReceiver, 0)
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 
-		eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
-		if err != nil {
-			return nil, err
+		eventHubNameSpace, eventHubName, subId := val["event_hub_namespace"].(string), val["event_hub_name"].(string), val["subscription_id"].(string)
+		if !features.FourPointOhBeta() {
+			if eventHubNameSpace == "" && eventHubName == "" && subId == "" && val["event_hub_id"].(string) != "" {
+				eventHubId, err := eventhubs.ParseEventhubID(*utils.String(val["event_hub_id"].(string)))
+				if err != nil {
+					return nil, err
+				}
+				eventHubNameSpace, eventHubName, subId = eventHubId.NamespaceName, eventHubId.EventhubName, eventHubId.SubscriptionId
+			} else if val["event_hub_id"].(string) != "" || eventHubNameSpace == "" || eventHubName == "" {
+				return nil, fmt.Errorf("in event_hub_receiver, exactly one of event_hub_id or (event_hub_namespace, event_hub_name) must be set")
+			}
 		}
 
 		receiver := insights.EventHubReceiver{
+			EventHubNameSpace:    utils.String(eventHubNameSpace),
+			EventHubName:         utils.String(eventHubName),
 			Name:                 utils.String(val["name"].(string)),
-			EventHubNameSpace:    &eventHubId.NamespaceName,
-			EventHubName:         &eventHubId.Name,
 			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
 		if v := val["tenant_id"].(string); v != "" {
@@ -751,7 +864,11 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) 
 		} else {
 			receiver.TenantID = utils.String(tenantId)
 		}
-		receiver.SubscriptionID = &eventHubId.SubscriptionId
+		if subId != "" {
+			receiver.SubscriptionID = utils.String(subId)
+		} else {
+			receiver.SubscriptionID = utils.String(subscriptionId)
+		}
 		receivers = append(receivers, receiver)
 	}
 	return &receivers, nil
@@ -1023,11 +1140,13 @@ func flattenMonitorActionGroupEventHubReceiver(resourceGroup string, receivers *
 				val["name"] = *receiver.Name
 			}
 			if receiver.EventHubNameSpace != nil && receiver.EventHubName != nil && receiver.SubscriptionID != nil {
-				event_hub_namespace := *receiver.EventHubNameSpace
-				event_hub_name := *receiver.EventHubName
-				subscription_id := *receiver.SubscriptionID
-
-				val["event_hub_id"] = eventHubParser.NewEventhubID(subscription_id, resourceGroup, event_hub_namespace, event_hub_name).ID()
+				eventHubNamespace := *receiver.EventHubNameSpace
+				eventHubName := *receiver.EventHubName
+				subscriptionId := *receiver.SubscriptionID
+				if !features.FourPointOhBeta() {
+					val["event_hub_id"] = eventhubs.NewEventhubID(subscriptionId, resourceGroup, eventHubNamespace, eventHubName).ID()
+				}
+				val["subscription_id"], val["event_hub_namespace"], val["event_hub_name"] = subscriptionId, eventHubNamespace, eventHubName
 			}
 			if receiver.UseCommonAlertSchema != nil {
 				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema

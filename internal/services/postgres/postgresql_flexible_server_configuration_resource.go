@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,7 +31,7 @@ func resourcePostgresqlFlexibleServerConfiguration() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FlexibleServerConfigurationID(id)
+			_, err := configurations.ParseConfigurationID(id)
 			return err
 		}),
 
@@ -47,7 +47,7 @@ func resourcePostgresqlFlexibleServerConfiguration() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FlexibleServerID,
+				ValidateFunc: configurations.ValidateFlexibleServerID,
 			},
 
 			"value": {
@@ -67,31 +67,44 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 
 	log.Printf("[INFO] preparing arguments for Azure Postgresql Flexible Server configuration creation.")
 
-	name := d.Get("name").(string)
-	serverId, err := parse.FlexibleServerID(d.Get("server_id").(string))
+	serverId, err := configurations.ParseFlexibleServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
-
-	id := parse.NewFlexibleServerConfigurationID(subscriptionId, serverId.ResourceGroup, serverId.Name, name)
+	id := configurations.NewConfigurationID(subscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, d.Get("name").(string))
 
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-	props := postgresqlflexibleservers.Configuration{
-		ConfigurationProperties: &postgresqlflexibleservers.ConfigurationProperties{
+	props := configurations.Configuration{
+		Properties: &configurations.ConfigurationProperties{
 			Value:  utils.String(d.Get("value").(string)),
 			Source: utils.String("user-override"),
 		},
 	}
 
-	future, err := client.Update(ctx, serverId.ResourceGroup, serverId.Name, name, props)
-	if err != nil {
+	if err := client.UpdateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if model := resp.Model; model != nil {
+		props := model.Properties
+
+		if isDynamicConfig := props.IsDynamicConfig; isDynamicConfig != nil && !*isDynamicConfig {
+			if isReadOnly := props.IsReadOnly; isReadOnly != nil && !*isReadOnly {
+				restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
+				restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+
+				if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
+					return fmt.Errorf("restarting server %s: %+v", id, err)
+				}
+			}
+		}
 	}
 
 	d.SetId(id.ID())
@@ -105,14 +118,14 @@ func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FlexibleServerConfigurationID(d.Id())
+	id, err := configurations.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[WARN] %s was not found, removing from state", id)
 			d.SetId("")
 			return nil
@@ -122,10 +135,10 @@ func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.Set("name", id.ConfigurationName)
-	d.Set("server_id", parse.NewFlexibleServerID(subscriptionId, id.ResourceGroup, id.FlexibleServerName).ID())
+	d.Set("server_id", configurations.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.FlexibleServerName).ID())
 
-	if props := resp.ConfigurationProperties; props != nil {
-		d.Set("value", props.Value)
+	if resp.Model != nil && resp.Model.Properties != nil {
+		d.Set("value", resp.Model.Properties.Value)
 	}
 
 	return nil
@@ -136,7 +149,7 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FlexibleServerConfigurationID(d.Id())
+	id, err := configurations.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -144,25 +157,40 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	props := postgresqlflexibleservers.Configuration{
-		ConfigurationProperties: &postgresqlflexibleservers.ConfigurationProperties{
-			Value:  resp.DefaultValue,
+	defaultValue := ""
+	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.DefaultValue != nil {
+		defaultValue = *resp.Model.Properties.DefaultValue
+	}
+
+	props := configurations.Configuration{
+		Properties: &configurations.ConfigurationProperties{
+			Value:  &defaultValue,
 			Source: utils.String("user-override"),
 		},
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName, props)
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+	if model := resp.Model; model != nil {
+		props := model.Properties
+
+		if isDynamicConfig := props.IsDynamicConfig; isDynamicConfig != nil && !*isDynamicConfig {
+			if isReadOnly := props.IsReadOnly; isReadOnly != nil && !*isReadOnly {
+				restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
+				restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+
+				if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
+					return fmt.Errorf("restarting server %s: %+v", id, err)
+				}
+			}
+		}
 	}
 
 	return nil

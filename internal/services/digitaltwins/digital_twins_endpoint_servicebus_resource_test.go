@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -104,19 +105,19 @@ func TestAccDigitalTwinsEndpointServicebus_updateDeadLetter(t *testing.T) {
 }
 
 func (r DigitalTwinsEndpointServiceBusResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DigitalTwinsEndpointID(state.ID)
+	id, err := endpoints.ParseEndpointID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DigitalTwins.EndpointClient.Get(ctx, id.ResourceGroup, id.DigitalTwinsInstanceName, id.EndpointName)
+	resp, err := client.DigitalTwins.EndpointClient.DigitalTwinsEndpointGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Digital Twins Service Bus Endpoint %q (Resource Group %q / Digital Twins Instance Name %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r DigitalTwinsEndpointServiceBusResource) template(data acceptance.TestData) string {
@@ -133,16 +134,13 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[2]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctestservicebustopic-%[2]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = "acctest-rule-%[2]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  topic_name          = azurerm_servicebus_topic.test.name
+  name     = "acctest-rule-%[2]d"
+  topic_id = azurerm_servicebus_topic.test.id
 
   listen = false
   send   = true
@@ -185,20 +183,17 @@ resource "azurerm_servicebus_namespace" "test_alt" {
   name                = "acctestservicebusnamespace-alt-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_servicebus_topic" "test_alt" {
-  name                = "acctestservicebustopic-alt-%[2]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctestservicebustopic-alt-%[2]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test_alt" {
-  name                = "acctest-rule-alt-%[2]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  topic_name          = azurerm_servicebus_topic.test.name
+  name     = "acctest-rule-alt-%[2]d"
+  topic_id = azurerm_servicebus_topic.test.id
 
   listen = false
   send   = true
@@ -222,20 +217,17 @@ resource "azurerm_servicebus_namespace" "test_alt" {
   name                = "acctestservicebusnamespace-alt-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "basic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_servicebus_topic" "test_alt" {
-  name                = "acctestservicebustopic-alt-%[2]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctestservicebustopic-alt-%[2]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test_alt" {
-  name                = "acctest-rule-alt-%[2]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  topic_name          = azurerm_servicebus_topic.test.name
+  name     = "acctest-rule-alt-%[2]d"
+  topic_id = azurerm_servicebus_topic.test.id
 
   listen = false
   send   = true

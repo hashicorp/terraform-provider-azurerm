@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -19,10 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-/*
- TODO - Should this resource be split into the O/S variants for clarity of purpose?
-*/
 
 type ServicePlanResource struct{}
 
@@ -48,9 +44,8 @@ type ServicePlanModel struct {
 	Reserved                  bool              `tfschema:"reserved"`
 	WorkerCount               int               `tfschema:"worker_count"`
 	MaximumElasticWorkerCount int               `tfschema:"maximum_elastic_worker_count"`
+	ZoneBalancing             bool              `tfschema:"zone_balancing_enabled"`
 	Tags                      map[string]string `tfschema:"tags"`
-	// TODO properties
-	// KubernetesID string `tfschema:"kubernetes_id"` // AKS Cluster resource ID?
 }
 
 func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
@@ -62,28 +57,16 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ServicePlanName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
 
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"B1", "B2", "B3",
-				"D1",
-				"F1",
-				"FREE",
-				"I1", "I2", "I3", // Isolated V1 - ASEV2
-				"I1v2", "I2v2", "I3v2", // Isolated v2 - ASEv3
-				"P1v2", "P2v2", "P3v2",
-				"P1v3", "P2v3", "P3v3",
-				"S1", "S2", "S3",
-				"SHARED",
-				"PC2", "PC3", "PC4", "Y1", // Consumption Plans - Function Apps
-				"EP1", "EP2", "EP3", // Elastic Premium Plans - Function Apps
-				"WS1", "WS2", "WS3", // Workflow plans - Logic Apps
-			}, false),
+			ValidateFunc: validation.StringInSlice(
+				helpers.AllKnownServicePlanSkus(),
+				false),
 		},
 
 		"os_type": {
@@ -100,7 +83,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 		"app_service_environment_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: webValidate.AppServiceEnvironmentID, // TODO - Bring over to this service
+			ValidateFunc: webValidate.AppServiceEnvironmentID,
 		},
 
 		"per_site_scaling_enabled": {
@@ -121,6 +104,12 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.IntAtLeast(0),
+		},
+
+		"zone_balancing_enabled": {
+			Type:     pluginsdk.TypeBool,
+			ForceNew: true,
+			Optional: true,
 		},
 
 		"tags": tags.Schema(),
@@ -176,6 +165,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 					PerSiteScaling: utils.Bool(servicePlan.PerSiteScaling),
 					Reserved:       utils.Bool(servicePlan.OSType == OSTypeLinux),
 					HyperV:         utils.Bool(servicePlan.OSType == OSTypeWindowsContainer),
+					ZoneRedundant:  utils.Bool(servicePlan.ZoneBalancing),
 				},
 				Sku: &web.SkuDescription{
 					Name: utils.String(servicePlan.Sku),
@@ -194,7 +184,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 			}
 
 			if servicePlan.MaximumElasticWorkerCount > 0 {
-				if !strings.HasPrefix(servicePlan.Sku, "EP") && !strings.HasPrefix(servicePlan.Sku, "PC") {
+				if !isServicePlanSupportScaleOut(servicePlan.Sku) {
 					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus")
 				}
 				appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(servicePlan.MaximumElasticWorkerCount))
@@ -269,13 +259,11 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 					state.AppServiceEnvironmentId = *ase.ID
 				}
 
-				if v := props.PerSiteScaling; v != nil {
-					state.PerSiteScaling = *v
-				}
+				state.PerSiteScaling = utils.NormaliseNilableBool(props.PerSiteScaling)
 
-				if v := props.Reserved; v != nil {
-					state.Reserved = *v
-				}
+				state.Reserved = utils.NormaliseNilableBool(props.Reserved)
+
+				state.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
 
 				state.MaximumElasticWorkerCount = int(utils.NormaliseNilableInt32(props.MaximumElasticWorkerCount))
 			}
@@ -335,9 +323,11 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("per_site_scaling_enabled") {
 				existing.AppServicePlanProperties.PerSiteScaling = utils.Bool(state.PerSiteScaling)
 			}
+
 			if metadata.ResourceData.HasChange("sku_name") {
 				existing.Sku.Name = utils.String(state.Sku)
 			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
@@ -347,7 +337,7 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("maximum_elastic_worker_count") {
-				if metadata.ResourceData.HasChange("maximum_elastic_worker_count") && !strings.HasPrefix(state.Sku, "EP") && !strings.HasPrefix(state.Sku, "PC") {
+				if metadata.ResourceData.HasChange("maximum_elastic_worker_count") && !isServicePlanSupportScaleOut(state.Sku) {
 					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus")
 				}
 				existing.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(state.MaximumElasticWorkerCount))
@@ -365,4 +355,12 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func isServicePlanSupportScaleOut(plan string) bool {
+	support := false
+	support = support || strings.HasPrefix(plan, "EP")
+	support = support || strings.HasPrefix(plan, "PC")
+	support = support || strings.HasPrefix(plan, "WS")
+	return support
 }

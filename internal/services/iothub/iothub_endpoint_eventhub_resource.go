@@ -6,20 +6,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 func resourceIotHubEndpointEventHub() *pluginsdk.Resource {
@@ -28,6 +28,11 @@ func resourceIotHubEndpointEventHub() *pluginsdk.Resource {
 		Read:   resourceIotHubEndpointEventHubRead,
 		Update: resourceIotHubEndpointEventHubCreateUpdate,
 		Delete: resourceIotHubEndpointEventHubDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.IoTHubEndPointEventHubV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.EndpointEventhubID(id)
@@ -46,7 +51,7 @@ func resourceIotHubEndpointEventHub() *pluginsdk.Resource {
 }
 
 func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -54,22 +59,14 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: iothubValidate.IoTHubEndpointName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		//lintignore: S013
 		"iothub_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     features.ThreePointOhBeta(),
-			Optional:     !features.ThreePointOhBeta(),
+			Required:     true,
 			ForceNew:     true,
-			Computed:     !features.ThreePointOhBeta(),
 			ValidateFunc: iothubValidate.IotHubID,
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"iothub_name"}
-				}
-				return []string{}
-			}(),
 		},
 
 		"authentication_type": {
@@ -85,7 +82,7 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 		"identity_id": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ValidateFunc:  msivalidate.UserAssignedIdentityID,
+			ValidateFunc:  commonids.ValidateUserAssignedIdentityID,
 			ConflictsWith: []string{"connection_string"},
 		},
 
@@ -120,19 +117,6 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 			ExactlyOneOf:  []string{"endpoint_uri", "connection_string"},
 		},
 	}
-	if !features.ThreePointOhBeta() {
-		out["iothub_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			Computed:      true,
-			ValidateFunc:  iothubValidate.IoTHubName,
-			Deprecated:    "Deprecated in favour of `iothub_id`",
-			ConflictsWith: []string{"iothub_id"},
-		}
-	}
-
-	return out
 }
 
 func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -142,20 +126,13 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 	defer cancel()
 
 	endpointRG := d.Get("resource_group_name").(string)
-	iotHubRG := endpointRG
 
-	var iotHubName string
-	if !features.ThreePointOhBeta() {
-		iotHubName = d.Get("iothub_name").(string)
+	iotHubId, err := parse.IotHubID(d.Get("iothub_id").(string))
+	if err != nil {
+		return err
 	}
-	if iotHubName == "" {
-		id, err := parse.IotHubID(d.Get("iothub_id").(string))
-		if err != nil {
-			return err
-		}
-		iotHubName = id.Name
-		iotHubRG = id.ResourceGroup
-	}
+	iotHubName := iotHubId.Name
+	iotHubRG := iotHubId.ResourceGroup
 
 	id := parse.NewEndpointEventhubID(subscriptionId, iotHubRG, iotHubName, d.Get("name").(string))
 
@@ -264,25 +241,29 @@ func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta interfac
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
+		if utils.ResponseWasNotFound(iothub.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.EndpointName)
-	if !features.ThreePointOhBeta() {
-		d.Set("iothub_name", id.IotHubName)
-
-	}
 	iotHubId := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
 	d.Set("iothub_id", iotHubId.ID())
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
+		d.SetId("")
 		return nil
 	}
+
+	exist := false
 
 	if endpoints := iothub.Properties.Routing.Endpoints.EventHubs; endpoints != nil {
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
+					exist = true
 					d.Set("resource_group_name", endpoint.ResourceGroup)
 
 					authenticationType := string(devices.AuthenticationTypeKeyBased)
@@ -317,6 +298,10 @@ func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta interfac
 				}
 			}
 		}
+	}
+
+	if !exist {
+		d.SetId("")
 	}
 
 	return nil

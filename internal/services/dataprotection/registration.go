@@ -42,5 +42,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_protection_backup_policy_disk":           resourceDataProtectionBackupPolicyDisk(),
 		"azurerm_data_protection_backup_policy_postgresql":     resourceDataProtectionBackupPolicyPostgreSQL(),
 		"azurerm_data_protection_backup_vault":                 resourceDataProtectionBackupVault(),
+		"azurerm_data_protection_resource_guard":               resourceDataProtectionResourceGuard(),
 	}
 }

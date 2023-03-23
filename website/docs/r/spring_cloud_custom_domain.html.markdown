@@ -17,13 +17,14 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
 }
 
 data "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = data.azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_spring_cloud_service" "example" {
@@ -72,7 +73,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Custom Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Custom Domain.
@@ -84,5 +85,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Spring Cloud Custom Domain can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/apps/app1/domains/domain.com
+terraform import azurerm_spring_cloud_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/apps/app1/domains/domain.com
 ```

@@ -20,32 +20,40 @@ CDN
 Cognitive Services
 Communication
 Compute
+Confidential Ledger
+Connections
 Consumption
 Container
+Container Apps
+Containers
 CosmosDB (DocumentDB)
 Cost Management
 Custom Providers
 DNS
+Dashboard
 Data Explorer
 Data Factory
-Data Lake
 Data Share
 DataProtection
 Database
 Database Migration
 Databox Edge
 Databricks
+Datadog
 Desktop Virtualization
 Dev Test
-DevSpace
 Digital Twins
 Disks
+Elastic
+Fluid Relay
 HDInsight
 Hardware Security Module
 Healthcare
+Hybrid Compute
 IoT Central
 IoT Hub
 Key Vault
+Lab Service
 Lighthouse
 Load Balancer
 Load Test
@@ -60,13 +68,17 @@ Maps
 Media
 Messaging
 Mixed Reality
+Mobile Network
 Monitor
 NetApp
 Network
+Nginx
+Orbital
 Policy
 Portal
 PowerBI
 Private DNS
+Private DNS Resolver
 Purview
 Recovery Services
 Redis
@@ -76,7 +88,6 @@ Security Center
 Sentinel
 Service Fabric
 Service Fabric Managed Clusters
-Service Fabric Mesh
 Spring Cloud
 Storage
 Stream Analytics

@@ -3,6 +3,7 @@ package firewall_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -15,6 +16,9 @@ import (
 )
 
 type FirewallResource struct{}
+
+const premium = "Premium"
+const standard = "Standard"
 
 func TestAccFirewall_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
@@ -103,6 +107,18 @@ func TestAccFirewall_withManagementIp(t *testing.T) {
 	})
 }
 
+func TestAccFirewall_withManagementIpSameName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.withManagementIpSameName(data),
+			ExpectError: regexp.MustCompile("`management_ip_configuration.0.name` must not be the same as `ip_configuration.0.name`"),
+		},
+	})
+}
+
 func TestAccFirewall_withMultiplePublicIPs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
@@ -170,7 +186,7 @@ func TestAccFirewall_withZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
 	zones := []string{"1"}
-	zonesUpdate := []string{"1", "3"}
+	zonesUpdate := []string{"1", "2", "3"}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -186,9 +202,32 @@ func TestAccFirewall_withZones(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").HasValue("2"),
-				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
-				check.That(data.ResourceName).Key("zones.1").HasValue("3"),
+				check.That(data.ResourceName).Key("zones.#").HasValue("3"),
+			),
+		},
+	})
+}
+
+func TestAccFirewall_skuTierUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+	skuTier := standard
+	skuTierUpdate := premium
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSkuTier(data, skuTier),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_tier").HasValue("Standard"),
+			),
+		},
+		{
+			Config: r.withSkuTier(data, skuTierUpdate),
+			Check: acceptance.ComposeTestCheckFunc(
+
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_tier").HasValue("Premium"),
 			),
 		},
 	})
@@ -573,6 +612,78 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (FirewallResource) withManagementIpSameName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fw-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_subnet" "test_mgmt" {
+  name                 = "AzureFirewallManagementSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_public_ip" "test_mgmt" {
+  name                = "acctestmgmtpip%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctestfirewall%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  management_ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.test_mgmt.id
+    public_ip_address_id = azurerm_public_ip.test_mgmt.id
+  }
+
+  threat_intel_mode = "Alert"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
 func (FirewallResource) multiplePublicIps(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -762,6 +873,58 @@ resource "azurerm_firewall" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (FirewallResource) withSkuTier(data acceptance.TestData, skuTier string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fw-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones               = []
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctestfirewall%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "%s"
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  zones = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, skuTier)
 }
 
 func (FirewallResource) withZones(data acceptance.TestData, zones []string) string {

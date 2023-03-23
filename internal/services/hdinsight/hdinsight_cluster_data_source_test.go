@@ -96,40 +96,6 @@ func TestAccDataSourceHDInsightCluster_kafkaWithRestProxy(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceHDInsightCluster_mlServices(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
-	r := HDInsightClusterDataSourceResource{}
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.mlServices(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("kind").HasValue("mlservices"),
-				check.That(data.ResourceName).Key("tier").HasValue("standard"),
-				check.That(data.ResourceName).Key("edge_ssh_endpoint").Exists(),
-				check.That(data.ResourceName).Key("https_endpoint").Exists(),
-				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceHDInsightCluster_rserver(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
-	r := HDInsightClusterDataSourceResource{}
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.rserver(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("kind").HasValue("rserver"),
-				check.That(data.ResourceName).Key("tier").HasValue("standard"),
-				check.That(data.ResourceName).Key("edge_ssh_endpoint").Exists(),
-				check.That(data.ResourceName).Key("https_endpoint").Exists(),
-				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
-			),
-		},
-	})
-}
-
 func TestAccDataSourceHDInsightCluster_spark(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	r := HDInsightClusterDataSourceResource{}
@@ -138,24 +104,6 @@ func TestAccDataSourceHDInsightCluster_spark(t *testing.T) {
 			Config: r.spark(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("spark"),
-				check.That(data.ResourceName).Key("tier").HasValue("standard"),
-				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
-				check.That(data.ResourceName).Key("https_endpoint").Exists(),
-				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceHDInsightCluster_storm(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
-	r := HDInsightClusterDataSourceResource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.storm(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("kind").HasValue("storm"),
 				check.That(data.ResourceName).Key("tier").HasValue("standard"),
 				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
@@ -220,28 +168,6 @@ data "azurerm_hdinsight_cluster" "test" {
 `, HDInsightKafkaClusterResource{}.restProxy(data))
 }
 
-func (HDInsightClusterDataSourceResource) mlServices(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_hdinsight_cluster" "test" {
-  name                = azurerm_hdinsight_ml_services_cluster.test.name
-  resource_group_name = azurerm_hdinsight_ml_services_cluster.test.resource_group_name
-}
-`, HDInsightMLServicesClusterResource{}.basic(data))
-}
-
-func (HDInsightClusterDataSourceResource) rserver(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_hdinsight_cluster" "test" {
-  name                = azurerm_hdinsight_rserver_cluster.test.name
-  resource_group_name = azurerm_hdinsight_rserver_cluster.test.resource_group_name
-}
-`, HDInsightRServerClusterResource{}.basic(data))
-}
-
 func (HDInsightClusterDataSourceResource) spark(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -251,15 +177,4 @@ data "azurerm_hdinsight_cluster" "test" {
   resource_group_name = azurerm_hdinsight_spark_cluster.test.resource_group_name
 }
 `, HDInsightSparkClusterResource{}.basic(data))
-}
-
-func (HDInsightClusterDataSourceResource) storm(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_hdinsight_cluster" "test" {
-  name                = azurerm_hdinsight_storm_cluster.test.name
-  resource_group_name = azurerm_hdinsight_storm_cluster.test.resource_group_name
-}
-`, HDInsightStormClusterResource{}.basic(data))
 }

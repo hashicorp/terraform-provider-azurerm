@@ -169,7 +169,7 @@ func TestAccCdnEndpoint_fullFields(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
 			),
 		},
-		// TODO -- add import step. Import step now gives us an error complaining that `is_compression_enabled` is not imported
+		data.ImportStep(),
 	})
 }
 
@@ -730,19 +730,19 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-%[1]d"
   location = "%s"
 }
 
 resource "azurerm_cdn_profile" "test" {
-  name                = "acctestcdnprof%d"
+  name                = "acctestcdnprof%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
-  name                = "acctestcdnend%d"
+  name                = "acctestcdnend%[1]d"
   profile_name        = azurerm_cdn_profile.test.name
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -761,9 +761,26 @@ resource "azurerm_cdn_endpoint" "test" {
       behavior = "Override"
       duration = "5.04:44:23"
     }
+    cache_key_query_string_action {
+      behavior   = "IncludeAll"
+      parameters = "test"
+    }
+    modify_request_header_action {
+      action = "Append"
+      name   = "www.contoso1.com"
+      value  = "test value"
+    }
+    url_redirect_action {
+      redirect_type = "Found"
+      protocol      = "Https"
+      hostname      = "www.contoso.com"
+      fragment      = "5fgdfg"
+      path          = "/article.aspx"
+      query_string  = "id={var_uri_path_1}&title={var_uri_path_2}"
+    }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r CdnEndpointResource) globalDeliveryRuleUpdate(data acceptance.TestData) string {
@@ -809,6 +826,11 @@ resource "azurerm_cdn_endpoint" "test" {
       action = "Overwrite"
       name   = "Content-Type"
       value  = "application/json"
+    }
+    url_rewrite_action {
+      source_pattern          = "/test_source_pattern"
+      destination             = "/test_destination"
+      preserve_unmatched_path = false
     }
   }
 }

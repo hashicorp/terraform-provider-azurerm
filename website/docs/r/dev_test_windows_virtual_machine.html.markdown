@@ -119,7 +119,7 @@ A `gallery_image_reference` block supports the following:
 
 A `inbound_nat_rule` block supports the following:
 
-* `protocol` - (Required) The Protocol used for this NAT Rule. Possible values are `Tcp` and `Udp`. Changing this forces a new resource to be created.
+* `protocol` - (Required) The Protocol used for this NAT Rule. Possible values are `Tcp` and `Udp`. 
 
 * `backend_port` - (Required) The Backend Port associated with this NAT Rule. Changing this forces a new resource to be created.
 
@@ -143,7 +143,7 @@ A `inbound_nat_rule` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DevTest Windows Virtual Machine.
 * `update` - (Defaults to 30 minutes) Used when updating the DevTest Windows Virtual Machine.
@@ -155,5 +155,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 DevTest Windows Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dev_test_windows_virtual_machine.machine1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualmachines/machine1
+terraform import azurerm_dev_test_windows_virtual_machine.machine1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualMachines/machine1
 ```

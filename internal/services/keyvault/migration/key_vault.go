@@ -184,6 +184,10 @@ func (KeyVaultV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 						outputKeyPermissions = append(outputKeyPermissions, "update")
 						outputKeyPermissions = append(outputKeyPermissions, "verify")
 						outputKeyPermissions = append(outputKeyPermissions, "wrapKey")
+						outputKeyPermissions = append(outputKeyPermissions, "release")
+						outputKeyPermissions = append(outputKeyPermissions, "rotate")
+						outputKeyPermissions = append(outputKeyPermissions, "getRotationPolicy")
+						outputKeyPermissions = append(outputKeyPermissions, "setRotationPolicy")
 						break
 					}
 				}
@@ -325,7 +329,6 @@ func (KeyVaultV1ToV2) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_rbac_authorization": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,

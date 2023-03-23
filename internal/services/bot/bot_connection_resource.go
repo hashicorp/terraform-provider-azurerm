@@ -6,22 +6,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 func resourceArmBotConnection() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmBotConnectionCreate,
 		Read:   resourceArmBotConnectionRead,
 		Update: resourceArmBotConnectionUpdate,
@@ -46,9 +46,9 @@ func resourceArmBotConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"bot_name": {
 				Type:         pluginsdk.TypeString,
@@ -90,10 +90,21 @@ func resourceArmBotConnection() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
-
-			"tags": tags.Schema(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["tags"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+			Deprecated: "This property has been deprecated as the API no longer supports tags and will be removed in version 4.0 of the provider.",
+		}
+	}
+
+	return resource
 }
 
 func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -152,7 +163,6 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 		},
 		Kind:     botservice.KindBot,
 		Location: utils.String(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -201,7 +211,7 @@ func resourceArmBotConnectionRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -223,7 +233,6 @@ func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta interface{})
 		},
 		Kind:     botservice.KindBot,
 		Location: utils.String(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {

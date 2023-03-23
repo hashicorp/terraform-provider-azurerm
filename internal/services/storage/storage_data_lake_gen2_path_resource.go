@@ -94,14 +94,14 @@ func resourceStorageDataLakeGen2Path() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IsUUID,
+				ValidateFunc: validation.Any(validation.IsUUID, validation.StringInSlice([]string{"$superuser"}, false)),
 			},
 
 			"group": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IsUUID,
+				ValidateFunc: validation.Any(validation.IsUUID, validation.StringInSlice([]string{"$superuser"}, false)),
 			},
 
 			"ace": {
@@ -334,7 +334,7 @@ func resourceStorageDataLakeGen2PathRead(d *pluginsdk.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("parsing response ACL %q: %s", resp.ACL, err)
 	}
-	d.Set("ace", FlattenDataLakeGen2AceList(acl))
+	d.Set("ace", FlattenDataLakeGen2AceList(d, acl))
 
 	return nil
 }

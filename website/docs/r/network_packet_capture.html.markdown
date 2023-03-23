@@ -7,9 +7,11 @@ description: |-
 
 ---
 
-# azurerm_packet_capture
+# azurerm_network_packet_capture
 
 Configures Network Packet Capturing against a Virtual Machine using a Network Watcher.
+
+!> **NOTE:** The `azurerm_network_packet_capture` resource is deprecated and will be removed in favour of `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` in version 4.0 of the AzureRM Provider.
 
 ## Example Usage
 
@@ -85,9 +87,7 @@ resource "azurerm_virtual_machine" "example" {
 
 resource "azurerm_virtual_machine_extension" "example" {
   name                       = "network-watcher"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  virtual_machine_name       = azurerm_virtual_machine.example.name
+  virtual_machine_id         = azurerm_virtual_machine.example.id
   publisher                  = "Microsoft.Azure.NetworkWatcher"
   type                       = "NetworkWatcherAgentLinux"
   type_handler_version       = "1.4"
@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) The ID of the Resource to capture packets from. Changing this forces a new resource to be created.
 
-~> **NOTE:** Currently only Virtual Machines ID's are supported.
+~> **NOTE:** Currently only Virtual Machines IDs are supported.
 
 * `maximum_bytes_per_packet` - (Optional) The number of bytes captured per packet. The remaining bytes are truncated. Defaults to `0` (Entire Packet Captured). Changing this forces a new resource to be created.
 
@@ -146,11 +146,13 @@ The following arguments are supported:
 
 A `storage_location` block contains:
 
-* `file_path` - (Optional) A valid local path on the targeting VM. Must include the name of the capture file (*.cap). For linux virtual machine it must start with `/var/captures`.
+* `file_path` - (Optional) A valid local path on the targeting VM. Must include the name of the capture file (*.cap). For Linux virtual machine it must start with `/var/captures`.
 
 * `storage_account_id` - (Optional) The ID of the storage account to save the packet capture session
 
 ~> **NOTE:** At least one of `file_path` or `storage_account_id` must be specified.
+
+---
 
 A `filter` block contains:
 
@@ -180,7 +182,7 @@ A `storage_location` block contains:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Packet Capture.
 * `update` - (Defaults to 30 minutes) Used when updating the Packet Capture.

@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `integration_account_name` - (Required) The name of the Logic App Integration Account. Changing this forces a new Logic App Integration Account Partner to be created.
 
-* `business_identity` - (Optional) A `business_identity` block as documented below.
+* `business_identity` - (Required) A `business_identity` block as documented below.
 
 * `metadata` - (Optional) A JSON mapping of any Metadata for this Logic App Integration Account Partner.
 
@@ -67,7 +67,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App Integration Account Partner.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Integration Account Partner.

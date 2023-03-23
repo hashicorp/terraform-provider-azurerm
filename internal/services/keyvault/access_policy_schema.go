@@ -3,11 +3,9 @@ package keyvault
 import (
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault" // nolint: staticcheck
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -60,6 +58,10 @@ func keyPermissions() []string {
 		"Update",
 		"Verify",
 		"WrapKey",
+		"Release",
+		"Rotate",
+		"GetRotationPolicy",
+		"SetRotationPolicy",
 	}
 }
 
@@ -130,9 +132,8 @@ func schemaCertificatePermissions() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			ValidateFunc:     validation.StringInSlice(certificatePermissions(), !features.ThreePointOhBeta()),
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: validation.StringInSlice(certificatePermissions(), false),
 		},
 	}
 }
@@ -142,9 +143,8 @@ func schemaKeyPermissions() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			ValidateFunc:     validation.StringInSlice(keyPermissions(), !features.ThreePointOhBeta()),
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: validation.StringInSlice(keyPermissions(), false),
 		},
 	}
 }
@@ -154,9 +154,8 @@ func schemaSecretPermissions() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			ValidateFunc:     validation.StringInSlice(secretPermissions(), !features.ThreePointOhBeta()),
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: validation.StringInSlice(secretPermissions(), false),
 		},
 	}
 }
@@ -166,9 +165,8 @@ func schemaStoragePermissions() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			ValidateFunc:     validation.StringInSlice(storagePermissions(), !features.ThreePointOhBeta()),
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: validation.StringInSlice(storagePermissions(), false),
 		},
 	}
 }

@@ -6,12 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration"
+	"github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
@@ -45,7 +44,7 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 }
 
 func resourcePolicyVirtualMachineConfigurationAssignmentSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -53,7 +52,7 @@ func resourcePolicyVirtualMachineConfigurationAssignmentSchema() map[string]*plu
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"virtual_machine_id": {
 			Type:         pluginsdk.TypeString,
@@ -120,15 +119,6 @@ func resourcePolicyVirtualMachineConfigurationAssignmentSchema() map[string]*plu
 			},
 		},
 	}
-	if !features.ThreePointOhBeta() {
-		s := out["configuration"].Elem.(*pluginsdk.Resource)
-		s.Schema["name"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Deprecated: "This field is no longer used and will be removed in the next major version of the Azure Provider",
-		}
-	}
-	return out
 }
 
 func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -40,6 +40,22 @@ func TestAccManagementGroupDataSource_basicByDisplayName(t *testing.T) {
 	})
 }
 
+func TestAccManagementGroupDataSource_nestedManagmentGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_management_group", "test")
+	r := ManagementGroupDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.nestedManagementGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("acctest Management Group %d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("management_group_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("all_management_group_ids.#").HasValue("2"),
+			),
+		},
+	})
+}
+
 func (ManagementGroupDataSource) basicByName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -68,6 +84,33 @@ resource "azurerm_management_group" "test" {
 
 data "azurerm_management_group" "test" {
   display_name = azurerm_management_group.test.display_name
+}
+`, data.RandomInteger)
+}
+
+func (ManagementGroupDataSource) nestedManagementGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_management_group" "test" {
+  display_name = "acctest Management Group %[1]d"
+}
+
+resource "azurerm_management_group" "child" {
+  display_name               = "acctest child Management Group %[1]d"
+  parent_management_group_id = azurerm_management_group.test.id
+}
+
+resource "azurerm_management_group" "grand_child" {
+  display_name               = "acctest grand child Management Group %[1]d"
+  parent_management_group_id = azurerm_management_group.child.id
+}
+
+data "azurerm_management_group" "test" {
+  name       = azurerm_management_group.test.name
+  depends_on = [azurerm_management_group.grand_child]
 }
 `, data.RandomInteger)
 }

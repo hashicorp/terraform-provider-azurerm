@@ -26,7 +26,7 @@ resource "azurerm_maintenance_configuration" "example" {
   name                = "example-mc"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  scope               = "All"
+  scope               = "SQLDB"
 
   tags = {
     Env = "prod"
@@ -44,11 +44,17 @@ The following arguments are supported:
 
 * `location` - (Required) Specified the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `scope` - (Optional) The scope of the Maintenance Configuration. Possible values are `All`, `Extension`, `Host`, `InGuestPatch`, `OSImage`, `SQLDB` or `SQLManagedInstance`. Defaults to `All`.
+* `scope` - (Required) The scope of the Maintenance Configuration. Possible values are `Extension`, `Host`, `InGuestPatch`, `OSImage`, `SQLDB` or `SQLManagedInstance`.
 
 * `visibility` - (Optional) The visibility of the Maintenance Configuration. The only allowable value is `Custom`.
 
 * `window` - (Optional) A `window` block as defined below.
+
+* `install_patches` - (Optional) An `install_patches` block as defined below.
+
+-> **NOTE:** `install_patches` must be specified when `scope` is `InGuestPatch`.
+
+* `in_guest_user_patch_mode` - (Optional) The in guest user patch mode. Possible values are `Platform` or `User`. Must be specified when `scope` is `InGuestPatch`.
 
 * `properties` - (Optional) A mapping of properties to assign to the resource.
 
@@ -70,6 +76,36 @@ A `window` block supports:
 
 ---
 
+A `install_patches` block supports:
+
+* `linux` - (Optional) A `linux` block as defined above. This property only applies when `scope` is set to `InGuestPatch`
+
+* `windows` - (Optional) A `windows` block as defined above. This property only applies when `scope` is set to `InGuestPatch`
+
+* `reboot` - (Optional) Possible reboot preference as defined by the user based on which it would be decided to reboot the machine or not after the patch operation is completed. Possible values are `Always`, `IfRequired` and `Never`. This property only applies when `scope` is set to `InGuestPatch`.
+
+---
+
+A `linux` block supports:
+
+* `classifications_to_include` - (Optional) List of Classification category of patches to be patched. Possible values are `Critical`, `Security` and `Other`.
+
+* `package_names_mask_to_exclude` - (Optional) List of package names to be excluded from patching.
+
+* `package_names_mask_to_include` - (Optional) List of package names to be included for patching.
+
+---
+
+A `windows` block supports:
+
+* `classifications_to_include` - (Optional) List of Classification category of patches to be patched. Possible values are `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
+
+* `kb_numbers_to_exclude` - (Optional) List of KB numbers to be excluded from patching.
+
+* `kb_numbers_to_include` - (Optional) List of KB numbers to be included for patching.
+
+---
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -78,7 +114,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Maintenance Configuration.
 * `update` - (Defaults to 30 minutes) Used when updating the Maintenance Configuration.
@@ -90,5 +126,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Maintenance Configuration can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_maintenance_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.maintenance/maintenanceconfigurations/example-mc
+terraform import azurerm_maintenance_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Maintenance/maintenanceConfigurations/example-mc
 ```

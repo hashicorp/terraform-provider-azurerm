@@ -23,7 +23,6 @@ output "private_endpoint_status" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -31,7 +30,6 @@ The following arguments are supported:
 * `service_id` - The resource ID of the private link service.
 
 * `resource_group_name` - The name of the resource group in which the private link service resides.
-
 
 ## Attributes Reference
 
@@ -55,6 +53,6 @@ The `private_endpoint_connections` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Service.

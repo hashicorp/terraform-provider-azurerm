@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -74,7 +74,7 @@ func CassandraTableSchemaPropertySchema() *pluginsdk.Schema {
 }
 
 func DatabaseAutoscaleSettingsSchema() *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -103,22 +103,19 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				// `automatic` is excluded as it is deprecated; see https://stackoverflow.com/a/58721386
 				// `indexing_mode` case changes from 2020-04-01 to 2021-01-15 issue https://github.com/Azure/azure-rest-api-specs/issues/14051
-				// todo: change to SDK constants and remove translation code in 3.0
 				"indexing_mode": {
-					Type:             pluginsdk.TypeString,
-					Optional:         true,
-					Default:          documentdb.IndexingModeConsistent,
-					DiffSuppressFunc: suppress.CaseDifference, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  documentdb.IndexingModeConsistent,
 					ValidateFunc: validation.StringInSlice([]string{
-						"Consistent",
-						"None",
+						string(documentdb.IndexingModeConsistent),
+						string(documentdb.IndexingModeNone),
 					}, false),
 				},
 
 				"included_path": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"path": {
@@ -132,7 +129,6 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 				"excluded_path": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"path": {
@@ -203,17 +199,15 @@ func CosmosDbIndexingPolicyCompositeIndexSchema() *pluginsdk.Schema {
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							// `order` case changes from 2020-04-01 to 2021-01-15, issue opened:https://github.com/Azure/azure-rest-api-specs/issues/14051
-							// todo: change to SDK constants and remove translation code in 3.0
 							"order": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
 								// Workaround for Azure/azure-rest-api-specs#11222
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc: validation.StringInSlice(
-									[]string{
-										"Ascending",
-										"Descending",
-									}, false),
+								ValidateFunc: validation.StringInSlice([]string{
+									string(documentdb.CompositePathSortOrderAscending),
+									string(documentdb.CompositePathSortOrderDescending),
+								}, true),
 							},
 						},
 					},

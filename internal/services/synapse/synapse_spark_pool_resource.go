@@ -5,10 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -90,6 +89,18 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"min_executors": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 200),
+			},
+
+			"max_executors": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 200),
 			},
 
 			"node_count": {
@@ -198,17 +209,12 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "2.4",
-				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-					out := []string{
-						"2.4",
-						"3.1",
-					}
-					if !features.ThreePointOh() {
-						out = append(out, "3.0")
-					}
-					return validation.StringInSlice(out, false)
-
-				}(),
+				ValidateFunc: validation.StringInSlice([]string{
+					"2.4",
+					"3.1",
+					"3.2",
+					"3.3",
+				}, false),
 			},
 
 			"tags": tags.Schema(),
@@ -254,7 +260,9 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 			CacheSize:                 utils.Int32(int32(d.Get("cache_size").(int))),
 			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
-				Enabled: utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
+				Enabled:      utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
+				MinExecutors: utils.Int32(int32(d.Get("min_executors").(int))),
+				MaxExecutors: utils.Int32(int32(d.Get("max_executors").(int))),
 			},
 			DefaultSparkLogFolder:       utils.String(d.Get("spark_log_folder").(string)),
 			NodeSize:                    synapse.NodeSize(d.Get("node_size").(string)),
@@ -323,10 +331,20 @@ func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("compute_isolation_enabled", props.IsComputeIsolationEnabled)
 
 		dynamicExecutorAllocationEnabled := false
+		minExector := 0
+		maxExecutor := 0
 		if props.DynamicExecutorAllocation != nil {
 			dynamicExecutorAllocationEnabled = *props.DynamicExecutorAllocation.Enabled
+			if props.DynamicExecutorAllocation.MinExecutors != nil {
+				minExector = int(*props.DynamicExecutorAllocation.MinExecutors)
+			}
+			if props.DynamicExecutorAllocation.MaxExecutors != nil {
+				maxExecutor = int(*props.DynamicExecutorAllocation.MaxExecutors)
+			}
 		}
 		d.Set("dynamic_executor_allocation_enabled", dynamicExecutorAllocationEnabled)
+		d.Set("min_executors", minExector)
+		d.Set("max_executors", maxExecutor)
 
 		d.Set("node_count", props.NodeCount)
 		d.Set("node_size", props.NodeSize)
@@ -363,7 +381,9 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 			CacheSize:                 utils.Int32(int32(d.Get("cache_size").(int))),
 			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
-				Enabled: utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
+				Enabled:      utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
+				MinExecutors: utils.Int32(int32(d.Get("min_executors").(int))),
+				MaxExecutors: utils.Int32(int32(d.Get("max_executors").(int))),
 			},
 			DefaultSparkLogFolder:       utils.String(d.Get("spark_log_folder").(string)),
 			LibraryRequirements:         expandArmSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{})),
@@ -453,12 +473,12 @@ func expandArmSparkPoolLibraryRequirements(input []interface{}) *synapse.Library
 	}
 }
 
-func expandSparkPoolSparkConfig(input []interface{}) *synapse.LibraryRequirements {
+func expandSparkPoolSparkConfig(input []interface{}) *synapse.SparkConfigProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	value := input[0].(map[string]interface{})
-	return &synapse.LibraryRequirements{
+	return &synapse.SparkConfigProperties{
 		Content:  utils.String(value["content"].(string)),
 		Filename: utils.String(value["filename"].(string)),
 	}
@@ -540,7 +560,7 @@ func flattenArmSparkPoolLibraryRequirements(input *synapse.LibraryRequirements) 
 	}
 }
 
-func flattenSparkPoolSparkConfig(input *synapse.LibraryRequirements) []interface{} {
+func flattenSparkPoolSparkConfig(input *synapse.SparkConfigProperties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}

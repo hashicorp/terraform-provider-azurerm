@@ -48,7 +48,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctest%[1]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
@@ -61,7 +61,7 @@ resource "azurerm_mssql_elasticpool" "test" {
   name                = "acctest-pool-dtu-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  server_name         = azurerm_sql_server.test.name
+  server_name         = azurerm_mssql_server.test.name
   max_size_gb         = 50
   zone_redundant      = false
 
@@ -81,7 +81,7 @@ resource "azurerm_mssql_elasticpool" "test" {
 data "azurerm_mssql_elasticpool" "test" {
   name                = azurerm_mssql_elasticpool.test.name
   resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_sql_server.test.name
+  server_name         = azurerm_mssql_server.test.name
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

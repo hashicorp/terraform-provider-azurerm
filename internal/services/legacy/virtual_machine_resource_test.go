@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -110,14 +111,42 @@ func (VirtualMachineResource) Exists(ctx context.Context, clients *clients.Clien
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (VirtualMachineResource) managedDiskExists(diskId *string, shouldExist bool) acceptance.ClientCheckFunc {
+func (VirtualMachineResource) managedDiskDelete(diskId *string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.ManagedDiskID(*diskId)
+		id, err := disks.ParseDiskID(*diskId)
 		if err != nil {
 			return err
 		}
 
-		disk, err := clients.Legacy.DisksClient.Get(ctx, id.ResourceGroup, id.DiskName)
+		disk, err := clients.Legacy.DisksClient.Get(ctx, id.ResourceGroupName, id.DiskName)
+		if err != nil {
+			if utils.ResponseWasNotFound(disk.Response) {
+				return fmt.Errorf("disk %s does not exist", *id)
+			}
+			return err
+		}
+
+		future, err := clients.Legacy.DisksClient.Delete(ctx, id.ResourceGroupName, id.DiskName)
+		if err != nil {
+			return fmt.Errorf("deleting disk %q: %s", id.String(), err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, clients.Legacy.DisksClient.Client); err != nil {
+			return fmt.Errorf("waiting for deletion of disk %q: %s", id.String(), err)
+		}
+
+		return nil
+	}
+}
+
+func (VirtualMachineResource) managedDiskExists(diskId *string, shouldExist bool) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		id, err := disks.ParseDiskID(*diskId)
+		if err != nil {
+			return err
+		}
+
+		disk, err := clients.Legacy.DisksClient.Get(ctx, id.ResourceGroupName, id.DiskName)
 		if err != nil {
 			if utils.ResponseWasNotFound(disk.Response) {
 				if !shouldExist {
@@ -285,7 +314,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -370,7 +399,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -469,7 +498,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -576,7 +605,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -682,7 +711,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {

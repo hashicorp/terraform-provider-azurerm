@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceNotificationHub() *pluginsdk.Resource {
@@ -83,7 +82,7 @@ func dataSourceNotificationHub() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -94,42 +93,48 @@ func dataSourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewNotificationHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	id := notificationhubs.NewNotificationHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	credentials, err := client.GetPnsCredentials(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	credentials, err := client.GetPnsCredentials(ctx, id)
 	if err != nil {
 		return fmt.Errorf("retrieving credentials for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
+	d.Set("name", id.NotificationHubName)
 	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if credentialsModel := credentials.Model; credentialsModel != nil {
+		if props := credentialsModel.Properties; props != nil {
+			apns := flattenNotificationHubsDataSourceAPNSCredentials(props.ApnsCredential)
+			if setErr := d.Set("apns_credential", apns); setErr != nil {
+				return fmt.Errorf("setting `apns_credential`: %+v", err)
+			}
 
-	if props := credentials.PnsCredentialsProperties; props != nil {
-		apns := flattenNotificationHubsDataSourceAPNSCredentials(props.ApnsCredential)
-		if setErr := d.Set("apns_credential", apns); setErr != nil {
-			return fmt.Errorf("setting `apns_credential`: %+v", err)
-		}
-
-		gcm := flattenNotificationHubsDataSourceGCMCredentials(props.GcmCredential)
-		if setErr := d.Set("gcm_credential", gcm); setErr != nil {
-			return fmt.Errorf("setting `gcm_credential`: %+v", err)
+			gcm := flattenNotificationHubsDataSourceGCMCredentials(props.GcmCredential)
+			if setErr := d.Set("gcm_credential", gcm); setErr != nil {
+				return fmt.Errorf("setting `gcm_credential`: %+v", err)
+			}
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		return d.Set("tags", tags.Flatten(model.Tags))
+	}
+
+	return nil
 }
 
 func flattenNotificationHubsDataSourceAPNSCredentials(input *notificationhubs.ApnsCredential) []interface{} {
@@ -139,29 +144,31 @@ func flattenNotificationHubsDataSourceAPNSCredentials(input *notificationhubs.Ap
 
 	output := make(map[string]interface{})
 
-	if bundleId := input.AppName; bundleId != nil {
-		output["bundle_id"] = *bundleId
-	}
-
-	if endpoint := input.Endpoint; endpoint != nil {
-		applicationEndpoints := map[string]string{
-			"https://api.push.apple.com:443/3/device":             "Production",
-			"https://api.development.push.apple.com:443/3/device": "Sandbox",
+	if props := input.Properties; props != nil {
+		if bundleId := props.AppName; bundleId != nil {
+			output["bundle_id"] = *bundleId
 		}
-		applicationMode := applicationEndpoints[*endpoint]
-		output["application_mode"] = applicationMode
-	}
 
-	if keyId := input.KeyID; keyId != nil {
-		output["key_id"] = *keyId
-	}
+		if endpoint := props.Endpoint; endpoint != nil {
+			applicationEndpoints := map[string]string{
+				"https://api.push.apple.com:443/3/device":             "Production",
+				"https://api.development.push.apple.com:443/3/device": "Sandbox",
+			}
+			applicationMode := applicationEndpoints[*endpoint]
+			output["application_mode"] = applicationMode
+		}
 
-	if teamId := input.AppID; teamId != nil {
-		output["team_id"] = *teamId
-	}
+		if keyId := props.KeyId; keyId != nil {
+			output["key_id"] = *keyId
+		}
 
-	if token := input.Token; token != nil {
-		output["token"] = *token
+		if teamId := props.AppId; teamId != nil {
+			output["team_id"] = *teamId
+		}
+
+		if token := props.Token; token != nil {
+			output["token"] = *token
+		}
 	}
 
 	return []interface{}{output}
@@ -173,8 +180,8 @@ func flattenNotificationHubsDataSourceGCMCredentials(input *notificationhubs.Gcm
 	}
 
 	output := make(map[string]interface{})
-	if props := input.GcmCredentialProperties; props != nil {
-		if apiKey := props.GoogleAPIKey; apiKey != nil {
+	if props := input.Properties; props != nil {
+		if apiKey := props.GoogleApiKey; apiKey != nil {
 			output["api_key"] = *apiKey
 		}
 	}

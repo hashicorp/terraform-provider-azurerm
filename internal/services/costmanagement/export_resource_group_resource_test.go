@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -79,17 +79,18 @@ func TestAccResourceGroupCostManagementExport_requiresImport(t *testing.T) {
 }
 
 func (t ResourceGroupCostManagementExport) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CostManagementExportID(state.ID)
+	id, err := exports.ParseScopedExportID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.CostManagement.ExportClient.Get(ctx, id.Scope, id.Name, "")
+	var opts exports.GetOperationOptions
+	resp, err := clients.CostManagement.ExportClient.Get(ctx, *id, opts)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ExportProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ResourceGroupCostManagementExport) basic(data acceptance.TestData) string {

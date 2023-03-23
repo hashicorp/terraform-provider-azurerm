@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -20,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
@@ -45,7 +45,7 @@ func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
 }
 
 func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -60,90 +60,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: networkValidate.NetworkWatcherID,
 		},
 
-		"location": azure.SchemaLocation(),
-
-		"auto_start": {
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-		},
-
-		"interval_in_seconds": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.IntAtLeast(30),
-			Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-		},
-
-		"source": {
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			MaxItems:   1,
-			Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"virtual_machine_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: azure.ValidateResourceID,
-						Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-						AtLeastOneOf: []string{"source.0.virtual_machine_id", "source.0.port"},
-					},
-
-					"port": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validate.PortNumberOrZero,
-						Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-						AtLeastOneOf: []string{"source.0.virtual_machine_id", "source.0.port"},
-					},
-				},
-			},
-		},
-
-		"destination": {
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			MaxItems:   1,
-			Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"virtual_machine_id": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						Computed:      true,
-						ValidateFunc:  azure.ValidateResourceID,
-						ConflictsWith: []string{"destination.0.address"},
-						Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-						AtLeastOneOf:  []string{"destination.0.virtual_machine_id", "destination.0.address", "destination.0.port"},
-					},
-
-					"address": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						Computed:      true,
-						ConflictsWith: []string{"destination.0.virtual_machine_id"},
-						Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-						AtLeastOneOf:  []string{"destination.0.virtual_machine_id", "destination.0.address", "destination.0.port"},
-					},
-
-					"port": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validate.PortNumber,
-						Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-						AtLeastOneOf: []string{"destination.0.virtual_machine_id", "destination.0.address", "destination.0.port"},
-					},
-				},
-			},
-		},
+		"location": commonschema.Location(),
 
 		"endpoint": {
 			Type:     pluginsdk.TypeSet,
@@ -251,7 +168,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 						Computed: true,
 						ValidateFunc: validation.Any(
 							computeValidate.VirtualMachineID,
-							logAnalyticsValidate.LogAnalyticsWorkspaceID,
+							workspaces.ValidateWorkspaceID,
 							networkValidate.SubnetID,
 							networkValidate.VirtualNetworkID,
 						),
@@ -384,7 +301,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 
-					//lintignore:XS003
+					// lintignore:XS003
 					"success_threshold": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -506,24 +423,12 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 		},
 
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		s := out["endpoint"].Elem.(*pluginsdk.Resource)
-		s.Schema["virtual_machine_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: computeValidate.VirtualMachineID,
-			Deprecated:   "This property has been renamed to `target_resource_id` and will be removed in v3.0 of the provider.",
-		}
-	}
-
-	return out
 }
 
 func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -564,11 +469,7 @@ func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, met
 		},
 	}
 
-	if v, err := expandNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*pluginsdk.Set).List()); err == nil {
-		properties.ConnectionMonitorParameters.Endpoints = v
-	} else {
-		return err
-	}
+	properties.ConnectionMonitorParameters.Endpoints = expandNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*pluginsdk.Set).List())
 
 	if notes, ok := d.GetOk("notes"); ok {
 		properties.Notes = utils.String(notes.(string))
@@ -667,17 +568,11 @@ func resourceNetworkConnectionMonitorDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.ConnectionMonitorEndpoint, error) {
+func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]network.ConnectionMonitorEndpoint {
 	results := make([]network.ConnectionMonitorEndpoint, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-
-		if !features.ThreePointOhBeta() {
-			if v["target_resource_id"] != nil && v["target_resource_id"].(string) != "" && v["virtual_machine_id"] != nil && v["virtual_machine_id"].(string) != "" {
-				return nil, fmt.Errorf("`target_resource_id` and `virtual_machine_id` cannot be set together")
-			}
-		}
 
 		result := network.ConnectionMonitorEndpoint{
 			Name:   utils.String(v["name"].(string)),
@@ -726,16 +621,10 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) (*[]network.Con
 			result.Type = network.EndpointType(endpointType.(string))
 		}
 
-		if !features.ThreePointOhBeta() {
-			if vmId := v["virtual_machine_id"]; vmId != "" {
-				result.ResourceID = utils.String(vmId.(string))
-			}
-		}
-
 		results = append(results, result)
 	}
 
-	return &results, nil
+	return &results
 }
 
 func expandNetworkConnectionMonitorEndpointFilter(input []interface{}) *network.ConnectionMonitorEndpointFilter {

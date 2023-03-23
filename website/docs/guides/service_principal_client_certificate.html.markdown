@@ -14,6 +14,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 * [Authenticating to Azure using Managed Service Identity](managed_service_identity.html)
 * Authenticating to Azure using a Service Principal and a Client Certificate (which is covered in this guide)
 * [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
+* [Authenticating to Azure using a Service Principal and OpenID Connect](service_principal_oidc.html)
 
 ---
 
@@ -23,45 +24,39 @@ We recommend using either a Service Principal or Managed Service Identity when r
 
 ## Setting up an Application and Service Principal
 
-A Service Principal is a security principal within Azure Active Directory which can be granted access to resources within Azure Subscriptions. To authenticate with a Service Principal, you will need to create an Application object within Azure Active Directory, which you will use as a means of authentication, either [using a Client Secret](service_principal_client_secret.html) or a Client Certificate (which is documented in this guide). This can be done using the Azure Portal.
+A Service Principal is a security principal within Azure Active Directory which can be granted access to resources within Azure Subscriptions. To authenticate with a Service Principal, you will need to create an Application object within Azure Active Directory, which you will use as a means of authentication, either [using a Client Secret](service_principal_client_secret.html), a Client Certificate (which is documented in this guide), or [OpenID Connect](service_principal_oidc.html). This can be done using the Azure Portal.
 
-This guide will cover how to generate a client certificate, how to create an Application and linked Service Principal, and then how to assign the Client Certificate to the Application so that it can be used for authentication. Once that's done finally we're going to grant the Service Principal permission to manage resources in the Subscription - to do this we're going to assign `Contributor` rights to the Subscription - however, [it's possible to assign other permissions](https://azure.microsoft.com/en-gb/documentation/articles/role-based-access-built-in-roles/) depending on your configuration.
+This guide will cover how to generate a client certificate, how to create an Application and linked Service Principal, and then how to assign the Client Certificate to the Application so that it can be used for authentication. Once that's done finally we're going to grant the Service Principal permission to manage resources in the Subscription - to do this we're going to assign `Contributor` rights to the Subscription - however, [it's possible to assign other permissions](https://docs.microsoft.com/azure/role-based-access-control/built-in-roles) depending on your configuration.
 
 ---
 
 ## Generating a Client Certificate
 
-Firstly we need to create a certificate which can be used for authentication. To do that we're going to generate a Certificate Signing Request (also known as a CSR) using `openssl` (this can also be achieved using PowerShell, however, that's outside the scope of this document):
+Firstly we need to create a certificate which can be used for authentication. To do that we're going to generate a private key and self-signed certificate using OpenSSL or LibreSSL (this can also be achieved using PowerShell, however that's outside the scope of this document):
 
 ```shell
-$ openssl req -newkey rsa:4096 -nodes -keyout "service-principal.key" -out "service-principal.csr"
+$ openssl req -subj '/CN=myclientcertificate/O=MyCompany, Inc./ST=CA/C=US' \
+    -new -newkey rsa:4096 -sha256 -days 730 -nodes -x509 -keyout client.key -out client.crt
 ```
 
--> During the generation of the certificate you'll be prompted for various bits of information required for the certificate signing request - at least one item has to be specified for this to complete.
-
-We can now sign that Certificate Signing Request, in this example we're going to self-sign this certificate using the Key we just generated; however it's also possible to do this using a Certificate Authority. In order to do that we're again going to use `openssl`:
+Next we generate a PKCS#12 bundle (.pfx file) which can be used by the AzureRM provider to authenticate with Azure:
 
 ```shell
-$ openssl x509 -signkey "service-principal.key" -in "service-principal.csr" -req -days 365 -out "service-principal.crt"
-```
-
-Finally we can generate a PFX file which can be used to authenticate with Azure:
-
-```shell
-$ openssl pkcs12 -export -out "service-principal.pfx" -inkey "service-principal.key" -in "service-principal.crt"
+# note: the password is intentionally quoted for shell compatibility, the value does not include the quotes
+$ openssl pkcs12 -export -password pass:"Pa55w0rd123" -out client.pfx -inkey client.key -in client.crt
 ```
 
 Now that we've generated a certificate, we can create the Azure Active Directory Application.
 
 ---
 
-### Creating the Application and Service Principal
+## Creating the Application and Service Principal
 
 We're going to create the Application in the Azure Portal - to do this navigate to [the **Azure Active Directory** overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) within the Azure Portal - [then select the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview). Click the **New registration** button at the top to add a new Application within Azure Active Directory. On this page, set the following values then press **Create**:
 
-- **Name** - this is a friendly identifier and can be anything (e.g. "Terraform")
-- **Supported Account Types** - this should be set to "Accounts in this organizational directory only (single-tenant)"
-- **Redirect URI** - you should choose "Web" for the URI type. the actual value can be left blank
+* **Name** - this is a friendly identifier and can be anything (e.g. "Terraform")
+* **Supported Account Types** - this should be set to "Accounts in this organizational directory only (single-tenant)"
+* **Redirect URI** - you should choose "Web" for the URI type. the actual value can be left blank
 
 At this point the newly created Azure Active Directory application should be visible on-screen - if it's not, navigate to the [the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) and select the Azure Active Directory application.
 
@@ -77,7 +72,7 @@ The Public Key associated with the generated Certificate can be uploaded by sele
 
 Now that we've created the Application within Azure Active Directory and assigned the certificate we're using for authentication, we can now grant the Application permissions to manage the Subscription via its linked Service Principal. To do this, [navigate to the **Subscriptions** blade within the Azure Portal](https://portal.azure.com/#blade/Microsoft_Azure_Billing/SubscriptionsBlade), select the Subscription you wish to use, then click **Access Control (IAM)** and finally **Add** > **Add role assignment**.
 
-Firstly, specify a Role which grants the appropriate permissions needed for the Service Principal (for example, `Contributor` will grant Read/Write on all resources in the Subscription). More information about [the built in roles can be found here](https://azure.microsoft.com/en-gb/documentation/articles/role-based-access-built-in-roles/).
+Firstly, specify a Role which grants the appropriate permissions needed for the Service Principal (for example, `Contributor` will grant Read/Write on all resources in the Subscription). More information about [the built in roles can be found here](https://docs.microsoft.com/azure/role-based-access-control/built-in-roles).
 
 Secondly, search for and select the name of the Service Principal created in Azure Active Directory to assign it this role - then press **Save**.
 
@@ -85,21 +80,53 @@ At this point the newly created Azure Active Directory Application should be ass
 
 ---
 
-### Configuring the Service Principal in Terraform
+## Configuring Terraform to use the Client Certificate
 
-As we've obtained the credentials for this Service Principal - it's possible to configure them in a few different ways.
+Now that we have our Client Certificate uploaded to Azure and ready to use, it's possible to configure Terraform in a few different ways.
 
-When storing the credentials as Environment Variables, for example:
+The provider can be configured to read the certificate bundle from the .pfx file in your filesystem, or alternatively you can pass a base64-encoded copy of the certificate bundle directly to the provider.
 
-```bash
+### Environment Variables
+
+Our recommended approach is storing the credentials as Environment Variables, for example:
+
+*Reading the certificate bundle from the filesystem*
+```shell-session
+# sh
 $ export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
 $ export ARM_CLIENT_CERTIFICATE_PATH="/path/to/my/client/certificate.pfx"
 $ export ARM_CLIENT_CERTIFICATE_PASSWORD="Pa55w0rd123"
-$ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
-$ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
+$ export ARM_TENANT_ID="10000000-0000-0000-0000-000000000000"
+$ export ARM_SUBSCRIPTION_ID="20000000-0000-0000-0000-000000000000"
+```
+```powershell
+# PowerShell
+> $env:ARM_CLIENT_ID = "00000000-0000-0000-0000-000000000000"
+> $env:ARM_CLIENT_CERTIFICATE_PATH = "C:\Users\myusername\Documents\my\client\certificate.pfx"
+> $env:ARM_CLIENT_CERTIFICATE_PASSWORD = "Pa55w0rd123"
+> $env:ARM_TENANT_ID = "10000000-0000-0000-0000-000000000000"
+> $env:ARM_SUBSCRIPTION_ID = "20000000-0000-0000-0000-000000000000"
 ```
 
-The following Terraform and Provider blocks can be specified - where `2.46.0` is the version of the Azure Provider that you'd like to use:
+*Passing the encoded certificate bundle directly*
+```shell-session
+# sh
+$ export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
+$ export ARM_CLIENT_CERTIFICATE="$(base64 /path/to/my/client/certificate.pfx)"
+$ export ARM_CLIENT_CERTIFICATE_PASSWORD="Pa55w0rd123"
+$ export ARM_TENANT_ID="10000000-0000-0000-0000-000000000000"
+$ export ARM_SUBSCRIPTION_ID="20000000-0000-0000-0000-000000000000"
+```
+```powershell
+# PowerShell
+> $env:ARM_CLIENT_ID = "00000000-0000-0000-0000-000000000000"
+> $env:ARM_CLIENT_CERTIFICATE = [Convert]::ToBase64String([System.IO.File]::ReadAllBytes("C:\Users\myusername\Documents\my\client\certificate.pfx"))
+> $env:ARM_CLIENT_CERTIFICATE_PASSWORD = "Pa55w0rd123"
+> $env:ARM_TENANT_ID = "10000000-0000-0000-0000-000000000000"
+> $env:ARM_SUBSCRIPTION_ID = "20000000-0000-0000-0000-000000000000"
+```
+
+The following Terraform and Provider blocks can be specified - where `3.0.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
 # We strongly recommend using the required_providers block to set the
@@ -108,7 +135,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.46.0"
+      version = "=3.0.0"
     }
   }
 }
@@ -123,14 +150,15 @@ More information on [the fields supported in the Provider block can be found her
 
 At this point running either `terraform plan` or `terraform apply` should allow Terraform to run using the Service Principal to authenticate.
 
----
+### Provider Block
 
-It's also possible to configure these variables either in-line or from using variables in Terraform (as the `client_certificate_path` and `client_certificate_password` are in this example), like so:
+It's also possible to configure these variables either directly, or from variables, in your provider block, like so:
 
-~> **NOTE:** We'd recommend not defining these variables in-line since they could easily be checked into Source Control.
+!> **Caution** We recommend not defining these variables in-line since they could easily be checked into Source Control.
 
+*Reading the certificate bundle from the filesystem*
 ```hcl
-variable "client_certificate_path" {}
+variable "client_certificate" {}
 variable "client_certificate_password" {}
 
 # We strongly recommend using the required_providers block to set the
@@ -139,7 +167,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.46.0"
+      version = "=3.0.0"
     }
   }
 }
@@ -148,11 +176,39 @@ terraform {
 provider "azurerm" {
   features {}
 
-  subscription_id             = "00000000-0000-0000-0000-000000000000"
   client_id                   = "00000000-0000-0000-0000-000000000000"
   client_certificate_path     = var.client_certificate_path
   client_certificate_password = var.client_certificate_password
-  tenant_id                   = "00000000-0000-0000-0000-000000000000"
+  tenant_id                   = "10000000-0000-0000-0000-000000000000"
+  subscription_id             = "20000000-0000-0000-0000-000000000000"
+}
+```
+
+*Passing the encoded certificate bundle directly*
+```hcl
+variable "client_certificate" {}
+variable "client_certificate_password" {}
+
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=3.43.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
+provider "azurerm" {
+  features {}
+
+  client_id                   = "00000000-0000-0000-0000-000000000000"
+  client_certificate          = var.client_certificate
+  client_certificate_password = var.client_certificate_password
+  tenant_id                   = "10000000-0000-0000-0000-000000000000"
+  subscription_id             = "20000000-0000-0000-0000-000000000000"
 }
 ```
 

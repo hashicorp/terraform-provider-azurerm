@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KustoEventGridDataConnectionResource struct{}
@@ -54,6 +53,7 @@ func TestAccKustoEventGridDataConnection_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("database_routing_type").HasValue("Multi"),
 			),
 		},
 		data.ImportStep(),
@@ -67,6 +67,36 @@ func TestAccKustoEventGridDataConnection_mappingRule(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.mappingRule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKustoEventGridDataConnection_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
+	r := KustoEventGridDataConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKustoEventGridDataConnection_systemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
+	r := KustoEventGridDataConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -105,22 +135,28 @@ func TestAccKustoEventGridDataConnection_update(t *testing.T) {
 }
 
 func (KustoEventGridDataConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DataConnectionID(state.ID)
+	id, err := dataconnections.ParseDataConnectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Kusto.DataConnectionsClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
+	resp, err := clients.Kusto.DataConnectionsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	value, ok := resp.Value.AsEventGridDataConnection()
-	if !ok {
-		return nil, fmt.Errorf("%s is not an Event Grid Data Connection", id.String())
-	}
+	if resp.Model != nil {
+		value, ok := (*resp.Model).(dataconnections.EventGridDataConnection)
+		if !ok {
+			return nil, fmt.Errorf("%s is not an Event Grid Data Connection", id.String())
+		}
 
-	return utils.Bool(value.EventGridConnectionProperties != nil), nil
+		exists := value.Properties != nil
+
+		return &exists, nil
+	} else {
+		return nil, fmt.Errorf("response model is empty")
+	}
 }
 
 func (r KustoEventGridDataConnectionResource) basic(data acceptance.TestData) string {
@@ -176,6 +212,9 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
   blob_storage_event_type = "Microsoft.Storage.BlobRenamed"
   skip_first_record       = true
 
+  database_routing_type = "Multi"
+  eventgrid_resource_id = azurerm_eventgrid_event_subscription.test.id
+
   depends_on = [azurerm_eventgrid_event_subscription.test]
 }
 `, r.template(data), data.RandomInteger)
@@ -206,6 +245,42 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r KustoEventGridDataConnectionResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_kusto_eventgrid_data_connection" "test" {
+  name                         = "acctestkrgdc-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  cluster_name                 = azurerm_kusto_cluster.test.name
+  database_name                = azurerm_kusto_database.test.name
+  storage_account_id           = azurerm_storage_account.test.id
+  eventhub_id                  = azurerm_eventhub.test.id
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
+  managed_identity_resource_id = azurerm_user_assigned_identity.test.id
+  depends_on                   = [azurerm_eventgrid_event_subscription.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r KustoEventGridDataConnectionResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_kusto_eventgrid_data_connection" "test" {
+  name                         = "acctestkrgdc-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  cluster_name                 = azurerm_kusto_cluster.test.name
+  database_name                = azurerm_kusto_database.test.name
+  storage_account_id           = azurerm_storage_account.test.id
+  eventhub_id                  = azurerm_eventhub.test.id
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
+  managed_identity_resource_id = azurerm_kusto_cluster.test.id
+  depends_on                   = [azurerm_eventgrid_event_subscription.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (KustoEventGridDataConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -217,6 +292,12 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
   location            = azurerm_resource_group.test.location
@@ -224,6 +305,11 @@ resource "azurerm_kusto_cluster" "test" {
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
+  }
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
 
@@ -276,5 +362,5 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     max_delivery_attempts = 10
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

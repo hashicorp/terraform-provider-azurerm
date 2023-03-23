@@ -45,6 +45,21 @@ func TestAccMonitorPrivateLinkScopedService_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccMonitorPrivateLinkScopedService_dataCollectionEndpoint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_private_link_scoped_service", "test")
+	r := MonitorPrivateLinkScopedServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dataCollectionEndpoint(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r MonitorPrivateLinkScopedServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PrivateLinkScopedServiceID(state.ID)
 	if err != nil {
@@ -105,4 +120,36 @@ resource "azurerm_monitor_private_link_scoped_service" "import" {
   linked_resource_id  = azurerm_monitor_private_link_scoped_service.test.linked_resource_id
 }
 `, r.basic(data))
+}
+
+func (r MonitorPrivateLinkScopedServiceResource) dataCollectionEndpoint(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-plss-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_data_collection_endpoint" "test" {
+  name                          = "acctest-dce-%d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  public_network_access_enabled = false
+}
+
+resource "azurerm_monitor_private_link_scope" "test" {
+  name                = "acctest-pls-%d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_monitor_private_link_scoped_service" "test" {
+  name                = "acctest-plss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  scope_name          = azurerm_monitor_private_link_scope.test.name
+  linked_resource_id  = azurerm_monitor_data_collection_endpoint.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

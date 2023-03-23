@@ -4,14 +4,24 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/applicationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/workspace"
 )
 
-var _ resourceid.Formatter = WorkspaceApplicationGroupAssociationId{}
+var _ resourceids.Id = WorkspaceApplicationGroupAssociationId{}
 
 type WorkspaceApplicationGroupAssociationId struct {
-	Workspace        WorkspaceId
-	ApplicationGroup ApplicationGroupId
+	Workspace        workspace.WorkspaceId
+	ApplicationGroup applicationgroup.ApplicationGroupId
+}
+
+func (id WorkspaceApplicationGroupAssociationId) String() string {
+	components := []string{
+		fmt.Sprintf("Workspace %s", id.Workspace.String()),
+		fmt.Sprintf("Application Group %s", id.ApplicationGroup.String()),
+	}
+	return fmt.Sprintf("Workspace Application Group Association %s", strings.Join(components, " / "))
 }
 
 func (id WorkspaceApplicationGroupAssociationId) ID() string {
@@ -20,7 +30,7 @@ func (id WorkspaceApplicationGroupAssociationId) ID() string {
 	return fmt.Sprintf("%s|%s", workspaceId, applicationGroupId)
 }
 
-func NewWorkspaceApplicationGroupAssociationId(workspace WorkspaceId, applicationGroup ApplicationGroupId) WorkspaceApplicationGroupAssociationId {
+func NewWorkspaceApplicationGroupAssociationId(workspace workspace.WorkspaceId, applicationGroup applicationgroup.ApplicationGroupId) WorkspaceApplicationGroupAssociationId {
 	return WorkspaceApplicationGroupAssociationId{
 		Workspace:        workspace,
 		ApplicationGroup: applicationGroup,
@@ -33,12 +43,12 @@ func WorkspaceApplicationGroupAssociationID(input string) (*WorkspaceApplication
 		return nil, fmt.Errorf("expected an ID in the format {workspaceID}|{applicationGroupID} but got %q", input)
 	}
 
-	workspaceId, err := WorkspaceID(segments[0])
+	workspaceId, err := workspace.ParseWorkspaceID(segments[0])
 	if err != nil {
 		return nil, fmt.Errorf("parsing Workspace ID for Workspace/Application Group Association %q: %+v", segments[0], err)
 	}
 
-	applicationGroupId, err := ApplicationGroupID(segments[1])
+	applicationGroupId, err := applicationgroup.ParseApplicationGroupID(segments[1])
 	if err != nil {
 		return nil, fmt.Errorf("parsing Application Group ID for Workspace/Application Group Association %q: %+v", segments[1], err)
 	}
@@ -55,12 +65,12 @@ func WorkspaceApplicationGroupAssociationIDInsensitively(input string) (*Workspa
 		return nil, fmt.Errorf("expected an ID in the format {workspaceID}|{applicationGroupID} but got %q", input)
 	}
 
-	workspaceId, err := WorkspaceID(segments[0])
+	workspaceId, err := workspace.ParseWorkspaceIDInsensitively(segments[0])
 	if err != nil {
 		return nil, fmt.Errorf("parsing Workspace ID for Workspace/Application Group Association %q: %+v", segments[0], err)
 	}
 
-	applicationGroupId, err := ApplicationGroupIDInsensitively(segments[1])
+	applicationGroupId, err := applicationgroup.ParseApplicationGroupIDInsensitively(segments[1])
 	if err != nil {
 		return nil, fmt.Errorf("parsing Application Group ID for Workspace/Application Group Association %q: %+v", segments[1], err)
 	}

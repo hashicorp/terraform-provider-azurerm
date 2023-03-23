@@ -99,10 +99,9 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_odbc" "test" {
-  name                = "acctestlsodbc%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "Driver={SQL Server};Server=test;Database=test;Uid=test;Pwd=test;"
+  name              = "acctestlsodbc%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "Driver={SQL Server};Server=test;Database=test;Uid=test;Pwd=test;"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -125,10 +124,9 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_odbc" "test" {
-  name                = "acctestlsodbc%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "Driver={SQL Server};Server=test;Database=test;Uid=test;Pwd=test;"
+  name              = "acctestlsodbc%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "Driver={SQL Server};Server=test;Database=test;Uid=test;Pwd=test;"
   basic_authentication {
     username = "onrylmz"
     password = "Ch4ngeM3!"
@@ -155,12 +153,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_odbc" "test" {
-  name                = "acctestlsodbc%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "Driver={SQL Server};Server=test;Database=test;Uid=test;Pwd=test;"
-  annotations         = ["test1", "test2", "test3"]
-  description         = "test description"
+  name              = "acctestlsodbc%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "Driver={SQL Server};Server=test;Database=test;Uid=test;Pwd=test;"
+  annotations       = ["test1", "test2", "test3"]
+  description       = "test description"
 
   parameters = {
     foo = "test1"
@@ -193,12 +190,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_odbc" "test" {
-  name                = "acctestlsodbc%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "Driver={SQL Server};Server=test;Database=test;Uid=test;Pwd=test;"
-  annotations         = ["test1", "test2"]
-  description         = "Test Description 2"
+  name              = "acctestlsodbc%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "Driver={SQL Server};Server=test;Database=test;Uid=test;Pwd=test;"
+  annotations       = ["test1", "test2"]
+  description       = "Test Description 2"
 
   parameters = {
     foo  = "Test1"

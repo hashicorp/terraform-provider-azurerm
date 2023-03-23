@@ -38,6 +38,7 @@ resource "azurerm_service_fabric_cluster" "example" {
 }
 
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -82,11 +83,11 @@ The following arguments are supported:
 
 -> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
 
-* `diagnostics_config` - (Optional) A `diagnostics_config` block as defined below. Changing this forces a new resource to be created.
+* `diagnostics_config` - (Optional) A `diagnostics_config` block as defined below.
 
 * `fabric_settings` - (Optional) One or more `fabric_settings` blocks as defined below.
 
-* `upgrade_policy` - (optional) A `upgrade_policy` block as defined below.
+* `upgrade_policy` - (Optional) A `upgrade_policy` block as defined below.
 
 * `service_fabric_zonal_upgrade_mode` - (Optional) Specifies the logical grouping of VMs in upgrade domains. Possible values are `Hierarchical` or `Parallel`.
 
@@ -120,7 +121,7 @@ A `common_names` block supports the following:
 
 * `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
 
--> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
+-> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
 ---
 
@@ -128,7 +129,7 @@ A `certificate` block supports the following:
 
 * `thumbprint` - (Required) The Thumbprint of the Certificate.
 
-* `thumbprint_secondary` - (Required) The Secondary Thumbprint of the Certificate.
+* `thumbprint_secondary` - (Optional) The Secondary Thumbprint of the Certificate.
 
 * `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
 
@@ -138,7 +139,7 @@ A `reverse_proxy_certificate` block supports the following:
 
 * `thumbprint` - (Required) The Thumbprint of the Certificate.
 
-* `thumbprint_secondary` - (Required) The Secondary Thumbprint of the Certificate.
+* `thumbprint_secondary` - (Optional) The Secondary Thumbprint of the Certificate.
 
 * `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
 
@@ -164,9 +165,9 @@ A `client_certificate_common_name` block supports the following:
 
 * `common_name` - (Required) The common or subject name of the certificate.
 
-* `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
+* `issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
 
--> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
+-> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
 * `is_admin` - (Required) Does the Client Certificate have Admin Access to the cluster? Non-admin clients can only perform read only operations on the cluster.
 
@@ -196,7 +197,7 @@ A `fabric_settings` block supports the following:
 
 A `node_type` block supports the following:
 
-* `name` - (Required) The name of the Node Type. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Node Type. 
 
 * `placement_properties` - (Optional) The placement tags applied to nodes in the node type, which can be used to indicate where certain services (workload) should run.
 
@@ -204,23 +205,23 @@ A `node_type` block supports the following:
 
 * `instance_count` - (Required) The number of nodes for this Node Type.
 
-* `is_primary` - (Required) Is this the Primary Node Type? Changing this forces a new resource to be created.
+* `is_primary` - (Required) Is this the Primary Node Type? 
 
 * `is_stateless` - (Optional) Should this node type run only stateless services?
 
 * `multiple_availability_zones` - (Optional) Does this node type span availability zones?
 
-* `client_endpoint_port` - (Required) The Port used for the Client Endpoint for this Node Type. Changing this forces a new resource to be created.
+* `client_endpoint_port` - (Required) The Port used for the Client Endpoint for this Node Type. 
 
-* `http_endpoint_port` - (Required) The Port used for the HTTP Endpoint for this Node Type. Changing this forces a new resource to be created.
+* `http_endpoint_port` - (Required) The Port used for the HTTP Endpoint for this Node Type. 
 
-* `durability_level` - (Optional) The Durability Level for this Node Type. Possible values include `Bronze`, `Gold` and `Silver`. Defaults to `Bronze`. Changing this forces a new resource to be created.
+* `durability_level` - (Optional) The Durability Level for this Node Type. Possible values include `Bronze`, `Gold` and `Silver`. Defaults to `Bronze`. 
 
 * `application_ports` - (Optional) A `application_ports` block as defined below.
 
 * `ephemeral_ports` - (Optional) A `ephemeral_ports` block as defined below.
 
-* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint  for this Node Type. Changing this will upgrade the cluster.
+* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint for this Node Type. Changing this will upgrade the cluster.
 
 ---
 
@@ -242,7 +243,7 @@ A `ephemeral_ports` block supports the following:
 
 A `upgrade_policy` block supports the following:
 
-* `force_restart` - (Optional) Indicates whether to restart the Service Fabric node even if only dynamic configurations have changed.
+* `force_restart_enabled` - (Optional) Indicates whether to restart the Service Fabric node even if only dynamic configurations have changed.
 
 * `health_check_retry_timeout` - (Optional) Specifies the duration, in "hh:mm:ss" string format, after which Service Fabric retries the health check if the previous health check fails. Defaults to `00:45:00`.
 
@@ -264,19 +265,19 @@ A `upgrade_policy` block supports the following:
 
 A `health_policy` block supports the following:
 
-* `max_percent_unhealthy_applications` - (Optional) Specifies the maximum tolerated percentage of applications that can have aggregated health state of error. If the upgrade exceeds this percentage, the cluster is unhealthy. Defaults to `0`.
+* `max_unhealthy_applications_percent` - (Optional) Specifies the maximum tolerated percentage of applications that can have aggregated health state of error. If the upgrade exceeds this percentage, the cluster is unhealthy. Defaults to `0`.
 
-* `max_percent_unhealthy_nodes` - (Optional) Specifies the maximum tolerated percentage of nodes that can have aggregated health states of error. If an upgrade exceeds this percentage, the cluster is unhealthy. Defaults to `0`.
+* `max_unhealthy_nodes_percent` - (Optional) Specifies the maximum tolerated percentage of nodes that can have aggregated health states of error. If an upgrade exceeds this percentage, the cluster is unhealthy. Defaults to `0`.
 
 ---
 
 A `delta_health_policy` block supports the following:
 
-* `max_percent_unhealthy_applications` - (Optional) Specifies the maximum tolerated percentage of delta unhealthy applications that can have aggregated health states of error. If the current unhealthy applications do not respect the percentage relative to the state at the beginning of the upgrade, the cluster is unhealthy. Defaults to `0`.
+* `max_delta_unhealthy_applications_percent` - (Optional) Specifies the maximum tolerated percentage of delta unhealthy applications that can have aggregated health states of error. If the current unhealthy applications do not respect the percentage relative to the state at the beginning of the upgrade, the cluster is unhealthy. Defaults to `0`.
 
-* `max_percent_unhealthy_nodes` - (Optional) Specifies the maximum tolerated percentage of delta unhealthy nodes that can have aggregated health states of error. If the current unhealthy nodes do not respect the percentage relative to the state at the beginning of the upgrade, the cluster is unhealthy. Defaults to `0`.
+* `max_delta_unhealthy_nodes_percent` - (Optional) Specifies the maximum tolerated percentage of delta unhealthy nodes that can have aggregated health states of error. If the current unhealthy nodes do not respect the percentage relative to the state at the beginning of the upgrade, the cluster is unhealthy. Defaults to `0`.
 
-* `max_percent_upgrade_domain_delta_unhealthy_nodes` - (Optional) Specifies the maximum tolerated percentage of upgrade domain delta unhealthy nodes that can have aggregated health state of error. If there is any upgrade domain where the current unhealthy nodes do not respect the percentage relative to the state at the beginning of the upgrade, the cluster is unhealthy. Defaults to `0`.
+* `max_upgrade_domain_delta_unhealthy_nodes_percent` - (Optional) Specifies the maximum tolerated percentage of upgrade domain delta unhealthy nodes that can have aggregated health state of error. If there is any upgrade domain where the current unhealthy nodes do not respect the percentage relative to the state at the beginning of the upgrade, the cluster is unhealthy. Defaults to `0`.
 
 ## Attributes Reference
 
@@ -288,7 +289,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Service Fabric Cluster.
 * `update` - (Defaults to 30 minutes) Used when updating the Service Fabric Cluster.

@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -137,19 +138,19 @@ func TestAccWebPubsubHub_withMultipleEventhandlerSettingsUpdate(t *testing.T) {
 }
 
 func (r WebPubsubHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WebPubsubHubID(state.ID)
+	id, err := webpubsub.ParseHubID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.SignalR.WebPubsubHubsClient.Get(ctx, id.HubName, id.ResourceGroup, id.WebPubSubName)
+	resp, err := clients.SignalR.WebPubSubClient.WebPubSub.HubsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r WebPubsubHubResource) basic(data acceptance.TestData) string {
@@ -159,12 +160,6 @@ func (r WebPubsubHubResource) basic(data acceptance.TestData) string {
 resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
   web_pubsub_id = azurerm_web_pubsub.test.id
-
-  event_handler {
-    url_template       = "https://test.com/api/{hub}/{event}"
-    user_event_pattern = "*"
-    system_events      = ["connect", "connected"]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }

@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -21,10 +19,10 @@ func TestAccWatchlist_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_watchlist", "test")
 	r := WatchlistResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +34,10 @@ func TestAccWatchlist_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_watchlist", "test")
 	r := WatchlistResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +49,10 @@ func TestAccWatchlist_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_watchlist", "test")
 	r := WatchlistResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -62,7 +60,7 @@ func TestAccWatchlist_requiresImport(t *testing.T) {
 	})
 }
 
-func (r WatchlistResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r WatchlistResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Sentinel.WatchlistsClient
 
 	id, err := parse.WatchlistID(state.ID)
@@ -70,7 +68,7 @@ func (r WatchlistResource) Exists(ctx context.Context, clients *clients.Client, 
 		return nil, err
 	}
 
-	if resp, err := client.Get(ctx, id.ResourceGroup, sentinel.OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
+	if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
@@ -87,8 +85,9 @@ func (r WatchlistResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_sentinel_watchlist" "test" {
   name                       = "accTestWL-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "test"
+  item_search_key            = "Key"
 }
 `, template, data.RandomInteger)
 }
@@ -100,11 +99,12 @@ func (r WatchlistResource) complete(data acceptance.TestData) string {
 
 resource "azurerm_sentinel_watchlist" "test" {
   name                       = "accTestWL-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "test"
   description                = "description"
   labels                     = ["label1", "laebl2"]
   default_duration           = "P2DT3H"
+  item_search_key            = "Key"
 }
 `, template, data.RandomInteger)
 }
@@ -118,6 +118,7 @@ resource "azurerm_sentinel_watchlist" "import" {
   name                       = azurerm_sentinel_watchlist.test.name
   log_analytics_workspace_id = azurerm_sentinel_watchlist.test.log_analytics_workspace_id
   display_name               = azurerm_sentinel_watchlist.test.display_name
+  item_search_key            = azurerm_sentinel_watchlist.test.item_search_key
 }
 `, template)
 }
@@ -137,20 +138,13 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-workspace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "pergb2018"
+  sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "sentinel" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
+
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

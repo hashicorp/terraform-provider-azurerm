@@ -5,20 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
@@ -53,8 +50,6 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"loadbalancer_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -63,21 +58,27 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:             pluginsdk.TypeString,
-				Computed:         true,
-				Optional:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.ProbeProtocolHTTP),
 					string(network.ProbeProtocolHTTPS),
 					string(network.ProbeProtocolTCP),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			"port": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validate.PortNumber,
+			},
+
+			"probe_threshold": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
 			"request_path": {
@@ -195,7 +196,6 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.Set("name", config.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := config.ProbePropertiesFormat; props != nil {
 		intervalInSeconds := 0
@@ -217,6 +217,12 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("port", port)
 		d.Set("protocol", string(props.Protocol))
 		d.Set("request_path", props.RequestPath)
+
+		var threshold int
+		if v := props.ProbeThreshold; v != nil {
+			threshold = int(*v)
+		}
+		d.Set("probe_threshold", threshold)
 
 		// TODO: parse/make these consistent
 		var loadBalancerRules []string
@@ -293,6 +299,10 @@ func expandAzureRmLoadBalancerProbe(d *pluginsdk.ResourceData) *network.Probe {
 
 	if v, ok := d.GetOk("request_path"); ok {
 		properties.RequestPath = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("probe_threshold"); ok {
+		properties.ProbeThreshold = utils.Int32(int32(v.(int)))
 	}
 
 	return &network.Probe{

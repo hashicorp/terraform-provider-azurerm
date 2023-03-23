@@ -10,7 +10,6 @@ description: |-
 
 Manages a Subscription within a API Management Service.
 
-
 ## Example Usage
 
 ```hcl
@@ -39,7 +38,6 @@ resource "azurerm_api_management_subscription" "example" {
   display_name        = "Parser API"
 }
 ```
-
 
 ## Argument Reference
 
@@ -71,7 +69,7 @@ The following arguments are supported:
 
 * `subscription_id` - (Optional) An Identifier which should used as the ID of this Subscription. If not specified a new Subscription ID will be generated. Changing this forces a new resource to be created.
 
-* `allow_tracing` - (Optional) Determines whether tracing can be enabled.  Defaults to `true`.
+* `allow_tracing` - (Optional) Determines whether tracing can be enabled. Defaults to `true`.
 
 ## Attributes Reference
 
@@ -81,7 +79,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Subscription.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management Subscription.

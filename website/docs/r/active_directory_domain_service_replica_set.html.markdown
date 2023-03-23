@@ -13,6 +13,10 @@ Manages a Replica Set for an Active Directory Domain Service.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "primary" {
   name     = "aadds-primary-rg"
   location = "West Europe"
@@ -86,18 +90,18 @@ resource "azurerm_network_security_group" "primary" {
   }
 }
 
-resource azurerm_subnet_network_security_group_association "primary" {
+resource "azurerm_subnet_network_security_group_association" "primary" {
   subnet_id                 = azurerm_subnet.primary.id
   network_security_group_id = azurerm_network_security_group.primary.id
 }
 
 resource "azuread_group" "dc_admins" {
-  name             = "AAD DC Administrators"
+  display_name     = "aad-dc-administrators"
   security_enabled = true
 }
 
 resource "azuread_user" "admin" {
-  user_principal_name = "dc-admin@$hashicorp-example.net"
+  user_principal_name = "dc-admin@hashicorp-example.net"
   display_name        = "DC Administrator"
   password            = "Pa55w0Rd!!1"
 }
@@ -225,7 +229,7 @@ resource "azurerm_network_security_group" "aadds_replica" {
   }
 }
 
-resource azurerm_subnet_network_security_group_association "replica" {
+resource "azurerm_subnet_network_security_group_association" "replica" {
   subnet_id                 = azurerm_subnet.aadds_replica.id
   network_security_group_id = azurerm_network_security_group.aadds_replica.id
 }
@@ -280,7 +284,7 @@ The following arguments are supported:
   
 * `location` - (Required) The Azure location where this Replica Set should exist. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) The ID of the subnet in which to place this Replica Set.
+* `subnet_id` - (Required) The ID of the subnet in which to place this Replica Set. Changing this forces a new resource to be created.
   
 ## Attributes Reference
 
@@ -296,12 +300,12 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 2 hours) Used when creating the Domain Service.
+* `create` - (Defaults to 3 hours) Used when creating the Domain Service.
 * `update` - (Defaults to 2 hours) Used when updating the Domain Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Domain Service.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Domain Service.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Domain Service.
 
 ## Import
 

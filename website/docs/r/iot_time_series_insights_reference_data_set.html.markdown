@@ -1,7 +1,7 @@
 ---
 subcategory: "Time Series Insights"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_iot_time_series_insights_standard_environment"
+page_title: "Azure Resource Manager: azurerm_iot_time_series_insights_reference_data_set"
 description: |-
   Manages an Azure IoT Time Series Insights Reference Data Set.
 ---
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `data_string_comparison_behavior` - (Optional) The comparison behavior that will be used to compare keys. Valid values include `Ordinal` and `OrdinalIgnoreCase`. Defaults to `Ordinal`. Changing this forces a new resource to be created.
 
-* `key_property` - (Optional) A `key_property` block as defined below. Changing this forces a new resource to be created.
+* `key_property` - (Required) A `key_property` block as defined below. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 A `key_property` block supports the following:
 
-* `name`- (Required) The name of the key property. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the key property. Changing this forces a new resource to be created.
 
 * `type` - (Required) The data type of the key property. Valid values include `Bool`, `DateTime`, `Double`, `String`. Changing this forces a new resource to be created.
 
@@ -68,7 +68,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IoT Time Series Insights Reference Data Set.
 * `update` - (Defaults to 30 minutes) Used when updating the IoT Time Series Insights Reference Data Set.

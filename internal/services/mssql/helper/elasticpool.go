@@ -125,8 +125,8 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 			2:  512,
 			4:  756,
 			6:  1536,
-			8:  1536,
-			10: 1536,
+			8:  2048,
+			10: 2048,
 			12: 2048,
 			14: 2048,
 			16: 2048,
@@ -174,8 +174,8 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 		"gen5": {
 			4:  1024,
 			6:  1536,
-			8:  1536,
-			10: 1536,
+			8:  2048,
+			10: 2048,
 			12: 3072,
 			14: 3072,
 			16: 3072,
@@ -339,9 +339,7 @@ func buildErrorString(stub string, m map[int]float64) string {
 	}
 
 	// copy the values of the map of keys into a slice of ints
-	for v := range p {
-		a = append(a, p[v])
-	}
+	a = append(a, p...)
 
 	// sort the slice to get them in order
 	sort.Ints(a)

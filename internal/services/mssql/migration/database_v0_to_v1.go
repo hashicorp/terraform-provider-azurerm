@@ -58,7 +58,6 @@ func (d DatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
 			Computed:   true,
-			Deprecated: "the `extended_auditing_policy` block has been moved to `azurerm_mssql_server_extended_auditing_policy` and `azurerm_mssql_database_extended_auditing_policy`. This block will be removed in version 3.0 of the provider.",
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			MaxItems:   1,
 			Elem: &pluginsdk.Resource{

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -66,7 +66,7 @@ func TestAccDedicatedHardwareSecurityModule_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.managementNetworkProfile(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -102,17 +102,17 @@ resource "azurerm_dedicated_hardware_security_module" "import" {
 }
 
 func (DedicatedHardwareSecurityModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DedicatedHardwareSecurityModuleID(state.ID)
+	id, err := dedicatedhsms.ParseDedicatedHSMID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.HSM.DedicatedHsmClient.Get(ctx, id.ResourceGroup, id.DedicatedHSMName)
+	resp, err := clients.HSM.DedicatedHsmClient.DedicatedHsmGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Dedicated HardwareSecurityModule %q (resource group: %q): %+v", id.DedicatedHSMName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.DedicatedHsmProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DedicatedHardwareSecurityModuleResource) template(data acceptance.TestData) string {
@@ -131,13 +131,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.2.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctest-computesubnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.2.0.0/24"]
 }
 
 resource "azurerm_subnet" "test2" {
@@ -189,7 +182,7 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id                     = azurerm_subnet.test3.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (DedicatedHardwareSecurityModuleResource) basic(data acceptance.TestData) string {
@@ -215,6 +208,34 @@ resource "azurerm_dedicated_hardware_security_module" "test" {
 `, template, data.RandomString)
 }
 
+func (DedicatedHardwareSecurityModuleResource) managementNetworkProfile(data acceptance.TestData) string {
+	template := DedicatedHardwareSecurityModuleResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dedicated_hardware_security_module" "test" {
+  name                = "acctest-hsm-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "payShield10K_LMK1_CPS60"
+
+  network_profile {
+    network_interface_private_ip_addresses = ["10.2.1.8"]
+    subnet_id                              = azurerm_subnet.test2.id
+  }
+
+  management_network_profile {
+    network_interface_private_ip_addresses = ["10.2.1.9"]
+    subnet_id                              = azurerm_subnet.test2.id
+  }
+
+  stamp_id = "stamp2"
+
+  depends_on = [azurerm_virtual_network_gateway.test]
+}
+`, template, data.RandomString)
+}
+
 func (DedicatedHardwareSecurityModuleResource) complete(data acceptance.TestData) string {
 	template := DedicatedHardwareSecurityModuleResource{}.template(data)
 	return fmt.Sprintf(`
@@ -224,10 +245,15 @@ resource "azurerm_dedicated_hardware_security_module" "test" {
   name                = "acctest-hsm-%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "SafeNet Luna Network HSM A790"
+  sku_name            = "payShield10K_LMK1_CPS60"
 
   network_profile {
     network_interface_private_ip_addresses = ["10.2.1.8"]
+    subnet_id                              = azurerm_subnet.test2.id
+  }
+
+  management_network_profile {
+    network_interface_private_ip_addresses = ["10.2.1.9"]
     subnet_id                              = azurerm_subnet.test2.id
   }
 

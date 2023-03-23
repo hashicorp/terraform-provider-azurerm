@@ -36,7 +36,7 @@ resource "azurerm_storage_queue" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Queue which should be created within the Storage Account. Must be unique within the storage account the queue is located.
+* `name` - (Required) The name of the Queue which should be created within the Storage Account. Must be unique within the storage account the queue is located. Changing this forces a new resource to be created.
 
 * `storage_account_name` - (Required) Specifies the Storage Account in which the Storage Queue should exist. Changing this forces a new resource to be created.
 
@@ -48,9 +48,11 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Storage Queue.
 
+* `resource_manager_id` - The Resource Manager ID of this Storage Queue.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Queue.
 * `update` - (Defaults to 30 minutes) Used when updating the Storage Queue.

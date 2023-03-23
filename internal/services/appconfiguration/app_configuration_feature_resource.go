@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
@@ -48,7 +48,7 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
 		},
 		"description": {
 			Type:     pluginsdk.TypeString,
@@ -62,7 +62,7 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotWhiteSpace,
+			ValidateFunc: validate.AppConfigurationFeatureName,
 		},
 		"etag": {
 			Type:     pluginsdk.TypeString,
@@ -169,6 +169,9 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", model.ConfigurationStoreId)
+			}
 
 			appCfgFeatureResourceID := parse.AppConfigurationFeatureId{
 				ConfigurationStoreId: model.ConfigurationStoreId,
@@ -177,6 +180,22 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			}
 
 			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, model.Name)
+
+			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
+			// allow up to 15 min for role permission to be done propagated
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be done propagated", featureKey)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:      []string{"Forbidden"},
+				Target:       []string{"Error", "Exists"},
+				Refresh:      appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
+				PollInterval: 20 * time.Second,
+				Timeout:      15 * time.Minute,
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Key %q read permission to be propagated: %+v", featureKey, err)
+			}
+
 			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
@@ -202,7 +221,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			metadata.SetID(appCfgFeatureResourceID)
 			return nil
 		},
-		Timeout: 30 * time.Minute,
+		Timeout: 45 * time.Minute,
 	}
 }
 
@@ -224,6 +243,10 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
 			if err != nil {
 				return err
+			}
+			if client == nil {
+				// if the AppConfiguration is gone then all the data inside it is too
+				return metadata.MarkAsGone(resourceID)
 			}
 
 			kv, err := client.GetKeyValue(ctx, featureKey, resourceID.Label, "", "", "", []string{})
@@ -293,6 +316,9 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
+			}
 
 			var model FeatureResourceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -327,6 +353,9 @@ func (k FeatureResource) Delete() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}
@@ -375,6 +404,7 @@ func createOrUpdateFeature(ctx context.Context, client *appconfiguration.BaseCli
 		Enabled:     model.Enabled,
 	}
 
+	value.Conditions.ClientFilters.Filters = make([]interface{}, 0)
 	if model.PercentageFilter > 0 {
 		value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, PercentageFeatureFilter{
 			Name:       PercentageFilterName,

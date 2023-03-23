@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -24,23 +24,6 @@ func TestAccMariaDbServer_basicTenTwo(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, version),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("version").HasValue(version),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
-func TestAccMariaDbServer_basicTenTwoDeprecated(t *testing.T) { // remove in v3.0
-	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	r := MariaDbServerResource{}
-	version := "10.2"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data, version),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("version").HasValue(version),
@@ -143,59 +126,6 @@ func TestAccMariaDbServer_update(t *testing.T) {
 	})
 }
 
-func TestAccMariaDbServer_completeDeprecatedMigrate(t *testing.T) { // remove in v3.0
-	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	r := MariaDbServerResource{}
-	version := "10.3"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.completeDeprecated(data, version),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.complete(data, version),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
-func TestAccMariaDbServer_updateDeprecated(t *testing.T) { // remove in v3.0
-	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	r := MariaDbServerResource{}
-	version := "10.2"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data, version),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.completeDeprecated(data, version),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.basicDeprecated(data, version),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
 func TestAccMariaDbServer_updateSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
@@ -258,7 +188,7 @@ func TestAccMariaDbServer_createPointInTimeRestore(t *testing.T) {
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
-			Config:    r.createPointInTimeRestore(data, version, restoreTime.Format(time.RFC3339)),
+			Config:    r.createPointInTimeRestore(data, version, restoreTime.Add(3*time.Minute).Format(time.RFC3339)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_mariadb_server.restore").ExistsInAzure(r),
@@ -269,17 +199,17 @@ func TestAccMariaDbServer_createPointInTimeRestore(t *testing.T) {
 }
 
 func (MariaDbServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ServerID(state.ID)
+	id, err := servers.ParseServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.MariaDB.ServersClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.MariaDB.ServersClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving MariaDB Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.ServerProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (MariaDbServerResource) basic(data acceptance.TestData, version string) string {
@@ -304,35 +234,6 @@ resource "azurerm_mariadb_server" "test" {
   administrator_login_password = "H@Sh1CoR3!"
   ssl_enforcement_enabled      = true
   storage_mb                   = 51200
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
-}
-
-func (MariaDbServerResource) basicDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mariadb_server" "test" {
-  name                = "acctestmariadbsvr-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "B_Gen5_2"
-  version             = "%s"
-
-  storage_profile {
-    storage_mb = 51200
-  }
-
-  administrator_login          = "acctestun"
-  administrator_login_password = "H@Sh1CoR3!"
-  ssl_enforcement_enabled      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -371,39 +272,6 @@ resource "azurerm_mariadb_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func (MariaDbServerResource) completeDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mariadb_server" "test" {
-  name                = "acctestmariadbsvr-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "B_Gen5_2"
-  version             = "%s"
-
-  storage_profile {
-    auto_grow             = "Enabled"
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-    storage_mb            = 51200
-  }
-
-  administrator_login          = "acctestun"
-  administrator_login_password = "H@Sh1CoR3!"
-  create_mode                  = "Default"
-  ssl_enforcement_enabled      = true
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
-}
-
 func (MariaDbServerResource) autogrow(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -422,13 +290,14 @@ resource "azurerm_mariadb_server" "test" {
   sku_name            = "B_Gen5_2"
   version             = "%s"
 
-  administrator_login          = "acctestun"
-  administrator_login_password = "H@Sh1CoR3!"
-  auto_grow_enabled            = true
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  ssl_enforcement_enabled      = true
-  storage_mb                   = 51200
+  administrator_login              = "acctestun"
+  administrator_login_password     = "H@Sh1CoR3!"
+  auto_grow_enabled                = true
+  backup_retention_days            = 7
+  geo_redundant_backup_enabled     = false
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "TLS1_2"
+  storage_mb                       = 51200
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }

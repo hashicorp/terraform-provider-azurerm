@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -51,17 +51,17 @@ func TestAccMariaDbDatabase_requiresImport(t *testing.T) {
 }
 
 func (MariaDbDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MariaDBDatabaseID(state.ID)
+	id, err := databases.ParseDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.MariaDB.DatabasesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName)
+	resp, err := clients.MariaDB.DatabasesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.DatabaseProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (MariaDbDatabaseResource) basic(data acceptance.TestData) string {
@@ -82,11 +82,9 @@ resource "azurerm_mariadb_server" "test" {
 
   sku_name = "B_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  geo_redundant_backup_enabled = false
+  backup_retention_days        = 7
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"

@@ -36,7 +36,7 @@ The following attributes are exported:
 
 * `location` - The Azure Region where the Service is located.
 
-~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`. 
+~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`.
 
 * `kind` - The type of the service.
 * `authentication_configuration` - An `authentication_configuration` block as defined below.
@@ -48,8 +48,8 @@ The following attributes are exported:
 ---
 An `authentication_configuration` exports the following:
 
-* `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service. 
-* `audience` - The intended audience to receive authentication tokens for the service. 
+* `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service.
+* `audience` - The intended audience to receive authentication tokens for the service.
 * `smart_proxy_enabled` - Is the 'SMART on FHIR' option for mobile and web implementations enabled?
 
 ---
@@ -61,9 +61,8 @@ A `cors_configuration` block exports the following:
 * `max_age_in_seconds` - The max age to be allowed via CORS.
 * `allow_credentials` - Are credentials are allowed via CORS?
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Service.

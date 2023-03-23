@@ -40,11 +40,11 @@ The following arguments are supported:
 
 * `expiration_date` - (Required) A valid `RFC3339Time` for the expiration of the token..
 
-* `hostpool_id` - (Required) The ID of the Virtual Desktop Host Pool to link the Registration Info to. Changing this forces a new Registration Info resource to be created. Only a single virtual_desktop_host_pool_registration_info resource should be associated with a given hostpool. Assigning multiple resources will produce inconsistent results. 
+* `hostpool_id` - (Required) The ID of the Virtual Desktop Host Pool to link the Registration Info to. Changing this forces a new Registration Info resource to be created. Only a single virtual_desktop_host_pool_registration_info resource should be associated with a given hostpool. Assigning multiple resources will produce inconsistent results.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Desktop Host Pool Registration Info resource.
 
@@ -52,12 +52,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour) Used when creating the AVD Registration Info.
+* `create` - (Defaults to 30 minutes) Used when creating the AVD Registration Info.
 * `read` - (Defaults to 5 minutes) Used when retrieving the AVD Registration Info.
-* `update` - (Defaults to 1 hour) Used when updating the AVD Registration Info.
-* `delete` - (Defaults to 1 hour) Used when deleting the AVD Registration Info.
+* `update` - (Defaults to 30 minutes) Used when updating the AVD Registration Info.
+* `delete` - (Defaults to 30 minutes) Used when deleting the AVD Registration Info.
 
 ## Import
 

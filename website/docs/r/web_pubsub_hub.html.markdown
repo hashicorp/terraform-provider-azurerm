@@ -1,5 +1,5 @@
 ---
-subcategory: "Web PubSub"
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub_hub"
 description: |-
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "east us"
 }
 
-resource "azurerm_user_assigned_identity" "test" {
+resource "azurerm_user_assigned_identity" "example" {
   name                = "tfex-uai"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -33,9 +33,9 @@ resource "azurerm_web_pubsub" "example" {
   capacity = 1
 }
 
-resource "azurerm_web_pubsub_hub" "test" {
-  name          = "tfex-wpsh"
-  web_pubsub_id = azurerm_web_pubsub.exmaple.id
+resource "azurerm_web_pubsub_hub" "example" {
+  name          = "tfex_wpsh"
+  web_pubsub_id = azurerm_web_pubsub.example.id
   event_handler {
     url_template       = "https://test.com/api/{hub}/{event}"
     user_event_pattern = "*"
@@ -47,13 +47,13 @@ resource "azurerm_web_pubsub_hub" "test" {
     user_event_pattern = "event1, event2"
     system_events      = ["connected"]
     auth {
-      managed_identity_id = azurerm_user_assigned_identity.test.id
+      managed_identity_id = azurerm_user_assigned_identity.example.id
     }
   }
   anonymous_connections_enabled = true
 
   depends_on = [
-    azurerm_web_pubsub.test
+    azurerm_web_pubsub.example
   ]
 }
 ```
@@ -66,26 +66,22 @@ The following arguments are supported:
 
 * `web_pubsub_id` - (Required) Specify the id of the Web Pubsub. Changing this forces a new resource to be created.
 
-* `event_handler` - (Required) An `event_handler` block as defined below.
-
 * `anonymous_connections_enabled` - (Optional) Is anonymous connections are allowed for this hub? Defaults to `false`.
   Possible values are `true`, `false`.
+
+* `event_handler` - (Optional) An `event_handler` block as defined below.
+
+-> **NOTE:** User can change the order of `event_handler` to change the priority accordingly.
 
 ---
 
 An `event_handler` block supports the following:
 
-* `url_template` - (Required) The Event Handler URL Template. Two predefined parameters `{hub}` and `{event}` are
-  available to use in the template. The value of the EventHandler URL is dynamically calculated when the client request
-  comes in. Example: `http://example.com/api/{hub}/{event}`.
+* `url_template` - (Required) The Event Handler URL Template. Two predefined parameters `{hub}` and `{event}` are available to use in the template. The value of the EventHandler URL is dynamically calculated when the client request comes in. Example: `http://example.com/api/{hub}/{event}`.
 
-* `user_event_pattern` - (Optional) Specify the matching event names. There are 3 kind of patterns supported:
-    - `*` matches any event name
-    - `,` Combine multiple events with `,` for example `event1,event2`, it matches event `event1` and `event2`
-    - The single event name, for example `event1`, it matches `event1`.
+* `user_event_pattern` - (Optional) Specify the matching event names. There are 3 kind of patterns supported: * `*` matches any event name * `,` Combine multiple events with `,` for example `event1,event2`, it matches event `event1` and `event2` * The single event name, for example `event1`, it matches `event1`.
 
-* `system_events` - (Optional) Specify the list of system events. Supported values are `connect`, `connected`
-  and `disconnected`.
+* `system_events` - (Optional) Specify the list of system events. Supported values are `connect`, `connected` and `disconnected`.
 
 * `auth` - (Optional) An `auth` block as defined below.
 
@@ -103,11 +99,11 @@ The following attributes are exported:
 
 * `id` - The ID of the Web Pubsub Hub resource.
 
-* `name` - The name of the Web Pubsub Hub resource
+* `name` - (Required) The name of the Web Pubsub Hub resource. Changing this forces a new resource to be created.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web Pubsub Resource.
 * `update` - (Defaults to 30 minutes) Used when updating the Web Pubsub Resource.
@@ -119,5 +115,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Web Pubsub Hub can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_web_pubsub_hub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubsub/webpubsub1/hubs/webpubsubhub1
+terraform import azurerm_web_pubsub_hub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubSub/webPubSub1/hubs/webPubSubhub1
 ```

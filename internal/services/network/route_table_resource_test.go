@@ -32,6 +32,23 @@ func TestAccRouteTable_basic(t *testing.T) {
 	})
 }
 
+func TestAccRouteTable_basicNilNextHopIPAddress(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
+	r := RouteTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nilNextHopIPAddess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
+				check.That(data.ResourceName).Key("route.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccRouteTable_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
 	r := RouteTableResource{}
@@ -200,9 +217,6 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
-				check.That(data.ResourceName).Key("route.0.name").HasValue("route1"),
-				check.That(data.ResourceName).Key("route.0.address_prefix").HasValue("10.1.0.0/16"),
-				check.That(data.ResourceName).Key("route.0.next_hop_type").HasValue("VnetLocal"),
 			),
 		},
 		{
@@ -210,12 +224,6 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("route.#").HasValue("2"),
-				check.That(data.ResourceName).Key("route.0.name").HasValue("route1"),
-				check.That(data.ResourceName).Key("route.0.address_prefix").HasValue("10.1.0.0/16"),
-				check.That(data.ResourceName).Key("route.0.next_hop_type").HasValue("VnetLocal"),
-				check.That(data.ResourceName).Key("route.1.name").HasValue("route2"),
-				check.That(data.ResourceName).Key("route.1.address_prefix").HasValue("10.2.0.0/16"),
-				check.That(data.ResourceName).Key("route.1.next_hop_type").HasValue("VnetLocal"),
 			),
 		},
 		data.ImportStep(),
@@ -269,6 +277,32 @@ resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RouteTableResource) nilNextHopIPAddess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctestrt%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  route {
+    name                   = "route1"
+    address_prefix         = "101.1.0.0/16"
+    next_hop_type          = "Internet"
+    next_hop_in_ip_address = null
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

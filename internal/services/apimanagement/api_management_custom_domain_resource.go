@@ -6,11 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,108 +32,61 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(45 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: func() map[string]*pluginsdk.Schema {
-			rSchema := map[string]*pluginsdk.Schema{
-				"api_management_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceID,
-				},
+		Schema: map[string]*pluginsdk.Schema{
+			"api_management_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
 
-				"management": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					// TODO 3.0 - Remove 3.0 flag for this and all other properties in the schema
-					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
-							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
-						}
-						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
-					}(),
-					Elem: &pluginsdk.Resource{
-						Schema: apiManagementResourceHostnameSchema(),
-					},
+			"management": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				AtLeastOneOf: []string{"management", "portal", "developer_portal", "gateway", "scm"},
+				Elem: &pluginsdk.Resource{
+					Schema: apiManagementResourceHostnameSchema(),
 				},
-				"portal": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
-							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
-						}
-						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
-					}(),
-					Elem: &pluginsdk.Resource{
-						Schema: apiManagementResourceHostnameSchema(),
-					},
+			},
+			"portal": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				AtLeastOneOf: []string{"management", "portal", "developer_portal", "gateway", "scm"},
+				Elem: &pluginsdk.Resource{
+					Schema: apiManagementResourceHostnameSchema(),
 				},
-				"developer_portal": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
-							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
-						}
-						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
-					}(),
-					Elem: &pluginsdk.Resource{
-						Schema: apiManagementResourceHostnameSchema(),
-					},
+			},
+			"developer_portal": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				AtLeastOneOf: []string{"management", "portal", "developer_portal", "gateway", "scm"},
+				Elem: &pluginsdk.Resource{
+					Schema: apiManagementResourceHostnameSchema(),
 				},
-				"scm": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
-							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
-						}
-						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
-					}(),
-					Elem: &pluginsdk.Resource{
-						Schema: apiManagementResourceHostnameSchema(),
-					},
+			},
+			"scm": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				AtLeastOneOf: []string{"management", "portal", "developer_portal", "gateway", "scm"},
+				Elem: &pluginsdk.Resource{
+					Schema: apiManagementResourceHostnameSchema(),
 				},
-			}
-			// TODO 3.0 - Remove anonymous func for Schema and remove `proxy` block
-			if features.ThreePointOh() {
-				rSchema["gateway"] = &pluginsdk.Schema{
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
-							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
-						}
-						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
-					}(),
-					Elem: &pluginsdk.Resource{
-						Schema: apiManagementResourceHostnameProxySchema(),
-					},
-				}
-			} else {
-				rSchema["proxy"] = &pluginsdk.Schema{
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
-							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
-						}
-						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
-					}(),
-					Elem: &pluginsdk.Resource{
-						Schema: apiManagementResourceHostnameProxySchema(),
-					},
-					Deprecated: "`proxy` is deprecated and will be renamed to `gateway` in version 3.0 of the AzureRM provider",
-				}
-			}
-			return rSchema
-		}(),
+			},
+			"gateway": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				AtLeastOneOf: []string{"management", "portal", "developer_portal", "gateway", "scm"},
+				Elem: &pluginsdk.Resource{
+					Schema: apiManagementResourceHostnameProxySchema(),
+				},
+			},
+		},
 	}
 }
 
@@ -182,8 +134,23 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, existing); err != nil {
+	// The API expects user assigned identities to be submitted with nil values
+	if existing.Identity != nil {
+		for k, v := range existing.Identity.UserAssignedIdentities {
+			if v == nil {
+				continue
+			}
+			existing.Identity.UserAssignedIdentities[k].ClientID = nil
+			existing.Identity.UserAssignedIdentities[k].PrincipalID = nil
+		}
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, existing)
+	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
@@ -201,6 +168,11 @@ func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 	environment := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	apimHostNameSuffix, ok := environment.ApiManagement.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine API Management domain suffix for environment %q", environment.Name)
+	}
 
 	id, err := parse.CustomDomainID(d.Id())
 	if err != nil {
@@ -223,11 +195,10 @@ func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("api_management_id", apiMgmtId.ID())
 
 	if resp.ServiceProperties != nil && resp.ServiceProperties.HostnameConfigurations != nil {
-		apimHostNameSuffix := environment.APIManagementHostNameSuffix
-		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d, *resp.Name, apimHostNameSuffix)
+		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d, *resp.Name, *apimHostNameSuffix)
 		for _, config := range configs {
 			for key, v := range config.(map[string]interface{}) {
-				//lintignore:R001
+				// lintignore:R001
 				if err := d.Set(key, v); err != nil {
 					return fmt.Errorf("setting `hostname_configuration` %q: %+v", key, err)
 				}
@@ -278,8 +249,12 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	resp.ServiceProperties.HostnameConfigurations = nil
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, resp); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, resp)
+	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
@@ -318,32 +293,19 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 			results = append(results, output)
 		}
 	}
-	// TODO 3.0 - Simplify and remove `proxy`
-	if features.ThreePointOh() {
-		if gatewayRawVal, ok := input.GetOk("gateway"); ok {
-			vs := gatewayRawVal.([]interface{})
-			for _, rawVal := range vs {
-				v := rawVal.(map[string]interface{})
-				output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeProxy)
-				if value, ok := v["default_ssl_binding"]; ok {
-					output.DefaultSslBinding = utils.Bool(value.(bool))
-				}
-				results = append(results, output)
+
+	if gatewayRawVal, ok := input.GetOk("gateway"); ok {
+		vs := gatewayRawVal.([]interface{})
+		for _, rawVal := range vs {
+			v := rawVal.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeProxy)
+			if value, ok := v["default_ssl_binding"]; ok {
+				output.DefaultSslBinding = utils.Bool(value.(bool))
 			}
-		}
-	} else {
-		if proxyRawVal, ok := input.GetOk("proxy"); ok {
-			vs := proxyRawVal.([]interface{})
-			for _, rawVal := range vs {
-				v := rawVal.(map[string]interface{})
-				output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeProxy)
-				if value, ok := v["default_ssl_binding"]; ok {
-					output.DefaultSslBinding = utils.Bool(value.(bool))
-				}
-				results = append(results, output)
-			}
+			results = append(results, output)
 		}
 	}
+
 	if scmRawVal, ok := input.GetOk("scm"); ok {
 		vs := scmRawVal.([]interface{})
 		for _, rawVal := range vs {
@@ -387,6 +349,10 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 			output["key_vault_id"] = *config.KeyVaultID
 		}
 
+		if config.IdentityClientID != nil {
+			output["ssl_keyvault_identity_client_id"] = *config.IdentityClientID
+		}
+
 		var configType string
 		switch strings.ToLower(string(config.Type)) {
 		case strings.ToLower(string(apimanagement.HostnameTypeProxy)):
@@ -395,12 +361,7 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 				output["default_ssl_binding"] = *config.DefaultSslBinding
 			}
 			gatewayResults = append(gatewayResults, output)
-			// TODO 3.0 - Remove `proxy`
-			if features.ThreePointOh() {
-				configType = "gateway"
-			} else {
-				configType = "proxy"
-			}
+			configType = "gateway"
 
 		case strings.ToLower(string(apimanagement.HostnameTypeManagement)):
 			managementResults = append(managementResults, output)
@@ -432,13 +393,7 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 		"portal":           portalResults,
 		"developer_portal": developerPortalResults,
 		"scm":              scmResults,
-	}
-
-	// TODO 3.0 - Simplify and remove `proxy`
-	if features.ThreePointOh() {
-		res["gateway"] = gatewayResults
-	} else {
-		res["proxy"] = gatewayResults
+		"gateway":          gatewayResults,
 	}
 
 	return []interface{}{res}

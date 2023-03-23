@@ -28,7 +28,7 @@ The following arguments are supported:
 
 * `display_name` - (Required) The user-friendly display name of the Security Center Assessment.
 
-* `severity` - (Required) The severity level of the Security Center Assessment. Possible values are `Low`, `Medium` and `High`. Defaults to `Medium`.
+* `severity` - (Optional) The severity level of the Security Center Assessment. Possible values are `Low`, `Medium` and `High`. Defaults to `Medium`.
 
 ---
 
@@ -44,7 +44,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Security Center Assessment Policy.
 
@@ -52,7 +52,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Security Center Assessment Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Security Center Assessment Policy.

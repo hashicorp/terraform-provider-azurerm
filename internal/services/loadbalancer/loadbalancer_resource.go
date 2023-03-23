@@ -4,26 +4,29 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceArmLoadBalancer() *pluginsdk.Resource {
@@ -47,26 +50,29 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 
 		Schema: resourceArmLoadBalancerSchema(),
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			if features.ThreePointOhBeta() {
-				return nil
-			}
-			if ok := d.HasChange("frontend_ip_configuration"); ok {
-				configs := d.Get("frontend_ip_configuration").([]interface{})
-
-				for index := range configs {
-					if d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.availability_zone", index)) && !d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.name", index)) {
-						return fmt.Errorf("in place change of the `frontend_ip_configuration.%[1]d.availability_zone` is not allowed. It is allowed to do this while also changing `frontend_ip_configuration.%[1]d.name`", index)
-					}
-
-					if d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.zones", index)) && !d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.name", index)) {
-						return fmt.Errorf("in place change of the `frontend_ip_configuration.%[1]d.zones` is not allowed. It is allowed to do this while also changing `frontend_ip_configuration.%[1]d.name`", index)
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIf("frontend_ip_configuration", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+				old, new := d.GetChange("frontend_ip_configuration")
+				if len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0 || len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
+					return false
+				} else {
+					for i, nc := range new.([]interface{}) {
+						dataNew := nc.(map[string]interface{})
+						for _, oc := range old.([]interface{}) {
+							dataOld := oc.(map[string]interface{})
+							if dataOld["name"].(string) == dataNew["name"].(string) {
+								if !reflect.DeepEqual(dataOld["zones"].(*pluginsdk.Set).List(), dataNew["zones"].(*pluginsdk.Set).List()) {
+									// set ForceNew to true when the `frontend_ip_configuration.#.zones` is changed.
+									d.ForceNew("frontend_ip_configuration." + strconv.Itoa(i) + ".zones")
+									break
+								}
+							}
+						}
 					}
 				}
-			}
-
-			return nil
-		}),
+				return false
+			}),
+		),
 	}
 }
 
@@ -110,15 +116,12 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	properties := network.LoadBalancerPropertiesFormat{}
 
 	if _, ok := d.GetOk("frontend_ip_configuration"); ok {
-		frontendIPConfigurations, err := expandAzureRmLoadBalancerFrontendIpConfigurations(d)
-		if err != nil {
-			return err
-		}
-		properties.FrontendIPConfigurations = frontendIPConfigurations
+		properties.FrontendIPConfigurations = expandAzureRmLoadBalancerFrontendIpConfigurations(d)
 	}
 
 	loadBalancer := network.LoadBalancer{
 		Name:                         utils.String(id.Name),
+		ExtendedLocation:             expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:                     utils.String(location),
 		Tags:                         expandedTags,
 		Sku:                          &sku,
@@ -160,9 +163,8 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
@@ -219,12 +221,11 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData) (*[]network.FrontendIPConfiguration, error) {
+func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData) *[]network.FrontendIPConfiguration {
 	configs := d.Get("frontend_ip_configuration").([]interface{})
 	frontEndConfigs := make([]network.FrontendIPConfiguration, 0, len(configs))
-	sku := d.Get("sku").(string)
 
-	for index, configRaw := range configs {
+	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
 
 		privateIpAllocationMethod := data["private_ip_address_allocation"].(string)
@@ -242,7 +243,6 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 			properties.PrivateIPAddress = &v
 		}
 
-		subnetSet := false
 		if v := data["public_ip_address_id"].(string); v != "" {
 			properties.PublicIPAddress = &network.PublicIPAddress{
 				ID: &v,
@@ -256,7 +256,6 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		}
 
 		if v := data["subnet_id"].(string); v != "" {
-			subnetSet = true
 			properties.PrivateIPAddressVersion = network.IPVersionIPv4
 			if v := data["private_ip_address_version"].(string); v != "" {
 				properties.PrivateIPAddressVersion = network.IPVersion(v)
@@ -271,53 +270,15 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 			FrontendIPConfigurationPropertiesFormat: &properties,
 		}
 
-		if features.ThreePointOhBeta() {
-			zones := zones.Expand(data["zones"].(*pluginsdk.Set).List())
-			if len(zones) > 0 {
-				frontEndConfig.Zones = &zones
-			}
-		} else {
-			// TODO - get zone list for each location by Resource API, instead of hardcode
-			zones := &[]string{"1", "2"}
-			zonesSet := false
-			if deprecatedZonesRaw, ok := d.GetOk(fmt.Sprintf("frontend_ip_configuration.%d.zones", index)); ok {
-				zonesSet = true
-				deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
-				if deprecatedZones != nil {
-					zones = deprecatedZones
-				}
-			}
-
-			if availabilityZones, ok := d.GetOk(fmt.Sprintf("frontend_ip_configuration.%d.availability_zone", index)); ok {
-				zonesSet = true
-				switch availabilityZones.(string) {
-				case "1", "2", "3":
-					zones = &[]string{availabilityZones.(string)}
-				case "Zone-Redundant":
-					zones = &[]string{"1", "2"}
-				case "No-Zone":
-					zones = &[]string{}
-				}
-			}
-			if strings.EqualFold(sku, string(network.LoadBalancerSkuNameBasic)) {
-				if zonesSet && len(*zones) > 0 {
-					return nil, fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
-				}
-				zones = &[]string{}
-			} else if !subnetSet {
-				if zonesSet && len(*zones) > 0 {
-					return nil, fmt.Errorf("Networking supports zones only for frontendIpconfigurations which reference a subnet.")
-				}
-				zones = &[]string{}
-			}
-
-			frontEndConfig.Zones = zones
+		zones := zones.ExpandUntyped(data["zones"].(*pluginsdk.Set).List())
+		if len(zones) > 0 {
+			frontEndConfig.Zones = &zones
 		}
 
 		frontEndConfigs = append(frontEndConfigs, frontEndConfig)
 	}
 
-	return &frontEndConfigs, nil
+	return &frontEndConfigs
 }
 
 func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPConfiguration) []interface{} {
@@ -411,42 +372,28 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 			"private_ip_address_allocation": privateIPAllocationMethod,
 			"public_ip_prefix_id":           publicIpPrefixId,
 			"subnet_id":                     subnetId,
+			"zones":                         zones.FlattenUntyped(config.Zones),
 		}
 
-		if features.ThreePointOhBeta() {
-			out["zones"] = zones.Flatten(config.Zones)
-		} else {
-			availabilityZones := "No-Zone"
-			zonesDeprecated := make([]string, 0)
-			if config.Zones != nil {
-				if len(*config.Zones) > 1 {
-					availabilityZones = "Zone-Redundant"
-				}
-				if len(*config.Zones) == 1 {
-					zones := *config.Zones
-					availabilityZones = zones[0]
-					zonesDeprecated = zones
-				}
-			}
-			out["availability_zone"] = availabilityZones
-			out["zones"] = zonesDeprecated
-		}
 		result = append(result, out)
 	}
 	return result
 }
 
 func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 		"sku": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -456,8 +403,7 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 				string(network.LoadBalancerSkuNameBasic),
 				string(network.LoadBalancerSkuNameStandard),
 				string(network.LoadBalancerSkuNameGateway),
-			}, !features.ThreePointOhBeta()),
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			}, false),
 		},
 
 		"sku_tier": {
@@ -573,6 +519,8 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 						Set: pluginsdk.HashString,
 					},
 
+					"zones": commonschema.ZonesMultipleOptional(),
+
 					"id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -595,37 +543,23 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
+}
 
-	s := out["frontend_ip_configuration"].Elem.(*pluginsdk.Resource)
-	if !features.ThreePointOhBeta() {
-		s.Schema["availability_zone"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Default:  "Zone-Redundant",
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"No-Zone",
-				"1",
-				"2",
-				"3",
-				"Zone-Redundant",
-			}, false),
-		}
-
-		s.Schema["zones"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This property has been deprecated in favour of `availability_zone` due to a breaking behavioural change in Azure: https://azure.microsoft.com/en-us/updates/zone-behavior-change/",
-			MaxItems:   1,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-		}
-	} else {
-		s.Schema["zones"] = commonschema.ZonesMultipleOptionalForceNew()
+func expandEdgeZone(input string) *network.ExtendedLocation {
+	normalized := edgezones.Normalize(input)
+	if normalized == "" {
+		return nil
 	}
 
-	return out
+	return &network.ExtendedLocation{
+		Name: utils.String(normalized),
+		Type: network.ExtendedLocationTypesEdgeZone,
+	}
+}
+
+func flattenEdgeZone(input *network.ExtendedLocation) string {
+	if input == nil || input.Type != network.ExtendedLocationTypesEdgeZone || input.Name == nil {
+		return ""
+	}
+	return edgezones.NormalizeNilable(input.Name)
 }

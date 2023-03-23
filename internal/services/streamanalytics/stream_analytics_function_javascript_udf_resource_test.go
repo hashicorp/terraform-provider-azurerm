@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/functions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -67,15 +68,37 @@ func TestAccStreamAnalyticsFunctionJavaScriptUDF_inputs(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsFunctionJavaScriptUDF_isConfigurationParameter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_function_javascript_udf", "test")
+	r := StreamAnalyticsFunctionJavaScriptUDFResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.isConfigurationParameter(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.isConfigurationParameter(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StreamAnalyticsFunctionJavaScriptUDFResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FunctionID(state.ID)
+	id, err := functions.ParseFunctionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.FunctionsClient.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
+	resp, err := client.StreamAnalytics.FunctionsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s : %+v", *id, err)
@@ -164,6 +187,35 @@ SCRIPT
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsFunctionJavaScriptUDFResource) isConfigurationParameter(data acceptance.TestData, isConfigurationParameter bool) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_function_javascript_udf" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+
+  script = <<SCRIPT
+function getRandomNumber(in) {
+  return in;
+}
+SCRIPT
+
+
+  input {
+    type                    = "bigint"
+    configuration_parameter = %t
+  }
+
+  output {
+    type = "bigint"
+  }
+}
+`, template, data.RandomInteger, isConfigurationParameter)
 }
 
 func (r StreamAnalyticsFunctionJavaScriptUDFResource) template(data acceptance.TestData) string {

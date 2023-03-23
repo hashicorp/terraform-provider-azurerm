@@ -13,15 +13,15 @@ Manages a Kusto (also known as Azure Data Explorer) Attached Database Configurat
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "my-kusto-rg"
   location = "West Europe"
 }
 
 resource "azurerm_kusto_cluster" "follower_cluster" {
   name                = "cluster1"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
@@ -31,8 +31,8 @@ resource "azurerm_kusto_cluster" "follower_cluster" {
 
 resource "azurerm_kusto_cluster" "followed_cluster" {
   name                = "cluster2"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
@@ -42,26 +42,25 @@ resource "azurerm_kusto_cluster" "followed_cluster" {
 
 resource "azurerm_kusto_database" "followed_database" {
   name                = "my-followed-database"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  cluster_name        = azurerm_kusto_cluster.cluster2.name
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  cluster_name        = azurerm_kusto_cluster.follower_cluster.name
 }
 
 resource "azurerm_kusto_database" "example" {
   name                = "example"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  cluster_name        = azurerm_kusto_cluster.cluster2.name
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  cluster_name        = azurerm_kusto_cluster.follower_cluster.name
 }
 
 resource "azurerm_kusto_attached_database_configuration" "example" {
-  name                                 = "configuration1"
-  resource_group_name                  = azurerm_resource_group.rg.name
-  location                             = azurerm_resource_group.rg.location
-  cluster_name                         = azurerm_kusto_cluster.follower_cluster.name
-  cluster_resource_id                  = azurerm_kusto_cluster.followed_cluster.id
-  database_name                        = azurerm_kusto_database.example.name
-  default_principal_modifications_kind = "Union"
+  name                = "configuration1"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  cluster_name        = azurerm_kusto_cluster.follower_cluster.name
+  cluster_resource_id = azurerm_kusto_cluster.followed_cluster.id
+  database_name       = azurerm_kusto_database.example.name
 
   sharing {
     external_tables_to_exclude    = ["ExternalTable2"]
@@ -86,9 +85,9 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) Specifies the name of the Kusto Cluster for which the configuration will be created. Changing this forces a new resource to be created.
 
-* `cluster_resource_id` - (Required) The resource id of the cluster where the databases you would like to attach reside.
+* `cluster_resource_id` - (Required) The resource id of the cluster where the databases you would like to attach reside. Changing this forces a new resource to be created.
 
-* `database_name` - (Required) The name of the database which you would like to attach, use * if you want to follow all current and future databases.
+* `database_name` - (Required) The name of the database which you would like to attach, use * if you want to follow all current and future databases. Changing this forces a new resource to be created.
 
 * `default_principal_modification_kind` - (Optional) The default principals modification kind. Valid values are: `None` (default), `Replace` and `Union`.
 
@@ -120,7 +119,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Kusto Database.
 * `update` - (Defaults to 60 minutes) Used when updating the Kusto Database.
@@ -132,5 +131,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Kusto Attached Database Configurations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kusto_attached_database_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/AttachedDatabaseConfigurations/configuration1
+terraform import azurerm_kusto_attached_database_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1/attachedDatabaseConfigurations/configuration1
 ```

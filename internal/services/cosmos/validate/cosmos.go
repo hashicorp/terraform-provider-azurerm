@@ -50,9 +50,9 @@ func CosmosMaxThroughput(i interface{}, k string) (warnings []string, errors []e
 		return
 	}
 
-	if v < 4000 {
+	if v < 1000 {
 		errors = append(errors, fmt.Errorf(
-			"%s must be a minimum of 4000", k))
+			"%s must be a minimum of 1000", k))
 	}
 
 	if v%1000 != 0 {
