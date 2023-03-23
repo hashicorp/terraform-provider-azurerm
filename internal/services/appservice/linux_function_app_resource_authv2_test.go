@@ -198,7 +198,7 @@ func TestAccLinuxFunctionApp_authV2Update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standardComplete(data),
+			Config: r.authV2AzureActiveDirectory(data, SkuBasicPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -206,7 +206,7 @@ func TestAccLinuxFunctionApp_authV2Update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeAuthV2(data, SkuBasicPlan),
+			Config: r.authV2Google(data, SkuBasicPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
