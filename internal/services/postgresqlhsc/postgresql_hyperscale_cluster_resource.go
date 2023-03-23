@@ -371,7 +371,7 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 				parameters.Tags = &v
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *parameters); err != nil {
+			if err := client.CreateThenPoll(ctx, id, *parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
