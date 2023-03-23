@@ -95,9 +95,17 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"coordinator_vcores": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ValidateFunc: validation.IntAtMost(96),
+			Type:     pluginsdk.TypeInt,
+			Required: true,
+			ValidateFunc: validation.IntInSlice([]int{
+				2,
+				4,
+				8,
+				16,
+				32,
+				64,
+				96,
+			}),
 		},
 
 		"node_count": {
@@ -110,10 +118,24 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"citus_version": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      "11.2",
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "11.2",
+			ValidateFunc: validation.StringInSlice([]string{
+				"8.3",
+				"9.0",
+				"9.1",
+				"9.2",
+				"9.3",
+				"9.4",
+				"9.5",
+				"10.0",
+				"10.1",
+				"10.2",
+				"11.0",
+				"11.1",
+				"11.2",
+			}, false),
 		},
 
 		"coordinator_public_ip_access_enabled": {
@@ -182,13 +204,26 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			Computed: true,
+			ValidateFunc: validation.All(
+				validation.IntBetween(32768, 16777216),
+				validation.IntDivisibleBy(1024),
+			),
 		},
 
 		"node_vcores": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.IntAtMost(104),
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.IntInSlice([]int{
+				2,
+				4,
+				8,
+				16,
+				32,
+				64,
+				96,
+				104,
+			}),
 		},
 
 		"point_in_time_in_utc": {

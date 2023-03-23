@@ -43,11 +43,11 @@ The following arguments are supported:
 
 * `coordinator_storage_quota_in_mb` - (Required) The coordinator storage allowed for the PostgreSQL HyperScale Cluster. Possible values are `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608` and `16777216`.
 
-* `coordinator_vcores` - (Required) The coordinator vCores count for the PostgreSQL HyperScale Cluster. Max value is `96`.
+* `coordinator_vcores` - (Required) The coordinator vCores count for the PostgreSQL HyperScale Cluster. Possible values are `2`, `4`, `8`, `16`, `32`, `64` and `96`.
 
 * `node_count` - (Required) The worker node count of the PostgreSQL HyperScale Cluster. Possible value is between `0` and `20` except `1`.
 
-* `citus_version` - (Optional) The citus extension version on the PostgreSQL HyperScale Cluster. Defaults to `11.2`.
+* `citus_version` - (Optional) The citus extension version on the PostgreSQL HyperScale Cluster. Possible values are `8.3`, `9.0`, `9.1`, `9.2`, `9.3`, `9.4`, `9.5`, `10.0`, `10.1`, `10.2`, `11.0`, `11.1` and `11.2`. Defaults to `11.2`.
 
 * `coordinator_public_ip_access_enabled` - (Optional) Is public access enabled on coordinator? Defaults to `true`.
 
@@ -61,9 +61,9 @@ The following arguments are supported:
 
 * `node_server_edition` - (Optional) The edition of the node server. Defaults to `MemoryOptimized`.
 
-* `node_storage_quota_in_mb` - (Optional) The storage quota in MB on each worker node.
+* `node_storage_quota_in_mb` - (Optional) The storage quota in MB on each worker node. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608` and `16777216`.
 
-* `node_vcores` - (Optional) The vCores count on each worker node. Max value is `104`.
+* `node_vcores` - (Optional) The vCores count on each worker node. Possible values are `2`, `4`, `8`, `16`, `32`, `64`, `96` and `104`.
 
 * `point_in_time_in_utc` - (Optional) The date and time in UTC (ISO8601 format) for the PostgreSQL HyperScale cluster restore. Changing this forces a new resource to be created.
 
