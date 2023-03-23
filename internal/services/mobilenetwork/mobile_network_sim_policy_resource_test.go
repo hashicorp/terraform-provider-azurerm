@@ -109,12 +109,192 @@ func (r MobileNetworkSimPolicyResource) Exists(ctx context.Context, clients *cli
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r MobileNetworkSimPolicyResource) template(data acceptance.TestData) string {
+func (r MobileNetworkSimPolicyResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
+%s
+
+resource "azurerm_mobile_network_sim_policy" "test" {
+  name                          = "acctest-mnsp-%d"
+  mobile_network_id             = azurerm_mobile_network.test.id
+  location                      = azurerm_mobile_network.test.location
+  default_slice_id              = azurerm_mobile_network_slice.test.id
+  registration_timer_in_seconds = 3240
+
+  user_equipment_aggregate_maximum_bit_rate {
+    downlink = "1 Gbps"
+    uplink   = "500 Mbps"
+  }
+
+  slice {
+    default_data_network_id = azurerm_mobile_network_data_network.test.id
+    slice_id                = azurerm_mobile_network_slice.test.id
+    data_network {
+      data_network_id                         = azurerm_mobile_network_data_network.test.id
+      allocation_and_retention_priority_level = 9
+      default_session_type                    = "IPv4"
+      qos_indicator                           = 9
+      preemption_capability                   = "NotPreempt"
+      preemption_vulnerability                = "Preemptable"
+      allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
+      session_aggregate_maximum_bit_rate {
+        downlink = "1 Gbps"
+        uplink   = "500 Mbps"
+      }
+    }
+  }
+
+  tags = {
+    key = "value"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r MobileNetworkSimPolicyResource) requiresImport(data acceptance.TestData) string {
+	config := r.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mobile_network_sim_policy" "import" {
+  name                          = azurerm_mobile_network_sim_policy.test.name
+  mobile_network_id             = azurerm_mobile_network_sim_policy.test.mobile_network_id
+  default_slice_id              = azurerm_mobile_network_sim_policy.test.default_slice_id
+  location                      = azurerm_mobile_network_sim_policy.test.location
+  registration_timer_in_seconds = 3240
+
+  slice {
+    default_data_network_id = azurerm_mobile_network_data_network.test.id
+    slice_id                = azurerm_mobile_network_slice.test.id
+
+    data_network {
+      allocation_and_retention_priority_level = 9
+      default_session_type                    = "IPv4"
+      qos_indicator                           = 9
+      preemption_capability                   = "NotPreempt"
+      preemption_vulnerability                = "Preemptable"
+      allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
+      data_network_id                         = azurerm_mobile_network_data_network.test.id
+      session_aggregate_maximum_bit_rate {
+        downlink = "1 Gbps"
+        uplink   = "500 Mbps"
+      }
+    }
+  }
+
+  user_equipment_aggregate_maximum_bit_rate {
+    downlink = "1 Gbps"
+    uplink   = "500 Mbps"
+  }
+  tags = {
+    key = "value"
+  }
+
+}
+`, config)
+}
+
+func (r MobileNetworkSimPolicyResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_mobile_network_sim_policy" "test" {
+  name                                   = "acctest-mnsp-%d"
+  mobile_network_id                      = azurerm_mobile_network.test.id
+  location                               = azurerm_mobile_network.test.location
+  default_slice_id                       = azurerm_mobile_network_slice.test.id
+  registration_timer_in_seconds          = 3240
+  rat_frequency_selection_priority_index = 1
+
+  slice {
+    default_data_network_id = azurerm_mobile_network_data_network.test.id
+    slice_id                = azurerm_mobile_network_slice.test.id
+    data_network {
+      allocation_and_retention_priority_level = 9
+      default_session_type                    = "IPv4"
+      qos_indicator                           = 9
+      preemption_capability                   = "NotPreempt"
+      preemption_vulnerability                = "Preemptable"
+      allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
+      data_network_id                         = azurerm_mobile_network_data_network.test.id
+      max_buffered_packets                    = 200
+      session_aggregate_maximum_bit_rate {
+        downlink = "1 Gbps"
+        uplink   = "500 Mbps"
+      }
+    }
+  }
+
+  user_equipment_aggregate_maximum_bit_rate {
+    downlink = "1 Gbps"
+    uplink   = "500 Mbps"
+  }
+  tags = {
+    key = "value"
+  }
+
+}
+`, template, data.RandomInteger)
+}
+
+func (r MobileNetworkSimPolicyResource) update(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_mobile_network_sim_policy" "test" {
+  name                                   = "acctest-mnsp-%d"
+  mobile_network_id                      = azurerm_mobile_network.test.id
+  location                               = azurerm_mobile_network.test.location
+  default_slice_id                       = azurerm_mobile_network_slice.test.id
+  registration_timer_in_seconds          = 3240
+  rat_frequency_selection_priority_index = 1
+
+  slice {
+    default_data_network_id = azurerm_mobile_network_data_network.test.id
+    slice_id                = azurerm_mobile_network_slice.test.id
+    data_network {
+      allocation_and_retention_priority_level = 9
+      default_session_type                    = "IPv4"
+      qos_indicator                           = 9
+      preemption_capability                   = "NotPreempt"
+      preemption_vulnerability                = "Preemptable"
+      allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
+      data_network_id                         = azurerm_mobile_network_data_network.test.id
+      session_aggregate_maximum_bit_rate {
+        downlink = "1 Gbps"
+        uplink   = "500 Mbps"
+      }
+    }
+  }
+
+  user_equipment_aggregate_maximum_bit_rate {
+    downlink = "1 Gbps"
+    uplink   = "500 Mbps"
+  }
+  tags = {
+    key = "value2"
+  }
+
+}
+`, template, data.RandomInteger)
+}
+
+func (r MobileNetworkSimPolicyResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-mn-%[1]d"
   location = "%[2]s"
@@ -165,178 +345,5 @@ resource "azurerm_mobile_network_data_network" "test" {
   mobile_network_id = azurerm_mobile_network.test.id
   location          = "%[2]s"
 }
-
-
 `, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r MobileNetworkSimPolicyResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-				%s
-
-resource "azurerm_mobile_network_sim_policy" "test" {
-  name                          = "acctest-mnsp-%d"
-  mobile_network_id             = azurerm_mobile_network.test.id
-  location                      = "%s"
-  default_slice_id              = azurerm_mobile_network_slice.test.id
-  registration_timer_in_seconds = 3240
-
-  user_equipment_aggregate_maximum_bit_rate {
-    downlink = "1 Gbps"
-    uplink   = "500 Mbps"
-  }
-
-  slice {
-    default_data_network_id = azurerm_mobile_network_data_network.test.id
-    slice_id                = azurerm_mobile_network_slice.test.id
-    data_network {
-      data_network_id                         = azurerm_mobile_network_data_network.test.id
-      allocation_and_retention_priority_level = 9
-      default_session_type                    = "IPv4"
-      qos_indicator                           = 9
-      preemption_capability                   = "NotPreempt"
-      preemption_vulnerability                = "Preemptable"
-      allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
-      session_aggregate_maximum_bit_rate {
-        downlink = "1 Gbps"
-        uplink   = "500 Mbps"
-      }
-    }
-  }
-
-  tags = {
-    key = "value"
-  }
-
-}
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
-}
-
-func (r MobileNetworkSimPolicyResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
-	return fmt.Sprintf(`
-			%s
-
-resource "azurerm_mobile_network_sim_policy" "import" {
-  name                          = azurerm_mobile_network_sim_policy.test.name
-  mobile_network_id             = azurerm_mobile_network.test.id
-  default_slice_id              = azurerm_mobile_network_slice.test.id
-  location                      = "%s"
-  registration_timer_in_seconds = 3240
-
-  slice {
-    default_data_network_id = azurerm_mobile_network_data_network.test.id
-    slice_id                = azurerm_mobile_network_slice.test.id
-
-    data_network {
-      allocation_and_retention_priority_level = 9
-      default_session_type                    = "IPv4"
-      qos_indicator                           = 9
-      preemption_capability                   = "NotPreempt"
-      preemption_vulnerability                = "Preemptable"
-      allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
-      data_network_id                         = azurerm_mobile_network_data_network.test.id
-      session_aggregate_maximum_bit_rate {
-        downlink = "1 Gbps"
-        uplink   = "500 Mbps"
-      }
-    }
-  }
-
-  user_equipment_aggregate_maximum_bit_rate {
-    downlink = "1 Gbps"
-    uplink   = "500 Mbps"
-  }
-  tags = {
-    key = "value"
-  }
-
-}
-`, config, data.Locations.Primary)
-}
-
-func (r MobileNetworkSimPolicyResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-			%s
-
-resource "azurerm_mobile_network_sim_policy" "test" {
-  name                                   = "acctest-mnsp-%d"
-  mobile_network_id                      = azurerm_mobile_network.test.id
-  location                               = "%s"
-  default_slice_id                       = azurerm_mobile_network_slice.test.id
-  registration_timer_in_seconds          = 3240
-  rat_frequency_selection_priority_index = 1
-
-  slice {
-    default_data_network_id = azurerm_mobile_network_data_network.test.id
-    slice_id                = azurerm_mobile_network_slice.test.id
-    data_network {
-      allocation_and_retention_priority_level = 9
-      default_session_type                    = "IPv4"
-      qos_indicator                           = 9
-      preemption_capability                   = "NotPreempt"
-      preemption_vulnerability                = "Preemptable"
-      allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
-      data_network_id                         = azurerm_mobile_network_data_network.test.id
-      max_buffered_packets                    = 200
-      session_aggregate_maximum_bit_rate {
-        downlink = "1 Gbps"
-        uplink   = "500 Mbps"
-      }
-    }
-  }
-
-  user_equipment_aggregate_maximum_bit_rate {
-    downlink = "1 Gbps"
-    uplink   = "500 Mbps"
-  }
-  tags = {
-    key = "value"
-  }
-
-}
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
-}
-
-func (r MobileNetworkSimPolicyResource) update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-			%s
-
-
-resource "azurerm_mobile_network_sim_policy" "test" {
-  name                                   = "acctest-mnsp-%d"
-  mobile_network_id                      = azurerm_mobile_network.test.id
-  location                               = "%s"
-  default_slice_id                       = azurerm_mobile_network_slice.test.id
-  registration_timer_in_seconds          = 3240
-  rat_frequency_selection_priority_index = 1
-
-  slice {
-    default_data_network_id = azurerm_mobile_network_data_network.test.id
-    slice_id                = azurerm_mobile_network_slice.test.id
-    data_network {
-      allocation_and_retention_priority_level = 9
-      default_session_type                    = "IPv4"
-      qos_indicator                           = 9
-      preemption_capability                   = "NotPreempt"
-      preemption_vulnerability                = "Preemptable"
-      allowed_services_ids                    = [azurerm_mobile_network_service.test.id]
-      data_network_id                         = azurerm_mobile_network_data_network.test.id
-      session_aggregate_maximum_bit_rate {
-        downlink = "1 Gbps"
-        uplink   = "500 Mbps"
-      }
-    }
-  }
-
-  user_equipment_aggregate_maximum_bit_rate {
-    downlink = "1 Gbps"
-    uplink   = "500 Mbps"
-  }
-  tags = {
-    key = "value2"
-  }
-
-}
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }

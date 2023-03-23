@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -17,18 +18,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type SliceModel struct {
-	Name            string            `tfschema:"name"`
-	MobileNetworkId string            `tfschema:"mobile_network_id"`
-	Description     string            `tfschema:"description"`
-	Location        string            `tfschema:"location"`
-	Snssai          []SnssaiModel     `tfschema:"single_network_slice_selection_assistance_information"`
-	Tags            map[string]string `tfschema:"tags"`
+type SliceResourceModel struct {
+	Name                                             string                                                          `tfschema:"name"`
+	MobileNetworkId                                  string                                                          `tfschema:"mobile_network_id"`
+	Description                                      string                                                          `tfschema:"description"`
+	Location                                         string                                                          `tfschema:"location"`
+	SingleNetworkSliceSelectionAssistanceInformation []SingleNetworkSliceSelectionAssistanceInformationResourceModel `tfschema:"single_network_slice_selection_assistance_information"`
+	Tags                                             map[string]string                                               `tfschema:"tags"`
 }
 
-type SnssaiModel struct {
-	Sd  string `tfschema:"slice_differentiator"`
-	Sst int64  `tfschema:"slice_service_type"`
+type SingleNetworkSliceSelectionAssistanceInformationResourceModel struct {
+	SliceDifferentiator string `tfschema:"slice_differentiator"`
+	SliceServiceType    int64  `tfschema:"slice_service_type"`
 }
 
 type SliceResource struct{}
@@ -40,7 +41,7 @@ func (r SliceResource) ResourceType() string {
 }
 
 func (r SliceResource) ModelObject() interface{} {
-	return &SliceModel{}
+	return &SliceResourceModel{}
 }
 
 func (r SliceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -77,6 +78,8 @@ func (r SliceResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					// TODO: these fields can be moved to the top-level in 4.0
+
 					"slice_differentiator": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -107,7 +110,7 @@ func (r SliceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model SliceModel
+			var model SliceResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -138,7 +141,7 @@ func (r SliceResource) Create() sdk.ResourceFunc {
 				properties.Properties.Description = &model.Description
 			}
 
-			properties.Properties.Snssai = expandSnssaiModel(model.Snssai)
+			properties.Properties.Snssai = expandSingleNetworkSliceSelectionAssistanceInformationResourceModel(model.SingleNetworkSliceSelectionAssistanceInformation)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -161,7 +164,7 @@ func (r SliceResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model SliceModel
+			var model SliceResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -186,7 +189,7 @@ func (r SliceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("snssai") {
-				updateModel.Properties.Snssai = expandSnssaiModel(model.Snssai)
+				updateModel.Properties.Snssai = expandSingleNetworkSliceSelectionAssistanceInformationResourceModel(model.SingleNetworkSliceSelectionAssistanceInformation)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -222,26 +225,22 @@ func (r SliceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			model := *resp.Model
-
-			state := SliceModel{
+			state := SliceResourceModel{
 				Name:            id.SliceName,
 				MobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
-				Location:        location.Normalize(model.Location),
 			}
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
 
-			properties := model.Properties
-			if properties.Description != nil {
-				state.Description = *properties.Description
-			}
+				if model.Properties.Description != nil {
+					state.Description = *model.Properties.Description
+				}
 
-			state.Snssai = flattenSnssaiModel(properties.Snssai)
-			if model.Tags != nil {
-				state.Tags = *model.Tags
+				state.SingleNetworkSliceSelectionAssistanceInformation = flattenSingleNetworkSliceSelectionAssistanceInformationResourceModel(model.Properties.Snssai)
+
+				if model.Tags != nil {
+					state.Tags = *model.Tags
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -276,32 +275,29 @@ func (r SliceResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandSnssaiModel(inputList []SnssaiModel) slice.Snssai {
-	output := slice.Snssai{}
-	if len(inputList) == 0 {
-		return output
+func expandSingleNetworkSliceSelectionAssistanceInformationResourceModel(input []SingleNetworkSliceSelectionAssistanceInformationResourceModel) slice.Snssai {
+	item := input[0]
+
+	output := slice.Snssai{
+		Sst: item.SliceServiceType,
 	}
-	input := inputList[0]
-
-	output.Sst = input.Sst
-
-	if input.Sd != "" {
-		output.Sd = &input.Sd
+	if item.SliceDifferentiator != "" {
+		output.Sd = pointer.To(item.SliceDifferentiator)
 	}
 
 	return output
 }
 
-func flattenSnssaiModel(input slice.Snssai) []SnssaiModel {
-	var outputList []SnssaiModel
-
-	output := SnssaiModel{
-		Sst: input.Sst,
+func flattenSingleNetworkSliceSelectionAssistanceInformationResourceModel(input slice.Snssai) []SingleNetworkSliceSelectionAssistanceInformationResourceModel {
+	output := SingleNetworkSliceSelectionAssistanceInformationResourceModel{
+		SliceServiceType: input.Sst,
 	}
 
 	if input.Sd != nil {
-		output.Sd = *input.Sd
+		output.SliceDifferentiator = *input.Sd
 	}
 
-	return append(outputList, output)
+	return []SingleNetworkSliceSelectionAssistanceInformationResourceModel{
+		output,
+	}
 }

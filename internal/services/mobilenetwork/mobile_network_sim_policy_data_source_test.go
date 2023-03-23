@@ -46,7 +46,7 @@ func TestAccMobileNetworkSimPolicyDataSource_complete(t *testing.T) {
 
 func (r MobileNetworkSimPolicyDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
+%s
 
 data "azurerm_mobile_network_sim_policy" "test" {
   name              = azurerm_mobile_network_sim_policy.test.name
