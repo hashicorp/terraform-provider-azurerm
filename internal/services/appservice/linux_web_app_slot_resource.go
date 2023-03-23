@@ -19,6 +19,7 @@ import (
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -90,9 +91,10 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		// Optional
 
 		"service_plan_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validate.ServicePlanID,
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ValidateFunc:     validate.ServicePlanID,
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"app_settings": {

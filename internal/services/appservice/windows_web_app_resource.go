@@ -19,6 +19,7 @@ import (
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -75,9 +76,10 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"service_plan_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.ServicePlanID,
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			ValidateFunc:     validate.ServicePlanID,
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		// Optional
