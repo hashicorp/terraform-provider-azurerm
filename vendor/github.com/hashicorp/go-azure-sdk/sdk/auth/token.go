@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/claims"
 )
 
-const tokenExpiryDelta = 10 * time.Minute
+const tokenExpiryDelta = 20 * time.Minute
 
 // tokenExpiresSoon returns true if the token expires within 10 minutes, or if more than 50% of its validity period has elapsed (if this can be determined), whichever is later
 func tokenDueForRenewal(token *oauth2.Token) bool {
@@ -29,7 +29,7 @@ func tokenDueForRenewal(token *oauth2.Token) bool {
 	expiresWithinTenMinutes := expiry.Add(-delta).Before(now)
 
 	// Try to parse the token claims to retrieve the issuedAt time
-	if claims, err := claims.ParseClaims(token); err != nil {
+	if claims, err := claims.ParseClaims(token); err == nil {
 		if claims.IssuedAt > 0 {
 			issued := time.Unix(claims.IssuedAt, 0)
 			validity := expiry.Sub(issued)
