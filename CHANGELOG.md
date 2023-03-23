@@ -1,5 +1,11 @@
 ## 3.49.0 (Unreleased)
 
+** Breaking Changes ** - App Service `site_config`
+* `ip_restriction` blocks are no longer computed - Changes to IP restrictions outside of Terraform will now present a diff
+* `scm_ip_restriction` blocks are no longer computed - Changes to SCM IP restrictions outside of Terraform will now present a diff
+* `cors` blocks no longer require `allowed_origins`, however, if the property is supplied it must contain at least one item. Omitting this property will set the array empty.
+
+
 FEATURES: 
 
 * **New Datasource:** `azurerm_orchestrated_virtual_machine_scale_set` [GH-21050]
@@ -31,8 +37,33 @@ BUG FIXES:
 * `azurerm_firewall` - Prevent duplicate name from being used for `ip_configuration` and `management_ip_configuration` [GH-21068]
 * `azurerm_kubernetes_cluster` - replace calls to the deprecated accessProfiles endpoint with listUserCredentials [GH-20927]
 * `azurerm_kusto_cluster` - `language_extensions` is now a Set rather than a List [GH-20951]
+* `azurerm_linux_function_app` - fixed processing of `cors` block [GH-20987]
+* `azurerm_linux_function_app_slot` - fixed processing of `cors` block [GH-20987]
+* `azurerm_linux_function_app` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_linux_function_app_slot` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_linux_function_app` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_linux_function_app_slot` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_linux_web_app` - fixed processing of `cors` block [GH-20987]
+* `azurerm_linux_web_app_slot` - fixed processing of `cors` block [GH-20987]
+* `azurerm_linux_web_app` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_linux_web_app_slot` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_linux_web_app` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_linux_web_app_slot` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
 * `azurerm_machine_learning_datastore_blobstorage` - fix an issue creating this resource in clouds other than public [GH-21016]
 * `azurerm_virtual_desktop_host_pool` - changing the `load_balancer_type` property no longer creates a new resource [GH-20947]
+* `azurerm_windows_function_app` - fixed processing of `cors` block [GH-20987]
+* `azurerm_windows_function_app_slot` - fixed processing of `cors` block [GH-20987]
+* `azurerm_windows_function_app` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_windows_function_app_slot` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_windows_function_app` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_windows_function_app_slot` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_windows_web_app` - fixed processing of `cors` block [GH-20987]
+* `azurerm_windows_web_app_slot` - fixed processing of `cors` block [GH-20987]
+* `azurerm_windows_web_app` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_windows_web_app_slot` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_windows_web_app` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+* `azurerm_windows_web_app_slot` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
+
 
 ## 3.48.0 (March 16, 2023)
 
