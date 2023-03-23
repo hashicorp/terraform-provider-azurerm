@@ -838,7 +838,7 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Description: "The ID of the Client to use to authenticate with Azure Active Directory.",
 				},
 
-				"tenant_id": {
+				"tenant_auth_endpoint": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
 					Description: "The Azure Tenant URI for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`",
@@ -872,6 +872,12 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeString,
 					},
 					Description: "A list of Allowed Client Applications in the JWT Claim.",
+				},
+
+				"www_authentication_disabled": {
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Is the www-authenticate provider omitted from the request?",
 				},
 
 				"allowed_groups": {
@@ -921,9 +927,9 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 
 func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirectory {
 	result := &web.AzureActiveDirectory{
-		Enabled:      pointer.To(false),
-		Registration: &web.AzureActiveDirectoryRegistration{},
+		Enabled: pointer.To(false),
 	}
+
 	if len(input) == 1 {
 		aad := input[0]
 		result = &web.AzureActiveDirectory{
@@ -987,7 +993,7 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirector
 }
 
 func flattenAadAuthV2Settings(input *web.AzureActiveDirectory) []AadAuthV2Settings {
-	if input == nil {
+	if input == nil || !pointer.From(input.Enabled) {
 		return []AadAuthV2Settings{}
 	}
 
