@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `node_count` - (Required) The worker node count of the PostgreSQL HyperScale Cluster. Possible value is between `0` and `20` except `1`.
 
-* `citus_version` - (Optional) The citus extension version on the PostgreSQL HyperScale Cluster. Possible values are `8.3`, `9.0`, `9.1`, `9.2`, `9.3`, `9.4`, `9.5`, `10.0`, `10.1`, `10.2`, `11.0`, `11.1` and `11.2`. Defaults to `11.2`.
+* `citus_version` - (Optional) The citus extension version on the PostgreSQL HyperScale Cluster. Possible values are `8.3`, `9.0`, `9.1`, `9.2`, `9.3`, `9.4`, `9.5`, `10.0`, `10.1`, `10.2`, `11.0`, `11.1` and `11.2`.
 
 * `coordinator_public_ip_access_enabled` - (Optional) Is public access enabled on coordinator? Defaults to `true`.
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `source_resource_id` - (Optional) The resource ID of the source PostgreSQL HyperScale cluster for read replica clusters. Changing this forces a new resource to be created.
 
-* `sql_version` - (Optional) The major PostgreSQL version on the PostgreSQL HyperScale cluster. Possible values are `11`, `12`, `13`, `14` and `15`. Defaults to `15`.
+* `sql_version` - (Optional) The major PostgreSQL version on the PostgreSQL HyperScale cluster. Possible values are `11`, `12`, `13`, `14` and `15`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL HyperScale Cluster.
 

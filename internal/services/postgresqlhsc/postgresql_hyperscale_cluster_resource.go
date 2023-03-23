@@ -121,7 +121,7 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 		"citus_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  "11.2",
+			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"8.3",
 				"9.0",
@@ -264,7 +264,7 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 		"sql_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  "15",
+			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"11",
 				"12",
@@ -313,7 +313,6 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Properties: &clusters.ClusterProperties{
 					AdministratorLoginPassword:      &model.AdministratorLoginPassword,
-					CitusVersion:                    &model.CitusVersion,
 					CoordinatorEnablePublicIPAccess: &model.CoordinatorPublicIPAccessEnabled,
 					CoordinatorServerEdition:        &model.CoordinatorServerEdition,
 					CoordinatorStorageQuotaInMb:     &model.CoordinatorStorageQuotaInMb,
@@ -322,8 +321,11 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 					NodeCount:                       &model.NodeCount,
 					NodeEnablePublicIPAccess:        &model.NodePublicIPAccessEnabled,
 					NodeServerEdition:               &model.NodeServerEdition,
-					PostgresqlVersion:               &model.SqlVersion,
 				},
+			}
+
+			if v := model.CitusVersion; v != "" {
+				parameters.Properties.CitusVersion = &model.CitusVersion
 			}
 
 			if v := model.MaintenanceWindow; v != nil {
@@ -340,6 +342,10 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 
 			if v := model.PointInTimeInUTC; v != "" {
 				parameters.Properties.PointInTimeUTC = &model.PointInTimeInUTC
+			}
+
+			if v := model.SqlVersion; v != "" {
+				parameters.Properties.PostgresqlVersion = &model.SqlVersion
 			}
 
 			if v := model.PreferredPrimaryZone; v != "" {
@@ -508,7 +514,6 @@ func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
 				state.SourceResourceId = metadata.ResourceData.Get("source_resource_id").(string)
 				state.SourceLocation = metadata.ResourceData.Get("source_location").(string)
 				state.PointInTimeInUTC = metadata.ResourceData.Get("point_in_time_in_utc").(string)
-				state.CitusVersion = *props.CitusVersion
 				state.CoordinatorPublicIPAccessEnabled = *props.CoordinatorEnablePublicIPAccess
 				state.CoordinatorServerEdition = *props.CoordinatorServerEdition
 				state.CoordinatorStorageQuotaInMb = *props.CoordinatorStorageQuotaInMb
@@ -520,7 +525,10 @@ func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
 				state.NodeStorageQuotaInMb = *props.NodeStorageQuotaInMb
 				state.NodeVCores = *props.NodeVCores
 				state.ShardsOnCoordinatorEnabled = *props.EnableShardsOnCoordinator
-				state.SqlVersion = *props.PostgresqlVersion
+
+				if v := props.CitusVersion; v != nil {
+					state.CitusVersion = *v
+				}
 
 				if v := props.MaintenanceWindow; v != nil {
 					state.MaintenanceWindow = flattenMaintenanceWindow(v)
@@ -528,6 +536,10 @@ func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
 
 				if v := props.PreferredPrimaryZone; v != nil {
 					state.PreferredPrimaryZone = *v
+				}
+
+				if v := props.PostgresqlVersion; v != nil {
+					state.SqlVersion = *v
 				}
 
 				if v := props.EarliestRestoreTime; v != nil {
