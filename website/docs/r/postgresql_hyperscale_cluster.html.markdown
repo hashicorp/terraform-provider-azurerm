@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `node_server_edition` - (Optional) The edition of the node server. Defaults to `MemoryOptimized`.
 
-* `node_storage_quota_in_mb` - (Optional) The storage quota in MB on each worker node. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608` and `16777216`.
+* `node_storage_quota_in_mb` - (Optional) The storage quota in MB on each worker node. Possible values are `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608` and `16777216`.
 
 * `node_vcores` - (Optional) The vCores count on each worker node. Possible values are `2`, `4`, `8`, `16`, `32`, `64`, `96` and `104`.
 

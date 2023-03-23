@@ -205,7 +205,7 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			Optional: true,
 			Computed: true,
 			ValidateFunc: validation.All(
-				validation.IntBetween(32768, 16777216),
+				validation.IntBetween(131072, 16777216),
 				validation.IntDivisibleBy(1024),
 			),
 		},
