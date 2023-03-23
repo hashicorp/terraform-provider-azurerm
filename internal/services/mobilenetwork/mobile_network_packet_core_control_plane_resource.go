@@ -211,6 +211,7 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 						ValidateFunc: validation.StringInSlice([]string{
 							string(packetcorecontrolplane.PlatformTypeAKSNegativeHCI),
 							string(packetcorecontrolplane.PlatformTypeThreePNegativeAZURENegativeSTACKNegativeHCI),
+							"BaseVM", // tracked on https://github.com/Azure/azure-rest-api-specs/issues/23243
 						}, false),
 					},
 				},
