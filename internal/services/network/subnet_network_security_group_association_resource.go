@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
@@ -43,10 +44,11 @@ func resourceSubnetNetworkSecurityGroupAssociation() *pluginsdk.Resource {
 			},
 
 			"network_security_group_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateFunc:     azure.ValidateResourceID,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 		},
 	}
