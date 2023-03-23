@@ -117,7 +117,7 @@ func TestAccContainerRegistryTokenPassword_requiresImport(t *testing.T) {
 }
 
 func (r ContainerRegistryTokenPasswordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Containers.ContainerRegistryClient.Tokens
+	client := clients.Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
 
 	id, err := parse.ContainerRegistryTokenPasswordID(state.ID)
 	if err != nil {

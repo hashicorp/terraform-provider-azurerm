@@ -50,7 +50,7 @@ func dataSourceContainerRegistryScopeMap() *pluginsdk.Resource {
 }
 
 func dataSourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient.ScopeMaps
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.ScopeMaps
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
