@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ClustersClient.CreateOrUpdate`
+### Example Usage: `ClustersClient.Create`
 
 ```go
 ctx := context.TODO()
@@ -52,7 +52,7 @@ payload := clusters.Cluster{
 }
 
 
-if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
