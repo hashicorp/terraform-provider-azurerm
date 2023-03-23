@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `databricks`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21004]
 * `azurerm_app_configuration_key` - the resource's ID has been changed to match the Data Plane URL format to work around a number of bugs in the previous parsing logic [GH-20082]
 * `azurerm_app_configuration_feature` - the resource's ID has been changed to match the Data Plane URL format to work around a number of bugs in the previous parsing logic [GH-20082]
+* `azurerm_express_route_circuit` - add support for `authorization_key` [GH-21104]
 * `azurerm_media_job` - updating to use API Version `2022-07-01` [GH-20956]
 * `azurerm_media_transform` - updating to use API Version `2022-07-01` [GH-20956]
 * `azurerm_virtual_network_gateway` - support for conditional/patch updates [GH-21009]
