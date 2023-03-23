@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -242,6 +243,8 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Computed: true,
 		},
 
+		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
+
 		"kind": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -282,6 +285,16 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 				kind = flattenDataCollectionRuleKind(model.Kind)
 				location = azure.NormalizeLocation(model.Location)
 				tag = tags.Flatten(model.Tags)
+
+				identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+
+				if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
+					return fmt.Errorf("setting `identity`: %+v", err)
+				}
+
 				if prop := model.Properties; prop != nil {
 					description = flattenStringPtr(prop.Description)
 					dataFlows = flattenDataCollectionRuleDataFlows(prop.DataFlows)

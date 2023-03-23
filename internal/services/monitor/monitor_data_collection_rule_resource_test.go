@@ -47,6 +47,28 @@ func TestAccMonitorDataCollectionRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDataCollectionRule_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
+	r := MonitorDataCollectionRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorDataCollectionRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
 	r := MonitorDataCollectionRuleResource{}
@@ -129,6 +151,61 @@ resource "azurerm_monitor_data_collection_rule" "test" {
   data_flow {
     streams      = ["Microsoft-InsightsMetrics"]
     destinations = ["test-destination-metrics"]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MonitorDataCollectionRuleResource) systemAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_monitor_data_collection_rule" "test" {
+  name                = "acctestmdcr-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  destinations {
+    azure_monitor_metrics {
+      name = "test-destination-metrics"
+    }
+  }
+  data_flow {
+    streams      = ["Microsoft-InsightsMetrics"]
+    destinations = ["test-destination-metrics"]
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MonitorDataCollectionRuleResource) userAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_monitor_data_collection_rule" "test" {
+  name                = "acctestmdcr-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  destinations {
+    azure_monitor_metrics {
+      name = "test-destination-metrics"
+    }
+  }
+  data_flow {
+    streams      = ["Microsoft-InsightsMetrics"]
+    destinations = ["test-destination-metrics"]
+  }
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
 `, r.template(data), data.RandomInteger)

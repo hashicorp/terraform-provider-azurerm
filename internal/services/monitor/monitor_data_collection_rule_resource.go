@@ -7,7 +7,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -20,15 +22,17 @@ import (
 )
 
 type DataCollectionRule struct {
-	DataFlows         []DataFlow             `tfschema:"data_flow"`
-	DataSources       []DataSource           `tfschema:"data_sources"`
-	Description       string                 `tfschema:"description"`
-	Destinations      []Destination          `tfschema:"destinations"`
-	Kind              string                 `tfschema:"kind"`
-	Name              string                 `tfschema:"name"`
-	Location          string                 `tfschema:"location"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	DataCollectionEndpointId string                              `tfschema:"data_collection_endpoint_id"`
+	DataFlows                []DataFlow                          `tfschema:"data_flow"`
+	DataSources              []DataSource                        `tfschema:"data_sources"`
+	Description              string                              `tfschema:"description"`
+	Destinations             []Destination                       `tfschema:"destinations"`
+	Identity                 []identity.SystemOrUserAssignedList `tfschema:"identity"`
+	Kind                     string                              `tfschema:"kind"`
+	Name                     string                              `tfschema:"name"`
+	Location                 string                              `tfschema:"location"`
+	ResourceGroupName        string                              `tfschema:"resource_group_name"`
+	Tags                     map[string]interface{}              `tfschema:"tags"`
 }
 
 type DataFlow struct {
@@ -100,6 +104,12 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
+		"data_collection_endpoint_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: datacollectionendpoints.ValidateDataCollectionEndpointID,
+		},
+
 		"data_flow": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -123,6 +133,21 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+					},
+					"output_stream": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"transform_kql": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"built_in_transform": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
@@ -341,11 +366,45 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+
 		"kind": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice(
 				datacollectionrules.PossibleValuesForKnownDataCollectionRuleResourceKind(), false),
+		},
+
+		"stream_declaration": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"stream_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"column": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"type": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(datacollectionrules.PossibleValuesForKnownColumnDefinitionType(), false),
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 
 		"tags": commonschema.Tags(),
@@ -396,7 +455,13 @@ func (r DataCollectionRuleResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			input := datacollectionrules.DataCollectionRuleResource{
+				Identity: identityValue,
 				Kind:     expandDataCollectionRuleKind(state.Kind),
 				Location: azure.NormalizeLocation(state.Location),
 				Name:     utils.String(state.Name),
@@ -407,6 +472,10 @@ func (r DataCollectionRuleResource) Create() sdk.ResourceFunc {
 					Destinations: expandDataCollectionRuleDestinations(state.Destinations),
 				},
 				Tags: tags.Expand(state.Tags),
+			}
+
+			if state.DataCollectionEndpointId != "" {
+				input.Properties.DataCollectionEndpointId = utils.String(state.DataCollectionEndpointId)
 			}
 
 			if _, err := client.Create(ctx, id, input); err != nil {
@@ -439,7 +508,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var description, kind, location string
+			var dataCollectionEndpointId, description, kind, location string
 			var tag map[string]interface{}
 			var dataFlows []DataFlow
 			var dataSources []DataSource
@@ -449,7 +518,18 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 				kind = flattenDataCollectionRuleKind(model.Kind)
 				location = azure.NormalizeLocation(model.Location)
 				tag = tags.Flatten(model.Tags)
+
+				identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+
+				if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
+					return fmt.Errorf("setting `identity`: %+v", err)
+				}
+
 				if prop := model.Properties; prop != nil {
+					dataCollectionEndpointId = flattenStringPtr(prop.DataCollectionEndpointId)
 					description = flattenStringPtr(prop.Description)
 					dataFlows = flattenDataCollectionRuleDataFlows(prop.DataFlows)
 					dataSources = flattenDataCollectionRuleDataSources(prop.DataSources)
@@ -458,15 +538,16 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 			}
 
 			return metadata.Encode(&DataCollectionRule{
-				Name:              id.DataCollectionRuleName,
-				ResourceGroupName: id.ResourceGroupName,
-				DataFlows:         dataFlows,
-				DataSources:       dataSources,
-				Description:       description,
-				Destinations:      destinations,
-				Kind:              kind,
-				Location:          location,
-				Tags:              tag,
+				Name:                     id.DataCollectionRuleName,
+				ResourceGroupName:        id.ResourceGroupName,
+				DataCollectionEndpointId: dataCollectionEndpointId,
+				DataFlows:                dataFlows,
+				DataSources:              dataSources,
+				Description:              description,
+				Destinations:             destinations,
+				Kind:                     kind,
+				Location:                 location,
+				Tags:                     tag,
 			})
 		},
 		Timeout: 5 * time.Minute,
@@ -520,12 +601,24 @@ func (r DataCollectionRuleResource) Update() sdk.ResourceFunc {
 				existing.Properties.DataSources = dataSource
 			}
 
+			if metadata.ResourceData.HasChange("data_collection_endpoint_id") {
+				existing.Properties.Description = utils.String(state.DataCollectionEndpointId)
+			}
+
 			if metadata.ResourceData.HasChange("description") {
 				existing.Properties.Description = utils.String(state.Description)
 			}
 
 			if metadata.ResourceData.HasChange("destinations") {
 				existing.Properties.Destinations = expandDataCollectionRuleDestinations(state.Destinations)
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				existing.Identity = identityValue
 			}
 
 			if _, err := client.Create(ctx, *id, *existing); err != nil {
