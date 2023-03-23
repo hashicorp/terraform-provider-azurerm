@@ -18,7 +18,7 @@ resource "azurerm_automation_hybrid_runbook_worker" "example" {
   automation_account_name = azurerm_automation_account.test.name
   worker_group_name       = azurerm_automation_hybrid_runbook_worker_group.test.name
   vm_resource_id          = azurerm_linux_virtual_machine.test.id
-  worker_id               = uuid()
+  worker_id               = "00000000-0000-0000-0000-000000000000" #unique uuid
 }
 ```
 
