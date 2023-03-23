@@ -1,17 +1,38 @@
 ## 3.49.0 (Unreleased)
 
+FEATURES: 
+
+* **New Datasource:** `azurerm_orchestrated_virtual_machine_scale_set` [GH-21050]
+* **New Resource:** `azurerm_sentinel_threat_intelligence_indicator` [GH-20771]
+
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230317.1100159` of `github.com/hashicorp/go-azure-sdk` [GH-21004]
+* dependencies: updating to `v0.20230322.1105901` of `hashicorp/go-azure-sdk` [GH-21079]
 * `databricks`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21004]
+* `azurerm_media_job` - updating to use API Version `2022-07-01` [GH-20956]
+* `azurerm_media_transform` - updating to use API Version `2022-07-01` [GH-20956]
 * `azurerm_virtual_network_gateway` - support for conditional/patch updates [GH-21009]
 * `azurerm_web_application_firewall_policy` - the field `operator` within the `match_conditions` block can now be set to `Any` [GH-20971]
+* `azurerm_kubernetes_cluster` - add missing property to `oms_agent` schema[GH-21046]
 * `azurerm_kubernetes_cluster` - deprecate `docker_bridge_cidr` which is no longer supported by the API since docker is no longer a valid container runtime [GH-20952]
+* `azurerm_management_group_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
+* `azurerm_mysql_flexible_server` - support for the `geo_backup_key_vault_key_id` and `geo_backup_user_assigned_identity_id` properties [GH-20796]
+* `azurerm_resource_group_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
+* `azurerm_resource_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
+* `azurerm_role_assignment` - support subscription aliases scopes [GH-20895]
+* `azurerm_signalr_service` - support for `public_network_access_enabled`, `local_auth_enabled`, `aad_auth_enabled`, `tls_client_cert_enabled`, and `serverless_connection_timeout_in_seconds` properties [GH-20975]
+* `azurerm_subscription_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
+* `azurerm_sentinel_log_analytics_workspace_onboarding` - the `resource_group_name` and `workspace_name` properties have been deprecated in favour of workspace_id [GH-20661]
 * `azurerm_virtual_network_peering` - adding an explicit default value for `allow_forwarded_traffic`, `allow_gateway_transit` and `use_remote_gateways` [GH-21009]
+* `azurerm_virtual_hub` - support for the `hub_routing_preference` property [GH-21028]
 
 BUG FIXES:
 
+* `azurerm_firewall` - Prevent duplicate name from being used for `ip_configuration` and `management_ip_configuration` [GH-21068]
+* `azurerm_kubernetes_cluster` - replace calls to the deprecated accessProfiles endpoint with listUserCredentials [GH-20927]
+* `azurerm_kusto_cluster` - `language_extensions` is now a Set rather than a List [GH-20951]
 * `azurerm_machine_learning_datastore_blobstorage` - fix an issue creating this resource in clouds other than public [GH-21016]
+* `azurerm_virtual_desktop_host_pool` - changing the `load_balancer_type` property no longer creates a new resource [GH-20947]
 
 ## 3.48.0 (March 16, 2023)
 

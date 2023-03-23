@@ -181,8 +181,6 @@ func (r SimGroupResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			properties.SystemData = nil
-
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
 			}

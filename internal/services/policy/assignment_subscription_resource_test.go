@@ -200,6 +200,35 @@ func TestAccSubscriptionPolicyAssignment_basicWithCustomPolicy(t *testing.T) {
 	})
 }
 
+func TestAccSubscriptionPolicyAssignment_overridesAndResourceSelector(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
+	r := SubscriptionAssignmentTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withOverrideAndSelectorsBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withOverrideAndSelectorsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withOverrideAndSelectorsBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSubscriptionPolicyAssignment_basicWithCustomPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
 	r := SubscriptionAssignmentTestResource{}
@@ -515,6 +544,83 @@ resource "azurerm_subscription_policy_assignment" "test" {
   name                 = "acctestpa-sub-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = azurerm_policy_definition.test.id
+}
+`, template, data.RandomInteger)
+}
+
+func (r SubscriptionAssignmentTestResource) withOverrideAndSelectorsBasic(data acceptance.TestData) string {
+	template := r.templateWithCustomPolicy(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_subscription_policy_assignment" "test" {
+  name                 = "acctestpa-sub-%[2]d"
+  subscription_id      = data.azurerm_subscription.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  metadata = jsonencode({
+    "category" : "Testing"
+  })
+
+  overrides {
+    value = "Disabled"
+    selectors {
+      in = [data.azurerm_policy_set_definition.test.policy_definition_reference.0.reference_id]
+    }
+  }
+
+  resource_selectors {
+    selectors {
+      not_in = ["eastus", "westus"]
+      kind   = "resourceLocation"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r SubscriptionAssignmentTestResource) withOverrideAndSelectorsUpdate(data acceptance.TestData) string {
+	template := r.templateWithCustomPolicy(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_subscription_policy_assignment" "test" {
+  name                 = "acctestpa-sub-%[2]d"
+  subscription_id      = data.azurerm_subscription.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  metadata = jsonencode({
+    "category" : "Testing"
+  })
+
+  overrides {
+    value = "AuditIfNotExists"
+    selectors {
+      in = [data.azurerm_policy_set_definition.test.policy_definition_reference.0.reference_id]
+    }
+  }
+
+  resource_selectors {
+    name = "selected for policy"
+    selectors {
+      not_in = ["eastus"]
+      kind   = "resourceLocation"
+    }
+  }
 }
 `, template, data.RandomInteger)
 }

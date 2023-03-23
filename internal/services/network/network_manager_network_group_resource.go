@@ -140,8 +140,6 @@ func (r ManagerNetworkGroupResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			existing.SystemData = nil
-
 			if _, err := client.CreateOrUpdate(ctx, existing, id.ResourceGroup, id.NetworkManagerName, id.NetworkGroupName, ""); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}

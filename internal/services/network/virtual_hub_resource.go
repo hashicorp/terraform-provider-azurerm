@@ -116,6 +116,17 @@ func resourceVirtualHub() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 
+			"hub_routing_preference": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(network.HubRoutingPreferenceExpressRoute),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.HubRoutingPreferenceExpressRoute),
+					string(network.HubRoutingPreferenceVpnGateway),
+					string(network.HubRoutingPreferenceASPath),
+				}, false),
+			},
+
 			"default_route_table_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -155,10 +166,13 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	route := d.Get("route").(*pluginsdk.Set).List()
 	t := d.Get("tags").(map[string]interface{})
 
+	hubRoutingPreference := d.Get("hub_routing_preference").(string)
+
 	parameters := network.VirtualHub{
 		Location: utils.String(location),
 		VirtualHubProperties: &network.VirtualHubProperties{
-			RouteTable: expandVirtualHubRoute(route),
+			RouteTable:           expandVirtualHubRoute(route),
+			HubRoutingPreference: network.HubRoutingPreference(hubRoutingPreference),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -242,6 +256,8 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err := d.Set("route", flattenVirtualHubRoute(props.RouteTable)); err != nil {
 			return fmt.Errorf("setting `route`: %+v", err)
 		}
+
+		d.Set("hub_routing_preference", props.HubRoutingPreference)
 
 		var virtualWanId *string
 		if props.VirtualWan != nil {
