@@ -1,15 +1,17 @@
 ## 3.49.0 (Unreleased)
 
-** Breaking Changes ** - App Service `site_config`
-* `ip_restriction` blocks are no longer computed - Changes to IP restrictions outside of Terraform will now present a diff
-* `scm_ip_restriction` blocks are no longer computed - Changes to SCM IP restrictions outside of Terraform will now present a diff
-* `cors` blocks no longer require `allowed_origins`, however, if the property is supplied it must contain at least one item. Omitting this property will set the array empty.
+BREAKING CHANGES: 
+App Service `site_config`
+* `ip_restriction` blocks are no longer computed - changes to IP restrictions outside of Terraform will now present a diff
+* `scm_ip_restriction` blocks are no longer computed - changes to SCM IP restrictions outside of Terraform will now present a diff
+* `cors` blocks no longer require `allowed_origins`, however, if the property is supplied it must contain at least one item. Omitting this property will set the array empty
 
 
 FEATURES: 
 
 * **New Datasource:** `azurerm_orchestrated_virtual_machine_scale_set` [GH-21050]
 * **New Resource:** `azurerm_sentinel_threat_intelligence_indicator` [GH-20771]
+* **New Resource:** `azurerm_voice_services_communications_gateway` [GH-20607]
 
 ENHANCEMENTS:
 
