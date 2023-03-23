@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/vendor/github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 type DatabricksAccessConnectorResource struct{}
@@ -67,8 +69,13 @@ func (DatabricksAccessConnectorResource) Exists(ctx context.Context, clients *cl
 	}
 
 	resp, err := clients.DataBricks.AccessConnectorClient.Get(ctx, *id)
+
+	if response.WasNotFound(resp.HttpResponse) {
+		return pointer.To(false), nil
+	}
+
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id.ID(), err)
+		return nil, fmt.Errorf("making Read request on Databricks %s: %+v", id.ID(), err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil
@@ -89,8 +96,6 @@ resource "azurerm_databricks_access_connector" "test" {
   name                = "acctestDBAC%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-
-  identity {}
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -104,8 +109,6 @@ resource "azurerm_databricks_access_connector" "import" {
   name                = azurerm_databricks_access_connector.test.name
   resource_group_name = azurerm_databricks_access_connector.test.resource_group_name
   location            = azurerm_databricks_access_connector.test.location
-
-  identity {}
 }
 `, template)
 }

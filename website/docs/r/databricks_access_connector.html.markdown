@@ -51,31 +51,27 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of identity to use for this Access Connector. Possible values include `SystemAssigned` or `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on the Databricks Access Connector. Possible values include `SystemAssigned`, `UserAssigned` or `SystemAssigned, UserAssigned`.
 
-* `identity_ids` - (Optional)
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to the Databricks Access Connector.
 
-* `principal_id` - (Computed)
-
-* `tenant_id` - (Computed)
+~> **NOTE:** `identity_ids` are required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
-The following attributes are exported:
+The following Attributes are exported in addition to the Arguments listed above:
 
 * `id` - The ID of the Databricks Access Connector in the Azure management plane.
 
-* `identity` - A list of `identity` blocks containing the system-assigned managed identities as defined below.
+* `identity` - A list of `identity` blocks containing the Managed Service Identities as defined below.
 
 ---
 
 An `identity` block exports the following:
 
-* `type` - The type of identity.
+* `principal_id` - The Principal ID associated with the Managed Service Identity.
 
-* `principal_id` - The Principal ID associated with this system-assigned managed identity.
-
-* `tenant_id` - The Tenant ID associated with this system-assigned managed identity.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 

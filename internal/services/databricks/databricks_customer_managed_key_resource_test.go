@@ -133,7 +133,7 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-db-%[1]d"
+  name     = "acctestRG-databricks-%[1]d"
   location = "%[2]s"
 }
 
@@ -176,7 +176,7 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-db-%[1]d"
+  name     = "acctestRG-databricks-%[1]d"
   location = "%[2]s"
 }
 

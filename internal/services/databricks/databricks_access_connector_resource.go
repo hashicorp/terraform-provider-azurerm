@@ -6,16 +6,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -45,44 +42,7 @@ func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"identity": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"type": {
-						Type:     schema.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(identity.TypeUserAssigned),
-							string(identity.TypeSystemAssigned),
-						}, false),
-						Default: string(identity.TypeSystemAssigned),
-					},
-
-					"identity_ids": {
-						Type:     schema.TypeSet,
-						Optional: true,
-						ForceNew: true,
-						Elem: &schema.Schema{
-							Type:         schema.TypeString,
-							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-						},
-					},
-
-					"principal_id": {
-						Type:     schema.TypeString,
-						Computed: true,
-					},
-
-					"tenant_id": {
-						Type:     schema.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -106,25 +66,30 @@ func (r AccessConnectorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 
 func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DataBricks.AccessConnectorClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			var model AccessConnectorResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
-			client := metadata.Client.DataBricks.AccessConnectorClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := accessconnector.NewAccessConnectorID(subscriptionId, model.ResourceGroup, model.Name)
+
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing Databricks %s: %+v", id, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(model.Identity)
+			// for whatever reason decode always returns identity type as 'None'
+			// {"identity":{"type":"None","userAssignedIdentities":null},"location":"westeurope","name":"XXXXX","tags":null}: timestamp=2023-03-23T01:32:33.124-0600
+			resourceIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -133,37 +98,48 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 				Name:     &model.Name,
 				Location: model.Location,
 				Tags:     &model.Tags,
-				Identity: expandedIdentity,
+				Identity: resourceIdentity,
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, accessConnector); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+				return fmt.Errorf("creating Databricks %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
+
 			return nil
 		},
-		Timeout: 5 * time.Minute,
 	}
 }
 
 func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataBricks.AccessConnectorClient
+			var state AccessConnectorResourceModel
+
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var state AccessConnectorResourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %v", id, err)
+				return fmt.Errorf("reading Databricks %s: %v", id, err)
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				resourceIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+
+				existing.Model.Identity = resourceIdentity
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -171,32 +147,31 @@ func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+				return fmt.Errorf("updating Databricks %s: %+v", id, err)
 			}
 
 			return nil
 		},
-
-		Timeout: 5 * time.Minute,
 	}
 }
 
 func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DataBricks.AccessConnectorClient
+
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
-
-			client := metadata.Client.DataBricks.AccessConnectorClient
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
+				return fmt.Errorf("retrieving Databricks %s: %+v", *id, err)
 			}
 
 			state := AccessConnectorResourceModel{
@@ -209,22 +184,25 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 				if model.Tags != nil {
 					state.Tags = *model.Tags
 				}
-				if model.Identity != nil {
-					identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
-					if err != nil {
-						return fmt.Errorf("flattening %s: %+v", *id, err)
-					}
-					state.Identity = *identity
+
+				resourceIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+
+				if err := metadata.ResourceData.Set("identity", resourceIdentity); err != nil {
+					return fmt.Errorf("setting `identity`: %+v", err)
 				}
 			}
+
 			return metadata.Encode(&state)
 		},
-		Timeout: 5 * time.Minute,
 	}
 }
 
 func (r AccessConnectorResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
 
@@ -235,11 +213,10 @@ func (r AccessConnectorResource) Delete() sdk.ResourceFunc {
 			client := metadata.Client.DataBricks.AccessConnectorClient
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", *id, err)
+				return fmt.Errorf("deleting Databricks %s: %+v", *id, err)
 			}
 
 			return nil
 		},
-		Timeout: 30 * time.Minute,
 	}
 }
