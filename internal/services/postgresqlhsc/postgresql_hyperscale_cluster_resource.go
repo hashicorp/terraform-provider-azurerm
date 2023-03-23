@@ -146,10 +146,15 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"coordinator_server_edition": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      "GeneralPurpose",
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "GeneralPurpose",
+			ValidateFunc: validation.StringInSlice([]string{
+				"BurstableGeneralPurpose",
+				"BurstableMemoryOptimized",
+				"GeneralPurpose",
+				"MemoryOptimized",
+			}, false),
 		},
 
 		"ha_enabled": {
@@ -195,10 +200,15 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"node_server_edition": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      "MemoryOptimized",
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "MemoryOptimized",
+			ValidateFunc: validation.StringInSlice([]string{
+				"BurstableGeneralPurpose",
+				"BurstableMemoryOptimized",
+				"GeneralPurpose",
+				"MemoryOptimized",
+			}, false),
 		},
 
 		"node_storage_quota_in_mb": {
@@ -289,7 +299,7 @@ func (r PostgreSQLHyperScaleClusterResource) Attributes() map[string]*pluginsdk.
 
 func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model PostgreSQLHyperScaleClusterModel
 			if err := metadata.Decode(&model); err != nil {
@@ -383,7 +393,7 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 
 func (r PostgreSQLHyperScaleClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PostgreSQLHSC.ClustersClient
 
@@ -558,7 +568,7 @@ func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
 
 func (r PostgreSQLHyperScaleClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PostgreSQLHSC.ClustersClient
 

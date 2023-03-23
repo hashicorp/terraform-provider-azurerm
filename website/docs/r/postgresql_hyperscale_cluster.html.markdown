@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `coordinator_public_ip_access_enabled` - (Optional) Is public access enabled on coordinator? Defaults to `true`.
 
-* `coordinator_server_edition` - (Optional) The edition of the coordinator server. Defaults to `GeneralPurpose`.
+* `coordinator_server_edition` - (Optional) The edition of the coordinator server. Possible values are `BurstableGeneralPurpose`, `BurstableMemoryOptimized`, `GeneralPurpose` and `MemoryOptimized`. Defaults to `GeneralPurpose`.
 
 * `ha_enabled` - (Optional) Is high availability enabled for the PostgreSQL HyperScale cluster? Defaults to `false`.
 
@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `node_public_ip_access_enabled` - (Optional) Is public access enabled on worker nodes. Defaults to `false`.
 
-* `node_server_edition` - (Optional) The edition of the node server. Defaults to `MemoryOptimized`.
+* `node_server_edition` - (Optional) The edition of the node server. Possible values are `BurstableGeneralPurpose`, `BurstableMemoryOptimized`, `GeneralPurpose` and `MemoryOptimized`. Defaults to `MemoryOptimized`.
 
 * `node_storage_quota_in_mb` - (Optional) The storage quota in MB on each worker node. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608` and `16777216`.
 
@@ -101,10 +101,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the PostgreSQL HyperScale Cluster.
+* `create` - (Defaults to 3 hours) Used when creating the PostgreSQL HyperScale Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL HyperScale Cluster.
-* `update` - (Defaults to 60 minutes) Used when updating the PostgreSQL HyperScale Cluster.
-* `delete` - (Defaults to 60 minutes) Used when deleting the PostgreSQL HyperScale Cluster.
+* `update` - (Defaults to 3 hours) Used when updating the PostgreSQL HyperScale Cluster.
+* `delete` - (Defaults to 3 hours) Used when deleting the PostgreSQL HyperScale Cluster.
 
 ## Import
 
