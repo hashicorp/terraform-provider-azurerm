@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/runs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/taskruns"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"time"
 
@@ -98,20 +97,30 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 
 			registryId := registries.NewRegistryID(taskId.SubscriptionId, taskId.ResourceGroupName, taskId.RegistryName)
 			registryClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Registries
-			if err := registryClient.ScheduleRunThenPoll(ctx, registryId, req); err != nil {
-				return fmt.Errorf("scheduling the task: %v", err)
+			//if err := registryClient.ScheduleRunThenPoll(ctx, registryId, req); err != nil {
+			//	return fmt.Errorf("scheduling the task: %v", err)
+			//}
+
+			_, err = registryClient.ScheduleRun(ctx, registryId, req)
+			if err != nil {
+				return fmt.Errorf("scheduling the task: %+v", err)
+
 			}
 
-			taskRunsClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.TaskRuns
-			run, err := taskRunsClient.List(ctx, taskruns.RegistryId(registryId))
+			//if err := future.Poller.PollUntilDone(ctx); err != nil {
+			//	return fmt.Errorf("polling on task: %+v", err)
+			//}
 
-			if run.Model == nil {
-				return fmt.Errorf("model was nil for %s", registryId)
-			}
+			runsClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Runs
+			run, err := runsClient.List(ctx, runs.RegistryId(registryId), runs.ListOperationOptions{})
+
+			//if run.Model == nil {
+			//	return fmt.Errorf("model was nil for %s", registryId)
+			//}
 
 			runName := ""
 			for _, v := range *run.Model {
-				if *v.Id == taskId.ID() {
+				if *v.Properties.Task == taskId.TaskName {
 					runName = *v.Name
 				}
 			}
@@ -119,8 +128,6 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 			if runName == "" {
 				return fmt.Errorf("unexpected nil scheduled run name")
 			}
-
-			runsClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Runs
 
 			runId := runs.NewRunID(registryId.SubscriptionId, registryId.ResourceGroupName, registryId.RegistryName, runName)
 
