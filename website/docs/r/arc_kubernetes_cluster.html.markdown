@@ -10,6 +10,8 @@ description: |-
 
 Manages an Arc Kubernetes Cluster.
 
+-> **Note:** To connect an existing Kubernetes cluster to Azure Arc, besides creating an Arc Kubernetes Cluster in Azure, Azure Arc agents are also needed to deploy in the Kubernetes cluster. For more details refer to [Deploy agents to your cluster](https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/conceptual-agent-overview#deploy-agents-to-your-cluster).
+
 ## Example Usage
 
 ```hcl

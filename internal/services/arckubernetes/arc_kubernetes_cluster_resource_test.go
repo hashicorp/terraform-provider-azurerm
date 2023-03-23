@@ -2,12 +2,18 @@ package arckubernetes_test
 
 import (
 	"context"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
 	"fmt"
+
+	cryptoRand "crypto/rand"
 	"math/rand"
 	"os"
 	"testing"
 
-	arckubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/sdk/2021-10-01/hybridkubernetes"
+	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -22,16 +28,21 @@ type ArcKubernetesClusterResource struct{}
 func TestAccArcKubernetesCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
 	r := ArcKubernetesClusterResource{}
+	privateKey, publicKey, err := r.generateKey()
+	if err != nil {
+		t.Fatalf("failed to generate key: %+v", err)
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.update(data, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("distribution").HasValue("kind"),
@@ -45,30 +56,43 @@ func TestAccArcKubernetesCluster_basic(t *testing.T) {
 func TestAccArcKubernetesCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
 	r := ArcKubernetesClusterResource{}
+	privateKey, publicKey, err := r.generateKey()
+	if err != nil {
+		t.Fatalf("failed to generate key: %+v", err)
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		{
+			Config:      r.requiresImport(data, privateKey, publicKey),
+			ExpectError: acceptance.RequiresImportError(data.ResourceType),
+		},
 	})
 }
 
 func TestAccArcKubernetesCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
 	r := ArcKubernetesClusterResource{}
+	privateKey, publicKey, err := r.generateKey()
+	if err != nil {
+		t.Fatalf("failed to generate key: %+v", err)
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.update(data, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("distribution").HasValue("kind"),
@@ -193,7 +217,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, data.RandomInteger, data.Locations.Primary, credential)
 }
 
-func (r ArcKubernetesClusterResource) provisionTemplate(data acceptance.TestData, credential string) string {
+func (r ArcKubernetesClusterResource) provisionTemplate(data acceptance.TestData, credential string, privateKey string) string {
 	return fmt.Sprintf(`
 connection {
   type     = "ssh"
@@ -225,7 +249,9 @@ provisioner "file" {
 }
 
 provisioner "file" {
-  source      = "testdata/private.pem"
+  content     = <<EOT
+%[6]s
+EOT
   destination = "%[3]s/private.pem"
 }
 
@@ -236,13 +262,13 @@ provisioner "remote-exec" {
     "bash %[3]s/install_agent.sh > %[3]s/agent_log",
   ]
 }
-`, credential, data.RandomInteger, "/home/adminuser", os.Getenv("ARM_SUBSCRIPTION_ID"), os.Getenv("ARM_TENANT_ID"))
+`, credential, data.RandomInteger, "/home/adminuser", os.Getenv("ARM_SUBSCRIPTION_ID"), os.Getenv("ARM_TENANT_ID"), privateKey)
 }
 
-func (r ArcKubernetesClusterResource) basic(data acceptance.TestData) string {
+func (r ArcKubernetesClusterResource) basic(data acceptance.TestData, privateKey string, publicKey string) string {
 	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
 	template := r.template(data, credential)
-	provisionTemplate := r.provisionTemplate(data, credential)
+	provisionTemplate := r.provisionTemplate(data, credential, privateKey)
 	return fmt.Sprintf(`
 				%[1]s
 
@@ -250,7 +276,7 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
   name                         = "acctest-akcc-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
-  agent_public_key_certificate = filebase64("testdata/public.cer")
+  agent_public_key_certificate = "%[4]s"
   identity {
     type = "SystemAssigned"
   }
@@ -261,11 +287,11 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
     azurerm_linux_virtual_machine.test
   ]
 }
-`, template, data.RandomInteger, provisionTemplate)
+`, template, data.RandomInteger, provisionTemplate, publicKey)
 }
 
-func (r ArcKubernetesClusterResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
+func (r ArcKubernetesClusterResource) requiresImport(data acceptance.TestData, privateKey string, publicKey string) string {
+	config := r.basic(data, privateKey, publicKey)
 	return fmt.Sprintf(`
 			%s
 
@@ -282,10 +308,10 @@ resource "azurerm_arc_kubernetes_cluster" "import" {
 `, config)
 }
 
-func (r ArcKubernetesClusterResource) complete(data acceptance.TestData) string {
+func (r ArcKubernetesClusterResource) complete(data acceptance.TestData, privateKey string, publicKey string) string {
 	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
 	template := r.template(data, credential)
-	provisionTemplate := r.provisionTemplate(data, credential)
+	provisionTemplate := r.provisionTemplate(data, credential, privateKey)
 	return fmt.Sprintf(`
 			%[1]s
 
@@ -293,7 +319,7 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
   name                         = "acctest-akcc-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
-  agent_public_key_certificate = filebase64("testdata/public.cer")
+  agent_public_key_certificate = "%[4]s"
 
   identity {
     type = "SystemAssigned"
@@ -309,13 +335,13 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
     azurerm_linux_virtual_machine.test
   ]
 }
-`, template, data.RandomInteger, provisionTemplate)
+`, template, data.RandomInteger, provisionTemplate, publicKey)
 }
 
-func (r ArcKubernetesClusterResource) update(data acceptance.TestData) string {
+func (r ArcKubernetesClusterResource) update(data acceptance.TestData, privateKey string, publicKey string) string {
 	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
 	template := r.template(data, credential)
-	provisionTemplate := r.provisionTemplate(data, credential)
+	provisionTemplate := r.provisionTemplate(data, credential, privateKey)
 	return fmt.Sprintf(`
 			%[1]s
 
@@ -323,7 +349,7 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
   name                         = "acctest-akcc-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
-  agent_public_key_certificate = filebase64("testdata/public.cer")
+  agent_public_key_certificate = "%[4]s"
 
   identity {
     type = "SystemAssigned"
@@ -339,5 +365,25 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
     azurerm_linux_virtual_machine.test
   ]
 }
-`, template, data.RandomInteger, provisionTemplate)
+`, template, data.RandomInteger, provisionTemplate, publicKey)
+}
+
+func (r ArcKubernetesClusterResource) generateKey() (string, string, error) {
+	privateKey, err := rsa.GenerateKey(cryptoRand.Reader, 4096)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate RSA key")
+	}
+
+	privateKeyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
+	privateKeyBlock := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: privateKeyBytes,
+	}
+
+	privatePem := pem.EncodeToMemory(privateKeyBlock)
+	if privatePem == nil {
+		return "", "", fmt.Errorf("failed to encode pem")
+	}
+
+	return string(privatePem), base64.StdEncoding.EncodeToString(x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)), nil
 }
