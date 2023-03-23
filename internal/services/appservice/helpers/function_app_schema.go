@@ -1961,6 +1961,7 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 		AppCommandLine:          utils.NormalizeNilableString(functionAppSiteConfig.AppCommandLine),
 		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSiteConfig.FunctionAppScaleLimit)),
 		ContainerRegistryMSI:    utils.NormalizeNilableString(functionAppSiteConfig.AcrUserManagedIdentityID),
+		Cors:                    FlattenCorsSettings(functionAppSiteConfig.Cors),
 		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSiteConfig.DetailedErrorLoggingEnabled),
 		HealthCheckPath:         utils.NormalizeNilableString(functionAppSiteConfig.HealthCheckPath),
 		Http2Enabled:            utils.NormaliseNilableBool(functionAppSiteConfig.HTTP20Enabled),
@@ -2004,26 +2005,6 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 		result.DefaultDocuments = *v
 	}
 
-	if functionAppSiteConfig.Cors != nil {
-		corsEmpty := false
-		corsSettings := functionAppSiteConfig.Cors
-		cors := CorsSetting{}
-		if corsSettings.SupportCredentials != nil {
-			cors.SupportCredentials = *corsSettings.SupportCredentials
-		}
-
-		if corsSettings.AllowedOrigins != nil {
-			if len(*corsSettings.AllowedOrigins) > 0 {
-				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
-				corsEmpty = true
-			}
-		}
-		if !corsEmpty {
-			result.Cors = []CorsSetting{cors}
-		}
-	}
-
 	var appStack []ApplicationStackLinuxFunctionApp
 	if functionAppSiteConfig.LinuxFxVersion != nil {
 		decoded, err := DecodeFunctionAppLinuxFxVersion(*functionAppSiteConfig.LinuxFxVersion)
@@ -2046,6 +2027,7 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) 
 		AlwaysOn:                utils.NormaliseNilableBool(functionAppSiteConfig.AlwaysOn),
 		AppCommandLine:          utils.NormalizeNilableString(functionAppSiteConfig.AppCommandLine),
 		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSiteConfig.FunctionAppScaleLimit)),
+		Cors:                    FlattenCorsSettings(functionAppSiteConfig.Cors),
 		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSiteConfig.DetailedErrorLoggingEnabled),
 		HealthCheckPath:         utils.NormalizeNilableString(functionAppSiteConfig.HealthCheckPath),
 		Http2Enabled:            utils.NormaliseNilableBool(functionAppSiteConfig.HTTP20Enabled),
@@ -2086,27 +2068,6 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) 
 
 	if v := functionAppSiteConfig.DefaultDocuments; v != nil {
 		result.DefaultDocuments = *v
-	}
-
-	if functionAppSiteConfig.Cors != nil {
-		corsSettings := functionAppSiteConfig.Cors
-		corsEmpty := false
-		cors := CorsSetting{}
-		if corsSettings.SupportCredentials != nil {
-			cors.SupportCredentials = *corsSettings.SupportCredentials
-		}
-
-		if corsSettings.AllowedOrigins != nil {
-			if len(*corsSettings.AllowedOrigins) > 0 {
-				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
-				corsEmpty = true
-			}
-		}
-
-		if !corsEmpty {
-			result.Cors = []CorsSetting{cors}
-		}
 	}
 
 	powershellVersion := ""
