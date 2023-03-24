@@ -160,17 +160,23 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 	// Either "name" or "display_name" must have been specified, constrained by the pluginsdk.
 	var resp securityinsight.BasicAlertRuleTemplate
 	var nameToLog string
+	var realName *string
 	if name != "" {
 		nameToLog = name
+		realName = &name
 		resp, err = getAlertRuleTemplateByName(ctx, client, workspaceID, name)
 	} else {
 		nameToLog = displayName
-		resp, name, err = getAlertRuleTemplateByDisplayName(ctx, client, workspaceID, displayName)
-		id.AlertRuleTemplateName = name
+		resp, realName, err = getAlertRuleTemplateByDisplayName(ctx, client, workspaceID, displayName)
 	}
 	if err != nil {
 		return fmt.Errorf("retrieving Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q): %+v", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroupName, err)
 	}
+	if realName == nil {
+		return fmt.Errorf("retrieving Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q): `name` was nil", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroupName)
+	}
+
+	id = parse.NewSentinelAlertRuleTemplateID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, *realName)
 
 	switch template := resp.(type) {
 	case securityinsight.MLBehaviorAnalyticsAlertRuleTemplate:
@@ -204,10 +210,10 @@ func getAlertRuleTemplateByName(ctx context.Context, client *securityinsight.Ale
 	return template.Value, nil
 }
 
-func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsight.AlertRuleTemplatesClient, workspaceID *workspaces.WorkspaceId, displayName string) (res securityinsight.BasicAlertRuleTemplate, name string, err error) {
+func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsight.AlertRuleTemplatesClient, workspaceID *workspaces.WorkspaceId, displayName string) (res securityinsight.BasicAlertRuleTemplate, name *string, err error) {
 	templates, err := client.ListComplete(ctx, workspaceID.ResourceGroupName, workspaceID.WorkspaceName)
 	if err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
 	var results []securityinsight.BasicAlertRuleTemplate
 	for templates.NotDone() {
@@ -217,56 +223,56 @@ func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsi
 			if template.DisplayName != nil && *template.DisplayName == displayName {
 				results = append(results, templates.Value())
 				if template.Name != nil {
-					name = *template.Name
+					name = template.Name
 				}
 			}
 		case securityinsight.MLBehaviorAnalyticsAlertRuleTemplate:
 			if template.DisplayName != nil && *template.DisplayName == displayName {
 				results = append(results, templates.Value())
 				if template.Name != nil {
-					name = *template.Name
+					name = template.Name
 				}
 			}
 		case securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate:
 			if template.DisplayName != nil && *template.DisplayName == displayName {
 				results = append(results, templates.Value())
 				if template.Name != nil {
-					name = *template.Name
+					name = template.Name
 				}
 			}
 		case securityinsight.ScheduledAlertRuleTemplate:
 			if template.DisplayName != nil && *template.DisplayName == displayName {
 				results = append(results, templates.Value())
 				if template.Name != nil {
-					name = *template.Name
+					name = template.Name
 				}
 			}
 		case securityinsight.NrtAlertRuleTemplate:
 			if template.DisplayName != nil && *template.DisplayName == displayName {
 				results = append(results, templates.Value())
 				if template.Name != nil {
-					name = *template.Name
+					name = template.Name
 				}
 			}
 		case securityinsight.ThreatIntelligenceAlertRuleTemplate:
 			if template.DisplayName != nil && *template.DisplayName == displayName {
 				results = append(results, templates.Value())
 				if template.Name != nil {
-					name = *template.Name
+					name = template.Name
 				}
 			}
 		}
 
 		if err := templates.NextWithContext(ctx); err != nil {
-			return nil, "", fmt.Errorf("iterating Alert Rule Templates: %+v", err)
+			return nil, nil, fmt.Errorf("iterating Alert Rule Templates: %+v", err)
 		}
 	}
 
 	if len(results) == 0 {
-		return nil, "", fmt.Errorf("no Alert Rule Template found with display name: %s", displayName)
+		return nil, name, fmt.Errorf("no Alert Rule Template found with display name: %s", displayName)
 	}
 	if len(results) > 1 {
-		return nil, "", fmt.Errorf("more than one Alert Rule Template found with display name: %s", displayName)
+		return nil, name, fmt.Errorf("more than one Alert Rule Template found with display name: %s", displayName)
 	}
 	return results[0], name, nil
 }
