@@ -109,7 +109,7 @@ func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		Properties: databaseProperties,
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, readWriteDatabase)
+	err := client.CreateOrUpdateThenPoll(ctx, id, readWriteDatabase, databases.DefaultCreateOrUpdateOperationOptions())
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
