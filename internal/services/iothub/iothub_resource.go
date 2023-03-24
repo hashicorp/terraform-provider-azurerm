@@ -1012,10 +1012,13 @@ func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.Stor
 		lockDuration := fileUploadMap["lock_duration"].(string)
 
 		storageEndpointProperties["$default"] = &devices.StorageEndpointProperties{
-			SasTTLAsIso8601:    &sasTTL,
 			AuthenticationType: authenticationType,
 			ConnectionString:   &connectionStr,
 			ContainerName:      &containerName,
+		}
+
+		if sasTTL != "" {
+			storageEndpointProperties["$default"].SasTTLAsIso8601 = &sasTTL
 		}
 
 		if identityId != "" {

@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -70,6 +71,12 @@ func resourceProximityPlacementGroup() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("allowed_vm_sizes", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.(*pluginsdk.Set).List()) > 0 && len(new.(*pluginsdk.Set).List()) == 0
+			}),
+		),
 	}
 }
 
@@ -105,19 +112,6 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 			payload.Properties.Intent = &proximityplacementgroups.ProximityPlacementGroupPropertiesIntent{}
 		}
 		payload.Properties.Intent.VMSizes = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
-	} else if !d.IsNewResource() {
-		// Need to explicitly set an empty slice when updating vmSizes from non-empty to empty, and should not set it to an empty slice when existing vmSizes is empty when vm is attached
-		if model := existing.Model; model != nil {
-			if props := model.Properties; props != nil {
-				if intent := props.Intent; intent != nil && intent.VMSizes != nil {
-					if payload.Properties.Intent == nil {
-						payload.Properties.Intent = &proximityplacementgroups.ProximityPlacementGroupPropertiesIntent{}
-					}
-					vmSizes := make([]string, 0)
-					payload.Properties.Intent.VMSizes = &vmSizes
-				}
-			}
-		}
 	}
 
 	if v, ok := d.GetOk("zone"); ok {

@@ -107,6 +107,7 @@ resource "azurerm_key_vault_access_policy" "example" {
     "Get",
     "Delete",
     "Purge",
+    "GetRotationPolicy",
   ]
 }
 
@@ -241,6 +242,7 @@ resource "azurerm_key_vault_access_policy" "example-sp" {
     "Recover",
     "Delete",
     "Purge",
+    "GetRotationPolicy",
   ]
 }
 

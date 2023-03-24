@@ -470,7 +470,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 
 func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHealSettingWindows {
 	if autoHealRules == nil {
-		return nil
+		return []AutoHealSettingWindows{}
 	}
 
 	result := AutoHealSettingWindows{}

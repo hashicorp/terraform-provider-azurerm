@@ -136,7 +136,8 @@ resource "azurerm_key_vault_access_policy" "test1" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
+    "GetRotationPolicy"
   ]
 
   secret_permissions = [
@@ -160,7 +161,8 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
+    "GetRotationPolicy"
   ]
 
   secret_permissions = [
@@ -288,7 +290,8 @@ resource "azurerm_key_vault_access_policy" "test3" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
+    "GetRotationPolicy"
   ]
 
   secret_permissions = [
@@ -312,7 +315,8 @@ resource "azurerm_key_vault_access_policy" "test4" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
+    "GetRotationPolicy"
   ]
 
   secret_permissions = [

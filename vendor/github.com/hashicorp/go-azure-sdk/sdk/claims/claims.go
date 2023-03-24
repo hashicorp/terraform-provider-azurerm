@@ -15,6 +15,7 @@ import (
 // Claims is used to unmarshall the claims from a JWT issued by the Microsoft Identity Platform.
 type Claims struct {
 	Audience          string   `json:"aud"`
+	IssuedAt          int64    `json:"iat"`
 	Issuer            string   `json:"iss"`
 	IdentityProvider  string   `json:"idp"`
 	ObjectId          string   `json:"oid"`

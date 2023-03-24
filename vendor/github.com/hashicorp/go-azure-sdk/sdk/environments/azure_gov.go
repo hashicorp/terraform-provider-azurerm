@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package environments
 
 const AzureUSGovernmentCloud = "USGovernment"
@@ -10,7 +13,9 @@ func AzureUSGovernment() *Environment {
 			"https://management.core.usgovcloudapi.net",
 			"https://management.usgovcloudapi.net",
 		},
-		LoginEndpoint: "https://login.microsoftonline.us",
+		IdentityProvider: "AAD",
+		LoginEndpoint:    "https://login.microsoftonline.us",
+		Tenant:           "common",
 	}
 	env.ResourceManager = ResourceManagerAPI("https://management.usgovcloudapi.net").withResourceIdentifier("https://management.usgovcloudapi.net")
 	env.MicrosoftGraph = MicrosoftGraphAPI("https://graph.microsoft.us").withResourceIdentifier("https://graph.microsoft.us")
