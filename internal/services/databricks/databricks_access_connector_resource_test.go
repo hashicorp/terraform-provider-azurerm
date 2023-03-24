@@ -83,6 +83,7 @@ func TestAccDatabricksAccessConnector_identity(t *testing.T) {
 		// GOOD TO KNOW: SystemAssignedOrUserAssignedIdentitySupported: Only SystemAssigned or
 		// UserAssigned Identity is supported for an Access Connector resource, not both together.
 		// TODO: Add test here with multiple User Assigned identities...
+		// NOPE! OnlyOneUserAssignedIdentitySupportPerAccessConnector: Only one user assigned identity is supported per Access Connector resource.
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
