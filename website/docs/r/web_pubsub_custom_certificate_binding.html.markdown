@@ -3,7 +3,7 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub_custom_certificate_binding"
 description: |-
-Manages an Azure Web Pubsub Custom Certificate Binding.
+  Manages an Azure Web Pubsub Custom Certificate Binding.
 ---
 
 # azurerm_web_pubsub_custom_certificate_binding
