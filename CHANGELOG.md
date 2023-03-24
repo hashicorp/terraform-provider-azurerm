@@ -1,6 +1,12 @@
 ## 3.50.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_linux_function_app`  - add support for `zip_deploy_file` [GH-20544]
+* `azurerm_windows_function_app` - add support for `zip_deploy_file` [GH-20544]
+
 BUG FIXES:
+
 * `azurerm_linux_function_app` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
 * `azurerm_linux_function_app_slot` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
 * `azurerm_linux_web_app` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
