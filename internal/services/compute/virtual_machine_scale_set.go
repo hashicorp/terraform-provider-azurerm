@@ -10,6 +10,7 @@ import (
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -634,7 +635,7 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: networkValidate.ApplicationSecurityGroupID,
 					},
 					Set:      pluginsdk.HashString,
 					MaxItems: 20,
@@ -665,7 +666,7 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 				"subnet_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: networkValidate.SubnetID,
 				},
 
 				"version": {
