@@ -93,8 +93,8 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 		"volume": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MinItems: 3, // TODO: make this value 2 in a upcoming major release of AVG
-			MaxItems: 5,
+			MinItems: 2,
+			MaxItems: 5, // TODO: make this value 12 in a upcoming major release of AVG
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
