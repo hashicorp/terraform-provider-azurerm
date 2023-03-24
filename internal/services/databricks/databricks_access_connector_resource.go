@@ -26,7 +26,6 @@ type AccessConnectorResourceModel struct {
 	ResourceGroup string            `tfschema:"resource_group_name"`
 	Location      string            `tfschema:"location"`
 	Tags          map[string]string `tfschema:"tags"`
-	Identity      []interface{}     `tfschema:"identity"`
 }
 
 func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
@@ -71,6 +70,8 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.DataBricks.AccessConnectorClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
+			metadata.Logger.Info("preparing arguments for AzureRM Databricks Access Connector creation")
+
 			var model AccessConnectorResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
@@ -87,9 +88,7 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			// for whatever reason decode always returns identity type as 'None'
-			// {"identity":{"type":"None","userAssignedIdentities":null},"location":"westeurope","name":"XXXXX","tags":null}: timestamp=2023-03-23T01:32:33.124-0600
-			resourceIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -98,7 +97,7 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 				Name:     &model.Name,
 				Location: model.Location,
 				Tags:     &model.Tags,
-				Identity: resourceIdentity,
+				Identity: identityValue,
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, accessConnector); err != nil {
@@ -119,6 +118,8 @@ func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 			client := metadata.Client.DataBricks.AccessConnectorClient
 			var state AccessConnectorResourceModel
 
+			metadata.Logger.Info("preparing arguments for AzureRM Databricks Access Connector update")
+
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -134,12 +135,12 @@ func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				resourceIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 
-				existing.Model.Identity = resourceIdentity
+				existing.Model.Identity = identityValue
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -161,6 +162,8 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataBricks.AccessConnectorClient
 
+			metadata.Logger.Info("preparing for AzureRM Databricks Access Connector read")
+
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
@@ -171,6 +174,7 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
+
 				return fmt.Errorf("retrieving Databricks %s: %+v", *id, err)
 			}
 
@@ -185,13 +189,15 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 					state.Tags = *model.Tags
 				}
 
-				resourceIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
+				if model.Identity != nil {
+					identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+					if err != nil {
+						return fmt.Errorf("flattening `identity`: %+v", err)
+					}
 
-				if err := metadata.ResourceData.Set("identity", resourceIdentity); err != nil {
-					return fmt.Errorf("setting `identity`: %+v", err)
+					if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
+						return fmt.Errorf("setting `identity`: %+v", err)
+					}
 				}
 			}
 
@@ -205,10 +211,11 @@ func (r AccessConnectorResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
-
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
+
+			metadata.Logger.Info("preparing for AzureRM Databricks Access Connector deletion")
 
 			client := metadata.Client.DataBricks.AccessConnectorClient
 
