@@ -164,6 +164,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
 		storage.Registration{},
+		signalr.Registration{},
 		orbital.Registration{},
 		streamanalytics.Registration{},
 		search.Registration{},
