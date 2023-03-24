@@ -9,6 +9,7 @@ App Service `site_config`
 FEATURES: 
 
 * **New Datasource:** `azurerm_orchestrated_virtual_machine_scale_set` [GH-21050]
+* **New Resource:** `azurerm_databricks_virtual_network_peering #20728` [GH-20728]
 * **New Resource:** `azurerm_sentinel_threat_intelligence_indicator` [GH-20771]
 * **New Resource:** `azurerm_voice_services_communications_gateway` [GH-20607]
 
