@@ -60,6 +60,7 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			// TODO: rename to `workspace_id` in 4.0
 			"workspace_resource_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
