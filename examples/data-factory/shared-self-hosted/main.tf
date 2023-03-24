@@ -115,7 +115,7 @@ resource "azurerm_mssql_virtual_machine" "example" {
   virtual_machine_id = azurerm_virtual_machine.example.id
   sql_license_type   = "PAYG"
 }
----
+
 provider "azurerm" {
   features {}
 }
