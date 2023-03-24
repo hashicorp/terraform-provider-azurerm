@@ -985,7 +985,7 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirector
 			}
 		}
 		if len(aad.AllowedAudiences) > 0 {
-			result.Validation.AllowedAudiences = pointer.To(aad.AllowedIdentities)
+			result.Validation.AllowedAudiences = pointer.To(aad.AllowedAudiences)
 		}
 	}
 
