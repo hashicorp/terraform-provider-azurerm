@@ -155,7 +155,6 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 	if err != nil {
 		return err
 	}
-	id := parse.NewSentinelAlertRuleTemplateID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	// Either "name" or "display_name" must have been specified, constrained by the pluginsdk.
 	var resp securityinsight.BasicAlertRuleTemplate
@@ -176,7 +175,7 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q): `name` was nil", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroupName)
 	}
 
-	id = parse.NewSentinelAlertRuleTemplateID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, *realName)
+	id := parse.NewSentinelAlertRuleTemplateID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, *realName)
 
 	switch template := resp.(type) {
 	case securityinsight.MLBehaviorAnalyticsAlertRuleTemplate:
