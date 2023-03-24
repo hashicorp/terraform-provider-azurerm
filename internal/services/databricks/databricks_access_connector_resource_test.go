@@ -3,6 +3,7 @@ package databricks_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -62,7 +63,7 @@ func TestAccDatabricksAccessConnector_complete(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksAccessConnector_identity(t *testing.T) {
+func TestAccDatabricksAccessConnector_identityComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
 	r := DatabricksAccessConnectorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -80,10 +81,6 @@ func TestAccDatabricksAccessConnector_identity(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		// GOOD TO KNOW: SystemAssignedOrUserAssignedIdentitySupported: Only SystemAssigned or
-		// UserAssigned Identity is supported for an Access Connector resource, not both together.
-		// TODO: Add test here with multiple User Assigned identities...
-		// NOPE! OnlyOneUserAssignedIdentitySupportPerAccessConnector: Only one user assigned identity is supported per Access Connector resource.
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -91,6 +88,30 @@ func TestAccDatabricksAccessConnector_identity(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccDatabricksAccessConnector_identityMissingIdentityIDsError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
+	r := DatabricksAccessConnectorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.identityUserAssignedMissingIdentityIDs(data),
+			Check:       acceptance.ComposeTestCheckFunc(),
+			ExpectError: regexp.MustCompile(`must be specified when`),
+		},
+	})
+}
+
+func TestAccDatabricksAccessConnector_identityUserAssignedTooManyError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
+	r := DatabricksAccessConnectorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.identityUserAssignedTooManyError(data),
+			Check:       acceptance.ComposeTestCheckFunc(),
+			ExpectError: regexp.MustCompile(`Too many list items`),
+		},
 	})
 }
 
@@ -204,32 +225,66 @@ resource "azurerm_databricks_access_connector" "test" {
 `, template, data.RandomInteger)
 }
 
-// func (r DatabricksAccessConnectorResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
-// 	template := r.template(data)
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
+func (r DatabricksAccessConnectorResource) identityUserAssignedMissingIdentityIDs(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
-// %s
+%s
 
-// resource "azurerm_user_assigned_identity" "test" {
-//   name                = "acctestDBUAI-%[2]d"
-//   location            = azurerm_resource_group.test.location
-//   resource_group_name = azurerm_resource_group.test.name
-// }
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestDBUAI-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
 
-// resource "azurerm_databricks_access_connector" "test" {
-//   name                = "acctestDBAC%[2]d"
-//   resource_group_name = azurerm_resource_group.test.name
-//   location            = azurerm_resource_group.test.location
+resource "azurerm_databricks_access_connector" "test" {
+  name                = "acctestDBAC%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
-//   identity {
-//     type = "SystemAssigned, UserAssigned"
-//     identity_ids = [
-//       azurerm_user_assigned_identity.test.id,
-//     ]
-//   }
-// }
-// `, template, data.RandomInteger)
-// }
+  identity {
+    type = "UserAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r DatabricksAccessConnectorResource) identityUserAssignedTooManyError(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "R2" {
+  name                = "acctestUAIR2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_user_assigned_identity" "D2" {
+  name                = "acctestUAID2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_databricks_access_connector" "test" {
+  name                = "acctestDBAC-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.R2.id,
+      azurerm_user_assigned_identity.D2.id,
+    ]
+  }
+}
+`, template, data.RandomInteger)
+}

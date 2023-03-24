@@ -6,13 +6,16 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -41,7 +44,46 @@ func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		// cannot use common schema 'SystemAssignedUserAssignedIdentityOptional' because
+		// the Databricks implementation is slightly different as it only allows
+		// 'SystemAssigned' or 'UserAssigned' (e.g. 'Only SystemAssigned or
+		// UserAssigned Identity is supported for an Access Connector
+		// resource, not both together.') and only allows for a single 'identity_ids'
+		// to be passed...
+		"identity": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"type": {
+						Type:     schema.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(identity.TypeUserAssigned),
+							string(identity.TypeSystemAssigned),
+						}, false),
+					},
+					"identity_ids": {
+						Type:     schema.TypeSet,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &schema.Schema{
+							Type:         schema.TypeString,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+					},
+					"principal_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"tenant_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 
 		"tags": commonschema.Tags(),
 	}
@@ -93,6 +135,10 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
+			if identityValue.Type == identity.TypeUserAssigned && len(identityValue.IdentityIds) == 0 {
+				return fmt.Errorf("`identity_ids` must be specified when `type` is set to %q", string(identity.TypeUserAssigned))
+			}
+
 			accessConnector := accessconnector.AccessConnector{
 				Name:     &model.Name,
 				Location: model.Location,
@@ -140,6 +186,10 @@ func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 
+				if identityValue.Type == identity.TypeUserAssigned && len(identityValue.IdentityIds) == 0 {
+					return fmt.Errorf("`identity_ids` must be specified when `type` is set to %q", string(identity.TypeUserAssigned))
+				}
+
 				existing.Model.Identity = identityValue
 			}
 
@@ -162,7 +212,7 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataBricks.AccessConnectorClient
 
-			metadata.Logger.Info("preparing for AzureRM Databricks Access Connector read")
+			metadata.Logger.Info("preparing arguments for AzureRM Databricks Access Connector read")
 
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
 			if err != nil {
@@ -215,7 +265,7 @@ func (r AccessConnectorResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			metadata.Logger.Info("preparing for AzureRM Databricks Access Connector deletion")
+			metadata.Logger.Info("preparing arguments for AzureRM Databricks Access Connector deletion")
 
 			client := metadata.Client.DataBricks.AccessConnectorClient
 
