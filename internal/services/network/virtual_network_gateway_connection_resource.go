@@ -65,7 +65,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.VirtualNetworkGatewayID,
 			},
 
 			"authorization_key": {
