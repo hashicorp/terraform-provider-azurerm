@@ -62,7 +62,7 @@ func TestAccDatabricksAccessConnector_complete(t *testing.T) {
 	})
 }
 
-func TestAccIotHubDeviceUpdateAccount_identity(t *testing.T) {
+func TestAccDatabricksAccessConnector_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
 	r := DatabricksAccessConnectorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
