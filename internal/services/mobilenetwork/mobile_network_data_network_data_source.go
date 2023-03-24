@@ -17,6 +17,14 @@ import (
 
 type DataNetworkDataSource struct{}
 
+type DataNetworkDataSourceModel struct {
+	Name            string            `tfschema:"name"`
+	MobileNetworkId string            `tfschema:"mobile_network_id"`
+	Description     string            `tfschema:"description"`
+	Location        string            `tfschema:"location"`
+	Tags            map[string]string `tfschema:"tags"`
+}
+
 var _ sdk.DataSource = DataNetworkDataSource{}
 
 func (r DataNetworkDataSource) ResourceType() string {
@@ -24,7 +32,7 @@ func (r DataNetworkDataSource) ResourceType() string {
 }
 
 func (r DataNetworkDataSource) ModelObject() interface{} {
-	return &DataNetworkModel{}
+	return &DataNetworkDataSourceModel{}
 }
 
 func (r DataNetworkDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -64,13 +72,13 @@ func (r DataNetworkDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var inputModel DataNetworkModel
+			var inputModel DataNetworkDataSourceModel
 			if err := metadata.Decode(&inputModel); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			client := metadata.Client.MobileNetwork.DataNetworkClient
-			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(inputModel.MobileNetworkMobileNetworkId)
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(inputModel.MobileNetworkId)
 			if err != nil {
 				return err
 			}
@@ -86,28 +94,26 @@ func (r DataNetworkDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
+			metadata.SetID(id)
+			state := DataNetworkDataSourceModel{
+				Name:            id.DataNetworkName,
+				MobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
 			}
 
-			model := *resp.Model
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
 
-			state := DataNetworkModel{
-				Name:                         id.DataNetworkName,
-				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
-				Location:                     location.Normalize(model.Location),
-			}
+				if properties := model.Properties; properties != nil {
+					if properties.Description != nil {
+						state.Description = *properties.Description
+					}
+				}
 
-			if properties := model.Properties; properties != nil {
-				if properties.Description != nil {
-					state.Description = *properties.Description
+				if model.Tags != nil {
+					state.Tags = *model.Tags
 				}
 			}
-			if model.Tags != nil {
-				state.Tags = *model.Tags
-			}
 
-			metadata.SetID(id)
 			return metadata.Encode(&state)
 		},
 	}

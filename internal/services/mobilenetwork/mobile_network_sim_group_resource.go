@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type SimGroupModel struct {
+type SimGroupResourceModel struct {
 	Name             string                       `tfschema:"name"`
 	EncryptionKeyUrl string                       `tfschema:"encryption_key_url"`
 	Identity         []identity.ModelUserAssigned `tfschema:"identity"`
@@ -35,7 +35,7 @@ func (r SimGroupResource) ResourceType() string {
 }
 
 func (r SimGroupResource) ModelObject() interface{} {
-	return &SimGroupModel{}
+	return &SimGroupResourceModel{}
 }
 
 func (r SimGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -80,7 +80,7 @@ func (r SimGroupResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model SimGroupModel
+			var model SimGroupResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -145,7 +145,7 @@ func (r SimGroupResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model SimGroupModel
+			var model SimGroupResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -214,36 +214,32 @@ func (r SimGroupResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
+			state := SimGroupResourceModel{
+				Name: id.SimGroupName,
 			}
 
-			model := *resp.Model
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
 
-			state := SimGroupModel{
-				Name:     id.SimGroupName,
-				Location: location.Normalize(model.Location),
-			}
+				identityValue, err := flattenMobileNetworkUserAssignedToNetworkLegacyIdentity(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
 
-			identityValue, err := flattenMobileNetworkUserAssignedToNetworkLegacyIdentity(model.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
+				state.Identity = identityValue
 
-			state.Identity = identityValue
+				properties := model.Properties
+				if properties.EncryptionKey != nil && properties.EncryptionKey.KeyUrl != nil {
+					state.EncryptionKeyUrl = *properties.EncryptionKey.KeyUrl
+				}
 
-			properties := &model.Properties
+				if properties.MobileNetwork != nil {
+					state.MobileNetworkId = properties.MobileNetwork.Id
+				}
 
-			if properties.EncryptionKey != nil && properties.EncryptionKey.KeyUrl != nil {
-				state.EncryptionKeyUrl = *properties.EncryptionKey.KeyUrl
-			}
-
-			if properties.MobileNetwork != nil {
-				state.MobileNetworkId = properties.MobileNetwork.Id
-			}
-
-			if model.Tags != nil {
-				state.Tags = *model.Tags
+				if model.Tags != nil {
+					state.Tags = *model.Tags
+				}
 			}
 
 			return metadata.Encode(&state)

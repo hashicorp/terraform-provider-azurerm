@@ -34,6 +34,13 @@ func TestKeyResourceV0ToV1(t *testing.T) {
 			},
 			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/key:name/test/Label/test:label/name"),
 		},
+		{
+			name: "old id (this is a bug and should be fixed in v1 to v2)",
+			input: map[string]interface{}{
+				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/%00",
+			},
+			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/\000/AppConfigurationKey/keyName/Label/"),
+		},
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q...", test.name)
