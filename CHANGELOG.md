@@ -1,4 +1,4 @@
-## 3.49.0 (Unreleased)
+## 3.49.0 (March 23, 2023)
 
 BREAKING CHANGES: 
 App Service `site_config`
@@ -8,86 +8,86 @@ App Service `site_config`
 
 FEATURES: 
 
-* **New Datasource:** `azurerm_orchestrated_virtual_machine_scale_set` [GH-21050]
-* **New Resource:** `azurerm_databricks_virtual_network_peering #20728` [GH-20728]
-* **New Resource:** `azurerm_sentinel_threat_intelligence_indicator` [GH-20771]
-* **New Resource:** `azurerm_voice_services_communications_gateway` [GH-20607]
+* **New Datasource:** `azurerm_orchestrated_virtual_machine_scale_set` ([#21050](https://github.com/hashicorp/terraform-provider-azurerm/issues/21050))
+* **New Resource:** `azurerm_databricks_virtual_network_peering #20728` ([#20728](https://github.com/hashicorp/terraform-provider-azurerm/issues/20728))
+* **New Resource:** `azurerm_sentinel_threat_intelligence_indicator` ([#20771](https://github.com/hashicorp/terraform-provider-azurerm/issues/20771))
+* **New Resource:** `azurerm_voice_services_communications_gateway` ([#20607](https://github.com/hashicorp/terraform-provider-azurerm/issues/20607))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230322.1105901` of `hashicorp/go-azure-sdk` [GH-21079]
-* `databricks`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21004]
-* `azurerm_app_configuration_key` - the resource's ID has been changed to match the Data Plane URL format to work around a number of bugs in the previous parsing logic [GH-20082]
-* `azurerm_app_configuration_feature` - the resource's ID has been changed to match the Data Plane URL format to work around a number of bugs in the previous parsing logic [GH-20082]
-* `azurerm_express_route_circuit` - add support for `authorization_key` [GH-21104]
-* `azurerm_media_job` - updating to use API Version `2022-07-01` [GH-20956]
-* `azurerm_media_transform` - updating to use API Version `2022-07-01` [GH-20956]
-* `azurerm_virtual_network_gateway` - support for conditional/patch updates [GH-21009]
-* `azurerm_web_application_firewall_policy` - the field `operator` within the `match_conditions` block can now be set to `Any` [GH-20971]
-* `azurerm_kubernetes_cluster` - add missing property to `oms_agent` schema[GH-21046]
-* `azurerm_kubernetes_cluster` - deprecate `docker_bridge_cidr` which is no longer supported by the API since docker is no longer a valid container runtime [GH-20952]
-* `azurerm_management_group_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
-* `azurerm_mysql_flexible_server` - support for the `geo_backup_key_vault_key_id` and `geo_backup_user_assigned_identity_id` properties [GH-20796]
-* `azurerm_resource_group_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
-* `azurerm_resource_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
-* `azurerm_role_assignment` - support subscription aliases scopes [GH-20895]
-* `azurerm_signalr_service` - support for `public_network_access_enabled`, `local_auth_enabled`, `aad_auth_enabled`, `tls_client_cert_enabled`, and `serverless_connection_timeout_in_seconds` properties [GH-20975]
-* `azurerm_subscription_policy_assignment` - support for the `overrides` and `resource_selectors` blocks [GH-20686]
-* `azurerm_sentinel_log_analytics_workspace_onboarding` - the `resource_group_name` and `workspace_name` properties have been deprecated in favour of workspace_id [GH-20661]
-* `azurerm_virtual_network_peering` - adding an explicit default value for `allow_forwarded_traffic`, `allow_gateway_transit` and `use_remote_gateways` [GH-21009]
-* `azurerm_virtual_hub` - support for the `hub_routing_preference` property [GH-21028]
+* dependencies: updating to `v0.20230322.1105901` of `hashicorp/go-azure-sdk` ([#21079](https://github.com/hashicorp/terraform-provider-azurerm/issues/21079))
+* `databricks`: refactoring to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` ([#21004](https://github.com/hashicorp/terraform-provider-azurerm/issues/21004))
+* `azurerm_app_configuration_key` - the resource's ID has been changed to match the Data Plane URL format to work around a number of bugs in the previous parsing logic ([#20082](https://github.com/hashicorp/terraform-provider-azurerm/issues/20082))
+* `azurerm_app_configuration_feature` - the resource's ID has been changed to match the Data Plane URL format to work around a number of bugs in the previous parsing logic ([#20082](https://github.com/hashicorp/terraform-provider-azurerm/issues/20082))
+* `azurerm_express_route_circuit` - add support for `authorization_key` ([#21104](https://github.com/hashicorp/terraform-provider-azurerm/issues/21104))
+* `azurerm_media_job` - updating to use API Version `2022-07-01` ([#20956](https://github.com/hashicorp/terraform-provider-azurerm/issues/20956))
+* `azurerm_media_transform` - updating to use API Version `2022-07-01` ([#20956](https://github.com/hashicorp/terraform-provider-azurerm/issues/20956))
+* `azurerm_virtual_network_gateway` - support for conditional/patch updates ([#21009](https://github.com/hashicorp/terraform-provider-azurerm/issues/21009))
+* `azurerm_web_application_firewall_policy` - the field `operator` within the `match_conditions` block can now be set to `Any` ([#20971](https://github.com/hashicorp/terraform-provider-azurerm/issues/20971))
+* `azurerm_kubernetes_cluster` - add missing property to `oms_agent` schema([#21046](https://github.com/hashicorp/terraform-provider-azurerm/issues/21046))
+* `azurerm_kubernetes_cluster` - deprecate `docker_bridge_cidr` which is no longer supported by the API since docker is no longer a valid container runtime ([#20952](https://github.com/hashicorp/terraform-provider-azurerm/issues/20952))
+* `azurerm_management_group_policy_assignment` - support for the `overrides` and `resource_selectors` blocks ([#20686](https://github.com/hashicorp/terraform-provider-azurerm/issues/20686))
+* `azurerm_mysql_flexible_server` - support for the `geo_backup_key_vault_key_id` and `geo_backup_user_assigned_identity_id` properties ([#20796](https://github.com/hashicorp/terraform-provider-azurerm/issues/20796))
+* `azurerm_resource_group_policy_assignment` - support for the `overrides` and `resource_selectors` blocks ([#20686](https://github.com/hashicorp/terraform-provider-azurerm/issues/20686))
+* `azurerm_resource_policy_assignment` - support for the `overrides` and `resource_selectors` blocks ([#20686](https://github.com/hashicorp/terraform-provider-azurerm/issues/20686))
+* `azurerm_role_assignment` - support subscription aliases scopes ([#20895](https://github.com/hashicorp/terraform-provider-azurerm/issues/20895))
+* `azurerm_signalr_service` - support for `public_network_access_enabled`, `local_auth_enabled`, `aad_auth_enabled`, `tls_client_cert_enabled`, and `serverless_connection_timeout_in_seconds` properties ([#20975](https://github.com/hashicorp/terraform-provider-azurerm/issues/20975))
+* `azurerm_subscription_policy_assignment` - support for the `overrides` and `resource_selectors` blocks ([#20686](https://github.com/hashicorp/terraform-provider-azurerm/issues/20686))
+* `azurerm_sentinel_log_analytics_workspace_onboarding` - the `resource_group_name` and `workspace_name` properties have been deprecated in favour of workspace_id ([#20661](https://github.com/hashicorp/terraform-provider-azurerm/issues/20661))
+* `azurerm_virtual_network_peering` - adding an explicit default value for `allow_forwarded_traffic`, `allow_gateway_transit` and `use_remote_gateways` ([#21009](https://github.com/hashicorp/terraform-provider-azurerm/issues/21009))
+* `azurerm_virtual_hub` - support for the `hub_routing_preference` property ([#21028](https://github.com/hashicorp/terraform-provider-azurerm/issues/21028))
 
 BUG FIXES:
 
-* `azurerm_automation_account` - the `key_source` property has been deprecated [GH-21041]
-* `azurerm_application_insights` - the `workspace_id` can now be updated without creating a new resource [GH-21029]
-* `azurerm_firewall` - Prevent duplicate name from being used for `ip_configuration` and `management_ip_configuration` [GH-21068]
-* `azurerm_kubernetes_cluster` - replace calls to the deprecated accessProfiles endpoint with listUserCredentials [GH-20927]
-* `azurerm_kusto_cluster` - `language_extensions` is now a Set rather than a List [GH-20951]
-* `azurerm_linux_function_app` - fix an update bug with the `health_check_eviction_time_in_min` property [GH-21095]
-* `azurerm_linux_function_app` - fixed processing of `cors` block [GH-20987]
-* `azurerm_linux_function_app` - fix auth_v2 `active_directory_v2` sending empty data [GH-21091]
-* `azurerm_linux_function_app` - fix read for `token_store_enabled` to correctly set returned value in state [GH-21091]
-* `azurerm_linux_function_app` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_linux_function_app` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_linux_function_app_slot` - fixed processing of `cors` block [GH-20987]
-* `azurerm_linux_function_app_slot` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_linux_function_app_slot` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_linux_function_app_slot` - fix auth_v2 `active_directory_v2` sending empty data [GH-21091]
-* `azurerm_linux_function_app_slot` - fix read for `token_store_enabled` to correctly set returned value in state [GH-21091]
-* `azurerm_linux_web_app` - fix auth_v2 `active_directory_v2` sending empty data [GH-21091]
-* `azurerm_linux_web_app` - fix read for `token_store_enabled` to correctly set returned value in state [GH-21091]
-* `azurerm_linux_web_app` - fixed processing of `cors` block [GH-20987]
-* `azurerm_linux_web_app` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_linux_web_app` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_linux_web_app_slot` - fix auth_v2 `active_directory_v2` sending empty data [GH-21091]
-* `azurerm_linux_web_app_slot` - fix read for `token_store_enabled` to correctly set returned value in state [GH-21091]
-* `azurerm_linux_web_app_slot` - fixed processing of `cors` block [GH-20987]
-* `azurerm_linux_web_app_slot` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_linux_web_app_slot` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_machine_learning_datastore_blobstorage` - fix an issue creating this resource in clouds other than public [GH-21016]
-* `azurerm_virtual_desktop_host_pool` - changing the `load_balancer_type` property no longer creates a new resource [GH-20947]
-* `azurerm_windows_function_app` - fix an update bug with the `health_check_eviction_time_in_min` property [GH-21095]
-* `azurerm_windows_function_app` - fixed processing of `cors` block [GH-20987]
-* `azurerm_windows_function_app` - fix auth_v2 `active_directory_v2` sending empty data [GH-21091]
-* `azurerm_windows_function_app` - fix read for `token_store_enabled` to correctly set returned value in state [GH-21091]
-* `azurerm_windows_function_app` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_windows_function_app` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_windows_function_app_slot` - fixed processing of `cors` block [GH-20987]
-* `azurerm_windows_function_app_slot` - fix auth_v2 `active_directory_v2` sending empty data [GH-21091]
-* `azurerm_windows_function_app_slot` - fix read for `token_store_enabled` to correctly set returned value in state [GH-21091]
-* `azurerm_windows_function_app_slot` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_windows_function_app_slot` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_windows_web_app` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_windows_web_app` - fixed processing of `cors` block [GH-20987]
-* `azurerm_windows_web_app` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_windows_web_app` - fix auth_v2 `active_directory_v2` sending empty data [GH-21091]
-* `azurerm_windows_web_app` - fix read for `token_store_enabled` to correctly set returned value in state [GH-21091]
-* `azurerm_windows_web_app_slot` - the `ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_windows_web_app_slot` - fixed processing of `cors` block [GH-20987]
-* `azurerm_windows_web_app_slot` - the `scm_ip_restriction` block can is now successfully removed by removing from config [GH-20987]
-* `azurerm_windows_web_app_slot` - fix auth_v2 `active_directory_v2` sending empty data [GH-21091]
-* `azurerm_windows_web_app_slot` - fix read for `token_store_enabled` to correctly set returned value in state [GH-21091]
+* `azurerm_automation_account` - the `key_source` property has been deprecated ([#21041](https://github.com/hashicorp/terraform-provider-azurerm/issues/21041))
+* `azurerm_application_insights` - the `workspace_id` can now be updated without creating a new resource ([#21029](https://github.com/hashicorp/terraform-provider-azurerm/issues/21029))
+* `azurerm_firewall` - Prevent duplicate name from being used for `ip_configuration` and `management_ip_configuration` ([#21068](https://github.com/hashicorp/terraform-provider-azurerm/issues/21068))
+* `azurerm_kubernetes_cluster` - replace calls to the deprecated accessProfiles endpoint with listUserCredentials ([#20927](https://github.com/hashicorp/terraform-provider-azurerm/issues/20927))
+* `azurerm_kusto_cluster` - `language_extensions` is now a Set rather than a List ([#20951](https://github.com/hashicorp/terraform-provider-azurerm/issues/20951))
+* `azurerm_linux_function_app` - fix an update bug with the `health_check_eviction_time_in_min` property ([#21095](https://github.com/hashicorp/terraform-provider-azurerm/issues/21095))
+* `azurerm_linux_function_app` - fixed processing of `cors` block ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_linux_function_app` - fix auth_v2 `active_directory_v2` sending empty data ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_linux_function_app` - fix read for `token_store_enabled` to correctly set returned value in state ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_linux_function_app` - the `ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_linux_function_app` - the `scm_ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_linux_function_app_slot` - fixed processing of `cors` block ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_linux_function_app_slot` - the `ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_linux_function_app_slot` - the `scm_ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_linux_function_app_slot` - fix auth_v2 `active_directory_v2` sending empty data ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_linux_function_app_slot` - fix read for `token_store_enabled` to correctly set returned value in state ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_linux_web_app` - fix auth_v2 `active_directory_v2` sending empty data ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_linux_web_app` - fix read for `token_store_enabled` to correctly set returned value in state ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_linux_web_app` - fixed processing of `cors` block ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_linux_web_app` - the `ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_linux_web_app` - the `scm_ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_linux_web_app_slot` - fix auth_v2 `active_directory_v2` sending empty data ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_linux_web_app_slot` - fix read for `token_store_enabled` to correctly set returned value in state ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_linux_web_app_slot` - fixed processing of `cors` block ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_linux_web_app_slot` - the `ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_linux_web_app_slot` - the `scm_ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_machine_learning_datastore_blobstorage` - fix an issue creating this resource in clouds other than public ([#21016](https://github.com/hashicorp/terraform-provider-azurerm/issues/21016))
+* `azurerm_virtual_desktop_host_pool` - changing the `load_balancer_type` property no longer creates a new resource ([#20947](https://github.com/hashicorp/terraform-provider-azurerm/issues/20947))
+* `azurerm_windows_function_app` - fix an update bug with the `health_check_eviction_time_in_min` property ([#21095](https://github.com/hashicorp/terraform-provider-azurerm/issues/21095))
+* `azurerm_windows_function_app` - fixed processing of `cors` block ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_windows_function_app` - fix auth_v2 `active_directory_v2` sending empty data ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_windows_function_app` - fix read for `token_store_enabled` to correctly set returned value in state ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_windows_function_app` - the `ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_windows_function_app` - the `scm_ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_windows_function_app_slot` - fixed processing of `cors` block ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_windows_function_app_slot` - fix auth_v2 `active_directory_v2` sending empty data ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_windows_function_app_slot` - fix read for `token_store_enabled` to correctly set returned value in state ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_windows_function_app_slot` - the `ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_windows_function_app_slot` - the `scm_ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_windows_web_app` - the `ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_windows_web_app` - fixed processing of `cors` block ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_windows_web_app` - the `scm_ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_windows_web_app` - fix auth_v2 `active_directory_v2` sending empty data ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_windows_web_app` - fix read for `token_store_enabled` to correctly set returned value in state ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_windows_web_app_slot` - the `ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_windows_web_app_slot` - fixed processing of `cors` block ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_windows_web_app_slot` - the `scm_ip_restriction` block can is now successfully removed by removing from config ([#20987](https://github.com/hashicorp/terraform-provider-azurerm/issues/20987))
+* `azurerm_windows_web_app_slot` - fix auth_v2 `active_directory_v2` sending empty data ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
+* `azurerm_windows_web_app_slot` - fix read for `token_store_enabled` to correctly set returned value in state ([#21091](https://github.com/hashicorp/terraform-provider-azurerm/issues/21091))
 
 
 ## 3.48.0 (March 16, 2023)
