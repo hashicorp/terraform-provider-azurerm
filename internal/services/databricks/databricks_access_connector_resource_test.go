@@ -62,6 +62,37 @@ func TestAccDatabricksAccessConnector_complete(t *testing.T) {
 	})
 }
 
+func TestAccIotHubDeviceUpdateAccount_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
+	r := DatabricksAccessConnectorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		// GOOD TO KNOW: SystemAssignedOrUserAssignedIdentitySupported: Only SystemAssigned or
+		// UserAssigned Identity is supported for an Access Connector resource, not both together.
+		// TODO: Add test here with multiple User Assigned identities...
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (DatabricksAccessConnectorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := accessconnector.ParseAccessConnectorID(state.ID)
 	if err != nil {
@@ -81,27 +112,34 @@ func (DatabricksAccessConnectorResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (DatabricksAccessConnectorResource) basic(data acceptance.TestData) string {
+func (DatabricksAccessConnectorResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-databricks-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r DatabricksAccessConnectorResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_databricks_access_connector" "test" {
   name                = "acctestDBAC%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
-func (DatabricksAccessConnectorResource) requiresImport(data acceptance.TestData) string {
-	template := DatabricksAccessConnectorResource{}.basic(data)
+func (r DatabricksAccessConnectorResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -113,16 +151,14 @@ resource "azurerm_databricks_access_connector" "import" {
 `, template)
 }
 
-func (DatabricksAccessConnectorResource) complete(data acceptance.TestData) string {
+func (r DatabricksAccessConnectorResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_databricks_access_connector" "test" {
   name                = "acctestDBAC%d"
@@ -133,5 +169,66 @@ resource "azurerm_databricks_access_connector" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, template, data.RandomInteger)
 }
+
+func (r DatabricksAccessConnectorResource) identityUserAssigned(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestDBUAI-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_databricks_access_connector" "test" {
+  name                = "acctestDBAC%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "UserAssigned"
+
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+`, template, data.RandomInteger)
+}
+
+// func (r DatabricksAccessConnectorResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
+// 	template := r.template(data)
+// 	return fmt.Sprintf(`
+// provider "azurerm" {
+//   features {}
+// }
+
+// %s
+
+// resource "azurerm_user_assigned_identity" "test" {
+//   name                = "acctestDBUAI-%[2]d"
+//   location            = azurerm_resource_group.test.location
+//   resource_group_name = azurerm_resource_group.test.name
+// }
+
+// resource "azurerm_databricks_access_connector" "test" {
+//   name                = "acctestDBAC%[2]d"
+//   resource_group_name = azurerm_resource_group.test.name
+//   location            = azurerm_resource_group.test.location
+
+//   identity {
+//     type = "SystemAssigned, UserAssigned"
+//     identity_ids = [
+//       azurerm_user_assigned_identity.test.id,
+//     ]
+//   }
+// }
+// `, template, data.RandomInteger)
+// }
