@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -786,11 +787,12 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+				// TODO: this should become `storage_account_id` in 4.0
 				"storage_resource_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: storageValidate.StorageAccountID,
 				},
 				"is_default": {
 					Type:     pluginsdk.TypeBool,
@@ -810,11 +812,12 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				// TODO: this should become `storage_account_id` in 4.0
 				"storage_resource_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: storageValidate.StorageAccountID,
 				},
 				"filesystem_id": {
 					Type:         pluginsdk.TypeString,
@@ -822,6 +825,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+				// TODO: this should become `user_assigned_identity_id` in 4.0
 				"managed_identity_resource_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
