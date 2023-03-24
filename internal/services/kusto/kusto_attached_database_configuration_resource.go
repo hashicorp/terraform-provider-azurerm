@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/attacheddatabaseconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/clusters"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -71,11 +70,12 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.Any(validate.DatabaseName, validation.StringInSlice([]string{"*"}, false)),
 			},
 
+			// TODO: this should become `cluster_id` in 4.0
 			"cluster_resource_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.ClusterID,
 			},
 
 			"attached_database_names": {
