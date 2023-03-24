@@ -29,7 +29,7 @@ resource "azurerm_signalr_service" "example" {
     name     = "Premium_P1"
     capacity = 1
   }
-  
+
   identity {
     type = "SystemAssigned"
   }
@@ -51,13 +51,13 @@ resource "azurerm_key_vault" "example" {
       "Get",
       "List",
     ]
-    
+
     secret_permissions = [
       "Get",
       "List",
     ]
   }
-  
+
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = azurerm_signalr_service.test.identity[0].principal_id
@@ -67,7 +67,7 @@ resource "azurerm_key_vault" "example" {
       "Get",
       "List",
     ]
-    
+
     secret_permissions = [
       "Get",
       "List",
@@ -85,12 +85,12 @@ resource "azurerm_key_vault_certificate" "example" {
   }
 }
 
-resource "azurerm_signalr_custom_certificate_binding" "test" { 
+resource "azurerm_signalr_custom_certificate_binding" "test" {
   name                  = "example-certbinding"
   signalr_service_id    = azurerm_signalr_service.example.id
   custom_certificate_id = azurerm_key_vault_certificate.example.id
   certificate_version   = "ec6faxx"
-  
+
   depends_on = [azurerm_key_vault_access_policy.example]
 }
 ```
