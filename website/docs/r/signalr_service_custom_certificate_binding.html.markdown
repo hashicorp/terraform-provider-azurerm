@@ -36,7 +36,7 @@ resource "azurerm_signalr_service" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "examplekeyvault"
+  name                = "example-keyvault"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -110,6 +110,12 @@ The following arguments are supported:
 -> **Note:** Self assigned certificate is not supported and the provisioning status will fail.
 
 * `certificate_version` - (Optional) The certificate version of the SignalR Custom Certificate Binding service.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the SignalR Custom Certificate Binding.
 
 ## Timeouts
 
