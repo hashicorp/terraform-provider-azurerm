@@ -2,6 +2,7 @@ package compute
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"log"
 	"time"
 
@@ -1381,7 +1382,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 			// the Compute API is broken and returns the Resource Group name in UPPERCASE :shrug:, github issue: https://github.com/Azure/azure-rest-api-specs/issues/10016
 			DiffSuppressFunc: suppress.CaseDifference,
 			ConflictsWith: []string{
