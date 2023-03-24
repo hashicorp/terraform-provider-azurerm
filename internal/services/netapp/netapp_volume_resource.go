@@ -911,19 +911,3 @@ func flattenNetAppVolumeDataProtectionSnapshotPolicy(input *volumes.VolumeProper
 		},
 	}
 }
-
-func translateTFSchedule(scheduleName string) string {
-	if strings.EqualFold(scheduleName, "10minutes") {
-		return "_10minutely"
-	}
-
-	return scheduleName
-}
-
-func translateSDKSchedule(scheduleName string) string {
-	if strings.EqualFold(scheduleName, "_10minutely") {
-		return "10minutes"
-	}
-
-	return scheduleName
-}

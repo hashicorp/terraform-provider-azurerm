@@ -316,12 +316,17 @@ func flattenNetAppVolumeGroupVolumesDPReplication(input *volumes.ReplicationObje
 		return []DataProtectionReplication{}
 	}
 
+	replicationFrequency := ""
+	if input.ReplicationSchedule != nil {
+		replicationFrequency = translateSDKSchedule(strings.ToLower(string(*input.ReplicationSchedule)))
+	}
+
 	return []DataProtectionReplication{
 		{
-			EndpointType:           string(*input.EndpointType),
+			EndpointType:           strings.ToLower(string(*input.EndpointType)),
 			RemoteVolumeLocation:   *input.RemoteVolumeRegion,
 			RemoteVolumeResourceId: input.RemoteVolumeResourceId,
-			ReplicationFrequency:   string(*input.ReplicationSchedule),
+			ReplicationFrequency:   replicationFrequency,
 		},
 	}
 }
@@ -714,4 +719,20 @@ func waitForReplAuthorization(ctx context.Context, client *volumesreplication.Vo
 	}
 
 	return nil
+}
+
+func translateTFSchedule(scheduleName string) string {
+	if strings.EqualFold(scheduleName, "10minutes") {
+		return "_10minutely"
+	}
+
+	return scheduleName
+}
+
+func translateSDKSchedule(scheduleName string) string {
+	if strings.EqualFold(scheduleName, "_10minutely") {
+		return "10minutes"
+	}
+
+	return scheduleName
 }

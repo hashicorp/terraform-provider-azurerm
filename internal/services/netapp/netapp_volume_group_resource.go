@@ -103,7 +103,7 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 		"volume": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MinItems: 5,
+			MinItems: 3,
 			MaxItems: 5,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -370,7 +370,7 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 			for i, volumeCrr := range *volumeList {
 				if volumeCrr.Properties.DataProtection != nil &&
 					volumeCrr.Properties.DataProtection.Replication != nil &&
-					*volumeCrr.Properties.DataProtection.Replication.EndpointType == volumegroups.EndpointTypeDst {
+					strings.ToLower(string(*volumeCrr.Properties.DataProtection.Replication.EndpointType)) == string(volumegroups.EndpointTypeDst) {
 
 					// Modify volumeType as data protection type on main volumeList
 					// so it gets created correctly as data protection volume
@@ -396,17 +396,11 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			// TODO: Check if this is necessary for volume groups
-			// // Waiting for volume be completely provisioned
-			// if err := waitForVolumeCreateOrUpdate(ctx, client, id); err != nil {
-			// 	return err
-			// }
-
 			// CRR - Authorizing secondaries from primary volumes
 			for _, volumeCrr := range *volumeList {
 				if volumeCrr.Properties.DataProtection != nil &&
 					volumeCrr.Properties.DataProtection.Replication != nil &&
-					*volumeCrr.Properties.DataProtection.Replication.EndpointType == volumegroups.EndpointTypeDst {
+					strings.ToLower(string(*volumeCrr.Properties.DataProtection.Replication.EndpointType)) == string(volumegroups.EndpointTypeDst) {
 
 					// Getting secondary volume resource id
 					secondaryId := volumes.NewVolumeID(subscriptionId,
