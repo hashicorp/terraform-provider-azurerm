@@ -32,7 +32,6 @@ type NetAppVolumeGroupModel struct {
 	GroupDescription      string                    `tfschema:"group_description"`
 	ApplicationType       string                    `tfschema:"application_type"`
 	ApplicationIdentifier string                    `tfschema:"application_identifier"`
-	DeploymentSpecId      string                    `tfschema:"deployment_spec_id"`
 	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
 }
 
@@ -91,19 +90,10 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringLenBetween(1, 3),
 		},
 
-		"deployment_spec_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"20542149-bfca-5618-1879-9863dc6767f1", // SAP HANA Deployment Spec ID
-			}, false),
-		},
-
 		"volume": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MinItems: 3,
+			MinItems: 3, // TODO: make this value 2 in a upcoming major release of AVG
 			MaxItems: 5,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -378,6 +368,10 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			// TODO: This is a temporary workaround until the API is fixed and DeploymentSpecId is not required anymore,
+			// it will be handled internally by the RP
+			deploymentSpecId := "20542149-bfca-5618-1879-9863dc6767f1"
+
 			parameters := volumegroups.VolumeGroupDetails{
 				Location: utils.String(location.Normalize(model.Location)),
 				Properties: &volumegroups.VolumeGroupProperties{
@@ -385,7 +379,7 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 						GroupDescription:      utils.String(model.GroupDescription),
 						ApplicationType:       &applicationType,
 						ApplicationIdentifier: utils.String(model.ApplicationIdentifier),
-						DeploymentSpecId:      utils.String(model.DeploymentSpecId),
+						DeploymentSpecId:      utils.String(deploymentSpecId),
 					},
 					Volumes: volumeList,
 				},
@@ -570,7 +564,6 @@ func (r NetAppVolumeGroupResource) Read() sdk.ResourceFunc {
 				model.GroupDescription = utils.NormalizeNilableString(props.GroupMetaData.GroupDescription)
 				model.ApplicationIdentifier = utils.NormalizeNilableString(props.GroupMetaData.ApplicationIdentifier)
 				model.ApplicationType = string(*props.GroupMetaData.ApplicationType)
-				model.DeploymentSpecId = utils.NormalizeNilableString(props.GroupMetaData.DeploymentSpecId)
 
 				volumes, err := flattenNetAppVolumeGroupVolumes(ctx, props.Volumes, metadata)
 				if err != nil {

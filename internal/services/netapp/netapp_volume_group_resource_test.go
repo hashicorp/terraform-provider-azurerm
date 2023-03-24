@@ -118,7 +118,6 @@ resource "azurerm_netapp_volume_group" "test" {
   group_description      = "Test volume group"
   application_type       = "SAP-HANA"
   application_identifier = "TST"
-  deployment_spec_id     = "20542149-bfca-5618-1879-9863dc6767f1"
   
   volume {
     name                         = "acctest-NetAppVolume-1-%[2]d"
@@ -251,7 +250,6 @@ resource "azurerm_netapp_volume_group" "test" {
   group_description      = "Test volume group"
   application_type       = "SAP-HANA"
   application_identifier = "TST"
-  deployment_spec_id     = "20542149-bfca-5618-1879-9863dc6767f1"
   
   volume {
     name                         = "acctest-NetAppVolume-1-%[2]d"
@@ -376,7 +374,6 @@ resource "azurerm_netapp_volume_group" "test" {
   group_description      = "Test volume group"
   application_type       = "SAP-HANA"
   application_identifier = "TST"
-  deployment_spec_id     = "20542149-bfca-5618-1879-9863dc6767f1"
   
   volume {
     name                         = "acctest-NetAppVolume-1-%[2]d"
@@ -549,7 +546,6 @@ resource "azurerm_netapp_volume_group" "test_primary" {
   group_description      = "Test volume group"
   application_type       = "SAP-HANA"
   application_identifier = "TST"
-  deployment_spec_id     = "20542149-bfca-5618-1879-9863dc6767f1"
   
   volume {
     name                         = "acctest-NetAppVolume-1-Primary-%[2]d"
@@ -655,7 +651,6 @@ resource "azurerm_netapp_volume_group" "test_secondary" {
   group_description      = "Test volume group"
   application_type       = "SAP-HANA"
   application_identifier = "TST"
-  deployment_spec_id     = "20542149-bfca-5618-1879-9863dc6767f1"
   
   volume {
     name                         = "acctest-NetAppVolume-1-Secondary-%[2]d"
