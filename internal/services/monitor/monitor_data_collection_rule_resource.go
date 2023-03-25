@@ -9,9 +9,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -32,24 +34,55 @@ type DataCollectionRule struct {
 	Name                     string                              `tfschema:"name"`
 	Location                 string                              `tfschema:"location"`
 	ResourceGroupName        string                              `tfschema:"resource_group_name"`
+	StreamDeclaration        []StreamDeclaration                 `tfschema:"stream_declaration"`
 	Tags                     map[string]interface{}              `tfschema:"tags"`
 }
 
 type DataFlow struct {
-	Destinations []string `tfschema:"destinations"`
-	Streams      []string `tfschema:"streams"`
+	BuiltInTransform string   `tfschema:"built_in_transform"`
+	Destinations     []string `tfschema:"destinations"`
+	OutputStream     string   `tfschema:"output_stream"`
+	Streams          []string `tfschema:"streams"`
+	TransformKql     string   `tfschema:"transform_kql"`
 }
 
 type DataSource struct {
-	Extensions          []Extension       `tfschema:"extension"`
-	PerformanceCounters []PerfCounter     `tfschema:"performance_counter"`
-	Syslog              []Syslog          `tfschema:"syslog"`
-	WindowsEventLogs    []WindowsEventLog `tfschema:"windows_event_log"`
+	DataImport          []DataImport          `tfschema:"data_import"`
+	Extensions          []Extension           `tfschema:"extension"`
+	IisLog              []BasicDataSource     `tfschema:"iis_log"`
+	LogFile             []LogFile             `tfschema:"log_file"`
+	PerformanceCounters []PerfCounter         `tfschema:"performance_counter"`
+	PlatformTelemetry   []BasicDataSource     `tfschema:"platform_telemetry"`
+	PrometheusForwarder []PrometheusForwarder `tfschema:"prometheus_forwarder"`
+	Syslog              []Syslog              `tfschema:"syslog"`
+	WindowsEventLogs    []WindowsEventLog     `tfschema:"windows_event_log"`
+	WindowsFirewallLog  []BasicDataSource     `tfschema:"windows_firewall_log"`
 }
 
 type Destination struct {
 	AzureMonitorMetrics []AzureMonitorMetric `tfschema:"azure_monitor_metrics"`
+	EventHub            []EventHub           `tfschema:"event_hub"`
+	EventHubDirect      []EventHub           `tfschema:"event_hub_direct"`
 	LogAnalytics        []LogAnalytic        `tfschema:"log_analytics"`
+	MonitorAccount      []MonitorAccount     `tfschema:"monitor_account"`
+	StorageAccount      []StorageAccount     `tfschema:"storage_account"`
+	StorageBlobDirect   []StorageAccount     `tfschema:"storage_blob_direct"`
+	StorageTableDirect  []StorageTableDirect `tfschema:"storage_table_direct"`
+}
+
+type DataImport struct {
+	EventHubDataSource []EventHubDataSource `tfschema:"event_hub_data_source"`
+}
+
+type EventHubDataSource struct {
+	ConsumerGroup string `tfschema:"consumer_group"`
+	Name          string `tfschema:"name"`
+	Stream        string `tfschema:"stream"`
+}
+
+type BasicDataSource struct {
+	Name    string   `tfschema:"name"`
+	Streams []string `tfschema:"streams"`
 }
 
 type Extension struct {
@@ -60,11 +93,29 @@ type Extension struct {
 	Streams           []string `tfschema:"streams"`
 }
 
+type LogFile struct {
+	Name         string           `tfschema:"name"`
+	Streams      []string         `tfschema:"streams"`
+	FilePatterns []string         `tfschema:"file_patterns"`
+	Setting      []LogFileSetting `tfschema:"settings"`
+}
+
 type PerfCounter struct {
 	CounterSpecifiers          []string `tfschema:"counter_specifiers"`
 	Name                       string   `tfschema:"name"`
 	SamplingFrequencyInSeconds int64    `tfschema:"sampling_frequency_in_seconds"`
 	Streams                    []string `tfschema:"streams"`
+}
+
+type PrometheusForwarder struct {
+	Name               string               `tfschema:"name"`
+	Streams            []string             `tfschema:"streams"`
+	LabelIncludeFilter []LabelIncludeFilter `tfschema:"label_include_filter"`
+}
+
+type LabelIncludeFilter struct {
+	Label string `tfschema:"label"`
+	Value string `tfschema:"value"`
 }
 
 type Syslog struct {
@@ -84,9 +135,49 @@ type AzureMonitorMetric struct {
 	Name string `tfschema:"name"`
 }
 
+type EventHub struct {
+	EventHubResourceId string `tfschema:"event_hub_resource_id"`
+	Name               string `tfschema:"name"`
+}
+
 type LogAnalytic struct {
 	Name                string `tfschema:"name"`
 	WorkspaceResourceId string `tfschema:"workspace_resource_id"`
+}
+
+type MonitorAccount struct {
+	AccountId string `tfschema:"monitor_account_id"`
+	Name      string `tfschema:"name"`
+}
+
+type StorageAccount struct {
+	BlobName         string `tfschema:"blob_name"`
+	Name             string `tfschema:"name"`
+	StorageAccountId string `tfschema:"storage_account_id"`
+}
+
+type StorageTableDirect struct {
+	Name             string `tfschema:"name"`
+	StorageAccountId string `tfschema:"storage_account_id"`
+	TableName        string `tfschema:"table_name"`
+}
+
+type LogFileSetting struct {
+	Text []TextSetting `tfschema:"text_setting"`
+}
+
+type TextSetting struct {
+	RecordStartTimestampFormat string `tfschema:"record_start_timestamp_format"`
+}
+
+type StreamDeclaration struct {
+	StreamName string                    `tfschema:"stream_name"`
+	Column     []StreamDeclarationColumn `tfschema:"column"`
+}
+
+type StreamDeclarationColumn struct {
+	Name string `tfschema:"name"`
+	Type string `tfschema:"type"`
 }
 
 type DataCollectionRuleResource struct{}
@@ -175,6 +266,44 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 						},
 						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
 					},
+					"event_hub": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"event_hub_resource_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: eventhubs.ValidateEventhubID,
+								},
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+					},
+					"event_hub_direct": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"event_hub_resource_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: eventhubs.ValidateEventhubID,
+								},
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+					},
 					"log_analytics": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -194,6 +323,97 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 						},
 						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
 					},
+					"monitor_account": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"monitor_account_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: azure.ValidateResourceID,
+								},
+							},
+						},
+						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
+					},
+					"storage_account": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"container_name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"storage_account_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: storageaccounts.ValidateStorageAccountID,
+								},
+							},
+						},
+						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
+					},
+					"storage_blob_direct": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"container_name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"storage_account_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: storageaccounts.ValidateStorageAccountID,
+								},
+							},
+						},
+						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
+					},
+					"storage_table_direct": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"table_name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"storage_account_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: storageaccounts.ValidateStorageAccountID,
+								},
+							},
+						},
+						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
+					},
 				},
 			},
 		},
@@ -204,6 +424,38 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"data_import": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"event_hub_data_source": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"name": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+											},
+											"stream": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+											},
+											"consumer_group": {
+												Type:         pluginsdk.TypeString,
+												Default:      true,
+												ValidateFunc: validation.StringIsNotEmpty,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 					"extension": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -245,6 +497,86 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
+					"iis_log": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"streams": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+					"log_file": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"streams": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+								"file_patterns": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+								"format": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(datacollectionrules.PossibleValuesForKnownLogFilesDataSourceFormat(), false),
+								},
+								"settings": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"text": {
+												Type:     pluginsdk.TypeList,
+												Required: true,
+												MaxItems: 1,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"record_start_timestamp_format": {
+															Type:         pluginsdk.TypeString,
+															Required:     true,
+															ValidateFunc: validation.StringInSlice(datacollectionrules.PossibleValuesForKnownLogFileTextSettingsRecordStartTimestampFormat(), false),
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 					"performance_counter": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -276,6 +608,70 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+					"platform_telemetry": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"streams": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+					"prometheus_forwarder": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"streams": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+								"label_include_filter": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"label": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													"microsoft_metrics_include_label",
+												}, false),
+											},
+											"value": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+											},
+										},
 									},
 								},
 							},
@@ -346,6 +742,28 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 									},
 								},
 								"x_path_queries": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+					"windows_firewall_log": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"streams": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
 									MinItems: 1,
