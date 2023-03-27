@@ -303,3 +303,6 @@ service/virtual-desktops:
 
 service/vmware:
   - internal/services/vmware/**/*
+
+service/workloads:
+  - internal/services/workloads/**/*
