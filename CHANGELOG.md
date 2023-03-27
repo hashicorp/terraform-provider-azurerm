@@ -7,6 +7,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_healthcare_medtech_service` - the `workspace_id` field is no longer marked as ForceNew [GH-21077]
+* Data Source: `azurerm_healthcare_medtech_service` - support for Azure Environments other then Azure Public [GH-21077]
+* `azurerm_healthcare_medtech_service` - support for Azure Environments other then Azure Public [GH-21077]
 * `azurerm_linux_function_app` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
 * `azurerm_linux_function_app_slot` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
 * `azurerm_linux_web_app` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
@@ -15,7 +18,6 @@ BUG FIXES:
 * `azurerm_windows_function_app_slot` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
 * `azurerm_windows_web_app` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
 * `azurerm_windows_web_app_slot` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
-
 
 ## 3.49.0 (March 23, 2023)
 
