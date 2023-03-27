@@ -50,7 +50,7 @@ func (c AccessConnectorClient) ListByResourceGroup(ctx context.Context, id commo
 	}
 
 	var values struct {
-		Values *[]AccessConnector `json:"values"`
+		Values *[]AccessConnector `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
