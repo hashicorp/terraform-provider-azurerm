@@ -47,19 +47,19 @@ func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"target_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.Any(
-				azure.ValidateResourceID,
-			),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: azure.ValidateResourceID,
 		},
 
 		"client_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  string(servicelinker.ClientTypeNone),
+			// TODO: remove `None` in 4.0, since this is Optional `None` == omitting the field
+			Default: string(servicelinker.ClientTypeNone),
 			ValidateFunc: validation.StringInSlice([]string{
+				// TODO: remove `None` in 4.0, since this is Optional `None` == omitting the field
 				string(servicelinker.ClientTypeNone),
 				string(servicelinker.ClientTypeDotnet),
 				string(servicelinker.ClientTypeJava),

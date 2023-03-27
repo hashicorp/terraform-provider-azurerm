@@ -83,6 +83,7 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 				MinItems: 1,
 				MaxItems: 1,
 				Optional: true,
+				// TODO: remove `computed` and `enabled` in `4.0` and use the presence of the block to indicate that
 				Computed: true, // set it to computed because the service will return it no matter if we have passed it.
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{

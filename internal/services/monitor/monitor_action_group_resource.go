@@ -9,12 +9,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	appServiceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
@@ -253,7 +255,7 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 						"automation_account_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: automationaccount.ValidateAutomationAccountID,
 						},
 						"runbook_name": {
 							Type:         pluginsdk.TypeString,
@@ -345,10 +347,11 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						// TODO: this should be `_id` and not `_resource_id`
 						"function_app_resource_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: appServiceValidate.FunctionAppID,
 						},
 						"function_name": {
 							Type:         pluginsdk.TypeString,

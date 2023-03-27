@@ -81,7 +81,7 @@ func (c EncodingsClient) JobsList(ctx context.Context, id TransformId, options J
 	}
 
 	var values struct {
-		Values *[]Job `json:"values"`
+		Values *[]Job `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

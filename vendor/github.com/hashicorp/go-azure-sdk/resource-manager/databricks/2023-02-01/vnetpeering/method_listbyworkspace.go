@@ -49,7 +49,7 @@ func (c VNetPeeringClient) ListByWorkspace(ctx context.Context, id WorkspaceId) 
 	}
 
 	var values struct {
-		Values *[]VirtualNetworkPeering `json:"values"`
+		Values *[]VirtualNetworkPeering `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

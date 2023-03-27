@@ -50,7 +50,7 @@ func (c AccessConnectorClient) ListBySubscription(ctx context.Context, id common
 	}
 
 	var values struct {
-		Values *[]AccessConnector `json:"values"`
+		Values *[]AccessConnector `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

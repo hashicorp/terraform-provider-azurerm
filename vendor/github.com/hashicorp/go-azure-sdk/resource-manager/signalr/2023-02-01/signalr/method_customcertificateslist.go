@@ -49,7 +49,7 @@ func (c SignalRClient) CustomCertificatesList(ctx context.Context, id SignalRId)
 	}
 
 	var values struct {
-		Values *[]CustomCertificate `json:"values"`
+		Values *[]CustomCertificate `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
