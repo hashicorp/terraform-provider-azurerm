@@ -2,7 +2,6 @@ package hdinsight
 
 import (
 	"fmt"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"net/url"
 	"regexp"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
