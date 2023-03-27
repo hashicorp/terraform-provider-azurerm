@@ -128,6 +128,7 @@ import (
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
 	voiceServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
+	workloads "github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/client"
 )
 
 type Client struct {
@@ -232,6 +233,7 @@ type Client struct {
 	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
 	Resource              *resource.Client
+	Workloads             *workloads.Client
 	Search                *search.Client
 	SecurityCenter        *securityCenter.Client
 	Sentinel              *sentinel.Client
@@ -373,6 +375,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.RedisEnterprise = redisenterprise.NewClient(o)
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
+	client.Workloads = workloads.NewClient(o)
 	client.Search = search.NewClient(o)
 	client.SecurityCenter = securityCenter.NewClient(o)
 	client.Sentinel = sentinel.NewClient(o)
