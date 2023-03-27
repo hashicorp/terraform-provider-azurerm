@@ -101,7 +101,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+							ValidateFunc: validate.PublicIpAddressID,
 						},
 
 						"primary": {
