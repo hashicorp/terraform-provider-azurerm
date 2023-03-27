@@ -15,7 +15,7 @@ Manages a Voice Services Communications Gateway Test Line.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West Europe"
+  location = "West Central US"
 }
 
 resource "azurerm_voice_services_communications_gateway" "example" {
@@ -25,7 +25,7 @@ resource "azurerm_voice_services_communications_gateway" "example" {
 
 resource "azurerm_voice_services_communications_gateway_test_line" "example" {
   name                                     = "example-vtl"
-  location                                 = "West Europe"
+  location                                 = "West Central US"
   voice_services_communications_gateway_id = azurerm_voice_services_communications_gateway.example.id
   phone_number                             = "123456789"
   purpose                                  = "Automated"

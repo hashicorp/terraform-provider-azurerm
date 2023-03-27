@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type CommunicationsGatewayTestLineModel struct {
+type CommunicationsGatewayTestLineResourceModel struct {
 	Name                                 string                    `tfschema:"name"`
 	Location                             string                    `tfschema:"location"`
 	VoiceServicesCommunicationsGatewayId string                    `tfschema:"voice_services_communications_gateway_id"`
@@ -34,7 +34,7 @@ func (r CommunicationsGatewayTestLineResource) ResourceType() string {
 }
 
 func (r CommunicationsGatewayTestLineResource) ModelObject() interface{} {
-	return &CommunicationsGatewayTestLineModel{}
+	return &CommunicationsGatewayTestLineResourceModel{}
 }
 
 func (r CommunicationsGatewayTestLineResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -89,7 +89,7 @@ func (r CommunicationsGatewayTestLineResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model CommunicationsGatewayTestLineModel
+			var model CommunicationsGatewayTestLineResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -110,7 +110,7 @@ func (r CommunicationsGatewayTestLineResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := &testlines.TestLine{
+			properties := testlines.TestLine{
 				Location: location.Normalize(model.Location),
 				Properties: &testlines.TestLineProperties{
 					PhoneNumber: model.PhoneNumber,
@@ -119,7 +119,7 @@ func (r CommunicationsGatewayTestLineResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -140,7 +140,7 @@ func (r CommunicationsGatewayTestLineResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model CommunicationsGatewayTestLineModel
+			var model CommunicationsGatewayTestLineResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -201,7 +201,7 @@ func (r CommunicationsGatewayTestLineResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			state := CommunicationsGatewayTestLineModel{
+			state := CommunicationsGatewayTestLineResourceModel{
 				Name:                                 id.TestLineName,
 				VoiceServicesCommunicationsGatewayId: communicationsgateways.NewCommunicationsGatewayID(id.SubscriptionId, id.ResourceGroupName, id.CommunicationsGatewayName).ID(),
 				Location:                             location.Normalize(model.Location),
