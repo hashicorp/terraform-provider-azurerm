@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"fmt"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"log"
 	"strings"
 	"time"
@@ -55,12 +56,12 @@ func resourceMonitorLogProfile() *pluginsdk.Resource {
 			"storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				ValidateFunc: storageValidate.StorageAccountID,
 			},
 			"servicebus_rule_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 			"locations": {
 				Type:     pluginsdk.TypeSet,
