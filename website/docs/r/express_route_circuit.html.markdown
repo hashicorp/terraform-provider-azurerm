@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `allow_classic_operations` - (Optional) Allow the circuit to interact with classic (RDFE) resources. Defaults to `false`.
 
-* `authorization_key` - (Optional) The Authorization Key used to connect to the ExpressRoute circuit.
+* `authorization_key` - (Optional) The Authorization Key used to connect to the Express Route circuit.
 
 ~> **Note:** `authorization_key` can only be set after the Circuit is created. And the Circuit is not created on Express Route port.
 
