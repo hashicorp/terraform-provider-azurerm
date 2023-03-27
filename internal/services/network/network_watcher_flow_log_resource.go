@@ -131,7 +131,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 						"workspace_resource_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty, // nolint: staticcheck
 						},
 
 						"interval_in_minutes": {
