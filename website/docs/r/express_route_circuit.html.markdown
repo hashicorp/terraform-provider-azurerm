@@ -69,6 +69,8 @@ The following arguments are supported:
 
 * `authorization_key` - (Optional) The authorization key. This can be used to set up an ExpressRoute Circuit with an ExpressRoute Port from another subscription.
 
+~> **Note:** `authorization_key` can only be set after the Circuit is created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
