@@ -455,7 +455,7 @@ resource "azurerm_app_configuration" "test" {
 
 resource "azurerm_app_configuration_feature" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
-  name                    = "acctest-ackey-%d/Label/AppConfigurationKey/Label/"
+  name                   = "acctest-ackey-%d/Label/AppConfigurationKey/Label/"
   label                  = "/Key/AppConfigurationKey/Label/acctest-ackeylabel-%d"
   enabled                = true
 }
