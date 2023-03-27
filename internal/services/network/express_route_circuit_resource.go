@@ -96,6 +96,12 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"authorization_key": {
+				Type:      pluginsdk.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+
 			"service_provider_name": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -183,6 +189,7 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	sku := expandExpressRouteCircuitSku(d)
 	t := d.Get("tags").(map[string]interface{})
 	allowRdfeOps := d.Get("allow_classic_operations").(bool)
+	authKey := d.Get("authorization_key").(string)
 	expandedTags := tags.Expand(t)
 
 	// There is the potential for the express route circuit to become out of sync when the service provider updates
@@ -216,6 +223,7 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	if !d.IsNewResource() {
 		erc.ExpressRouteCircuitPropertiesFormat.AllowClassicOperations = &allowRdfeOps
+		erc.ExpressRouteCircuitPropertiesFormat.AuthorizationKey = &authKey
 	} else {
 		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{}
 
@@ -317,6 +325,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("service_provider_provisioning_state", string(resp.ServiceProviderProvisioningState))
 	d.Set("service_key", resp.ServiceKey)
 	d.Set("allow_classic_operations", resp.AllowClassicOperations)
+	d.Set("authorization_key", d.Get("authorization_key").(string))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
