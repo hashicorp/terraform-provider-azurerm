@@ -1,4 +1,4 @@
-## 3.50.0 (Unreleased)
+## 3.50.0 (Unreleased)
 
 ENHANCEMENTS:
 
