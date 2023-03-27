@@ -2,6 +2,7 @@ package hdinsight
 
 import (
 	"fmt"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"net/url"
 	"regexp"
 	"strings"
@@ -1059,14 +1060,14 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			ValidateFunc: networkValidate.SubnetID,
 		},
 
 		"virtual_network_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			ValidateFunc: networkValidate.VirtualNetworkID,
 		},
 
 		"script_actions": SchemaHDInsightsScriptActions(),
