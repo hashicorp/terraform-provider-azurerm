@@ -784,7 +784,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	if _, ok := d.GetOk("additional_location"); ok {
 		var err error
-		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, sku)
+		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, *sku)
 		if err != nil {
 			return err
 		}
@@ -1451,7 +1451,7 @@ func expandAzureRmApiManagementCertificates(d *pluginsdk.ResourceData) *[]apiman
 	return &results
 }
 
-func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sku *apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
+func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sku apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
 	inputLocations := d.Get("additional_location").([]interface{})
 	parentVnetConfig := d.Get("virtual_network_configuration").([]interface{})
 
@@ -1467,7 +1467,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 
 		additionalLocation := apimanagement.AdditionalLocation{
 			Location:       utils.String(location),
-			Sku:            sku,
+			Sku:            &sku,
 			DisableGateway: utils.Bool(config["gateway_disabled"].(bool)),
 		}
 
