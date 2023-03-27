@@ -689,7 +689,7 @@ func TestAccKubernetesCluster_multipleLoadBalancer(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.loadBalancerProfileWithMultipleLoadBalancerEnabled(data, true),
+			Config: r.loadBalancerProfileWithMultipleLoadBalancerEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
