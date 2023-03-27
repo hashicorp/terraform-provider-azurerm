@@ -73,6 +73,10 @@ The following arguments are supported:
 
 -> **NOTE:** User can change the order of `event_handler` to change the priority accordingly.
 
+* `event_listener` - (Optional) An `event_listener` block as defined below.
+
+-> **NOTE:**  The managed identity of Web PubSub service must be enabled, and the identity should have the "Azure Event Hubs Data sender" role to access Event Hub.
+
 ---
 
 An `event_handler` block supports the following:
@@ -84,6 +88,18 @@ An `event_handler` block supports the following:
 * `system_events` - (Optional) Specify the list of system events. Supported values are `connect`, `connected` and `disconnected`.
 
 * `auth` - (Optional) An `auth` block as defined below.
+
+---
+
+An `event_listener` block supports the following:
+
+* `system_event_name_filter` - (Optional) Specify the list of system events. Supported values are `connect`, `connected` and `disconnected`.
+
+* `user_event_name_filter` - (Optional) Specify the matching event names. There are 3 kind of patterns supported: * `*` matches any event name * `,` Combine multiple events with `,` for example `event1,event2`, it matches event `event1` and `event2` * The single event name, for example `event1`, it matches `event1`. Defaults to `"*"`
+
+* `eventhub_namespace_name` - (Required) Specify the event hub namespace name to receive the events.
+
+* `eventhub_name` - (Required) Specify the event hub name to receive the events.
 
 ---
 

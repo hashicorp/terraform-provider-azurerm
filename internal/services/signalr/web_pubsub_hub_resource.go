@@ -2,6 +2,7 @@ package signalr
 
 import (
 	"fmt"
+	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"strings"
 	"time"
 
@@ -105,6 +106,45 @@ func resourceWebPubSubHub() *pluginsdk.Resource {
 				},
 			},
 
+			"event_listener": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"user_event_name_filter": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"system_event_name_filter": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"connect",
+									"connected",
+									"disconnected",
+								}, false),
+							},
+						},
+
+						"eventhub_namespace_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: eventhubValidate.ValidateEventHubNamespaceName(),
+						},
+
+						"eventhub_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: eventhubValidate.ValidateEventHubName(),
+						},
+					},
+				},
+			},
+
 			"anonymous_connections_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -151,6 +191,13 @@ func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		},
 	}
 
+	eventListener, err := expandEventListener(d.Get("event_listener").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding event listener for web pubsub %s: %+v", id, err)
+	}
+
+	parameters.Properties.EventListeners = eventListener
+
 	if err := client.HubsCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -188,6 +235,13 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 			return fmt.Errorf("setting `event_handler`: %+v", err)
 		}
 		d.Set("anonymous_connections_enabled", strings.EqualFold(*model.Properties.AnonymousConnectPolicy, "Allow"))
+		eventListener, err := flattenEventListener(model.Properties.EventListeners)
+		if err != nil {
+			return fmt.Errorf("flatten event listener: %+v", err)
+		}
+		if err := d.Set("event_listener", eventListener); err != nil {
+			return fmt.Errorf("setting `event_listener`: %+v", err)
+		}
 	}
 
 	return nil
@@ -276,6 +330,93 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 		})
 	}
 	return eventHandlerBlock
+}
+
+func expandEventListener(input []interface{}) (*[]webpubsub.EventListener, error) {
+	result := make([]webpubsub.EventListener, 0)
+	if len(input) == 0 {
+		return &result, nil
+	}
+
+	for _, eventListenerItem := range input {
+		block := eventListenerItem.(map[string]interface{})
+
+		var (
+			filter             webpubsub.EventListenerFilter
+			endpoint           webpubsub.EventListenerEndpoint
+			eventFilterType    webpubsub.EventListenerFilterDiscriminator
+			endpointFilterType webpubsub.EventListenerEndpointDiscriminator
+		)
+
+		switch eventFilterType {
+		default:
+			systemEvents := make([]string, 0)
+			userEventPattern := "*"
+			if v, ok := block["user_event_name_filter"]; ok {
+				userEventPattern = v.(string)
+			}
+			if v, ok := block["system_event_name_filter"]; ok {
+				for _, item := range v.(*pluginsdk.Set).List() {
+					systemEvents = append(systemEvents, item.(string))
+				}
+			}
+			filter = webpubsub.EventNameFilter{
+				SystemEvents:     &systemEvents,
+				UserEventPattern: utils.String(userEventPattern),
+			}
+		}
+
+		var endpointName string
+		switch endpointFilterType {
+		default:
+			endpointName = block["eventhub_namespace_name"].(string)
+			fullQualifiedName := endpointName + ".servicebus.windows.net"
+			if _, ok := block["eventhub_name"]; !ok {
+				return nil, fmt.Errorf("no event hub is specified")
+			}
+			ehName := block["eventhub_name"].(string)
+			endpoint = webpubsub.EventHubEndpoint{
+				FullyQualifiedNamespace: fullQualifiedName,
+				EventHubName:            ehName,
+			}
+		}
+
+		result = append(result, webpubsub.EventListener{
+			Filter:   filter,
+			Endpoint: endpoint,
+		})
+	}
+	return &result, nil
+}
+
+func flattenEventListener(listener *[]webpubsub.EventListener) ([]interface{}, error) {
+	eventListenerBlocks := make([]interface{}, 0)
+	if listener == nil {
+		return eventListenerBlocks, nil
+	}
+
+	for _, item := range *listener {
+		listenerBlock := make(map[string]interface{}, 0)
+		// todo use the type Assertion or Type field in sdk to get the different sub-class
+		if eventFilter := item.Filter; eventFilter != nil {
+			eventNameFilter := item.Filter.(webpubsub.EventNameFilter)
+			if eventNameFilter.SystemEvents != nil {
+				listenerBlock["system_event_name_filter"] = utils.FlattenStringSlice(eventNameFilter.SystemEvents)
+			}
+			if eventNameFilter.UserEventPattern != nil {
+				listenerBlock["user_event_name_filter"] = *eventNameFilter.UserEventPattern
+			}
+		}
+
+		if eventEndpoint := item.Endpoint; eventEndpoint != nil {
+			eventhubEndpoint := item.Endpoint.(webpubsub.EventHubEndpoint)
+			listenerBlock["eventhub_namespace_name"] = strings.TrimSuffix(eventhubEndpoint.FullyQualifiedNamespace, ".servicebus.windows.net")
+			listenerBlock["eventhub_name"] = eventhubEndpoint.EventHubName
+		}
+		eventListenerBlocks = append(eventListenerBlocks, listenerBlock)
+	}
+
+	return eventListenerBlocks, nil
 }
 
 func expandAuth(input []interface{}) *webpubsub.UpstreamAuthSettings {
