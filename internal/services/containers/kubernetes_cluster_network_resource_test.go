@@ -2898,7 +2898,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_plugin    = "kubenet"
     load_balancer_sku = "standard"
     load_balancer_profile {
-      multiple_standard_load_balancer_enabled = %[3]t
+      multiple_standard_load_balancers_enabled = %[3]t
     }
   }
 }

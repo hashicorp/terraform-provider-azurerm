@@ -654,7 +654,7 @@ A `load_balancer_profile` block supports the following:
 
 ~> **Note:** `managed_outbound_ipv6_count` requires dual-stack networking. To enable dual-stack networking the Preview Feature `Microsoft.ContainerService/AKS-EnableDualStack` needs to be enabled and the Resource Provider re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-kubenet-dual-stack?tabs=azure-cli%2Ckubectl#register-the-aks-enabledualstack-preview-feature) for more information.
 
-* `multiple_standard_load_balancer_enabled` - (Optional) Is multiple standard load balancers per AKS cluster enabled?
+* `multiple_standard_load_balancers_enabled` - (Optional) Are multiple standard load balancers for the cluster enabled?
 
 * `outbound_ip_address_ids` - (Optional) The ID of the Public IP Addresses which should be used for outbound communication for the cluster load balancer.
 

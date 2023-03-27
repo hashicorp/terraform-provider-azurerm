@@ -930,7 +930,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										ValidateFunc:  validation.IntBetween(1, 100),
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
-									"multiple_standard_load_balancer_enabled": {
+									"multiple_standard_load_balancers_enabled": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
 									},
@@ -1810,7 +1810,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				allocatedOutboundPorts := d.Get(key).(int)
 				loadBalancerProfile.AllocatedOutboundPorts = utils.Int64(int64(allocatedOutboundPorts))
 			}
-			if key := "network_profile.0.load_balancer_profile.0.multiple_standard_load_balancer_enabled"; d.HasChange(key) {
+			if key := "network_profile.0.load_balancer_profile.0.multiple_standard_load_balancers_enabled"; d.HasChange(key) {
 				multipleStandardLoadBalancerEnabled := d.Get(key).(bool)
 				loadBalancerProfile.EnableMultipleStandardLoadBalancers = utils.Bool(multipleStandardLoadBalancerEnabled)
 			}
@@ -2879,7 +2879,7 @@ func expandLoadBalancerProfile(d []interface{}) *managedclusters.ManagedClusterL
 		profile.AllocatedOutboundPorts = utils.Int64(int64(port))
 	}
 
-	if multipleStandardLoadbalancerEnabled, ok := config["multiple_standard_load_balancer_enabled"].(bool); ok {
+	if multipleStandardLoadbalancerEnabled, ok := config["multiple_standard_load_balancers_enabled"].(bool); ok {
 		profile.EnableMultipleStandardLoadBalancers = utils.Bool(multipleStandardLoadbalancerEnabled)
 	}
 
@@ -3042,7 +3042,7 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		}
 
 		if v := lbp.EnableMultipleStandardLoadBalancers; v != nil {
-			lb["multiple_standard_load_balancer_enabled"] = v
+			lb["multiple_standard_load_balancers_enabled"] = v
 		}
 
 		if v := lbp.IdleTimeoutInMinutes; v != nil {
