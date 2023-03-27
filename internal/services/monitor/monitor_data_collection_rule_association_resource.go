@@ -36,6 +36,7 @@ func (r DataCollectionRuleAssociationResource) Arguments() map[string]*pluginsdk
 		},
 
 		"name": {
+			// TODO: should this be hard-coded in the Create?
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

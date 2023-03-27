@@ -13,19 +13,6 @@ func SchemaDataSource() *pluginsdk.Schema {
 	}
 }
 
-// SchemaDataSourceDeprecatedUnsupported returns the Schema which should be used for Tags on a Data Source
-// TODO remove in 3.0
-func SchemaDataSourceDeprecatedUnsupported() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:       pluginsdk.TypeMap,
-		Computed:   true,
-		Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
-		Elem: &pluginsdk.Schema{
-			Type: pluginsdk.TypeString,
-		},
-	}
-}
-
 // ForceNewSchema returns the Schema which should be used for Tags when changes
 // require recreation of the resource
 func ForceNewSchema() *pluginsdk.Schema {
