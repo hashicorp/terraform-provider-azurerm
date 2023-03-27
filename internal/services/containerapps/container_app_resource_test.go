@@ -225,7 +225,7 @@ func TestAccContainerAppResource_removeDaprAppPort(t *testing.T) {
 		{
 			Config: r.completeUpdate_withNoDaprAppPort(data, "rev2"),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("dapr.0.app_port").IsEmpty(),
+				check.That(data.ResourceName).Key("dapr.app_port").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
