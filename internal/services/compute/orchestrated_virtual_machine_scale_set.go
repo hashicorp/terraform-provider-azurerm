@@ -302,7 +302,7 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 				"network_security_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					ValidateFunc: networkValidate.NetworkSecurityGroupID,
 				},
 
 				"primary": {
@@ -433,7 +433,7 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					ValidateFunc: networkValidate.PublicIpPrefixID,
 				},
 
 				"sku_name": {
