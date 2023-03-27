@@ -49,7 +49,7 @@ func (c SignalRClient) CustomDomainsList(ctx context.Context, id SignalRId) (res
 	}
 
 	var values struct {
-		Values *[]CustomDomain `json:"values"`
+		Values *[]CustomDomain `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

@@ -78,7 +78,7 @@ func (c ZonesClient) ListByResourceGroup(ctx context.Context, id commonids.Resou
 	}
 
 	var values struct {
-		Values *[]Zone `json:"values"`
+		Values *[]Zone `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
