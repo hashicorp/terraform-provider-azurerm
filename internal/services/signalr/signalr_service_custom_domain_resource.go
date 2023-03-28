@@ -70,7 +70,7 @@ func (r CustomDomainSignalrServiceResource) ResourceType() string {
 
 func (r CustomDomainSignalrServiceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 1 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var customDomainSignalrServiceModel CustomDomainSignalrServiceModel
 			if err := metadata.Decode(&customDomainSignalrServiceModel); err != nil {
