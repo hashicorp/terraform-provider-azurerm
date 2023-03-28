@@ -15,18 +15,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CustomCertBindingWebPubsubModel struct {
+type CustomCertWebPubsubModel struct {
 	Name               string `tfschema:"name"`
 	WebPubsubId        string `tfschema:"web_pubsub_id"`
 	CustomCertId       string `tfschema:"custom_certificate_id"`
 	CertificateVersion string `tfschema:"certificate_version"`
 }
 
-type CustomCertBindingWebPubsubResource struct{}
+type CustomCertWebPubsubResource struct{}
 
-var _ sdk.Resource = CustomCertBindingWebPubsubResource{}
+var _ sdk.Resource = CustomCertWebPubsubResource{}
 
-func (r CustomCertBindingWebPubsubResource) Arguments() map[string]*pluginsdk.Schema {
+func (r CustomCertWebPubsubResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -61,25 +61,25 @@ func (r CustomCertBindingWebPubsubResource) Arguments() map[string]*pluginsdk.Sc
 	}
 }
 
-func (r CustomCertBindingWebPubsubResource) Attributes() map[string]*pluginsdk.Schema {
+func (r CustomCertWebPubsubResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r CustomCertBindingWebPubsubResource) ModelObject() interface{} {
-	return &CustomCertBindingWebPubsubModel{}
+func (r CustomCertWebPubsubResource) ModelObject() interface{} {
+	return &CustomCertWebPubsubModel{}
 }
 
-func (r CustomCertBindingWebPubsubResource) ResourceType() string {
-	return "azurerm_web_pubsub_custom_certificate_binding"
+func (r CustomCertWebPubsubResource) ResourceType() string {
+	return "azurerm_web_pubsub_custom_certificate"
 }
 
-func (r CustomCertBindingWebPubsubResource) Create() sdk.ResourceFunc {
+func (r CustomCertWebPubsubResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var webPubsubCustomCertBinding CustomCertBindingWebPubsubModel
-			if err := metadata.Decode(&webPubsubCustomCertBinding); err != nil {
-				return err
+			var customCertWebPubsub CustomCertWebPubsubModel
+			if err := metadata.Decode(&customCertWebPubsub); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
 			}
 			client := metadata.Client.SignalR.WebPubSubClient.WebPubSub
 
@@ -96,45 +96,30 @@ func (r CustomCertBindingWebPubsubResource) Create() sdk.ResourceFunc {
 			keyVaultUri := keyVaultCertificateId.KeyVaultBaseUrl
 			keyVaultSecretName := keyVaultCertificateId.Name
 
-			id := webpubsub.NewCustomCertificateID(webPubsubId.SubscriptionId, webPubsubId.ResourceGroupName, webPubsubId.WebPubSubName, metadata.ResourceData.Get("name").(string))
+			id := webpubsub.NewCustomCertificateID(webPubsubId.SubscriptionId, webPubsubId.ResourceGroupName, webPubsubId.WebPubSubName, customCertWebPubsub.Name)
 
 			existing, err := client.CustomCertificatesGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing web pubsub service custom cert binding error %s: %+v", id, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			customCert := webpubsub.CustomCertificate{
+			customCertObj := webpubsub.CustomCertificate{
 				Properties: webpubsub.CustomCertificateProperties{
 					KeyVaultBaseUri:    keyVaultUri,
 					KeyVaultSecretName: keyVaultSecretName,
 				},
 			}
+			if keyVaultCertificateId.Version != "" {
+				customCertObj.Properties.KeyVaultSecretVersion = utils.String(keyVaultCertificateId.Version)
 
-			if certVersion := keyVaultCertificateId.Version; certVersion != "" {
-				if webPubsubCustomCertBinding.CertificateVersion != "" && certVersion != webPubsubCustomCertBinding.CertificateVersion {
-					return fmt.Errorf("certificate version in cert id is different from `certificate_version`")
-				}
-				customCert.Properties.KeyVaultSecretVersion = utils.String(certVersion)
 			}
 
-			if _, err := client.CustomCertificatesCreateOrUpdate(ctx, id, customCert); err != nil {
-				return fmt.Errorf("creating web pubsub custom certificate binding: %s: %+v", id, err)
-			}
-
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{string(webpubsub.ProvisioningStateCreating), string(webpubsub.ProvisioningStateUpdating), string(webpubsub.ProvisioningStateFailed)},
-				Target:     []string{string(webpubsub.ProvisioningStateSucceeded)},
-				Refresh:    webPubsubCustomCertBindingStateRefreshFunc(ctx, client, id),
-				MinTimeout: 15 * time.Second,
-				Timeout:    30 * time.Minute,
-			}
-
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCertObj); err != nil {
+				return fmt.Errorf("creating web pubsub custom certificate: %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -143,7 +128,7 @@ func (r CustomCertBindingWebPubsubResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r CustomCertBindingWebPubsubResource) Read() sdk.ResourceFunc {
+func (r CustomCertWebPubsubResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -160,7 +145,7 @@ func (r CustomCertBindingWebPubsubResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading web pubsub custom certificate binding %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			if resp.Model == nil {
@@ -179,8 +164,6 @@ func (r CustomCertBindingWebPubsubResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("parsing key vault %s: %+v", vaultId, err)
 			}
 
-			webPubsubId := webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID()
-
 			certVersion := ""
 			if resp.Model.Properties.KeyVaultSecretVersion != nil {
 				certVersion = *resp.Model.Properties.KeyVaultSecretVersion
@@ -192,10 +175,10 @@ func (r CustomCertBindingWebPubsubResource) Read() sdk.ResourceFunc {
 
 			certId := nestedItem.ID()
 
-			state := CustomCertBindingWebPubsubModel{
+			state := CustomCertWebPubsubModel{
 				Name:               id.CustomCertificateName,
 				CustomCertId:       certId,
-				WebPubsubId:        webPubsubId,
+				WebPubsubId:        webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID(),
 				CertificateVersion: utils.NormalizeNilableString(resp.Model.Properties.KeyVaultSecretVersion),
 			}
 
@@ -204,45 +187,7 @@ func (r CustomCertBindingWebPubsubResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r CustomCertBindingWebPubsubResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.SignalR.WebPubSubClient.WebPubSub
-
-			id, err := webpubsub.ParseCustomCertificateID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			var webPubsubCustomCertBinding CustomCertBindingWebPubsubModel
-			if err := metadata.Decode(&webPubsubCustomCertBinding); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			existing, err := client.CustomCertificatesGet(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			props := existing.Model
-			if props == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", *id)
-			}
-
-			if metadata.ResourceData.HasChange("certificate_version") {
-				existing.Model.Properties.KeyVaultSecretVersion = utils.String(webPubsubCustomCertBinding.CertificateVersion)
-			}
-
-			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, *id, *props); err != nil {
-				return fmt.Errorf("creating web pubsub custom certificate binding: %s: %+v", id, err)
-			}
-
-			return nil
-		},
-	}
-}
-
-func (r CustomCertBindingWebPubsubResource) Delete() sdk.ResourceFunc {
+func (r CustomCertWebPubsubResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -260,23 +205,6 @@ func (r CustomCertBindingWebPubsubResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r CustomCertBindingWebPubsubResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r CustomCertWebPubsubResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return webpubsub.ValidateCustomCertificateID
-}
-
-func webPubsubCustomCertBindingStateRefreshFunc(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.CustomCertificateId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.CustomCertificatesGet(ctx, id)
-		if err != nil {
-			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
-		}
-
-		if model := resp.Model; model != nil {
-			if model.Properties.ProvisioningState != nil {
-				return resp, string(*model.Properties.ProvisioningState), nil
-			}
-		}
-
-		return nil, "", fmt.Errorf("error fetching the custom certificate provisioing state")
-	}
 }

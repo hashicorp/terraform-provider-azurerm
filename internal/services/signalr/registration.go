@@ -18,7 +18,7 @@ func (r Registration) AssociatedGitHubLabel() string {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		CustomCertBindingWebPubsubResource{},
+		CustomCertWebPubsubResource{},
 	}
 }
 

@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CustomCertBindingWebPubsubResource struct{}
+type CustomCertWebPubsubResource struct{}
 
-func TestAccCustomCertBindingWebPubsub_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_custom_certificate_binding", "test")
-	r := CustomCertBindingWebPubsubResource{}
+func TestAccCustomCertWebPubsub_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_custom_certificate", "test")
+	r := CustomCertWebPubsubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,7 +31,21 @@ func TestAccCustomCertBindingWebPubsub_basic(t *testing.T) {
 	})
 }
 
-func (r CustomCertBindingWebPubsubResource) basic(data acceptance.TestData) string {
+func TestAccCustomCertWebPubsub_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_custom_certificate", "test")
+	r := CustomCertWebPubsubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func (r CustomCertWebPubsubResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -120,7 +134,7 @@ resource "azurerm_key_vault_certificate" "test" {
   }
 }
 
-resource "azurerm_web_pubsub_custom_certificate_binding" "test" {
+resource "azurerm_web_pubsub_custom_certificate" "test" {
   name                  = "webpubsub-cert-%s"
   web_pubsub_id         = azurerm_web_pubsub.test.id
   custom_certificate_id = azurerm_key_vault_certificate.test.id
@@ -130,7 +144,19 @@ resource "azurerm_web_pubsub_custom_certificate_binding" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (r CustomCertBindingWebPubsubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CustomCertWebPubsubResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_web_pubsub_custom_certificate" "import" {
+  name                  = azurerm_web_pubsub_custom_certificate.test.name
+  web_pubsub_id         = azurerm_web_pubsub_custom_certificate.test.web_pubsub_id
+  custom_certificate_id = azurerm_web_pubsub_custom_certificate.test.custom_certificate_id
+}
+`, r.basic(data))
+}
+
+func (r CustomCertWebPubsubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webpubsub.ParseCustomCertificateID(state.ID)
 	if err != nil {
 		return nil, err
@@ -142,5 +168,5 @@ func (r CustomCertBindingWebPubsubResource) Exists(ctx context.Context, client *
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
