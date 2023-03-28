@@ -69,7 +69,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
 				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
 				check.That(data.ResourceName).Key("maintenance_configuration_name").HasValue(maintenance_configuration_name),
-				check.That(data.ResourceName).Key("max_size_gb").HasValue("1"),
+				check.That(data.ResourceName).Key("max_size_gb").HasValue("10"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("storage_account_type").HasValue("Local"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
@@ -819,7 +819,7 @@ resource "azurerm_mssql_database" "test" {
   server_id    = azurerm_mssql_server.test.id
   collation    = "SQL_AltDiction_CP850_CI_AI"
   license_type = "BasePrice"
-  max_size_gb  = 1
+  max_size_gb  = 10
   sample_name  = "AdventureWorksLT"
   sku_name     = "GP_Gen5_2"
 
