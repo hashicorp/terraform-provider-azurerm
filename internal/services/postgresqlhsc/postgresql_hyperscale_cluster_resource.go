@@ -145,6 +145,7 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 			Default:  true,
 		},
 
+		// Once the issue https://github.com/Azure/azure-rest-api-specs/issues/23317 is fixed, we would submit PR to improve the validation
 		"coordinator_server_edition": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
