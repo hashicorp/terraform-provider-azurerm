@@ -15,18 +15,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CustomCertBindingSignalrResourceModel struct {
+type CustomCertSignalrServiceResourceModel struct {
 	Name               string `tfschema:"name"`
 	SignalRServiceId   string `tfschema:"signalr_service_id"`
 	CustomCertId       string `tfschema:"custom_certificate_id"`
 	CertificateVersion string `tfschema:"certificate_version"`
 }
 
-type CustomCertBindingSignalrResource struct{}
+type CustomCertSignalrServiceResource struct{}
 
-var _ sdk.Resource = CustomCertBindingSignalrResource{}
+var _ sdk.Resource = CustomCertSignalrServiceResource{}
 
-func (r CustomCertBindingSignalrResource) Arguments() map[string]*pluginsdk.Schema {
+func (r CustomCertSignalrServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -61,24 +61,24 @@ func (r CustomCertBindingSignalrResource) Arguments() map[string]*pluginsdk.Sche
 	}
 }
 
-func (r CustomCertBindingSignalrResource) Attributes() map[string]*pluginsdk.Schema {
+func (r CustomCertSignalrServiceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r CustomCertBindingSignalrResource) ModelObject() interface{} {
-	return &CustomCertBindingSignalrResourceModel{}
+func (r CustomCertSignalrServiceResource) ModelObject() interface{} {
+	return &CustomCertSignalrServiceResourceModel{}
 }
 
-func (r CustomCertBindingSignalrResource) ResourceType() string {
+func (r CustomCertSignalrServiceResource) ResourceType() string {
 	return "azurerm_signalr_service_custom_certificate"
 }
 
-func (r CustomCertBindingSignalrResource) Create() sdk.ResourceFunc {
+func (r CustomCertSignalrServiceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var signalRCustomCertBinding CustomCertBindingSignalrResourceModel
-			if err := metadata.Decode(&signalRCustomCertBinding); err != nil {
+			var customCertSignalrService CustomCertSignalrServiceResourceModel
+			if err := metadata.Decode(&customCertSignalrService); err != nil {
 				return err
 			}
 			client := metadata.Client.SignalR.SignalRClient
@@ -100,7 +100,7 @@ func (r CustomCertBindingSignalrResource) Create() sdk.ResourceFunc {
 
 			existing, err := client.CustomCertificatesGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing SignalR service custom cert binding error %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing SignalR service custom cert error %s: %+v", id, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -115,14 +115,14 @@ func (r CustomCertBindingSignalrResource) Create() sdk.ResourceFunc {
 			}
 
 			if certVersion := keyVaultCertificateId.Version; certVersion != "" {
-				if signalRCustomCertBinding.CertificateVersion != "" && certVersion != signalRCustomCertBinding.CertificateVersion {
+				if customCertSignalrService.CertificateVersion != "" && certVersion != customCertSignalrService.CertificateVersion {
 					return fmt.Errorf("certificate version in cert id is different from `certificate_version`")
 				}
 				customCert.Properties.KeyVaultSecretVersion = utils.String(certVersion)
 			}
 
 			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCert); err != nil {
-				return fmt.Errorf("creating signalR custom certificate binding: %s: %+v", id, err)
+				return fmt.Errorf("creating signalR custom certificate: %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -131,7 +131,7 @@ func (r CustomCertBindingSignalrResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r CustomCertBindingSignalrResource) Read() sdk.ResourceFunc {
+func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -148,7 +148,7 @@ func (r CustomCertBindingSignalrResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading SignalR custom certificate binding %s: %+v", id, err)
+				return fmt.Errorf("reading SignalR custom certificate %s: %+v", id, err)
 			}
 
 			if resp.Model == nil {
@@ -180,7 +180,7 @@ func (r CustomCertBindingSignalrResource) Read() sdk.ResourceFunc {
 
 			certId := nestedItem.ID()
 
-			state := CustomCertBindingSignalrResourceModel{
+			state := CustomCertSignalrServiceResourceModel{
 				Name:               id.CustomCertificateName,
 				CustomCertId:       certId,
 				SignalRServiceId:   signalrServiceId,
@@ -192,7 +192,7 @@ func (r CustomCertBindingSignalrResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r CustomCertBindingSignalrResource) Update() sdk.ResourceFunc {
+func (r CustomCertSignalrServiceResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -203,8 +203,8 @@ func (r CustomCertBindingSignalrResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var signalRCustomCertBinding CustomCertBindingSignalrResourceModel
-			if err := metadata.Decode(&signalRCustomCertBinding); err != nil {
+			var customCertSignalrService CustomCertSignalrServiceResourceModel
+			if err := metadata.Decode(&customCertSignalrService); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
@@ -218,11 +218,11 @@ func (r CustomCertBindingSignalrResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("certificate_version") {
-				existing.Model.Properties.KeyVaultSecretVersion = utils.String(signalRCustomCertBinding.CertificateVersion)
+				existing.Model.Properties.KeyVaultSecretVersion = utils.String(customCertSignalrService.CertificateVersion)
 			}
 
 			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, *id, *props); err != nil {
-				return fmt.Errorf("updating signalR custom certificate binding: %s: %+v", id, err)
+				return fmt.Errorf("updating signalR custom certificate: %s: %+v", id, err)
 			}
 
 			return nil
@@ -230,7 +230,7 @@ func (r CustomCertBindingSignalrResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r CustomCertBindingSignalrResource) Delete() sdk.ResourceFunc {
+func (r CustomCertSignalrServiceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -248,6 +248,6 @@ func (r CustomCertBindingSignalrResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r CustomCertBindingSignalrResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r CustomCertSignalrServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return signalr.ValidateCustomCertificateID
 }
