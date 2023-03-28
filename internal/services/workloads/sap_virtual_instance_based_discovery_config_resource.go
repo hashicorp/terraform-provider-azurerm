@@ -3,7 +3,6 @@ package workloads
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SAPVirtualInstanceBasedDiscoveryConfigModel struct {
@@ -91,8 +91,8 @@ func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Arguments() map[string]*
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(sapvirtualinstances.SAPEnvironmentTypeProd),
 				string(sapvirtualinstances.SAPEnvironmentTypeNonProd),
+				string(sapvirtualinstances.SAPEnvironmentTypeProd),
 			}, false),
 		},
 
@@ -102,10 +102,12 @@ func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Arguments() map[string]*
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(sapvirtualinstances.SAPProductTypeECC),
-				string(sapvirtualinstances.SAPProductTypeSFourHANA),
 				string(sapvirtualinstances.SAPProductTypeOther),
+				string(sapvirtualinstances.SAPProductTypeSFourHANA),
 			}, false),
 		},
+
+		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"managed_resource_group_name": {
 			Type:         pluginsdk.TypeString,
@@ -113,8 +115,6 @@ func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Arguments() map[string]*
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-
-		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
