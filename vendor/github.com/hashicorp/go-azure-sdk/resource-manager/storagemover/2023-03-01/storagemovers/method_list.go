@@ -50,7 +50,7 @@ func (c StorageMoversClient) List(ctx context.Context, id commonids.ResourceGrou
 	}
 
 	var values struct {
-		Values *[]StorageMover `json:"values"`
+		Values *[]StorageMover `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
