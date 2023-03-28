@@ -123,7 +123,6 @@ func resourceWebPubSubHub() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									"connect",
 									"connected",
 									"disconnected",
 								}, false),
@@ -340,45 +339,31 @@ func expandEventListener(input []interface{}) (*[]webpubsub.EventListener, error
 
 	for _, eventListenerItem := range input {
 		block := eventListenerItem.(map[string]interface{})
-
-		var (
-			filter             webpubsub.EventListenerFilter
-			endpoint           webpubsub.EventListenerEndpoint
-			eventFilterType    webpubsub.EventListenerFilterDiscriminator
-			endpointFilterType webpubsub.EventListenerEndpointDiscriminator
-		)
-
-		switch eventFilterType {
-		default:
-			systemEvents := make([]string, 0)
-			userEventPattern := "*"
-			if v, ok := block["user_event_name_filter"]; ok {
-				userEventPattern = v.(string)
+		systemEvents := make([]string, 0)
+		userEventPattern := "*"
+		if v, ok := block["user_event_name_filter"]; ok {
+			userEventPattern = v.(string)
+		}
+		if v, ok := block["system_event_name_filter"]; ok {
+			for _, item := range v.(*pluginsdk.Set).List() {
+				systemEvents = append(systemEvents, item.(string))
 			}
-			if v, ok := block["system_event_name_filter"]; ok {
-				for _, item := range v.(*pluginsdk.Set).List() {
-					systemEvents = append(systemEvents, item.(string))
-				}
-			}
-			filter = webpubsub.EventNameFilter{
-				SystemEvents:     &systemEvents,
-				UserEventPattern: utils.String(userEventPattern),
-			}
+		}
+		filter := webpubsub.EventNameFilter{
+			SystemEvents:     &systemEvents,
+			UserEventPattern: utils.String(userEventPattern),
 		}
 
 		var endpointName string
-		switch endpointFilterType {
-		default:
-			endpointName = block["eventhub_namespace_name"].(string)
-			fullQualifiedName := endpointName + ".servicebus.windows.net"
-			if _, ok := block["eventhub_name"]; !ok {
-				return nil, fmt.Errorf("no event hub is specified")
-			}
-			ehName := block["eventhub_name"].(string)
-			endpoint = webpubsub.EventHubEndpoint{
-				FullyQualifiedNamespace: fullQualifiedName,
-				EventHubName:            ehName,
-			}
+		endpointName = block["eventhub_namespace_name"].(string)
+		fullQualifiedName := endpointName + ".servicebus.windows.net"
+		if _, ok := block["eventhub_name"]; !ok {
+			return nil, fmt.Errorf("no event hub is specified")
+		}
+		ehName := block["eventhub_name"].(string)
+		endpoint := webpubsub.EventHubEndpoint{
+			FullyQualifiedNamespace: fullQualifiedName,
+			EventHubName:            ehName,
 		}
 
 		result = append(result, webpubsub.EventListener{

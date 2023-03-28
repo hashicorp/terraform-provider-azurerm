@@ -85,7 +85,7 @@ An `event_handler` block supports the following:
 
 * `user_event_pattern` - (Optional) Specify the matching event names. There are 3 kind of patterns supported: * `*` matches any event name * `,` Combine multiple events with `,` for example `event1,event2`, it matches event `event1` and `event2` * The single event name, for example `event1`, it matches `event1`.
 
-* `system_events` - (Optional) Specify the list of system events. Supported values are `connect`, `connected` and `disconnected`.
+* `system_events` - (Optional) Specify the list of system events. Supported values are `connected` and `disconnected`.
 
 * `auth` - (Optional) An `auth` block as defined below.
 
@@ -93,9 +93,12 @@ An `event_handler` block supports the following:
 
 An `event_listener` block supports the following:
 
-* `system_event_name_filter` - (Optional) Specify the list of system events. Supported values are `connect`, `connected` and `disconnected`.
+* `system_event_name_filter` - (Optional) Specify the list of system events. Supported values are `connected` and `disconnected`.
 
-* `user_event_name_filter` - (Optional) Specify the matching event names. There are 3 kind of patterns supported: * `*` matches any event name * `,` Combine multiple events with `,` for example `event1,event2`, it matches event `event1` and `event2` * The single event name, for example `event1`, it matches `event1`. Defaults to `"*"`
+* `user_event_name_filter` - (Optional) Specify the matching event names. There are 3 kind of patterns supported: (Defaults to `"*"`)
+  * `"*"` matches any event name 
+  * Use `,` to combine multiple events, for example `event1,event2`, it matches event `event1` and `event2` 
+  * The single event name, for example `event1`, it matches `event1`.
 
 * `eventhub_namespace_name` - (Required) Specify the event hub namespace name to receive the events.
 
