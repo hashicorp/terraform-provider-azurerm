@@ -108,13 +108,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the SignalR Custom Domain. Changing this forces a new resource to be created.
 
-* `signalr_service_id` - (Required) The SignalR ID of the SignalR Custom Domain. Changing this forces a new resource to be created.
+* `signalr_service_id` - (Required) The signalR ID of the SignalR Custom Domain. Changing this forces a new resource to be created.
 
-* `signalr_custom_certificate_id` - (Required) The signalr custom certificate id of the SignalR Custom Domain service. Changing this forces a new resource to be created.
+* `signalr_custom_certificate_id` - (Required) The signalr custom certificate ID of the SignalR Custom Domain. Changing this forces a new resource to be created.
 
-* `domain_name` - (Required) The custom domain name of the SignalR Custom Domain service.
+* `domain_name` - (Required) The custom domain name of the SignalR Custom Domain. Changing this forces a new resource to be created.
 
--> **NOTE:** Please ensure the custom domain name is included in the subject alternative names of the selected custom certificate.
+-> **NOTE:** Please ensure the custom domain name is included in the subject alternative names of the selected signalr custom certificate.
 
 ## Attributes Reference
 
@@ -128,7 +128,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Custom Domain of the SignalR service
 * `read` - (Defaults to 5 minutes) Used when retrieving the Custom Domain of the SignalR service
-* `update` - (Defaults to 30 minutes) Used when updating the Custom Domain of the SignalR service
 * `delete` - (Defaults to 30 minutes) Used when deleting the Custom Domain of the SignalR service
 
 ## Import
