@@ -2,6 +2,7 @@ package azure
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
