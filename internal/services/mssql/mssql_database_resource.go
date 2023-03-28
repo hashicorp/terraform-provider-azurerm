@@ -3,6 +3,7 @@ package mssql
 import (
 	"context"
 	"fmt"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"log"
 	"strings"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -444,7 +444,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return nil
 	}
 
-	if d.HasChange("long_term_retention_policy") { //&& !ledgerEnabled {
+	if d.HasChange("long_term_retention_policy") {
 		v := d.Get("long_term_retention_policy")
 		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]interface{}))
 		if longTermRetentionProps != nil {
@@ -875,7 +875,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 					"storage_account_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: storageValidate.StorageAccountID,
 					},
 				},
 			},
