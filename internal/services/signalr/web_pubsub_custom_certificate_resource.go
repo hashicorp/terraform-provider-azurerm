@@ -54,7 +54,6 @@ func (r CustomCertWebPubsubResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"certificate_version": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
