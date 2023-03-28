@@ -1,12 +1,12 @@
 ---
 subcategory: "Messaging"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_signalr_custom_certificate_binding"
+page_title: "Azure Resource Manager: azurerm_signalr_service_custom_certificate"
 description: |-
   Manages an Azure SignalR Custom Certificate Binding.
 ---
 
-# azurerm_signalr_custom_certificate_binding
+# azurerm_signalr_service_custom_certificate
 
 Manages an Azure SignalR Custom Certificate Binding.
 
@@ -85,7 +85,7 @@ resource "azurerm_key_vault_certificate" "example" {
   }
 }
 
-resource "azurerm_signalr_custom_certificate_binding" "test" {
+resource "azurerm_signalr_service_custom_certificate" "test" {
   name                  = "example-certbinding"
   signalr_service_id    = azurerm_signalr_service.example.id
   custom_certificate_id = azurerm_key_vault_certificate.example.id
@@ -131,5 +131,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Custom Certificate Binding for a SignalR service can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_signalr_custom_certificate_binding.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/signalR/signalr1/customCertificates/certbinding1
+terraform import azurerm_signalr_service_custom_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/signalR/signalr1/customCertificates/certbinding1
 ```

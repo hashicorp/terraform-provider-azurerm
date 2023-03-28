@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CustomCertBindingSignalrModel struct {
+type CustomCertBindingSignalrResourceModel struct {
 	Name               string `tfschema:"name"`
 	SignalRServiceId   string `tfschema:"signalr_service_id"`
 	CustomCertId       string `tfschema:"custom_certificate_id"`
@@ -66,18 +66,18 @@ func (r CustomCertBindingSignalrResource) Attributes() map[string]*pluginsdk.Sch
 }
 
 func (r CustomCertBindingSignalrResource) ModelObject() interface{} {
-	return &CustomCertBindingSignalrModel{}
+	return &CustomCertBindingSignalrResourceModel{}
 }
 
 func (r CustomCertBindingSignalrResource) ResourceType() string {
-	return "azurerm_signalr_custom_certificate_binding"
+	return "azurerm_signalr_service_custom_certificate"
 }
 
 func (r CustomCertBindingSignalrResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var signalRCustomCertBinding CustomCertBindingSignalrModel
+			var signalRCustomCertBinding CustomCertBindingSignalrResourceModel
 			if err := metadata.Decode(&signalRCustomCertBinding); err != nil {
 				return err
 			}
@@ -121,20 +121,8 @@ func (r CustomCertBindingSignalrResource) Create() sdk.ResourceFunc {
 				customCert.Properties.KeyVaultSecretVersion = utils.String(certVersion)
 			}
 
-			if _, err := client.CustomCertificatesCreateOrUpdate(ctx, id, customCert); err != nil {
+			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCert); err != nil {
 				return fmt.Errorf("creating signalR custom certificate binding: %s: %+v", id, err)
-			}
-
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{string(signalr.ProvisioningStateCreating), string(signalr.ProvisioningStateUpdating), string(signalr.ProvisioningStateFailed)},
-				Target:     []string{string(signalr.ProvisioningStateSucceeded)},
-				Refresh:    signalrCustomCertBindingStateRefreshFunc(ctx, client, id),
-				MinTimeout: 15 * time.Second,
-				Timeout:    30 * time.Minute,
-			}
-
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -192,7 +180,7 @@ func (r CustomCertBindingSignalrResource) Read() sdk.ResourceFunc {
 
 			certId := nestedItem.ID()
 
-			state := CustomCertBindingSignalrModel{
+			state := CustomCertBindingSignalrResourceModel{
 				Name:               id.CustomCertificateName,
 				CustomCertId:       certId,
 				SignalRServiceId:   signalrServiceId,
@@ -215,7 +203,7 @@ func (r CustomCertBindingSignalrResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var signalRCustomCertBinding CustomCertBindingSignalrModel
+			var signalRCustomCertBinding CustomCertBindingSignalrResourceModel
 			if err := metadata.Decode(&signalRCustomCertBinding); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -234,7 +222,7 @@ func (r CustomCertBindingSignalrResource) Update() sdk.ResourceFunc {
 			}
 
 			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, *id, *props); err != nil {
-				return fmt.Errorf("creating signalR custom certificate binding: %s: %+v", id, err)
+				return fmt.Errorf("updating signalR custom certificate binding: %s: %+v", id, err)
 			}
 
 			return nil
@@ -262,21 +250,4 @@ func (r CustomCertBindingSignalrResource) Delete() sdk.ResourceFunc {
 
 func (r CustomCertBindingSignalrResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return signalr.ValidateCustomCertificateID
-}
-
-func signalrCustomCertBindingStateRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.CustomCertificateId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.CustomCertificatesGet(ctx, id)
-		if err != nil {
-			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
-		}
-
-		if model := resp.Model; model != nil {
-			if model.Properties.ProvisioningState != nil {
-				return resp, string(*model.Properties.ProvisioningState), nil
-			}
-		}
-
-		return nil, "", fmt.Errorf("error fetching the custom certificate provisioing state")
-	}
 }

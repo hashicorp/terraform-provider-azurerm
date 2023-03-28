@@ -17,7 +17,7 @@ import (
 type CustomCertBindingSignalrResource struct{}
 
 func TestAccCustomCertBindingSignalrService_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_custom_certificate_binding", "test")
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_certificate", "test")
 	r := CustomCertBindingSignalrResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -28,6 +28,20 @@ func TestAccCustomCertBindingSignalrService_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccCustomCertBindingSignalrService_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_certificate", "test")
+	r := CustomCertBindingSignalrResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -121,7 +135,7 @@ resource "azurerm_key_vault_certificate" "test" {
   }
 }
 
-resource "azurerm_signalr_custom_certificate_binding" "test" {
+resource "azurerm_signalr_service_custom_certificate" "test" {
   name                  = "signalr-cert-%s"
   signalr_service_id    = azurerm_signalr_service.test.id
   custom_certificate_id = azurerm_key_vault_certificate.test.id
@@ -129,6 +143,18 @@ resource "azurerm_signalr_custom_certificate_binding" "test" {
   depends_on = [azurerm_key_vault.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (r CustomCertBindingSignalrResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_signalr_service_custom_certificate" "test" {
+  name                  = azurerm_signalr_service_custom_certificate.test.name
+  signalr_service_id    = azurerm_signalr_service_custom_certificate.test.signalr_service_id
+  custom_certificate_id = azurerm_signalr_service_custom_certificate.test.custom_certificate_id
+}
+`, r.basic(data))
 }
 
 func (r CustomCertBindingSignalrResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
