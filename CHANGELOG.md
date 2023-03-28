@@ -71,6 +71,7 @@ BUG FIXES:
 * `azurerm_mariadb_virtual_network_rule`: validating `subnet_id` [GH-21129]
 * `azurerm_monitor_action_group`: validating `automation_account_id` and `function_app_resource_id` [GH-21129]
 * `azurerm_monitor_log_profile`: validating `storage_account_id` [GH-21129]
+* `azurerm_mssql_database` - fixing an int64 overflow for `max_size_gb` on 32-bit platforms [GH-21155]
 * `azurerm_mssql_database`: validating `subnet_id` [GH-21129]
 * `azurerm_mysql_virtual_network_rule`: validating `subnet_id` [GH-21129]
 * `azurerm_netapp_volume`: validating `subnet_id` [GH-21129]
