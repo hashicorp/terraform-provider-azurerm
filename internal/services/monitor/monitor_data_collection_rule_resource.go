@@ -30,6 +30,7 @@ type DataCollectionRule struct {
 	DataSources              []DataSource           `tfschema:"data_sources"`
 	Description              string                 `tfschema:"description"`
 	Destinations             []Destination          `tfschema:"destinations"`
+	ImmutableId              string                 `tfschema:"immutable_id"`
 	Kind                     string                 `tfschema:"kind"`
 	Name                     string                 `tfschema:"name"`
 	Location                 string                 `tfschema:"location"`
@@ -62,12 +63,9 @@ type DataSource struct {
 type Destination struct {
 	AzureMonitorMetrics []AzureMonitorMetric `tfschema:"azure_monitor_metrics"`
 	EventHub            []EventHub           `tfschema:"event_hub"`
-	EventHubDirect      []EventHub           `tfschema:"event_hub_direct"`
 	LogAnalytics        []LogAnalytic        `tfschema:"log_analytics"`
 	MonitorAccount      []MonitorAccount     `tfschema:"monitor_account"`
 	StorageAccount      []StorageAccount     `tfschema:"storage_account"`
-	StorageBlobDirect   []StorageAccount     `tfschema:"storage_blob_direct"`
-	StorageTableDirect  []StorageTableDirect `tfschema:"storage_table_direct"`
 }
 
 type DataImport struct {
@@ -99,7 +97,7 @@ type LogFile struct {
 	Streams      []string         `tfschema:"streams"`
 	FilePatterns []string         `tfschema:"file_patterns"`
 	Format       string           `tfschema:"format"`
-	Setting      []LogFileSetting `tfschema:"settings"`
+	Settings     []LogFileSetting `tfschema:"settings"`
 }
 
 type PerfCounter struct {
@@ -276,7 +274,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
+						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.event_hub", "destinations.0.log_analytics", "destinations.0.monitor_account", "destinations.0.storage_account"},
 					},
 					"event_hub": {
 						Type:     pluginsdk.TypeList,
@@ -296,25 +294,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-					},
-					"event_hub_direct": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"event_hub_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: eventhubs.ValidateEventhubID,
-								},
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							},
-						},
+						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.event_hub", "destinations.0.log_analytics", "destinations.0.monitor_account", "destinations.0.storage_account"},
 					},
 					"log_analytics": {
 						Type:     pluginsdk.TypeList,
@@ -333,7 +313,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
+						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.event_hub", "destinations.0.log_analytics", "destinations.0.monitor_account", "destinations.0.storage_account"},
 					},
 					"monitor_account": {
 						Type:     pluginsdk.TypeList,
@@ -352,7 +332,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
+						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.event_hub", "destinations.0.log_analytics", "destinations.0.monitor_account", "destinations.0.storage_account"},
 					},
 					"storage_account": {
 						Type:     pluginsdk.TypeList,
@@ -376,55 +356,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
-					},
-					"storage_blob_direct": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"container_name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"storage_account_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: storageaccounts.ValidateStorageAccountID,
-								},
-							},
-						},
-						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
-					},
-					"storage_table_direct": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"table_name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"storage_account_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: storageaccounts.ValidateStorageAccountID,
-								},
-							},
-						},
-						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
+						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.event_hub", "destinations.0.log_analytics", "destinations.0.monitor_account", "destinations.0.storage_account"},
 					},
 				},
 			},
@@ -460,7 +392,6 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 											"consumer_group": {
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
-												Default:      true,
 												ValidateFunc: validation.StringIsNotEmpty,
 											},
 										},
@@ -822,8 +753,9 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"stream_name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"column": {
 						Type:     pluginsdk.TypeList,
@@ -852,7 +784,12 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r DataCollectionRuleResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"immutable_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r DataCollectionRuleResource) ResourceType() string {
@@ -949,7 +886,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var dataCollectionEndpointId, description, kind, location string
+			var dataCollectionEndpointId, description, immutableId, kind, location string
 			var tag map[string]interface{}
 			var dataFlows []DataFlow
 			var dataSources []DataSource
@@ -976,6 +913,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 					dataFlows = flattenDataCollectionRuleDataFlows(prop.DataFlows)
 					dataSources = flattenDataCollectionRuleDataSources(prop.DataSources)
 					destinations = flattenDataCollectionRuleDestinations(prop.Destinations)
+					immutableId = flattenStringPtr(prop.ImmutableId)
 					streamDeclaration = flattenDataCollectionRuleStreamDeclarations(prop.StreamDeclarations)
 				}
 			}
@@ -988,6 +926,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 				DataSources:              dataSources,
 				Description:              description,
 				Destinations:             destinations,
+				ImmutableId:              immutableId,
 				Kind:                     kind,
 				Location:                 location,
 				StreamDeclaration:        streamDeclaration,
@@ -1046,7 +985,11 @@ func (r DataCollectionRuleResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("data_collection_endpoint_id") {
-				existing.Properties.DataCollectionEndpointId = utils.String(state.DataCollectionEndpointId)
+				if state.DataCollectionEndpointId != "" {
+					existing.Properties.DataCollectionEndpointId = utils.String(state.DataCollectionEndpointId)
+				} else {
+					existing.Properties.DataCollectionEndpointId = nil
+				}
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -1063,6 +1006,10 @@ func (r DataCollectionRuleResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 				existing.Identity = identityValue
+			}
+
+			if metadata.ResourceData.HasChange("stream_declaration") {
+				existing.Properties.StreamDeclarations = expandDataCollectionRuleStreamDeclarations(state.StreamDeclaration)
 			}
 
 			if _, err := client.Create(ctx, *id, *existing); err != nil {
@@ -1181,7 +1128,7 @@ func expandDataCollectionRuleDataSourceDataImports(input []DataImport) *datacoll
 	}
 
 	if consumerGroup := input[0].EventHubDataSource[0].ConsumerGroup; consumerGroup != "" {
-		result.EventHub.ConsumerGroup = pointer.To(consumerGroup)
+		result.EventHub.ConsumerGroup = utils.String(consumerGroup)
 	}
 
 	return result
@@ -1263,10 +1210,10 @@ func expandDataCollectionRuleDataSourceLogFiles(input []LogFile) *[]datacollecti
 			Format:       datacollectionrules.KnownLogFilesDataSourceFormat(v.Format),
 		}
 
-		if len(v.Setting) != 0 && len(v.Setting[0].Text) != 0 {
+		if len(v.Settings) != 0 && len(v.Settings[0].Text) != 0 {
 			logFile.Settings = &datacollectionrules.LogFileSettings{
 				Text: &datacollectionrules.LogFileTextSettings{
-					RecordStartTimestampFormat: datacollectionrules.KnownLogFileTextSettingsRecordStartTimestampFormat(v.Setting[0].Text[0].RecordStartTimestampFormat),
+					RecordStartTimestampFormat: datacollectionrules.KnownLogFileTextSettingsRecordStartTimestampFormat(v.Settings[0].Text[0].RecordStartTimestampFormat),
 				},
 			}
 		}
@@ -1467,12 +1414,9 @@ func expandDataCollectionRuleDestinations(input []Destination) *datacollectionru
 	return &datacollectionrules.DestinationsSpec{
 		AzureMonitorMetrics: expandDataCollectionRuleDestinationMetrics(input[0].AzureMonitorMetrics),
 		EventHubs:           expandDataCollectionRuleDestinationEventHubs(input[0].EventHub),
-		EventHubsDirect:     expandDataCollectionRuleDestinationEventHubsDirect(input[0].EventHubDirect),
 		LogAnalytics:        expandDataCollectionRuleDestinationLogAnalytics(input[0].LogAnalytics),
 		MonitoringAccounts:  expandDataCollectionRuleDestinationMonitoringAccounts(input[0].MonitorAccount),
 		StorageAccounts:     expandDataCollectionRuleDestinationStorageAccounts(input[0].StorageAccount),
-		StorageBlobsDirect:  expandDataCollectionRuleDestinationStorageAccounts(input[0].StorageBlobDirect),
-		StorageTablesDirect: expandDataCollectionRuleDestinationStorageTableDirect(input[0].StorageTableDirect),
 	}
 }
 
@@ -1494,24 +1438,6 @@ func expandDataCollectionRuleDestinationEventHubs(input []EventHub) *[]datacolle
 	result := make([]datacollectionrules.EventHubDestination, 0)
 	for _, v := range input {
 		eventhub := datacollectionrules.EventHubDestination{
-			Name:               utils.String(v.Name),
-			EventHubResourceId: utils.String(v.EventHubResourceId),
-		}
-
-		result = append(result, eventhub)
-	}
-
-	return &result
-}
-
-func expandDataCollectionRuleDestinationEventHubsDirect(input []EventHub) *[]datacollectionrules.EventHubDirectDestination {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := make([]datacollectionrules.EventHubDirectDestination, 0)
-	for _, v := range input {
-		eventhub := datacollectionrules.EventHubDirectDestination{
 			Name:               utils.String(v.Name),
 			EventHubResourceId: utils.String(v.EventHubResourceId),
 		}
@@ -1566,25 +1492,6 @@ func expandDataCollectionRuleDestinationStorageAccounts(input []StorageAccount) 
 			Name:                     utils.String(v.Name),
 			StorageAccountResourceId: utils.String(v.StorageAccountId),
 			ContainerName:            utils.String(v.ContainerName),
-		}
-
-		result = append(result, monitorAccount)
-	}
-
-	return &result
-}
-
-func expandDataCollectionRuleDestinationStorageTableDirect(input []StorageTableDirect) *[]datacollectionrules.StorageTableDestination {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := make([]datacollectionrules.StorageTableDestination, 0)
-	for _, v := range input {
-		monitorAccount := datacollectionrules.StorageTableDestination{
-			Name:                     utils.String(v.Name),
-			StorageAccountResourceId: utils.String(v.StorageAccountId),
-			TableName:                utils.String(v.TableName),
 		}
 
 		result = append(result, monitorAccount)
@@ -1779,7 +1686,7 @@ func flattenDataCollectionRuleDataSourceLogFiles(input *[]datacollectionrules.Lo
 			Format:       string(v.Format),
 			FilePatterns: v.FilePatterns,
 			Streams:      v.Streams,
-			Setting:      setting,
+			Settings:     setting,
 		})
 	}
 	return result
@@ -1972,12 +1879,9 @@ func flattenDataCollectionRuleDestinations(input *datacollectionrules.Destinatio
 	return []Destination{{
 		AzureMonitorMetrics: flattenDataCollectionRuleDestinationMetrics(input.AzureMonitorMetrics),
 		EventHub:            flattenDataCollectionRuleDestinationEventHubs(input.EventHubs),
-		EventHubDirect:      flattenDataCollectionRuleDestinationEventHubDirect(input.EventHubsDirect),
 		LogAnalytics:        flattenDataCollectionRuleDestinationLogAnalytics(input.LogAnalytics),
 		MonitorAccount:      flattenDataCollectionRuleDestinationMonitorAccount(input.MonitoringAccounts),
 		StorageAccount:      flattenDataCollectionRuleDestinationStorageAccount(input.StorageAccounts),
-		StorageBlobDirect:   flattenDataCollectionRuleDestinationStorageAccount(input.StorageBlobsDirect),
-		StorageTableDirect:  flattenDataCollectionRuleDestinationStorageTableDirect(input.StorageTablesDirect),
 	}}
 }
 
@@ -1992,21 +1896,6 @@ func flattenDataCollectionRuleDestinationMetrics(input *datacollectionrules.Azur
 }
 
 func flattenDataCollectionRuleDestinationEventHubs(input *[]datacollectionrules.EventHubDestination) []EventHub {
-	if input == nil {
-		return make([]EventHub, 0)
-	}
-
-	result := make([]EventHub, 0)
-	for _, v := range *input {
-		result = append(result, EventHub{
-			Name:               flattenStringPtr(v.Name),
-			EventHubResourceId: flattenStringPtr(v.EventHubResourceId),
-		})
-	}
-	return result
-}
-
-func flattenDataCollectionRuleDestinationEventHubDirect(input *[]datacollectionrules.EventHubDirectDestination) []EventHub {
 	if input == nil {
 		return make([]EventHub, 0)
 	}
@@ -2062,22 +1951,6 @@ func flattenDataCollectionRuleDestinationStorageAccount(input *[]datacollectionr
 			Name:             flattenStringPtr(v.Name),
 			StorageAccountId: flattenStringPtr(v.StorageAccountResourceId),
 			ContainerName:    flattenStringPtr(v.ContainerName),
-		})
-	}
-	return result
-}
-
-func flattenDataCollectionRuleDestinationStorageTableDirect(input *[]datacollectionrules.StorageTableDestination) []StorageTableDirect {
-	if input == nil {
-		return make([]StorageTableDirect, 0)
-	}
-
-	result := make([]StorageTableDirect, 0)
-	for _, v := range *input {
-		result = append(result, StorageTableDirect{
-			Name:             flattenStringPtr(v.Name),
-			StorageAccountId: flattenStringPtr(v.StorageAccountResourceId),
-			TableName:        flattenStringPtr(v.TableName),
 		})
 	}
 	return result

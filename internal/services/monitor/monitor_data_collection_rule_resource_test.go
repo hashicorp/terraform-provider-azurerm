@@ -222,9 +222,23 @@ func (r MonitorDataCollectionRuleResource) update(data acceptance.TestData) stri
 %[1]s
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctest-law-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                               = "acctest-law-%[2]d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  sku                                = "CapacityReservation"
+  reservation_capacity_in_gb_per_day = 100
+}
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "WindowsEventForwarding"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/WindowsEventForwarding"
+  }
 }
 
 resource "azurerm_monitor_data_collection_rule" "test" {
@@ -264,6 +278,22 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       sampling_frequency_in_seconds = 60
       counter_specifiers            = ["Processor(*)\\%% Processor Time"]
       name                          = "test-datasource-perfcounter"
+    }
+  }
+
+  stream_declaration {
+    stream_name = "Custom-MyTableRawData"
+    column {
+      name = "Time"
+      type = "datetime"
+    }
+    column {
+      name = "Computer"
+      type = "string"
+    }
+    column {
+      name = "AdditionalContext"
+      type = "string"
     }
   }
 
@@ -344,6 +374,10 @@ resource "azurerm_monitor_data_collection_endpoint" "test" {
   name                = "acctestmdcr-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_monitor_data_collection_rule" "test" {
@@ -364,13 +398,8 @@ resource "azurerm_monitor_data_collection_rule" "test" {
 
     storage_account {
       storage_account_id = azurerm_storage_account.test.id
-      container_name = azurerm_storage_container.test.name
+      container_name     = azurerm_storage_container.test.name
       name               = "test-destination-storage"
-    }
-
-    monitor_account {
-      monitor_account_id = "/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/wangta-ex3-resources/providers/Microsoft.Monitor/accounts/testaccount"
-      name       = "testmo"
     }
 
     azure_monitor_metrics {
@@ -416,10 +445,10 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     }
 
     log_file {
-      streams       = ["Custom-MyTableRawData"]
-      name = "test-datasource-logfile"
-      file_patterns = ["C:\\JavaLogs\\*.log"]
+      name          = "test-datasource-logfile"
       format        = "text"
+      streams       = ["Custom-MyTableRawData"]
+      file_patterns = ["C:\\JavaLogs\\*.log"]
       settings {
         text {
           record_start_timestamp_format = "ISO 8601"

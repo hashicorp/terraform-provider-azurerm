@@ -70,6 +70,18 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 							Type: pluginsdk.TypeString,
 						},
 					},
+					"output_stream": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"transform_kql": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"built_in_transform": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},
@@ -80,23 +92,6 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"event_hub": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"event_hub_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"event_hub_direct": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
@@ -167,46 +162,6 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 									Computed: true,
 								},
 								"container_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"storage_account_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"storage_blob_direct": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"container_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"storage_account_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"storage_table_direct": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"table_name": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
@@ -537,6 +492,11 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
+		"immutable_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"kind": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -596,11 +556,12 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			var description, kind, location string
+			var dataCollectionEndpointId, description, immutableId, kind, location string
 			var tag map[string]interface{}
 			var dataFlows []DataFlow
 			var dataSources []DataSource
 			var destinations []Destination
+			var streamDeclaration []StreamDeclaration
 
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionRuleKind(model.Kind)
@@ -617,25 +578,31 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 				}
 
 				if prop := model.Properties; prop != nil {
+					dataCollectionEndpointId = flattenStringPtr(prop.DataCollectionEndpointId)
 					description = flattenStringPtr(prop.Description)
 					dataFlows = flattenDataCollectionRuleDataFlows(prop.DataFlows)
 					dataSources = flattenDataCollectionRuleDataSources(prop.DataSources)
 					destinations = flattenDataCollectionRuleDestinations(prop.Destinations)
+					immutableId = flattenStringPtr(prop.ImmutableId)
+					streamDeclaration = flattenDataCollectionRuleStreamDeclarations(prop.StreamDeclarations)
 				}
 			}
 
 			metadata.SetID(id)
 
 			return metadata.Encode(&DataCollectionRule{
-				Name:              id.DataCollectionRuleName,
-				ResourceGroupName: id.ResourceGroupName,
-				DataFlows:         dataFlows,
-				DataSources:       dataSources,
-				Description:       description,
-				Destinations:      destinations,
-				Kind:              kind,
-				Location:          location,
-				Tags:              tag,
+				Name:                     id.DataCollectionRuleName,
+				ResourceGroupName:        id.ResourceGroupName,
+				DataCollectionEndpointId: dataCollectionEndpointId,
+				DataFlows:                dataFlows,
+				DataSources:              dataSources,
+				Description:              description,
+				Destinations:             destinations,
+				ImmutableId:              immutableId,
+				Kind:                     kind,
+				Location:                 location,
+				StreamDeclaration:        streamDeclaration,
+				Tags:                     tag,
 			})
 		},
 		Timeout: 5 * time.Minute,
