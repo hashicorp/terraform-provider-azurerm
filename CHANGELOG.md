@@ -67,6 +67,7 @@ BUG FIXES:
 * `azurerm_logic_app_trigger_custom`: validating `logic_app_id` [GH-21129]
 * `azurerm_logic_app_trigger_http_request`: validating `logic_app_id` [GH-21129]
 * `azurerm_logic_app_trigger_recurrence`: validating `logic_app_id` [GH-21129]
+* `azurerm_mssql_virtual_machine` - the `sql_license_type` property is now optional [GH-21138]
 * `azurerm_managed_disk`: validating `disk_access_id` and `storage_account_id` [GH-21129]
 * `azurerm_mariadb_virtual_network_rule`: validating `subnet_id` [GH-21129]
 * `azurerm_monitor_action_group`: validating `automation_account_id` and `function_app_resource_id` [GH-21129]
