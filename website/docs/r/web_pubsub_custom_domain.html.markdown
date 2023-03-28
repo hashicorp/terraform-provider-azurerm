@@ -28,7 +28,7 @@ resource "azurerm_web_pubsub" "example" {
     name     = "Premium_P1"
     capacity = 1
   }
-  
+
   identity {
     type = "SystemAssigned"
   }
@@ -40,7 +40,7 @@ resource "azurerm_key_vault" "example" {
   resource_group_name = azurerm_resource_group.example.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "premium"
-  
+
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
@@ -54,7 +54,7 @@ resource "azurerm_key_vault" "example" {
       "List",
     ]
   }
-  
+
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = azurerm_web_pubsub_service.test.identity[0].principal_id
@@ -73,7 +73,7 @@ resource "azurerm_key_vault" "example" {
 resource "azurerm_key_vault_certificate" "example" {
   name         = "imported-cert"
   key_vault_id = azurerm_key_vault.example.id
-  
+
   certificate {
     contents = filebase64("certificate-to-import.pfx")
     password = ""
