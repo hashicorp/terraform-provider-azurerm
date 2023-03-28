@@ -267,7 +267,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		// `max_size_gb` is Computed, so has a value after the first run
 		if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
-			params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
+			params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int)) * 1073741824)
 		}
 		// `max_size_gb` only has change if it is configured
 		if d.HasChange("max_size_gb") && (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.CreateModeSecondary)) {
