@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"strconv"
 )
 
 func LongTermRetentionPolicySchema() *pluginsdk.Schema {
@@ -75,6 +76,11 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.IntInSlice([]int{12, 24}),
 					Default:      12,
+					// HyperScale SKus can't set `backup_interval_in_hours so we'll ignore that value when it is 0 in the state file so we don't break the Default Value for existing users
+					DiffSuppressFunc: func(_, old, _ string, d *pluginsdk.ResourceData) bool {
+						oldInt, _ := strconv.Atoi(old)
+						return oldInt == 0
+					},
 				},
 			},
 		},
