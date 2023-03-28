@@ -107,7 +107,7 @@ func (r AccessConnectorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 
 func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataBricks.AccessConnectorClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -159,7 +159,7 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 
 func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataBricks.AccessConnectorClient
 			var state AccessConnectorResourceModel
