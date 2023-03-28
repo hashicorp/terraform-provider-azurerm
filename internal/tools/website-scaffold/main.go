@@ -300,7 +300,7 @@ func (gen documentationGenerator) argumentsBlock() string {
 			}
 
 			if field.Default != nil {
-				value += fmt.Sprintf(" Defauts to `%v`.", field.Default)
+				value += fmt.Sprintf(" Defaults to `%v`.", field.Default)
 			}
 
 			if field.ForceNew {
