@@ -105,6 +105,7 @@ BUG FIXES:
 * `azurerm_virtual_network`: validating `ddos_protection_plan_id` [GH-21129]
 * `azurerm_virtual_network_gateway`: validating `default_local_network_gateway_id` and `public_ip_address_id` [GH-21129]
 * `azurerm_virtual_network_gateway_connection`: validating `express_route_circuit_id`, `local_network_gateway_id` and `peer_virtual_network_gateway_id` [GH-21129]
+* `azurerm_web_application_firewall_policy` - the `match_values` property is now optional [GH-21125]
 * `azurerm_windows_function_app` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
 * `azurerm_windows_function_app_slot` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
 * `azurerm_windows_virtual_machine_scale_set`: validating `application_security_group_ids`, `network_security_group_id`, `proximity_placement_group_id`, `public_ip_prefix_id`, `subnet_id` and `virtual_network_gateway_id` [GH-21129]
