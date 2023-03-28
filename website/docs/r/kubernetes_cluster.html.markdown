@@ -432,7 +432,7 @@ A `default_node_pool` block supports the following:
 
 ~> **Note:** A Route Table must be configured on this Subnet.
 
-* `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. Possible values are `OCIContainer`.
+* `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. The only possible value is `OCIContainer`.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster should be located. Changing this forces a new Kubernetes Cluster to be created.
 
