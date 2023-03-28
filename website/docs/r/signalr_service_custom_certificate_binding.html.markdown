@@ -3,12 +3,12 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_signalr_service_custom_certificate"
 description: |-
-  Manages an Azure SignalR Custom Certificate Binding.
+  Manages an Azure SignalR Custom Certificate.
 ---
 
 # azurerm_signalr_service_custom_certificate
 
-Manages an Azure SignalR Custom Certificate Binding.
+Manages an Azure SignalR Custom Certificate.
 
 ## Example Usage
 
@@ -86,10 +86,9 @@ resource "azurerm_key_vault_certificate" "example" {
 }
 
 resource "azurerm_signalr_service_custom_certificate" "test" {
-  name                  = "example-certbinding"
+  name                  = "example-cert"
   signalr_service_id    = azurerm_signalr_service.example.id
   custom_certificate_id = azurerm_key_vault_certificate.example.id
-  certificate_version   = "ec6faxx"
 
   depends_on = [azurerm_key_vault_access_policy.example]
 }
@@ -99,37 +98,38 @@ resource "azurerm_signalr_service_custom_certificate" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the SignalR Custom Certificate Binding. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the SignalR Custom Certificate. Changing this forces a new resource to be created.
 
-* `signalr_service_id` - (Required) The SignalR ID of the SignalR Custom Certificate Binding. Changing this forces a new resource to be created.
+* `signalr_service_id` - (Required) The SignalR ID of the SignalR Custom Certificate. Changing this forces a new resource to be created.
 
 -> **Note:** Custom Certificate is only available for SignalR Premium tier. Please enable managed identity in the corresponding SignalR Service and give the managed identity access to the key vault, the required permission is Get Certificate and Secret.
 
-* `custom_certificate_id` - (Required) The certificate id of the SignalR Custom Certificate Binding service. Changing this forces a new resource to be created.
+* `custom_certificate_id` - (Required) The certificate id of the SignalR Custom Certificate service. Changing this forces a new resource to be created.
 
 -> **Note:** Self assigned certificate is not supported and the provisioning status will fail.
 
-* `certificate_version` - (Optional) The certificate version of the SignalR Custom Certificate Binding service.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the SignalR Custom Certificate Binding.
+* `id` - The ID of the SignalR Custom Certificate.
+
+* `certificate_version` - The certificate version of the SignalR Custom Certificate service.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Custom Certificate Binding of the SignalR service
-* `read` - (Defaults to 5 minutes) Used when retrieving the Custom Certificate Binding of the SignalR service
-* `update` - (Defaults to 30 minutes) Used when updating the Custom Certificate Binding of the SignalR service
-* `delete` - (Defaults to 30 minutes) Used when deleting the Custom Certificate Binding of the SignalR service
+* `create` - (Defaults to 30 minutes) Used when creating the Custom Certificate of the SignalR service
+* `read` - (Defaults to 5 minutes) Used when retrieving the Custom Certificate of the SignalR service
+* `update` - (Defaults to 30 minutes) Used when updating the Custom Certificate of the SignalR service
+* `delete` - (Defaults to 30 minutes) Used when deleting the Custom Certificate of the SignalR service
 
 ## Import
 
-Custom Certificate Binding for a SignalR service can be imported using the `resource id`, e.g.
+Custom Certificate for a SignalR service can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_signalr_service_custom_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/signalR/signalr1/customCertificates/certbinding1
+terraform import azurerm_signalr_service_custom_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/signalR/signalr1/customCertificates/cert1
 ```
