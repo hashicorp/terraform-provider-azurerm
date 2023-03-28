@@ -30,7 +30,7 @@ func TestAccWebPubsubCustomDomain_basic(t *testing.T) {
 	})
 }
 
-func TestAccWebPubsubCustomDomainResource(t *testing.T) {
+func TestAccWebPubsubCustomDomainResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_custom_domain", "test")
 	r := WebPubsubCustomDomainResource{}
 
@@ -146,7 +146,7 @@ resource "azurerm_web_pubsub_custom_certificate_binding" "test" {
 resource "azurerm_web_pubsub_custom_domain" "test" {
   name                  = "webPubsubcustom-domain-%s"
   web_pubsub_id         = azurerm_web_pubsub.test.id
-  domain_name           = "tftest.com"
+  domain_name           = "www.tftestzone.com"
   custom_certificate_id = azurerm_web_pubsub_custom_certificate_binding.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
@@ -161,7 +161,6 @@ resource "azurerm_web_pubsub_custom_domain" "import" {
   web_pubsub_id         = azurerm_web_pubsub_custom_domain.test.web_pubsub_id
   domain_name           = azurerm_web_pubsub_custom_domain.test.domain_name
   custom_certificate_id = azurerm_web_pubsub_custom_domain.test.custom_certificate_id
-
 }
 `, r.basic(data))
 }

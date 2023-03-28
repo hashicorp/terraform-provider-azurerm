@@ -30,7 +30,7 @@ func TestAccSignalrServiceCustomDomain_basic(t *testing.T) {
 	})
 }
 
-func TestAccSignalrServiceCustomDomainResource(t *testing.T) {
+func TestAccSignalrServiceCustomDomainResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_custom_domain", "test")
 	r := SignalrServiceCustomDomainResource{}
 
@@ -136,6 +136,7 @@ resource "azurerm_key_vault_certificate" "test" {
     password = ""
   }
 }
+
 resource "azurerm_signalr_custom_certificate_binding" "test" {
   name                  = "signalr-cert-%s"
   signalr_service_id    = azurerm_signalr_service.test.id
@@ -146,7 +147,7 @@ resource "azurerm_signalr_custom_certificate_binding" "test" {
 resource "azurerm_signalr_custom_domain" "test" {
   name                          = "signalr-custom-domain-%s"
   signalr_service_id            = azurerm_signalr_service.test.id
-  domain_name                   = azurerm_dns_cname_record.test.fqdn
+  domain_name                   = "www.tftestzone.com"
   signalr_custom_certificate_id = azurerm_signalr_custom_certificate_binding.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
@@ -154,5 +155,13 @@ resource "azurerm_signalr_custom_domain" "test" {
 
 func (r SignalrServiceCustomDomainResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-`)
+%s
+
+resource "azurerm_signalr_custom_domain" "test" {
+  name                          = azurerm_signalr_custom_domain.test.name
+  signalr_service_id            = azurerm_signalr_custom_domain.test.signalr_service_id
+  domain_name                   = azurerm_signalr_custom_domain.test.domain_name
+  signalr_custom_certificate_id = azurerm_signalr_custom_domain.test.signalr_custom_certificate_id
+}
+`, r.basic(data))
 }

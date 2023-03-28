@@ -114,6 +114,8 @@ The following arguments are supported:
 
 * `domain_name` - (Required) The custom domain name of the SignalR Custom Domain service.
 
+-> **NOTE:** Please ensure the custom domain name is included in the subject alternative names of the selected custom certificate.
+
 ## Attributes Reference
 
 The following attributes are exported:
