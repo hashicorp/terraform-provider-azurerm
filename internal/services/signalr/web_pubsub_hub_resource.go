@@ -234,11 +234,7 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 			return fmt.Errorf("setting `event_handler`: %+v", err)
 		}
 		d.Set("anonymous_connections_enabled", strings.EqualFold(*model.Properties.AnonymousConnectPolicy, "Allow"))
-		eventListener, err := flattenEventListener(model.Properties.EventListeners)
-		if err != nil {
-			return fmt.Errorf("flatten event listener: %+v", err)
-		}
-		if err := d.Set("event_listener", eventListener); err != nil {
+		if err := d.Set("event_listener", flattenEventListener(model.Properties.EventListeners)); err != nil {
 			return fmt.Errorf("setting `event_listener`: %+v", err)
 		}
 	}
@@ -354,8 +350,7 @@ func expandEventListener(input []interface{}) (*[]webpubsub.EventListener, error
 			UserEventPattern: utils.String(userEventPattern),
 		}
 
-		var endpointName string
-		endpointName = block["eventhub_namespace_name"].(string)
+		endpointName := block["eventhub_namespace_name"].(string)
 		fullQualifiedName := endpointName + ".servicebus.windows.net"
 		if _, ok := block["eventhub_name"]; !ok {
 			return nil, fmt.Errorf("no event hub is specified")
@@ -374,10 +369,10 @@ func expandEventListener(input []interface{}) (*[]webpubsub.EventListener, error
 	return &result, nil
 }
 
-func flattenEventListener(listener *[]webpubsub.EventListener) ([]interface{}, error) {
+func flattenEventListener(listener *[]webpubsub.EventListener) []interface{} {
 	eventListenerBlocks := make([]interface{}, 0)
 	if listener == nil {
-		return eventListenerBlocks, nil
+		return eventListenerBlocks
 	}
 
 	for _, item := range *listener {
@@ -401,7 +396,7 @@ func flattenEventListener(listener *[]webpubsub.EventListener) ([]interface{}, e
 		eventListenerBlocks = append(eventListenerBlocks, listenerBlock)
 	}
 
-	return eventListenerBlocks, nil
+	return eventListenerBlocks
 }
 
 func expandAuth(input []interface{}) *webpubsub.UpstreamAuthSettings {
