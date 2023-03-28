@@ -54,7 +54,6 @@ func (r CustomCertSignalrServiceResource) Arguments() map[string]*pluginsdk.Sche
 
 		"certificate_version": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
