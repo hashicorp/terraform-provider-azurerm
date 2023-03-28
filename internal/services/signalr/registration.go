@@ -15,6 +15,7 @@ var (
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		CustomDomainSignalrServiceResource{},
+		CustomDomainWebPubsubResource{},
 	}
 }
 
