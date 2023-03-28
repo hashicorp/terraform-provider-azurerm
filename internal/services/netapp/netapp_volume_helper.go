@@ -200,6 +200,124 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegr
 	return &results, nil
 }
 
+
+func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *volumes.VolumePatchPropertiesExportPolicy {
+	results := make([]volumes.ExportPolicyRule, 0)
+	for _, item := range input {
+		if item != nil {
+			v := item.(map[string]interface{})
+
+			ruleIndex := int64(v["rule_index"].(int))
+			allowedClients := v["allowed_clients"].(string)
+			nfsv3Enabled := v["nfsv3_enabled"].(bool)
+			nfsv41Enabled := v["nfsv41_enabled"].(bool)
+			unixReadOnly := v["unix_read_only"].(bool)
+			unixReadWrite := v["unix_read_write"].(bool)
+			rootAccessEnabled := v["root_access_enabled"].(bool)
+
+			// Hard-Coded values, for AVG these cannot be set diffrently
+			// they are not exposed as TF configuration
+			// but PUT request requires those fields to succeed
+			cifsEnabled := false
+			kerberos5ReadOnly := false
+			kerberos5ReadWrite := false
+			kerberos5iReadOnly := false
+			kerberos5iReadWrite := false
+			kerberos5pReadOnly := false
+			kerberos5pReadWrite := false
+
+			result := volumes.ExportPolicyRule{
+				AllowedClients:      utils.String(allowedClients),
+				Cifs:                utils.Bool(cifsEnabled),
+				Nfsv3:               utils.Bool(nfsv3Enabled),
+				Nfsv41:              utils.Bool(nfsv41Enabled),
+				RuleIndex:           utils.Int64(ruleIndex),
+				UnixReadOnly:        utils.Bool(unixReadOnly),
+				UnixReadWrite:       utils.Bool(unixReadWrite),
+				HasRootAccess:       utils.Bool(rootAccessEnabled),
+				Kerberos5ReadOnly:   utils.Bool(kerberos5ReadOnly),
+				Kerberos5ReadWrite:  utils.Bool(kerberos5ReadWrite),
+				Kerberos5iReadOnly:  utils.Bool(kerberos5iReadOnly),
+				Kerberos5iReadWrite: utils.Bool(kerberos5iReadWrite),
+				Kerberos5pReadOnly:  utils.Bool(kerberos5pReadOnly),
+				Kerberos5pReadWrite: utils.Bool(kerberos5pReadWrite),
+			}
+
+			results = append(results, result)
+		}
+	}
+
+	return &volumes.VolumePatchPropertiesExportPolicy{
+		Rules: &results,
+	}
+}
+
+func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.VolumePropertiesDataProtection {
+	if len(input) == 0 || input[0] == nil {
+		return &volumes.VolumePropertiesDataProtection{}
+	}
+
+	replicationObject := volumes.ReplicationObject{}
+
+	replicationRaw := input[0].(map[string]interface{})
+
+	if v, ok := replicationRaw["endpoint_type"]; ok {
+		endpointType := volumes.EndpointType(v.(string))
+		replicationObject.EndpointType = &endpointType
+	}
+	if v, ok := replicationRaw["remote_volume_location"]; ok {
+		replicationObject.RemoteVolumeRegion = utils.String(v.(string))
+	}
+	if v, ok := replicationRaw["remote_volume_resource_id"]; ok {
+		replicationObject.RemoteVolumeResourceId = v.(string)
+	}
+	if v, ok := replicationRaw["replication_frequency"]; ok {
+		replicationSchedule := volumes.ReplicationSchedule(translateTFSchedule(v.(string)))
+		replicationObject.ReplicationSchedule = &replicationSchedule
+	}
+
+	return &volumes.VolumePropertiesDataProtection{
+		Replication: &replicationObject,
+	}
+}
+
+func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
+	if len(input) == 0 || input[0] == nil {
+		return &volumes.VolumePropertiesDataProtection{}
+	}
+
+	snapshotObject := volumes.VolumeSnapshotProperties{}
+
+	snapshotRaw := input[0].(map[string]interface{})
+
+	if v, ok := snapshotRaw["snapshot_policy_id"]; ok {
+		snapshotObject.SnapshotPolicyId = utils.String(v.(string))
+	}
+
+	return &volumes.VolumePropertiesDataProtection{
+		Snapshot: &snapshotObject,
+	}
+}
+
+func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
+	if len(input) == 0 || input[0] == nil {
+		return &volumes.VolumePatchPropertiesDataProtection{}
+	}
+
+	snapshotObject := volumes.VolumeSnapshotProperties{}
+
+	snapshotRaw := input[0].(map[string]interface{})
+
+	if v, ok := snapshotRaw["snapshot_policy_id"]; ok {
+		snapshotObject.SnapshotPolicyId = utils.String(v.(string))
+	}
+
+	return &volumes.VolumePatchPropertiesDataProtection{
+		Snapshot: &snapshotObject,
+	}
+}
+
+
 func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.VolumeGroupVolumeProperties, metadata sdk.ResourceMetaData) ([]NetAppVolumeGroupVolume, error) {
 	results := make([]NetAppVolumeGroupVolume, 0)
 
@@ -340,122 +458,6 @@ func flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(input *volumes.VolumeSnapsh
 		{
 			DataProtectionSnapshotPolicy: string(*input.SnapshotPolicyId),
 		},
-	}
-}
-
-func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *volumes.VolumePatchPropertiesExportPolicy {
-	results := make([]volumes.ExportPolicyRule, 0)
-	for _, item := range input {
-		if item != nil {
-			v := item.(map[string]interface{})
-
-			ruleIndex := int64(v["rule_index"].(int))
-			allowedClients := v["allowed_clients"].(string)
-			nfsv3Enabled := v["nfsv3_enabled"].(bool)
-			nfsv41Enabled := v["nfsv41_enabled"].(bool)
-			unixReadOnly := v["unix_read_only"].(bool)
-			unixReadWrite := v["unix_read_write"].(bool)
-			rootAccessEnabled := v["root_access_enabled"].(bool)
-
-			// Hard-Coded values, for AVG these cannot be set diffrently
-			// they are not exposed as TF configuration
-			// but PUT request requires those fields to succeed
-			cifsEnabled := false
-			kerberos5ReadOnly := false
-			kerberos5ReadWrite := false
-			kerberos5iReadOnly := false
-			kerberos5iReadWrite := false
-			kerberos5pReadOnly := false
-			kerberos5pReadWrite := false
-
-			result := volumes.ExportPolicyRule{
-				AllowedClients:      utils.String(allowedClients),
-				Cifs:                utils.Bool(cifsEnabled),
-				Nfsv3:               utils.Bool(nfsv3Enabled),
-				Nfsv41:              utils.Bool(nfsv41Enabled),
-				RuleIndex:           utils.Int64(ruleIndex),
-				UnixReadOnly:        utils.Bool(unixReadOnly),
-				UnixReadWrite:       utils.Bool(unixReadWrite),
-				HasRootAccess:       utils.Bool(rootAccessEnabled),
-				Kerberos5ReadOnly:   utils.Bool(kerberos5ReadOnly),
-				Kerberos5ReadWrite:  utils.Bool(kerberos5ReadWrite),
-				Kerberos5iReadOnly:  utils.Bool(kerberos5iReadOnly),
-				Kerberos5iReadWrite: utils.Bool(kerberos5iReadWrite),
-				Kerberos5pReadOnly:  utils.Bool(kerberos5pReadOnly),
-				Kerberos5pReadWrite: utils.Bool(kerberos5pReadWrite),
-			}
-
-			results = append(results, result)
-		}
-	}
-
-	return &volumes.VolumePatchPropertiesExportPolicy{
-		Rules: &results,
-	}
-}
-
-func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.VolumePropertiesDataProtection {
-	if len(input) == 0 || input[0] == nil {
-		return &volumes.VolumePropertiesDataProtection{}
-	}
-
-	replicationObject := volumes.ReplicationObject{}
-
-	replicationRaw := input[0].(map[string]interface{})
-
-	if v, ok := replicationRaw["endpoint_type"]; ok {
-		endpointType := volumes.EndpointType(v.(string))
-		replicationObject.EndpointType = &endpointType
-	}
-	if v, ok := replicationRaw["remote_volume_location"]; ok {
-		replicationObject.RemoteVolumeRegion = utils.String(v.(string))
-	}
-	if v, ok := replicationRaw["remote_volume_resource_id"]; ok {
-		replicationObject.RemoteVolumeResourceId = v.(string)
-	}
-	if v, ok := replicationRaw["replication_frequency"]; ok {
-		replicationSchedule := volumes.ReplicationSchedule(translateTFSchedule(v.(string)))
-		replicationObject.ReplicationSchedule = &replicationSchedule
-	}
-
-	return &volumes.VolumePropertiesDataProtection{
-		Replication: &replicationObject,
-	}
-}
-
-func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
-	if len(input) == 0 || input[0] == nil {
-		return &volumes.VolumePropertiesDataProtection{}
-	}
-
-	snapshotObject := volumes.VolumeSnapshotProperties{}
-
-	snapshotRaw := input[0].(map[string]interface{})
-
-	if v, ok := snapshotRaw["snapshot_policy_id"]; ok {
-		snapshotObject.SnapshotPolicyId = utils.String(v.(string))
-	}
-
-	return &volumes.VolumePropertiesDataProtection{
-		Snapshot: &snapshotObject,
-	}
-}
-
-func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
-	if len(input) == 0 || input[0] == nil {
-		return &volumes.VolumePatchPropertiesDataProtection{}
-	}
-
-	snapshotObject := volumes.VolumeSnapshotProperties{}
-
-	snapshotRaw := input[0].(map[string]interface{})
-
-	if v, ok := snapshotRaw["snapshot_policy_id"]; ok {
-		snapshotObject.SnapshotPolicyId = utils.String(v.(string))
-	}
-
-	return &volumes.VolumePatchPropertiesDataProtection{
-		Snapshot: &snapshotObject,
 	}
 }
 
