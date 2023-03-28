@@ -56,7 +56,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 
 			"sql_license_type": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sqlvirtualmachines.SqlServerLicenseTypePAYG),
