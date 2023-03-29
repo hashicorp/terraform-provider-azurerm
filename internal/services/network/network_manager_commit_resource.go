@@ -66,6 +66,14 @@ func (r ManagerCommitResource) Arguments() map[string]*pluginsdk.Schema {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
+
+		"triggers": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
 	}
 }
 
@@ -93,26 +101,25 @@ func (r ManagerCommitResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			id := parse.NewNetworkManagerCommitID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroup, networkManagerId.Name, state.Location, state.ScopeAccess)
+
+			normalizedLocation := azure.NormalizeLocation(state.Location)
+			id := parse.NewNetworkManagerCommitID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroup, networkManagerId.Name, normalizedLocation, state.ScopeAccess)
 
 			metadata.Logger.Infof("creating %s", id)
 
-			// overwrite existing commit if feature flag enabled
-			if !metadata.Client.Features.Network.ManagerCommitKeepOnDestroy {
-				listParam := network.ManagerDeploymentStatusParameter{
-					Regions:         &[]string{azure.NormalizeLocation(state.Location)},
-					DeploymentTypes: &[]network.ConfigurationType{network.ConfigurationType(state.ScopeAccess)},
-				}
-				resp, err := statusClient.List(ctx, listParam, id.ResourceGroup, id.NetworkManagerName, nil)
-				if err != nil {
-					if utils.ResponseWasNotFound(resp.Response) {
-						return metadata.ResourceRequiresImport(r.ResourceType(), id)
-					}
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-				}
-				if resp.Value != nil && len(*resp.Value) != 0 && *(*resp.Value)[0].ConfigurationIds != nil && len(*(*resp.Value)[0].ConfigurationIds) != 0 {
+			listParam := network.ManagerDeploymentStatusParameter{
+				Regions:         &[]string{normalizedLocation},
+				DeploymentTypes: &[]network.ConfigurationType{network.ConfigurationType(state.ScopeAccess)},
+			}
+			resp, err := statusClient.List(ctx, listParam, id.ResourceGroup, id.NetworkManagerName, nil)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
+				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			}
+			if resp.Value != nil && len(*resp.Value) != 0 && *(*resp.Value)[0].ConfigurationIds != nil && len(*(*resp.Value)[0].ConfigurationIds) != 0 {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			input := network.ManagerCommit{
@@ -148,7 +155,7 @@ func (r ManagerCommitResource) Read() sdk.ResourceFunc {
 			metadata.Logger.Infof("retrieving %s", *id)
 
 			listParam := network.ManagerDeploymentStatusParameter{
-				Regions:         &[]string{azure.NormalizeLocation(id.Location)},
+				Regions:         &[]string{id.Location},
 				DeploymentTypes: &[]network.ConfigurationType{network.ConfigurationType(id.ScopeAccess)},
 			}
 			resp, err := client.List(ctx, listParam, id.ResourceGroup, id.NetworkManagerName, nil)
@@ -194,7 +201,7 @@ func (r ManagerCommitResource) Update() sdk.ResourceFunc {
 			statusClient := metadata.Client.Network.ManagerDeploymentStatusClient
 
 			listParam := network.ManagerDeploymentStatusParameter{
-				Regions:         &[]string{azure.NormalizeLocation(id.Location)},
+				Regions:         &[]string{id.Location},
 				DeploymentTypes: &[]network.ConfigurationType{network.ConfigurationType(id.ScopeAccess)},
 			}
 			resp, err := statusClient.List(ctx, listParam, id.ResourceGroup, id.NetworkManagerName, nil)
@@ -254,28 +261,27 @@ func (r ManagerCommitResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if !metadata.Client.Features.Network.ManagerCommitKeepOnDestroy {
-				metadata.Logger.Infof("deleting %s..", *id)
-				input := network.ManagerCommit{
-					ConfigurationIds: &[]string{},
-					TargetLocations:  &[]string{id.Location},
-					CommitType:       network.ConfigurationType(id.ScopeAccess),
-				}
-
-				future, err := client.Post(ctx, input, id.ResourceGroup, id.NetworkManagerName)
-				if err != nil {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
-
-				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-				}
-
-				statusClient := metadata.Client.Network.ManagerDeploymentStatusClient
-				if _, err = resourceManagerCommitWaitForDeleted(ctx, statusClient, id, metadata.ResourceData); err != nil {
-					return err
-				}
+			metadata.Logger.Infof("deleting %s..", *id)
+			input := network.ManagerCommit{
+				ConfigurationIds: &[]string{},
+				TargetLocations:  &[]string{id.Location},
+				CommitType:       network.ConfigurationType(id.ScopeAccess),
 			}
+
+			future, err := client.Post(ctx, input, id.ResourceGroup, id.NetworkManagerName)
+			if err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+			}
+
+			statusClient := metadata.Client.Network.ManagerDeploymentStatusClient
+			if _, err = resourceManagerCommitWaitForDeleted(ctx, statusClient, id, metadata.ResourceData); err != nil {
+				return err
+			}
+
 			return nil
 		},
 		Timeout: 2 * time.Hour,

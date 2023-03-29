@@ -10,7 +10,6 @@ type UserFeatures struct {
 	KeyVault               KeyVaultFeatures
 	TemplateDeployment     TemplateDeploymentFeatures
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
-	Network                NetworkFeatures
 	ResourceGroup          ResourceGroupFeatures
 	ManagedDisk            ManagedDiskFeatures
 }
@@ -49,10 +48,6 @@ type TemplateDeploymentFeatures struct {
 
 type LogAnalyticsWorkspaceFeatures struct {
 	PermanentlyDeleteOnDestroy bool
-}
-
-type NetworkFeatures struct {
-	ManagerCommitKeepOnDestroy bool
 }
 
 type ResourceGroupFeatures struct {

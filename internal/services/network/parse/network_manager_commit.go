@@ -40,13 +40,13 @@ func NetworkManagerCommitID(networkManagerCommitId string) (*ManagerCommitId, er
 	if v[1] == "" {
 		return nil, fmt.Errorf("expected location in network manager commit ID with format `{networkManagerId}/commit|{location}|{scopeAccess}`, but got %s in %s", v[1], networkManagerCommitId)
 	}
-	location := azure.NormalizeLocation(v[1])
+	normalizedLocation := azure.NormalizeLocation(v[1])
 
 	if v[2] == "" {
 		return nil, fmt.Errorf("expected scopeAccess in network manager commit ID with format `{networkManagerId}/commit|{location}|{scopeAccess} to be one of the [Connectivity, SecurityAdmin]`, but got %s in %s", v[2], networkManagerCommitId)
 	}
 	scopeAccess := v[2]
-	networkManagerCommit := NewNetworkManagerCommitID(managerId.SubscriptionId, managerId.ResourceGroup, managerId.Name, location, scopeAccess)
+	networkManagerCommit := NewNetworkManagerCommitID(managerId.SubscriptionId, managerId.ResourceGroup, managerId.Name, normalizedLocation, scopeAccess)
 	return networkManagerCommit, nil
 }
 

@@ -171,20 +171,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
-		"network": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"manager_commit_keep_on_destroy": {
-						Type:     pluginsdk.TypeBool,
-						Default:  false,
-						Optional: true,
-					},
-				},
-			},
-		},
 
 		"template_deployment": {
 			Type:     pluginsdk.TypeList,
@@ -442,16 +428,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := scaleSetRaw["scale_to_zero_before_deletion"]; ok {
 				featuresMap.VirtualMachineScaleSet.ScaleToZeroOnDelete = v.(bool)
-			}
-		}
-	}
-
-	if raw, ok := val["network"]; ok {
-		items := raw.([]interface{})
-		if len(items) > 0 {
-			networkRaw := items[0].(map[string]interface{})
-			if v, ok := networkRaw["manager_commit_keep_on_destroy"]; ok {
-				featuresMap.Network.ManagerCommitKeepOnDestroy = v.(bool)
 			}
 		}
 	}

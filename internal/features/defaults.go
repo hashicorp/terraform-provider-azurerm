@@ -34,9 +34,6 @@ func Default() UserFeatures {
 		ManagedDisk: ManagedDiskFeatures{
 			ExpandWithoutDowntime: true,
 		},
-		Network: NetworkFeatures{
-			ManagerCommitKeepOnDestroy: false,
-		},
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: true,
 		},
