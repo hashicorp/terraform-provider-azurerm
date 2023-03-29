@@ -1,12 +1,12 @@
 ---
 subcategory: "Messaging"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_signalr_custom_domain"
+page_title: "Azure Resource Manager: azurerm_signalr_service_custom_domain"
 description: |-
   Manages an Azure SignalR Custom Domain.
 ---
 
-# azurerm_signalr_custom_domain
+# azurerm_signalr_service_custom_domain
 
 Manages an Azure SignalR Custom Domain.
 
@@ -85,20 +85,19 @@ resource "azurerm_key_vault_certificate" "example" {
   }
 }
 
-resource "azurerm_signalr_custom_certificate_binding" "test" {
-  name                  = "example-certbinding"
+resource "azurerm_signalr_custom_certificate" "test" {
+  name                  = "example-cert"
   signalr_service_id    = azurerm_signalr_service.example.id
   custom_certificate_id = azurerm_key_vault_certificate.example.id
-  certificate_version   = "ec6faxx"
 
   depends_on = [azurerm_key_vault_access_policy.example]
 }
 
-resource "azurerm_signalr_custom_domain" "test" {
+resource "azurerm_signalr_service_custom_domain" "test" {
   name                          = "example-domain"
   signalr_service_id            = azurerm_signalr_service.test.id
   domain_name                   = "tftest.com"
-  signalr_custom_certificate_id = azurerm_signalr_custom_certificate_binding.test.id
+  signalr_custom_certificate_id = azurerm_signalr_custom_certificate.test.id
 }
 ```
 
@@ -135,5 +134,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Custom Domain for a SignalR service can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_signalr_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/signalR/signalr1/customDomains/customDomain1
+terraform import azurerm_signalr_service_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/signalR/signalr1/customDomains/customDomain1
 ```

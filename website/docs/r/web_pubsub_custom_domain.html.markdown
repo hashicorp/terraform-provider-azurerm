@@ -80,8 +80,8 @@ resource "azurerm_key_vault_certificate" "example" {
   }
 }
 
-resource "azurerm_web_pubsub_custom_certificate_binding" "test" {
-  name                  = "example-certbinding"
+resource "azurerm_web_pubsub_custom_certificate" "test" {
+  name                  = "example-cert"
   web_pubsub_service_id = azurerm_web_pubsub_service.example.id
   custom_certificate_id = azurerm_key_vault_certificate.example.id
   certificate_version   = "ec6faxx"
@@ -92,7 +92,7 @@ resource "azurerm_web_pubsub_custom_domain" "test" {
   name                             = "example-domain"
   web_pubsub_service_id            = azurerm_web_pubsub.test.id
   domain_name                      = "tftest.com"
-  web_pubsub_custom_certificate_id = azurerm_web_pubsub_custom_certificate_binding.test.id
+  web_pubsub_custom_certificate_id = azurerm_web_pubsub_custom_certificate.test.id
 }
 ```
 ## Argument Reference

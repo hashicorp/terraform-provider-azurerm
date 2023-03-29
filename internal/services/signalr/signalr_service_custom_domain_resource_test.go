@@ -16,8 +16,8 @@ import (
 
 type SignalrServiceCustomDomainResource struct{}
 
-func TestAccSignalrServiceCustomDomain_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_custom_domain", "test")
+func TestAccSignalrServiceCustomDomainResource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_domain", "test")
 	r := SignalrServiceCustomDomainResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -31,7 +31,7 @@ func TestAccSignalrServiceCustomDomain_basic(t *testing.T) {
 }
 
 func TestAccSignalrServiceCustomDomainResource_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_custom_domain", "test")
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_domain", "test")
 	r := SignalrServiceCustomDomainResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -71,18 +71,20 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_signalr_service" "test" {
-  name                = "acctestSignalR-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku {
-    name     = "Premium_P1"
-    capacity = 1
-  }
-  identity {
-    type = "SystemAssigned"
-  }
+ name                = "acctestSignalR-%d"
+ location            = azurerm_resource_group.test.location
+ resource_group_name = azurerm_resource_group.test.name
+ sku {
+   name     = "Premium_P1"
+   capacity = 1
+ }
+ identity {
+   type = "SystemAssigned"
+ }
 }
+
 resource "azurerm_key_vault" "test" {
   name                       = "acctestkeyvault%s"
   location                   = azurerm_resource_group.test.location
@@ -90,6 +92,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
+
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
@@ -108,9 +111,10 @@ resource "azurerm_key_vault" "test" {
       "Set",
     ]
   }
+
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = azurerm_signalr_service.test.identity[0].principal_id
+    object_id = data.azurerm_signalr_service.test.identity[0].principal_id
     certificate_permissions = [
       "Create",
       "Delete",
@@ -121,6 +125,7 @@ resource "azurerm_key_vault" "test" {
       "Update",
       "List",
     ]
+
     secret_permissions = [
       "Get",
       "Set",
@@ -137,7 +142,7 @@ resource "azurerm_key_vault_certificate" "test" {
   }
 }
 
-resource "azurerm_signalr_custom_certificate_binding" "test" {
+resource "azurerm_signalr_service_custom_certificate" "test" {
   name                  = "signalr-cert-%s"
   signalr_service_id    = azurerm_signalr_service.test.id
   custom_certificate_id = azurerm_key_vault_certificate.test.id
@@ -148,7 +153,7 @@ resource "azurerm_signalr_custom_domain" "test" {
   name                          = "signalr-custom-domain-%s"
   signalr_service_id            = azurerm_signalr_service.test.id
   domain_name                   = "www.tftestzone.com"
-  signalr_custom_certificate_id = azurerm_signalr_custom_certificate_binding.test.id
+  signalr_custom_certificate_id = azurerm_signalr_custom_certificate.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
@@ -157,11 +162,11 @@ func (r SignalrServiceCustomDomainResource) requiresImport(data acceptance.TestD
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_signalr_custom_domain" "test" {
-  name                          = azurerm_signalr_custom_domain.test.name
-  signalr_service_id            = azurerm_signalr_custom_domain.test.signalr_service_id
-  domain_name                   = azurerm_signalr_custom_domain.test.domain_name
-  signalr_custom_certificate_id = azurerm_signalr_custom_domain.test.signalr_custom_certificate_id
+resource "azurerm_signalr_service_custom_domain" "import" {
+  name                          = azurerm_signalr_service_custom_domain.test.name
+  signalr_service_id            = azurerm_signalr_service_custom_domain.test.signalr_service_id
+  domain_name                   = azurerm_signalr_service_custom_domain.test.domain_name
+  signalr_custom_certificate_id = azurerm_signalr_service_custom_domain.test.signalr_custom_certificate_id
 }
 `, r.basic(data))
 }
