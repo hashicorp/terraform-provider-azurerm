@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PostgreSQLHyperScaleClusterModel struct {
+type CosmosDBPostgreSQLClusterModel struct {
 	Name                             string              `tfschema:"name"`
 	ResourceGroupName                string              `tfschema:"resource_group_name"`
 	Location                         string              `tfschema:"location"`
@@ -49,23 +49,23 @@ type MaintenanceWindow struct {
 	StartMinute int64 `tfschema:"start_minute"`
 }
 
-type PostgreSQLHyperScaleClusterResource struct{}
+type CosmosDBPostgreSQLClusterResource struct{}
 
-var _ sdk.ResourceWithUpdate = PostgreSQLHyperScaleClusterResource{}
+var _ sdk.ResourceWithUpdate = CosmosDBPostgreSQLClusterResource{}
 
-func (r PostgreSQLHyperScaleClusterResource) ResourceType() string {
-	return "azurerm_postgresql_hyperscale_cluster"
+func (r CosmosDBPostgreSQLClusterResource) ResourceType() string {
+	return "azurerm_cosmosdb_postgresql_cluster"
 }
 
-func (r PostgreSQLHyperScaleClusterResource) ModelObject() interface{} {
-	return &PostgreSQLHyperScaleClusterModel{}
+func (r CosmosDBPostgreSQLClusterResource) ModelObject() interface{} {
+	return &CosmosDBPostgreSQLClusterModel{}
 }
 
-func (r PostgreSQLHyperScaleClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r CosmosDBPostgreSQLClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return clusters.ValidateServerGroupsv2ID
 }
 
-func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.Schema {
+func (r CosmosDBPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -290,7 +290,7 @@ func (r PostgreSQLHyperScaleClusterResource) Arguments() map[string]*pluginsdk.S
 	}
 }
 
-func (r PostgreSQLHyperScaleClusterResource) Attributes() map[string]*pluginsdk.Schema {
+func (r CosmosDBPostgreSQLClusterResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"earliest_restore_time": {
 			Type:     pluginsdk.TypeString,
@@ -299,11 +299,11 @@ func (r PostgreSQLHyperScaleClusterResource) Attributes() map[string]*pluginsdk.
 	}
 }
 
-func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
+func (r CosmosDBPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model PostgreSQLHyperScaleClusterModel
+			var model CosmosDBPostgreSQLClusterModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -393,7 +393,7 @@ func (r PostgreSQLHyperScaleClusterResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r PostgreSQLHyperScaleClusterResource) Update() sdk.ResourceFunc {
+func (r CosmosDBPostgreSQLClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -404,7 +404,7 @@ func (r PostgreSQLHyperScaleClusterResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model PostgreSQLHyperScaleClusterModel
+			var model CosmosDBPostgreSQLClusterModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -490,7 +490,7 @@ func (r PostgreSQLHyperScaleClusterResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
+func (r CosmosDBPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -515,7 +515,7 @@ func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := PostgreSQLHyperScaleClusterModel{
+			state := CosmosDBPostgreSQLClusterModel{
 				Name:              id.ServerGroupsv2Name,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
@@ -568,7 +568,7 @@ func (r PostgreSQLHyperScaleClusterResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r PostgreSQLHyperScaleClusterResource) Delete() sdk.ResourceFunc {
+func (r CosmosDBPostgreSQLClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

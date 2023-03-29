@@ -26,6 +26,7 @@ Container
 Container Apps
 Containers
 CosmosDB (DocumentDB)
+CosmosDB PostgreSQL
 Cost Management
 Custom Providers
 DNS
@@ -75,7 +76,6 @@ Nginx
 Orbital
 Policy
 Portal
-PostgreSQL HyperScale
 PowerBI
 Private DNS
 Private DNS Resolver

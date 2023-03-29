@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PostgreSQLHyperScaleClusterResource struct{}
+type CosmosDBPostgreSQLClusterResource struct{}
 
-func TestAccPostgreSQLHyperScaleCluster_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_hyperscale_cluster", "test")
-	r := PostgreSQLHyperScaleClusterResource{}
+func TestAccCosmosDBPostgreSQLCluster_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_cluster", "test")
+	r := CosmosDBPostgreSQLClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -32,9 +32,9 @@ func TestAccPostgreSQLHyperScaleCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccPostgreSQLHyperScaleCluster_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_hyperscale_cluster", "test")
-	r := PostgreSQLHyperScaleClusterResource{}
+func TestAccCosmosDBPostgreSQLCluster_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_cluster", "test")
+	r := CosmosDBPostgreSQLClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,9 +47,9 @@ func TestAccPostgreSQLHyperScaleCluster_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccPostgreSQLHyperScaleCluster_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_hyperscale_cluster", "test")
-	r := PostgreSQLHyperScaleClusterResource{}
+func TestAccCosmosDBPostgreSQLCluster_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_cluster", "test")
+	r := CosmosDBPostgreSQLClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,9 +62,9 @@ func TestAccPostgreSQLHyperScaleCluster_complete(t *testing.T) {
 	})
 }
 
-func TestAccPostgreSQLHyperScaleCluster_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_hyperscale_cluster", "test")
-	r := PostgreSQLHyperScaleClusterResource{}
+func TestAccCosmosDBPostgreSQLCluster_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_cluster", "test")
+	r := CosmosDBPostgreSQLClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,9 +84,9 @@ func TestAccPostgreSQLHyperScaleCluster_update(t *testing.T) {
 	})
 }
 
-func TestAccPostgreSQLHyperScaleCluster_withSourceCluster(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_hyperscale_cluster", "test")
-	r := PostgreSQLHyperScaleClusterResource{}
+func TestAccCosmosDBPostgreSQLCluster_withSourceCluster(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_cluster", "test")
+	r := CosmosDBPostgreSQLClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -107,7 +107,7 @@ func TestAccPostgreSQLHyperScaleCluster_withSourceCluster(t *testing.T) {
 	})
 }
 
-func (r PostgreSQLHyperScaleClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CosmosDBPostgreSQLClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := clusters.ParseServerGroupsv2ID(state.ID)
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func (r PostgreSQLHyperScaleClusterResource) Exists(ctx context.Context, clients
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r PostgreSQLHyperScaleClusterResource) template(data acceptance.TestData) string {
+func (r CosmosDBPostgreSQLClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -137,11 +137,11 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r PostgreSQLHyperScaleClusterResource) basic(data acceptance.TestData) string {
+func (r CosmosDBPostgreSQLClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_postgresql_hyperscale_cluster" "test" {
+resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   name                            = "acctestcluster%d"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
@@ -153,27 +153,27 @@ resource "azurerm_postgresql_hyperscale_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PostgreSQLHyperScaleClusterResource) requiresImport(data acceptance.TestData) string {
+func (r CosmosDBPostgreSQLClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_postgresql_hyperscale_cluster" "import" {
-  name                            = azurerm_postgresql_hyperscale_cluster.test.name
-  resource_group_name             = azurerm_postgresql_hyperscale_cluster.test.resource_group_name
-  location                        = azurerm_postgresql_hyperscale_cluster.test.location
-  administrator_login_password    = azurerm_postgresql_hyperscale_cluster.test.administrator_login_password
-  coordinator_storage_quota_in_mb = azurerm_postgresql_hyperscale_cluster.test.coordinator_storage_quota_in_mb
-  coordinator_vcores              = azurerm_postgresql_hyperscale_cluster.test.coordinator_vcores
-  node_count                      = azurerm_postgresql_hyperscale_cluster.test.node_count
+resource "azurerm_cosmosdb_postgresql_cluster" "import" {
+  name                            = azurerm_cosmosdb_postgresql_cluster.test.name
+  resource_group_name             = azurerm_cosmosdb_postgresql_cluster.test.resource_group_name
+  location                        = azurerm_cosmosdb_postgresql_cluster.test.location
+  administrator_login_password    = azurerm_cosmosdb_postgresql_cluster.test.administrator_login_password
+  coordinator_storage_quota_in_mb = azurerm_cosmosdb_postgresql_cluster.test.coordinator_storage_quota_in_mb
+  coordinator_vcores              = azurerm_cosmosdb_postgresql_cluster.test.coordinator_vcores
+  node_count                      = azurerm_cosmosdb_postgresql_cluster.test.node_count
 }
 `, r.basic(data))
 }
 
-func (r PostgreSQLHyperScaleClusterResource) complete(data acceptance.TestData) string {
+func (r CosmosDBPostgreSQLClusterResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_postgresql_hyperscale_cluster" "test" {
+resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   name                 = "acctestcluster%d"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
@@ -209,11 +209,11 @@ resource "azurerm_postgresql_hyperscale_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PostgreSQLHyperScaleClusterResource) update(data acceptance.TestData) string {
+func (r CosmosDBPostgreSQLClusterResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_postgresql_hyperscale_cluster" "test" {
+resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   name                 = "acctestcluster%d"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
@@ -249,17 +249,17 @@ resource "azurerm_postgresql_hyperscale_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PostgreSQLHyperScaleClusterResource) withSourceCluster(data acceptance.TestData) string {
+func (r CosmosDBPostgreSQLClusterResource) withSourceCluster(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_postgresql_hyperscale_cluster" "test2" {
+resource "azurerm_cosmosdb_postgresql_cluster" "test2" {
   name                 = "acctesttcluster%d"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
-  source_location      = azurerm_postgresql_hyperscale_cluster.test.location
-  source_resource_id   = azurerm_postgresql_hyperscale_cluster.test.id
-  point_in_time_in_utc = azurerm_postgresql_hyperscale_cluster.test.earliest_restore_time
+  source_location      = azurerm_cosmosdb_postgresql_cluster.test.location
+  source_resource_id   = azurerm_cosmosdb_postgresql_cluster.test.id
+  point_in_time_in_utc = azurerm_cosmosdb_postgresql_cluster.test.earliest_restore_time
 
   administrator_login_password    = "H@Sh1CoR3!"
   coordinator_storage_quota_in_mb = 131072
