@@ -2,6 +2,7 @@ package clients
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -44,6 +45,16 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 	claims, err := claims.ParseClaims(token)
 	if err != nil {
 		return nil, fmt.Errorf("parsing claims from access token: %+v", err)
+	}
+
+	// Log the claims for debugging
+	claimsJson, err := json.Marshal(claims)
+	if err != nil {
+		log.Printf("[DEBUG] AzureRM Provider could not marshal access token claims for log outout")
+	} else if claimsJson == nil {
+		log.Printf("[DEBUG] AzureRM Provider marshaled access token claims was nil")
+	} else {
+		log.Printf("[DEBUG] AzureRM Provider access token claims: %s", claimsJson)
 	}
 
 	authenticatedAsServicePrincipal := true
