@@ -123,7 +123,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Custom Certificate of the SignalR service
 * `read` - (Defaults to 5 minutes) Used when retrieving the Custom Certificate of the SignalR service
-* `update` - (Defaults to 30 minutes) Used when updating the Custom Certificate of the SignalR service
 * `delete` - (Defaults to 30 minutes) Used when deleting the Custom Certificate of the SignalR service
 
 ## Import

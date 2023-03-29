@@ -191,44 +191,6 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r CustomCertSignalrServiceResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.SignalR.SignalRClient
-
-			id, err := signalr.ParseCustomCertificateID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			var customCertSignalrService CustomCertSignalrServiceResourceModel
-			if err := metadata.Decode(&customCertSignalrService); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			existing, err := client.CustomCertificatesGet(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			props := existing.Model
-			if props == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", *id)
-			}
-
-			if metadata.ResourceData.HasChange("certificate_version") {
-				existing.Model.Properties.KeyVaultSecretVersion = utils.String(customCertSignalrService.CertificateVersion)
-			}
-
-			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, *id, *props); err != nil {
-				return fmt.Errorf("updating signalR custom certificate: %s: %+v", id, err)
-			}
-
-			return nil
-		},
-	}
-}
-
 func (r CustomCertSignalrServiceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
