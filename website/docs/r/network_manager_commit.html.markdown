@@ -10,19 +10,9 @@ description: |-
 
 Manages a Network Manager Commit.
 
--> **Note** The Azure Provider includes a Feature Toggle which by default will purge the committed resource when deleting, which might causes downtime gap in recreation. See [`manager_commit_keep_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#manager_commit_keep_on_destroy) for more information. 
-
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {
-    network {
-      manager_commit_keep_on_destroy = true
-    }
-  }
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -77,6 +67,84 @@ resource "azurerm_network_manager_commit" "example" {
 }
 ```
 
+## example usage (Triggers)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+data "azurerm_subscription" "current" {
+}
+
+resource "azurerm_network_manager" "example" {
+  name                = "example-network-manager"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  scope {
+    subscription_ids = [data.azurerm_subscription.current.id]
+  }
+  scope_accesses = ["Connectivity", "SecurityAdmin"]
+  description    = "example network manager"
+}
+
+resource "azurerm_network_manager_network_group" "example" {
+  name               = "example-group"
+  network_manager_id = azurerm_network_manager.example.id
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                    = "example-net"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  address_space           = ["10.0.0.0/16"]
+  flow_timeout_in_minutes = 10
+}
+
+resource "azurerm_network_manager_security_admin_configuration" "example" {
+  name               = "example-nmsac"
+  network_manager_id = azurerm_network_manager.example.id
+}
+
+resource "azurerm_network_manager_admin_rule_collection" "example" {
+  name                            = "example-nmarc"
+  security_admin_configuration_id = azurerm_network_manager_security_admin_configuration.example.id
+  network_group_ids               = [azurerm_network_manager_network_group.example.id]
+}
+
+resource "azurerm_network_manager_admin_rule" "example" {
+  name                     = "example-nmar"
+  admin_rule_collection_id = azurerm_network_manager_admin_rule_collection.example.id
+  action                   = "Deny"
+  description              = "example"
+  direction                = "Inbound"
+  priority                 = 1
+  protocol                 = "Tcp"
+  source_port_ranges       = ["80"]
+  destination_port_ranges  = ["80"]
+  source {
+    address_prefix_type = "ServiceTag"
+    address_prefix      = "Internet"
+  }
+  destination {
+    address_prefix_type = "IPPrefix"
+    address_prefix      = "*"
+  }
+}
+
+resource "azurerm_network_manager_commit" "example" {
+  network_manager_id = azurerm_network_manager.example.id
+  location           = "eastus"
+  scope_access       = "SecurityAdmin"
+  configuration_ids  = [azurerm_network_manager_security_admin_configuration.example.id]
+  depends_on         = [azurerm_network_manager_admin_rule.example]
+  triggers = {
+    source_port_ranges = join(",", azurerm_network_manager_admin_rule.example.source_port_ranges)
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -88,6 +156,8 @@ The following arguments are supported:
 * `scope_access` - (Required) Specifies the configuration deployment type. Possible values are `Connectivity` and `SecurityAdmin`.
 
 * `configuration_ids` - (Required) A list of Network Manager Configuration IDs which should be aligned with `scope_access`.
+
+* `triggers` - (Optional) A mapping of key values pairs that can be used to keep the deployment up with the Network Manager configurations and rules.
 
 ## Attributes Reference
 
