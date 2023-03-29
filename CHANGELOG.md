@@ -1,5 +1,9 @@
 ## 3.50.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_web_pubsub_custom_certificate` [GH-21114]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230329.1052505` of `github.com/hashicorp/go-azure-sdk` [GH-21175]
