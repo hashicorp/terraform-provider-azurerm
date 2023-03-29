@@ -508,6 +508,8 @@ func TestAccKubernetesCluster_basicMaintenanceConfig(t *testing.T) {
 			Config: r.basicMaintenanceConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.0").HasValue("2"),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.1").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -553,6 +555,8 @@ func TestAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
 			Config: r.basicMaintenanceConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.0").HasValue("2"),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.1").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -567,6 +571,8 @@ func TestAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
 			Config: r.basicMaintenanceConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.0").HasValue("2"),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.1").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -1900,7 +1906,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   maintenance_window {
     allowed {
       day   = "Monday"
-      hours = [1, 2]
+      hours = [2, 1]
     }
   }
 }
