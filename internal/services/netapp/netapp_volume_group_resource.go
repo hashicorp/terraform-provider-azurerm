@@ -94,7 +94,7 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 2,
-			MaxItems: 5, // TODO: make this value 12 in a upcoming major release of AVG
+			MaxItems: 5,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -126,13 +126,7 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 					"volume_spec_name": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"data",
-							"data-backup",
-							"log",
-							"log-backup",
-							"shared",
-						}, false),
+						ValidateFunc: validation.StringInSlice(PossibleValuesForVolumeSpecName(), false),
 					},
 
 					"volume_path": {
@@ -167,9 +161,7 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 						MaxItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								"NFSv4.1",
-							}, false),
+							ValidateFunc: validation.StringInSlice(PossibleValuesForProtocolTypeAvg(), false),
 						},
 					},
 
@@ -177,10 +169,7 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"Unix", // Using hardcoded values instead of SDK enum since no matter what case is passed,
-							"Ntfs", // ANF changes casing to Pascal case in the backend. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
-						}, false),
+						ValidateFunc: validation.StringInSlice(PossibleValuesForSecurityStyle(), false),
 					},
 
 					"storage_quota_in_gb": {
@@ -197,6 +186,7 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 					"export_policy_rule": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
+						MinItems: 1,
 						MaxItems: 5,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
@@ -265,10 +255,8 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 								"endpoint_type": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									Default:  "dst",
-									ValidateFunc: validation.StringInSlice([]string{
-										"dst",
-									}, false),
+									Default:  string(volumegroups.EndpointTypeDst),
+									ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForEndpointType(), false),
 								},
 
 								"remote_volume_location": azure.SchemaLocation(),
@@ -282,11 +270,7 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 								"replication_frequency": {
 									Type:     pluginsdk.TypeString,
 									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										"10minutes",
-										"daily",
-										"hourly",
-									}, false),
+									ValidateFunc: validation.StringInSlice(PossibleValuesForReplicationSchedule(), false),
 								},
 							},
 						},
@@ -356,11 +340,16 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			// Performing some basic validations that are not possible in the schema
+			if errorList := validateNetAppVolumeGroupVolumes(volumeList, applicationType); len(errorList) > 0 {
+				return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
+			}
+
 			// Parse volume list to set secondary volumes for CRR
 			for i, volumeCrr := range *volumeList {
 				if volumeCrr.Properties.DataProtection != nil &&
 					volumeCrr.Properties.DataProtection.Replication != nil &&
-					strings.ToLower(string(*volumeCrr.Properties.DataProtection.Replication.EndpointType)) == string(volumegroups.EndpointTypeDst) {
+					strings.EqualFold(string(*volumeCrr.Properties.DataProtection.Replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
 
 					// Modify volumeType as data protection type on main volumeList
 					// so it gets created correctly as data protection volume
@@ -368,7 +357,7 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			// TODO: This is a temporary workaround until the API is fixed and DeploymentSpecId is not required anymore,
+			// TODO: This is a temporary workaround until the backend is updated and DeploymentSpecId is not required anymore,
 			// it will be handled internally by the RP
 			deploymentSpecId := "20542149-bfca-5618-1879-9863dc6767f1"
 
@@ -394,7 +383,7 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 			for _, volumeCrr := range *volumeList {
 				if volumeCrr.Properties.DataProtection != nil &&
 					volumeCrr.Properties.DataProtection.Replication != nil &&
-					strings.ToLower(string(*volumeCrr.Properties.DataProtection.Replication.EndpointType)) == string(volumegroups.EndpointTypeDst) {
+					strings.EqualFold(string(*volumeCrr.Properties.DataProtection.Replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
 
 					// Getting secondary volume resource id
 					secondaryId := volumes.NewVolumeID(subscriptionId,
@@ -490,7 +479,11 @@ func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
 							dataProtectionReplicationRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.data_protection_replication", volumeItem)).([]interface{})
 							dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
 
-							if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) == "dst" {
+							if dataProtectionReplication != nil && 
+								dataProtectionReplication.Replication != nil && 
+								dataProtectionReplication.Replication.EndpointType != nil && 
+								strings.EqualFold(string(*dataProtectionReplication.Replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
+
 								return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", volumeId)
 							}
 

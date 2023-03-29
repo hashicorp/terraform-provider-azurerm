@@ -59,6 +59,86 @@ type DataProtectionSnapshotPolicy struct {
 	DataProtectionSnapshotPolicy string `tfschema:"snapshot_policy_id"`
 }
 
+type VolumeSpecName string
+
+const (
+	VolumeSpecNameData       VolumeSpecName = "data"
+	VolumeSpecNameLog        VolumeSpecName = "log"
+	VolumeSpecNameShared     VolumeSpecName = "shared"
+	VolumeSpecNameDataBackup VolumeSpecName = "data-Backup"
+	VolumeSpecNameLogBackup  VolumeSpecName = "log-Backup"
+)
+
+func PossibleValuesForVolumeSpecName() []string {
+	return []string{
+		string(VolumeSpecNameData),
+		string(VolumeSpecNameLog),
+		string(VolumeSpecNameShared),
+	}
+}
+
+func RequiredVolumesForSAPHANA() []string {
+	return []string{
+		string(VolumeSpecNameData),
+		string(VolumeSpecNameLog),
+	}
+}
+
+type ProtocolType string
+
+const (
+	ProtocolTypeNfsV41       ProtocolType = "NFSv4.1"
+	ProtocolTypeNfsV3        ProtocolType = "NFSv3"
+	ProtocolTypeCifs         ProtocolType = "CIFS"
+)
+
+func PossibleValuesForProtocolType() []string {
+	return []string{
+		string(ProtocolTypeNfsV41),
+		string(ProtocolTypeNfsV3),
+		string(ProtocolTypeCifs),
+	}
+}
+
+func PossibleValuesForProtocolTypeAvg() []string {
+	return []string{
+		string(ProtocolTypeNfsV41),
+		string(ProtocolTypeNfsV3),
+	}
+}
+
+type ReplicationSchedule string
+
+const (
+	ReplicationSchedule10Minutes ReplicationSchedule = "10minutes"
+	ReplicationScheduleDaily     ReplicationSchedule = "daily"
+	ReplicationScheduleHourly    ReplicationSchedule = "hourly"
+)
+
+func PossibleValuesForReplicationSchedule() []string {
+	return []string{
+		string(ReplicationSchedule10Minutes),
+		string(ReplicationScheduleDaily),
+		string(ReplicationScheduleHourly),
+	}
+}
+
+// Diverging from the SDK volumegroups.SecurityStyle since it is defined as lower case
+// but the backend changes it to Pascal case on GET. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
+type SecurityStyle string
+
+const (
+	SecurityStyleUnix SecurityStyle = "Unix"
+	SecurityStyleNtfs SecurityStyle = "Ntfs"
+)
+
+func PossibleValuesForSecurityStyle() []string {
+	return []string{
+		string(SecurityStyleUnix),
+		string(SecurityStyleNtfs),
+	}
+}
+
 func expandNetAppVolumeGroupVolumeExportPolicyRule(input []ExportPolicyRule) *volumegroups.VolumePropertiesExportPolicy {
 
 	if len(input) == 0 || input == nil {
@@ -158,11 +238,16 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegr
 
 		// Handling security style property
 		securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
-		if strings.EqualFold(string(securityStyle), "unix") && len(protocols) == 1 && strings.EqualFold(protocols[0], "cifs") {
-			return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("unix security style cannot be used in a CIFS enabled volume for %s", id)
+		if strings.EqualFold(string(securityStyle), string(SecurityStyleUnix)) &&
+			len(protocols) == 1 && 
+			strings.EqualFold(protocols[0], string(ProtocolTypeCifs)) {
 
+			return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("unix security style cannot be used in a CIFS enabled volume for %s", id)
 		}
-		if strings.EqualFold(string(securityStyle), "ntfs") && len(protocols) == 1 && (strings.EqualFold(protocols[0], "nfsv3") || strings.EqualFold(protocols[0], "nfsv4.1")) {
+		if strings.EqualFold(string(securityStyle), string(SecurityStyleNtfs)) &&
+			len(protocols) == 1 &&
+			(strings.EqualFold(protocols[0], string(ProtocolTypeNfsV3)) || strings.EqualFold(protocols[0], string(ProtocolTypeNfsV41))) {
+
 			return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for %s", id)
 		}
 
@@ -199,7 +284,6 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegr
 
 	return &results, nil
 }
-
 
 func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *volumes.VolumePatchPropertiesExportPolicy {
 	results := make([]volumes.ExportPolicyRule, 0)
@@ -317,7 +401,6 @@ func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *v
 	}
 }
 
-
 func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.VolumeGroupVolumeProperties, metadata sdk.ResourceMetaData) ([]NetAppVolumeGroupVolume, error) {
 	results := make([]NetAppVolumeGroupVolume, 0)
 
@@ -429,8 +512,7 @@ func flattenNetAppVolumeGroupVolumesDPReplication(input *volumes.ReplicationObje
 	if input == nil {
 		return []DataProtectionReplication{}
 	}
-
-	if strings.ToLower(string(*input.EndpointType)) == "" || strings.ToLower(string(*input.EndpointType)) != "dst" {
+	if string(*input.EndpointType) == "" || strings.EqualFold(string(*input.EndpointType), string(volumes.EndpointTypeDst)) {
 		return []DataProtectionReplication{}
 	}
 
@@ -494,7 +576,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 		if err != nil {
 			return err
 		}
-		if dataProtectionReplication.Replication.EndpointType != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) != "dst" {
+		if dataProtectionReplication.Replication.EndpointType != nil && strings.EqualFold(string(*dataProtectionReplication.Replication.EndpointType), string(volumes.EndpointTypeDst)) {
 			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
 			replicaVolumeId, err = volumesreplication.ParseVolumeID(dataProtectionReplication.Replication.RemoteVolumeResourceId)
 			if err != nil {
@@ -724,17 +806,101 @@ func waitForReplAuthorization(ctx context.Context, client *volumesreplication.Vo
 }
 
 func translateTFSchedule(scheduleName string) string {
-	if strings.EqualFold(scheduleName, "10minutes") {
-		return "_10minutely"
+	if strings.EqualFold(scheduleName, string(ReplicationSchedule10Minutes)) {
+		return string(volumegroups.ReplicationScheduleOneZerominutely)
 	}
 
 	return scheduleName
 }
 
 func translateSDKSchedule(scheduleName string) string {
-	if strings.EqualFold(scheduleName, "_10minutely") {
-		return "10minutes"
+	if strings.EqualFold(scheduleName, string(volumegroups.ReplicationScheduleOneZerominutely)) {
+		return string(ReplicationSchedule10Minutes)
 	}
 
 	return scheduleName
+}
+
+func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolumeProperties, applicationType volumegroups.ApplicationType) []error {
+	errors := make([]error, 0)
+	requiredVolumes := make([]string, 0)
+	if applicationType == volumegroups.ApplicationTypeSAPNegativeHANA {
+
+		// Validating maximum number of volumes
+		if len(*volumeList) > 5 {
+			errors = append(errors, fmt.Errorf("'`volume` list cannot be greater than 5 for %v'", applicationType))
+		}
+
+		// Validating each volume
+		for _, volume := range *volumeList {
+			// Validating maximum number of protocols
+			if len(*volume.Properties.ProtocolTypes) > 1 {
+				errors = append(errors, fmt.Errorf("'`protocols` list cannot be greater than 1 for %v on volume %v'", applicationType, *volume.Name))
+			}
+
+			// Validating protocols
+			for _, protocol := range *volume.Properties.ProtocolTypes {
+
+				// Can't be CIFS at all times
+				if strings.EqualFold(protocol, string(ProtocolTypeCifs)) {
+					errors = append(errors, fmt.Errorf("'cifs is not supported for %v on volume %v'", applicationType, *volume.Name))
+				}
+
+				// Can't be nfsv3 on data, log and share volumes
+				if strings.EqualFold(protocol, string(ProtocolTypeNfsV3)) && 
+					(strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameData)) || 
+						strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameShared)) ||
+						strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameLog))) {
+					
+						errors = append(errors, fmt.Errorf("'nfsv3 on data, log and shared volumes for %v is not supported on volume %v'", applicationType, *volume.Name))
+				}
+			}
+
+			// Adding volume to required volumes list for checking if all required volumes are present, total of 2 for SAP HANA
+			if strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameData)) || strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameLog)) {
+				requiredVolumes = append(requiredVolumes, *volume.Properties.VolumeSpecName)
+			}
+
+			// Checking CRR rule that log cannot be DataProtection type
+			if strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameLog)) &&
+				volume.Properties.DataProtection != nil &&
+				volume.Properties.DataProtection.Replication != nil &&
+				strings.EqualFold(string(*volume.Properties.DataProtection.Replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
+
+				errors = append(errors, fmt.Errorf("'log volume spec type cannot be DataProtection type for %v on volume %v'", applicationType, *volume.Name))
+			}
+
+			// Validating that snapshot policies are not being created in a data protection volume
+			if volume.Properties.DataProtection.Snapshot != nil &&
+				strings.EqualFold(string(*volume.Properties.DataProtection.Replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
+
+				errors = append(errors, fmt.Errorf("'snapshot policy cannot be enabled on a data protection volume for %v on volume %v'", applicationType, *volume.Name))
+			}
+		}
+
+		if len(requiredVolumes) != 2 {
+			errors = append(errors, fmt.Errorf("'required volume spec types are not present for %v, missing ones: %v'", applicationType, diffSliceString(requiredVolumes, RequiredVolumesForSAPHANA())))
+		}
+	}
+
+	return errors
+}
+
+func diffSliceString(slice1, slice2 []string) []string {
+	var diff []string
+	for _, v := range slice2 {
+		if !FindStringInSlice(slice1, v) {
+			diff = append(diff, v)
+		}
+	}
+	return diff
+}
+
+func FindStringInSlice(slice []string, val string) bool {
+	for _, item := range slice {
+		if strings.EqualFold(item, val) {
+			return true
+		}
+	}
+	return false
 }
