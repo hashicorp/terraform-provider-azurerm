@@ -49,7 +49,7 @@ func (c ScopeMapsClient) List(ctx context.Context, id RegistryId) (result ListOp
 	}
 
 	var values struct {
-		Values *[]ScopeMap `json:"values"`
+		Values *[]ScopeMap `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

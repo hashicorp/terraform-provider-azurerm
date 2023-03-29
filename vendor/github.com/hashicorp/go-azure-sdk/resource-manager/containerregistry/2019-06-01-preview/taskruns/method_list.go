@@ -49,7 +49,7 @@ func (c TaskRunsClient) List(ctx context.Context, id RegistryId) (result ListOpe
 	}
 
 	var values struct {
-		Values *[]TaskRun `json:"values"`
+		Values *[]TaskRun `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

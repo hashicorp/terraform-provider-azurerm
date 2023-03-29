@@ -49,7 +49,7 @@ func (c TasksClient) List(ctx context.Context, id RegistryId) (result ListOperat
 	}
 
 	var values struct {
-		Values *[]Task `json:"values"`
+		Values *[]Task `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

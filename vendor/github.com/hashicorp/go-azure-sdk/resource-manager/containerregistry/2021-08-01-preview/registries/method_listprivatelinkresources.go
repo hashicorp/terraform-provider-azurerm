@@ -49,7 +49,7 @@ func (c RegistriesClient) ListPrivateLinkResources(ctx context.Context, id Regis
 	}
 
 	var values struct {
-		Values *[]PrivateLinkResource `json:"values"`
+		Values *[]PrivateLinkResource `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

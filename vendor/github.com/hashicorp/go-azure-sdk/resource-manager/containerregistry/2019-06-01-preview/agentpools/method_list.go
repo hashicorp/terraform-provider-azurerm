@@ -49,7 +49,7 @@ func (c AgentPoolsClient) List(ctx context.Context, id RegistryId) (result ListO
 	}
 
 	var values struct {
-		Values *[]AgentPool `json:"values"`
+		Values *[]AgentPool `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

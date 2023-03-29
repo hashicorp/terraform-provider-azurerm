@@ -49,7 +49,7 @@ func (c ImportPipelinesClient) List(ctx context.Context, id RegistryId) (result 
 	}
 
 	var values struct {
-		Values *[]ImportPipeline `json:"values"`
+		Values *[]ImportPipeline `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

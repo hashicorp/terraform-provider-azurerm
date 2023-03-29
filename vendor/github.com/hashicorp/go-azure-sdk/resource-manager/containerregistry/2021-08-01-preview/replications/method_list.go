@@ -49,7 +49,7 @@ func (c ReplicationsClient) List(ctx context.Context, id RegistryId) (result Lis
 	}
 
 	var values struct {
-		Values *[]Replication `json:"values"`
+		Values *[]Replication `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

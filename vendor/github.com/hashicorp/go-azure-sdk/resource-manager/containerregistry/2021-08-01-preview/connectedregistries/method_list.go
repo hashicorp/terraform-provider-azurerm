@@ -77,7 +77,7 @@ func (c ConnectedRegistriesClient) List(ctx context.Context, id RegistryId, opti
 	}
 
 	var values struct {
-		Values *[]ConnectedRegistry `json:"values"`
+		Values *[]ConnectedRegistry `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

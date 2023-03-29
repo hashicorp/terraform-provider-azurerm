@@ -49,7 +49,7 @@ func (c TokensClient) List(ctx context.Context, id RegistryId) (result ListOpera
 	}
 
 	var values struct {
-		Values *[]Token `json:"values"`
+		Values *[]Token `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

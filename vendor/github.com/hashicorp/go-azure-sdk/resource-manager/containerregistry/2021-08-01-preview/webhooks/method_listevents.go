@@ -49,7 +49,7 @@ func (c WebHooksClient) ListEvents(ctx context.Context, id WebHookId) (result Li
 	}
 
 	var values struct {
-		Values *[]Event `json:"values"`
+		Values *[]Event `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

@@ -25,6 +25,7 @@ func (c ScopeMapsClient) Update(ctx context.Context, id ScopeMapId, input ScopeM
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
+			http.StatusCreated,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPatch,

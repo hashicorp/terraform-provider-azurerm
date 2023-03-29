@@ -49,7 +49,7 @@ func (c PipelineRunsClient) List(ctx context.Context, id RegistryId) (result Lis
 	}
 
 	var values struct {
-		Values *[]PipelineRun `json:"values"`
+		Values *[]PipelineRun `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

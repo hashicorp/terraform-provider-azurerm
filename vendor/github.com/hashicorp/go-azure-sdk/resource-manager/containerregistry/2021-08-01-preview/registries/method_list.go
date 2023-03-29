@@ -50,7 +50,7 @@ func (c RegistriesClient) List(ctx context.Context, id commonids.SubscriptionId)
 	}
 
 	var values struct {
-		Values *[]Registry `json:"values"`
+		Values *[]Registry `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

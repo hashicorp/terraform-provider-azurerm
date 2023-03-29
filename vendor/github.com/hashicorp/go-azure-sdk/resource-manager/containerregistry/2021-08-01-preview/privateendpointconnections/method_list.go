@@ -49,7 +49,7 @@ func (c PrivateEndpointConnectionsClient) List(ctx context.Context, id RegistryI
 	}
 
 	var values struct {
-		Values *[]PrivateEndpointConnection `json:"values"`
+		Values *[]PrivateEndpointConnection `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

@@ -81,7 +81,7 @@ func (c RunsClient) List(ctx context.Context, id RegistryId, options ListOperati
 	}
 
 	var values struct {
-		Values *[]Run `json:"values"`
+		Values *[]Run `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

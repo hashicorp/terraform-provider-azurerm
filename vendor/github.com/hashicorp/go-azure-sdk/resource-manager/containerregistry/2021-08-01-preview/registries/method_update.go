@@ -25,6 +25,7 @@ func (c RegistriesClient) Update(ctx context.Context, id RegistryId, input Regis
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
+			http.StatusCreated,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPatch,
