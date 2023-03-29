@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230329.1052505` of `github.com/hashicorp/go-azure-sdk` [GH-21175]
 * `azurerm_linux_function_app`  - add support for `zip_deploy_file` [GH-20544]
+* `azurerm_mssql_database` - HyperScale Skus now support `long_term_retention_policy` and `short_term_retention_policy` [GH-21166]
 * `azurerm_windows_function_app` - add support for `zip_deploy_file` [GH-20544]
 
 BUG FIXES:
