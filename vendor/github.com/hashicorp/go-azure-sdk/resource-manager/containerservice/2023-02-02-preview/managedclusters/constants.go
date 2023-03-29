@@ -170,31 +170,6 @@ func parseControlledValues(input string) (*ControlledValues, error) {
 	return &out, nil
 }
 
-type EbpfDataplane string
-
-const (
-	EbpfDataplaneCilium EbpfDataplane = "cilium"
-)
-
-func PossibleValuesForEbpfDataplane() []string {
-	return []string{
-		string(EbpfDataplaneCilium),
-	}
-}
-
-func parseEbpfDataplane(input string) (*EbpfDataplane, error) {
-	vals := map[string]EbpfDataplane{
-		"cilium": EbpfDataplaneCilium,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := EbpfDataplane(input)
-	return &out, nil
-}
-
 type Expander string
 
 const (
@@ -347,6 +322,34 @@ func parseIPvsScheduler(input string) (*IPvsScheduler, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := IPvsScheduler(input)
+	return &out, nil
+}
+
+type IstioIngressGatewayMode string
+
+const (
+	IstioIngressGatewayModeExternal IstioIngressGatewayMode = "External"
+	IstioIngressGatewayModeInternal IstioIngressGatewayMode = "Internal"
+)
+
+func PossibleValuesForIstioIngressGatewayMode() []string {
+	return []string{
+		string(IstioIngressGatewayModeExternal),
+		string(IstioIngressGatewayModeInternal),
+	}
+}
+
+func parseIstioIngressGatewayMode(input string) (*IstioIngressGatewayMode, error) {
+	vals := map[string]IstioIngressGatewayMode{
+		"external": IstioIngressGatewayModeExternal,
+		"internal": IstioIngressGatewayModeInternal,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := IstioIngressGatewayMode(input)
 	return &out, nil
 }
 
@@ -536,21 +539,18 @@ func parseManagedClusterPodIdentityProvisioningState(input string) (*ManagedClus
 type ManagedClusterSKUName string
 
 const (
-	ManagedClusterSKUNameBase  ManagedClusterSKUName = "Base"
-	ManagedClusterSKUNameBasic ManagedClusterSKUName = "Basic"
+	ManagedClusterSKUNameBase ManagedClusterSKUName = "Base"
 )
 
 func PossibleValuesForManagedClusterSKUName() []string {
 	return []string{
 		string(ManagedClusterSKUNameBase),
-		string(ManagedClusterSKUNameBasic),
 	}
 }
 
 func parseManagedClusterSKUName(input string) (*ManagedClusterSKUName, error) {
 	vals := map[string]ManagedClusterSKUName{
-		"base":  ManagedClusterSKUNameBase,
-		"basic": ManagedClusterSKUNameBasic,
+		"base": ManagedClusterSKUNameBase,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -565,14 +565,12 @@ type ManagedClusterSKUTier string
 
 const (
 	ManagedClusterSKUTierFree     ManagedClusterSKUTier = "Free"
-	ManagedClusterSKUTierPaid     ManagedClusterSKUTier = "Paid"
 	ManagedClusterSKUTierStandard ManagedClusterSKUTier = "Standard"
 )
 
 func PossibleValuesForManagedClusterSKUTier() []string {
 	return []string{
 		string(ManagedClusterSKUTierFree),
-		string(ManagedClusterSKUTierPaid),
 		string(ManagedClusterSKUTierStandard),
 	}
 }
@@ -580,7 +578,6 @@ func PossibleValuesForManagedClusterSKUTier() []string {
 func parseManagedClusterSKUTier(input string) (*ManagedClusterSKUTier, error) {
 	vals := map[string]ManagedClusterSKUTier{
 		"free":     ManagedClusterSKUTierFree,
-		"paid":     ManagedClusterSKUTierPaid,
 		"standard": ManagedClusterSKUTierStandard,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -617,6 +614,34 @@ func parseMode(input string) (*Mode, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := Mode(input)
+	return &out, nil
+}
+
+type NetworkDataplane string
+
+const (
+	NetworkDataplaneAzure  NetworkDataplane = "azure"
+	NetworkDataplaneCilium NetworkDataplane = "cilium"
+)
+
+func PossibleValuesForNetworkDataplane() []string {
+	return []string{
+		string(NetworkDataplaneAzure),
+		string(NetworkDataplaneCilium),
+	}
+}
+
+func parseNetworkDataplane(input string) (*NetworkDataplane, error) {
+	vals := map[string]NetworkDataplane{
+		"azure":  NetworkDataplaneAzure,
+		"cilium": NetworkDataplaneCilium,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := NetworkDataplane(input)
 	return &out, nil
 }
 
@@ -709,12 +734,14 @@ type NetworkPolicy string
 const (
 	NetworkPolicyAzure  NetworkPolicy = "azure"
 	NetworkPolicyCalico NetworkPolicy = "calico"
+	NetworkPolicyCilium NetworkPolicy = "cilium"
 )
 
 func PossibleValuesForNetworkPolicy() []string {
 	return []string{
 		string(NetworkPolicyAzure),
 		string(NetworkPolicyCalico),
+		string(NetworkPolicyCilium),
 	}
 }
 
@@ -722,6 +749,7 @@ func parseNetworkPolicy(input string) (*NetworkPolicy, error) {
 	vals := map[string]NetworkPolicy{
 		"azure":  NetworkPolicyAzure,
 		"calico": NetworkPolicyCalico,
+		"cilium": NetworkPolicyCilium,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -1061,6 +1089,34 @@ func parseScaleSetPriority(input string) (*ScaleSetPriority, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := ScaleSetPriority(input)
+	return &out, nil
+}
+
+type ServiceMeshMode string
+
+const (
+	ServiceMeshModeDisabled ServiceMeshMode = "Disabled"
+	ServiceMeshModeIstio    ServiceMeshMode = "Istio"
+)
+
+func PossibleValuesForServiceMeshMode() []string {
+	return []string{
+		string(ServiceMeshModeDisabled),
+		string(ServiceMeshModeIstio),
+	}
+}
+
+func parseServiceMeshMode(input string) (*ServiceMeshMode, error) {
+	vals := map[string]ServiceMeshMode{
+		"disabled": ServiceMeshModeDisabled,
+		"istio":    ServiceMeshModeIstio,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ServiceMeshMode(input)
 	return &out, nil
 }
 
