@@ -1,14 +1,14 @@
 ---
-subcategory: "CosmosDB PostgreSQL"
+subcategory: "Azure Cosmos DB for PostgreSQL"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_postgresql_cluster"
 description: |-
-  Manages a CosmosDB PostgreSQL Cluster.
+  Manages an Azure Cosmos DB for PostgreSQL Cluster.
 ---
 
 # azurerm_cosmosdb_postgresql_cluster
 
-Manages a CosmosDB PostgreSQL Cluster.
+Manages an Azure Cosmos DB for PostgreSQL Cluster.
 
 ## Example Usage
 
@@ -33,27 +33,27 @@ resource "azurerm_cosmosdb_postgresql_cluster" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this CosmosDB PostgreSQL Cluster. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this Azure Cosmos DB for PostgreSQL Cluster. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the CosmosDB PostgreSQL Cluster should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Azure Cosmos DB for PostgreSQL Cluster should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region where the CosmosDB PostgreSQL Cluster should exist. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure Region where the Azure Cosmos DB for PostgreSQL Cluster should exist. Changing this forces a new resource to be created.
 
 * `administrator_login_password` - (Required) The password of the administrator login.
 
-* `coordinator_storage_quota_in_mb` - (Required) The coordinator storage allowed for the CosmosDB PostgreSQL Cluster. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608` and `16777216`.
+* `coordinator_storage_quota_in_mb` - (Required) The coordinator storage allowed for the Azure Cosmos DB for PostgreSQL Cluster. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608` and `16777216`.
 
-* `coordinator_vcores` - (Required) The coordinator vCores count for the CosmosDB PostgreSQL Cluster. Possible values are `1`, `2`, `4`, `8`, `16`, `32`, `64` and `96`.
+* `coordinator_vcores` - (Required) The coordinator vCores count for the Azure Cosmos DB for PostgreSQL Cluster. Possible values are `1`, `2`, `4`, `8`, `16`, `32`, `64` and `96`.
 
-* `node_count` - (Required) The worker node count of the CosmosDB PostgreSQL Cluster. Possible value is between `0` and `20` except `1`.
+* `node_count` - (Required) The worker node count of the Azure Cosmos DB for PostgreSQL Cluster. Possible value is between `0` and `20` except `1`.
 
-* `citus_version` - (Optional) The citus extension version on the CosmosDB PostgreSQL Cluster. Possible values are `8.3`, `9.0`, `9.1`, `9.2`, `9.3`, `9.4`, `9.5`, `10.0`, `10.1`, `10.2`, `11.0`, `11.1` and `11.2`.
+* `citus_version` - (Optional) The citus extension version on the Azure Cosmos DB for PostgreSQL Cluster. Possible values are `8.3`, `9.0`, `9.1`, `9.2`, `9.3`, `9.4`, `9.5`, `10.0`, `10.1`, `10.2`, `11.0`, `11.1` and `11.2`.
 
 * `coordinator_public_ip_access_enabled` - (Optional) Is public access enabled on coordinator? Defaults to `true`.
 
 * `coordinator_server_edition` - (Optional) The edition of the coordinator server. Possible values are `BurstableGeneralPurpose`, `BurstableMemoryOptimized`, `GeneralPurpose` and `MemoryOptimized`. Defaults to `GeneralPurpose`.
 
-* `ha_enabled` - (Optional) Is high availability enabled for the CosmosDB PostgreSQL cluster? Defaults to `false`.
+* `ha_enabled` - (Optional) Is high availability enabled for the Azure Cosmos DB for PostgreSQL cluster? Defaults to `false`.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
@@ -65,19 +65,19 @@ The following arguments are supported:
 
 * `node_vcores` - (Optional) The vCores count on each worker node. Possible values are `1`, `2`, `4`, `8`, `16`, `32`, `64`, `96` and `104`.
 
-* `point_in_time_in_utc` - (Optional) The date and time in UTC (ISO8601 format) for the CosmosDB PostgreSQL cluster restore. Changing this forces a new resource to be created.
+* `point_in_time_in_utc` - (Optional) The date and time in UTC (ISO8601 format) for the Azure Cosmos DB for PostgreSQL cluster restore. Changing this forces a new resource to be created.
 
-* `preferred_primary_zone` - (Optional) The preferred primary availability zone for the CosmosDB PostgreSQL cluster.
+* `preferred_primary_zone` - (Optional) The preferred primary availability zone for the Azure Cosmos DB for PostgreSQL cluster.
 
-* `shards_on_coordinator_enabled` - (Optional) Is shards on coordinator enabled for the CosmosDB PostgreSQL cluster.
+* `shards_on_coordinator_enabled` - (Optional) Is shards on coordinator enabled for the Azure Cosmos DB for PostgreSQL cluster.
 
-* `source_location` - (Optional) The Azure region of the source CosmosDB PostgreSQL cluster for read replica clusters. Changing this forces a new resource to be created.
+* `source_location` - (Optional) The Azure region of the source Azure Cosmos DB for PostgreSQL cluster for read replica clusters. Changing this forces a new resource to be created.
 
-* `source_resource_id` - (Optional) The resource ID of the source CosmosDB PostgreSQL cluster for read replica clusters. Changing this forces a new resource to be created.
+* `source_resource_id` - (Optional) The resource ID of the source Azure Cosmos DB for PostgreSQL cluster for read replica clusters. Changing this forces a new resource to be created.
 
-* `sql_version` - (Optional) The major PostgreSQL version on the CosmosDB PostgreSQL cluster. Possible values are `11`, `12`, `13`, `14` and `15`.
+* `sql_version` - (Optional) The major PostgreSQL version on the Azure Cosmos DB for PostgreSQL cluster. Possible values are `11`, `12`, `13`, `14` and `15`.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the CosmosDB PostgreSQL Cluster.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Azure Cosmos DB for PostgreSQL Cluster.
 
 ---
 
@@ -93,22 +93,22 @@ A `maintenance_window` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the CosmosDB PostgreSQL Cluster.
+* `id` - The ID of the Azure Cosmos DB for PostgreSQL Cluster.
 
-* `earliest_restore_time` - The earliest restore point time (ISO8601 format) for the CosmosDB PostgreSQL Cluster.
+* `earliest_restore_time` - The earliest restore point time (ISO8601 format) for the Azure Cosmos DB for PostgreSQL Cluster.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 3 hours) Used when creating the CosmosDB PostgreSQL Cluster.
-* `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB PostgreSQL Cluster.
-* `update` - (Defaults to 3 hours) Used when updating the CosmosDB PostgreSQL Cluster.
-* `delete` - (Defaults to 3 hours) Used when deleting the CosmosDB PostgreSQL Cluster.
+* `create` - (Defaults to 3 hours) Used when creating the Azure Cosmos DB for PostgreSQL Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Azure Cosmos DB for PostgreSQL Cluster.
+* `update` - (Defaults to 3 hours) Used when updating the Azure Cosmos DB for PostgreSQL Cluster.
+* `delete` - (Defaults to 3 hours) Used when deleting the Azure Cosmos DB for PostgreSQL Cluster.
 
 ## Import
 
-CosmosDB PostgreSQL Clusters can be imported using the `resource id`, e.g.
+Azure Cosmos DB for PostgreSQL Clusters can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cosmosdb_postgresql_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DBforPostgreSQL/serverGroupsv2/cluster1
