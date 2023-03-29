@@ -486,11 +486,11 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 			Auth:            &auth,
 		}
 
-		if setting["managed_identity_resource_id"].(string) != "" {
+		if setting["user_assigned_identity_id"].(string) != "" {
 			upstreamTemplate.Auth = &signalr.UpstreamAuthSettings{
 				Type: &authTypeManagedIdentity,
 				ManagedIdentity: &signalr.ManagedIdentitySettings{
-					Resource: utils.String(setting["managed_identity_resource_id"].(string)),
+					Resource: utils.String(setting["user_assigned_identity_id"].(string)),
 				},
 			}
 		}
@@ -536,11 +536,11 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 		}
 
 		result = append(result, map[string]interface{}{
-			"url_template":                 settings.UrlTemplate,
-			"hub_pattern":                  hubPattern,
-			"event_pattern":                eventPattern,
-			"category_pattern":             categoryPattern,
-			"managed_identity_resource_id": managedIdentityId,
+			"url_template":              settings.UrlTemplate,
+			"hub_pattern":               hubPattern,
+			"event_pattern":             eventPattern,
+			"category_pattern":          categoryPattern,
+			"user_assigned_identity_id": managedIdentityId,
 		})
 	}
 	return result
@@ -875,7 +875,7 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: signalrValidate.UrlTemplate,
 					},
 
-					"managed_identity_resource_id": {
+					"user_assigned_identity_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsUUID,

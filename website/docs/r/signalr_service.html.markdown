@@ -109,7 +109,7 @@ An `upstream_endpoint` block supports the following:
 
 * `hub_pattern` - (Required) The hubs to match on, or `*` for all.
 
-* `managed_identity_resource_id` - (Optional) Specifies the Managed Identity IDs to be assigned to this signalR upstream setting by using resource uuid as both system assigned and user assigned identity is supported. 
+* `user_assigned_identity_id` - (Optional) Specifies the Managed Identity IDs to be assigned to this signalR upstream setting by using resource uuid as both system assigned and user assigned identity is supported. 
 
 ---
 

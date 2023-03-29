@@ -916,7 +916,7 @@ resource "azurerm_signalr_service" "test" {
     event_pattern                = ["*"]
     hub_pattern                  = ["hub1"]
     url_template                 = "http://foo.com"
-    managed_identity_resource_id = azurerm_user_assigned_identity.test.client_id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.client_id
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
