@@ -6,13 +6,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                         // nolint: staticcheck
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"                     // nolint: staticcheck
-	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"     // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions" // nolint: staticcheck
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	subscriptionAliasPandora "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	subscriptionAlias "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -85,8 +85,8 @@ func resourceSubscription() *pluginsdk.Resource {
 				Description: "The workload type for the Subscription. Possible values are `Production` (default) and `DevTest`.",
 				// Other RP's have updated Constants with contextual prefixes so these are likely to change
 				ValidateFunc: validation.StringInSlice([]string{
-					string(subscriptionAlias.Production),
-					string(subscriptionAlias.DevTest),
+					string(subscriptionAlias.WorkloadProduction),
+					string(subscriptionAlias.WorkloadDevTest),
 				}, false),
 				// Workload is not exposed in any way, so must be ignored if the resource is imported.
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
@@ -133,7 +133,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("alias", aliasName)
 	}
 
-	id := subscriptionAliasPandora.NewAliasID(aliasName)
+	id := subscriptionAlias.NewAliasID(aliasName)
 
 	existing, err := aliasClient.AliasGet(ctx, id)
 	if err != nil {
@@ -149,14 +149,14 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	locks.ByName(aliasName, SubscriptionResourceName)
 	defer locks.UnlockByName(aliasName, SubscriptionResourceName)
 
-	workload := subscriptionAliasPandora.WorkloadProduction
+	workload := subscriptionAlias.WorkloadProduction
 	workloadRaw := d.Get("workload").(string)
 	if workloadRaw != "" {
-		workload = subscriptionAliasPandora.Workload(workloadRaw)
+		workload = subscriptionAlias.Workload(workloadRaw)
 	}
 
-	req := subscriptionAliasPandora.PutAliasRequest{
-		Properties: &subscriptionAliasPandora.PutAliasRequestProperties{
+	req := subscriptionAlias.PutAliasRequest{
+		Properties: &subscriptionAlias.PutAliasRequestProperties{
 			Workload: &workload,
 		},
 	}
@@ -247,11 +247,10 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
-	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := subscriptionAliasPandora.ParseAliasID(d.Id())
+	id, err := subscriptionAlias.ParseAliasID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -263,25 +262,25 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("could not read Subscription Alias for update: %+v", err)
 	}
 
-	subscriptionId := resp.Model.Properties.SubscriptionId
-	if subscriptionId == nil || *subscriptionId == "" {
-		return fmt.Errorf("could not read Subscription ID from Alias")
+	subscriptionId, err := commonids.ParseSubscriptionID(*resp.Model.Properties.SubscriptionId)
+	if err != nil {
+		return fmt.Errorf("could not parse Subscription ID from Alias: %+v", err)
 	}
 
 	if d.HasChange("subscription_name") {
-		locks.ByID(*subscriptionId)
-		defer locks.UnlockByID(*subscriptionId)
+		locks.ByID(subscriptionId.ID())
+		defer locks.UnlockByID(subscriptionId.ID())
 
-		displayName := subscriptionAlias.Name{
+		displayName := subscriptionAlias.SubscriptionName{
 			SubscriptionName: utils.String(d.Get("subscription_name").(string)),
 		}
-		if _, err := subscriptionClient.Rename(ctx, *subscriptionId, displayName); err != nil {
+		if _, err := aliasClient.SubscriptionRename(ctx, *subscriptionId, displayName); err != nil {
 			return fmt.Errorf("could not update Display Name of Subscription %q: %+v", *subscriptionId, err)
 		}
 	}
 
 	if d.HasChange("tags") {
-		tagsClient := meta.(*clients.Client).Resource.TagsClientForSubscription(*subscriptionId)
+		tagsClient := meta.(*clients.Client).Resource.TagsClientForSubscription(subscriptionId.ID())
 		t := tags.Expand(d.Get("tags").(map[string]interface{}))
 		scope := fmt.Sprintf("subscriptions/%s", *subscriptionId)
 		tagsResource := resources.TagsResource{
@@ -303,7 +302,7 @@ func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := subscriptionAliasPandora.ParseAliasID(d.Id())
+	id, err := subscriptionAlias.ParseAliasID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -366,7 +365,7 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := subscriptionAliasPandora.ParseAliasID(d.Id())
+	id, err := subscriptionAlias.ParseAliasID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -473,7 +472,7 @@ func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Clie
 	return nil
 }
 
-func checkExistingAliases(ctx context.Context, client subscriptionAliasPandora.SubscriptionsClient, subscriptionId string) (*string, int, error) {
+func checkExistingAliases(ctx context.Context, client subscriptionAlias.SubscriptionsClient, subscriptionId string) (*string, int, error) {
 	aliasList, err := client.AliasList(ctx)
 	if err != nil {
 		return nil, 0, fmt.Errorf("could not List existing Subscription Aliases")
