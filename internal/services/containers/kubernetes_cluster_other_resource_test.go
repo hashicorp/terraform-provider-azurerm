@@ -1405,7 +1405,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count         = 1
     vm_size            = "Standard_D2s_v3"
     message_of_the_day = "daily message"
-		os_sku             = "Mariner"
+    os_sku             = "Mariner"
     workload_runtime   = "KataMshvVmIsolation"
   }
 
