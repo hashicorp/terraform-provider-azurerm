@@ -215,7 +215,7 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     linkedservices.ValidateLinkedServiceID,
+			ValidateFunc:     linkedservices.ValidateWorkspaceID,
 		},
 
 		"read_access_id": {
