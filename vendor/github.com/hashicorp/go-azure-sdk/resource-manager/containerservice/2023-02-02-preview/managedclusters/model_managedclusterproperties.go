@@ -40,6 +40,7 @@ type ManagedClusterProperties struct {
 	ProvisioningState         *string                                    `json:"provisioningState,omitempty"`
 	PublicNetworkAccess       *PublicNetworkAccess                       `json:"publicNetworkAccess,omitempty"`
 	SecurityProfile           *ManagedClusterSecurityProfile             `json:"securityProfile,omitempty"`
+	ServiceMeshProfile        *ServiceMeshProfile                        `json:"serviceMeshProfile,omitempty"`
 	ServicePrincipalProfile   *ManagedClusterServicePrincipalProfile     `json:"servicePrincipalProfile,omitempty"`
 	StorageProfile            *ManagedClusterStorageProfile              `json:"storageProfile,omitempty"`
 	UpgradeSettings           *ClusterUpgradeSettings                    `json:"upgradeSettings,omitempty"`
