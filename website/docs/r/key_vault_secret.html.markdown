@@ -91,7 +91,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Key Vault Secret ID.
 * `resource_id` - The (Versioned) ID for this Key Vault Secret. This property points to a specific version of a Key Vault Secret, as such using this won't auto-rotate values if used in other Azure Services.
