@@ -60,7 +60,7 @@ BUG FIXES:
 * `azurerm_linux_web_app_slot` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
 * `azurerm_linux_virtual_machine`: validating `application_security_group_ids` and `key_vault_id` [GH-21129]
 * `azurerm_linux_virtual_machine_scale_set`: validating `key_vault_id`, `network_security_group_id`, `public_ip_prefix_id` and `subnet_id` [GH-21129]
-* `azurerm_log_analytics_linked_service`: validating the workspace id [GH-21129]
+* `azurerm_log_analytics_linked_service`: validating the workspace id [GH-21170]
 * `azurerm_log_analytics_linked_storage_account`: validating the `storage_account_id` [GH-21129]
 * `azurerm_logic_app_action_custom`: validating `logic_app_id` [GH-21129]
 * `azurerm_logic_app_action_http`: validating `subnet_id` [GH-21129]
