@@ -132,6 +132,7 @@ func (r CustomDomainSignalrServiceResource) Read() sdk.ResourceFunc {
 
 			state := CustomDomainSignalrServiceModel{
 				Name:                       id.CustomDomainName,
+				DomainName:                 resp.Model.Properties.DomainName,
 				SignalRServiceId:           signalrServiceId,
 				SignalrCustomCertificateId: utils.NormalizeNilableString(resp.Model.Properties.CustomCertificate.Id),
 			}
