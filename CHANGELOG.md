@@ -2,7 +2,7 @@
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230324.1144947` of `hashicorp/go-azure-sdk` [GH-21134]
+* dependencies: updating to `v0.20230329.1052505` of `github.com/hashicorp/go-azure-sdk` [GH-21175]
 * `azurerm_linux_function_app`  - add support for `zip_deploy_file` [GH-20544]
 * `azurerm_windows_function_app` - add support for `zip_deploy_file` [GH-20544]
 
