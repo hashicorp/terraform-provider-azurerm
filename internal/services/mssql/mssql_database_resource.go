@@ -444,14 +444,14 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return nil
 	}
 
-	if d.HasChange("long_term_retention_policy") && !ledgerEnabled {
+	if d.HasChange("long_term_retention_policy") {
 		v := d.Get("long_term_retention_policy")
 		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]interface{}))
 		if longTermRetentionProps != nil {
 			longTermRetentionPolicy := sql.LongTermRetentionPolicy{}
 
-			// hyper-scale SKU's do not support LRP currently
-			if !strings.HasPrefix(skuName.(string), "HS") && !strings.HasPrefix(skuName.(string), "DW") {
+			// DataWarehouse SKU's do not support LRP currently
+			if !strings.HasPrefix(skuName.(string), "DW") {
 				longTermRetentionPolicy.BaseLongTermRetentionPolicyProperties = longTermRetentionProps
 			}
 
@@ -472,8 +472,11 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		if backupShortTermPolicyProps != nil {
 			backupShortTermPolicy := sql.BackupShortTermRetentionPolicy{}
 
-			if !strings.HasPrefix(skuName.(string), "HS") && !strings.HasPrefix(skuName.(string), "DW") {
+			if !strings.HasPrefix(skuName.(string), "DW") {
 				backupShortTermPolicy.BackupShortTermRetentionPolicyProperties = backupShortTermPolicyProps
+			}
+			if strings.HasPrefix(skuName.(string), "HS") {
+				backupShortTermPolicy.BackupShortTermRetentionPolicyProperties.DiffBackupIntervalInHours = nil
 			}
 
 			shortTermRetentionFuture, err := shortTermRetentionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, backupShortTermPolicy)
@@ -575,8 +578,8 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	geoBackupPolicy := true
 
-	// Hyper Scale SKU's do not currently support LRP and do not honour normal SRP operations
-	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") && !ledgerEnabled {
+	// DW SKU's do not currently support LRP and do not honour normal SRP operations
+	if !strings.HasPrefix(skuName, "DW") {
 		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			return fmt.Errorf("retrieving Long Term Retention Policies for %s: %+v", id, err)
@@ -594,7 +597,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("setting `short_term_retention_policy`: %+v", err)
 		}
 	} else {
-		// HS and DW SKUs need the retention policies zeroing for state consistency
+		// DW SKUs need the retention policies zeroing for state consistency
 		zero := make([]interface{}, 0)
 		d.Set("long_term_retention_policy", zero)
 		d.Set("short_term_retention_policy", zero)
