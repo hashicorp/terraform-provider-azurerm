@@ -215,13 +215,28 @@ func TestAccKubernetesCluster_nodeResourceGroup(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_nodePoolOther(t *testing.T) {
+func TestAccKubernetesCluster_nodePoolOCIContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.nodePoolOther(data),
+			Config: r.nodePoolWorkloadRuntime(data, "Ubuntu", "OCIContainer"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_nodePoolKataMshvVmIsolation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodePoolWorkloadRuntime(data, "Mariner", "KataMshvVmIsolation"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1334,7 +1349,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, nodeResourceGroupName)
 }
 
-func (KubernetesClusterResource) nodePoolOther(data acceptance.TestData) string {
+func (KubernetesClusterResource) nodePoolWorkloadRuntime(data acceptance.TestData, sku string, workloadRuntime string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1358,14 +1373,15 @@ resource "azurerm_kubernetes_cluster" "test" {
     fips_enabled       = true
     kubelet_disk_type  = "OS"
     message_of_the_day = "daily message"
-    workload_runtime   = "OCIContainer"
+		os_sku             = "%s"
+    workload_runtime   = "%s"
   }
 
   identity {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, sku, workloadRuntime)
 }
 
 func (KubernetesClusterResource) paidSkuConfig(data acceptance.TestData) string {

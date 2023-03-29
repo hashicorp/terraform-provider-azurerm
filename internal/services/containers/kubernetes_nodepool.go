@@ -275,6 +275,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.WorkloadRuntimeOCIContainer),
+							string(agentpools.WorkloadRuntimeKataMshvVMIsolation),
 						}, false),
 					},
 				}
