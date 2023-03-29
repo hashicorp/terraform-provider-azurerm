@@ -111,6 +111,7 @@ BUG FIXES:
 * `azurerm_windows_virtual_machine_scale_set`: validating `application_security_group_ids`, `network_security_group_id`, `proximity_placement_group_id`, `public_ip_prefix_id`, `subnet_id` and `virtual_network_gateway_id` [GH-21129]
 * `azurerm_windows_web_app` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
 * `azurerm_windows_web_app_slot` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
+* `azurem_iothub_certificate`, `azurem_iothub_dps_certificate` - certificate content now updates correctly [GH-21163]
 
 ## 3.49.0 (March 23, 2023)
 
