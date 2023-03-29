@@ -236,9 +236,10 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageEndpointSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.Endpoint()
+	env := meta.(*clients.Client).Account.Environment
+	storageAccountDomainSuffix, ok := env.Storage.DomainSuffix()
 	if !ok {
-		return fmt.Errorf("could not determine storage endpoint suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
+		return fmt.Errorf("could not determine the domain suffix for storage accounts in environment %q: %+v", env.Name, env.Storage)
 	}
 
 	log.Printf("[INFO] preparing arguments for AzureRM Logic App Standard creation.")
@@ -286,7 +287,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	VirtualNetworkSubnetID := d.Get("virtual_network_subnet_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	basicAppSettings, err := getBasicLogicAppSettings(d, *storageEndpointSuffix)
+	basicAppSettings, err := getBasicLogicAppSettings(d, *storageAccountDomainSuffix)
 	if err != nil {
 		return err
 	}
@@ -356,9 +357,10 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageEndpointSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.Endpoint()
+	env := meta.(*clients.Client).Account.Environment
+	storageAccountDomainSuffix, ok := env.Storage.DomainSuffix()
 	if !ok {
-		return fmt.Errorf("could not determine storage endpoint suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
+		return fmt.Errorf("could not determine the domain suffix for storage accounts in environment %q: %+v", env.Name, env.Storage)
 	}
 
 	id, err := parse.LogicAppStandardID(d.Id())
@@ -375,7 +377,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	basicAppSettings, err := getBasicLogicAppSettings(d, *storageEndpointSuffix)
+	basicAppSettings, err := getBasicLogicAppSettings(d, *storageAccountDomainSuffix)
 	if err != nil {
 		return err
 	}
@@ -393,7 +395,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	siteConfig.AppSettings = &basicAppSettings
 
 	// WEBSITE_VNET_ROUTE_ALL is superseded by a setting in site_config that defaults to false from 2021-02-01
-	appSettings, err := expandLogicAppStandardSettings(d, *storageEndpointSuffix)
+	appSettings, err := expandLogicAppStandardSettings(d, *storageAccountDomainSuffix)
 	if err != nil {
 		return fmt.Errorf("expanding `app_settings`: %+v", err)
 	}

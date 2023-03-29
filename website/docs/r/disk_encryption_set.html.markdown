@@ -76,7 +76,7 @@ resource "azurerm_key_vault_access_policy" "example-disk" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
   ]
 }
 
@@ -95,7 +95,8 @@ resource "azurerm_key_vault_access_policy" "example-user" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
+    "GetRotationPolicy",
   ]
 }
 

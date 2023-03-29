@@ -302,6 +302,7 @@ resource "azurerm_netapp_volume" "test" {
   service_level       = "Standard"
   subnet_id           = azurerm_subnet.test.id
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -388,6 +389,7 @@ resource "azurerm_netapp_volume" "test" {
   network_features    = "Standard"
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",

@@ -624,7 +624,7 @@ A `rewrite_rule` block supports the following:
 
 * `response_header_configuration` - (Optional) One or more `response_header_configuration` blocks as defined above.
 
-* `url` - (Optional) One `url` block as defined above
+* `url` - (Optional) One `url` block as defined below
 
 ---
 

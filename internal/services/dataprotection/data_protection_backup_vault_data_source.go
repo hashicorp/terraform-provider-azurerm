@@ -2,7 +2,6 @@ package dataprotection
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
@@ -76,9 +75,7 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] DataProtection BackupVault %q does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving DataProtection BackupVault (%q): %+v", id, err)
 	}

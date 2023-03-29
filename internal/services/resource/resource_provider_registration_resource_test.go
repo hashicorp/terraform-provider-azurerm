@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -52,6 +54,12 @@ func TestAccResourceProviderRegistration_feature(t *testing.T) {
 	r := ResourceProviderRegistrationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			PreConfig: func() {
+				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
+				if err := r.unRegisterProviders("Microsoft.ApiSecurity"); err != nil {
+					t.Fatalf("Failed to reset feature registration with error: %+v", err)
+				}
+			},
 			Config: r.multiFeature(true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -121,6 +129,74 @@ resource "azurerm_resource_provider_registration" "import" {
   name = azurerm_resource_provider_registration.test.name
 }
 `, template)
+}
+
+func (r ResourceProviderRegistrationResource) unRegisterProviders(resourceProviders ...string) error {
+	client, err := testclient.Build()
+	if err != nil {
+		return fmt.Errorf("building client: %+v", err)
+	}
+
+	for _, rp := range resourceProviders {
+		if err = r.unRegisterProvider(client, rp); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r ResourceProviderRegistrationResource) unRegisterProvider(client *clients.Client, resourceProvider string) error {
+	ctx, cancel := context.WithDeadline(client.StopContext, time.Now().Add(30*time.Minute))
+	defer cancel()
+
+	providersClient := client.Resource.ProvidersClient
+	provider, err := providersClient.Get(ctx, resourceProvider, "")
+	if err != nil {
+		return fmt.Errorf("retrieving Resource Provider %q: %+v", resourceProvider, err)
+	}
+
+	if provider.RegistrationState == nil {
+		return fmt.Errorf("retrieving Resource Provider %q: `registrationState` was nil", resourceProvider)
+	}
+
+	if !strings.EqualFold(*provider.RegistrationState, "Registered") {
+		return nil
+	}
+
+	if _, err := providersClient.Unregister(ctx, resourceProvider); err != nil {
+		return fmt.Errorf("unregistering Resource Provider %q: %+v", resourceProvider, err)
+	}
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("could not retrieve context deadline")
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{"Processing"},
+		Target:  []string{"Unregistered"},
+		Refresh: func() (interface{}, string, error) {
+			resp, err := providersClient.Get(ctx, resourceProvider, "")
+			if err != nil {
+				return resp, "Failed", err
+			}
+
+			if resp.RegistrationState != nil && strings.EqualFold(*resp.RegistrationState, "Unregistered") {
+				return resp, "Unregistered", nil
+			}
+
+			return resp, "Processing", nil
+		},
+		MinTimeout: 15 * time.Second,
+		Timeout:    time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for Resource Provider %q to become unregistered: %+v", resourceProvider, err)
+	}
+
+	return nil
 }
 
 func (ResourceProviderRegistrationResource) multiFeature(registered1 bool, registered2 bool) string {

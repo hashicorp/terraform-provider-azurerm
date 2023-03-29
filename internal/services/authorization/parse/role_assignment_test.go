@@ -6,15 +6,17 @@ import (
 
 func TestRoleAssignmentIDFormatter(t *testing.T) {
 	testData := []struct {
-		SubscriptionId      string
-		ResourceGroup       string
-		ResourceProvider    string
-		ResourceScope       string
-		ManagementGroup     string
-		IsSubscriptionLevel bool
-		Name                string
-		TenantId            string
-		Expected            string
+		SubscriptionId           string
+		ResourceGroup            string
+		ResourceProvider         string
+		ResourceScope            string
+		ManagementGroup          string
+		SubscriptionAlias        string
+		IsSubscriptionLevel      bool
+		IsSubscriptionAliasLevel bool
+		Name                     string
+		TenantId                 string
+		Expected                 string
 	}{
 		{
 			SubscriptionId:  "",
@@ -92,10 +94,17 @@ func TestRoleAssignmentIDFormatter(t *testing.T) {
 			TenantId:            "34567812-3456-7653-6742-345678901234",
 			Expected:            "/providers/Microsoft.Subscription/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
 		},
+		{
+			IsSubscriptionAliasLevel: true,
+			Name:                     "23456781-2349-8764-5631-234567890121",
+			TenantId:                 "34567812-3456-7653-6742-345678901234",
+			SubscriptionAlias:        "my-awesome-sub",
+			Expected:                 "/providers/Microsoft.Subscription/aliases/my-awesome-sub/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
+		},
 	}
 	for _, v := range testData {
 		t.Logf("testing %+v", v)
-		actual, err := NewRoleAssignmentID(v.SubscriptionId, v.ResourceGroup, v.ResourceProvider, v.ResourceScope, v.ManagementGroup, v.Name, v.TenantId, v.IsSubscriptionLevel)
+		actual, err := NewRoleAssignmentID(v.SubscriptionId, v.ResourceGroup, v.ResourceProvider, v.ResourceScope, v.ManagementGroup, v.Name, v.TenantId, v.SubscriptionAlias, v.IsSubscriptionLevel, v.IsSubscriptionAliasLevel)
 		if err != nil {
 			if v.Expected == "" {
 				continue
@@ -163,6 +172,16 @@ func TestRoleAssignmentID(t *testing.T) {
 			Expected: &RoleAssignmentId{
 				IsSubscriptionLevel: true,
 				Name:                "23456781-2349-8764-5631-234567890121",
+			},
+		},
+
+		{
+			// valid at subscriptions aliases scope
+			Input: "/providers/Microsoft.Subscription/aliases/my-awesome-sub/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
+			Expected: &RoleAssignmentId{
+				IsSubscriptionAliasLevel: true,
+				Name:                     "23456781-2349-8764-5631-234567890121",
+				SubscriptionAlias:        "my-awesome-sub",
 			},
 		},
 
@@ -274,5 +293,18 @@ func TestRoleAssignmentID(t *testing.T) {
 		if actual.ManagementGroup != v.Expected.ManagementGroup {
 			t.Fatalf("Expected %q but got %q for Role Assignment Management Group", v.Expected.ManagementGroup, actual.ManagementGroup)
 		}
+
+		if actual.IsSubscriptionLevel != v.Expected.IsSubscriptionLevel {
+			t.Fatalf("Expected %v but got %v for Role Assignment SubscriptionLevel flag", v.Expected.IsSubscriptionLevel, actual.IsSubscriptionLevel)
+		}
+
+		if actual.IsSubscriptionAliasLevel != v.Expected.IsSubscriptionAliasLevel {
+			t.Fatalf("Expected %v but got %v for Role Assignment SubscriptionAliasLevel flag", v.Expected.IsSubscriptionAliasLevel, actual.IsSubscriptionAliasLevel)
+		}
+
+		if actual.SubscriptionAlias != v.Expected.SubscriptionAlias {
+			t.Fatalf("Expected %q but got %q for Role Assignment SubscriptionAlias", v.Expected.SubscriptionAlias, actual.SubscriptionAlias)
+		}
+
 	}
 }

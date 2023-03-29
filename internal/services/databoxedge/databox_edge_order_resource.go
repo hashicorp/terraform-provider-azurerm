@@ -5,11 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/orders"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -33,8 +34,13 @@ func resourceOrder() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.OrderID(id)
+			_, err := orders.ParseDataBoxEdgeDeviceID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.DataBoxEdgeOrderV0ToV1{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -262,38 +268,32 @@ func resourceOrder() *pluginsdk.Resource {
 
 func resourceOrderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).DataboxEdge.OrderClient
+	client := meta.(*clients.Client).DataboxEdge.OrdersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewOrderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("device_name").(string), "default")
+	id := orders.NewDataBoxEdgeDeviceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("device_name").(string)) // TODO: state migration
 	if d.IsNewResource() {
-		// SDK method: Get(ctx context.Context, deviceName string, resourceGroupName string)
-		existing, err := client.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_databox_edge_order", id.ID())
 		}
 	}
 
-	order := databoxedge.Order{
-		OrderProperties: &databoxedge.OrderProperties{
+	order := orders.Order{
+		Properties: &orders.OrderProperties{
 			ContactInformation: expandOrderContactDetails(d.Get("contact").([]interface{})),
 			ShippingAddress:    expandOrderAddress(d.Get("shipment_address").([]interface{})),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.DataBoxEdgeDeviceName, order, id.ResourceGroup)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, order); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -301,19 +301,19 @@ func resourceOrderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func resourceOrderRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataboxEdge.OrderClient
+	client := meta.(*clients.Client).DataboxEdge.OrdersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OrderID(d.Id())
+	id, err := orders.ParseDataBoxEdgeDeviceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] %s does not exist - removing from state", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
@@ -321,70 +321,79 @@ func resourceOrderRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", "default") // only one possible value
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("device_name", id.DataBoxEdgeDeviceName)
 
-	if props := resp.OrderProperties; props != nil {
-		if err := d.Set("contact", flattenOrderContactDetails(props.ContactInformation)); err != nil {
-			return fmt.Errorf("setting `contact`: %+v", err)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if err := d.Set("contact", flattenOrderContactDetails(props.ContactInformation)); err != nil {
+				return fmt.Errorf("setting `contact`: %+v", err)
+			}
+			currentStatus, err := flattenOrderStatus(props.CurrentStatus)
+			if err != nil {
+				return fmt.Errorf("flattening `status`: %+v", err)
+			}
+			if err := d.Set("status", currentStatus); err != nil {
+				return fmt.Errorf("setting `status`: %+v", err)
+			}
+			if err := d.Set("shipment_address", flattenOrderAddress(props.ShippingAddress)); err != nil {
+				return fmt.Errorf("setting `shipment_address`: %+v", err)
+			}
+			if err := d.Set("shipment_tracking", flattenOrderTrackingInfo(props.DeliveryTrackingInfo)); err != nil {
+				return fmt.Errorf("setting `shipment_tracking`: %+v", err)
+			}
+			shipmentHistory, err := flattenOrderHistory(props.OrderHistory)
+			if err != nil {
+				return fmt.Errorf("flattening `shipment_history`: %+v", err)
+			}
+			if err := d.Set("shipment_history", shipmentHistory); err != nil {
+				return fmt.Errorf("setting `shipment_history`: %+v", err)
+			}
+			if err := d.Set("return_tracking", flattenOrderTrackingInfo(props.ReturnTrackingInfo)); err != nil {
+				return fmt.Errorf("setting `return_tracking`: %+v", err)
+			}
+			d.Set("serial_number", props.SerialNumber)
 		}
-		if err := d.Set("status", flattenOrderStatus(props.CurrentStatus)); err != nil {
-			return fmt.Errorf("setting `status`: %+v", err)
-		}
-		if err := d.Set("shipment_address", flattenOrderAddress(props.ShippingAddress)); err != nil {
-			return fmt.Errorf("setting `shipment_address`: %+v", err)
-		}
-		if err := d.Set("shipment_tracking", flattenOrderTrackingInfo(props.DeliveryTrackingInfo)); err != nil {
-			return fmt.Errorf("setting `shipment_tracking`: %+v", err)
-		}
-		if err := d.Set("shipment_history", flattenOrderHistory(props.OrderHistory)); err != nil {
-			return fmt.Errorf("setting `shipment_history`: %+v", err)
-		}
-		if err := d.Set("return_tracking", flattenOrderTrackingInfo(props.ReturnTrackingInfo)); err != nil {
-			return fmt.Errorf("setting `return_tracking`: %+v", err)
-		}
-		d.Set("serial_number", props.SerialNumber)
 	}
 
 	return nil
 }
 
 func resourceOrderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataboxEdge.OrderClient
+	client := meta.(*clients.Client).DataboxEdge.OrdersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OrderID(d.Id())
+	id, err := orders.ParseDataBoxEdgeDeviceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %v", *id, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %v", *id, err)
 	}
 
 	return nil
 }
 
-func expandOrderContactDetails(input []interface{}) *databoxedge.ContactDetails {
-	if len(input) == 0 {
-		return nil
-	}
+func expandOrderContactDetails(input []interface{}) orders.ContactDetails {
 	v := input[0].(map[string]interface{})
-	return &databoxedge.ContactDetails{
-		ContactPerson: utils.String(v["name"].(string)),
-		CompanyName:   utils.String(v["company_name"].(string)),
-		Phone:         utils.String(v["phone_number"].(string)),
-		EmailList:     utils.ExpandStringSlice(v["emails"].(*pluginsdk.Set).List()),
+	emailList := make([]string, 0)
+
+	for _, val := range v["emails"].(*pluginsdk.Set).List() {
+		emailList = append(emailList, val.(string))
+	}
+
+	return orders.ContactDetails{
+		ContactPerson: v["name"].(string),
+		CompanyName:   v["company_name"].(string),
+		Phone:         v["phone_number"].(string),
+		EmailList:     emailList,
 	}
 }
 
-func expandOrderAddress(input []interface{}) *databoxedge.Address {
+func expandOrderAddress(input []interface{}) *orders.Address {
 	if len(input) == 0 {
 		return nil
 	}
@@ -409,47 +418,31 @@ func expandOrderAddress(input []interface{}) *databoxedge.Address {
 		}
 	}
 
-	return &databoxedge.Address{
+	return &orders.Address{
 		AddressLine1: utils.String(address1),
 		AddressLine2: utils.String(address2),
 		AddressLine3: utils.String(address3),
 		PostalCode:   utils.String(v["postal_code"].(string)),
 		City:         utils.String(v["city"].(string)),
 		State:        utils.String(v["state"].(string)),
-		Country:      utils.String(v["country"].(string)),
+		Country:      v["country"].(string),
 	}
 }
 
-func flattenOrderContactDetails(input *databoxedge.ContactDetails) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var companyName string
-	if input.CompanyName != nil {
-		companyName = *input.CompanyName
-	}
-	var contactPerson string
-	if input.ContactPerson != nil {
-		contactPerson = *input.ContactPerson
-	}
-	var phone string
-	if input.Phone != nil {
-		phone = *input.Phone
-	}
+func flattenOrderContactDetails(input orders.ContactDetails) []interface{} {
 	return []interface{}{
 		map[string]interface{}{
-			"company_name": companyName,
-			"name":         contactPerson,
-			"emails":       utils.FlattenStringSlice(input.EmailList),
-			"phone_number": phone,
+			"company_name": input.CompanyName,
+			"name":         input.ContactPerson,
+			"emails":       input.EmailList,
+			"phone_number": input.Phone,
 		},
 	}
 }
 
-func flattenOrderStatus(input *databoxedge.OrderStatus) []interface{} {
+func flattenOrderStatus(input *orders.OrderStatus) (*[]interface{}, error) {
 	if input == nil {
-		return make([]interface{}, 0)
+		return &[]interface{}{}, nil
 	}
 
 	var status string
@@ -463,35 +456,31 @@ func flattenOrderStatus(input *databoxedge.OrderStatus) []interface{} {
 	}
 	additionalOrderDetails := make(map[string]interface{})
 	if input.AdditionalOrderDetails != nil {
-		additionalOrderDetails = utils.FlattenMapStringPtrString(input.AdditionalOrderDetails)
+		for k, v := range *input.AdditionalOrderDetails {
+			additionalOrderDetails[k] = v
+		}
 	}
 	var updateDateTime string
-	if input.UpdateDateTime != nil {
-		updateDateTime = input.UpdateDateTime.Format(time.RFC3339)
+	d, err := input.GetUpdateDateTimeAsTime()
+	if err != nil {
+		return nil, fmt.Errorf("parsing UpdateDateTime: %+v", err)
 	}
-	return []interface{}{
+	if d != nil {
+		updateDateTime = d.Format(time.RFC3339)
+	}
+	return &[]interface{}{
 		map[string]interface{}{
 			"info":               status,
 			"comments":           comments,
 			"additional_details": additionalOrderDetails,
 			"last_update":        updateDateTime,
 		},
-	}
+	}, nil
 }
 
-func flattenOrderAddress(input *databoxedge.Address) []interface{} {
+func flattenOrderAddress(input *orders.Address) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
-	}
-
-	var city string
-	if input.City != nil {
-		city = *input.City
-	}
-
-	var country string
-	if input.Country != nil {
-		country = *input.Country
 	}
 
 	var postalCode string
@@ -505,7 +494,6 @@ func flattenOrderAddress(input *databoxedge.Address) []interface{} {
 	}
 
 	address := make([]interface{}, 0)
-
 	if input.AddressLine1 != nil {
 		address = append(address, *input.AddressLine1)
 	}
@@ -521,15 +509,15 @@ func flattenOrderAddress(input *databoxedge.Address) []interface{} {
 	return []interface{}{
 		map[string]interface{}{
 			"address":     address,
-			"city":        city,
-			"country":     country,
+			"city":        input.City,
+			"country":     input.Country,
 			"postal_code": postalCode,
 			"state":       state,
 		},
 	}
 }
 
-func flattenOrderTrackingInfo(input *[]databoxedge.TrackingInfo) []interface{} {
+func flattenOrderTrackingInfo(input *[]orders.TrackingInfo) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -545,12 +533,12 @@ func flattenOrderTrackingInfo(input *[]databoxedge.TrackingInfo) []interface{} {
 			serialNumber = *item.SerialNumber
 		}
 		var trackingId string
-		if item.TrackingID != nil {
-			trackingId = *item.TrackingID
+		if item.TrackingId != nil {
+			trackingId = *item.TrackingId
 		}
 		var trackingUrl string
-		if item.TrackingURL != nil {
-			trackingUrl = *item.TrackingURL
+		if item.TrackingUrl != nil {
+			trackingUrl = *item.TrackingUrl
 		}
 		results = append(results, map[string]interface{}{
 			"carrier_name":  carrierName,
@@ -562,30 +550,35 @@ func flattenOrderTrackingInfo(input *[]databoxedge.TrackingInfo) []interface{} {
 	return results
 }
 
-func flattenOrderHistory(input *[]databoxedge.OrderStatus) []interface{} {
+func flattenOrderHistory(input *[]orders.OrderStatus) (*[]interface{}, error) {
 	results := make([]interface{}, 0)
-	if input == nil {
-		return results
+	if input != nil {
+		for _, item := range *input {
+			additionalOrderDetails := make(map[string]interface{})
+			if item.AdditionalOrderDetails != nil {
+				for k, v := range *item.AdditionalOrderDetails {
+					additionalOrderDetails[k] = v
+				}
+			}
+			var comments string
+			if item.Comments != nil {
+				comments = *item.Comments
+			}
+			var updateDateTime string
+			d, err := item.GetUpdateDateTimeAsTime()
+			if err != nil {
+				return nil, fmt.Errorf("parsing UpdateDateTime: %+v", err)
+			}
+			if d != nil {
+				updateDateTime = d.Format(time.RFC3339)
+			}
+			results = append(results, map[string]interface{}{
+				"additional_details": additionalOrderDetails,
+				"comments":           comments,
+				"last_update":        updateDateTime,
+			})
+		}
 	}
 
-	for _, item := range *input {
-		additionalOrderDetails := make(map[string]interface{})
-		if item.AdditionalOrderDetails != nil {
-			additionalOrderDetails = utils.FlattenMapStringPtrString(item.AdditionalOrderDetails)
-		}
-		var comments string
-		if item.Comments != nil {
-			comments = *item.Comments
-		}
-		var updateDateTime string
-		if item.UpdateDateTime != nil {
-			updateDateTime = item.UpdateDateTime.Format(time.RFC3339)
-		}
-		results = append(results, map[string]interface{}{
-			"additional_details": additionalOrderDetails,
-			"comments":           comments,
-			"last_update":        updateDateTime,
-		})
-	}
-	return results
+	return &results, nil
 }

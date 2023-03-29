@@ -73,7 +73,8 @@ func (l *Link) UnmarshalJSON(data []byte) error {
 	// https://github.com/Azure/azure-sdk-for-go/issues/18809
 	u, err := url.ParseRequestURI(link)
 	if err != nil {
-		return err
+		// When an invalid URI is returned, we'll return nil instead of raising the error
+		return nil
 	}
 	u.RawQuery = u.Query().Encode()
 

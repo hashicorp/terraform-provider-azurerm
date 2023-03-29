@@ -254,7 +254,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Default:      0,
 					ValidateFunc: validation.IntBetween(2, 10),
 					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
@@ -572,7 +572,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Default:      0,
 					ValidateFunc: validation.IntBetween(2, 10),
 					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
 				},
@@ -666,13 +666,12 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 
 	windowsSlotSiteConfig := siteConfig[0]
 
-	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
-		if windowsSlotSiteConfig.HealthCheckPath != "" && metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-			v := strconv.Itoa(windowsSlotSiteConfig.HealthCheckEvictionTime)
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("WEBSITE_HEALTHCHECK_MAXPINGFAILURES"),
-				Value: utils.String(v),
-			})
+	if metadata.ResourceData.HasChange("site_config.0.health_check_path") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+		v := strconv.Itoa(windowsSlotSiteConfig.HealthCheckEvictionTime)
+		if v == "0" || windowsSlotSiteConfig.HealthCheckPath == "" {
+			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
+		} else {
+			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
 		}
 	}
 
@@ -845,6 +844,7 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 		AppCommandLine:          utils.NormalizeNilableString(functionAppSlotSiteConfig.AppCommandLine),
 		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.FunctionAppScaleLimit)),
 		AutoSwapSlotName:        utils.NormalizeNilableString(functionAppSlotSiteConfig.AutoSwapSlotName),
+		Cors:                    FlattenCorsSettings(functionAppSlotSiteConfig.Cors),
 		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSlotSiteConfig.DetailedErrorLoggingEnabled),
 		HealthCheckPath:         utils.NormalizeNilableString(functionAppSlotSiteConfig.HealthCheckPath),
 		Http2Enabled:            utils.NormaliseNilableBool(functionAppSlotSiteConfig.HTTP20Enabled),
@@ -885,26 +885,6 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 
 	if v := functionAppSlotSiteConfig.DefaultDocuments; v != nil {
 		result.DefaultDocuments = *v
-	}
-
-	if functionAppSlotSiteConfig.Cors != nil {
-		corsEmpty := false
-		corsSettings := functionAppSlotSiteConfig.Cors
-		cors := CorsSetting{}
-		if corsSettings.SupportCredentials != nil {
-			cors.SupportCredentials = *corsSettings.SupportCredentials
-		}
-
-		if corsSettings.AllowedOrigins != nil {
-			if len(*corsSettings.AllowedOrigins) > 0 {
-				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
-				corsEmpty = true
-			}
-		}
-		if !corsEmpty {
-			result.Cors = []CorsSetting{cors}
-		}
 	}
 
 	powershellVersion := ""
@@ -960,13 +940,12 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 
 	linuxSlotSiteConfig := siteConfig[0]
 
-	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
-		if linuxSlotSiteConfig.HealthCheckPath != "" && metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-			v := strconv.Itoa(linuxSlotSiteConfig.HealthCheckEvictionTime)
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("WEBSITE_HEALTHCHECK_MAXPINGFAILURES"),
-				Value: utils.String(v),
-			})
+	if metadata.ResourceData.HasChange("site_config.0.health_check_path") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+		v := strconv.Itoa(linuxSlotSiteConfig.HealthCheckEvictionTime)
+		if v == "0" || linuxSlotSiteConfig.HealthCheckPath == "" {
+			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
+		} else {
+			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
 		}
 	}
 
@@ -1197,6 +1176,7 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteCo
 		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.FunctionAppScaleLimit)),
 		AutoSwapSlotName:        utils.NormalizeNilableString(functionAppSlotSiteConfig.AutoSwapSlotName),
 		ContainerRegistryMSI:    utils.NormalizeNilableString(functionAppSlotSiteConfig.AcrUserManagedIdentityID),
+		Cors:                    FlattenCorsSettings(functionAppSlotSiteConfig.Cors),
 		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSlotSiteConfig.DetailedErrorLoggingEnabled),
 		HealthCheckPath:         utils.NormalizeNilableString(functionAppSlotSiteConfig.HealthCheckPath),
 		Http2Enabled:            utils.NormaliseNilableBool(functionAppSlotSiteConfig.HTTP20Enabled),
@@ -1238,26 +1218,6 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteCo
 
 	if v := functionAppSlotSiteConfig.DefaultDocuments; v != nil {
 		result.DefaultDocuments = *v
-	}
-
-	if functionAppSlotSiteConfig.Cors != nil {
-		corsSettings := functionAppSlotSiteConfig.Cors
-		corsEmpty := false
-		cors := CorsSetting{}
-		if corsSettings.SupportCredentials != nil {
-			cors.SupportCredentials = *corsSettings.SupportCredentials
-		}
-
-		if corsSettings.AllowedOrigins != nil {
-			if len(*corsSettings.AllowedOrigins) > 0 {
-				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
-				corsEmpty = true
-			}
-		}
-		if !corsEmpty {
-			result.Cors = []CorsSetting{cors}
-		}
 	}
 
 	var appStack []ApplicationStackLinuxFunctionApp

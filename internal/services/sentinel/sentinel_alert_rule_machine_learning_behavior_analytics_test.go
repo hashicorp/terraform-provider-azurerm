@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type SentinelAlertRuleMLBehaviorAnalyticsResource struct{}
@@ -92,26 +92,30 @@ func TestAccSentinelAlertRuleMLBehaviorAnalytics_requiresImport(t *testing.T) {
 
 func (r SentinelAlertRuleMLBehaviorAnalyticsResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	alertRuleClient := client.Sentinel.AlertRulesClient
-	id, err := parse.AlertRuleID(state.ID)
+	id, err := alertrules.ParseAlertRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := alertRuleClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := alertRuleClient.AlertRulesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 
 		return nil, fmt.Errorf("retrieving Sentinel Alert Rule MLBehaviorAnalytics (%q): %+v", state.String(), err)
 	}
 
-	rule, ok := resp.Value.(securityinsight.MLBehaviorAnalyticsAlertRule)
-	if !ok {
-		return nil, fmt.Errorf("the Alert Rule %q is not a MLBehaviorAnalytics Alert Rule", id)
+	if model := resp.Model; model != nil {
+		modelPtr := *model
+		rule, ok := modelPtr.(alertrules.MLBehaviorAnalyticsAlertRule)
+		if !ok {
+			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
+		}
+		return utils.Bool(rule.Id != nil), nil
 	}
 
-	return utils.Bool(rule.ID != nil), nil
+	return utils.Bool(false), nil
 }
 
 func (r SentinelAlertRuleMLBehaviorAnalyticsResource) basic(data acceptance.TestData) string {
@@ -120,13 +124,14 @@ func (r SentinelAlertRuleMLBehaviorAnalyticsResource) basic(data acceptance.Test
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "(Preview) Anomalous SSH Login Detection"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 
 resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "test" {
   name                       = "acctest-SentinelAlertRule-MLBehaviorAnalytics-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
+
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -137,24 +142,24 @@ func (r SentinelAlertRuleMLBehaviorAnalyticsResource) complete(data acceptance.T
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "(Preview) Anomalous SSH Login Detection"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 
 resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "test" {
   name                       = "acctest-SentinelAlertRule-MLBehaviorAnalytics-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
   enabled                    = false
 }
 
 data "azurerm_sentinel_alert_rule_template" "test2" {
   display_name               = "(Preview) Anomalous RDP Login Detections"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 
 resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "test2" {
   name                       = "acctest-SentinelAlertRule-MLBehaviorAnalytics-2-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test2.name
   enabled                    = false
 }
@@ -191,17 +196,8 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

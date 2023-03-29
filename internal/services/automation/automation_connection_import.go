@@ -4,30 +4,33 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/connection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func importAutomationConnection(connectionType string) pluginsdk.ImporterFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
-		id, err := parse.ConnectionID(d.Id())
+		id, err := connection.ParseConnectionID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, err
 		}
 
 		client := meta.(*clients.Client).Automation.ConnectionClient
-		resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+		resp, err := client.Get(ctx, *id)
 		if err != nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving automation connection %q (Account %q / Resource Group %q): %+v", id.Name, id.AutomationAccountName, id.ResourceGroup, err)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
-		if resp.ConnectionProperties == nil || resp.ConnectionProperties.ConnectionType == nil || resp.ConnectionProperties.ConnectionType.Name == nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving automation connection %q (Account %q / Resource Group %q): `properties`, `properties.connectionType` or `properties.connectionType.name` was nil", id.Name, id.AutomationAccountName, id.ResourceGroup)
-		}
-
-		if *resp.ConnectionProperties.ConnectionType.Name != connectionType {
-			return nil, fmt.Errorf(`automation connection "type" mismatch, expected "%s", got "%s"`, connectionType, *resp.ConnectionProperties.ConnectionType.Name)
+		if model := resp.Model; model != nil {
+			if resp.Model.Properties == nil || resp.Model.Properties.ConnectionType == nil || resp.Model.Properties.ConnectionType.Name == nil {
+				return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: `properties`, `properties.connectionType` or `properties.connectionType.name` was nil", *id)
+			}
+			if *model.Properties.ConnectionType.Name != connectionType {
+				return nil, fmt.Errorf(`automation connection "type" mismatch, expected "%s", got "%s"`, connectionType, *model.Properties.ConnectionType.Name)
+			}
+		} else {
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s", *id)
 		}
 		return []*pluginsdk.ResourceData{d}, nil
 	}

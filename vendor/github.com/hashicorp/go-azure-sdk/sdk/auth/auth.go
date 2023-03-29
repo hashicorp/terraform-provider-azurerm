@@ -94,7 +94,7 @@ func NewAuthorizerFromCredentials(ctx context.Context, c Credentials, api enviro
 		opts := GitHubOIDCAuthorizerOptions{
 			Api:                 api,
 			AuxiliaryTenantIds:  c.AuxiliaryTenantIDs,
-			ClientId:            c.TenantID,
+			ClientId:            c.ClientID,
 			Environment:         c.Environment,
 			IdTokenRequestUrl:   c.GitHubOIDCTokenRequestURL,
 			IdTokenRequestToken: c.GitHubOIDCTokenRequestToken,

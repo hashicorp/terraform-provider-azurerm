@@ -18,6 +18,7 @@ type Registry struct {
 	PasswordSecretRef string `tfschema:"password_secret_name"`
 	Server            string `tfschema:"server"`
 	UserName          string `tfschema:"username"`
+	Identity          string `tfschema:"identity"`
 }
 
 func ContainerAppRegistrySchema() *pluginsdk.Schema {
@@ -35,38 +36,59 @@ func ContainerAppRegistrySchema() *pluginsdk.Schema {
 				},
 
 				"username": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The username to use for this Container Registry.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Description: "The username to use for this Container Registry.",
 				},
 
 				"password_secret_name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name of the Secret Reference containing the password value for this user on the Container Registry.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Description: "The name of the Secret Reference containing the password value for this user on the Container Registry.",
+				},
+
+				"identity": {
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Description: "ID of the System or User Managed Identity used to pull images from the Container Registry",
 				},
 			},
 		},
 	}
 }
 
-func ExpandContainerAppRegistries(input []Registry) *[]containerapps.RegistryCredentials {
+func ValidateContainerAppRegistry(r Registry) error {
+	if r.Identity != "" && (r.UserName != "" || r.PasswordSecretRef != "") {
+		return fmt.Errorf("identity and username/password_secret_name are mutually exclusive")
+	}
+	if r.Identity == "" && r.UserName == "" && r.PasswordSecretRef == "" {
+		return fmt.Errorf("must supply either identity or username/password_secret_name")
+	}
+	if (r.UserName != "" && r.PasswordSecretRef == "") || (r.UserName == "" && r.PasswordSecretRef != "") {
+		return fmt.Errorf("must supply both username and password_secret_name")
+	}
+	return nil
+}
+
+func ExpandContainerAppRegistries(input []Registry) (*[]containerapps.RegistryCredentials, error) {
 	if input == nil {
-		return nil
+		return nil, nil
 	}
 
 	registries := make([]containerapps.RegistryCredentials, 0)
 	for _, v := range input {
+		if err := ValidateContainerAppRegistry(v); err != nil {
+			return nil, err
+		}
 		registries = append(registries, containerapps.RegistryCredentials{
 			Server:            pointer.To(v.Server),
 			Username:          pointer.To(v.UserName),
 			PasswordSecretRef: pointer.To(v.PasswordSecretRef),
+			Identity:          pointer.To(v.Identity),
 		})
 	}
 
-	return &registries
+	return &registries, nil
 }
 
 func FlattenContainerAppRegistries(input *[]containerapps.RegistryCredentials) []Registry {
@@ -80,6 +102,7 @@ func FlattenContainerAppRegistries(input *[]containerapps.RegistryCredentials) [
 			PasswordSecretRef: pointer.From(v.PasswordSecretRef),
 			Server:            pointer.From(v.Server),
 			UserName:          pointer.From(v.Username),
+			Identity:          pointer.From(v.Identity),
 		})
 	}
 
@@ -620,7 +643,6 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MinItems: 1,
-		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {

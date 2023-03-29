@@ -7,20 +7,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
-	"github.com/Azure/go-autorest/autorest/date"
+	// import time/tzdata to embed timezone information in the program
+	// add this to resolve https://github.com/hashicorp/terraform-provider-azurerm/issues/20690
+	_ "time/tzdata"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/schedule"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAutomationSchedule() *pluginsdk.Resource {
@@ -31,7 +33,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 		Delete: resourceAutomationScheduleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ScheduleID(id)
+			_, err := schedule.ParseScheduleID(id)
 			return err
 		}),
 
@@ -63,11 +65,11 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(automation.ScheduleFrequencyDay),
-					string(automation.ScheduleFrequencyHour),
-					string(automation.ScheduleFrequencyMonth),
-					string(automation.ScheduleFrequencyOneTime),
-					string(automation.ScheduleFrequencyWeek),
+					string(schedule.ScheduleFrequencyDay),
+					string(schedule.ScheduleFrequencyHour),
+					string(schedule.ScheduleFrequencyMonth),
+					string(schedule.ScheduleFrequencyOneTime),
+					string(schedule.ScheduleFrequencyWeek),
 				}, false),
 			},
 
@@ -114,13 +116,13 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(automation.ScheduleDayMonday),
-						string(automation.ScheduleDayTuesday),
-						string(automation.ScheduleDayWednesday),
-						string(automation.ScheduleDayThursday),
-						string(automation.ScheduleDayFriday),
-						string(automation.ScheduleDaySaturday),
-						string(automation.ScheduleDaySunday),
+						string(schedule.ScheduleDayMonday),
+						string(schedule.ScheduleDayTuesday),
+						string(schedule.ScheduleDayWednesday),
+						string(schedule.ScheduleDayThursday),
+						string(schedule.ScheduleDayFriday),
+						string(schedule.ScheduleDaySaturday),
+						string(schedule.ScheduleDaySunday),
 					}, false),
 				},
 				Set:           set.HashStringIgnoreCase,
@@ -150,13 +152,13 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(automation.ScheduleDayMonday),
-								string(automation.ScheduleDayTuesday),
-								string(automation.ScheduleDayWednesday),
-								string(automation.ScheduleDayThursday),
-								string(automation.ScheduleDayFriday),
-								string(automation.ScheduleDaySaturday),
-								string(automation.ScheduleDaySunday),
+								string(schedule.ScheduleDayMonday),
+								string(schedule.ScheduleDayTuesday),
+								string(schedule.ScheduleDayWednesday),
+								string(schedule.ScheduleDayThursday),
+								string(schedule.ScheduleDayFriday),
+								string(schedule.ScheduleDaySaturday),
+								string(schedule.ScheduleDaySunday),
 							}, false),
 						},
 						"occurrence": {
@@ -207,22 +209,23 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 
 func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ScheduleClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Schedule creation.")
 
-	id := parse.NewScheduleID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
+	id := schedule.NewScheduleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_automation_schedule", id.ID())
 		}
 	}
@@ -231,48 +234,54 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	timeZone := d.Get("timezone").(string)
 	description := d.Get("description").(string)
 
-	parameters := automation.ScheduleCreateOrUpdateParameters{
-		Name: &id.Name,
-		ScheduleCreateOrUpdateProperties: &automation.ScheduleCreateOrUpdateProperties{
+	parameters := schedule.ScheduleCreateOrUpdateParameters{
+		Name: id.ScheduleName,
+		Properties: schedule.ScheduleCreateOrUpdateProperties{
 			Description: &description,
-			Frequency:   automation.ScheduleFrequency(frequency),
+			Frequency:   schedule.ScheduleFrequency(frequency),
 			TimeZone:    &timeZone,
 		},
 	}
-	properties := parameters.ScheduleCreateOrUpdateProperties
 
 	// start time can default to now + 7 (5 could be invalid by the time the API is called)
+	loc, err := time.LoadLocation(timeZone)
+	if err != nil {
+		return err
+	}
 	if v, ok := d.GetOk("start_time"); ok {
 		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 		duration := time.Duration(5) * time.Minute
 		if time.Until(t) < duration {
-			return fmt.Errorf("start_time is %q and should be at least %q in the future", t, duration)
+			return fmt.Errorf("`start_time` is %q and should be at least %q in the future", t, duration)
 		}
-		properties.StartTime = &date.Time{Time: t}
+
+		parameters.Properties.SetStartTimeAsTime(t.In(loc))
 	} else {
-		properties.StartTime = &date.Time{Time: time.Now().Add(time.Duration(7) * time.Minute)}
+		parameters.Properties.SetStartTimeAsTime(time.Now().In(loc).Add(time.Duration(7) * time.Minute))
 	}
 
 	if v, ok := d.GetOk("expiry_time"); ok {
 		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
-		properties.ExpiryTime = &date.Time{Time: t}
+		parameters.Properties.SetExpiryTimeAsTime(t.In(loc))
 	}
 
 	// only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
-	if properties.Frequency != automation.ScheduleFrequencyOneTime {
+	if parameters.Properties.Frequency != schedule.ScheduleFrequencyOneTime {
+
+		var interval interface{}
+		interval = 1
 		if v, ok := d.GetOk("interval"); ok {
-			properties.Interval = utils.Int32(int32(v.(int)))
-		} else {
-			properties.Interval = 1
+			interval = v
 		}
+		parameters.Properties.Interval = &interval
 	}
 
 	// only pay attention to the advanced schedule fields if frequency is either Week or Month
-	if properties.Frequency == automation.ScheduleFrequencyWeek || properties.Frequency == automation.ScheduleFrequencyMonth {
-		properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")
+	if parameters.Properties.Frequency == schedule.ScheduleFrequencyWeek || parameters.Properties.Frequency == schedule.ScheduleFrequencyMonth {
+		parameters.Properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return err
 	}
 
@@ -286,51 +295,62 @@ func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ScheduleID(d.Id())
+	id, err := schedule.ParseScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on AzureRM Automation Schedule '%s': %+v", id.Name, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ScheduleName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("automation_account_name", id.AutomationAccountName)
-	d.Set("frequency", string(resp.Frequency))
 
-	if v := resp.StartTime; v != nil {
-		d.Set("start_time", v.Format(time.RFC3339))
-	}
-	if v := resp.ExpiryTime; v != nil {
-		d.Set("expiry_time", v.Format(time.RFC3339))
-	}
-	if v := resp.Interval; v != nil {
-		d.Set("interval", v)
-	}
-	if v := resp.Description; v != nil {
-		d.Set("description", v)
-	}
-	if v := resp.TimeZone; v != nil {
-		d.Set("timezone", v)
-	}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("frequency", props.Frequency)
 
-	if v := resp.AdvancedSchedule; v != nil {
-		if err := d.Set("week_days", flattenArmAutomationScheduleAdvancedWeekDays(v)); err != nil {
-			return fmt.Errorf("setting `week_days`: %+v", err)
-		}
-		if err := d.Set("month_days", flattenArmAutomationScheduleAdvancedMonthDays(v)); err != nil {
-			return fmt.Errorf("setting `month_days`: %+v", err)
-		}
-		if err := d.Set("monthly_occurrence", flattenArmAutomationScheduleAdvancedMonthlyOccurrences(v)); err != nil {
-			return fmt.Errorf("setting `monthly_occurrence`: %+v", err)
+			startTime, err := props.GetStartTimeAsTime()
+			if err != nil {
+				return err
+			}
+			d.Set("start_time", startTime.Format(time.RFC3339))
+
+			expiryTime, err := props.GetExpiryTimeAsTime()
+			if err != nil {
+				return err
+			}
+			d.Set("expiry_time", expiryTime.Format(time.RFC3339))
+
+			if v := props.Interval; v != nil {
+				d.Set("interval", v)
+			}
+			if v := props.Description; v != nil {
+				d.Set("description", v)
+			}
+			if v := props.TimeZone; v != nil {
+				d.Set("timezone", v)
+			}
+
+			if v := props.AdvancedSchedule; v != nil {
+				if err := d.Set("week_days", flattenArmAutomationScheduleAdvancedWeekDays(v)); err != nil {
+					return fmt.Errorf("setting `week_days`: %+v", err)
+				}
+				if err := d.Set("month_days", flattenArmAutomationScheduleAdvancedMonthDays(v)); err != nil {
+					return fmt.Errorf("setting `month_days`: %+v", err)
+				}
+				if err := d.Set("monthly_occurrence", flattenArmAutomationScheduleAdvancedMonthlyOccurrences(v)); err != nil {
+					return fmt.Errorf("setting `monthly_occurrence`: %+v", err)
+				}
+			}
 		}
 	}
 	return nil
@@ -341,23 +361,23 @@ func resourceAutomationScheduleDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ScheduleID(d.Id())
+	id, err := schedule.ParseScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("issuing AzureRM delete request for Automation Schedule '%s': %+v", id.Name, err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
 	return nil
 }
 
-func expandArmAutomationScheduleAdvanced(d *pluginsdk.ResourceData, isUpdate bool) *automation.AdvancedSchedule {
-	expandedAdvancedSchedule := automation.AdvancedSchedule{}
+func expandArmAutomationScheduleAdvanced(d *pluginsdk.ResourceData, isUpdate bool) *schedule.AdvancedSchedule {
+	expandedAdvancedSchedule := schedule.AdvancedSchedule{}
 
 	// If frequency is set to `Month` the `week_days` array cannot be set (even empty), otherwise the API returns an error.
 	// During update it can be set and it will not return an error. Workaround for the APIs behaviour
@@ -375,24 +395,26 @@ func expandArmAutomationScheduleAdvanced(d *pluginsdk.ResourceData, isUpdate boo
 	// Same as above with `week_days`
 	if v, ok := d.GetOk("month_days"); ok {
 		monthDays := v.(*pluginsdk.Set).List()
-		expandedMonthDays := make([]int32, len(monthDays))
+		expandedMonthDays := make([]int64, len(monthDays))
 		for i := range monthDays {
-			expandedMonthDays[i] = int32(monthDays[i].(int))
+			expandedMonthDays[i] = int64(monthDays[i].(int))
 		}
 		expandedAdvancedSchedule.MonthDays = &expandedMonthDays
 	} else if isUpdate {
-		expandedAdvancedSchedule.MonthDays = &[]int32{}
+		expandedAdvancedSchedule.MonthDays = &[]int64{}
 	}
 
 	monthlyOccurrences := d.Get("monthly_occurrence").([]interface{})
-	expandedMonthlyOccurrences := make([]automation.AdvancedScheduleMonthlyOccurrence, len(monthlyOccurrences))
+	expandedMonthlyOccurrences := make([]schedule.AdvancedScheduleMonthlyOccurrence, len(monthlyOccurrences))
 	for i := range monthlyOccurrences {
 		m := monthlyOccurrences[i].(map[string]interface{})
-		occurrence := int32(m["occurrence"].(int))
+		occurrence := int64(m["occurrence"].(int))
 
-		expandedMonthlyOccurrences[i] = automation.AdvancedScheduleMonthlyOccurrence{
+		day := schedule.ScheduleDay(m["day"].(string))
+
+		expandedMonthlyOccurrences[i] = schedule.AdvancedScheduleMonthlyOccurrence{
 			Occurrence: &occurrence,
-			Day:        automation.ScheduleDay(m["day"].(string)),
+			Day:        &day,
 		}
 	}
 	expandedAdvancedSchedule.MonthlyOccurrences = &expandedMonthlyOccurrences
@@ -400,7 +422,7 @@ func expandArmAutomationScheduleAdvanced(d *pluginsdk.ResourceData, isUpdate boo
 	return &expandedAdvancedSchedule
 }
 
-func flattenArmAutomationScheduleAdvancedWeekDays(s *automation.AdvancedSchedule) *pluginsdk.Set {
+func flattenArmAutomationScheduleAdvancedWeekDays(s *schedule.AdvancedSchedule) *pluginsdk.Set {
 	flattenedWeekDays := pluginsdk.NewSet(set.HashStringIgnoreCase, []interface{}{})
 	if weekDays := s.WeekDays; weekDays != nil {
 		for _, v := range *weekDays {
@@ -410,7 +432,7 @@ func flattenArmAutomationScheduleAdvancedWeekDays(s *automation.AdvancedSchedule
 	return flattenedWeekDays
 }
 
-func flattenArmAutomationScheduleAdvancedMonthDays(s *automation.AdvancedSchedule) *pluginsdk.Set {
+func flattenArmAutomationScheduleAdvancedMonthDays(s *schedule.AdvancedSchedule) *pluginsdk.Set {
 	flattenedMonthDays := pluginsdk.NewSet(set.HashInt, []interface{}{})
 	if monthDays := s.MonthDays; monthDays != nil {
 		for _, v := range *monthDays {
@@ -420,7 +442,7 @@ func flattenArmAutomationScheduleAdvancedMonthDays(s *automation.AdvancedSchedul
 	return flattenedMonthDays
 }
 
-func flattenArmAutomationScheduleAdvancedMonthlyOccurrences(s *automation.AdvancedSchedule) []map[string]interface{} {
+func flattenArmAutomationScheduleAdvancedMonthlyOccurrences(s *schedule.AdvancedSchedule) []map[string]interface{} {
 	flattenedMonthlyOccurrences := make([]map[string]interface{}, 0)
 	if monthlyOccurrences := s.MonthlyOccurrences; monthlyOccurrences != nil {
 		for _, v := range *monthlyOccurrences {

@@ -52,11 +52,15 @@ The following arguments are supported:
 
 * `cross_region_restore_enabled` - (Optional) Is cross region restore enabled for this Vault? Only can be `true`, when `storage_mode_type` is `GeoRedundant`. Defaults to `false`.
 
+-> **Note:** Once `cross_region_restore_enabled` is set to `true`, changing it back to `false` forces a new Recovery Service Vault to be created.
+
 * `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
 
 * `encryption` - (Optional) An `encryption` block as defined below. Required with `identity`.
 
 !> **Note:** Once Encryption with your own key has been Enabled it's not possible to Disable it.
+
+* `classic_vmware_replication_enabled` - (Optional) Whether to enable the Classic experience for VMware replication. If set to `false` VMware machines will be protected using the new stateless ASR replication appliance. Changing this forces a new resource to be created.
 
 ---
 

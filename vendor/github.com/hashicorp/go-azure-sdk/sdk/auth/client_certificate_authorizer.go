@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package auth
 
 import (
@@ -6,7 +9,7 @@ import (
 	"os"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
-	"golang.org/x/crypto/pkcs12"
+	"software.sslmate.com/src/go-pkcs12"
 )
 
 type ClientCertificateAuthorizerOptions struct {
@@ -47,7 +50,8 @@ func NewClientCertificateAuthorizer(ctx context.Context, options ClientCertifica
 		}
 	}
 
-	key, cert, err := pkcs12.Decode(options.Pkcs12Data, options.Pkcs12Pass)
+	// we aren't interested in the issuer chain, but we use the DecodeChain method to parse them out in case they are present
+	key, cert, _, err := pkcs12.DecodeChain(options.Pkcs12Data, options.Pkcs12Pass)
 	if err != nil {
 		return nil, fmt.Errorf("could not decode PKCS#12 archive: %s", err)
 	}

@@ -6,11 +6,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -81,28 +80,30 @@ func TestAccDataShareDataSetBlobStorage_requiresImport(t *testing.T) {
 }
 
 func (t DataShareDataSetBlobStorageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DataSetID(state.ID)
+	id, err := dataset.ParseDataSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataShare.DataSetClient.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
+	resp, err := clients.DataShare.DataSetClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Data Share Data Set %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	switch resp := resp.Value.(type) {
-	case datashare.BlobDataSet:
-		return utils.Bool(resp.BlobProperties != nil), nil
-
-	case datashare.BlobFolderDataSet:
-		return utils.Bool(resp.BlobFolderProperties != nil), nil
-
-	case datashare.BlobContainerDataSet:
-		return utils.Bool(resp.BlobContainerProperties != nil), nil
+	if model := resp.Model; model != nil {
+		ds := *model
+		if _, ok := ds.(dataset.BlobDataSet); ok {
+			return utils.Bool(true), nil
+		}
+		if _, ok := ds.(dataset.BlobFolderDataSet); ok {
+			return utils.Bool(true), nil
+		}
+		if _, ok := ds.(dataset.BlobContainerDataSet); ok {
+			return utils.Bool(true), nil
+		}
 	}
 
-	return nil, fmt.Errorf("Data Share Data %q (Resource Group %q / accountName %q / shareName %q) is not a datalake store gen2 dataset", id.Name, id.ResourceGroup, id.AccountName, id.ShareName)
+	return nil, fmt.Errorf("%s is not a blob storage dataset", *id)
 }
 
 func (DataShareDataSetBlobStorageResource) template(data acceptance.TestData) string {
