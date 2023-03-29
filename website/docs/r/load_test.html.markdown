@@ -40,7 +40,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported:
+The following attributes are exported:
 
 * `id` - The ID of the Load Test.
 
