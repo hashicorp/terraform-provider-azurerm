@@ -9,6 +9,7 @@ Application Insights
 Attestation
 Authorization
 Automation
+Azure Cosmos DB for PostgreSQL
 Azure Stack HCI
 Base
 Batch
@@ -26,7 +27,6 @@ Container
 Container Apps
 Containers
 CosmosDB (DocumentDB)
-CosmosDB PostgreSQL
 Cost Management
 Custom Providers
 DNS
