@@ -51,12 +51,6 @@ func (r CustomCertWebPubsubResource) Arguments() map[string]*pluginsdk.Schema {
 				keyVaultValidate.NestedItemIdWithOptionalVersion,
 			),
 		},
-
-		"certificate_version": {
-			Type:         pluginsdk.TypeString,
-			Computed:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
 	}
 }
 
