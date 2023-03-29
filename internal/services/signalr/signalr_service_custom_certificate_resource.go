@@ -51,17 +51,17 @@ func (r CustomCertSignalrServiceResource) Arguments() map[string]*pluginsdk.Sche
 				keyVaultValidate.NestedItemIdWithOptionalVersion,
 			),
 		},
+	}
+}
 
+func (r CustomCertSignalrServiceResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"certificate_version": {
 			Type:         pluginsdk.TypeString,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-}
-
-func (r CustomCertSignalrServiceResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
 }
 
 func (r CustomCertSignalrServiceResource) ModelObject() interface{} {
