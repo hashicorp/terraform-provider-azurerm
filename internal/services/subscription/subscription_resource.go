@@ -433,9 +433,9 @@ func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Clie
 			status, err := clients.Subscription.Client.Get(ctx, subscriptionId)
 			return status, string(status.State), err
 		},
-		PollInterval:              20 * time.Second,
+		PollInterval:              10 * time.Second,
 		Timeout:                   timeout,
-		ContinuousTargetOccurence: 2,
+		ContinuousTargetOccurence: 4,
 		Delay:                     60 * time.Second,
 	}
 	switch targetState {
@@ -446,6 +446,7 @@ func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Clie
 		}
 		stateConf.Pending = []string{
 			string(subscriptions.StateEnabled),
+			"", // The `State` field can be empty whilst being updated
 		}
 
 	case "Active":
@@ -455,6 +456,7 @@ func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Clie
 		stateConf.Pending = []string{
 			string(subscriptions.StateDisabled),
 			string(subscriptions.StateWarned),
+			"", // The `State` field can be empty whilst being updated
 		}
 	default:
 		return fmt.Errorf("unsupported target state %q for Subscription %q", targetState, subscriptionId)
