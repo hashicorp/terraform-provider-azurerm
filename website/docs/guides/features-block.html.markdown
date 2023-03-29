@@ -58,10 +58,6 @@ provider "azurerm" {
       expand_without_downtime = true
     }
 
-    network {
-      manager_commit_keep_on_destroy = true
-    }
-
     resource_group {
       prevent_deletion_if_contains_resources = true
     }
@@ -181,12 +177,6 @@ The `managed_disk` block supports the following:
 * `expand_without_downtime` - (Optional) Specifies whether Managed Disks which can be Expanded without Downtime (on either [a Linux VM](https://learn.microsoft.com/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime) [or a Windows VM](https://learn.microsoft.com/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime)) should be expanded without restarting the associated Virtual Machine. Defaults to `true`.
 
 ~> **Note:** Expand Without Downtime requires a specific configuration for the Managed Disk and Virtual Machine - Terraform will use Expand Without Downtime when the Managed Disk and Virtual Machine meet these requirements, and shut the Virtual Machine down as needed if this is inapplicable. More information on when Expand Without Downtime is applicable can be found in the [Linux VM](https://learn.microsoft.com/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime) [or Windows VM](https://learn.microsoft.com/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime) documentation.
-
----
-
-The `network` block supports the following:
-
-* `manager_commit_keep_on_destroy` - (Optional) Should the `azurerm_network_manager_commit` resource keep the committed configuration when deleting. Set to `true` to avoid downtime while recreating the commit resource. Set this flag to `true` will also overwrite existing commit in creation. Defaults to `false`.
 
 ---
 
