@@ -59,6 +59,7 @@ type LinuxFunctionAppModel struct {
 	StorageAccounts             []helpers.StorageAccount             `tfschema:"storage_account"`
 	Tags                        map[string]string                    `tfschema:"tags"`
 	VirtualNetworkSubnetID      string                               `tfschema:"virtual_network_subnet_id"`
+	ZipDeployFile               string                               `tfschema:"zip_deploy_file"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -263,6 +264,14 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: networkValidate.SubnetID,
+		},
+
+		"zip_deploy_file": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Linux Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 	}
 }
@@ -567,6 +576,12 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if functionApp.ZipDeployFile != "" {
+				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, functionApp.ZipDeployFile); err != nil {
+					return err
+				}
+			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -712,6 +727,11 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 
 			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
 				state.VirtualNetworkSubnetID = subnetId
+			}
+
+			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
+			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
+				state.ZipDeployFile = deployFile
 			}
 
 			if err := metadata.Encode(&state); err != nil {
@@ -1034,6 +1054,12 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				appServiceLogs := helpers.ExpandFunctionAppAppServiceLogs(state.SiteConfig[0].AppServiceLogs)
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, appServiceLogs); err != nil {
 					return fmt.Errorf("updating App Service Log Settings for %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("zip_deploy_file") {
+				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, state.ZipDeployFile); err != nil {
+					return err
 				}
 			}
 

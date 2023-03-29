@@ -394,27 +394,23 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 		}
 	}
 
-	// Extract OData from response
-	var o *odata.OData
-	resp.OData, err = odata.FromResponse(resp.Response)
-	if err != nil {
-		return resp, err
-	}
-	if resp == nil {
-		return resp, fmt.Errorf("nil response received")
-	}
+	// Extract OData from response, intentionally ignoring any errors as it's not crucial to extract
+	// valid OData at this point (valid json can still error here, such as any non-object literal)
+	resp.OData, _ = odata.FromResponse(resp.Response)
 
 	// Determine whether response status is valid
 	if !containsStatusCode(req.ValidStatusCodes, resp.StatusCode) {
-		if f := req.ValidStatusFunc; f != nil && f(resp.Response, o) {
+		// The status code didn't match, but we also need to check the ValidStatusFUnc, if provided
+		// Note that the odata argument here is a best-effort and may be nil
+		if f := req.ValidStatusFunc; f != nil && f(resp.Response, resp.OData) {
 			return resp, nil
 		}
 
 		// Determine suitable error text
 		var errText string
 		switch {
-		case o != nil && o.Error != nil && o.Error.String() != "":
-			errText = fmt.Sprintf("error: %s", o.Error)
+		case resp.OData != nil && resp.OData.Error != nil && resp.OData.Error.String() != "":
+			errText = fmt.Sprintf("error: %s", resp.OData.Error)
 
 		default:
 			defer resp.Body.Close()

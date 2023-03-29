@@ -119,7 +119,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: networkValidate.SubnetID,
 						},
 						"primary": {
 							Type:     pluginsdk.TypeBool,

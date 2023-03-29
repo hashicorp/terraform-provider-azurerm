@@ -147,6 +147,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Currently, we have insufficient quota to actually run these, but there are a few nodes in West Europe, so we'll pin it there for now
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false), useDevTestSubscription = true),
 
+        // In general, Azure Voice Service is available in several different regions, but each subscription will only be allowlisted for specific regions. The following regions are specified since those regions have been whitelisted by service team for testing purpose.
+        "voiceservices" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westcentralus", "centraluseuap", "eastus2euap", false), useDevTestSubscription = true),
+
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
         "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 

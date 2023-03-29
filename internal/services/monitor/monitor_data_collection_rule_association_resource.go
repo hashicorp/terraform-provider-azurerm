@@ -36,6 +36,7 @@ func (r DataCollectionRuleAssociationResource) Arguments() map[string]*pluginsdk
 		},
 
 		"name": {
+			// TODO: should this be hard-coded in the Create?
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -215,8 +216,6 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("description") {
 				existing.Properties.Description = utils.String(model.Description)
 			}
-
-			existing.SystemData = nil
 
 			if _, err := client.Create(ctx, *id, *existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)

@@ -110,56 +110,53 @@ func (r MobileNetworkResource) Exists(ctx context.Context, clients *clients.Clie
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r MobileNetworkResource) template(data acceptance.TestData) string {
+func (r MobileNetworkResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-mn-%d"
-  location = "%s"
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r MobileNetworkResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-				%s
+%s
 
 resource "azurerm_mobile_network" "test" {
   name                = "acctest-mn-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "%s"
+  location            = azurerm_resource_group.test.location
   mobile_country_code = "001"
   mobile_network_code = "01"
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func (r MobileNetworkResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_mobile_network" "import" {
   name                = azurerm_mobile_network.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%s"
-  mobile_country_code = "001"
-  mobile_network_code = "01"
+  resource_group_name = azurerm_mobile_network.test.resource_group_name
+  location            = azurerm_mobile_network.test.location
+  mobile_country_code = azurerm_mobile_network.test.mobile_country_code
+  mobile_network_code = azurerm_mobile_network.test.mobile_network_code
 }
-`, config, data.Locations.Primary)
+`, config)
 }
 
 func (r MobileNetworkResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_mobile_network" "test" {
   name                = "acctest-mn-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "%s"
+  location            = azurerm_resource_group.test.location
   mobile_country_code = "001"
   mobile_network_code = "01"
 
@@ -168,17 +165,22 @@ resource "azurerm_mobile_network" "test" {
   }
 
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func (r MobileNetworkResource) update(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_mobile_network" "test" {
   name                = "acctest-mn-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "%s"
+  location            = azurerm_resource_group.test.location
   mobile_country_code = "001"
   mobile_network_code = "01"
 
@@ -187,5 +189,14 @@ resource "azurerm_mobile_network" "test" {
   }
 
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
+}
+
+func (r MobileNetworkResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-mn-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

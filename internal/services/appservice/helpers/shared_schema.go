@@ -48,10 +48,8 @@ func (v IpRestriction) Validate() error {
 
 func IpRestrictionSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:       pluginsdk.TypeList,
-		Optional:   true,
-		Computed:   true,
-		ConfigMode: pluginsdk.SchemaConfigModeAttr,
+		Type:     pluginsdk.TypeList,
+		Optional: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ip_address": {
@@ -273,7 +271,8 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"allowed_origins": {
 					Type:     pluginsdk.TypeSet,
-					Required: true,
+					Optional: true,
+					//MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -313,6 +312,34 @@ func CorsSettingsSchemaComputed() *pluginsdk.Schema {
 				},
 			},
 		},
+	}
+}
+
+func FlattenCorsSettings(input *web.CorsSettings) []CorsSetting {
+	if input == nil {
+		return []CorsSetting{}
+	}
+
+	cors := *input
+	if len(pointer.From(cors.AllowedOrigins)) == 0 && !pointer.From(cors.SupportCredentials) {
+		return []CorsSetting{}
+	}
+
+	return []CorsSetting{{
+		SupportCredentials: pointer.From(cors.SupportCredentials),
+		AllowedOrigins:     pointer.From(cors.AllowedOrigins),
+	}}
+}
+
+func ExpandCorsSettings(input []CorsSetting) *web.CorsSettings {
+	if len(input) != 1 {
+		return &web.CorsSettings{}
+	}
+	cors := input[0]
+
+	return &web.CorsSettings{
+		AllowedOrigins:     pointer.To(cors.AllowedOrigins),
+		SupportCredentials: pointer.To(cors.SupportCredentials),
 	}
 }
 
@@ -1095,7 +1122,7 @@ func GithubAuthSettingsSchemaComputed() *pluginsdk.Schema {
 }
 
 func ExpandIpRestrictions(restrictions []IpRestriction) (*[]web.IPSecurityRestriction, error) {
-	var expanded []web.IPSecurityRestriction
+	expanded := make([]web.IPSecurityRestriction, 0)
 	if len(restrictions) == 0 {
 		return &expanded, nil
 	}
@@ -1157,25 +1184,6 @@ func expandIpRestrictionHeaders(headers []IpRestrictionHeaders) map[string][]str
 	}
 
 	return result
-}
-
-func ExpandCorsSettings(input []CorsSetting) *web.CorsSettings {
-	if len(input) == 0 {
-		allowedOrigins := make([]string, 0)
-		return &web.CorsSettings{
-			AllowedOrigins:     &allowedOrigins,
-			SupportCredentials: pointer.To(false),
-		}
-	}
-	var result web.CorsSettings
-	for _, v := range input {
-		if v.SupportCredentials {
-			result.SupportCredentials = utils.Bool(v.SupportCredentials)
-		}
-
-		result.AllowedOrigins = &v.AllowedOrigins
-	}
-	return &result
 }
 
 func ExpandAuthSettings(auth []AuthSettings) *web.SiteAuthSettings {
@@ -1444,7 +1452,7 @@ func FlattenAuthSettings(auth web.SiteAuthSettings) []AuthSettings {
 
 func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []IpRestriction {
 	if ipRestrictionsList == nil {
-		return nil
+		return []IpRestriction{}
 	}
 
 	var ipRestrictions []IpRestriction
@@ -1489,7 +1497,7 @@ func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []Ip
 
 func flattenIpRestrictionHeaders(headers map[string][]string) []IpRestrictionHeaders {
 	if len(headers) == 0 {
-		return nil
+		return []IpRestrictionHeaders{}
 	}
 	ipRestrictionHeader := IpRestrictionHeaders{}
 	if xForwardFor, ok := headers["x-forwarded-for"]; ok {
