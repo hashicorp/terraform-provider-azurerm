@@ -44,12 +44,9 @@ func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		// cannot use common schema 'SystemAssignedUserAssignedIdentityOptional' because
-		// the Databricks implementation is slightly different as it only allows
-		// 'SystemAssigned' or 'UserAssigned' (e.g. 'Only SystemAssigned or
-		// UserAssigned Identity is supported for an Access Connector
-		// resource, not both together.') and only allows for a single 'identity_ids'
-		// to be passed...
+		// TODO: Switch this to 'commonschema.SystemOrSingleUserAssignedIdentityOptional()'
+		// once SDK Helpers PR #164 has been merged and integrated into
+		// the provider...
 		"identity": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -130,11 +127,14 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			// TODO: Switch this to 'identity.ExpandSystemOrSingleUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))'
+			// once SDK Helpers PR #164 has been merged and integrated into the provider...
 			identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
+			// TODO: Remove this validation code since it will be included in the identity package...
 			if identityValue.Type == identity.TypeUserAssigned && len(identityValue.IdentityIds) == 0 {
 				return fmt.Errorf("`identity_ids` must be specified when `type` is set to %q", string(identity.TypeUserAssigned))
 			}
@@ -181,11 +181,14 @@ func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
+				// TODO: Switch this to 'identity.ExpandSystemOrSingleUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))'
+				// once SDK Helpers PR #164 has been merged and integrated into the provider...
 				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 
+				// TODO: Remove this validation code since it will be included in the identity package...
 				if identityValue.Type == identity.TypeUserAssigned && len(identityValue.IdentityIds) == 0 {
 					return fmt.Errorf("`identity_ids` must be specified when `type` is set to %q", string(identity.TypeUserAssigned))
 				}
@@ -240,6 +243,8 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 				}
 
 				if model.Identity != nil {
+					// TODO: Switch this to 'identity.FlattenSystemOrSingleUserAssignedMap(model.Identity)'
+					// once SDK Helpers PR #164 has been merged and integrated into the provider...
 					identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
 					if err != nil {
 						return fmt.Errorf("flattening `identity`: %+v", err)
