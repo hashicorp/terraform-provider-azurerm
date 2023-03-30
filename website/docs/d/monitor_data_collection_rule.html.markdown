@@ -48,7 +48,7 @@ output "rule_id" {
 
 * `identity` - An `identity` block as defined below.
 
-* `kind` - The kind of the Data Collection Rule. Possible values are `Linux` and `Windows`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
+* `kind` - The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`,and `AgentDirectToStore`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
 
 * `stream_declaration` - A `stream_declaration` block as defined below.
  
@@ -80,7 +80,7 @@ A `data_flow` block exports the following:
 
 * `destinations` - Specifies a list of destination names. A `azure_monitor_metrics` data source only allows for stream of kind `Microsoft-InsightsMetrics`.
 
-* `streams` - Specifies a list of streams. Possible values are `Microsoft-Event`, `Microsoft-InsightsMetrics`, `Microsoft-Perf`, `Microsoft-Syslog`,and `Microsoft-WindowsEvent`.
+* `streams` - Specifies a list of streams. Possible values include but not limited to `Microsoft-Event`, `Microsoft-InsightsMetrics`, `Microsoft-Perf`, `Microsoft-Syslog`,and `Microsoft-WindowsEvent`.
 
 * `built_in_transform` - The built-in transform to transform stream data.
 
@@ -131,14 +131,14 @@ A `destinations` block exports the following:
 * `storage_blob_direct` - One or more `storage_blob_direct` blocks as defined below.
 
 * `storage_table_direct` - One or more `storage_table_direct` blocks as defined below.
- 
+
 ---
 
 An `event_hub_data_source` block exports the following:
 
 * `name` - The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
-* `stream` - The stream to collect from Event Hub.
+* `stream` - The stream to collect from Event Hub. Possible value should be a custom stream name.
 
 * `consumer_group` - The Event Hub consumer group name.
 
@@ -166,7 +166,7 @@ A `extension` block exports the following:
 
 * `name` - The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
-* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values are `Microsoft-Event`, `Microsoft-InsightsMetrics`, `Microsoft-Perf`, `Microsoft-Syslog`,and `Microsoft-WindowsEvent`.
+* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft-Event`, `Microsoft-InsightsMetrics`, `Microsoft-Perf`, `Microsoft-Syslog`,and `Microsoft-WindowsEvent`.
 
 * `extension_json` - A JSON String which specifies the extension setting.
 
@@ -208,7 +208,7 @@ An `log_file` block exports the following:
 
 * `name` - The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
-* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible value is `Microsoft-W3CIISLog`.
+* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible value should be custom stream names.
 
 * `file_patterns` - Specifies a list of file patterns where the log files are located. For example, `C:\\JavaLogs\\*.log`.
 
@@ -241,7 +241,7 @@ A `performance_counter` block exports the following:
 
 * `sampling_frequency_in_seconds` - The number of seconds between consecutive counter measurements (samples). The value should be integer between `1` and `300` inclusive.
 
-* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values are `Microsoft-InsightsMetrics`,and `Microsoft-Perf`.
+* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft-InsightsMetrics`,and `Microsoft-Perf`.
 
 ---
 
@@ -249,7 +249,7 @@ A `platform_telemetry` block exports the following:
 
 * `name` - The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
-* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible value is `Microsoft-W3CIISLog`.
+* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft.Cache/redis:Metrics-Group-All`.
 
 ---
 
@@ -329,7 +329,7 @@ A `windows_event_log` block exports the following:
 
 * `name` - The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
-* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values are `Microsoft-Event`,and `Microsoft-WindowsEvent`.
+* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft-Event`,and `Microsoft-WindowsEvent`, `Microsoft-RomeDetectionEvent`, and `Microsoft-SecurityEvent`.
 
 * `x_path_queries` - Specifies a list of Windows Event Log queries in XPath expression.
 
@@ -339,7 +339,7 @@ A `windows_firewall_log` block exports the following:
 
 * `name` - The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
-* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft-Event`,and `Microsoft-WindowsEvent`, `Microsoft-RomeDetectionEvent`, and `Microsoft-SecurityEvent`.
+* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to.
 
 ## Timeouts
 
