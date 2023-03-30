@@ -379,6 +379,11 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			// Waiting for volume group be completely provisioned
+			if err := waitForVolumeGroupCreateOrUpdate(ctx, client, id); err != nil {
+				return err
+			}
+
 			// CRR - Authorizing secondaries from primary volumes
 			for _, volumeCrr := range *volumeList {
 				if volumeCrr.Properties.DataProtection != nil &&

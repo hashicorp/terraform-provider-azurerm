@@ -74,6 +74,8 @@ func PossibleValuesForVolumeSpecName() []string {
 		string(VolumeSpecNameData),
 		string(VolumeSpecNameLog),
 		string(VolumeSpecNameShared),
+		string(VolumeSpecNameDataBackup),
+		string(VolumeSpecNameLogBackup),
 	}
 }
 
@@ -569,9 +571,8 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 	}
 
 	// Removing replication if present
-	dataProtectionReplication := existing.Model.Properties.DataProtection
-
-	if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
+	if existing.Model.Properties.DataProtection != nil && existing.Model.Properties.DataProtection.Replication != nil {
+		dataProtectionReplication := existing.Model.Properties.DataProtection
 		replicaVolumeId, err := volumesreplication.ParseVolumeID(id.ID())
 		if err != nil {
 			return err
@@ -646,6 +647,28 @@ func waitForVolumeCreateOrUpdate(ctx context.Context, client *volumes.VolumesCli
 		Pending:                   []string{"204", "404"},
 		Target:                    []string{"200", "202"},
 		Refresh:                   netappVolumeStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish creating: %+v", id, err)
+	}
+
+	return nil
+}
+
+func waitForVolumeGroupCreateOrUpdate(ctx context.Context, client *volumegroups.VolumeGroupsClient, id volumegroups.VolumeGroupId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"204", "404"},
+		Target:                    []string{"200", "202"},
+		Refresh:                   netappVolumeGroupStateRefreshFunc(ctx, client, id),
 		Timeout:                   time.Until(deadline),
 	}
 
@@ -748,6 +771,23 @@ func waitForVolumeDeletion(ctx context.Context, client *volumes.VolumesClient, i
 func netappVolumeStateRefreshFunc(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(res.HttpResponse) {
+				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
+			}
+		}
+
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
+	}
+}
+
+func netappVolumeGroupStateRefreshFunc(ctx context.Context, client *volumegroups.VolumeGroupsClient, id volumegroups.VolumeGroupId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.VolumeGroupsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {
 				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
@@ -876,8 +916,9 @@ func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolu
 			}
 
 			// Validating that snapshot policies are not being created in a data protection volume
-			if volume.Properties.DataProtection.Snapshot != nil &&
-				strings.EqualFold(string(*volume.Properties.DataProtection.Replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
+			if volume.Properties.DataProtection != nil &&
+				volume.Properties.DataProtection.Snapshot != nil &&
+				(volume.Properties.DataProtection.Replication != nil && strings.EqualFold(string(*volume.Properties.DataProtection.Replication.EndpointType), string(volumegroups.EndpointTypeDst))) {
 
 				errors = append(errors, fmt.Errorf("'snapshot policy cannot be enabled on a data protection volume for %v on volume %v'", applicationType, *volume.Name))
 			}
