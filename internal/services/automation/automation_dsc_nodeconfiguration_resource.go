@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/dscnodeconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -26,7 +26,7 @@ func resourceAutomationDscNodeConfiguration() *pluginsdk.Resource {
 		Delete: resourceAutomationDscNodeConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.NodeConfigurationID(id)
+			_, err := dscnodeconfiguration.ParseNodeConfigurationID(id)
 			return err
 		}),
 
@@ -70,22 +70,23 @@ func resourceAutomationDscNodeConfiguration() *pluginsdk.Resource {
 
 func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfigurationClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Node Configuration creation.")
 
-	id := parse.NewNodeConfigurationID(client.SubscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
+	id := dscnodeconfiguration.NewNodeConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_automation_dsc_nodeconfiguration", id.ID())
 		}
 	}
@@ -95,27 +96,26 @@ func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceDat
 	// configuration name is always the first part of the dsc node configuration
 	// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
 
-	configurationName := strings.Split(id.Name, ".")[0]
+	configurationName := strings.Split(id.NodeConfigurationName, ".")[0]
 
-	parameters := automation.DscNodeConfigurationCreateOrUpdateParameters{
-		DscNodeConfigurationCreateOrUpdateParametersProperties: &automation.DscNodeConfigurationCreateOrUpdateParametersProperties{
-			Source: &automation.ContentSource{
-				Type:  automation.ContentSourceTypeEmbeddedContent,
+	contentSourceType := dscnodeconfiguration.ContentSourceTypeEmbeddedContent
+
+	parameters := dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParameters{
+		Properties: &dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParametersProperties{
+			Source: dscnodeconfiguration.ContentSource{
+				Type:  &contentSourceType,
 				Value: utils.String(content),
 			},
-			Configuration: &automation.DscConfigurationAssociationProperty{
+			Configuration: dscnodeconfiguration.DscConfigurationAssociationProperty{
 				Name: utils.String(configurationName),
 			},
 		},
-		Name: utils.String(id.Name),
+		Name: utils.String(id.NodeConfigurationName),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters)
+	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating %q: %+v", id, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update for %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -128,25 +128,34 @@ func resourceAutomationDscNodeConfigurationRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NodeConfigurationID(d.Id())
+	id, err := dscnodeconfiguration.ParseNodeConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on AzureRM Automation Dsc Node Configuration %q: %+v", id.Name, err)
+		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.NodeConfigurationName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("automation_account_name", id.AutomationAccountName)
-	d.Set("configuration_name", resp.Configuration.Name)
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			configurationName := ""
+			if props.Configuration != nil && props.Configuration.Name != nil {
+				configurationName = *props.Configuration.Name
+			}
+			d.Set("configuration_name", configurationName)
+		}
+	}
 
 	// cannot read back content_embedded as not part of body nor exposed through method
 
@@ -158,18 +167,18 @@ func resourceAutomationDscNodeConfigurationDelete(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NodeConfigurationID(d.Id())
+	id, err := dscnodeconfiguration.ParseNodeConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
 
-		return fmt.Errorf("issuing AzureRM delete request for Automation Dsc Node Configuration %q: %+v", id.Name, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

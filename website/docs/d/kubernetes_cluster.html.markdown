@@ -98,6 +98,8 @@ The following attributes are exported:
 
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
 
+* `node_resource_group_id` - The ID of the Resource Group containing the resources for this Managed Kubernetes Cluster.
+
 * `role_based_access_control_enabled` - Is Role Based Access Control enabled for this managed Kubernetes Cluster?
 
 * `service_principal` - A `service_principal` block as documented below.
@@ -268,6 +270,8 @@ A `network_profile` block exports the following:
 An `oms_agent` block exports the following:
 
 * `log_analytics_workspace_id` - The ID of the Log Analytics Workspace to which the OMS Agent should send data.
+
+* `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
 
 * `oms_agent_identity` - An `oms_agent_identity` block as defined below.  
 

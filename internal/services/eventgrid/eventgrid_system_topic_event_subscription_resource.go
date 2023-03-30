@@ -63,6 +63,7 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
+			// TODO: this can become `function_id` in 4.0?
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
 				utils.RemoveFromStringArray(
 					PossibleSystemTopicEventSubscriptionEndpointTypes(),
@@ -70,6 +71,7 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 				),
 			),
 
+			// TODO: this can become `eventhub_id` in 4.0
 			"eventhub_endpoint_id": eventSubscriptionSchemaEventHubEndpointID(
 				utils.RemoveFromStringArray(
 					PossibleSystemTopicEventSubscriptionEndpointTypes(),
@@ -77,6 +79,7 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 				),
 			),
 
+			// TODO: this can become `hybrid_connection_id` (or possible `arc_connection_id`?) in 4.0
 			"hybrid_connection_endpoint_id": eventSubscriptionSchemaHybridConnectionEndpointID(
 				utils.RemoveFromStringArray(
 					PossibleSystemTopicEventSubscriptionEndpointTypes(),

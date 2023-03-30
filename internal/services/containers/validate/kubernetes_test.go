@@ -114,11 +114,39 @@ func TestKubernetesDNSPrefix(t *testing.T) {
 			Errors:    1,
 		},
 		{
-			DNSPrefix: "a",
+			DNSPrefix: "aBc-123ab-",
 			Errors:    1,
 		},
 		{
+			DNSPrefix: "-aBc-123abc",
+			Errors:    1,
+		},
+		{
+			DNSPrefix: "a",
+			Errors:    0,
+		},
+		{
 			DNSPrefix: "aBc-123abc",
+			Errors:    0,
+		},
+		{
+			DNSPrefix: "ThisIsAKubernetesDNSPrefixThatIsExactlyFiftyFourCharac",
+			Errors:    0,
+		},
+		{
+			DNSPrefix: "ThisIsAKubernetesDNSPrefixThatIsNotExactlyFiftyFourChar",
+			Errors:    1,
+		},
+		{
+			DNSPrefix: "2",
+			Errors:    0,
+		},
+		{
+			DNSPrefix: "2ndCluster",
+			Errors:    0,
+		},
+		{
+			DNSPrefix: "aBc-123abc2",
 			Errors:    0,
 		},
 	}

@@ -165,5 +165,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Databox Edge Orders can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_databox_edge_order.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/device1/orders/default
+terraform import azurerm_databox_edge_order.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataBoxEdge/dataBoxEdgeDevices/device1
 ```

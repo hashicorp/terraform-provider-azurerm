@@ -142,6 +142,12 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"authorization_key": {
+				Type:      pluginsdk.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+
 			"service_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -217,7 +223,9 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if !d.IsNewResource() {
 		erc.ExpressRouteCircuitPropertiesFormat.AllowClassicOperations = &allowRdfeOps
 	} else {
-		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{}
+		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{
+			AuthorizationKey: utils.String(d.Get("authorization_key").(string)),
+		}
 
 		// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
 		if _, ok := d.GetOk("express_route_port_id"); ok {
@@ -300,7 +308,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("bandwidth_in_gbps", resp.BandwidthInGbps)
 
 		if resp.ExpressRoutePort.ID != nil {
-			portID, err := parse.ExpressRoutePortID(*resp.ExpressRoutePort.ID)
+			portID, err := parse.ExpressRoutePortIDInsensitively(*resp.ExpressRoutePort.ID)
 			if err != nil {
 				return err
 			}

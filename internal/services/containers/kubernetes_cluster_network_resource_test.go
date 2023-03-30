@@ -62,7 +62,7 @@ func TestAccKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.advancedNetworkingCompleteConfig(data, "kubenet"),
+			Config: r.advancedNetworkingCompleteConfig(data, "kubenet", true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
@@ -110,7 +110,23 @@ func TestAccKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.advancedNetworkingCompleteConfig(data, "azure"),
+			Config: r.advancedNetworkingCompleteConfig(data, "azure", true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_advancedNetworkingAzureWithoutDockerBridgeCidr(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.advancedNetworkingCompleteConfig(data, "azure", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
@@ -1074,7 +1090,12 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, ipv)
 }
 
-func (KubernetesClusterResource) advancedNetworkingCompleteConfig(data acceptance.TestData, networkPlugin string) string {
+func (KubernetesClusterResource) advancedNetworkingCompleteConfig(data acceptance.TestData, networkPlugin string, dockerCidrEnabled bool) string {
+	dockerCidr := `docker_bridge_cidr = "172.18.0.1/16"`
+	if !dockerCidrEnabled {
+		dockerCidr = ""
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1125,13 +1146,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "%s"
-    dns_service_ip     = "10.10.0.10"
-    docker_bridge_cidr = "172.18.0.1/16"
-    service_cidr       = "10.10.0.0/16"
+    network_plugin = "%s"
+    dns_service_ip = "10.10.0.10"
+    %s
+    service_cidr = "10.10.0.0/16"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin, dockerCidr)
 }
 
 // nolint unparam

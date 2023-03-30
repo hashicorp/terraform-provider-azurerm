@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -159,7 +160,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 									"subnet_id": {
 										Type:             pluginsdk.TypeString,
 										Required:         true,
-										ValidateFunc:     azure.ValidateResourceID,
+										ValidateFunc:     networkValidate.SubnetID,
 										DiffSuppressFunc: suppress.CaseDifference,
 									},
 
@@ -684,18 +685,20 @@ func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *namespaces
 func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
+		status := "dropped connection"
 		if res.HttpResponse != nil {
-			log.Printf("Retrieving %s returned Status %d", id, res.HttpResponse.StatusCode)
+			status = strconv.Itoa(res.HttpResponse.StatusCode)
 		}
+		log.Printf("Retrieving %s returned Status %q", id, status)
 
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {
-				return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+				return res, status, nil
 			}
 			return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
 		}
 
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+		return res, status, nil
 	}
 }
 

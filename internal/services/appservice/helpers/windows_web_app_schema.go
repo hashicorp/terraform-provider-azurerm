@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
@@ -684,6 +684,7 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		AutoHeal:                 pointer.From(appSiteConfig.AutoHealEnabled),
 		AutoHealSettings:         flattenAutoHealSettingsWindows(appSiteConfig.AutoHealRules),
 		ContainerRegistryUserMSI: pointer.From(appSiteConfig.AcrUserManagedIdentityID),
+		Cors:                     FlattenCorsSettings(appSiteConfig.Cors),
 		DetailedErrorLogging:     pointer.From(appSiteConfig.DetailedErrorLoggingEnabled),
 		FtpsState:                string(appSiteConfig.FtpsState),
 		HealthCheckPath:          pointer.From(appSiteConfig.HealthCheckPath),
@@ -773,26 +774,6 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	winAppStack.CurrentStack = currentStack
 
 	siteConfig.ApplicationStack = []ApplicationStackWindows{winAppStack}
-
-	if appSiteConfig.Cors != nil {
-		corsEmpty := false
-		corsSettings := appSiteConfig.Cors
-		cors := CorsSetting{}
-		if corsSettings.SupportCredentials != nil {
-			cors.SupportCredentials = *corsSettings.SupportCredentials
-		}
-
-		if corsSettings.AllowedOrigins != nil {
-			if len(*corsSettings.AllowedOrigins) > 0 {
-				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
-				corsEmpty = true
-			}
-		}
-		if !corsEmpty {
-			siteConfig.Cors = []CorsSetting{cors}
-		}
-	}
 
 	return []SiteConfigWindows{siteConfig}, nil
 }

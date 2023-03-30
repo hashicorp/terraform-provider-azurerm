@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -55,12 +56,12 @@ func resourceMonitorLogProfile() *pluginsdk.Resource {
 			"storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				ValidateFunc: storageValidate.StorageAccountID,
 			},
 			"servicebus_rule_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 			"locations": {
 				Type:     pluginsdk.TypeSet,

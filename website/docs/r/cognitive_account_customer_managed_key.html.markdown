@@ -35,7 +35,7 @@ resource "azurerm_cognitive_account" "example" {
   sku_name              = "E0"
   custom_subdomain_name = "example-account"
   identity {
-    type         = "SystemAssigned, UserAssigned"
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.example.id]
   }
 }
@@ -63,7 +63,7 @@ resource "azurerm_key_vault" "example" {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
     key_permissions = [
-      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"
+      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
     ]
     secret_permissions = [
       "Get",

@@ -206,7 +206,7 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			kvId := ""
 			if props.VaultName != nil {
-				id, err := keyvaultParse.VaultID(*props.VaultName)
+				id, err := keyvaultParse.VaultIDInsensitively(*props.VaultName)
 				if err != nil {
 					return fmt.Errorf("parsing %q: %+v", *props.VaultName, err)
 				}

@@ -71,14 +71,14 @@ resource "azurerm_monitor_data_collection_rule" "example" {
 
     performance_counter {
       streams                       = ["Microsoft-Perf", "Microsoft-InsightsMetrics"]
-      sampling_frequency_in_seconds = 10
+      sampling_frequency_in_seconds = 60
       counter_specifiers            = ["Processor(*)\\% Processor Time"]
       name                          = "test-datasource-perfcounter"
     }
 
     windows_event_log {
       streams        = ["Microsoft-WindowsEvent"]
-      x_path_queries = ["*[System/Level=1]"]
+      x_path_queries = ["*![System/Level=1]"]
       name           = "test-datasource-wineventlog"
     }
 
@@ -190,7 +190,7 @@ A `log_analytics` block supports the following:
 
 A `performance_counter` block supports the following:
 
-* `counter_specifiers` - (Required) Specifies a list of specifier names of the performance counters you want to collect. Use a wildcard `*` to collect counters for all instances. To get a list of performance counters on Windows, run the command `typeperf`.
+* `counter_specifiers` - (Required) Specifies a list of specifier names of the performance counters you want to collect. To get a list of performance counters on Windows, run the command `typeperf`. Please see [this document](https://learn.microsoft.com/en-us/azure/azure-monitor/agents/data-sources-performance-counters#configure-performance-counters) for more information.
 
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 

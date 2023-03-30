@@ -7,17 +7,23 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
+	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string) (policy.Definition, error) {
+func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string,
+	builtInOnly bool) (policy.Definition, error) {
 	var policyDefinitions policy.DefinitionListResultIterator
 	var err error
 
 	if managementGroupName != "" {
 		policyDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupName, "", nil)
 	} else {
-		policyDefinitions, err = client.ListComplete(ctx, "", nil)
+		if builtInOnly {
+			policyDefinitions, err = client.ListBuiltInComplete(ctx, "", nil)
+		} else {
+			policyDefinitions, err = client.ListComplete(ctx, "", nil)
+		}
 	}
 	if err != nil {
 		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: %+v", err)
@@ -37,12 +43,12 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 
 	// we found none
 	if len(results) == 0 {
-		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: could not find policy '%s'", displayName)
+		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: could not find policy '%s'. has the policies name changed? list available with `az policy definition list`", displayName)
 	}
 
 	// we found more than one
 	if len(results) > 1 {
-		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: found more than one policy '%s'", displayName)
+		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: found more than one (%d) policy '%s'", len(results), displayName)
 	}
 
 	return results[0], nil
@@ -138,8 +144,8 @@ func flattenParameterDefinitionsValueToString(input map[string]*policy.Parameter
 	return compactJson.String(), nil
 }
 
-func expandParameterValuesValueFromString(jsonString string) (map[string]*policy.ParameterValuesValue, error) {
-	var result map[string]*policy.ParameterValuesValue
+func expandParameterValuesValueFromString(jsonString string) (map[string]assignments.ParameterValuesValue, error) {
+	var result map[string]assignments.ParameterValuesValue
 
 	err := json.Unmarshal([]byte(jsonString), &result)
 
@@ -147,21 +153,25 @@ func expandParameterValuesValueFromString(jsonString string) (map[string]*policy
 }
 
 func flattenParameterValuesValueToString(input map[string]*policy.ParameterValuesValue) (string, error) {
-	if len(input) == 0 {
+	if input == nil {
 		return "", nil
 	}
 
+	// no need to call `json.Compact` for the result of `json.Marshal`, it's compacted already
 	result, err := json.Marshal(input)
 	if err != nil {
 		return "", err
 	}
 
-	compactJson := bytes.Buffer{}
-	if err := json.Compact(&compactJson, result); err != nil {
-		return "", err
-	}
+	return string(result), err
+}
 
-	return compactJson.String(), nil
+func flattenParameterValuesValueToStringV2(input *map[string]assignments.ParameterValuesValue) (string, error) {
+	if input == nil || *input == nil {
+		return "", nil
+	}
+	bs, err := json.Marshal(input)
+	return string(bs), err
 }
 
 func getPolicyRoleDefinitionIDs(ruleStr string) (res []string, err error) {

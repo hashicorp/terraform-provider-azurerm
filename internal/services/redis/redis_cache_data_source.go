@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01/patchschedules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01/patchschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -245,7 +245,9 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 	patchScheduleRedisId := patchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
 	schedule, err := patchSchedulesClient.Get(ctx, patchScheduleRedisId)
 	if err != nil {
-		return fmt.Errorf("obtaining patch schedules for %s: %+v", id, err)
+		if !response.WasNotFound(schedule.HttpResponse) {
+			return fmt.Errorf("obtaining patch schedules for %s: %+v", id, err)
+		}
 	}
 	var patchSchedule []interface{}
 	if model := schedule.Model; model != nil {

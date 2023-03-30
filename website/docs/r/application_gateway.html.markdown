@@ -624,7 +624,7 @@ A `rewrite_rule` block supports the following:
 
 * `response_header_configuration` - (Optional) One or more `response_header_configuration` blocks as defined above.
 
-* `url` - (Optional) One `url` block as defined above
+* `url` - (Optional) One `url` block as defined below
 
 ---
 
@@ -670,7 +670,7 @@ A `url` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Application Gateway.
 

@@ -245,7 +245,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   type                 = "Pooled"
   validate_environment = true
-  load_balancer_type   = "BreadthFirst"
+  load_balancer_type   = "DepthFirst"
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
