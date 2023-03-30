@@ -505,11 +505,11 @@ func setRouteRuleSetAssociations(d *pluginsdk.ResourceData, meta interface{}, id
 	// NOTE: Calling Create intentionally to avoid having to use the azuresdkhacks for the Update (PATCH) call..
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName, routeProperties)
 	if err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+		return fmt.Errorf("%s %s: %+v", errorTxt, id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of %s: %+v", id, err)
+		return fmt.Errorf("%s %s: %+v", futureErrorTxt, id, err)
 	}
 
 	return nil
