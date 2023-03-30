@@ -220,7 +220,7 @@ func (r WebAppHybridConnectionResource) Read() sdk.ResourceFunc {
 
 			if appHybridConn.ServiceBusNamespace != "" && appHybridConn.SendKeyName != "" {
 				relayNamespaceClient := metadata.Client.Relay.NamespacesClient
-				relayId, err := hybridconnections.ParseHybridConnectionID(appHybridConn.RelayId)
+				relayId, err := hybridconnections.ParseHybridConnectionIDInsensitively(appHybridConn.RelayId)
 				if err != nil {
 					return err
 				}
@@ -231,7 +231,7 @@ func (r WebAppHybridConnectionResource) Read() sdk.ResourceFunc {
 				}
 
 				hybridConnectionsClient := metadata.Client.Relay.HybridConnectionsClient
-				hybridConnectionID, err := hybridconnections.ParseHybridConnectionID(appHybridConn.RelayId)
+				hybridConnectionID, err := hybridconnections.ParseHybridConnectionIDInsensitively(appHybridConn.RelayId)
 				if err != nil {
 					return err
 				}
