@@ -65,8 +65,8 @@ const (
 	VolumeSpecNameData       VolumeSpecName = "data"
 	VolumeSpecNameLog        VolumeSpecName = "log"
 	VolumeSpecNameShared     VolumeSpecName = "shared"
-	VolumeSpecNameDataBackup VolumeSpecName = "data-Backup"
-	VolumeSpecNameLogBackup  VolumeSpecName = "log-Backup"
+	VolumeSpecNameDataBackup VolumeSpecName = "data-backup"
+	VolumeSpecNameLogBackup  VolumeSpecName = "log-backup"
 )
 
 func PossibleValuesForVolumeSpecName() []string {
@@ -149,7 +149,7 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []ExportPolicyRule) *vo
 
 	for _, item := range input {
 
-		// Hard-Coded values, for AVG these cannot be set diffrently
+		// Hard-Coded values, for AVG these cannot be set differently
 		// they are not exposed as TF configuration
 		// but PUT request requires those fields to succeed
 		cifsEnabled := false
@@ -299,7 +299,7 @@ func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *vo
 			unixReadWrite := v["unix_read_write"].(bool)
 			rootAccessEnabled := v["root_access_enabled"].(bool)
 
-			// Hard-Coded values, for AVG these cannot be set diffrently
+			// Hard-Coded values, for AVG these cannot be set differently
 			// they are not exposed as TF configuration
 			// but PUT request requires those fields to succeed
 			cifsEnabled := false
@@ -439,7 +439,7 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 			volumeGroupVolume.MountIpAddresses = flattenNetAppVolumeGroupVolumesMountIpAddresses(props.MountTargets)
 		}
 
-		// Getting volume resource directly from standalone volime
+		// Getting volume resource directly from standalone volume
 		// since VolumeGroup Volumes don't return DataProtection information
 		volumeClient := metadata.Client.NetApp.VolumeClient
 		id, err := volumes.ParseVolumeID(*item.Id)
