@@ -461,7 +461,7 @@ A `ssl_certificate` block supports the following:
 
 * `name` - (Required) The Name of the SSL certificate that is unique within this Application Gateway
 
-* `data` - (Optional) PFX certificate. Required if `key_vault_secret_id` is not set. Must be a base64 encoded string. 
+* `data` - (Optional) The base64-encoded PFX certificate data. Required if `key_vault_secret_id` is not set.
 
 -> **NOTE:** When specifying a file, use `data = filebase64("path/to/file")` to encode the contents of that file.
 
