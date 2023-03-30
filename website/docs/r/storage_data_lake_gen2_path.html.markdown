@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `group` - (Optional) Specifies the Object ID of the Azure Active Directory Group to make the owning group. Possible values also include `$superuser`.
 
-* `ace` - (Required) One or more `ace` blocks as defined below to specify the entries for the ACL for the path.
+* `ace` - (Optional) One or more `ace` blocks as defined below to specify the entries for the ACL for the path.
 
 ---
 
@@ -81,7 +81,7 @@ More details on ACLs can be found here: <https://docs.microsoft.com/azure/storag
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Lake Gen2 File System.
 

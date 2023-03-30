@@ -48,7 +48,7 @@ A `acl` block supports the following:
 
 * `id` - (Required) The ID which should be used for this Shared Identifier.
 
-* `access_policy` - (Required) An `access_policy` block as defined below.
+* `access_policy` - (Optional) An `access_policy` block as defined below.
 
 ---
 
@@ -62,7 +62,7 @@ A `access_policy` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Table within the Storage Account.
 

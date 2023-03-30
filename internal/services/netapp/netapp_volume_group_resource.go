@@ -57,9 +57,9 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"account_name": {
 			Type:         pluginsdk.TypeString,
@@ -124,8 +124,8 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"volume_spec_name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
 						ValidateFunc: validation.StringInSlice(PossibleValuesForVolumeSpecName(), false),
 					},
 
@@ -160,15 +160,15 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 						Required: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
+							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(PossibleValuesForProtocolTypeAvg(), false),
 						},
 					},
 
 					"security_style": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(PossibleValuesForSecurityStyle(), false),
 					},
 
@@ -253,13 +253,13 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"endpoint_type": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  string(volumegroups.EndpointTypeDst),
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(volumegroups.EndpointTypeDst),
 									ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForEndpointType(), false),
 								},
 
-								"remote_volume_location": azure.SchemaLocation(),
+								"remote_volume_location": commonschema.Location(),
 
 								"remote_volume_resource_id": {
 									Type:         pluginsdk.TypeString,
@@ -268,8 +268,8 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"replication_frequency": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Type:         pluginsdk.TypeString,
+									Required:     true,
 									ValidateFunc: validation.StringInSlice(PossibleValuesForReplicationSchedule(), false),
 								},
 							},
@@ -479,9 +479,9 @@ func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
 							dataProtectionReplicationRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.data_protection_replication", volumeItem)).([]interface{})
 							dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
 
-							if dataProtectionReplication != nil && 
-								dataProtectionReplication.Replication != nil && 
-								dataProtectionReplication.Replication.EndpointType != nil && 
+							if dataProtectionReplication != nil &&
+								dataProtectionReplication.Replication != nil &&
+								dataProtectionReplication.Replication.EndpointType != nil &&
 								strings.EqualFold(string(*dataProtectionReplication.Replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
 
 								return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", volumeId)

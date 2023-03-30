@@ -51,9 +51,14 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
-	maintenance_configuration_name := "SQL_Default"
-	if data.Locations.Primary == "westeurope" {
+	maintenance_configuration_name := ""
+	switch data.Locations.Primary {
+	case "westeurope":
 		maintenance_configuration_name = "SQL_WestEurope_DB_2"
+	case "francecentral":
+		maintenance_configuration_name = "SQL_FranceCentral_DB_1"
+	default:
+		maintenance_configuration_name = "SQL_Default"
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -64,7 +69,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
 				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
 				check.That(data.ResourceName).Key("maintenance_configuration_name").HasValue(maintenance_configuration_name),
-				check.That(data.ResourceName).Key("max_size_gb").HasValue("1"),
+				check.That(data.ResourceName).Key("max_size_gb").HasValue("10"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("storage_account_type").HasValue("Local"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
@@ -208,6 +213,32 @@ func TestAccMsSqlDatabase_HS(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.hsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("read_replica_count").HasValue("4"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("HS_Gen5_2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_HSWithRetentionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hsWithRetentionPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("read_replica_count").HasValue("2"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("HS_Gen5_2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.hsWithRetentionPolicyUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("read_replica_count").HasValue("4"),
@@ -500,6 +531,42 @@ func TestAccMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_threatDetectionPolicyNoStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.threatDetectionPolicyNoStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_account_access_key").IsEmpty(),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_endpoint").IsEmpty(),
+			),
+		},
+		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+		{
+			Config: r.threatDetectionPolicy(data, "Enabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_account_access_key").IsSet(),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_endpoint").IsSet(),
+			),
+		},
+		{
+			Config: r.threatDetectionPolicyNoStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_account_access_key").IsEmpty(),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_endpoint").IsEmpty(),
+			),
+		},
+	})
+}
+
 func TestAccMsSqlDatabase_updateSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
@@ -565,6 +632,13 @@ func TestAccMsSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withLongTermRetentionPolicyUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withLongTermRetentionPolicyNoWeekOfYear(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -753,6 +827,16 @@ resource "azurerm_mssql_database" "import" {
 }
 
 func (r MsSqlDatabaseResource) complete(data acceptance.TestData) string {
+	configName := ""
+	switch data.Locations.Primary {
+	case "westeurope":
+		configName = "SQL_WestEurope_DB_2"
+	case "francecentral":
+		configName = "SQL_FranceCentral_DB_1"
+	default:
+		configName = "SQL_Default"
+	}
+
 	return fmt.Sprintf(`
 %[1]s
 
@@ -761,11 +845,11 @@ resource "azurerm_mssql_database" "test" {
   server_id    = azurerm_mssql_server.test.id
   collation    = "SQL_AltDiction_CP850_CI_AI"
   license_type = "BasePrice"
-  max_size_gb  = 1
+  max_size_gb  = 10
   sample_name  = "AdventureWorksLT"
   sku_name     = "GP_Gen5_2"
 
-  maintenance_configuration_name = azurerm_resource_group.test.location == "westeurope" ? "SQL_WestEurope_DB_2" : "SQL_Default"
+  maintenance_configuration_name = "%[3]s"
 
   storage_account_type = "Local"
 
@@ -773,7 +857,7 @@ resource "azurerm_mssql_database" "test" {
     ENV = "Test"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, configName)
 }
 
 func (r MsSqlDatabaseResource) update(data acceptance.TestData) string {
@@ -924,6 +1008,56 @@ resource "azurerm_mssql_database" "test" {
   server_id          = azurerm_mssql_server.test.id
   read_replica_count = 4
   sku_name           = "HS_Gen5_2"
+
+
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) hsWithRetentionPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name               = "acctest-db-%[2]d"
+  server_id          = azurerm_mssql_server.test.id
+  read_replica_count = 2
+  sku_name           = "HS_Gen5_2"
+
+  long_term_retention_policy {
+    weekly_retention  = "P1W"
+    monthly_retention = "P1M"
+    yearly_retention  = "P1Y"
+    week_of_year      = 1
+  }
+
+  short_term_retention_policy {
+    retention_days           = 10
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) hsWithRetentionPolicyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name               = "acctest-db-%[2]d"
+  server_id          = azurerm_mssql_server.test.id
+  read_replica_count = 4
+  sku_name           = "HS_Gen5_2"
+
+  long_term_retention_policy {
+    weekly_retention  = "P1W"
+    monthly_retention = "P1M"
+    yearly_retention  = "P1Y"
+    week_of_year      = 2
+  }
+
+  short_term_retention_policy {
+    retention_days           = 12
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1294,6 +1428,33 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomInteger, state)
 }
 
+func (r MsSqlDatabaseResource) threatDetectionPolicyNoStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name         = "acctest-db-%[2]d"
+  server_id    = azurerm_mssql_server.test.id
+  collation    = "SQL_AltDiction_CP850_CI_AI"
+  license_type = "BasePrice"
+  max_size_gb  = 1
+  sample_name  = "AdventureWorksLT"
+  sku_name     = "GP_Gen5_2"
+
+  threat_detection_policy {
+    retention_days       = 15
+    state                = "Enabled"
+    disabled_alerts      = ["Sql_Injection"]
+    email_account_admins = "Enabled"
+  }
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r MsSqlDatabaseResource) updateSku(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -1391,6 +1552,36 @@ resource "azurerm_mssql_database" "test" {
     weekly_retention = "P1W"
     yearly_retention = "P1Y"
     week_of_year     = 2
+  }
+}
+`, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) withLongTermRetentionPolicyNoWeekOfYear(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[3]d"
+  server_id = azurerm_mssql_server.test.id
+  long_term_retention_policy {
+    weekly_retention = "P10D"
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)

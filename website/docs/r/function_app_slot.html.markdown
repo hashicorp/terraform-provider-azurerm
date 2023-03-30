@@ -96,13 +96,13 @@ The following arguments are supported:
 
 ~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default).
 
-* `enabled` - (Optional) Is the Function App enabled?
+* `enabled` - (Optional) Is the Function App enabled? Defaults to `true`.
 
 * `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
 * `version` - (Optional) The runtime version associated with the Function App. Defaults to `~1`.
 
-* `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
+* `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan.
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
@@ -114,8 +114,8 @@ The following arguments are supported:
 
 The `connection_string` block supports the following:
 
-* `name` - (Required) The name of the Connection String. Changing this forces a new resource to be created.
-* `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure` and  `SQLServer`.
+* `name` - (Required) The name of the Connection String.
+* `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure` and `SQLServer`.
 * `value` - (Required) The value for the Connection String.
 
 ---
@@ -132,15 +132,31 @@ The `site_config` block supports the following:
 
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
 
+* `java_version` - (Optional) Java version hosted by the function app in Azure. Possible values are `1.8`, `11` & `17` (In-Preview).
+
 * `http2_enabled` - (Optional) Specifies whether or not the HTTP2 protocol should be enabled. Defaults to `false`.
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the function app. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new function apps.
 
 * `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
 
+* `health_check_path` - (Optional) Path which will be checked for this function app health.
+
 * `app_scale_limit` - (Optional) The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.
 
 * `runtime_scale_monitoring_enabled` - (Optional) Should Runtime Scale Monitoring be enabled?. Only applicable to apps on the Premium plan. Defaults to `false`.
+
+* `scm_ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing IP restrictions as defined below.
+
+-> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
+
+* `scm_type` - (Optional) The type of Source Control used by this function App. Valid values include: `BitBucketGit`, `BitBucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None` (default), `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`.
+
+~> **NOTE:** This setting is incompatible with the `source_control` block which updates this value based on the setting provided.
+
+* `scm_use_main_ip_restriction` - (Optional) IP security restrictions for scm to use main. Defaults to `false`.
+
+-> **NOTE** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.
 
 * `elastic_instance_minimum` - (Optional) The number of minimum instances for this function app. Only applicable to apps on the Premium plan.
 
@@ -158,7 +174,7 @@ The `site_config` block supports the following:
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+* `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
 
 * `support_credentials` - (Optional) Are credentials supported?
 
@@ -198,9 +214,9 @@ An `auth_settings` block supports the following:
 
 * `runtime_version` - (Optional) The runtime version of the Authentication/Authorization module.
 
-* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to 72.
+* `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72`.
 
-* `token_store_enabled` - (Optional) If enabled the module will durably store platform-specific security tokens that are obtained during login flows. Defaults to false.
+* `token_store_enabled` - (Optional) If enabled the module will durably store platform-specific security tokens that are obtained during login flows. Defaults to `false`.
 
 * `twitter` - (Optional) A `twitter` block as defined below.
 
@@ -252,7 +268,7 @@ A `twitter` block supports the following:
 
 * `consumer_key` - (Required) The OAuth 1.0a consumer key of the Twitter application used for sign-in.
 
-* `consumer_secret` - (Optional) The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
+* `consumer_secret` - (Required) The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
 
 ---
 
@@ -270,9 +286,29 @@ A `ip_restriction` block supports the following:
 
 * `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.
 
-* `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.  
+* `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`. 
 
 * `headers` - (Optional) The headers for this specific `ip_restriction` as defined below.
+
+---
+
+A `scm_ip_restriction` block supports the following:
+
+* `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
+
+* `service_tag` - (Optional) The Service Tag used for this IP Restriction.
+
+* `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
+
+-> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
+
+* `name` - (Optional) The name for this IP Restriction.
+
+* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.
+
+* `action` - (Optional) Allow or Deny access for this IP range. Defaults to `Allow`.
+
+* `headers` - (Optional) The headers for this specific `scm_ip_restriction` as defined below.
 
 ---
 
@@ -288,7 +324,7 @@ A `headers` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Function App Slot
 

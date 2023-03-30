@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `start_time` - (Optional) Specifies the start date and time for this trigger in RFC3339 format: `2000-01-02T03:04:05Z`.
 
-* `time_zone` - (Optional) Specifies the time zone for this trigger.  Supported time zone options are listed [here](https://support.microsoft.com/en-us/help/973627/microsoft-time-zone-index-values)
+* `time_zone` - (Optional) Specifies the time zone for this trigger. Supported time zone options are listed [here](https://support.microsoft.com/en-us/help/973627/microsoft-time-zone-index-values)
 
 * `schedule` - (Optional) A `schedule` block as specified below.
 
@@ -64,7 +64,7 @@ A `schedule` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Recurrence Trigger within the Logic App Workflow.
 

@@ -59,7 +59,8 @@ func (client SentinelOnboardingStatesClient) Create(ctx context.Context, resourc
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.SentinelOnboardingStatesClient", "Create", err.Error())
 	}
 
@@ -154,7 +155,8 @@ func (client SentinelOnboardingStatesClient) Delete(ctx context.Context, resourc
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.SentinelOnboardingStatesClient", "Delete", err.Error())
 	}
 
@@ -243,7 +245,8 @@ func (client SentinelOnboardingStatesClient) Get(ctx context.Context, resourceGr
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.SentinelOnboardingStatesClient", "Get", err.Error())
 	}
 
@@ -332,7 +335,8 @@ func (client SentinelOnboardingStatesClient) List(ctx context.Context, resourceG
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("securityinsight.SentinelOnboardingStatesClient", "List", err.Error())
 	}
 

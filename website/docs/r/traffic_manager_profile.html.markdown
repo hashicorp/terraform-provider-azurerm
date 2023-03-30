@@ -114,13 +114,13 @@ The `monitor_config` block supports:
 
 A `custom_header` block supports the following:
 
-* `name` - (Required) The name of the custom header. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the custom header.
 
 * `value` - (Required) The value of custom header. Applicable for HTTP and HTTPS protocol.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Traffic Manager Profile.
 

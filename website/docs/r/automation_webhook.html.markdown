@@ -78,11 +78,11 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Automation Webhook ID.
 
-* `uri` - (Sensitive) Generated URI for this Webhook.
+* `uri` - (Optional) (Sensitive) Generated URI for this Webhook. Changing this forces a new resource to be created.
 
 ## Timeouts
 

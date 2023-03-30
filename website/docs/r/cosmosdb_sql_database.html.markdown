@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `account_name` - (Required) The name of the Cosmos DB SQL Database to create the table within. Changing this forces a new resource to be created.
 
-* `throughput` - (Optional) The throughput of SQL database (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.  Do not set when `azurerm_cosmosdb_account` is configured with `EnableServerless` capability.
+* `throughput` - (Optional) The throughput of SQL database (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply. Do not set when `azurerm_cosmosdb_account` is configured with `EnableServerless` capability.
 
 ~> **Note:** Throughput has a maximum value of `1000000` unless a higher limit is requested via Azure Support
 
@@ -52,7 +52,7 @@ An `autoscale_settings` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the CosmosDB SQL Database.
 

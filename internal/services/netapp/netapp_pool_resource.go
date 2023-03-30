@@ -211,9 +211,9 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.PoolName)
+	d.Set("name", id.CapacityPoolName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("account_name", id.AccountName)
+	d.Set("account_name", id.NetAppAccountName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
@@ -288,7 +288,11 @@ func netappPoolDeleteStateRefreshFunc(ctx context.Context, client *capacitypools
 			}
 		}
 
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
 	}
 }
 
@@ -323,6 +327,10 @@ func netappPoolStateRefreshFunc(ctx context.Context, client *capacitypools.Capac
 			}
 		}
 
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
 	}
 }

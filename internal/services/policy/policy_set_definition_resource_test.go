@@ -185,6 +185,41 @@ func TestAccAzureRMPolicySetDefinition_customWithDefinitionGroups(t *testing.T) 
 	})
 }
 
+func TestAccAzureRMPolicySetDefinition_customWithGroupsInDefinitionReferenceUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	r := PolicySetDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// provision a policy set without group names
+			Config: r.customWithDefinitionGroupsNotUsedInPolicyReference(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("policy_definition_reference.0.policy_group_names").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			// test if group_names were correctly added
+			Config: r.customWithDefinitionGroupsUsedInPolicyReference(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("policy_definition_reference.0.policy_group_names.#").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// test if the deletion of the group_names works again
+			Config: r.customWithDefinitionGroupsNotUsedInPolicyReference(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("policy_definition_reference.0.policy_group_names.0").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAzureRMPolicySetDefinition_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
@@ -660,6 +695,129 @@ VALUES
     display_name = "group-display-2"
     category     = "My Security Control"
     description  = "Controls security"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+// test adding "group-3" to policy_definition_reference.policy_group_names
+func (r PolicySetDefinitionResource) customWithDefinitionGroupsUsedInPolicyReference(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestPolSet-%d"
+  policy_type  = "Custom"
+  display_name = "acctestPolSet-display-%d"
+
+  parameters = <<PARAMETERS
+    {
+        "allowedLocations": {
+            "type": "Array",
+            "metadata": {
+                "description": "The list of allowed locations for resources.",
+                "displayName": "Allowed locations",
+                "strongType": "location"
+            }
+        }
+    }
+PARAMETERS
+
+  policy_definition_reference {
+    policy_definition_id = azurerm_policy_definition.test.id
+    parameter_values     = <<VALUES
+	{
+      "allowedLocations": {"value": "[parameters('allowedLocations')]"}
+    }
+VALUES
+    policy_group_names   = ["group-1", "group-2", "group-3"]
+  }
+
+  policy_definition_group {
+    name = "redundant"
+  }
+
+  policy_definition_group {
+    name         = "group-1"
+    display_name = "Group-Display-1"
+    category     = "My Access Control"
+    description  = "Controls accesses"
+  }
+
+  policy_definition_group {
+    name         = "group-2"
+    display_name = "group-display-2"
+    category     = "My Security Control"
+    description  = "Controls security"
+  }
+
+  policy_definition_group {
+    name         = "group-3"
+    display_name = "group-display-3"
+    category     = "Category-3"
+    description  = "Newly added group 3"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+// test adding "group-3" to policy_definition_reference.policy_group_names
+func (r PolicySetDefinitionResource) customWithDefinitionGroupsNotUsedInPolicyReference(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestPolSet-%d"
+  policy_type  = "Custom"
+  display_name = "acctestPolSet-display-%d"
+
+  parameters = <<PARAMETERS
+    {
+        "allowedLocations": {
+            "type": "Array",
+            "metadata": {
+                "description": "The list of allowed locations for resources.",
+                "displayName": "Allowed locations",
+                "strongType": "location"
+            }
+        }
+    }
+PARAMETERS
+
+  policy_definition_reference {
+    policy_definition_id = azurerm_policy_definition.test.id
+    parameter_values     = <<VALUES
+    {
+        "allowedLocations": {"value": "[parameters('allowedLocations')]"}
+    }
+    VALUES
+  }
+
+  policy_definition_group {
+    name = "redundant"
+  }
+
+  policy_definition_group {
+    name         = "group-1"
+    display_name = "Group-Display-1"
+    category     = "My Access Control"
+    description  = "Controls accesses"
+  }
+
+  policy_definition_group {
+    name         = "group-2"
+    display_name = "group-display-2"
+    category     = "My Security Control"
+    description  = "Controls security"
+  }
+
+  policy_definition_group {
+    name         = "group-3"
+    display_name = "group-display-3"
+    category     = "Category-3"
+    description  = "Newly added group 3"
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)

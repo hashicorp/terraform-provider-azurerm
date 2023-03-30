@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -97,7 +97,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.CapacityReservationGroupID,
+				ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 			},
 
 			"custom_ca_trust_enabled": {
@@ -188,6 +188,8 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				// NOTE: rather than setting `0` users should instead pass `null` here
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
+
+			"node_network_profile": schemaNodePoolNetworkProfile(),
 
 			"node_labels": {
 				Type:     pluginsdk.TypeMap,
@@ -321,10 +323,27 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: networkValidate.SubnetID,
 			},
 
 			"upgrade_settings": upgradeSettingsSchema(),
+
+			"windows_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"outbound_nat_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  true,
+						},
+					},
+				},
+			},
 
 			"workload_runtime": {
 				Type:     pluginsdk.TypeString,
@@ -351,7 +370,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ResourceName, d.Get("name").(string))
+	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
 
 	log.Printf("[DEBUG] Retrieving %s...", *clusterId)
 	cluster, err := clustersClient.Get(ctx, *clusterId)
@@ -415,6 +434,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Type:                   utils.ToPtr(agentpools.AgentPoolTypeVirtualMachineScaleSets),
 		VMSize:                 utils.String(d.Get("vm_size").(string)),
 		UpgradeSettings:        expandAgentPoolUpgradeSettings(d.Get("upgrade_settings").([]interface{})),
+		WindowsProfile:         expandAgentPoolWindowsProfile(d.Get("windows_profile").([]interface{})),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int64(int64(count)),
@@ -555,6 +575,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 			return err
 		}
 		profile.LinuxOSConfig = linuxOSConfig
+	}
+
+	if networkProfile := d.Get("node_network_profile").([]interface{}); len(networkProfile) > 0 {
+		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
 	}
 
 	parameters := agentpools.AgentPool{
@@ -747,7 +771,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	// if the parent cluster doesn't exist then the node pool won't
-	clusterId := managedclusters.NewManagedClusterID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+	clusterId := managedclusters.NewManagedClusterID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName)
 	cluster, err := clustersClient.Get(ctx, clusterId)
 	if err != nil {
 		if response.WasNotFound(cluster.HttpResponse) {
@@ -914,6 +938,14 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if err := d.Set("upgrade_settings", flattenAgentPoolUpgradeSettings(props.UpgradeSettings)); err != nil {
 			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
+		}
+
+		if err := d.Set("windows_profile", flattenAgentPoolWindowsProfile(props.WindowsProfile)); err != nil {
+			return fmt.Errorf("setting `windows_profile`: %+v", err)
+		}
+
+		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
+			return fmt.Errorf("setting `node_network_profile`: %+v", err)
 		}
 	}
 
@@ -1373,4 +1405,86 @@ func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}
 			"vm_vfs_cache_pressure":              vmVfsCachePressure,
 		},
 	}, nil
+}
+
+func expandAgentPoolWindowsProfile(input []interface{}) *agentpools.AgentPoolWindowsProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	outboundNatEnabled := v["outbound_nat_enabled"].(bool)
+	return &agentpools.AgentPoolWindowsProfile{
+		DisableOutboundNat: utils.Bool(!outboundNatEnabled),
+	}
+}
+
+func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	outboundNatEnabled := true
+	if input.DisableOutboundNat != nil {
+		outboundNatEnabled = !*input.DisableOutboundNat
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"outbound_nat_enabled": outboundNatEnabled,
+		},
+	}
+}
+
+func expandAgentPoolNetworkProfile(input []interface{}) *agentpools.AgentPoolNetworkProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &agentpools.AgentPoolNetworkProfile{
+		NodePublicIPTags: expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
+	}
+}
+
+func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]agentpools.IPTag {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make([]agentpools.IPTag, 0)
+
+	for key, val := range input {
+		ipTag := agentpools.IPTag{
+			IPTagType: utils.String(key),
+			Tag:       utils.String(val.(string)),
+		}
+		out = append(out, ipTag)
+	}
+	return &out
+}
+
+func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []interface{} {
+	if input == nil || input.NodePublicIPTags == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"node_public_ip_tags": flattenAgentPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
+		},
+	}
+}
+
+func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) map[string]interface{} {
+	if input == nil {
+		return map[string]interface{}{}
+	}
+	out := make(map[string]interface{})
+
+	for _, tag := range *input {
+		if tag.IPTagType != nil {
+			out[*tag.IPTagType] = tag.Tag
+		}
+	}
+
+	return out
 }

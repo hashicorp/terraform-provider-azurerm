@@ -68,6 +68,7 @@ resource "azurerm_media_live_event" "example" {
     }
   }
 
+  stream_options          = ["LowLatency"]
   use_static_hostname     = true
   hostname_prefix         = "special-event"
   transcription_languages = ["en-US"]
@@ -82,7 +83,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Live Event should exist. Changing this forces a new Live Event to be created.
 
-* `media_services_account_name` - (Required)  The Media Services account name. Changing this forces a new Live Event to be created.
+* `media_services_account_name` - (Required) The Media Services account name. Changing this forces a new Live Event to be created.
 
 * `name` - (Required) The name which should be used for this Live Event. Changing this forces a new Live Event to be created.
 
@@ -101,6 +102,8 @@ The following arguments are supported:
 * `hostname_prefix` - (Optional) When `use_static_hostname` is set to true, the `hostname_prefix` specifies the first part of the hostname assigned to the live event preview and ingest endpoints. The final hostname would be a combination of this prefix, the media service account name and a short code for the Azure Media Services data center.
 
 * `preview` - (Optional) A `preview` block as defined below.
+
+* `stream_options` - (Optional) A list of options to use for the LiveEvent. Possible values are `Default`, `LowLatency`, `LowLatencyV2`. Please see more at this [document](https://learn.microsoft.com/en-us/azure/media-services/latest/live-event-latency-reference#lowlatency-and-lowlatencyv2-options). Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Live Event.
 
@@ -184,5 +187,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Live Events can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_live_event.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Media/mediaservices/account1/liveevents/event1
+terraform import azurerm_media_live_event.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Media/mediaServices/account1/liveEvents/event1
 ```

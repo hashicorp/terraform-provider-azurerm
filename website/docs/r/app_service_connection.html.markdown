@@ -92,9 +92,11 @@ The following arguments are supported:
 
 ---
 
-* `type` - (Required) The authentication type. Possible values are `systemAssignedIdentity`, `userAssignedIdentity`, `servicePrincipalSecret`, `servicePrincipalCertificate`, `secret`.
+An `authentication` block supports the following:
 
-* `name` - (Required) Username or account name for secret auth. `name` and `secret` should be either both specified or both not specified when `type` is set to `secret`.
+* `type` - (Required) The authentication type. Possible values are `systemAssignedIdentity`, `userAssignedIdentity`, `servicePrincipalSecret`, `servicePrincipalCertificate`, `secret`. Changing this forces a new resource to be created.
+
+* `name` - (Optional) Username or account name for secret auth. `name` and `secret` should be either both specified or both not specified when `type` is set to `secret`.
 
 * `secret` - (Optional) Password or account key for secret auth. `secret` and `name` should be either both specified or both not specified when `type` is set to `secret`.
 
@@ -111,6 +113,14 @@ The following arguments are supported:
 * `client_type` - (Optional) The application client type. Possible values are `none`, `dotnet`, `java`, `python`, `go`, `php`, `ruby`, `django`, `nodejs` and `springBoot`.
 
 * `vnet_solution` - (Optional) The type of the VNet solution. Possible values are `serviceEndpoint`, `privateLink`.
+
+* `secret_store` - (Optional) An option to store secret value in secure place. An `secret_store` block as defined below.
+
+---
+
+An `secret_store` block supports the following:
+
+* `key_vault_id` - (required) The key vault id to store secret.
 
 ## Attribute Reference
 

@@ -369,6 +369,13 @@ func TestAccLinuxWebApp_withIPRestrictionsUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.withIPRestrictions(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -383,7 +390,7 @@ func TestAccLinuxWebApp_withIPRestrictionsUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withIPRestrictions(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -613,6 +620,36 @@ func TestAccLinuxWebApp_withDotNet70(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withGo18(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.applicationStackGo(data, "1.18"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebApp_withGo19(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.applicationStackGo(data, "1.19"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebApp_withPhp74(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -703,6 +740,21 @@ func TestAccLinuxWebApp_withPython310(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withPython311(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.python(data, "3.11"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebApp_withRuby26(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -763,13 +815,28 @@ func TestAccLinuxWebApp_withNode14LTS(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withNode18LTS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.node(data, "18-lts"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebApp_withJre8Java(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "jre8", "JAVA", "8"),
+			Config: r.java(data, "8", "JAVA", "8"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -784,7 +851,7 @@ func TestAccLinuxWebApp_withJre11Java(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "java11", "JAVA", "11"),
+			Config: r.java(data, "11", "JAVA", "11"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|11-java11"),
@@ -800,7 +867,7 @@ func TestAccLinuxWebApp_withJava1109(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "11.0.9", "JAVA", ""),
+			Config: r.java(data, "11", "JAVA", "11.0.9"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|11.0.9"),
@@ -816,7 +883,7 @@ func TestAccLinuxWebApp_withJava8u242(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "8u242", "JAVA", ""),
+			Config: r.java(data, "8", "JAVA", "8u242"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|8u242"),
@@ -832,7 +899,7 @@ func TestAccLinuxWebApp_withJava11Tomcat9(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "java11", "TOMCAT", "9.0"),
+			Config: r.java(data, "11", "TOMCAT", "9.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("TOMCAT|9.0-java11"),
@@ -848,7 +915,7 @@ func TestAccLinuxWebApp_withJava11Tomcat9041(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "java11", "TOMCAT", "9.0.41"),
+			Config: r.java(data, "11", "TOMCAT", "9.0.41"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("TOMCAT|9.0.41-java11"),
@@ -864,7 +931,7 @@ func TestAccLinuxWebApp_withJava11Tomcat85(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "java11", "TOMCAT", "8.5"),
+			Config: r.java(data, "11", "TOMCAT", "8.5"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("TOMCAT|8.5-java11"),
@@ -880,7 +947,7 @@ func TestAccLinuxWebApp_withJava11Tomcat8561(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "java11", "TOMCAT", "8.5.61"),
+			Config: r.java(data, "11", "TOMCAT", "8.5.61"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("TOMCAT|8.5.61-java11"),
@@ -896,7 +963,7 @@ func TestAccLinuxWebApp_withJava8JBOSSEAP73(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.javaPremiumV3Plan(data, "java8", "JBOSSEAP", "7.3"),
+			Config: r.javaPremiumV3Plan(data, "8", "JBOSSEAP", "7.3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JBOSSEAP|7.3-java8"),
@@ -939,7 +1006,7 @@ func TestAccLinuxWebApp_updateAppStack(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.java(data, "java11", "TOMCAT", "9.0"),
+			Config: r.java(data, "11", "TOMCAT", "9.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("TOMCAT|9.0-java11"),
@@ -1601,6 +1668,19 @@ resource "azurerm_linux_web_app" "test" {
       action {
         action_type                    = "Recycle"
         minimum_process_execution_time = "00:05:00"
+      }
+    }
+
+    ip_restriction {
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
       }
     }
 
@@ -2325,6 +2405,29 @@ resource "azurerm_linux_web_app" "test" {
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, dotNetVersion)
+}
+
+func (r LinuxWebAppResource) applicationStackGo(data acceptance.TestData, goVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    application_stack {
+      go_version = "%s"
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger, goVersion)
 }
 
 func (r LinuxWebAppResource) php(data acceptance.TestData, phpVersion string) string {

@@ -37,6 +37,12 @@ resource "azurerm_media_services_account" "example" {
   }
 }
 
+resource "azurerm_media_services_account_filter" "example" {
+  name                        = "Filter1"
+  resource_group_name         = azurerm_resource_group.example.name
+  media_services_account_name = azurerm_media_services_account.example.name
+}
+
 resource "azurerm_media_asset" "example" {
   name                        = "Asset1"
   resource_group_name         = azurerm_resource_group.example.name
@@ -50,6 +56,7 @@ resource "azurerm_media_streaming_locator" "example" {
   media_services_account_name = azurerm_media_services_account.example.name
   asset_name                  = azurerm_media_asset.example.name
   streaming_policy_name       = "Predefined_ClearStreamingOnly"
+  filter_names                = [azurerm_media_services_account_filter.example.name]
 }
 ```
 
@@ -76,6 +83,8 @@ The following arguments are supported:
 * `default_content_key_policy_name` - (Optional) Name of the default Content Key Policy used by this Streaming Locator.Changing this forces a new Streaming Locator to be created.
 
 * `end_time` - (Optional) The end time of the Streaming Locator. Changing this forces a new Streaming Locator to be created.
+
+* `filter_names` - (Optional) A list of names of asset or account filters which apply to this Streaming Locator. Changing this forces a new Streaming Locator to be created.
 
 * `start_time` - (Optional) The start time of the Streaming Locator. Changing this forces a new Streaming Locator to be created.
 
@@ -114,5 +123,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Streaming Locators can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_streaming_locator.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/account1/streaminglocators/locator1
+terraform import azurerm_media_streaming_locator.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaServices/account1/streamingLocators/locator1
 ```

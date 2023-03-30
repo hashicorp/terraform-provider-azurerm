@@ -29,22 +29,13 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "sentinel" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  workspace_resource_id = azurerm_log_analytics_workspace.example.id
-  workspace_name        = azurerm_log_analytics_workspace.example.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_sentinel_automation_rule" "example" {
   name                       = "56094f72-ac3f-40e7-a0c0-47bd95f70336"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   display_name               = "automation_rule1"
   order                      = 1
   action_incident {
@@ -74,11 +65,20 @@ The following arguments are supported:
 
 ~> **Note:** Either one `action_incident` block or `action_playbook` block has to be specified.
 
-* `condition` - (Optional) One or more `condition` blocks as defined below.
+* `condition` - (Optional / **Deprecated** ) One or more `condition` blocks as defined below.
+
+~> **Note:** `condition` only supports the [`Property` condition type](https://learn.microsoft.com/en-us/rest/api/securityinsights/preview/automation-rules/create-or-update?tabs=HTTP#propertyconditionproperties). Please use `condition_json` if you want other condition types.
+
+* `condition_json` - (Optional) A JSON array of one or more condition JSON objects as is defined [here](https://learn.microsoft.com/en-us/rest/api/securityinsights/preview/automation-rules/create-or-update?tabs=HTTP#automationruletriggeringlogic).
+
 
 * `enabled` - (Optional) Whether this Sentinel Automation Rule is enabled? Defaults to `true`.
 
 * `expiration` - (Optional) The time in RFC3339 format of kind `UTC` that determines when this Automation Rule should expire and be disabled.
+
+* `triggers_on` - (Optional) Specifies what triggers this automation rule. Possible values are `Alerts` and `Incidents`. Defaults to `Incidents`.
+
+* `triggers_when` - (Optional) Specifies when will this automation rule be triggered. Possible values are `Created` and `Updated`. Defaults to `Created`.
 
 ---
 

@@ -32,7 +32,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The subscription security center setting id.
 
@@ -40,10 +40,10 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Security Center Setting.
-* `update` - (Defaults to 60 minutes) Used when updating the Security Center Setting.
+* `create` - (Defaults to 10 minutes) Used when creating the Security Center Setting.
+* `update` - (Defaults to 10 minutes) Used when updating the Security Center Setting.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Security Center Setting.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Security Center Setting.
+* `delete` - (Defaults to 10 minutes) Used when deleting the Security Center Setting.
 
 ## Import
 

@@ -49,13 +49,13 @@ The following arguments are supported:
 
 * `base64` - (Required) Base64 encoded value of the certificate. Changing this forces a new resource to be created.
 
-* `description` -  (Optional) The description of this Automation Certificate.
+* `description` - (Optional) The description of this Automation Certificate.
 
 * `exportable` - (Optional) The is exportable flag of the certificate.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Automation Certificate ID.
 

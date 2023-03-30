@@ -157,6 +157,97 @@ resource "azurerm_mssql_server_extended_auditing_policy" "example" {
 }
 ```
 
+## Example Usage with Log Analytics Workspace and EventHub 
+
+```
+provider "azurerm" {
+features {}
+}
+
+resource "azurerm_resource_group" "example" {
+name     = "example-resources"
+location = "West Europe"
+}
+
+resource "azurerm_mssql_server" "example" {
+  name                         = "example-sqlserver"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  version                      = "12.0"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "AdminPassword123!"
+}
+
+resource "azurerm_mssql_server_extended_auditing_policy" "example" {
+  server_id                               = azurerm_mssql_server.example.id
+  storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
+  storage_account_access_key              = azurerm_storage_account.example.primary_access_key
+  storage_account_access_key_is_secondary = false
+  retention_in_days                       = 6
+}
+
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "example-workspace"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_eventhub_namespace" "example" {
+  name                = "example-eventhub-namespace"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "example" {
+  name                = "example-eventhub"
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventhub_namespace_authorization_rule" "example" {
+  name                = "example-eventhub-auth-rule"
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  listen              = true
+  send                = true
+  manage              = true
+}
+
+resource "azurerm_mssql_server_extended_auditing_policy" "example" {
+  server_id              = azurerm_mssql_server.example.id
+  log_monitoring_enabled = true
+}
+
+resource "azurerm_monitor_diagnostic_setting" "example" {
+  name                           = "example-diagnotic-setting"
+  target_resource_id             = "${azurerm_mssql_server.example.id}/databases/master”
+  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.example.id
+  eventhub_name                  = azurerm_eventhub.example.name
+  log_analytics_workspace_id     = azurerm_log_analytics_workspace.example.id
+
+  log {
+    category = "SQLSecurityAuditEvents"
+    enabled  = true
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+}
+```
 ## Arguments Reference
 
 The following arguments are supported:
@@ -169,13 +260,13 @@ The following arguments are supported:
 
 * `storage_endpoint` - (Optional) The blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all extended auditing logs.
 
-* `retention_in_days` - (Optional) The number of days to retain logs for in the storage account.
+* `retention_in_days` - (Optional) The number of days to retain logs for in the storage account. Defaults to `0`.
 
 * `storage_account_access_key` - (Optional) The access key to use for the auditing storage account.
 
 * `storage_account_access_key_is_secondary` - (Optional) Is `storage_account_access_key` value the storage's secondary key?
 
-* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its main database audit events to Azure Monitor.
+* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its main database audit events to Azure Monitor. Defaults to `true`.
 
 * `storage_account_subscription_id` - (Optional) The ID of the Subscription containing the Storage Account.
 

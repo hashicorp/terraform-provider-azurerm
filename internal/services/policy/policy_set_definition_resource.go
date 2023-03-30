@@ -12,6 +12,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	mgmtGrpParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
@@ -570,6 +571,7 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitionsUpdate(d *pluginsdk.Resour
 			PolicyDefinitionID:          utils.String(d.Get(fmt.Sprintf("policy_definition_reference.%d.policy_definition_id", i)).(string)),
 			Parameters:                  parameters,
 			PolicyDefinitionReferenceID: utils.String(d.Get(fmt.Sprintf("policy_definition_reference.%d.reference_id", i)).(string)),
+			GroupNames:                  utils.ExpandStringSlice(d.Get(fmt.Sprintf("policy_definition_reference.%d.policy_group_names", i)).(*schema.Set).List()),
 		})
 	}
 

@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `auto_approval_subscription_ids` - (Optional) A list of Subscription UUID/GUID's that will be automatically be able to use this Private Link Service.
 
-* `enable_proxy_protocol` - (Optional) Should the Private Link Service support the Proxy Protocol? Defaults to `false`.
+* `enable_proxy_protocol` - (Optional) Should the Private Link Service support the Proxy Protocol? 
 
 * `fqdns` - (Optional) List of FQDNs allowed for the Private Link Service.
 
@@ -128,7 +128,7 @@ The `nat_ip_configuration` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `alias` - A globally unique DNS Name for your Private Link Service. You can use this alias to request a connection to your Private Link Service.
 

@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := videoanalyzers.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := videoanalyzers.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "videoAnalyzerValue")
 
 payload := videoanalyzers.VideoAnalyzer{
 	// ...
@@ -66,7 +66,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := videoanalyzers.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := videoanalyzers.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "videoAnalyzerValue")
 
 read, err := client.VideoAnalyzersDelete(ctx, id)
 if err != nil {
@@ -82,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := videoanalyzers.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := videoanalyzers.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "videoAnalyzerValue")
 
 read, err := client.VideoAnalyzersGet(ctx, id)
 if err != nil {
@@ -130,7 +130,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := videoanalyzers.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := videoanalyzers.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "videoAnalyzerValue")
 
 payload := videoanalyzers.SyncStorageKeysInput{
 	// ...
@@ -151,7 +151,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := videoanalyzers.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := videoanalyzers.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "videoAnalyzerValue")
 
 payload := videoanalyzers.VideoAnalyzerUpdate{
 	// ...

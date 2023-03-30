@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := groundstation.NewAvailableGroundStationID("12345678-1234-9876-4563-123456789012", "groundStationValue")
+id := groundstation.NewAvailableGroundStationID("12345678-1234-9876-4563-123456789012", "availableGroundStationValue")
 
 read, err := client.AvailableGroundStationsGet(ctx, id)
 if err != nil {

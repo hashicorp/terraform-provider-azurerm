@@ -73,3 +73,59 @@ func FrontendIPConfigurationID(input string) (*FrontendIPConfigurationId, error)
 
 	return &resourceId, nil
 }
+
+// FrontendIPConfigurationIDInsensitively parses an FrontendIPConfiguration ID into an FrontendIPConfigurationId struct, insensitively
+// This should only be used to parse an ID for rewriting, the FrontendIPConfigurationID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func FrontendIPConfigurationIDInsensitively(input string) (*FrontendIPConfigurationId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := FrontendIPConfigurationId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'applicationGateways' segment
+	applicationGatewaysKey := "applicationGateways"
+	for key := range id.Path {
+		if strings.EqualFold(key, applicationGatewaysKey) {
+			applicationGatewaysKey = key
+			break
+		}
+	}
+	if resourceId.ApplicationGatewayName, err = id.PopSegment(applicationGatewaysKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'frontendIPConfigurations' segment
+	frontendIPConfigurationsKey := "frontendIPConfigurations"
+	for key := range id.Path {
+		if strings.EqualFold(key, frontendIPConfigurationsKey) {
+			frontendIPConfigurationsKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(frontendIPConfigurationsKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}

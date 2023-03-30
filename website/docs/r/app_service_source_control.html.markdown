@@ -60,7 +60,7 @@ The following arguments are supported:
 
 ---
 
-* `github_action_configuration` - (Optional) A `github_action_configuration` block as defined below.
+* `github_action_configuration` - (Optional) A `github_action_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `use_manual_integration` - (Optional) Should code be deployed manually. Set to `false` to enable continuous integration, such as webhooks into online repos such as GitHub. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -76,9 +76,9 @@ The following arguments are supported:
 
 A `code_configuration` block supports the following:
 
-* `runtime_stack` - (Required) The value to use for the Runtime Stack in the workflow file content for code base apps. Changing this forces a new resource to be created.
+* `runtime_stack` - (Required) The value to use for the Runtime Stack in the workflow file content for code base apps. Possible values are `dotnetcore`, `spring`, `tomcat`, `node` and `python`. Changing this forces a new resource to be created.
 
-* `runtime_version` - (Optional) The value to use for the Runtime Version in the workflow file content for code base apps. Changing this forces a new resource to be created.
+* `runtime_version` - (Required) The value to use for the Runtime Version in the workflow file content for code base apps. Changing this forces a new resource to be created.
 
 ---
 
@@ -96,9 +96,11 @@ A `container_configuration` block supports the following:
 
 A `github_action_configuration` block supports the following:
 
-* `code_configuration` - (Optional) A `code_configuration` block as defined above.
+* `code_configuration` - (Optional) A `code_configuration` block as defined above. Changing this forces a new resource to be created.
 
 * `container_configuration` - (Optional) A `container_configuration` block as defined above.
+
+* `generate_workflow_file` - (Optional) Whether to generate the GitHub work flow file. Defaults to `true`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

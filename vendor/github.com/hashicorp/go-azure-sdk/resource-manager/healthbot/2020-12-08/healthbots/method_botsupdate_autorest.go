@@ -60,7 +60,7 @@ func (c HealthbotsClient) preparerForBotsUpdate(ctx context.Context, id HealthBo
 func (c HealthbotsClient) responderForBotsUpdate(resp *http.Response) (result BotsUpdateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusCreated, http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Model),
 		autorest.ByClosing())
 	result.HttpResponse = resp

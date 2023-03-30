@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -21,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -87,6 +89,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					string(disks.DiskCreateOptionEmpty),
 					string(disks.DiskCreateOptionFromImage),
 					string(disks.DiskCreateOptionImport),
+					string(disks.DiskCreateOptionImportSecure),
 					string(disks.DiskCreateOptionRestore),
 					string(disks.DiskCreateOptionUpload),
 				}, false),
@@ -122,7 +125,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true, // Not supported by disk update
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
 			"image_reference_id": {
@@ -218,7 +221,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 				//       https://github.com/Azure/azure-rest-api-specs/issues/14192
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
+				ValidateFunc:     diskaccesses.ValidateDiskAccessID,
 			},
 
 			"public_network_access_enabled": {
@@ -387,15 +390,15 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only, disk_mbps_read_only and logical_sector_size are only available for UltraSSD disks and PremiumV2 disks")
 	}
 
-	if createOption == disks.DiskCreateOptionImport {
+	if createOption == disks.DiskCreateOptionImport || createOption == disks.DiskCreateOptionImportSecure {
 		sourceUri := d.Get("source_uri").(string)
 		if sourceUri == "" {
-			return fmt.Errorf("`source_uri` must be specified when `create_option` is set to `Import`")
+			return fmt.Errorf("`source_uri` must be specified when `create_option` is set to `Import` or `ImportSecure`")
 		}
 
 		storageAccountId := d.Get("storage_account_id").(string)
 		if storageAccountId == "" {
-			return fmt.Errorf("`storage_account_id` must be specified when `create_option` is set to `Import`")
+			return fmt.Errorf("`storage_account_id` must be specified when `create_option` is set to `Import` or `ImportSecure`")
 		}
 
 		props.CreationData.StorageAccountId = utils.String(storageAccountId)
@@ -490,8 +493,9 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		switch createOption {
 		case disks.DiskCreateOptionFromImage:
 		case disks.DiskCreateOptionImport:
+		case disks.DiskCreateOptionImportSecure:
 		default:
-			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are FromImage, Import", createOption)
+			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are `FromImage`, `Import`, `ImportSecure`", createOption)
 		}
 	}
 
@@ -505,8 +509,9 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		switch createOption {
 		case disks.DiskCreateOptionFromImage:
 		case disks.DiskCreateOptionImport:
+		case disks.DiskCreateOptionImportSecure:
 		default:
-			return fmt.Errorf("`security_type` can only be specified when `create_option` is set to `FromImage` or `Import`")
+			return fmt.Errorf("`security_type` can only be specified when `create_option` is set to `FromImage`, `Import` or `ImportSecure`")
 		}
 
 		if disks.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey == disks.DiskSecurityTypes(securityType) && secureVMDiskEncryptionId == "" {

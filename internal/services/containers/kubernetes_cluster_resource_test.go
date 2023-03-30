@@ -3,11 +3,11 @@ package containers_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,10 +18,10 @@ import (
 type KubernetesClusterResource struct{}
 
 var (
-	olderKubernetesVersion        = "1.23.12"
-	currentKubernetesVersion      = "1.24.3"
-	olderKubernetesVersionAlias   = "1.23"
-	currentKubernetesVersionAlias = "1.24"
+	olderKubernetesVersion        = "1.24.9"
+	currentKubernetesVersion      = "1.25.5"
+	olderKubernetesVersionAlias   = "1.24"
+	currentKubernetesVersionAlias = "1.25"
 )
 
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
@@ -75,6 +75,26 @@ func TestAccKubernetesCluster_runCommand(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureKeyVaultKms(data, currentKubernetesVersion, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.azureKeyVaultKms(data, currentKubernetesVersion, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccKubernetesCluster_storageProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -89,7 +109,7 @@ func TestAccKubernetesCluster_storageProfile(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_workloadAutoscalerProfileKedaOnOff(t *testing.T) {
+func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -101,6 +121,7 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKedaOnOff(t *testing.T) {
 				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -108,10 +129,11 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKedaOnOff(t *testing.T) {
 				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccKubernetesCluster_imageCleanerSecurityProfileOnOff(t *testing.T) {
+func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -134,20 +156,20 @@ func TestAccKubernetesCluster_imageCleanerSecurityProfileOnOff(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_workloadAutoscalerProfileKedaOnAbsent(t *testing.T) {
+func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscalerToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, true),
+			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, currentKubernetesVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 		{
-			Config: r.basicVMSSConfig(data),
+			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, currentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -202,7 +224,7 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 			return fmt.Errorf("Bad: Get on agentPoolsClient: %+v", err)
 		}
 
-		if nodePool.HttpResponse.StatusCode == http.StatusNotFound {
+		if response.WasNotFound(nodePool.HttpResponse) {
 			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", nodePoolName, clusterName, resourceGroup)
 		}
 
@@ -223,6 +245,24 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 
 		return nil
 	}
+}
+
+func TestAccKubernetesCluster_dnsPrefix(t *testing.T) {
+	// regression test case for issue #20806
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	dnsPrefix := fmt.Sprintf("1stCluster%d", data.RandomInteger)
+
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dnsPrefix(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dns_prefix").HasValue(dnsPrefix),
+			),
+		},
+	})
 }
 
 func (KubernetesClusterResource) hostEncryption(data acceptance.TestData, controlPlaneVersion string) string {
@@ -389,6 +429,41 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, kedaEnabled)
 }
 
+func (KubernetesClusterResource) workloadAutoscalerProfileVerticalPodAutoscaler(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = %q
+
+  workload_autoscaler_profile {
+    vertical_pod_autoscaler_enabled = %t
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled)
+}
+
 func (KubernetesClusterResource) imageCleanerSecurityProfile(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -460,13 +535,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, maxSurge)
 }
 
-func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_VOneDotTwoFourDotThree(t *testing.T) {
+func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_VOneDotTwoFourDotNine(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotThree(data, ""),
+			Config: r.roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotNine(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_config.0.host").IsSet(),
@@ -513,6 +588,87 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, tag)
 }
 
+func (KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
+	kmsBlock := ""
+	if enabled {
+		kmsBlock = `
+  key_management_service {
+    key_vault_key_id = azurerm_key_vault_key.test.id
+  }`
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                      = substr("acctest%[1]d", 0, 24)
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  tenant_id                 = data.azurerm_client_config.current.tenant_id
+  enable_rbac_authorization = true
+  sku_name                  = "standard"
+}
+
+resource "azurerm_role_assignment" "test_admin" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Crypto User"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "etcd-encryption"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+
+  depends_on = [azurerm_role_assignment.test_admin]
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  node_resource_group = "${azurerm_resource_group.test.name}-infra"
+  dns_prefix          = "acctestaks%[1]d"
+  kubernetes_version  = %[3]q
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+  %[4]s
+}
+`, data.RandomInteger, data.Locations.Primary, controlPlaneVersion, kmsBlock)
+}
+
 func (KubernetesClusterResource) storageProfile(data acceptance.TestData, controlPlaneVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -547,6 +703,37 @@ resource "azurerm_kubernetes_cluster" "test" {
     disk_driver_version         = "v1"
     file_driver_enabled         = false
     snapshot_controller_enabled = false
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
+}
+
+func (KubernetesClusterResource) dnsPrefix(data acceptance.TestData, controlPlaneVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "1stCluster%d"
+  kubernetes_version  = %q
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)

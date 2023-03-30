@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -60,15 +60,20 @@ resource "azurerm_site_recovery_fabric" "test" {
 }
 
 func (t SiteRecoveryFabricResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ReplicationFabricID(state.ID)
+	id, err := replicationfabrics.ParseReplicationFabricID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.RecoveryServices.FabricClient(id.ResourceGroup, id.VaultName).Get(ctx, id.Name)
+	resp, err := clients.RecoveryServices.FabricClient.Get(ctx, *id, replicationfabrics.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Recovery Service Vault (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	model := resp.Model
+	if model == nil {
+		return nil, fmt.Errorf("reading Recovery Service Vault (%s): model is nil", id.String())
+	}
+
+	return utils.Bool(model.Id != nil), nil
 }

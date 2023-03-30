@@ -81,7 +81,7 @@ An `identity` block supports the following:
 
 The `threat_detection_policy` block supports the following:
 
-* `state` - (Required) The State of the Policy. Possible values are `Enabled` or `Disabled`.
+* `state` - (Optional) The State of the Policy. Possible values are `Disabled`, `Enabled` and `New`.
 * `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Data_Exfiltration`, `Sql_Injection`, `Sql_Injection_Vulnerability` and `Unsafe_Action"`,.
 * `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
 * `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
@@ -91,14 +91,14 @@ The `threat_detection_policy` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Microsoft SQL Server ID.
 * `fully_qualified_domain_name` - The fully qualified domain name of the Azure SQL Server (e.g. myServerName.database.windows.net)
 
 ---
 
-`identity` exports the following:
+An `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Server.
 

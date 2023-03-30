@@ -154,17 +154,15 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				validation.StringMatch(regexp.MustCompile("^[^\\\\/\"\\[\\]:|<>+=;,?*$]{1,14}$"), "User names cannot contain special characters \\/\"\"[]:|<>+=;,$?*@")),
 		},
 		"password": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:      pluginsdk.TypeString,
+			Optional:  true,
+			Sensitive: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(8, 123),
-				validation.StringIsNotWhiteSpace),
+				validation.StringIsNotWhiteSpace,
+			),
 		},
-		"resource_group_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotWhiteSpace,
-		},
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"node_type":      nodeTypeSchema(),
 		"authentication": authSchema(),
@@ -399,16 +397,16 @@ func (k ClusterResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(cluster.HttpResponse) {
 					return metadata.MarkAsGone(resourceId)
 				}
-				return fmt.Errorf("while reading data for cluster %q: %+v", resourceId.ClusterName, err)
+				return fmt.Errorf("while reading data for cluster %q: %+v", resourceId.ManagedClusterName, err)
 			}
 
 			nts, err := nodeTypeClient.ListByManagedClustersComplete(ctx, nodetype.ManagedClusterId{
-				SubscriptionId:    resourceId.SubscriptionId,
-				ResourceGroupName: resourceId.ResourceGroupName,
-				ClusterName:       resourceId.ClusterName,
+				SubscriptionId:     resourceId.SubscriptionId,
+				ResourceGroupName:  resourceId.ResourceGroupName,
+				ManagedClusterName: resourceId.ManagedClusterName,
 			})
 			if err != nil {
-				return fmt.Errorf("while listing NodeTypes for cluster %q: +%v", resourceId.ClusterName, err)
+				return fmt.Errorf("while listing NodeTypes for cluster %q: +%v", resourceId.ManagedClusterName, err)
 			}
 
 			model := flattenClusterProperties(cluster.Model)
@@ -770,9 +768,15 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 		VmImageVersion:   utils.NormalizeNilableString(props.VMImageVersion),
 		VmInstanceCount:  props.VMInstanceCount,
 		VmSize:           utils.NormalizeNilableString(props.VMSize),
-		ApplicationPorts: fmt.Sprintf("%d-%d", props.ApplicationPorts.StartPort, props.ApplicationPorts.EndPort),
-		EphemeralPorts:   fmt.Sprintf("%d-%d", props.EphemeralPorts.StartPort, props.EphemeralPorts.EndPort),
 		Id:               utils.NormalizeNilableString(nt.Id),
+	}
+
+	if appPorts := props.ApplicationPorts; appPorts != nil {
+		out.ApplicationPorts = fmt.Sprintf("%d-%d", appPorts.StartPort, appPorts.EndPort)
+	}
+
+	if ephemeralPorts := props.EphemeralPorts; ephemeralPorts != nil {
+		out.EphemeralPorts = fmt.Sprintf("%d-%d", ephemeralPorts.StartPort, ephemeralPorts.EndPort)
 	}
 
 	if mpg := props.MultiplePlacementGroups; mpg != nil {

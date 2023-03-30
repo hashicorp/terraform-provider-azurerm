@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/helper"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
+	storageParsers "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -31,7 +31,7 @@ func dataSourceDataShareDatasetDataLakeGen2() *pluginsdk.Resource {
 			"share_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ShareID,
+				ValidateFunc: share.ValidateShareID,
 			},
 
 			"storage_account_id": {
@@ -67,52 +67,43 @@ func dataSourceDataShareDatasetDataLakeGen2Read(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	shareId, err := parse.ShareID(d.Get("share_id").(string))
+	shareId, err := share.ParseShareID(d.Get("share_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroup, shareId.AccountName, shareId.Name, d.Get("name").(string))
+	id := dataset.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroupName, shareId.AccountName, shareId.ShareName, d.Get("name").(string))
 
-	respModel, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	respId := helper.GetAzurermDataShareDataSetId(respModel.Value)
-	if respId == nil || *respId == "" {
-		return fmt.Errorf("empty or nil ID returned for %s", id)
-	}
-
 	d.SetId(id.ID())
-	d.Set("name", id.Name)
+	d.Set("name", id.DataSetName)
 	d.Set("share_id", shareId.ID())
 
-	switch resp := respModel.Value.(type) {
-	case datashare.ADLSGen2FileDataSet:
-		if props := resp.ADLSGen2FileProperties; props != nil {
-			d.Set("storage_account_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s", *props.SubscriptionID, *props.ResourceGroup, *props.StorageAccountName))
+	if model := resp.Model; model != nil {
+		m := *model
+		if ds, ok := m.(dataset.ADLSGen2FileDataSet); ok {
+			props := ds.Properties
+			d.Set("storage_account_id", storageParsers.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
 			d.Set("file_path", props.FilePath)
-			d.Set("display_name", props.DataSetID)
-		}
-
-	case datashare.ADLSGen2FolderDataSet:
-		if props := resp.ADLSGen2FolderProperties; props != nil {
-			d.Set("storage_account_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s", *props.SubscriptionID, *props.ResourceGroup, *props.StorageAccountName))
+			d.Set("display_name", props.DataSetId)
+		} else if ds, ok := m.(dataset.ADLSGen2FolderDataSet); ok {
+			props := ds.Properties
+			d.Set("storage_account_id", storageParsers.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
 			d.Set("folder_path", props.FolderPath)
-			d.Set("display_name", props.DataSetID)
-		}
-
-	case datashare.ADLSGen2FileSystemDataSet:
-		if props := resp.ADLSGen2FileSystemProperties; props != nil {
-			d.Set("storage_account_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s", *props.SubscriptionID, *props.ResourceGroup, *props.StorageAccountName))
+			d.Set("display_name", props.DataSetId)
+		} else if ds, ok := m.(dataset.ADLSGen2FileSystemDataSet); ok {
+			props := ds.Properties
+			d.Set("storage_account_id", storageParsers.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
-			d.Set("display_name", props.DataSetID)
+			d.Set("display_name", props.DataSetId)
+		} else {
+			return fmt.Errorf("%s is not a datalake store gen2 dataset", id)
 		}
-
-	default:
-		return fmt.Errorf("%s is not a datalake store gen2 dataset", id)
 	}
 
 	return nil

@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -43,7 +44,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -53,6 +54,8 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"location": commonschema.Location(),
+
+			"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -90,7 +93,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: networkValidate.SubnetID,
 			},
 
 			"create_from_snapshot_resource_id": {
@@ -307,6 +310,14 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
+
+	zones := &[]string{}
+	if v, ok := d.GetOk("zone"); ok {
+		zones = &[]string{
+			v.(string),
+		}
+	}
+
 	volumePath := d.Get("volume_path").(string)
 	serviceLevel := volumes.ServiceLevel(d.Get("service_level").(string))
 	subnetID := d.Get("subnet_id").(string)
@@ -382,7 +393,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			snapshotID = *model.Id
 		}
 
-		sourceVolumeId := volumes.NewVolumeID(parsedSnapshotResourceID.SubscriptionId, parsedSnapshotResourceID.ResourceGroupName, parsedSnapshotResourceID.AccountName, parsedSnapshotResourceID.PoolName, parsedSnapshotResourceID.VolumeName)
+		sourceVolumeId := volumes.NewVolumeID(parsedSnapshotResourceID.SubscriptionId, parsedSnapshotResourceID.ResourceGroupName, parsedSnapshotResourceID.NetAppAccountName, parsedSnapshotResourceID.CapacityPoolName, parsedSnapshotResourceID.VolumeName)
 		// Validate if properties that cannot be changed matches (protocols, subnet_id, location, resource group, account_name, pool_name, service_level)
 		sourceVolume, err := client.Get(ctx, sourceVolumeId)
 		if err != nil {
@@ -409,10 +420,10 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			if !strings.EqualFold(sourceVolumeId.ResourceGroupName, id.ResourceGroupName) {
 				propertyMismatch = append(propertyMismatch, "resource_group_name")
 			}
-			if !strings.EqualFold(sourceVolumeId.AccountName, id.AccountName) {
+			if !strings.EqualFold(sourceVolumeId.NetAppAccountName, id.NetAppAccountName) {
 				propertyMismatch = append(propertyMismatch, "account_name")
 			}
-			if !strings.EqualFold(sourceVolumeId.PoolName, id.PoolName) {
+			if !strings.EqualFold(sourceVolumeId.CapacityPoolName, id.CapacityPoolName) {
 				propertyMismatch = append(propertyMismatch, "pool_name")
 			}
 			if len(propertyMismatch) > 0 {
@@ -446,7 +457,8 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			AvsDataStore:             &avsDataStoreEnabled,
 			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:  tags.Expand(d.Get("tags").(map[string]interface{})),
+		Zones: zones,
 	}
 
 	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
@@ -502,6 +514,10 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	shouldUpdate := false
 	update := volumes.VolumePatch{
 		Properties: &volumes.VolumePatchProperties{},
+	}
+
+	if d.HasChange("zones") {
+		return fmt.Errorf("zone changes are not supported after volume is already created, %s", id)
 	}
 
 	if d.HasChange("storage_quota_in_gb") {
@@ -580,11 +596,19 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	d.Set("name", id.VolumeName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("account_name", id.AccountName)
-	d.Set("pool_name", id.PoolName)
+	d.Set("account_name", id.NetAppAccountName)
+	d.Set("pool_name", id.CapacityPoolName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
+
+		zone := ""
+		if model.Zones != nil {
+			if zones := *model.Zones; len(zones) > 0 {
+				zone = zones[0]
+			}
+		}
+		d.Set("zone", zone)
 
 		props := model.Properties
 		d.Set("volume_path", props.CreationToken)
@@ -901,7 +925,7 @@ func flattenNetAppVolumeDataProtectionReplication(input *volumes.VolumePropertie
 }
 
 func flattenNetAppVolumeDataProtectionSnapshotPolicy(input *volumes.VolumePropertiesDataProtection) []interface{} {
-	if input == nil || input.Snapshot == nil || *input.Snapshot.SnapshotPolicyId == "" {
+	if input == nil || input.Snapshot == nil || input.Snapshot.SnapshotPolicyId == nil || *input.Snapshot.SnapshotPolicyId == "" {
 		return []interface{}{}
 	}
 

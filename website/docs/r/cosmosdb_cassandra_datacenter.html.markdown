@@ -98,9 +98,9 @@ The following arguments are supported:
 
 * `managed_disk_customer_key_uri` - (Optional) The key URI of the customer key to use for the encryption of the Managed Disk.
 
-* `sku_name` - (Optional) Determines the selected sku. Defaults to Standard_DS14_v2.
+* `sku_name` - (Optional) Determines the selected sku.
 
-* `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node. Defaults to `4`.
+* `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node.
 
 * `availability_zones_enabled` - (Optional) Determines whether availability zones are enabled. Defaults to `true`.
 

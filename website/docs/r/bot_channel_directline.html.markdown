@@ -58,11 +58,11 @@ A `site` block has the following properties:
 
 * `name` - (Required) The name of the site
 
-* `enabled` - (Optional) Enables/Disables this site. Enabled by default
+* `enabled` - (Optional) Enables/Disables this site. Enabled by default Defaults to `true`.
 
-* `v1_allowed` - (Optional) Enables v1 of the Directline protocol for this site. Enabled by default
+* `v1_allowed` - (Optional) Enables v1 of the Directline protocol for this site. Enabled by default Defaults to `true`.
 
-* `v3_allowed` - (Optional) Enables v3 of the Directline protocol for this site. Enabled by default
+* `v3_allowed` - (Optional) Enables v3 of the Directline protocol for this site. Enabled by default Defaults to `true`.
 
 * `enhanced_authentication_enabled` - (Optional) Enables additional security measures for this site, see [Enhanced Directline Authentication Features](https://blog.botframework.com/2018/09/25/enhanced-direct-line-authentication-features). Disabled by default.
 
@@ -70,7 +70,7 @@ A `site` block has the following properties:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Bot Channel ID.
 

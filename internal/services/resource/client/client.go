@@ -4,16 +4,18 @@ import (
 	providers "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs" // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2015-12-01/features"                      // nolint: staticcheck
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"                         // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                     // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	DeploymentsClient           *resources.DeploymentsClient
+	DeploymentScriptsClient     *deploymentscripts.DeploymentScriptsClient
 	FeaturesClient              *features.Client
 	GroupsClient                *resources.GroupsClient
-	LocksClient                 *locks.ManagementLocksClient
+	LocksClient                 *managementlocks.ManagementLocksClient
 	ProvidersClient             *providers.ProvidersClient
 	ResourceProvidersClient     *resources.ProvidersClient
 	ResourcesClient             *resources.Client
@@ -27,13 +29,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	deploymentsClient := resources.NewDeploymentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&deploymentsClient.Client, o.ResourceManagerAuthorizer)
 
+	deploymentScriptsClient := deploymentscripts.NewDeploymentScriptsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&deploymentScriptsClient.Client, o.ResourceManagerAuthorizer)
+
 	featuresClient := features.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&featuresClient.Client, o.ResourceManagerAuthorizer)
 
 	groupsClient := resources.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupsClient.Client, o.ResourceManagerAuthorizer)
 
-	locksClient := locks.NewManagementLocksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	locksClient := managementlocks.NewManagementLocksClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&locksClient.Client, o.ResourceManagerAuthorizer)
 
 	// this has to come from the Profile since this is shared with Stack
@@ -56,6 +61,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		GroupsClient:                &groupsClient,
 		DeploymentsClient:           &deploymentsClient,
+		DeploymentScriptsClient:     &deploymentScriptsClient,
 		FeaturesClient:              &featuresClient,
 		LocksClient:                 &locksClient,
 		ProvidersClient:             &providersClient,

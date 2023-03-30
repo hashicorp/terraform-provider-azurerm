@@ -51,7 +51,7 @@ resource "azurerm_spring_cloud_configuration_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Spring Cloud Configuration Service. Changing this forces a new Spring Cloud Configuration Service to be created.
+* `name` - (Required) The name which should be used for this Spring Cloud Configuration Service. The only possible value is `default`. Changing this forces a new Spring Cloud Configuration Service to be created.
 
 * `spring_cloud_service_id` - (Required) The ID of the Spring Cloud Service. Changing this forces a new Spring Cloud Configuration Service to be created.
 

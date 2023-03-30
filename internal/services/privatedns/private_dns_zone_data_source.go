@@ -81,7 +81,7 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 	} else {
 		resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 
-		zone, err := findPrivateZone(ctx, client, resourcesClient, id.PrivateZoneName)
+		zone, err := findPrivateZone(ctx, client, resourcesClient, id.PrivateDnsZoneName)
 		if err != nil {
 			return err
 		}
@@ -96,7 +96,7 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.PrivateZoneName)
+	d.Set("name", id.PrivateDnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if props := resp.Properties; props != nil {

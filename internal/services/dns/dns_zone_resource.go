@@ -190,11 +190,11 @@ func resourceDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			},
 		}
 
-		if len(id.ZoneName+strings.TrimSuffix(*rsParameters.Properties.SOARecord.Email, ".")) > 253 {
+		if len(id.DnsZoneName+strings.TrimSuffix(*rsParameters.Properties.SOARecord.Email, ".")) > 253 {
 			return fmt.Errorf("`email` which is concatenated with DNS Zone `name` cannot exceed 253 characters excluding a trailing period")
 		}
 
-		soaRecordId := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.ZoneName, recordsets.RecordTypeSOA, "@")
+		soaRecordId := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, recordsets.RecordTypeSOA, "@")
 		if _, err := recordSetsClient.CreateOrUpdate(ctx, soaRecordId, rsParameters, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("creating/updating %s: %+v", soaRecordId, err)
 		}
@@ -225,7 +225,7 @@ func resourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	soaRecord := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.ZoneName, recordsets.RecordTypeSOA, "@")
+	soaRecord := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, recordsets.RecordTypeSOA, "@")
 	soaRecordResp, err := recordSetsClient.Get(ctx, soaRecord)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -235,7 +235,7 @@ func resourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("setting `soa_record`: %+v", err)
 	}
 
-	d.Set("name", id.ZoneName)
+	d.Set("name", id.DnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

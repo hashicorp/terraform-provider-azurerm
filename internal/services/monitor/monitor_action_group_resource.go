@@ -9,11 +9,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	appServiceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
@@ -57,6 +60,21 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"location": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "global",
+				ValidateFunc: validation.Any(
+					location.EnhancedValidate,
+					validation.StringInSlice([]string{
+						"global",
+					}, false),
+				),
+				StateFunc:        location.StateFunc,
+				DiffSuppressFunc: location.DiffSuppressFunc,
+			},
 
 			"short_name": {
 				Type:         pluginsdk.TypeString,
@@ -237,7 +255,7 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 						"automation_account_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: automationaccount.ValidateAutomationAccountID,
 						},
 						"runbook_name": {
 							Type:         pluginsdk.TypeString,
@@ -329,10 +347,11 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						// TODO: this should be `_id` and not `_resource_id`
 						"function_app_resource_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: appServiceValidate.FunctionAppID,
 						},
 						"function_name": {
 							Type:         pluginsdk.TypeString,
@@ -476,6 +495,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	tenantId := meta.(*clients.Client).Account.TenantId
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	location := location.Normalize(d.Get("location").(string))
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -523,7 +543,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	expandedTags := tags.Expand(t)
 
 	parameters := insights.ActionGroupResource{
-		Location: utils.String(azure.NormalizeLocation("Global")),
+		Location: utils.String(location),
 		ActionGroup: &insights.ActionGroup{
 			GroupShortName:             utils.String(shortName),
 			Enabled:                    utils.Bool(enabled),
@@ -572,6 +592,7 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if group := resp.ActionGroup; group != nil {
 		d.Set("short_name", group.GroupShortName)
@@ -829,7 +850,7 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 				if err != nil {
 					return nil, err
 				}
-				eventHubNameSpace, eventHubName, subId = eventHubId.NamespaceName, eventHubId.EventHubName, eventHubId.SubscriptionId
+				eventHubNameSpace, eventHubName, subId = eventHubId.NamespaceName, eventHubId.EventhubName, eventHubId.SubscriptionId
 			} else if val["event_hub_id"].(string) != "" || eventHubNameSpace == "" || eventHubName == "" {
 				return nil, fmt.Errorf("in event_hub_receiver, exactly one of event_hub_id or (event_hub_namespace, event_hub_name) must be set")
 			}

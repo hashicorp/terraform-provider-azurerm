@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `cassandra_keyspace_id` - (Required) The ID of the Cosmos DB Cassandra Keyspace to create the table within. Changing this forces a new resource to be created.
 
-* `schema` - (Required) A `schema` block as defined below. Changing this forces a new resource to be created.
+* `schema` - (Required) A `schema` block as defined below.
 
 * `throughput` - (Optional) The throughput of Cassandra KeySpace (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
@@ -125,7 +125,7 @@ A `partition_key` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - the ID of the CosmosDB Cassandra Table.
 

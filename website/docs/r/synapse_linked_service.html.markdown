@@ -53,6 +53,12 @@ resource "azurerm_synapse_firewall_rule" "example" {
   end_ip_address       = "255.255.255.255"
 }
 
+resource "azurerm_synapse_integration_runtime_azure" "example" {
+  name                 = "example"
+  synapse_workspace_id = azurerm_synapse_workspace.example.id
+  location             = azurerm_resource_group.example.location
+}
+
 resource "azurerm_synapse_linked_service" "example" {
   name                 = "example"
   synapse_workspace_id = azurerm_synapse_workspace.example.id
@@ -62,6 +68,9 @@ resource "azurerm_synapse_linked_service" "example" {
   "connectionString": "${azurerm_storage_account.example.primary_connection_string}"
 }
 JSON
+  integration_runtime {
+    name = azurerm_synapse_integration_runtime_azure.example.name
+  }
 
   depends_on = [
     azurerm_synapse_firewall_rule.example,
@@ -79,7 +88,7 @@ The following arguments are supported:
 
 * `synapse_workspace_id` - (Required) The Synapse Workspace ID in which to associate the Linked Service with. Changing this forces a new Synapse Linked Service to be created.
 
-* `type` - (Required) The type of data stores that will be connected to Synapse. Valid Values include `AmazonMWS`, `AmazonRdsForOracle`, `AmazonRdsForSqlServer`, `AmazonRedshift`, `AmazonS3`, `AzureBatch`,
+* `type` - (Required) The type of data stores that will be connected to Synapse. Valid Values include `AmazonMWS`, `AmazonRdsForOracle`, `AmazonRdsForSqlServer`, `AmazonRedshift`, `AmazonS3`, `AzureBatch`. Changing this forces a new resource to be created.
 `AzureBlobFS`, `AzureBlobStorage`, `AzureDataExplorer`, `AzureDataLakeAnalytics`, `AzureDataLakeStore`, `AzureDatabricks`, `AzureDatabricksDeltaLake`, `AzureFileStorage`, `AzureFunction`,
 `AzureKeyVault`, `AzureML`, `AzureMLService`, `AzureMariaDB`, `AzureMySql`, `AzurePostgreSql`, `AzureSqlDW`, `AzureSqlDatabase`, `AzureSqlMI`, `AzureSearch`, `AzureStorage`,
 `AzureTableStorage`, `Cassandra`, `CommonDataServiceForApps`, `Concur`, `CosmosDb`, `CosmosDbMongoDbApi`, `Couchbase`, `CustomDataSource`, `Db2`, `Drill`, 

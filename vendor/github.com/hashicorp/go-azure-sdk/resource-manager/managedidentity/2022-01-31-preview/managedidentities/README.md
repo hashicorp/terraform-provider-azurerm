@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "federatedIdentityCredentialResourceValue")
+id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue", "federatedIdentityCredentialValue")
 
 payload := managedidentities.FederatedIdentityCredential{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "federatedIdentityCredentialResourceValue")
+id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue", "federatedIdentityCredentialValue")
 
 read, err := client.FederatedIdentityCredentialsDelete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "federatedIdentityCredentialResourceValue")
+id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue", "federatedIdentityCredentialValue")
 
 read, err := client.FederatedIdentityCredentialsGet(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
 
 // alternatively `client.FederatedIdentityCredentialsList(ctx, id, managedidentities.DefaultFederatedIdentityCredentialsListOperationOptions())` can be used to do batched pagination
 items, err := client.FederatedIdentityCredentialsListComplete(ctx, id, managedidentities.DefaultFederatedIdentityCredentialsListOperationOptions())
@@ -110,7 +110,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
 
 payload := managedidentities.Identity{
 	// ...
@@ -131,7 +131,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
 
 read, err := client.UserAssignedIdentitiesDelete(ctx, id)
 if err != nil {
@@ -147,7 +147,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
 
 read, err := client.UserAssignedIdentitiesGet(ctx, id)
 if err != nil {
@@ -163,7 +163,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
 
 // alternatively `client.UserAssignedIdentitiesListAssociatedResources(ctx, id, managedidentities.DefaultUserAssignedIdentitiesListAssociatedResourcesOperationOptions())` can be used to do batched pagination
 items, err := client.UserAssignedIdentitiesListAssociatedResourcesComplete(ctx, id, managedidentities.DefaultUserAssignedIdentitiesListAssociatedResourcesOperationOptions())
@@ -214,7 +214,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
 
 payload := managedidentities.IdentityUpdate{
 	// ...

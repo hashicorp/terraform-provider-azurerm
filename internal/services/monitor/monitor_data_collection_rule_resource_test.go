@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -178,7 +178,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     }
     performance_counter {
       streams                       = ["Microsoft-Perf", "Microsoft-InsightsMetrics"]
-      sampling_frequency_in_seconds = 10
+      sampling_frequency_in_seconds = 60
       counter_specifiers            = ["Processor(*)\\%% Processor Time"]
       name                          = "test-datasource-perfcounter"
     }
@@ -261,12 +261,12 @@ resource "azurerm_monitor_data_collection_rule" "test" {
 
   data_flow {
     streams      = ["Microsoft-InsightsMetrics", "Microsoft-Syslog", "Microsoft-Perf"]
-    destinations = ["test-destination-log1"]
+    destinations = ["test-destination-log2"]
   }
 
   data_flow {
     streams      = ["Microsoft-Event", "Microsoft-WindowsEvent"]
-    destinations = ["test-destination-log1", "test-destination-log2"]
+    destinations = ["test-destination-log1"]
   }
 
   data_sources {
@@ -289,7 +289,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
 
     performance_counter {
       streams                       = ["Microsoft-Perf", "Microsoft-InsightsMetrics"]
-      sampling_frequency_in_seconds = 10
+      sampling_frequency_in_seconds = 60
       counter_specifiers = [
         "Processor(*)\\%% Processor Time",
         "Processor(*)\\%% Idle Time",
@@ -321,7 +321,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
 
     windows_event_log {
       streams        = ["Microsoft-WindowsEvent"]
-      x_path_queries = ["*[System/Level=1]"]
+      x_path_queries = ["System!*[System[EventID=4648]]"]
       name           = "test-datasource-wineventlog"
     }
 
@@ -348,10 +348,6 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     azurerm_log_analytics_solution.test2,
   ]
 }
-
-
-
-
 `, r.template(data), data.RandomInteger)
 }
 

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -34,6 +34,7 @@ type LinuxFunctionAppDataSourceModel struct {
 
 	AppSettings               map[string]string                    `tfschema:"app_settings"`
 	AuthSettings              []helpers.AuthSettings               `tfschema:"auth_settings"`
+	AuthV2Settings            []helpers.AuthV2Settings             `tfschema:"auth_settings_v2"`
 	Backup                    []helpers.Backup                     `tfschema:"backup"` // Not supported on Dynamic or Basic plans
 	BuiltinLogging            bool                                 `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled         bool                                 `tfschema:"client_certificate_enabled"`
@@ -125,6 +126,8 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
+
+		"auth_settings_v2": helpers.AuthV2SettingsComputedSchema(),
 
 		"backup": helpers.BackupSchemaComputed(),
 
@@ -295,6 +298,11 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Auth Settings for Linux %s: %+v", id, err)
 			}
 
+			authV2, err := client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading authV2 settings for Linux %s: %+v", id, err)
+			}
+
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(backup.Response) {
@@ -352,6 +360,8 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
 
+			state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
+
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
 			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
@@ -393,7 +403,7 @@ func (m *LinuxFunctionAppDataSourceModel) unpackLinuxFunctionAppSettings(input w
 		case "FUNCTIONS_EXTENSION_VERSION":
 			m.FunctionExtensionsVersion = utils.NormalizeNilableString(v)
 
-		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from LinuxFxVersion so can discard it here
+		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is no longer used in Linux Apps
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
 				appSettings[k] = utils.NormalizeNilableString(v)

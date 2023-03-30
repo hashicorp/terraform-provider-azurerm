@@ -11,13 +11,14 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	azautorest "github.com/Azure/go-autorest/autorest"
-	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -175,6 +176,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(storage.DirectoryServiceOptionsAADDS),
 								string(storage.DirectoryServiceOptionsAD),
+								string(storageaccounts.DirectoryServiceOptionsAADKERB),
 							}, false),
 						},
 
@@ -458,6 +460,22 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									},
 								},
 							},
+						},
+
+						"restore_policy": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"days": {
+										Type:         pluginsdk.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+							RequiredWith: []string{"blob_properties.0.delete_retention_policy"},
 						},
 
 						"versioning_enabled": {
@@ -812,6 +830,15 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"allowed_copy_scope": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storage.AllowedCopyScopePrivateLink),
+					string(storage.AllowedCopyScopeAAD),
+				}, false),
+			},
+
 			"sftp_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1109,12 +1136,16 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
+	if v := d.Get("allowed_copy_scope").(string); v != "" {
+		parameters.AccountPropertiesCreateParameters.AllowedCopyScope = storage.AllowedCopyScope(v)
+	}
+
 	// For all Clouds except Public, China, and USGovernmentCloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
 	// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
 	// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
 	// USGovernmentCloud allow_blob_public_access and min_tls_version allowed as of issue 9128
 	// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-	if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
+	if envName != environments.AzurePublicCloud && envName != environments.AzureUSGovernmentCloud && envName != environments.AzureChinaCloud {
 		if allowBlobPublicAccess || minimumTLSVersion != string(storage.MinimumTLSVersionTLS10) {
 			return fmt.Errorf(`"allow_nested_items_to_be_public" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
 		}
@@ -1253,9 +1284,9 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	infrastructureEncryption := d.Get("infrastructure_encryption_enabled").(bool)
 
 	if infrastructureEncryption {
-		if !((accountTier == string(storage.SkuTierPremium) && accountKind == string(storage.KindBlockBlobStorage)) ||
+		if !((accountTier == string(storage.SkuTierPremium) && (accountKind == string(storage.KindBlockBlobStorage)) || accountKind == string(storage.KindFileStorage)) ||
 			(accountKind == string(storage.KindStorageV2))) {
-			return fmt.Errorf("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`, or account tier `Premium` and account kind `BlockBlobStorage`")
+			return fmt.Errorf("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`, or account tier `Premium` and account kind is one of `BlockBlobStorage` or `FileStorage`")
 		}
 		encryption.RequireInfrastructureEncryption = &infrastructureEncryption
 	}
@@ -1291,7 +1322,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 
-		blobProperties := expandBlobProperties(val.([]interface{}))
+		blobProperties, err := expandBlobProperties(val.([]interface{}))
+		if err != nil {
+			return err
+		}
 
 		// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
 		// Fix issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11772
@@ -1308,6 +1342,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		// See: https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#:~:text=Storage%20accounts%20with%20a%20hierarchical%20namespace%20enabled%20for%20use%20with%20Azure%20Data%20Lake%20Storage%20Gen2%20are%20not%20currently%20supported.
 		if blobProperties.IsVersioningEnabled != nil && *blobProperties.IsVersioningEnabled && isHnsEnabled {
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
+		}
+
+		if (blobProperties.IsVersioningEnabled != nil && !*blobProperties.IsVersioningEnabled) && (blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled) {
+			// Otherwise, API returns: "Conflicting feature 'restorePolicy' is enabled. Please disable it and retry."
+			return fmt.Errorf("`blob_properties.restore_policy` can't be set when `versioning_enabled` is false")
 		}
 
 		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
@@ -1603,7 +1642,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
 		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
+		if envName != environments.AzurePublicCloud && envName != environments.AzureUSGovernmentCloud && envName != environments.AzureChinaCloud {
 			if minimumTLSVersion != string(storage.MinimumTLSVersionTLS10) {
 				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
 			}
@@ -1627,7 +1666,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
 		// USGovernmentCloud "allow_blob_public_access" allowed as of issue 9128
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
+		if envName != environments.AzurePublicCloud && envName != environments.AzureUSGovernmentCloud && envName != environments.AzureChinaCloud {
 			if allowBlobPublicAccess {
 				return fmt.Errorf("allow_nested_items_to_be_public is not supported for a Storage Account located in %q", envName)
 			}
@@ -1745,6 +1784,18 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("allowed_copy_scope") {
+		// TODO: Currently, due to Track1 SDK has no way to represent a `null` value in the payload - instead it will be omitted, `allowed_copy_scope` can not be disabled once enabled.
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				AllowedCopyScope: storage.AllowedCopyScope(d.Get("allowed_copy_scope").(string)),
+			},
+		}
+		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
+			return fmt.Errorf("updating Azure Storage Account allowed_copy_scope %q: %+v", id.Name, err)
+		}
+	}
+
 	supportLevel := resolveStorageAccountServiceSupportLevel(storage.Kind(accountKind), storage.SkuTier(accountTier))
 
 	if d.HasChange("blob_properties") {
@@ -1753,7 +1804,10 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		blobClient := meta.(*clients.Client).Storage.BlobServicesClient
-		blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+		blobProperties, err := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+		if err != nil {
+			return err
+		}
 
 		// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
 		// Fix issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11772
@@ -1866,9 +1920,13 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
-	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	storageDomainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
+	}
 
 	id, err := parse.StorageAccountID(d.Id())
 	if err != nil {
@@ -1900,7 +1958,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if e, ok := err.(azautorest.DetailedError); ok {
 			if status, ok := e.StatusCode.(int); ok {
 				hasWriteLock = status == http.StatusConflict
-				doesntHavePermissions = status == http.StatusUnauthorized
+				doesntHavePermissions = (status == http.StatusUnauthorized || status == http.StatusForbidden)
 			}
 		}
 
@@ -1958,7 +2016,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
 		envName := meta.(*clients.Client).Account.Environment.Name
-		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
+		if envName != environments.AzurePublicCloud && envName != environments.AzureUSGovernmentCloud && envName != environments.AzureChinaCloud {
 			d.Set("min_tls_version", string(storage.MinimumTLSVersionTLS10))
 		} else {
 			// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
@@ -1988,12 +2046,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if accessKeys := keys.Keys; accessKeys != nil {
 			storageAccountKeys := *accessKeys
 			if len(storageAccountKeys) > 0 {
-				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[0].Value, endpointSuffix)
+				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[0].Value, *storageDomainSuffix)
 				d.Set("primary_connection_string", pcs)
 			}
 
 			if len(storageAccountKeys) > 1 {
-				scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[1].Value, endpointSuffix)
+				scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[1].Value, *storageDomainSuffix)
 				d.Set("secondary_connection_string", scs)
 			}
 		}
@@ -2080,6 +2138,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `sas_policy`: %+v", err)
 		}
 
+		d.Set("allowed_copy_scope", props.AllowedCopyScope)
 		d.Set("sftp_enabled", props.IsSftpEnabled)
 	}
 
@@ -2116,9 +2175,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		blobClient := storageClient.BlobServicesClient
 		blobProps, err := blobClient.GetServiceProperties(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(blobProps.Response) {
-				return fmt.Errorf("reading blob properties for AzureRM Storage Account %q: %+v", id.Name, err)
-			}
+			return fmt.Errorf("reading blob properties for AzureRM Storage Account %q: %+v", id.Name, err)
 		}
 		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
 			return fmt.Errorf("setting `blob_properties `for AzureRM Storage Account %q: %+v", id.Name, err)
@@ -2143,11 +2200,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if supportLevel.supportShare {
 		fileServiceClient := storageClient.FileServicesClient
+
 		shareProps, err := fileServiceClient.GetServiceProperties(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(shareProps.Response) {
-				return fmt.Errorf("reading share properties for AzureRM Storage Account %q: %+v", id.Name, err)
-			}
+			return fmt.Errorf("reading share properties for AzureRM Storage Account %q: %+v", id.Name, err)
 		}
 
 		if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
@@ -2169,9 +2225,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.Name)
 		if err != nil {
-			if staticWebsiteProps.Response.Response != nil && !utils.ResponseWasNotFound(staticWebsiteProps.Response) {
-				return fmt.Errorf("reading static website for AzureRM Storage Account %q: %+v", id.Name, err)
-			}
+			return fmt.Errorf("reading static website for AzureRM Storage Account %q: %+v", id.Name, err)
 		}
 		staticWebsite := flattenStaticWebsiteProperties(staticWebsiteProps)
 		if err := d.Set("static_website", staticWebsite); err != nil {
@@ -2558,7 +2612,7 @@ func expandStorageAccountPrivateLinkAccess(inputs []interface{}, tenantId string
 	return &privateLinkAccess
 }
 
-func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
+func expandBlobProperties(input []interface{}) (*storage.BlobServiceProperties, error) {
 	props := storage.BlobServiceProperties{
 		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
 			Cors: &storage.CorsRules{
@@ -2575,13 +2629,17 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 	}
 
 	if len(input) == 0 || input[0] == nil {
-		return &props
+		return &props, nil
 	}
 
 	v := input[0].(map[string]interface{})
 
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
 	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
+
+	restorePolicyRaw := v["restore_policy"].([]interface{})
+	props.BlobServicePropertiesProperties.RestorePolicy = expandBlobPropertiesRestorePolicy(restorePolicyRaw)
+
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
@@ -2599,7 +2657,18 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 		props.DefaultServiceVersion = utils.String(version)
 	}
 
-	return &props
+	// Sanity check for the prerequisites of restore_policy
+	// Ref: https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
+	if p := props.BlobServicePropertiesProperties.RestorePolicy; p != nil && p.Enabled != nil && *p.Enabled {
+		if props.ChangeFeed == nil || props.ChangeFeed.Enabled == nil || !*props.ChangeFeed.Enabled {
+			return nil, fmt.Errorf("`change_feed_enabled` must be `true` when `restore_policy` is set")
+		}
+		if props.IsVersioningEnabled == nil || !*props.IsVersioningEnabled {
+			return nil, fmt.Errorf("`versioning_enabled` must be `true` when `restore_policy` is set")
+		}
+	}
+
+	return &props, nil
 }
 
 func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
@@ -2613,6 +2682,22 @@ func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.Del
 	policy := input[0].(map[string]interface{})
 
 	return &storage.DeleteRetentionPolicy{
+		Enabled: utils.Bool(true),
+		Days:    utils.Int32(int32(policy["days"].(int))),
+	}
+}
+
+func expandBlobPropertiesRestorePolicy(input []interface{}) *storage.RestorePolicyProperties {
+	result := storage.RestorePolicyProperties{
+		Enabled: utils.Bool(false),
+	}
+	if len(input) == 0 || input[0] == nil {
+		return &result
+	}
+
+	policy := input[0].(map[string]interface{})
+
+	return &storage.RestorePolicyProperties{
 		Enabled: utils.Bool(true),
 		Days:    utils.Int32(int32(policy["days"].(int))),
 	}
@@ -3047,6 +3132,11 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
 	}
 
+	flattenedRestorePolicy := make([]interface{}, 0)
+	if restorePolicy := input.BlobServicePropertiesProperties.RestorePolicy; restorePolicy != nil {
+		flattenedRestorePolicy = flattenBlobPropertiesRestorePolicy(restorePolicy)
+	}
+
 	flattenedContainerDeletePolicy := make([]interface{}, 0)
 	if containerDeletePolicy := input.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy; containerDeletePolicy != nil {
 		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
@@ -3080,6 +3170,7 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		map[string]interface{}{
 			"cors_rule":                         flattenedCorsRules,
 			"delete_retention_policy":           flattenedDeletePolicy,
+			"restore_policy":                    flattenedRestorePolicy,
 			"versioning_enabled":                versioning,
 			"change_feed_enabled":               changeFeedEnabled,
 			"change_feed_retention_in_days":     changeFeedRetentionInDays,
@@ -3154,6 +3245,27 @@ func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPo
 	}
 
 	return deleteRetentionPolicy
+}
+
+func flattenBlobPropertiesRestorePolicy(input *storage.RestorePolicyProperties) []interface{} {
+	restorePolicy := make([]interface{}, 0)
+
+	if input == nil {
+		return restorePolicy
+	}
+
+	if enabled := input.Enabled; enabled != nil && *enabled {
+		days := 0
+		if input.Days != nil {
+			days = int(*input.Days)
+		}
+
+		restorePolicy = append(restorePolicy, map[string]interface{}{
+			"days": days,
+		})
+	}
+
+	return restorePolicy
 }
 
 func flattenQueueProperties(input *queues.StorageServiceProperties) []interface{} {

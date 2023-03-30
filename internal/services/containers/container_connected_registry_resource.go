@@ -316,7 +316,7 @@ func (r ContainerConnectedRegistryResource) Read() sdk.ResourceFunc {
 				}
 				if parent := props.Parent; parent != nil {
 					if parent.ID != nil {
-						if pid, err := parse.RegistryID(*parent.ID); err == nil {
+						if pid, err := parse.RegistryIDInsensitively(*parent.ID); err == nil {
 							parentRegistryId = pid.ID()
 						} else if pid, err := parse.ContainerConnectedRegistryID(*parent.ID); err == nil {
 							parentRegistryId = pid.ID()

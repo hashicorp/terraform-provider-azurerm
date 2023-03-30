@@ -90,11 +90,11 @@ The following arguments are supported:
 
 * `tenant_id` - (Required) The Azure Active Directory Tenant ID.
 
-* `azuread_authentication_only` - (Optional) When `true`, only permit logins from AAD users and administrators. When `false`, also allow local database users. Defaults to `false`.
+* `azuread_authentication_only` - (Optional) When `true`, only permit logins from AAD users and administrators. When `false`, also allow local database users.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the SQL Managed Instance Active Directory Administrator.
 

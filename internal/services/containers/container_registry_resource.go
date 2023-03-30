@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -251,7 +252,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	newGeoReplicationLocations = expandReplications(geoReplications)
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
-		err = applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, oldGeoReplicationLocations, newGeoReplicationLocations)
+		err = applyGeoReplicationLocations(ctx, meta, id.ResourceGroup, id.Name, oldGeoReplicationLocations, newGeoReplicationLocations)
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
@@ -349,12 +350,12 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if hasGeoReplicationsChanges {
-		err := applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, expandReplications(oldReplications), expandReplications(newReplications))
+		err := applyGeoReplicationLocations(ctx, meta, id.ResourceGroup, id.Name, expandReplications(oldReplications), expandReplications(newReplications))
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	} else if hasGeoReplicationLocationsChanges {
-		err := applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, expandReplicationsFromLocations(oldGeoReplicationLocations), expandReplicationsFromLocations(newGeoReplicationLocations))
+		err := applyGeoReplicationLocations(ctx, meta, id.ResourceGroup, id.Name, expandReplicationsFromLocations(oldGeoReplicationLocations), expandReplicationsFromLocations(newGeoReplicationLocations))
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
@@ -405,10 +406,8 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 	return nil
 }
 
-func applyGeoReplicationLocations(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplications []containerregistry.Replication, newGeoReplications []containerregistry.Replication) error {
+func applyGeoReplicationLocations(ctx context.Context, meta interface{}, resourceGroup string, name string, oldGeoReplications []containerregistry.Replication, newGeoReplications []containerregistry.Replication) error {
 	replicationClient := meta.(*clients.Client).Containers.ReplicationsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 	log.Printf("[INFO] preparing to apply geo-replications for  Container Registry.")
 
 	oldReplications := map[string]containerregistry.Replication{}
@@ -1148,7 +1147,7 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 								"subnet_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: azure.ValidateResourceID,
+									ValidateFunc: networkValidate.SubnetID,
 								},
 							},
 						},

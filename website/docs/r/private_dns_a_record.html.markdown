@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the Private DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `TTL` - (Required) The Time To Live (TTL) of the DNS record in seconds.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `records` - (Required) List of IPv4 Addresses.
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Private DNS A Record ID.
 

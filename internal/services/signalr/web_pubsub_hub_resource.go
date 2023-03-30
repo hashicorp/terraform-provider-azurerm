@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
@@ -54,7 +54,7 @@ func resourceWebPubSubHub() *pluginsdk.Resource {
 			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(webpubsub.WebPubSubId{}),
 
 			"event_handler": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -126,7 +126,7 @@ func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("parsing ID of %q: %+v", webPubSubIdRaw, err)
 	}
 
-	id := webpubsub.NewHubID(subscriptionId, webPubSubId.ResourceGroupName, webPubSubId.ResourceName, d.Get("name").(string))
+	id := webpubsub.NewHubID(subscriptionId, webPubSubId.ResourceGroupName, webPubSubId.WebPubSubName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.HubsGet(ctx, id)
 		if err != nil {
@@ -146,7 +146,7 @@ func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	parameters := webpubsub.WebPubSubHub{
 		Properties: webpubsub.WebPubSubHubProperties{
-			EventHandlers:          expandEventHandler(d.Get("event_handler").(*pluginsdk.Set).List()),
+			EventHandlers:          expandEventHandler(d.Get("event_handler").([]interface{})),
 			AnonymousConnectPolicy: &anonymousPolicyEnabled,
 		},
 	}
@@ -181,7 +181,7 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", id.HubName)
-	d.Set("web_pubsub_id", webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName).ID())
+	d.Set("web_pubsub_id", webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID())
 
 	if model := resp.Model; model != nil {
 		if err := d.Set("event_handler", flattenEventHandler(model.Properties.EventHandlers)); err != nil {

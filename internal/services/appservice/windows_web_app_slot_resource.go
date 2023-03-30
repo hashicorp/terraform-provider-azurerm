@@ -3,12 +3,15 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -25,8 +28,10 @@ type WindowsWebAppSlotResource struct{}
 type WindowsWebAppSlotModel struct {
 	Name                          string                                `tfschema:"name"`
 	AppServiceId                  string                                `tfschema:"app_service_id"`
+	ServicePlanID                 string                                `tfschema:"service_plan_id"`
 	AppSettings                   map[string]string                     `tfschema:"app_settings"`
 	AuthSettings                  []helpers.AuthSettings                `tfschema:"auth_settings"`
+	AuthV2Settings                []helpers.AuthV2Settings              `tfschema:"auth_settings_v2"`
 	Backup                        []helpers.Backup                      `tfschema:"backup"`
 	ClientAffinityEnabled         bool                                  `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                                  `tfschema:"client_certificate_enabled"`
@@ -84,6 +89,12 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 
 		// Optional
 
+		"service_plan_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.ServicePlanID,
+		},
+
 		"app_settings": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
@@ -93,6 +104,8 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
+
+		"auth_settings_v2": helpers.AuthV2SettingsSchema(),
 
 		"backup": helpers.BackupSchema(),
 
@@ -237,15 +250,29 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			id := parse.NewWebAppSlotID(appId.SubscriptionId, appId.ResourceGroup, appId.SiteName, webAppSlot.Name)
 
 			webApp, err := client.Get(ctx, appId.ResourceGroup, appId.SiteName)
+
 			if err != nil {
 				return fmt.Errorf("reading parent Windows Web App for %s: %+v", id, err)
 			}
 			if webApp.Location == nil {
 				return fmt.Errorf("could not determine location for %s: %+v", id, err)
 			}
-			siteProps := webApp.SiteProperties
-			if siteProps == nil || siteProps.ServerFarmID == nil {
-				return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
+
+			var servicePlanId *parse.ServicePlanId
+			if webAppSlot.ServicePlanID != "" {
+				servicePlanId, err = parse.ServicePlanID(webAppSlot.ServicePlanID)
+				if err != nil {
+					return err
+				}
+			} else {
+				if props := webApp.SiteProperties; props == nil || props.ServerFarmID == nil {
+					return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
+				} else {
+					servicePlanId, err = parse.ServicePlanID(*props.ServerFarmID)
+					if err != nil {
+						return err
+					}
+				}
 			}
 
 			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
@@ -262,6 +289,12 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			if *currentStack == helpers.CurrentStackNode {
+				if webAppSlot.AppSettings == nil {
+					webAppSlot.AppSettings = make(map[string]string, 0)
+				}
+				webAppSlot.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] = webAppSlot.SiteConfig[0].ApplicationStack[0].NodeVersion
+			}
 			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
@@ -274,23 +307,23 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				Tags:     tags.FromTypedObject(webAppSlot.Tags),
 				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:             siteProps.ServerFarmID,
-					Enabled:                  utils.Bool(webAppSlot.Enabled),
-					HTTPSOnly:                utils.Bool(webAppSlot.HttpsOnly),
+					ServerFarmID:             pointer.To(servicePlanId.ID()),
+					Enabled:                  pointer.To(webAppSlot.Enabled),
+					HTTPSOnly:                pointer.To(webAppSlot.HttpsOnly),
 					SiteConfig:               siteConfig,
-					ClientAffinityEnabled:    utils.Bool(webAppSlot.ClientAffinityEnabled),
-					ClientCertEnabled:        utils.Bool(webAppSlot.ClientCertEnabled),
+					ClientAffinityEnabled:    pointer.To(webAppSlot.ClientAffinityEnabled),
+					ClientCertEnabled:        pointer.To(webAppSlot.ClientCertEnabled),
 					ClientCertMode:           web.ClientCertMode(webAppSlot.ClientCertMode),
-					ClientCertExclusionPaths: utils.String(webAppSlot.ClientCertExclusionPaths),
+					ClientCertExclusionPaths: pointer.To(webAppSlot.ClientCertExclusionPaths),
 				},
 			}
 
 			if webAppSlot.KeyVaultReferenceIdentityID != "" {
-				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webAppSlot.KeyVaultReferenceIdentityID)
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = pointer.To(webAppSlot.KeyVaultReferenceIdentityID)
 			}
 
 			if webAppSlot.VirtualNetworkSubnetID != "" {
-				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webAppSlot.VirtualNetworkSubnetID)
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = pointer.To(webAppSlot.VirtualNetworkSubnetID)
 			}
 
 			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
@@ -313,7 +346,10 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			appSettings := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
-			if appSettings != nil {
+			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webAppSlot.SiteConfig[0].HealthCheckEvictionTime))
+			}
+			if len(appSettings.Properties) > 0 {
 				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettings, id.SlotName); err != nil {
 					return fmt.Errorf("setting App Settings for Windows %s: %+v", id, err)
 				}
@@ -326,6 +362,13 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			authv2 := helpers.ExpandAuthV2Settings(webAppSlot.AuthV2Settings)
+			if authv2.SiteAuthSettingsV2Properties != nil {
+				if _, err = client.UpdateAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, *authv2, id.SlotName); err != nil {
+					return fmt.Errorf("updating AuthV2 settings for Linux %s: %+v", id, err)
+				}
+			}
+
 			if metadata.ResourceData.HasChange("logs") {
 				logsConfig := helpers.ExpandLogsConfig(webAppSlot.LogsConfig)
 				if logsConfig.SiteLogsConfigProperties != nil {
@@ -335,7 +378,11 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			backupConfig := helpers.ExpandBackupConfig(webAppSlot.Backup)
+			backupConfig, err := helpers.ExpandBackupConfig(webAppSlot.Backup)
+			if err != nil {
+				return fmt.Errorf("expanding backup configuration for Windows %s: %+v", id, err)
+			}
+
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, *backupConfig, id.SlotName); err != nil {
 					return fmt.Errorf("adding Backup Settings for Windows %s: %+v", id, err)
@@ -381,15 +428,15 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			webApp, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			webAppSlot, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
-				if utils.ResponseWasNotFound(webApp.Response) {
+				if utils.ResponseWasNotFound(webAppSlot.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading Windows %s: %+v", id, err)
 			}
 
-			props := webApp.SiteProperties
+			props := webAppSlot.SiteProperties
 			if props == nil {
 				return fmt.Errorf("reading properties of Windows %s", id)
 			}
@@ -403,6 +450,14 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			auth, err := client.GetAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
+			}
+
+			var authV2 web.SiteAuthSettingsV2
+			if pointer.From(auth.ConfigVersion) == "v2" {
+				authV2, err = client.GetAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+				if err != nil {
+					return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)
+				}
 			}
 
 			backup, err := client.GetBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
@@ -454,30 +509,50 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				Name:                        id.SlotName,
 				AppServiceId:                parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
 				AuthSettings:                helpers.FlattenAuthSettings(auth),
+				AuthV2Settings:              helpers.FlattenAuthV2Settings(authV2),
 				Backup:                      helpers.FlattenBackupConfig(backup),
-				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
-				ClientCertEnabled:           utils.NormaliseNilableBool(props.ClientCertEnabled),
+				ClientAffinityEnabled:       pointer.From(props.ClientAffinityEnabled),
+				ClientCertEnabled:           pointer.From(props.ClientCertEnabled),
 				ClientCertMode:              string(props.ClientCertMode),
-				ClientCertExclusionPaths:    utils.NormalizeNilableString(props.ClientCertExclusionPaths),
+				ClientCertExclusionPaths:    pointer.From(props.ClientCertExclusionPaths),
 				ConnectionStrings:           helpers.FlattenConnectionStrings(connectionStrings),
-				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
-				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
-				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
-				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
-				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
-				Kind:                        utils.NormalizeNilableString(webApp.Kind),
+				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
+				DefaultHostname:             pointer.From(props.DefaultHostName),
+				Enabled:                     pointer.From(props.Enabled),
+				HttpsOnly:                   pointer.From(props.HTTPSOnly),
+				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
+				Kind:                        pointer.From(webAppSlot.Kind),
 				LogsConfig:                  helpers.FlattenLogsConfig(logsConfig),
 				SiteCredentials:             helpers.FlattenSiteCredentials(siteCredentials),
 				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
-				Tags:                        tags.ToTypedObject(webApp.Tags),
+				Tags:                        tags.ToTypedObject(webAppSlot.Tags),
 			}
 
-			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+			webApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading parent Web App for Linux %s: %+v", *id, err)
+			}
+			if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
+				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
+			}
+			parentAppFarmId, err := parse.ServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
+			if err != nil {
+				return err
+			}
+
+			if slotPlanId := props.ServerFarmID; slotPlanId != nil && parentAppFarmId.ID() != *slotPlanId {
+				state.ServicePlanID = *slotPlanId
+			}
+
+			if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
 				state.VirtualNetworkSubnetID = subnetId
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
+			if err != nil {
+				return fmt.Errorf("flattening app settings for Windows %s: %+v", id, err)
+			}
 
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
@@ -497,6 +572,16 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.SiteConfig = helpers.FlattenSiteConfigWindowsAppSlot(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
 
+			if nodeVer, ok := state.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"]; ok {
+				if nodeVer != "6.9.1" {
+					if state.SiteConfig[0].ApplicationStack == nil {
+						state.SiteConfig[0].ApplicationStack = make([]helpers.ApplicationStackWindows, 0)
+					}
+					state.SiteConfig[0].ApplicationStack[0].NodeVersion = nodeVer
+				}
+				delete(state.AppSettings, "WEBSITE_NODE_DEFAULT_VERSION")
+			}
+
 			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
 			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
 				state.ZipDeployFile = deployFile
@@ -506,7 +591,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("encoding: %+v", err)
 			}
 
-			flattenedIdentity, err := flattenIdentity(webApp.Identity)
+			flattenedIdentity, err := flattenIdentity(webAppSlot.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
@@ -552,8 +637,6 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			// TODO - Need locking here for the source control meta resource?
-
 			var state WindowsWebAppSlotModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -564,23 +647,44 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Windows %s: %v", id, err)
 			}
 
+			if metadata.ResourceData.HasChange("service_plan_id") {
+				o, n := metadata.ResourceData.GetChange("service_plan_id")
+				oldPlan, err := parse.ServicePlanID(o.(string))
+				if err != nil {
+					return err
+				}
+
+				newPlan, err := parse.ServicePlanID(n.(string))
+				if err != nil {
+					return err
+				}
+				locks.ByID(oldPlan.ID())
+				defer locks.UnlockByID(oldPlan.ID())
+				locks.ByID(newPlan.ID())
+				defer locks.UnlockByID(newPlan.ID())
+				if existing.SiteProperties == nil {
+					return fmt.Errorf("updating Service Plan for Linux %s: Slot SiteProperties was nil", *id)
+				}
+				existing.SiteProperties.ServerFarmID = pointer.To(newPlan.ID())
+			}
+
 			if metadata.ResourceData.HasChange("enabled") {
-				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
+				existing.SiteProperties.Enabled = pointer.To(state.Enabled)
 			}
 			if metadata.ResourceData.HasChange("https_only") {
-				existing.SiteProperties.HTTPSOnly = utils.Bool(state.HttpsOnly)
+				existing.SiteProperties.HTTPSOnly = pointer.To(state.HttpsOnly)
 			}
 			if metadata.ResourceData.HasChange("client_affinity_enabled") {
-				existing.SiteProperties.ClientAffinityEnabled = utils.Bool(state.ClientAffinityEnabled)
+				existing.SiteProperties.ClientAffinityEnabled = pointer.To(state.ClientAffinityEnabled)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
-				existing.SiteProperties.ClientCertEnabled = utils.Bool(state.ClientCertEnabled)
+				existing.SiteProperties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
-				existing.SiteProperties.ClientCertExclusionPaths = utils.String(state.ClientCertExclusionPaths)
+				existing.SiteProperties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -592,7 +696,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
-				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
+				existing.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityID)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -623,7 +727,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 					var empty *string
 					existing.SiteProperties.VirtualNetworkSubnetID = empty
 				} else {
-					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+					existing.SiteProperties.VirtualNetworkSubnetID = pointer.To(subnetId)
 				}
 			}
 
@@ -636,14 +740,16 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
-			siteMetadata.Properties["CURRENT_STACK"] = utils.String(currentStack)
+			siteMetadata.Properties["CURRENT_STACK"] = pointer.To(currentStack)
 			if _, err := client.UpdateMetadataSlot(ctx, id.ResourceGroup, id.SiteName, siteMetadata, id.SlotName); err != nil {
 				return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", id, err)
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") {
+			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") || metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
+				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
+				appSettingsUpdate.Properties["WEBSITE_NODE_DEFAULT_VERSION"] = pointer.To(state.SiteConfig[0].ApplicationStack[0].NodeVersion)
 				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)
 				}
@@ -659,15 +765,43 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			updateLogs := false
+
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
+				if authUpdate.SiteAuthSettingsProperties == nil {
+					authUpdate.SiteAuthSettingsProperties = &web.SiteAuthSettingsProperties{
+						Enabled:                           pointer.To(false),
+						ClientSecret:                      pointer.To(""),
+						ClientSecretSettingName:           pointer.To(""),
+						ClientSecretCertificateThumbprint: pointer.To(""),
+						GoogleClientSecret:                pointer.To(""),
+						FacebookAppSecret:                 pointer.To(""),
+						GitHubClientSecret:                pointer.To(""),
+						TwitterConsumerSecret:             pointer.To(""),
+						MicrosoftAccountClientSecret:      pointer.To(""),
+					}
+					updateLogs = true
+				}
 				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *authUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating Auth Settings for Windows %s: %+v", id, err)
 				}
 			}
 
+			if metadata.ResourceData.HasChange("auth_settings_v2") {
+				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				if _, err := client.UpdateAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, *authV2Update, id.SlotName); err != nil {
+					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
+				}
+				updateLogs = true
+			}
+
 			if metadata.ResourceData.HasChange("backup") {
-				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
+				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
+				if err != nil {
+					return fmt.Errorf("expanding backup configuration for Windows %s: %+v", *id, err)
+				}
+
 				if backupUpdate.BackupRequestProperties == nil {
 					if _, err := client.DeleteBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
 						return fmt.Errorf("removing Backup Settings for Windows %s: %+v", id, err)
@@ -679,7 +813,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("logs") {
+			if metadata.ResourceData.HasChange("logs") || updateLogs {
 				logsUpdate := helpers.ExpandLogsConfig(state.LogsConfig)
 				if logsUpdate.SiteLogsConfigProperties == nil {
 					logsUpdate = helpers.DisabledLogsConfig() // The API is update only, so we need to send an update with everything switched of when a user removes the "logs" block

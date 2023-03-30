@@ -45,7 +45,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_mysql_server" "example" {
-  # ...
+  # ...
 }
 
 resource "azurerm_mysql_firewall_rule" "example" {
@@ -66,7 +66,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_mysql_server" "example" {
-  # ...
+  # ...
 }
 
 resource "azurerm_mysql_firewall_rule" "example" {
@@ -96,7 +96,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the MySQL Firewall Rule.
 

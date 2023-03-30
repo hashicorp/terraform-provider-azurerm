@@ -6,12 +6,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ type SpringCloudGatewayResource struct{}
 func TestAccSpringCloudGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_gateway", "test")
 	r := SpringCloudGatewayResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -34,10 +33,10 @@ func TestAccSpringCloudGateway_basic(t *testing.T) {
 func TestAccSpringCloudGateway_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_gateway", "test")
 	r := SpringCloudGatewayResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -50,14 +49,14 @@ func TestAccSpringCloudGateway_complete(t *testing.T) {
 	r := SpringCloudGatewayResource{}
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, clientId, clientSecret),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sso.0.client_id", "sso.0.client_secret"),
+		data.ImportStep("sso.0.client_id", "sso.0.client_secret", "sensitive_environment_variables.%", "sensitive_environment_variables.NEW_RELIC_APP_NAME"),
 	})
 }
 
@@ -66,24 +65,24 @@ func TestAccSpringCloudGateway_update(t *testing.T) {
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	r := SpringCloudGatewayResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data, clientId, clientSecret),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sso.0.client_id", "sso.0.client_secret"),
+		data.ImportStep("sso.0.client_id", "sso.0.client_secret", "sensitive_environment_variables.%", "sensitive_environment_variables.NEW_RELIC_APP_NAME"),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -91,7 +90,7 @@ func TestAccSpringCloudGateway_update(t *testing.T) {
 	})
 }
 
-func (r SpringCloudGatewayResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SpringCloudGatewayResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SpringCloudGatewayID(state.ID)
 	if err != nil {
 		return nil, err
@@ -161,9 +160,10 @@ resource "azurerm_spring_cloud_gateway" "test" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
 
-  https_only                    = false
-  public_network_access_enabled = true
-  instance_count                = 2
+  https_only                               = false
+  public_network_access_enabled            = false
+  instance_count                           = 2
+  application_performance_monitoring_types = ["ApplicationInsights", "NewRelic"]
 
   api_metadata {
     description       = "test description"
@@ -181,6 +181,15 @@ resource "azurerm_spring_cloud_gateway" "test" {
     exposed_headers     = ["x-test-header"]
     max_age_seconds     = 86400
   }
+
+  environment_variables = {
+    APPLICATIONINSIGHTS_SAMPLE_RATE = "10"
+  }
+
+  sensitive_environment_variables = {
+    NEW_RELIC_APP_NAME = "scg-asa"
+  }
+
   quota {
     cpu    = "1"
     memory = "2Gi"

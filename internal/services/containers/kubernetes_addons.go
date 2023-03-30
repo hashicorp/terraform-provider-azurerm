@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -19,12 +19,13 @@ import (
 const (
 	// note: the casing on these keys is important
 	aciConnectorKey                 = "aciConnectorLinux"
-	azurePolicyKey                  = "azurepolicy"
-	httpApplicationRoutingKey       = "httpApplicationRouting"
-	omsAgentKey                     = "omsagent"
-	ingressApplicationGatewayKey    = "ingressApplicationGateway"
-	openServiceMeshKey              = "openServiceMesh"
 	azureKeyvaultSecretsProviderKey = "azureKeyvaultSecretsProvider"
+	azurePolicyKey                  = "azurepolicy"
+	confidentialComputingKey        = "ACCSGXDevicePlugin"
+	httpApplicationRoutingKey       = "httpApplicationRouting"
+	ingressApplicationGatewayKey    = "ingressApplicationGateway"
+	omsAgentKey                     = "omsagent"
+	openServiceMeshKey              = "openServiceMesh"
 )
 
 // The AKS API hard-codes which add-ons are supported in which environment
@@ -55,12 +56,45 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+					"connector_identity": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
 				},
 			},
 		},
 		"azure_policy_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+		},
+		"confidential_computing": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"sgx_quote_helper_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+				},
+			},
 		},
 		"http_application_routing_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -80,6 +114,10 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: workspaces.ValidateWorkspaceID,
+					},
+					"msi_auth_for_monitoring_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
 					},
 					"oms_agent_identity": {
 						Type:     pluginsdk.TypeList,
@@ -247,6 +285,24 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 	}
 
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
+
+	confidentialComputing := input["confidential_computing"].([]interface{})
+	if len(confidentialComputing) > 0 && confidentialComputing[0] != nil {
+		value := confidentialComputing[0].(map[string]interface{})
+		config := make(map[string]string)
+		quoteHelperEnabled := "false"
+		if value["sgx_quote_helper_enabled"].(bool) {
+			quoteHelperEnabled = "true"
+		}
+		config["ACCSGXQuoteHelperEnabled"] = quoteHelperEnabled
+		addonProfiles[confidentialComputingKey] = managedclusters.ManagedClusterAddonProfile{
+			Enabled: true,
+			Config:  &config,
+		}
+	} else if len(confidentialComputing) == 0 && d.HasChange("confidential_computing") {
+		addonProfiles[confidentialComputingKey] = disabled
+	}
+
 	if d.HasChange("http_application_routing_enabled") {
 		addonProfiles[httpApplicationRoutingKey] = managedclusters.ManagedClusterAddonProfile{
 			Enabled: input["http_application_routing_enabled"].(bool),
@@ -259,11 +315,15 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		config := make(map[string]string)
 
 		if workspaceID, ok := value["log_analytics_workspace_id"]; ok && workspaceID != "" {
-			lawid, err := workspaces.ParseWorkspaceID(workspaceID.(string))
+			lawid, err := workspaces.ParseWorkspaceIDInsensitively(workspaceID.(string))
 			if err != nil {
 				return nil, fmt.Errorf("parsing Log Analytics Workspace ID: %+v", err)
 			}
 			config["logAnalyticsWorkspaceResourceID"] = lawid.ID()
+		}
+
+		if useAADAuth, ok := value["msi_auth_for_monitoring_enabled"].(bool); ok {
+			config["useAADAuth"] = fmt.Sprintf("%t", useAADAuth)
 		}
 
 		addonProfiles[omsAgentKey] = managedclusters.ManagedClusterAddonProfile{
@@ -396,8 +456,11 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 			subnetName = (*v)["SubnetName"]
 		}
 
+		identity := flattenKubernetesClusterAddOnIdentityProfile(aciConnector.Identity)
+
 		aciConnectors = append(aciConnectors, map[string]interface{}{
-			"subnet_name": subnetName,
+			"subnet_name":        subnetName,
+			"connector_identity": identity,
 		})
 	}
 
@@ -405,6 +468,18 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 	azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey)
 	if enabledVal := azurePolicy.Enabled; enabledVal {
 		azurePolicyEnabled = enabledVal
+	}
+
+	confidentialComputings := make([]interface{}, 0)
+	confidentialComputing := kubernetesAddonProfileLocate(profile, confidentialComputingKey)
+	if enabled := confidentialComputing.Enabled; enabled {
+		quoteHelperEnabled := false
+		if v := kubernetesAddonProfilelocateInConfig(confidentialComputing.Config, "ACCSGXQuoteHelperEnabled"); v != "" && v != "false" {
+			quoteHelperEnabled = true
+		}
+		confidentialComputings = append(confidentialComputings, map[string]interface{}{
+			"sgx_quote_helper_enabled": quoteHelperEnabled,
+		})
 	}
 
 	httpApplicationRoutingEnabled := false
@@ -422,17 +497,24 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 	omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey)
 	if enabled := omsAgent.Enabled; enabled {
 		workspaceID := ""
+		useAADAuth := false
+
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
 			if lawid, err := workspaces.ParseWorkspaceID(v); err == nil {
 				workspaceID = lawid.ID()
 			}
 		}
 
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "useAADAuth"); v != "false" && v != "" {
+			useAADAuth = true
+		}
+
 		omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
 
 		omsAgents = append(omsAgents, map[string]interface{}{
-			"log_analytics_workspace_id": workspaceID,
-			"oms_agent_identity":         omsAgentIdentity,
+			"log_analytics_workspace_id":      workspaceID,
+			"msi_auth_for_monitoring_enabled": useAADAuth,
+			"oms_agent_identity":              omsAgentIdentity,
 		})
 	}
 
@@ -509,12 +591,13 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 	return map[string]interface{}{
 		"aci_connector_linux":                aciConnectors,
 		"azure_policy_enabled":               azurePolicyEnabled,
+		"confidential_computing":             confidentialComputings,
 		"http_application_routing_enabled":   httpApplicationRoutingEnabled,
 		"http_application_routing_zone_name": httpApplicationRoutingZone,
-		"oms_agent":                          omsAgents,
 		"ingress_application_gateway":        ingressApplicationGateways,
-		"open_service_mesh_enabled":          openServiceMeshEnabled,
 		"key_vault_secrets_provider":         azureKeyVaultSecretsProviders,
+		"oms_agent":                          omsAgents,
+		"open_service_mesh_enabled":          openServiceMeshEnabled,
 	}
 }
 
@@ -552,6 +635,7 @@ func collectKubernetesAddons(d *pluginsdk.ResourceData) map[string]interface{} {
 	return map[string]interface{}{
 		"aci_connector_linux":              d.Get("aci_connector_linux").([]interface{}),
 		"azure_policy_enabled":             d.Get("azure_policy_enabled").(bool),
+		"confidential_computing":           d.Get("confidential_computing").([]interface{}),
 		"http_application_routing_enabled": d.Get("http_application_routing_enabled").(bool),
 		"oms_agent":                        d.Get("oms_agent").([]interface{}),
 		"ingress_application_gateway":      d.Get("ingress_application_gateway").([]interface{}),

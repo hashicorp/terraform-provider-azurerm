@@ -103,11 +103,13 @@ The following arguments are supported:
 
 * `daily_recurrence_time` - (Required) The time each day when the schedule takes effect. Must match the format HHmm where HH is 00-23 and mm is 00-59 (e.g. 0930, 2300, etc.)
 
+* `notification_settings` - (Required) The notification setting of a schedule. A `notification_settings` as defined below.
+
 ---
 
-A `notification_settings` - (Required)  - block supports the following:
+A `notification_settings` block supports the following:
 
-* `enabled` - (Required) Whether to enable pre-shutdown notifications. Possible values are `true` and `false`. Defaults to `false`
+* `enabled` - (Required) Whether to enable pre-shutdown notifications. Possible values are `true` and `false`.
 
 * `email` - (Optional) E-mail address to which the notification will be sent.
 
@@ -120,6 +122,15 @@ A `notification_settings` - (Required)  - block supports the following:
 The following additional attributes are exported:
 
 * `id` - The Dev Test Global Schedule ID.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Test Global Vm Shutdown Schedule.
+* `create` - (Defaults to 30 minutes) Used when creating the Dev Test Global Vm Shutdown Schedule.
+* `update` - (Defaults to 30 minutes) Used when updating the Dev Test Global Vm Shutdown Schedule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dev Test Global Vm Shutdown Schedule.
 
 ## Import
 

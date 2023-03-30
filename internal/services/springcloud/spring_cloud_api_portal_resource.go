@@ -207,7 +207,7 @@ func resourceSpringCloudAPIPortalRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("instance_count", resp.Sku.Capacity)
 	}
 	if props := resp.Properties; props != nil {
-		d.Set("gateway_ids", utils.FlattenStringSlice(props.GatewayIds))
+		d.Set("gateway_ids", flattenSpringCloudAPIPortalGatewayIds(props.GatewayIds))
 		d.Set("https_only_enabled", props.HTTPSOnly)
 		d.Set("public_network_access_enabled", props.Public)
 		if err := d.Set("sso", flattenAPIPortalSsoProperties(props.SsoProperties, d.Get("sso").([]interface{}))); err != nil {
@@ -287,4 +287,18 @@ func flattenAPIPortalSsoProperties(input *appplatform.SsoProperties, old []inter
 			"scope":         utils.FlattenStringSlice(input.Scope),
 		},
 	}
+}
+
+func flattenSpringCloudAPIPortalGatewayIds(ids *[]string) []string {
+	if ids == nil || len(*ids) == 0 {
+		return nil
+	}
+	out := make([]string, 0)
+	for _, id := range *ids {
+		gatewayId, err := parse.SpringCloudGatewayIDInsensitively(id)
+		if err == nil {
+			out = append(out, gatewayId.ID())
+		}
+	}
+	return out
 }

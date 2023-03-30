@@ -97,7 +97,7 @@ resource "azurerm_key_vault_access_policy" "deployer" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "Create", "Get", "Delete", "Purge"
+    "Create", "Get", "Delete", "Purge", "GetRotationPolicy"
   ]
 }
 
@@ -175,7 +175,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the synapse Workspace should exist. Changing this forces a new resource to be created.
 
-* `identity` - (Required) An `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `storage_data_lake_gen2_filesystem_id` - (Required) Specifies the ID of storage data lake gen2 filesystem resource. Changing this forces a new resource to be created.
 
@@ -201,7 +201,7 @@ The following arguments are supported:
 
 * `managed_resource_group_name` - (Optional) Workspace managed resource group. Changing this forces a new resource to be created.
 
-* `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace? Defaults to `false`. Changing this forces a new resource to be created.
+* `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace? Changing this forces a new resource to be created.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Cognitive Account. Defaults to `true`.
 

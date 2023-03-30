@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type RouteMapModel struct {
@@ -235,14 +235,10 @@ func (r RouteMapResource) Create() sdk.ResourceFunc {
 			}
 
 			props := &network.RouteMap{
-				RouteMapProperties: &network.RouteMapProperties{},
+				RouteMapProperties: &network.RouteMapProperties{
+					Rules: expandRules(model.Rules),
+				},
 			}
-
-			rules, err := expandRules(model.Rules)
-			if err != nil {
-				return err
-			}
-			props.RouteMapProperties.Rules = rules
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualHubName, id.Name, *props)
 			if err != nil {
@@ -281,11 +277,7 @@ func (r RouteMapResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("rule") {
-				rules, err := expandRules(model.Rules)
-				if err != nil {
-					return err
-				}
-				existing.RouteMapProperties.Rules = rules
+				existing.RouteMapProperties.Rules = expandRules(model.Rules)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualHubName, id.Name, existing)
@@ -328,11 +320,7 @@ func (r RouteMapResource) Read() sdk.ResourceFunc {
 			}
 
 			if props := resp.RouteMapProperties; props != nil {
-				rules, err := flattenRules(props.Rules)
-				if err != nil {
-					return err
-				}
-				state.Rules = rules
+				state.Rules = flattenRules(props.Rules)
 			}
 
 			return metadata.Encode(&state)
@@ -365,25 +353,18 @@ func (r RouteMapResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandRules(input []Rule) (*[]network.RouteMapRule, error) {
+func expandRules(input []Rule) *[]network.RouteMapRule {
 	var rules []network.RouteMapRule
+	if input == nil {
+		return nil
+	}
 
 	for _, v := range input {
 		rule := network.RouteMapRule{
-			Name: utils.String(v.Name),
+			Name:          utils.String(v.Name),
+			Actions:       expandActions(v.Actions),
+			MatchCriteria: expandCriteria(v.MatchCriteria),
 		}
-
-		actions, err := expandActions(v.Actions)
-		if err != nil {
-			return nil, err
-		}
-		rule.Actions = actions
-
-		matchCriteria, err := expandCriteria(v.MatchCriteria)
-		if err != nil {
-			return nil, err
-		}
-		rule.MatchCriteria = matchCriteria
 
 		if v.NextStepIfMatched != "" {
 			rule.NextStepIfMatched = v.NextStepIfMatched
@@ -392,31 +373,32 @@ func expandRules(input []Rule) (*[]network.RouteMapRule, error) {
 		rules = append(rules, rule)
 	}
 
-	return &rules, nil
+	return &rules
 }
 
-func expandActions(input []Action) (*[]network.Action, error) {
+func expandActions(input []Action) *[]network.Action {
 	var actions []network.Action
+	if input == nil {
+		return nil
+	}
 
 	for _, v := range input {
 		action := network.Action{
-			Type: v.Type,
+			Type:       v.Type,
+			Parameters: expandParameters(v.Parameters),
 		}
-
-		parameters, err := expandParameters(v.Parameters)
-		if err != nil {
-			return nil, err
-		}
-		action.Parameters = parameters
 
 		actions = append(actions, action)
 	}
 
-	return &actions, nil
+	return &actions
 }
 
-func expandParameters(input []Parameter) (*[]network.Parameter, error) {
+func expandParameters(input []Parameter) *[]network.Parameter {
 	var parameters []network.Parameter
+	if input == nil {
+		return nil
+	}
 
 	for _, item := range input {
 		v := item
@@ -437,11 +419,14 @@ func expandParameters(input []Parameter) (*[]network.Parameter, error) {
 		parameters = append(parameters, parameter)
 	}
 
-	return &parameters, nil
+	return &parameters
 }
 
-func expandCriteria(input []Criterion) (*[]network.Criterion, error) {
+func expandCriteria(input []Criterion) *[]network.Criterion {
 	var criteria []network.Criterion
+	if input == nil {
+		return nil
+	}
 
 	for _, item := range input {
 		v := item
@@ -464,29 +449,20 @@ func expandCriteria(input []Criterion) (*[]network.Criterion, error) {
 		criteria = append(criteria, criterion)
 	}
 
-	return &criteria, nil
+	return &criteria
 }
 
-func flattenRules(input *[]network.RouteMapRule) ([]Rule, error) {
+func flattenRules(input *[]network.RouteMapRule) []Rule {
 	var rules []Rule
 	if input == nil {
-		return rules, nil
+		return rules
 	}
 
 	for _, v := range *input {
-		rule := Rule{}
-
-		actions, err := flattenActions(v.Actions)
-		if err != nil {
-			return nil, err
+		rule := Rule{
+			Actions:       flattenActions(v.Actions),
+			MatchCriteria: flattenCriteria(v.MatchCriteria),
 		}
-		rule.Actions = actions
-
-		matchCriteria, err := flattenCriteria(v.MatchCriteria)
-		if err != nil {
-			return nil, err
-		}
-		rule.MatchCriteria = matchCriteria
 
 		if v.Name != nil {
 			rule.Name = *v.Name
@@ -499,23 +475,19 @@ func flattenRules(input *[]network.RouteMapRule) ([]Rule, error) {
 		rules = append(rules, rule)
 	}
 
-	return rules, nil
+	return rules
 }
 
-func flattenActions(input *[]network.Action) ([]Action, error) {
+func flattenActions(input *[]network.Action) []Action {
 	var actions []Action
 	if input == nil {
-		return actions, nil
+		return actions
 	}
 
 	for _, v := range *input {
-		action := Action{}
-
-		parameters, err := flattenParameters(v.Parameters)
-		if err != nil {
-			return nil, err
+		action := Action{
+			Parameters: flattenParameters(v.Parameters),
 		}
-		action.Parameters = parameters
 
 		if v.Type != "" {
 			action.Type = v.Type
@@ -524,13 +496,13 @@ func flattenActions(input *[]network.Action) ([]Action, error) {
 		actions = append(actions, action)
 	}
 
-	return actions, nil
+	return actions
 }
 
-func flattenParameters(input *[]network.Parameter) ([]Parameter, error) {
+func flattenParameters(input *[]network.Parameter) []Parameter {
 	var parameters []Parameter
 	if input == nil {
-		return parameters, nil
+		return parameters
 	}
 
 	for _, v := range *input {
@@ -551,13 +523,13 @@ func flattenParameters(input *[]network.Parameter) ([]Parameter, error) {
 		parameters = append(parameters, parameter)
 	}
 
-	return parameters, nil
+	return parameters
 }
 
-func flattenCriteria(input *[]network.Criterion) ([]Criterion, error) {
+func flattenCriteria(input *[]network.Criterion) []Criterion {
 	var criteria []Criterion
 	if input == nil {
-		return criteria, nil
+		return criteria
 	}
 
 	for _, v := range *input {
@@ -582,5 +554,5 @@ func flattenCriteria(input *[]network.Criterion) ([]Criterion, error) {
 		criteria = append(criteria, criterion)
 	}
 
-	return criteria, nil
+	return criteria
 }

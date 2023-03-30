@@ -39,11 +39,9 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Azure IoT Time Series Insights Access Policy. Changing this forces a new resource to be created. Must be globally unique.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Azure IoT Time Series Insights Access Policy.
-
 * `time_series_insights_environment_id` - (Required) The resource ID of the Azure IoT Time Series Insights Environment in which to create the Azure IoT Time Series Insights Reference Data Set. Changing this forces a new resource to be created.
 
-* `principal_object_id` - (Required) The id of the principal in Azure Active Directory.
+* `principal_object_id` - (Required) The id of the principal in Azure Active Directory. Changing this forces a new resource to be created.
 
 * `roles` - (Required) A list of roles to apply to the Access Policy. Valid values include `Contributor` and `Reader`.
 
@@ -51,7 +49,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the IoT Time Series Insights Access Policy.
 

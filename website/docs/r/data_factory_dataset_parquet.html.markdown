@@ -68,13 +68,15 @@ The following supported arguments are common across all Azure Data Factory Datas
 
 The following supported locations for a Parquet Dataset:
 
-* `http_server_location` - (Required) A `http_server_location` block as defined below.
+* `http_server_location` - (Optional) A `http_server_location` block as defined below.
 
-* `azure_blob_storage_location` - (Required) A `azure_blob_storage_location` block as defined below.
+* `azure_blob_storage_location` - (Optional) A `azure_blob_storage_location` block as defined below.
 
 The following supported arguments are specific to Parquet Dataset:
 
-* `compression_codec` - (Optional) The compression codec used to read/write text files. Valid values are `bzip2`, `gzip`, `deflate`, `ZipDeflate`, `TarGzip`, `Tar`, `snappy`, or `lz4`. Please note these values are case sensitive.
+* `compression_codec` - (Optional) The compression codec used to read/write text files. Valid values are `bzip2`, `gzip`, `deflate`, `ZipDeflate`, `TarGzip`, `Tar`, `snappy`, or `lz4`. Please note these values are case-sensitive.
+
+* `compression_level` - (Optional) Specifies the compression level. Possible values are `Optimal` and `Fastest`,
 
 ---
 
@@ -117,7 +119,7 @@ A `azure_blob_storage_location` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory Dataset.
 

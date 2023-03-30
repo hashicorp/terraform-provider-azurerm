@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies the SKU Name for this IoT Time Series Insights Gen2 Environment. Currently it supports only `L1`. For gen2, capacity cannot be specified. Changing this forces a new resource to be created.
 
-* `warm_store_data_retention_time` - (Required) Specifies the ISO8601 timespan specifying the minimum number of days the environment's events will be available for query. 
+* `warm_store_data_retention_time` - (Optional) Specifies the ISO8601 timespan specifying the minimum number of days the environment's events will be available for query. 
 
 * `storage` - (Required) A `storage` block as defined below.
 

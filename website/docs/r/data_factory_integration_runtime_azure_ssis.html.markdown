@@ -161,7 +161,7 @@ A `proxy` block supports the following:
 
 * `self_hosted_integration_runtime_name` - (Required) Name of Self Hosted Integration Runtime as a proxy.
 
-* `staging_storage_linked_service_name` - (Required)  Name of Azure Blob Storage linked service to reference the staging data store to be used when moving data between self-hosted and Azure-SSIS integration runtimes.
+* `staging_storage_linked_service_name` - (Required) Name of Azure Blob Storage linked service to reference the staging data store to be used when moving data between self-hosted and Azure-SSIS integration runtimes.
 
 * `path` - (Optional) The path in the data store to be used when moving data between Self-Hosted and Azure-SSIS Integration Runtimes.
 
@@ -181,7 +181,7 @@ A `vnet_integration` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory Azure-SSIS Integration Runtime.
 
