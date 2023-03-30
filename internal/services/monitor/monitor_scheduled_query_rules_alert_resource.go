@@ -165,7 +165,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"metric_column": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"metric_trigger_type": {
