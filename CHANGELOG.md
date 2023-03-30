@@ -51,6 +51,8 @@ BUG FIXES:
 * `azurerm_healthcare_medtech_service` - support for Azure Environments other then Azure Public [GH-21077]
 * `azurerm_hpc_cache`: validating `subnet_id` [GH-21129]
 * `azurerm_image`: validating `managed_disk_id` and `source_virtual_machine_id` [GH-21129]
+* `azurerm_iothub_certificate`: certificate content now updates correctly [GH-21163]
+* `azurerm_iothub_dps_certificate`: certificate content now updates correctly [GH-21163]
 * `azurerm_key_vault_access_policy`: validating `key_vault_id` [GH-21129]
 * `azurerm_key_vault_certificate_issuer`: validating `key_vault_id` [GH-21129]
 * `azurerm_kubernetes_cluster`: validating `vnet_subnet_id` [GH-21129]
@@ -102,6 +104,8 @@ BUG FIXES:
 * `azurerm_sql_managed_database`: validating `managed_instance_id` [GH-21129]
 * `azurerm_sql_managed_instance`: validating `subnet_id` [GH-21129]
 * `azurerm_static_site_custom_domain`: validating `static_site_id` [GH-21129]
+* `azurerm_storage_account`: updating the validation for `ip_rules` to highlight the IP Range that's invalid when the validation fails [GH-21178]
+* `azurerm_storage_account_network_rules`: validating `ip_rules` [GH-21178]
 * `azurerm_storage_management_policy`: validating `storage_account_id` [GH-21129]
 * `azurerm_subnet_nat_gateway_association`: validating `nat_gateway_id` and `subnet_id` [GH-21129]
 * `azurerm_subnet_network_security_group_association`: validating `network_security_group_id` and `subnet_id` [GH-21129]
@@ -117,7 +121,6 @@ BUG FIXES:
 * `azurerm_windows_virtual_machine_scale_set`: validating `application_security_group_ids`, `network_security_group_id`, `proximity_placement_group_id`, `public_ip_prefix_id`, `subnet_id` and `virtual_network_gateway_id` [GH-21129]
 * `azurerm_windows_web_app` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
 * `azurerm_windows_web_app_slot` - Fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
-* `azurem_iothub_certificate`, `azurem_iothub_dps_certificate` - certificate content now updates correctly [GH-21163]
 
 ## 3.49.0 (March 23, 2023)
 
