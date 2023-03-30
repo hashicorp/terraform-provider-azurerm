@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New DataSource:** `azurerm_container_app` [GH-21199]
 * **New Resource:** `azurerm_web_pubsub_custom_certificate` [GH-21114]
 
 ENHANCEMENTS:
