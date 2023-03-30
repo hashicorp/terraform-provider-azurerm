@@ -107,12 +107,19 @@ if [[ "${NOTAG}" == "1" ]]; then
   exit 0
 fi
 
-echo "Committing changelog..."
+echo "exporting Provider Schema JSON"
 (
   set -x
-  git commit CHANGELOG.md -m v"${RELEASE}"
+  go run internal/tools/schema-api/main.go -export azurermProviderSchema.json
+)
+
+echo "Committing changelog and provider schema..."
+(
+  set -x
+  git commit CHANGELOG.md azurermProviderSchema.json -m v"${RELEASE}"
   git push origin "${BRANCH}"
 )
+
 
 echo "Releasing v${RELEASE}..."
 
