@@ -22,6 +22,7 @@ BUG FIXES:
 * `azurerm_api_management_policy`: validating `api_management_id` [GH-21129]
 * `azurerm_api_management_gateway_api`: validating `api_id` [GH-21129]
 * `azurerm_application_gateway`: validating `firewall_policy_id` and `subnet_id` [GH-21129]
+* `azurerm_application_gateway`: validating that `data` within the `ssl_certificate` block is a base64-encoded value [GH-21191]
 * `azurerm_application_insights_analytics_item`: validating `application_insights_id` [GH-21129]
 * `azurerm_application_insights_api_key`: validating `application_insights_id` [GH-21129]
 * `azurerm_application_insights_smart_detection_rule`: validating `application_insights_id` [GH-21129]
