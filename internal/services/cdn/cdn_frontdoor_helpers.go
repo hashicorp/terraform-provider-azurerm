@@ -482,44 +482,34 @@ func updateRouteAssociations(d *pluginsdk.ResourceData, meta interface{}, routeI
 
 func setRouteRuleSetAssociations(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRuleSetAssociationId, ruleSets []interface{}, props *cdn.RouteProperties, errorTxt string, futureErrorTxt string) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	workaroundsClient := azuresdkhacks.NewCdnFrontDoorRoutesWorkaroundClient(client)
 	ctx, routeCancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer routeCancel()
 
 	// NOTE: You need to always pass these these three on update else you will
 	// disable/disassociate your custom domains, cache configuration or rule sets...
-	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains:      props.CustomDomains,
-		CacheConfiguration: props.CacheConfiguration,
-	}
 
 	// Since delete is the only function that passes nil as the ruleSet value
 	// we know it is a delete operation...
 	if ruleSets != nil || len(ruleSets) != 0 {
 		// associate only the rule sets contained within the association resource
-		updateProps.RuleSets = expandRuleSetReferenceArray(ruleSets)
+		props.RuleSets = expandRuleSetReferenceArray(ruleSets)
 	} else {
 		// Disassociate all rule sets from the route
-		updateProps.RuleSets = nil
+		props.RuleSets = nil
 	}
 
-	updateParams := azuresdkhacks.RouteUpdateParameters{
-		RouteUpdatePropertiesParameters: &updateProps,
+	routeProperties := cdn.Route{
+		RouteProperties: props,
 	}
 
-	// TODO: Upgrade this resource to use the new SDK instead of the Azure Hacks workaround...
-	// when upgrading to the new Pandora SDK, convert this to use the 'CreateOrUpdate' call instead
-	// of using the 'Update' call, per TomBuildsStuff(PR #20859):
-	// "...'PATCH' API's (Update calls in the SDK) will be delta/patch API's, which is to say that if the
-	// JSON field is omitted then it won't be touched - however the 'PUT'/'POST' API's (CreateOrUpdate
-	// calls in the SDK) should remove these fields without the need for the azuresdkhacks folder)..."
-	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName, updateParams)
+	// NOTE: Calling Create intentionally to avoid having to use the azuresdkhacks for the Update (PATCH) call..
+	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName, routeProperties)
 	if err != nil {
-		return fmt.Errorf("%s %s: %+v", errorTxt, *id, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("%s %s: %+v", futureErrorTxt, *id, err)
+		return fmt.Errorf("waiting for the update of %s: %+v", id, err)
 	}
 
 	return nil
