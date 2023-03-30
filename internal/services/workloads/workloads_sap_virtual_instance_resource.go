@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SAPVirtualInstanceBasedDiscoveryConfigModel struct {
+type WorkloadsSAPVirtualInstanceModel struct {
 	Name                     string                       `tfschema:"name"`
 	ResourceGroupName        string                       `tfschema:"resource_group_name"`
 	Location                 string                       `tfschema:"location"`
-	Configuration            []Configuration              `tfschema:"configuration"`
+	DiscoveryConfiguration   []DiscoveryConfiguration     `tfschema:"discovery_configuration"`
 	Environment              string                       `tfschema:"environment"`
 	Identity                 []identity.ModelUserAssigned `tfschema:"identity"`
 	ManagedResourceGroupName string                       `tfschema:"managed_resource_group_name"`
@@ -28,28 +28,28 @@ type SAPVirtualInstanceBasedDiscoveryConfigModel struct {
 	Tags                     map[string]string            `tfschema:"tags"`
 }
 
-type Configuration struct {
+type DiscoveryConfiguration struct {
 	CentralServerVmId         string `tfschema:"central_server_vm_id"`
 	ManagedStorageAccountName string `tfschema:"managed_storage_account_name"`
 }
 
-type SAPVirtualInstanceBasedDiscoveryConfigResource struct{}
+type WorkloadsSAPVirtualInstanceResource struct{}
 
-var _ sdk.ResourceWithUpdate = SAPVirtualInstanceBasedDiscoveryConfigResource{}
+var _ sdk.ResourceWithUpdate = WorkloadsSAPVirtualInstanceResource{}
 
-func (r SAPVirtualInstanceBasedDiscoveryConfigResource) ResourceType() string {
-	return "azurerm_sap_virtual_instance_based_discovery_config"
+func (r WorkloadsSAPVirtualInstanceResource) ResourceType() string {
+	return "azurerm_workloads_sap_virtual_instance"
 }
 
-func (r SAPVirtualInstanceBasedDiscoveryConfigResource) ModelObject() interface{} {
-	return &SAPVirtualInstanceBasedDiscoveryConfigModel{}
+func (r WorkloadsSAPVirtualInstanceResource) ModelObject() interface{} {
+	return &WorkloadsSAPVirtualInstanceModel{}
 }
 
-func (r SAPVirtualInstanceBasedDiscoveryConfigResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r WorkloadsSAPVirtualInstanceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return sapvirtualinstances.ValidateSapVirtualInstanceID
 }
 
-func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Arguments() map[string]*pluginsdk.Schema {
+func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -62,9 +62,9 @@ func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Arguments() map[string]*
 
 		"location": commonschema.Location(),
 
-		"configuration": {
+		"discovery_configuration": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -120,15 +120,15 @@ func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Arguments() map[string]*
 	}
 }
 
-func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Attributes() map[string]*pluginsdk.Schema {
+func (r WorkloadsSAPVirtualInstanceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Create() sdk.ResourceFunc {
+func (r WorkloadsSAPVirtualInstanceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model SAPVirtualInstanceBasedDiscoveryConfigModel
+			var model WorkloadsSAPVirtualInstanceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -155,11 +155,14 @@ func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Create() sdk.ResourceFun
 				Identity: identity,
 				Location: location.Normalize(model.Location),
 				Properties: sapvirtualinstances.SAPVirtualInstanceProperties{
-					Configuration: expandConfiguration(model.Configuration),
-					Environment:   sapvirtualinstances.SAPEnvironmentType(model.Environment),
-					SapProduct:    sapvirtualinstances.SAPProductType(model.SapProduct),
+					Environment: sapvirtualinstances.SAPEnvironmentType(model.Environment),
+					SapProduct:  sapvirtualinstances.SAPProductType(model.SapProduct),
 				},
 				Tags: &model.Tags,
+			}
+
+			if v := model.DiscoveryConfiguration; v != nil {
+				parameters.Properties.Configuration = expandDiscoveryConfiguration(v)
 			}
 
 			if v := model.ManagedResourceGroupName; v != "" {
@@ -178,7 +181,7 @@ func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Create() sdk.ResourceFun
 	}
 }
 
-func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Update() sdk.ResourceFunc {
+func (r WorkloadsSAPVirtualInstanceResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -189,19 +192,9 @@ func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Update() sdk.ResourceFun
 				return err
 			}
 
-			var model SAPVirtualInstanceBasedDiscoveryConfigModel
+			var model WorkloadsSAPVirtualInstanceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			properties := resp.Model
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
 			parameters := &sapvirtualinstances.UpdateSAPVirtualInstanceRequest{}
@@ -227,7 +220,7 @@ func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Update() sdk.ResourceFun
 	}
 }
 
-func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Read() sdk.ResourceFunc {
+func (r WorkloadsSAPVirtualInstanceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -252,7 +245,7 @@ func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Read() sdk.ResourceFunc 
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := SAPVirtualInstanceBasedDiscoveryConfigModel{
+			state := WorkloadsSAPVirtualInstanceModel{
 				Name:              id.SapVirtualInstanceName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
@@ -269,8 +262,10 @@ func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Read() sdk.ResourceFunc 
 
 			properties := &model.Properties
 
-			discoveryConfiguration := properties.Configuration.(sapvirtualinstances.DiscoveryConfiguration)
-			state.Configuration = flattenConfiguration(&discoveryConfiguration)
+			if v, ok := properties.Configuration.(sapvirtualinstances.DiscoveryConfiguration); ok {
+				state.DiscoveryConfiguration = flattenDiscoveryConfiguration(&v)
+			}
+
 			state.Environment = string(properties.Environment)
 			state.SapProduct = string(properties.SapProduct)
 
@@ -287,7 +282,7 @@ func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Read() sdk.ResourceFunc 
 	}
 }
 
-func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Delete() sdk.ResourceFunc {
+func (r WorkloadsSAPVirtualInstanceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -307,7 +302,7 @@ func (r SAPVirtualInstanceBasedDiscoveryConfigResource) Delete() sdk.ResourceFun
 	}
 }
 
-func expandConfiguration(input []Configuration) *sapvirtualinstances.DiscoveryConfiguration {
+func expandDiscoveryConfiguration(input []DiscoveryConfiguration) *sapvirtualinstances.DiscoveryConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -327,12 +322,12 @@ func expandConfiguration(input []Configuration) *sapvirtualinstances.DiscoveryCo
 	return &result
 }
 
-func flattenConfiguration(input *sapvirtualinstances.DiscoveryConfiguration) []Configuration {
+func flattenDiscoveryConfiguration(input *sapvirtualinstances.DiscoveryConfiguration) []DiscoveryConfiguration {
 	if input == nil {
 		return nil
 	}
 
-	result := Configuration{}
+	result := DiscoveryConfiguration{}
 
 	if v := input.CentralServerVMId; v != nil {
 		result.CentralServerVmId = *v
@@ -342,7 +337,7 @@ func flattenConfiguration(input *sapvirtualinstances.DiscoveryConfiguration) []C
 		result.ManagedStorageAccountName = *v
 	}
 
-	return []Configuration{
+	return []DiscoveryConfiguration{
 		result,
 	}
 }
