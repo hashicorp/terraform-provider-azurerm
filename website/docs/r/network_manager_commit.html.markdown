@@ -10,6 +10,8 @@ description: |-
 
 Manages a Network Manager Commit.
 
+~> **NOTE Using Network Manager Commit to deploy Connectivity Configuration may modify or delete existing Virtual Network Peering. At this time you should not use [Network Peering resource](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network_peering) in conjunction with Network Manager Commit. Doing so may cause a conflict of Peering configurations.
+
 ## Example Usage
 
 ```hcl
@@ -153,7 +155,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the location which the configurations will be deployed to. Changing this forces a new Network Manager Commit to be created.
 
-* `scope_access` - (Required) Specifies the configuration deployment type. Possible values are `Connectivity` and `SecurityAdmin`.
+* `scope_access` - (Required) Specifies the configuration deployment type. Possible values are `Connectivity` and `SecurityAdmin`. Changing this forces a new Network Manager Commit to be created.
 
 * `configuration_ids` - (Required) A list of Network Manager Configuration IDs which should be aligned with `scope_access`.
 
