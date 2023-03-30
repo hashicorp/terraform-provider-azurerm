@@ -769,7 +769,7 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 		// Possible Mirror States to be used as desiredStates:
 		// mirrored, broken or uninitialized
 		if !utils.SliceContainsValue(validStates, strings.ToLower(desiredState)) {
-			return nil, "", fmt.Errorf("Invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, volumesreplication.PossibleValuesForMirrorState())
+			return nil, "", fmt.Errorf("invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, volumesreplication.PossibleValuesForMirrorState())
 		}
 
 		res, err := client.VolumesReplicationStatus(ctx, id)
