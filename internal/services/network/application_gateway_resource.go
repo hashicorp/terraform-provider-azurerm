@@ -1158,10 +1158,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"data": {
-							Type:      pluginsdk.TypeString,
-							Optional:  true,
-							Sensitive: true,
-							StateFunc: base64EncodedStateFunc,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							StateFunc:    base64EncodedStateFunc,
+							ValidateFunc: validation.StringIsBase64,
 						},
 
 						"password": {
