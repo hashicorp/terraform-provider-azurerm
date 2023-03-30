@@ -37,7 +37,8 @@ func main() {
 			// Call the method to stdout
 			log.Printf("dumping schema for '%s'", *providerName)
 			wrappedProvider := &providerjson.ProviderWrapper{
-				ProviderName: *providerName,
+				ProviderName:  *providerName,
+				SchemaVersion: "1",
 			}
 			if err := providerjson.DumpWithWrapper(wrappedProvider, data); err != nil {
 				log.Fatalf("error dumping provider: %+v", err)
@@ -65,7 +66,8 @@ func main() {
 		{
 			log.Printf("dumping schema for '%s'", *providerName)
 			wrappedProvider := &providerjson.ProviderWrapper{
-				ProviderName: *providerName,
+				ProviderName:  *providerName,
+				SchemaVersion: "1",
 			}
 			if err := providerjson.WriteWithWrapper(wrappedProvider, data, *exportSchema); err != nil {
 				log.Fatalf("error writing provider schema for %q to %q: %+v", *providerName, *exportSchema, err)

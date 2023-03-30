@@ -2,7 +2,7 @@ package providerjson
 
 import (
 	"encoding/json"
-	
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 )
@@ -96,5 +96,6 @@ type ProviderSchemaJSON struct {
 
 type ProviderWrapper struct {
 	ProviderName   string              `json:"providerName"`
+	SchemaVersion  string              `json:"schemaVersion"`
 	ProviderSchema *ProviderSchemaJSON `json:"providerSchema,omitempty"`
 }
