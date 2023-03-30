@@ -120,12 +120,18 @@ A `destinations` block exports the following:
 
 * `event_hub` - One or more `event_hub` blocks as defined below.
 
+* `event_hub_direct` - One or more `event_hub_direct` blocks as defined below.
+
 * `log_analytics` - One or more `log_analytics` blocks as defined below.
 
 * `monitor_account` - One or more `monitor_account` blocks as defined below.
 
-* `storage_account` - One or more `storage_account` blocks as defined below.
+* `storage_blob` - One or more `storage_blob` blocks as defined below.
 
+* `storage_blob_direct` - One or more `storage_blob_direct` blocks as defined below.
+
+* `storage_table_direct` - One or more `storage_table_direct` blocks as defined below.
+ 
 ---
 
 An `event_hub_data_source` block exports the following:
@@ -139,6 +145,14 @@ An `event_hub_data_source` block exports the following:
 ---
 
 An `event_hub` block exports the following:
+
+* `event_hub_id` - The resource ID of the Event Hub.
+
+* `name` - The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.
+
+---
+
+An `event_hub_direct` block exports the following:
 
 * `event_hub_id` - The resource ID of the Event Hub.
 
@@ -255,9 +269,29 @@ A `settings` block within the `log_file` block exports the following:
 
 ---
 
-A `storage_account` block exports the following:
+A `storage_blob` block exports the following:
 
 * `container_name` - The Storage Container name.
+
+* `name` - The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.
+
+* `storage_account_id` - The resource ID of the Storage Account.
+
+---
+
+A `storage_blob_direct` block exports the following:
+
+* `container_name` - The Storage Container name.
+
+* `name` - The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.
+
+* `storage_account_id` - The resource ID of the Storage Account.
+
+---
+
+A `storage_table_direct` block exports the following:
+
+* `table_name` - The Storage Table name.
 
 * `name` - The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.
 

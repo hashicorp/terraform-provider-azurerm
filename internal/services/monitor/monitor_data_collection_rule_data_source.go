@@ -108,6 +108,23 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 							},
 						},
 					},
+					"event_hub_direct": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"event_hub_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
 					"azure_monitor_metrics": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -152,7 +169,7 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 							},
 						},
 					},
-					"storage_account": {
+					"storage_blob": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
@@ -162,6 +179,46 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 									Computed: true,
 								},
 								"container_name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"storage_account_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"storage_blob_direct": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"container_name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"storage_account_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"storage_table_direct": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"table_name": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},

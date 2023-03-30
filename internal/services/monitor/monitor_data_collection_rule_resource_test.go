@@ -47,6 +47,21 @@ func TestAccMonitorDataCollectionRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDataCollectionRule_kindDirectToStore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
+	r := MonitorDataCollectionRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kindDirectToStore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorDataCollectionRule_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
 	r := MonitorDataCollectionRuleResource{}
@@ -154,6 +169,98 @@ resource "azurerm_monitor_data_collection_rule" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r MonitorDataCollectionRuleResource) kindDirectToStore(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acceventn%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  capacity            = 1
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "accevent%[2]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accstorage%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acccontainer%[2]d"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctable%[2]d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_monitor_data_collection_rule" "test" {
+  name                = "acctestmdcr-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "AgentDirectToStore"
+  destinations {
+    event_hub_direct {
+      name         = "test-destination-eventhub-direct"
+      event_hub_id = azurerm_eventhub.test.id
+    }
+    storage_blob_direct {
+      name               = "test-destination-storage-blob-direct"
+      storage_account_id = azurerm_storage_account.test.id
+      container_name     = azurerm_storage_container.test.name
+    }
+    storage_table_direct {
+      name               = "test-destination-storage-table-direct"
+      storage_account_id = azurerm_storage_account.test.id
+      table_name         = azurerm_storage_table.test.name
+    }
+  }
+
+  data_flow {
+    streams      = ["Microsoft-Syslog"]
+    destinations = ["test-destination-eventhub-direct", "test-destination-storage-blob-direct", "test-destination-storage-table-direct"]
+  }
+
+  data_sources {
+    syslog {
+      facility_names = [
+        "auth",
+        "authpriv",
+        "cron",
+        "daemon",
+        "kern",
+      ]
+      log_levels = [
+        "Debug",
+        "Info",
+        "Notice",
+      ]
+      name    = "test-datasource-syslog"
+      streams = ["Microsoft-Syslog", "Microsoft-CiscoAsa"]
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r MonitorDataCollectionRuleResource) systemAssigned(data acceptance.TestData) string {
@@ -396,7 +503,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       name         = "test-destination-eventhub"
     }
 
-    storage_account {
+    storage_blob {
       storage_account_id = azurerm_storage_account.test.id
       container_name     = azurerm_storage_container.test.name
       name               = "test-destination-storage"

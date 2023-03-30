@@ -62,10 +62,13 @@ type DataSource struct {
 
 type Destination struct {
 	AzureMonitorMetrics []AzureMonitorMetric `tfschema:"azure_monitor_metrics"`
+	EventHubDirect      []EventHub           `tfschema:"event_hub_direct"`
 	EventHub            []EventHub           `tfschema:"event_hub"`
 	LogAnalytics        []LogAnalytic        `tfschema:"log_analytics"`
 	MonitorAccount      []MonitorAccount     `tfschema:"monitor_account"`
-	StorageAccount      []StorageAccount     `tfschema:"storage_account"`
+	StorageBlob         []StorageBlob        `tfschema:"storage_blob"`
+	StorageBlobDirect   []StorageBlob        `tfschema:"storage_blob_direct"`
+	StorageTableDirect  []StorageTableDirect `tfschema:"storage_table_direct"`
 }
 
 type DataImport struct {
@@ -160,7 +163,7 @@ type MonitorAccount struct {
 	Name      string `tfschema:"name"`
 }
 
-type StorageAccount struct {
+type StorageBlob struct {
 	ContainerName    string `tfschema:"container_name"`
 	Name             string `tfschema:"name"`
 	StorageAccountId string `tfschema:"storage_account_id"`
@@ -274,7 +277,12 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.event_hub", "destinations.0.log_analytics", "destinations.0.monitor_account", "destinations.0.storage_account"},
+						AtLeastOneOf: []string{
+							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
+							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
+							"destinations.0.monitor_account", "destinations.0.storage_blob",
+							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
+						},
 					},
 					"event_hub": {
 						Type:     pluginsdk.TypeList,
@@ -294,7 +302,37 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.event_hub", "destinations.0.log_analytics", "destinations.0.monitor_account", "destinations.0.storage_account"},
+						AtLeastOneOf: []string{
+							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
+							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
+							"destinations.0.monitor_account", "destinations.0.storage_blob",
+							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
+						},
+					},
+					"event_hub_direct": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"event_hub_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: eventhubs.ValidateEventhubID,
+								},
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+						AtLeastOneOf: []string{
+							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
+							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
+							"destinations.0.monitor_account", "destinations.0.storage_blob",
+							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
+						},
 					},
 					"log_analytics": {
 						Type:     pluginsdk.TypeList,
@@ -313,7 +351,12 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.event_hub", "destinations.0.log_analytics", "destinations.0.monitor_account", "destinations.0.storage_account"},
+						AtLeastOneOf: []string{
+							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
+							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
+							"destinations.0.monitor_account", "destinations.0.storage_blob",
+							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
+						},
 					},
 					"monitor_account": {
 						Type:     pluginsdk.TypeList,
@@ -332,9 +375,14 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.event_hub", "destinations.0.log_analytics", "destinations.0.monitor_account", "destinations.0.storage_account"},
+						AtLeastOneOf: []string{
+							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
+							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
+							"destinations.0.monitor_account", "destinations.0.storage_blob",
+							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
+						},
 					},
-					"storage_account": {
+					"storage_blob": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
@@ -356,7 +404,70 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.event_hub", "destinations.0.log_analytics", "destinations.0.monitor_account", "destinations.0.storage_account"},
+						AtLeastOneOf: []string{
+							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
+							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
+							"destinations.0.monitor_account", "destinations.0.storage_blob",
+							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
+						},
+					},
+					"storage_blob_direct": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"container_name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"storage_account_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: storageaccounts.ValidateStorageAccountID,
+								},
+							},
+						},
+						AtLeastOneOf: []string{
+							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
+							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
+							"destinations.0.monitor_account", "destinations.0.storage_blob",
+							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
+						},
+					},
+					"storage_table_direct": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"table_name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"storage_account_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: storageaccounts.ValidateStorageAccountID,
+								},
+							},
+						},
+						AtLeastOneOf: []string{
+							"destinations.0.azure_monitor_metrics", "destinations.0.event_hub",
+							"destinations.0.event_hub_direct", "destinations.0.log_analytics",
+							"destinations.0.monitor_account", "destinations.0.storage_blob",
+							"destinations.0.storage_blob_direct", "destinations.0.storage_table_direct",
+						},
 					},
 				},
 			},
@@ -743,7 +854,12 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice(
-				datacollectionrules.PossibleValuesForKnownDataCollectionRuleResourceKind(), false),
+				[]string{
+					"Linux",
+					"Windows",
+					"AgentDirectToStore",
+				},
+				false),
 		},
 
 		"stream_declaration": {
@@ -1413,10 +1529,13 @@ func expandDataCollectionRuleDestinations(input []Destination) *datacollectionru
 
 	return &datacollectionrules.DestinationsSpec{
 		AzureMonitorMetrics: expandDataCollectionRuleDestinationMetrics(input[0].AzureMonitorMetrics),
+		EventHubsDirect:     expandDataCollectionRuleDestinationEventHubsDirect(input[0].EventHubDirect),
 		EventHubs:           expandDataCollectionRuleDestinationEventHubs(input[0].EventHub),
 		LogAnalytics:        expandDataCollectionRuleDestinationLogAnalytics(input[0].LogAnalytics),
 		MonitoringAccounts:  expandDataCollectionRuleDestinationMonitoringAccounts(input[0].MonitorAccount),
-		StorageAccounts:     expandDataCollectionRuleDestinationStorageAccounts(input[0].StorageAccount),
+		StorageAccounts:     expandDataCollectionRuleDestinationStorageBlobs(input[0].StorageBlob),
+		StorageBlobsDirect:  expandDataCollectionRuleDestinationStorageBlobs(input[0].StorageBlobDirect),
+		StorageTablesDirect: expandDataCollectionRuleDestinationStorageTableDirect(input[0].StorageTableDirect),
 	}
 }
 
@@ -1438,6 +1557,24 @@ func expandDataCollectionRuleDestinationEventHubs(input []EventHub) *[]datacolle
 	result := make([]datacollectionrules.EventHubDestination, 0)
 	for _, v := range input {
 		eventhub := datacollectionrules.EventHubDestination{
+			Name:               utils.String(v.Name),
+			EventHubResourceId: utils.String(v.EventHubResourceId),
+		}
+
+		result = append(result, eventhub)
+	}
+
+	return &result
+}
+
+func expandDataCollectionRuleDestinationEventHubsDirect(input []EventHub) *[]datacollectionrules.EventHubDirectDestination {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]datacollectionrules.EventHubDirectDestination, 0)
+	for _, v := range input {
+		eventhub := datacollectionrules.EventHubDirectDestination{
 			Name:               utils.String(v.Name),
 			EventHubResourceId: utils.String(v.EventHubResourceId),
 		}
@@ -1481,7 +1618,7 @@ func expandDataCollectionRuleDestinationMonitoringAccounts(input []MonitorAccoun
 	return &result
 }
 
-func expandDataCollectionRuleDestinationStorageAccounts(input []StorageAccount) *[]datacollectionrules.StorageBlobDestination {
+func expandDataCollectionRuleDestinationStorageBlobs(input []StorageBlob) *[]datacollectionrules.StorageBlobDestination {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1492,6 +1629,25 @@ func expandDataCollectionRuleDestinationStorageAccounts(input []StorageAccount) 
 			Name:                     utils.String(v.Name),
 			StorageAccountResourceId: utils.String(v.StorageAccountId),
 			ContainerName:            utils.String(v.ContainerName),
+		}
+
+		result = append(result, monitorAccount)
+	}
+
+	return &result
+}
+
+func expandDataCollectionRuleDestinationStorageTableDirect(input []StorageTableDirect) *[]datacollectionrules.StorageTableDestination {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]datacollectionrules.StorageTableDestination, 0)
+	for _, v := range input {
+		monitorAccount := datacollectionrules.StorageTableDestination{
+			Name:                     utils.String(v.Name),
+			StorageAccountResourceId: utils.String(v.StorageAccountId),
+			TableName:                utils.String(v.TableName),
 		}
 
 		result = append(result, monitorAccount)
@@ -1879,9 +2035,12 @@ func flattenDataCollectionRuleDestinations(input *datacollectionrules.Destinatio
 	return []Destination{{
 		AzureMonitorMetrics: flattenDataCollectionRuleDestinationMetrics(input.AzureMonitorMetrics),
 		EventHub:            flattenDataCollectionRuleDestinationEventHubs(input.EventHubs),
+		EventHubDirect:      flattenDataCollectionRuleDestinationEventHubDirect(input.EventHubsDirect),
 		LogAnalytics:        flattenDataCollectionRuleDestinationLogAnalytics(input.LogAnalytics),
 		MonitorAccount:      flattenDataCollectionRuleDestinationMonitorAccount(input.MonitoringAccounts),
-		StorageAccount:      flattenDataCollectionRuleDestinationStorageAccount(input.StorageAccounts),
+		StorageBlob:         flattenDataCollectionRuleDestinationStorageBlob(input.StorageAccounts),
+		StorageBlobDirect:   flattenDataCollectionRuleDestinationStorageBlob(input.StorageBlobsDirect),
+		StorageTableDirect:  flattenDataCollectionRuleDestinationStorageTableDirect(input.StorageTablesDirect),
 	}}
 }
 
@@ -1896,6 +2055,21 @@ func flattenDataCollectionRuleDestinationMetrics(input *datacollectionrules.Azur
 }
 
 func flattenDataCollectionRuleDestinationEventHubs(input *[]datacollectionrules.EventHubDestination) []EventHub {
+	if input == nil {
+		return make([]EventHub, 0)
+	}
+
+	result := make([]EventHub, 0)
+	for _, v := range *input {
+		result = append(result, EventHub{
+			Name:               flattenStringPtr(v.Name),
+			EventHubResourceId: flattenStringPtr(v.EventHubResourceId),
+		})
+	}
+	return result
+}
+
+func flattenDataCollectionRuleDestinationEventHubDirect(input *[]datacollectionrules.EventHubDirectDestination) []EventHub {
 	if input == nil {
 		return make([]EventHub, 0)
 	}
@@ -1940,17 +2114,33 @@ func flattenDataCollectionRuleDestinationMonitorAccount(input *[]datacollectionr
 	return result
 }
 
-func flattenDataCollectionRuleDestinationStorageAccount(input *[]datacollectionrules.StorageBlobDestination) []StorageAccount {
+func flattenDataCollectionRuleDestinationStorageBlob(input *[]datacollectionrules.StorageBlobDestination) []StorageBlob {
 	if input == nil {
-		return make([]StorageAccount, 0)
+		return make([]StorageBlob, 0)
 	}
 
-	result := make([]StorageAccount, 0)
+	result := make([]StorageBlob, 0)
 	for _, v := range *input {
-		result = append(result, StorageAccount{
+		result = append(result, StorageBlob{
 			Name:             flattenStringPtr(v.Name),
 			StorageAccountId: flattenStringPtr(v.StorageAccountResourceId),
 			ContainerName:    flattenStringPtr(v.ContainerName),
+		})
+	}
+	return result
+}
+
+func flattenDataCollectionRuleDestinationStorageTableDirect(input *[]datacollectionrules.StorageTableDestination) []StorageTableDirect {
+	if input == nil {
+		return make([]StorageTableDirect, 0)
+	}
+
+	result := make([]StorageTableDirect, 0)
+	for _, v := range *input {
+		result = append(result, StorageTableDirect{
+			Name:             flattenStringPtr(v.Name),
+			StorageAccountId: flattenStringPtr(v.StorageAccountResourceId),
+			TableName:        flattenStringPtr(v.TableName),
 		})
 	}
 	return result

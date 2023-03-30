@@ -91,7 +91,7 @@ resource "azurerm_monitor_data_collection_rule" "example" {
       name         = "test-destination-eventhub"
     }
 
-    storage_account {
+    storage_blob {
       storage_account_id = azurerm_storage_account.example.id
       container_name     = azurerm_storage_container.example.name
       name               = "test-destination-storage"
@@ -225,7 +225,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux` and `Windows`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
+* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`,and `AgentDirectToStore`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
 
 * `stream_declaration` - (Optional) A `stream_declaration` block as defined below.
 
@@ -297,13 +297,19 @@ A `destinations` block supports the following:
 
 * `event_hub` - (Optional) One or more `event_hub` blocks as defined below.
 
+* `event_hub_direct` - (Optional) One or more `event_hub` blocks as defined below.
+
 * `log_analytics` - (Optional) One or more `log_analytics` blocks as defined below.
 
 * `monitor_account` - (Optional) One or more `monitor_account` blocks as defined below.
 
-* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+* `storage_blob` - (Optional) One or more `storage_blob` blocks as defined below.
 
--> **NOTE** At least one of `azure_monitor_metrics`, `event_hub`, `log_analytics`, `monitor_account` and `storage_account` blocks must be specified.
+* `storage_blob_direct` - (Optional) One or more `storage_blob_direct` blocks as defined below.
+
+* `storage_table_direct` - (Optional) One or more `storage_table_direct` blocks as defined below.
+
+-> **NOTE** At least one of `azure_monitor_metrics`, `event_hub`, `event_hub_direct`, `log_analytics`, `monitor_account`, `storage_blob`, `storage_blob_direct`,and `storage_table_direct` blocks must be specified.
 
 ---
 
@@ -318,6 +324,14 @@ An `event_hub_data_source` block supports the following:
 ---
 
 An `event_hub` block supports the following:
+
+* `event_hub_id` - (Required) The resource ID of the Event Hub.
+
+* `name` - (Required) The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.
+
+---
+
+An `event_hub_direct` block supports the following:
 
 * `event_hub_id` - (Required) The resource ID of the Event Hub.
 
@@ -433,9 +447,30 @@ A `settings` block within the `log_file` block supports the following:
 
 ---
 
-A `storage_account` block supports the following:
+A `storage_blob` block supports the following:
 
 * `container_name` - (Required) The Storage Container name.
+
+* `name` - (Required) The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.
+
+* `storage_account_id` - (Required) The resource ID of the Storage Account.
+
+---
+
+A `storage_blob_direct` block supports the following:
+
+* `container_name` - (Required) The Storage Container name.
+
+* `name` - (Required) The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.
+
+* `storage_account_id` - (Required) The resource ID of the Storage Account.
+
+---
+
+
+A `storage_table_direct` block supports the following:
+
+* `table_name` - (Required) The Storage Table name.
 
 * `name` - (Required) The name which should be used for this destination. This name should be unique across all destinations regardless of type within the Data Collection Rule.
 
