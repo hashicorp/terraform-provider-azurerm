@@ -98,6 +98,7 @@ BUG FIXES:
 * `azurerm_public_ip`: validating `public_ip_prefix_id` [GH-21129]
 * `azurerm_postgresql_virtual_network_rule`: validating `subnet_id` is a subnet [GH-21129]
 * `azurerm_private_dns_zone_virtual_network_link`: validating `virtual_network_id` [GH-21129]
+* `azurerm_role_definition`: polling for longer during deletion [GH-21151]
 * `azurerm_sentinel_automation_rule`: validating `logic_app_id` [GH-21129]
 * `azurerm_security_center_workspace`: validating `log_analytics_workspace_id` [GH-21129]
 * `azurerm_security_center_automation`: validating that a Scope is specified [GH-21129]
