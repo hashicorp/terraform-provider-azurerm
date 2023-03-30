@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/schema-rules"
+	schema_rules "github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/schema-rules"
 )
 
 type Differ struct {
