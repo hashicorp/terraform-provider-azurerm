@@ -28,6 +28,7 @@ type SiteConfigWindowsFunctionAppSlot struct {
 	ElasticInstanceMinimum        int                                  `tfschema:"elastic_instance_minimum"`
 	Http2Enabled                  bool                                 `tfschema:"http2_enabled"`
 	IpRestriction                 []IpRestriction                      `tfschema:"ip_restriction"`
+	PublicNetworkAccessEnabled    bool                                 `tfschema:"public_network_access_enabled"`
 	LoadBalancing                 string                               `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
 	ManagedPipelineMode           string                               `tfschema:"managed_pipeline_mode"`
 	PreWarmedInstanceCount        int                                  `tfschema:"pre_warmed_instance_count"`
@@ -145,6 +146,12 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
+
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:        pluginsdk.TypeBool,
@@ -332,6 +339,7 @@ type SiteConfigLinuxFunctionAppSlot struct {
 	ElasticInstanceMinimum        int                                `tfschema:"elastic_instance_minimum"`
 	Http2Enabled                  bool                               `tfschema:"http2_enabled"`
 	IpRestriction                 []IpRestriction                    `tfschema:"ip_restriction"`
+	PublicNetworkAccessEnabled    bool                               `tfschema:"public_network_access_enabled"`
 	LoadBalancing                 string                             `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
 	ManagedPipelineMode           string                             `tfschema:"managed_pipeline_mode"`
 	PreWarmedInstanceCount        int                                `tfschema:"pre_warmed_instance_count"`
@@ -463,6 +471,12 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
+
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:        pluginsdk.TypeBool,
@@ -766,6 +780,12 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
+	publicNetworkAccessEnabled := "Enabled"
+	if !windowsSlotSiteConfig.PublicNetworkAccessEnabled {
+		publicNetworkAccessEnabled = "Disabled"
+	}
+	expanded.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
+
 	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(windowsSlotSiteConfig.ScmUseMainIpRestriction)
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
@@ -840,31 +860,32 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 	}
 
 	result := &SiteConfigWindowsFunctionAppSlot{
-		AlwaysOn:                utils.NormaliseNilableBool(functionAppSlotSiteConfig.AlwaysOn),
-		AppCommandLine:          utils.NormalizeNilableString(functionAppSlotSiteConfig.AppCommandLine),
-		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.FunctionAppScaleLimit)),
-		AutoSwapSlotName:        utils.NormalizeNilableString(functionAppSlotSiteConfig.AutoSwapSlotName),
-		Cors:                    FlattenCorsSettings(functionAppSlotSiteConfig.Cors),
-		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSlotSiteConfig.DetailedErrorLoggingEnabled),
-		HealthCheckPath:         utils.NormalizeNilableString(functionAppSlotSiteConfig.HealthCheckPath),
-		Http2Enabled:            utils.NormaliseNilableBool(functionAppSlotSiteConfig.HTTP20Enabled),
-		WindowsFxVersion:        utils.NormalizeNilableString(functionAppSlotSiteConfig.WindowsFxVersion),
-		LoadBalancing:           string(functionAppSlotSiteConfig.LoadBalancing),
-		ManagedPipelineMode:     string(functionAppSlotSiteConfig.ManagedPipelineMode),
-		NumberOfWorkers:         int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.NumberOfWorkers)),
-		ScmType:                 string(functionAppSlotSiteConfig.ScmType),
-		FtpsState:               string(functionAppSlotSiteConfig.FtpsState),
-		RuntimeScaleMonitoring:  utils.NormaliseNilableBool(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:           string(functionAppSlotSiteConfig.MinTLSVersion),
-		ScmMinTlsVersion:        string(functionAppSlotSiteConfig.ScmMinTLSVersion),
-		PreWarmedInstanceCount:  int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.PreWarmedInstanceCount)),
-		ElasticInstanceMinimum:  int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.MinimumElasticInstanceCount)),
-		Use32BitWorker:          utils.NormaliseNilableBool(functionAppSlotSiteConfig.Use32BitWorkerProcess),
-		WebSockets:              utils.NormaliseNilableBool(functionAppSlotSiteConfig.WebSocketsEnabled),
-		ScmUseMainIpRestriction: utils.NormaliseNilableBool(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		RemoteDebugging:         utils.NormaliseNilableBool(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
-		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSlotSiteConfig.VnetRouteAllEnabled),
+		AlwaysOn:                   utils.NormaliseNilableBool(functionAppSlotSiteConfig.AlwaysOn),
+		AppCommandLine:             utils.NormalizeNilableString(functionAppSlotSiteConfig.AppCommandLine),
+		AppScaleLimit:              int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.FunctionAppScaleLimit)),
+		AutoSwapSlotName:           utils.NormalizeNilableString(functionAppSlotSiteConfig.AutoSwapSlotName),
+		Cors:                       FlattenCorsSettings(functionAppSlotSiteConfig.Cors),
+		DetailedErrorLogging:       utils.NormaliseNilableBool(functionAppSlotSiteConfig.DetailedErrorLoggingEnabled),
+		HealthCheckPath:            utils.NormalizeNilableString(functionAppSlotSiteConfig.HealthCheckPath),
+		Http2Enabled:               utils.NormaliseNilableBool(functionAppSlotSiteConfig.HTTP20Enabled),
+		PublicNetworkAccessEnabled: strings.EqualFold(pointer.From(functionAppSlotSiteConfig.PublicNetworkAccess), "Enabled"),
+		WindowsFxVersion:           utils.NormalizeNilableString(functionAppSlotSiteConfig.WindowsFxVersion),
+		LoadBalancing:              string(functionAppSlotSiteConfig.LoadBalancing),
+		ManagedPipelineMode:        string(functionAppSlotSiteConfig.ManagedPipelineMode),
+		NumberOfWorkers:            int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.NumberOfWorkers)),
+		ScmType:                    string(functionAppSlotSiteConfig.ScmType),
+		FtpsState:                  string(functionAppSlotSiteConfig.FtpsState),
+		RuntimeScaleMonitoring:     utils.NormaliseNilableBool(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
+		MinTlsVersion:              string(functionAppSlotSiteConfig.MinTLSVersion),
+		ScmMinTlsVersion:           string(functionAppSlotSiteConfig.ScmMinTLSVersion),
+		PreWarmedInstanceCount:     int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.PreWarmedInstanceCount)),
+		ElasticInstanceMinimum:     int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.MinimumElasticInstanceCount)),
+		Use32BitWorker:             utils.NormaliseNilableBool(functionAppSlotSiteConfig.Use32BitWorkerProcess),
+		WebSockets:                 utils.NormaliseNilableBool(functionAppSlotSiteConfig.WebSocketsEnabled),
+		ScmUseMainIpRestriction:    utils.NormaliseNilableBool(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		RemoteDebugging:            utils.NormaliseNilableBool(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:     strings.ToUpper(utils.NormalizeNilableString(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
+		VnetRouteAllEnabled:        utils.NormaliseNilableBool(functionAppSlotSiteConfig.VnetRouteAllEnabled),
 	}
 
 	if v := functionAppSlotSiteConfig.APIDefinition; v != nil && v.URL != nil {
@@ -1097,6 +1118,12 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
+	publicNetworkAccessEnabled := "Enabled"
+	if !linuxSlotSiteConfig.PublicNetworkAccessEnabled {
+		publicNetworkAccessEnabled = "Disabled"
+	}
+	expanded.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
+
 	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(linuxSlotSiteConfig.ScmUseMainIpRestriction)
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
@@ -1171,33 +1198,34 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteCo
 	}
 
 	result := &SiteConfigLinuxFunctionAppSlot{
-		AlwaysOn:                utils.NormaliseNilableBool(functionAppSlotSiteConfig.AlwaysOn),
-		AppCommandLine:          utils.NormalizeNilableString(functionAppSlotSiteConfig.AppCommandLine),
-		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.FunctionAppScaleLimit)),
-		AutoSwapSlotName:        utils.NormalizeNilableString(functionAppSlotSiteConfig.AutoSwapSlotName),
-		ContainerRegistryMSI:    utils.NormalizeNilableString(functionAppSlotSiteConfig.AcrUserManagedIdentityID),
-		Cors:                    FlattenCorsSettings(functionAppSlotSiteConfig.Cors),
-		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSlotSiteConfig.DetailedErrorLoggingEnabled),
-		HealthCheckPath:         utils.NormalizeNilableString(functionAppSlotSiteConfig.HealthCheckPath),
-		Http2Enabled:            utils.NormaliseNilableBool(functionAppSlotSiteConfig.HTTP20Enabled),
-		LinuxFxVersion:          utils.NormalizeNilableString(functionAppSlotSiteConfig.LinuxFxVersion),
-		LoadBalancing:           string(functionAppSlotSiteConfig.LoadBalancing),
-		ManagedPipelineMode:     string(functionAppSlotSiteConfig.ManagedPipelineMode),
-		WorkerCount:             int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.NumberOfWorkers)),
-		ScmType:                 string(functionAppSlotSiteConfig.ScmType),
-		FtpsState:               string(functionAppSlotSiteConfig.FtpsState),
-		RuntimeScaleMonitoring:  utils.NormaliseNilableBool(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:           string(functionAppSlotSiteConfig.MinTLSVersion),
-		ScmMinTlsVersion:        string(functionAppSlotSiteConfig.ScmMinTLSVersion),
-		PreWarmedInstanceCount:  int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.PreWarmedInstanceCount)),
-		ElasticInstanceMinimum:  int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.MinimumElasticInstanceCount)),
-		Use32BitWorker:          utils.NormaliseNilableBool(functionAppSlotSiteConfig.Use32BitWorkerProcess),
-		WebSockets:              utils.NormaliseNilableBool(functionAppSlotSiteConfig.WebSocketsEnabled),
-		ScmUseMainIpRestriction: utils.NormaliseNilableBool(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		UseManagedIdentityACR:   utils.NormaliseNilableBool(functionAppSlotSiteConfig.AcrUseManagedIdentityCreds),
-		RemoteDebugging:         utils.NormaliseNilableBool(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
-		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSlotSiteConfig.VnetRouteAllEnabled),
+		AlwaysOn:                   utils.NormaliseNilableBool(functionAppSlotSiteConfig.AlwaysOn),
+		AppCommandLine:             utils.NormalizeNilableString(functionAppSlotSiteConfig.AppCommandLine),
+		AppScaleLimit:              int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.FunctionAppScaleLimit)),
+		AutoSwapSlotName:           utils.NormalizeNilableString(functionAppSlotSiteConfig.AutoSwapSlotName),
+		ContainerRegistryMSI:       utils.NormalizeNilableString(functionAppSlotSiteConfig.AcrUserManagedIdentityID),
+		Cors:                       FlattenCorsSettings(functionAppSlotSiteConfig.Cors),
+		DetailedErrorLogging:       utils.NormaliseNilableBool(functionAppSlotSiteConfig.DetailedErrorLoggingEnabled),
+		HealthCheckPath:            utils.NormalizeNilableString(functionAppSlotSiteConfig.HealthCheckPath),
+		Http2Enabled:               utils.NormaliseNilableBool(functionAppSlotSiteConfig.HTTP20Enabled),
+		PublicNetworkAccessEnabled: strings.EqualFold(pointer.From(functionAppSlotSiteConfig.PublicNetworkAccess), "Enabled"),
+		LinuxFxVersion:             utils.NormalizeNilableString(functionAppSlotSiteConfig.LinuxFxVersion),
+		LoadBalancing:              string(functionAppSlotSiteConfig.LoadBalancing),
+		ManagedPipelineMode:        string(functionAppSlotSiteConfig.ManagedPipelineMode),
+		WorkerCount:                int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.NumberOfWorkers)),
+		ScmType:                    string(functionAppSlotSiteConfig.ScmType),
+		FtpsState:                  string(functionAppSlotSiteConfig.FtpsState),
+		RuntimeScaleMonitoring:     utils.NormaliseNilableBool(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
+		MinTlsVersion:              string(functionAppSlotSiteConfig.MinTLSVersion),
+		ScmMinTlsVersion:           string(functionAppSlotSiteConfig.ScmMinTLSVersion),
+		PreWarmedInstanceCount:     int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.PreWarmedInstanceCount)),
+		ElasticInstanceMinimum:     int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.MinimumElasticInstanceCount)),
+		Use32BitWorker:             utils.NormaliseNilableBool(functionAppSlotSiteConfig.Use32BitWorkerProcess),
+		WebSockets:                 utils.NormaliseNilableBool(functionAppSlotSiteConfig.WebSocketsEnabled),
+		ScmUseMainIpRestriction:    utils.NormaliseNilableBool(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		UseManagedIdentityACR:      utils.NormaliseNilableBool(functionAppSlotSiteConfig.AcrUseManagedIdentityCreds),
+		RemoteDebugging:            utils.NormaliseNilableBool(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:     strings.ToUpper(utils.NormalizeNilableString(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
+		VnetRouteAllEnabled:        utils.NormaliseNilableBool(functionAppSlotSiteConfig.VnetRouteAllEnabled),
 	}
 
 	if v := functionAppSlotSiteConfig.APIDefinition; v != nil && v.URL != nil {

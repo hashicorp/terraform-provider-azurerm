@@ -1658,10 +1658,10 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	}
 
 	publicNetworkAccessEnabled := "Enabled"
-	if !metadata.ResourceData.Get("site_config.0.public_network_access_enabled").(bool) {
+	if !linuxSiteConfig.PublicNetworkAccessEnabled {
 		publicNetworkAccessEnabled = "Disabled"
 	}
-	expanded.PublicNetworkAccess = utils.String(publicNetworkAccessEnabled)
+	expanded.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
 		expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(linuxSiteConfig.ScmUseMainIpRestriction)
@@ -1910,10 +1910,10 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	}
 
 	publicNetworkAccessEnabled := "Enabled"
-	if !metadata.ResourceData.Get("site_config.0.public_network_access_enabled").(bool) {
+	if !windowsSiteConfig.PublicNetworkAccessEnabled {
 		publicNetworkAccessEnabled = "Disabled"
 	}
-	expanded.PublicNetworkAccess = utils.String(publicNetworkAccessEnabled)
+	expanded.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
 		expanded.LoadBalancing = web.SiteLoadBalancing(windowsSiteConfig.LoadBalancing)
@@ -2017,11 +2017,8 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSiteConfig.VnetRouteAllEnabled),
 	}
 
-	publicNetworkAccess := true
-	if functionAppSiteConfig.PublicNetworkAccess != nil && *functionAppSiteConfig.PublicNetworkAccess == "Disabled" {
-		publicNetworkAccess = false
-	}
-	result.PublicNetworkAccessEnabled = publicNetworkAccess
+	// this is case-sensitive: "Message": "PublicNetworkAccess is invalid.  Valid values are: Enabled, Disabled or an empty string"
+	result.PublicNetworkAccessEnabled = strings.EqualFold(pointer.From(functionAppSiteConfig.PublicNetworkAccess), "Enabled")
 
 	if v := functionAppSiteConfig.APIDefinition; v != nil && v.URL != nil {
 		result.ApiDefinition = *v.URL
@@ -2088,11 +2085,7 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) 
 		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSiteConfig.VnetRouteAllEnabled),
 	}
 
-	publicNetworkAccess := true
-	if functionAppSiteConfig.PublicNetworkAccess != nil && *functionAppSiteConfig.PublicNetworkAccess == "Disabled" {
-		publicNetworkAccess = false
-	}
-	result.PublicNetworkAccessEnabled = publicNetworkAccess
+	result.PublicNetworkAccessEnabled = strings.EqualFold(pointer.From(functionAppSiteConfig.PublicNetworkAccess), "Enabled")
 
 	if v := functionAppSiteConfig.APIDefinition; v != nil && v.URL != nil {
 		result.ApiDefinition = *v.URL

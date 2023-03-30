@@ -463,6 +463,8 @@ A `site_config` block supports the following:
 
 * `ip_restriction` - (Optional) an `ip_restriction` block as detailed below.
 
+* `public_network_access_enabled` - (Optional) Whether to enable public network access for the Windows Function App Slot. Defaults to `true`.
+
 * `load_balancing_mode` - (Optional) The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
 
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.

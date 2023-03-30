@@ -468,6 +468,8 @@ A `site_config` block supports the following:
 
 * `ip_restriction` - (Optional) an `ip_restriction` block as detailed below.
 
+* `public_network_access_enabled` - (Optional) Whether to enable public network access for the Linux Function App Slot. Defaults to `true`.
+
 * `linux_fx_version` - The Linux FX Version
 
 * `load_balancing_mode` - (Optional) The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.

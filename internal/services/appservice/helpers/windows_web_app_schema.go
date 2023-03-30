@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteConfigWindows struct {
@@ -593,10 +592,10 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	}
 
 	publicNetworkAccessEnabled := "Enabled"
-	if !metadata.ResourceData.Get("site_config.0.public_network_access_enabled").(bool) {
+	if !winSiteConfig.PublicNetworkAccessEnabled {
 		publicNetworkAccessEnabled = "Disabled"
 	}
-	expanded.PublicNetworkAccess = utils.String(publicNetworkAccessEnabled)
+	expanded.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
 
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(winSiteConfig.ScmUseMainIpRestriction)
 
@@ -679,41 +678,36 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	}
 
 	siteConfig := SiteConfigWindows{
-		AlwaysOn:                 pointer.From(appSiteConfig.AlwaysOn),
-		AppCommandLine:           pointer.From(appSiteConfig.AppCommandLine),
-		AutoHeal:                 pointer.From(appSiteConfig.AutoHealEnabled),
-		AutoHealSettings:         flattenAutoHealSettingsWindows(appSiteConfig.AutoHealRules),
-		ContainerRegistryUserMSI: pointer.From(appSiteConfig.AcrUserManagedIdentityID),
-		Cors:                     FlattenCorsSettings(appSiteConfig.Cors),
-		DetailedErrorLogging:     pointer.From(appSiteConfig.DetailedErrorLoggingEnabled),
-		FtpsState:                string(appSiteConfig.FtpsState),
-		HealthCheckPath:          pointer.From(appSiteConfig.HealthCheckPath),
-		HealthCheckEvictionTime:  pointer.From(healthCheckCount),
-		Http2Enabled:             pointer.From(appSiteConfig.HTTP20Enabled),
-		IpRestriction:            FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions),
-		LoadBalancing:            string(appSiteConfig.LoadBalancing),
-		LocalMysql:               pointer.From(appSiteConfig.LocalMySQLEnabled),
-		ManagedPipelineMode:      string(appSiteConfig.ManagedPipelineMode),
-		MinTlsVersion:            string(appSiteConfig.MinTLSVersion),
-		WorkerCount:              int(pointer.From(appSiteConfig.NumberOfWorkers)),
-		RemoteDebugging:          pointer.From(appSiteConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:   strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion)),
-		ScmIpRestriction:         FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions),
-		ScmMinTlsVersion:         string(appSiteConfig.ScmMinTLSVersion),
-		ScmType:                  string(appSiteConfig.ScmType),
-		ScmUseMainIpRestriction:  pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		Use32BitWorker:           pointer.From(appSiteConfig.Use32BitWorkerProcess),
-		UseManagedIdentityACR:    pointer.From(appSiteConfig.AcrUseManagedIdentityCreds),
-		VirtualApplications:      flattenVirtualApplications(appSiteConfig.VirtualApplications),
-		WebSockets:               pointer.From(appSiteConfig.WebSocketsEnabled),
-		VnetRouteAllEnabled:      pointer.From(appSiteConfig.VnetRouteAllEnabled),
+		AlwaysOn:                   pointer.From(appSiteConfig.AlwaysOn),
+		AppCommandLine:             pointer.From(appSiteConfig.AppCommandLine),
+		AutoHeal:                   pointer.From(appSiteConfig.AutoHealEnabled),
+		AutoHealSettings:           flattenAutoHealSettingsWindows(appSiteConfig.AutoHealRules),
+		ContainerRegistryUserMSI:   pointer.From(appSiteConfig.AcrUserManagedIdentityID),
+		Cors:                       FlattenCorsSettings(appSiteConfig.Cors),
+		DetailedErrorLogging:       pointer.From(appSiteConfig.DetailedErrorLoggingEnabled),
+		FtpsState:                  string(appSiteConfig.FtpsState),
+		HealthCheckPath:            pointer.From(appSiteConfig.HealthCheckPath),
+		HealthCheckEvictionTime:    pointer.From(healthCheckCount),
+		Http2Enabled:               pointer.From(appSiteConfig.HTTP20Enabled),
+		IpRestriction:              FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions),
+		PublicNetworkAccessEnabled: strings.EqualFold(pointer.From(appSiteConfig.PublicNetworkAccess), "Enabled"),
+		LoadBalancing:              string(appSiteConfig.LoadBalancing),
+		LocalMysql:                 pointer.From(appSiteConfig.LocalMySQLEnabled),
+		ManagedPipelineMode:        string(appSiteConfig.ManagedPipelineMode),
+		MinTlsVersion:              string(appSiteConfig.MinTLSVersion),
+		WorkerCount:                int(pointer.From(appSiteConfig.NumberOfWorkers)),
+		RemoteDebugging:            pointer.From(appSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:     strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion)),
+		ScmIpRestriction:           FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions),
+		ScmMinTlsVersion:           string(appSiteConfig.ScmMinTLSVersion),
+		ScmType:                    string(appSiteConfig.ScmType),
+		ScmUseMainIpRestriction:    pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		Use32BitWorker:             pointer.From(appSiteConfig.Use32BitWorkerProcess),
+		UseManagedIdentityACR:      pointer.From(appSiteConfig.AcrUseManagedIdentityCreds),
+		VirtualApplications:        flattenVirtualApplications(appSiteConfig.VirtualApplications),
+		WebSockets:                 pointer.From(appSiteConfig.WebSocketsEnabled),
+		VnetRouteAllEnabled:        pointer.From(appSiteConfig.VnetRouteAllEnabled),
 	}
-
-	publicNetworkAccess := true
-	if appSiteConfig.PublicNetworkAccess != nil && *appSiteConfig.PublicNetworkAccess == "Disabled" {
-		publicNetworkAccess = false
-	}
-	siteConfig.PublicNetworkAccessEnabled = publicNetworkAccess
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
 		apiId, err := parse.ApiIDInsensitively(*appSiteConfig.APIManagementConfig.ID)

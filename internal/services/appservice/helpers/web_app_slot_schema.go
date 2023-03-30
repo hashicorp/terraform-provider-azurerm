@@ -13,39 +13,40 @@ import (
 )
 
 type SiteConfigLinuxWebAppSlot struct {
-	AlwaysOn                bool                    `tfschema:"always_on"`
-	ApiManagementConfigId   string                  `tfschema:"api_management_api_id"`
-	ApiDefinition           string                  `tfschema:"api_definition_url"`
-	AppCommandLine          string                  `tfschema:"app_command_line"`
-	AutoHeal                bool                    `tfschema:"auto_heal_enabled"`
-	AutoHealSettings        []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
-	AutoSwapSlotName        string                  `tfschema:"auto_swap_slot_name"`
-	UseManagedIdentityACR   bool                    `tfschema:"container_registry_use_managed_identity"`
-	ContainerRegistryMSI    string                  `tfschema:"container_registry_managed_identity_client_id"`
-	DefaultDocuments        []string                `tfschema:"default_documents"`
-	Http2Enabled            bool                    `tfschema:"http2_enabled"`
-	IpRestriction           []IpRestriction         `tfschema:"ip_restriction"`
-	ScmUseMainIpRestriction bool                    `tfschema:"scm_use_main_ip_restriction"`
-	ScmIpRestriction        []IpRestriction         `tfschema:"scm_ip_restriction"`
-	LoadBalancing           string                  `tfschema:"load_balancing_mode"`
-	LocalMysql              bool                    `tfschema:"local_mysql_enabled"`
-	ManagedPipelineMode     string                  `tfschema:"managed_pipeline_mode"`
-	RemoteDebugging         bool                    `tfschema:"remote_debugging_enabled"`
-	RemoteDebuggingVersion  string                  `tfschema:"remote_debugging_version"`
-	ScmType                 string                  `tfschema:"scm_type"`
-	Use32BitWorker          bool                    `tfschema:"use_32_bit_worker"`
-	WebSockets              bool                    `tfschema:"websockets_enabled"`
-	FtpsState               string                  `tfschema:"ftps_state"`
-	HealthCheckPath         string                  `tfschema:"health_check_path"`
-	HealthCheckEvictionTime int                     `tfschema:"health_check_eviction_time_in_min"`
-	WorkerCount             int                     `tfschema:"worker_count"`
-	ApplicationStack        []ApplicationStackLinux `tfschema:"application_stack"`
-	MinTlsVersion           string                  `tfschema:"minimum_tls_version"`
-	ScmMinTlsVersion        string                  `tfschema:"scm_minimum_tls_version"`
-	Cors                    []CorsSetting           `tfschema:"cors"`
-	DetailedErrorLogging    bool                    `tfschema:"detailed_error_logging_enabled"`
-	LinuxFxVersion          string                  `tfschema:"linux_fx_version"`
-	VnetRouteAllEnabled     bool                    `tfschema:"vnet_route_all_enabled"`
+	AlwaysOn                   bool                    `tfschema:"always_on"`
+	ApiManagementConfigId      string                  `tfschema:"api_management_api_id"`
+	ApiDefinition              string                  `tfschema:"api_definition_url"`
+	AppCommandLine             string                  `tfschema:"app_command_line"`
+	AutoHeal                   bool                    `tfschema:"auto_heal_enabled"`
+	AutoHealSettings           []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
+	AutoSwapSlotName           string                  `tfschema:"auto_swap_slot_name"`
+	UseManagedIdentityACR      bool                    `tfschema:"container_registry_use_managed_identity"`
+	ContainerRegistryMSI       string                  `tfschema:"container_registry_managed_identity_client_id"`
+	DefaultDocuments           []string                `tfschema:"default_documents"`
+	Http2Enabled               bool                    `tfschema:"http2_enabled"`
+	IpRestriction              []IpRestriction         `tfschema:"ip_restriction"`
+	PublicNetworkAccessEnabled bool                    `tfschema:"public_network_access_enabled"`
+	ScmUseMainIpRestriction    bool                    `tfschema:"scm_use_main_ip_restriction"`
+	ScmIpRestriction           []IpRestriction         `tfschema:"scm_ip_restriction"`
+	LoadBalancing              string                  `tfschema:"load_balancing_mode"`
+	LocalMysql                 bool                    `tfschema:"local_mysql_enabled"`
+	ManagedPipelineMode        string                  `tfschema:"managed_pipeline_mode"`
+	RemoteDebugging            bool                    `tfschema:"remote_debugging_enabled"`
+	RemoteDebuggingVersion     string                  `tfschema:"remote_debugging_version"`
+	ScmType                    string                  `tfschema:"scm_type"`
+	Use32BitWorker             bool                    `tfschema:"use_32_bit_worker"`
+	WebSockets                 bool                    `tfschema:"websockets_enabled"`
+	FtpsState                  string                  `tfschema:"ftps_state"`
+	HealthCheckPath            string                  `tfschema:"health_check_path"`
+	HealthCheckEvictionTime    int                     `tfschema:"health_check_eviction_time_in_min"`
+	WorkerCount                int                     `tfschema:"worker_count"`
+	ApplicationStack           []ApplicationStackLinux `tfschema:"application_stack"`
+	MinTlsVersion              string                  `tfschema:"minimum_tls_version"`
+	ScmMinTlsVersion           string                  `tfschema:"scm_minimum_tls_version"`
+	Cors                       []CorsSetting           `tfschema:"cors"`
+	DetailedErrorLogging       bool                    `tfschema:"detailed_error_logging_enabled"`
+	LinuxFxVersion             string                  `tfschema:"linux_fx_version"`
+	VnetRouteAllEnabled        bool                    `tfschema:"vnet_route_all_enabled"`
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
 }
 
@@ -120,6 +121,12 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
+
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
@@ -275,40 +282,41 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 }
 
 type SiteConfigWindowsWebAppSlot struct {
-	AlwaysOn                 bool                      `tfschema:"always_on"`
-	ApiManagementConfigId    string                    `tfschema:"api_management_api_id"`
-	ApiDefinition            string                    `tfschema:"api_definition_url"`
-	ApplicationStack         []ApplicationStackWindows `tfschema:"application_stack"`
-	AppCommandLine           string                    `tfschema:"app_command_line"`
-	AutoHeal                 bool                      `tfschema:"auto_heal_enabled"`
-	AutoHealSettings         []AutoHealSettingWindows  `tfschema:"auto_heal_setting"`
-	AutoSwapSlotName         string                    `tfschema:"auto_swap_slot_name"`
-	UseManagedIdentityACR    bool                      `tfschema:"container_registry_use_managed_identity"`
-	ContainerRegistryUserMSI string                    `tfschema:"container_registry_managed_identity_client_id"`
-	DefaultDocuments         []string                  `tfschema:"default_documents"`
-	Http2Enabled             bool                      `tfschema:"http2_enabled"`
-	IpRestriction            []IpRestriction           `tfschema:"ip_restriction"`
-	ScmUseMainIpRestriction  bool                      `tfschema:"scm_use_main_ip_restriction"`
-	ScmIpRestriction         []IpRestriction           `tfschema:"scm_ip_restriction"`
-	LoadBalancing            string                    `tfschema:"load_balancing_mode"`
-	LocalMysql               bool                      `tfschema:"local_mysql_enabled"`
-	ManagedPipelineMode      string                    `tfschema:"managed_pipeline_mode"`
-	RemoteDebugging          bool                      `tfschema:"remote_debugging_enabled"`
-	RemoteDebuggingVersion   string                    `tfschema:"remote_debugging_version"`
-	ScmType                  string                    `tfschema:"scm_type"`
-	Use32BitWorker           bool                      `tfschema:"use_32_bit_worker"`
-	WebSockets               bool                      `tfschema:"websockets_enabled"`
-	FtpsState                string                    `tfschema:"ftps_state"`
-	HealthCheckPath          string                    `tfschema:"health_check_path"`
-	HealthCheckEvictionTime  int                       `tfschema:"health_check_eviction_time_in_min"`
-	WorkerCount              int                       `tfschema:"worker_count"`
-	VirtualApplications      []VirtualApplication      `tfschema:"virtual_application"`
-	MinTlsVersion            string                    `tfschema:"minimum_tls_version"`
-	ScmMinTlsVersion         string                    `tfschema:"scm_minimum_tls_version"`
-	Cors                     []CorsSetting             `tfschema:"cors"`
-	DetailedErrorLogging     bool                      `tfschema:"detailed_error_logging_enabled"`
-	WindowsFxVersion         string                    `tfschema:"windows_fx_version"`
-	VnetRouteAllEnabled      bool                      `tfschema:"vnet_route_all_enabled"`
+	AlwaysOn                   bool                      `tfschema:"always_on"`
+	ApiManagementConfigId      string                    `tfschema:"api_management_api_id"`
+	ApiDefinition              string                    `tfschema:"api_definition_url"`
+	ApplicationStack           []ApplicationStackWindows `tfschema:"application_stack"`
+	AppCommandLine             string                    `tfschema:"app_command_line"`
+	AutoHeal                   bool                      `tfschema:"auto_heal_enabled"`
+	AutoHealSettings           []AutoHealSettingWindows  `tfschema:"auto_heal_setting"`
+	AutoSwapSlotName           string                    `tfschema:"auto_swap_slot_name"`
+	UseManagedIdentityACR      bool                      `tfschema:"container_registry_use_managed_identity"`
+	ContainerRegistryUserMSI   string                    `tfschema:"container_registry_managed_identity_client_id"`
+	DefaultDocuments           []string                  `tfschema:"default_documents"`
+	Http2Enabled               bool                      `tfschema:"http2_enabled"`
+	IpRestriction              []IpRestriction           `tfschema:"ip_restriction"`
+	PublicNetworkAccessEnabled bool                      `tfschema:"public_network_access_enabled"`
+	ScmUseMainIpRestriction    bool                      `tfschema:"scm_use_main_ip_restriction"`
+	ScmIpRestriction           []IpRestriction           `tfschema:"scm_ip_restriction"`
+	LoadBalancing              string                    `tfschema:"load_balancing_mode"`
+	LocalMysql                 bool                      `tfschema:"local_mysql_enabled"`
+	ManagedPipelineMode        string                    `tfschema:"managed_pipeline_mode"`
+	RemoteDebugging            bool                      `tfschema:"remote_debugging_enabled"`
+	RemoteDebuggingVersion     string                    `tfschema:"remote_debugging_version"`
+	ScmType                    string                    `tfschema:"scm_type"`
+	Use32BitWorker             bool                      `tfschema:"use_32_bit_worker"`
+	WebSockets                 bool                      `tfschema:"websockets_enabled"`
+	FtpsState                  string                    `tfschema:"ftps_state"`
+	HealthCheckPath            string                    `tfschema:"health_check_path"`
+	HealthCheckEvictionTime    int                       `tfschema:"health_check_eviction_time_in_min"`
+	WorkerCount                int                       `tfschema:"worker_count"`
+	VirtualApplications        []VirtualApplication      `tfschema:"virtual_application"`
+	MinTlsVersion              string                    `tfschema:"minimum_tls_version"`
+	ScmMinTlsVersion           string                    `tfschema:"scm_minimum_tls_version"`
+	Cors                       []CorsSetting             `tfschema:"cors"`
+	DetailedErrorLogging       bool                      `tfschema:"detailed_error_logging_enabled"`
+	WindowsFxVersion           string                    `tfschema:"windows_fx_version"`
+	VnetRouteAllEnabled        bool                      `tfschema:"vnet_route_all_enabled"`
 }
 
 func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
@@ -388,6 +396,12 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
+
+				"public_network_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
@@ -630,6 +644,12 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
+	publicNetworkAccessEnabled := "Enabled"
+	if !linuxSlotSiteConfig.PublicNetworkAccessEnabled {
+		publicNetworkAccessEnabled = "Disabled"
+	}
+	expanded.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
+
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(linuxSlotSiteConfig.ScmUseMainIpRestriction)
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
@@ -721,34 +741,35 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 	}
 
 	siteConfig := SiteConfigLinuxWebAppSlot{
-		AlwaysOn:                pointer.From(appSiteSlotConfig.AlwaysOn),
-		AppCommandLine:          pointer.From(appSiteSlotConfig.AppCommandLine),
-		AutoHeal:                pointer.From(appSiteSlotConfig.AutoHealEnabled),
-		AutoHealSettings:        flattenAutoHealSettingsLinux(appSiteSlotConfig.AutoHealRules),
-		AutoSwapSlotName:        pointer.From(appSiteSlotConfig.AutoSwapSlotName),
-		ContainerRegistryMSI:    pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID),
-		Cors:                    FlattenCorsSettings(appSiteSlotConfig.Cors),
-		DetailedErrorLogging:    pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled),
-		Http2Enabled:            pointer.From(appSiteSlotConfig.HTTP20Enabled),
-		IpRestriction:           FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions),
-		ManagedPipelineMode:     string(appSiteSlotConfig.ManagedPipelineMode),
-		ScmType:                 string(appSiteSlotConfig.ScmType),
-		FtpsState:               string(appSiteSlotConfig.FtpsState),
-		HealthCheckPath:         pointer.From(appSiteSlotConfig.HealthCheckPath),
-		HealthCheckEvictionTime: pointer.From(healthCheckCount),
-		LoadBalancing:           string(appSiteSlotConfig.LoadBalancing),
-		LocalMysql:              pointer.From(appSiteSlotConfig.LocalMySQLEnabled),
-		MinTlsVersion:           string(appSiteSlotConfig.MinTLSVersion),
-		WorkerCount:             int(pointer.From(appSiteSlotConfig.NumberOfWorkers)),
-		RemoteDebugging:         pointer.From(appSiteSlotConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:  strings.ToUpper(pointer.From(appSiteSlotConfig.RemoteDebuggingVersion)),
-		ScmIpRestriction:        FlattenIpRestrictions(appSiteSlotConfig.ScmIPSecurityRestrictions),
-		ScmMinTlsVersion:        string(appSiteSlotConfig.ScmMinTLSVersion),
-		ScmUseMainIpRestriction: pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsUseMain),
-		Use32BitWorker:          pointer.From(appSiteSlotConfig.Use32BitWorkerProcess),
-		UseManagedIdentityACR:   pointer.From(appSiteSlotConfig.AcrUseManagedIdentityCreds),
-		WebSockets:              pointer.From(appSiteSlotConfig.WebSocketsEnabled),
-		VnetRouteAllEnabled:     pointer.From(appSiteSlotConfig.VnetRouteAllEnabled),
+		AlwaysOn:                   pointer.From(appSiteSlotConfig.AlwaysOn),
+		AppCommandLine:             pointer.From(appSiteSlotConfig.AppCommandLine),
+		AutoHeal:                   pointer.From(appSiteSlotConfig.AutoHealEnabled),
+		AutoHealSettings:           flattenAutoHealSettingsLinux(appSiteSlotConfig.AutoHealRules),
+		AutoSwapSlotName:           pointer.From(appSiteSlotConfig.AutoSwapSlotName),
+		ContainerRegistryMSI:       pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID),
+		Cors:                       FlattenCorsSettings(appSiteSlotConfig.Cors),
+		DetailedErrorLogging:       pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled),
+		Http2Enabled:               pointer.From(appSiteSlotConfig.HTTP20Enabled),
+		IpRestriction:              FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions),
+		PublicNetworkAccessEnabled: strings.EqualFold(pointer.From(appSiteSlotConfig.PublicNetworkAccess), "Enabled"),
+		ManagedPipelineMode:        string(appSiteSlotConfig.ManagedPipelineMode),
+		ScmType:                    string(appSiteSlotConfig.ScmType),
+		FtpsState:                  string(appSiteSlotConfig.FtpsState),
+		HealthCheckPath:            pointer.From(appSiteSlotConfig.HealthCheckPath),
+		HealthCheckEvictionTime:    pointer.From(healthCheckCount),
+		LoadBalancing:              string(appSiteSlotConfig.LoadBalancing),
+		LocalMysql:                 pointer.From(appSiteSlotConfig.LocalMySQLEnabled),
+		MinTlsVersion:              string(appSiteSlotConfig.MinTLSVersion),
+		WorkerCount:                int(pointer.From(appSiteSlotConfig.NumberOfWorkers)),
+		RemoteDebugging:            pointer.From(appSiteSlotConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:     strings.ToUpper(pointer.From(appSiteSlotConfig.RemoteDebuggingVersion)),
+		ScmIpRestriction:           FlattenIpRestrictions(appSiteSlotConfig.ScmIPSecurityRestrictions),
+		ScmMinTlsVersion:           string(appSiteSlotConfig.ScmMinTLSVersion),
+		ScmUseMainIpRestriction:    pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsUseMain),
+		Use32BitWorker:             pointer.From(appSiteSlotConfig.Use32BitWorkerProcess),
+		UseManagedIdentityACR:      pointer.From(appSiteSlotConfig.AcrUseManagedIdentityCreds),
+		WebSockets:                 pointer.From(appSiteSlotConfig.WebSocketsEnabled),
+		VnetRouteAllEnabled:        pointer.From(appSiteSlotConfig.VnetRouteAllEnabled),
 	}
 
 	if appSiteSlotConfig.APIManagementConfig != nil && appSiteSlotConfig.APIManagementConfig.ID != nil {
@@ -914,6 +935,12 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
+	publicNetworkAccessEnabled := "Enabled"
+	if !winSlotSiteConfig.PublicNetworkAccessEnabled {
+		publicNetworkAccessEnabled = "Disabled"
+	}
+	expanded.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
+
 	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
 		expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(winSlotSiteConfig.ScmUseMainIpRestriction)
 	}
@@ -1007,35 +1034,36 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 	}
 
 	siteConfig := SiteConfigWindowsWebAppSlot{
-		AlwaysOn:                 pointer.From(appSiteSlotConfig.AlwaysOn),
-		AppCommandLine:           pointer.From(appSiteSlotConfig.AppCommandLine),
-		AutoHeal:                 pointer.From(appSiteSlotConfig.AutoHealEnabled),
-		AutoHealSettings:         flattenAutoHealSettingsWindows(appSiteSlotConfig.AutoHealRules),
-		AutoSwapSlotName:         pointer.From(appSiteSlotConfig.AutoSwapSlotName),
-		ContainerRegistryUserMSI: pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID),
-		Cors:                     FlattenCorsSettings(appSiteSlotConfig.Cors),
-		DetailedErrorLogging:     pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled),
-		FtpsState:                string(appSiteSlotConfig.FtpsState),
-		HealthCheckPath:          pointer.From(appSiteSlotConfig.HealthCheckPath),
-		HealthCheckEvictionTime:  pointer.From(healthCheckCount),
-		Http2Enabled:             pointer.From(appSiteSlotConfig.HTTP20Enabled),
-		IpRestriction:            FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions),
-		LoadBalancing:            string(appSiteSlotConfig.LoadBalancing),
-		LocalMysql:               pointer.From(appSiteSlotConfig.LocalMySQLEnabled),
-		ManagedPipelineMode:      string(appSiteSlotConfig.ManagedPipelineMode),
-		MinTlsVersion:            string(appSiteSlotConfig.MinTLSVersion),
-		WorkerCount:              int(pointer.From(appSiteSlotConfig.NumberOfWorkers)),
-		RemoteDebugging:          pointer.From(appSiteSlotConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:   strings.ToUpper(pointer.From(appSiteSlotConfig.RemoteDebuggingVersion)),
-		ScmIpRestriction:         FlattenIpRestrictions(appSiteSlotConfig.ScmIPSecurityRestrictions),
-		ScmMinTlsVersion:         string(appSiteSlotConfig.ScmMinTLSVersion),
-		ScmType:                  string(appSiteSlotConfig.ScmType),
-		ScmUseMainIpRestriction:  pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsUseMain),
-		Use32BitWorker:           pointer.From(appSiteSlotConfig.Use32BitWorkerProcess),
-		UseManagedIdentityACR:    pointer.From(appSiteSlotConfig.AcrUseManagedIdentityCreds),
-		VirtualApplications:      flattenVirtualApplications(appSiteSlotConfig.VirtualApplications),
-		WebSockets:               pointer.From(appSiteSlotConfig.WebSocketsEnabled),
-		VnetRouteAllEnabled:      pointer.From(appSiteSlotConfig.VnetRouteAllEnabled),
+		AlwaysOn:                   pointer.From(appSiteSlotConfig.AlwaysOn),
+		AppCommandLine:             pointer.From(appSiteSlotConfig.AppCommandLine),
+		AutoHeal:                   pointer.From(appSiteSlotConfig.AutoHealEnabled),
+		AutoHealSettings:           flattenAutoHealSettingsWindows(appSiteSlotConfig.AutoHealRules),
+		AutoSwapSlotName:           pointer.From(appSiteSlotConfig.AutoSwapSlotName),
+		ContainerRegistryUserMSI:   pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID),
+		Cors:                       FlattenCorsSettings(appSiteSlotConfig.Cors),
+		DetailedErrorLogging:       pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled),
+		FtpsState:                  string(appSiteSlotConfig.FtpsState),
+		HealthCheckPath:            pointer.From(appSiteSlotConfig.HealthCheckPath),
+		HealthCheckEvictionTime:    pointer.From(healthCheckCount),
+		Http2Enabled:               pointer.From(appSiteSlotConfig.HTTP20Enabled),
+		IpRestriction:              FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions),
+		PublicNetworkAccessEnabled: strings.EqualFold(pointer.From(appSiteSlotConfig.PublicNetworkAccess), "Enabled"),
+		LoadBalancing:              string(appSiteSlotConfig.LoadBalancing),
+		LocalMysql:                 pointer.From(appSiteSlotConfig.LocalMySQLEnabled),
+		ManagedPipelineMode:        string(appSiteSlotConfig.ManagedPipelineMode),
+		MinTlsVersion:              string(appSiteSlotConfig.MinTLSVersion),
+		WorkerCount:                int(pointer.From(appSiteSlotConfig.NumberOfWorkers)),
+		RemoteDebugging:            pointer.From(appSiteSlotConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:     strings.ToUpper(pointer.From(appSiteSlotConfig.RemoteDebuggingVersion)),
+		ScmIpRestriction:           FlattenIpRestrictions(appSiteSlotConfig.ScmIPSecurityRestrictions),
+		ScmMinTlsVersion:           string(appSiteSlotConfig.ScmMinTLSVersion),
+		ScmType:                    string(appSiteSlotConfig.ScmType),
+		ScmUseMainIpRestriction:    pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsUseMain),
+		Use32BitWorker:             pointer.From(appSiteSlotConfig.Use32BitWorkerProcess),
+		UseManagedIdentityACR:      pointer.From(appSiteSlotConfig.AcrUseManagedIdentityCreds),
+		VirtualApplications:        flattenVirtualApplications(appSiteSlotConfig.VirtualApplications),
+		WebSockets:                 pointer.From(appSiteSlotConfig.WebSocketsEnabled),
+		VnetRouteAllEnabled:        pointer.From(appSiteSlotConfig.VnetRouteAllEnabled),
 	}
 
 	if appSiteSlotConfig.APIManagementConfig != nil && appSiteSlotConfig.APIManagementConfig.ID != nil {
