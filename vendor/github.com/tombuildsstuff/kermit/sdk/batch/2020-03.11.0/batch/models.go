@@ -8,16 +8,17 @@ package batch
 
 import (
 	"context"
+	"io"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
-	"io"
-	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch"
+const fqdn = "home/runner/work/kermit/kermit/sdk/batch/2020-03.11.0/batch"
 
 // AccountListSupportedImagesResult ...
 type AccountListSupportedImagesResult struct {
@@ -390,9 +391,9 @@ type AutoScaleRunError struct {
 
 // AutoUserSpecification ...
 type AutoUserSpecification struct {
-	// Scope - The default value is pool. If the pool is running Windows a value of Task should be specified if stricter isolation between tasks is required. For example, if the task mutates the registry in a way which could impact other tasks, or if certificates have been specified on the pool which should not be accessible by normal tasks but should be accessible by StartTasks. Possible values include: 'Task', 'Pool'
+	// Scope - The default value is pool. If the pool is running Windows a value of Task should be specified if stricter isolation between tasks is required. For example, if the task mutates the registry in a way which could impact other tasks, or if certificates have been specified on the pool which should not be accessible by normal tasks but should be accessible by StartTasks. Possible values include: 'AutoUserScopeTask', 'AutoUserScopePool'
 	Scope AutoUserScope `json:"scope,omitempty"`
-	// ElevationLevel - The default value is nonAdmin. Possible values include: 'NonAdmin', 'Admin'
+	// ElevationLevel - The default value is nonAdmin. Possible values include: 'ElevationLevelNonAdmin', 'ElevationLevelAdmin'
 	ElevationLevel ElevationLevel `json:"elevationLevel,omitempty"`
 }
 
@@ -422,6 +423,17 @@ type AzureFileShareConfiguration struct {
 	MountOptions *string `json:"mountOptions,omitempty"`
 }
 
+// CIFSMountConfiguration ...
+type CIFSMountConfiguration struct {
+	Username *string `json:"username,omitempty"`
+	Source   *string `json:"source,omitempty"`
+	// RelativeMountPath - All file systems are mounted relative to the Batch mounts directory, accessible via the AZ_BATCH_NODE_MOUNTS_DIR environment variable.
+	RelativeMountPath *string `json:"relativeMountPath,omitempty"`
+	// MountOptions - These are 'net use' options in Windows and 'mount' options in Linux.
+	MountOptions *string `json:"mountOptions,omitempty"`
+	Password     *string `json:"password,omitempty"`
+}
+
 // Certificate a Certificate that can be installed on Compute Nodes and can be used to authenticate
 // operations on the machine.
 type Certificate struct {
@@ -429,10 +441,10 @@ type Certificate struct {
 	Thumbprint          *string `json:"thumbprint,omitempty"`
 	ThumbprintAlgorithm *string `json:"thumbprintAlgorithm,omitempty"`
 	URL                 *string `json:"url,omitempty"`
-	// State - Possible values include: 'Active', 'Deleting', 'DeleteFailed'
+	// State - Possible values include: 'CertificateStateActive', 'CertificateStateDeleting', 'CertificateStateDeleteFailed'
 	State               CertificateState `json:"state,omitempty"`
 	StateTransitionTime *date.Time       `json:"stateTransitionTime,omitempty"`
-	// PreviousState - This property is not set if the Certificate is in its initial active state. Possible values include: 'Active', 'Deleting', 'DeleteFailed'
+	// PreviousState - This property is not set if the Certificate is in its initial active state. Possible values include: 'CertificateStateActive', 'CertificateStateDeleting', 'CertificateStateDeleteFailed'
 	PreviousState CertificateState `json:"previousState,omitempty"`
 	// PreviousStateTransitionTime - This property is not set if the Certificate is in its initial Active state.
 	PreviousStateTransitionTime *date.Time `json:"previousStateTransitionTime,omitempty"`
@@ -446,7 +458,7 @@ type CertificateAddParameter struct {
 	Thumbprint          *string `json:"thumbprint,omitempty"`
 	ThumbprintAlgorithm *string `json:"thumbprintAlgorithm,omitempty"`
 	Data                *string `json:"data,omitempty"`
-	// CertificateFormat - Possible values include: 'Pfx', 'Cer'
+	// CertificateFormat - Possible values include: 'CertificateFormatPfx', 'CertificateFormatCer'
 	CertificateFormat CertificateFormat `json:"certificateFormat,omitempty"`
 	// Password - This must be omitted if the Certificate format is cer.
 	Password *string `json:"password,omitempty"`
@@ -613,23 +625,12 @@ func NewCertificateListResultPage(cur CertificateListResult, getNextPage func(co
 type CertificateReference struct {
 	Thumbprint          *string `json:"thumbprint,omitempty"`
 	ThumbprintAlgorithm *string `json:"thumbprintAlgorithm,omitempty"`
-	// StoreLocation - The default value is currentuser. This property is applicable only for Pools configured with Windows Compute Nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows Image reference). For Linux Compute Nodes, the Certificates are stored in a directory inside the Task working directory and an environment variable AZ_BATCH_CERTIFICATES_DIR is supplied to the Task to query for this location. For Certificates with visibility of 'remoteUser', a 'certs' directory is created in the user's home directory (e.g., /home/{user-name}/certs) and Certificates are placed in that directory. Possible values include: 'CurrentUser', 'LocalMachine'
+	// StoreLocation - The default value is currentuser. This property is applicable only for Pools configured with Windows Compute Nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows Image reference). For Linux Compute Nodes, the Certificates are stored in a directory inside the Task working directory and an environment variable AZ_BATCH_CERTIFICATES_DIR is supplied to the Task to query for this location. For Certificates with visibility of 'remoteUser', a 'certs' directory is created in the user's home directory (e.g., /home/{user-name}/certs) and Certificates are placed in that directory. Possible values include: 'CertificateStoreLocationCurrentUser', 'CertificateStoreLocationLocalMachine'
 	StoreLocation CertificateStoreLocation `json:"storeLocation,omitempty"`
 	// StoreName - This property is applicable only for Pools configured with Windows Compute Nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows Image reference). Common store names include: My, Root, CA, Trust, Disallowed, TrustedPeople, TrustedPublisher, AuthRoot, AddressBook, but any custom store name can also be used. The default value is My.
 	StoreName *string `json:"storeName,omitempty"`
 	// Visibility - You can specify more than one visibility in this collection. The default is all Accounts.
 	Visibility *[]CertificateVisibility `json:"visibility,omitempty"`
-}
-
-// CIFSMountConfiguration ...
-type CIFSMountConfiguration struct {
-	Username *string `json:"username,omitempty"`
-	Source   *string `json:"source,omitempty"`
-	// RelativeMountPath - All file systems are mounted relative to the Batch mounts directory, accessible via the AZ_BATCH_NODE_MOUNTS_DIR environment variable.
-	RelativeMountPath *string `json:"relativeMountPath,omitempty"`
-	// MountOptions - These are 'net use' options in Windows and 'mount' options in Linux.
-	MountOptions *string `json:"mountOptions,omitempty"`
-	Password     *string `json:"password,omitempty"`
 }
 
 // CloudJob ...
@@ -663,7 +664,7 @@ type CloudJob struct {
 	// CommonEnvironmentSettings - Individual Tasks can override an environment setting specified here by specifying the same setting name with a different value.
 	CommonEnvironmentSettings *[]EnvironmentSetting `json:"commonEnvironmentSettings,omitempty"`
 	PoolInfo                  *PoolInformation      `json:"poolInfo,omitempty"`
-	// OnAllTasksComplete - The default is noaction. Possible values include: 'NoAction', 'TerminateJob'
+	// OnAllTasksComplete - The default is noaction. Possible values include: 'OnAllTasksCompleteNoAction', 'OnAllTasksCompleteTerminateJob'
 	OnAllTasksComplete OnAllTasksComplete `json:"onAllTasksComplete,omitempty"`
 	// OnTaskFailure - A Task is considered to have failed if has a failureInfo. A failureInfo is set if the Task completes with a non-zero exit code after exhausting its retry count, or if there was an error starting the Task, for example due to a resource file download error. The default is noaction. Possible values include: 'OnTaskFailureNoAction', 'OnTaskFailurePerformExitOptionsJobAction'
 	OnTaskFailure        OnTaskFailure            `json:"onTaskFailure,omitempty"`
@@ -1190,7 +1191,7 @@ type CloudPool struct {
 	// State - Possible values include: 'PoolStateActive', 'PoolStateDeleting'
 	State               PoolState  `json:"state,omitempty"`
 	StateTransitionTime *date.Time `json:"stateTransitionTime,omitempty"`
-	// AllocationState - Possible values include: 'Steady', 'Resizing', 'Stopping'
+	// AllocationState - Possible values include: 'AllocationStateSteady', 'AllocationStateResizing', 'AllocationStateStopping'
 	AllocationState               AllocationState `json:"allocationState,omitempty"`
 	AllocationStateTransitionTime *date.Time      `json:"allocationStateTransitionTime,omitempty"`
 	// VMSize - For information about available sizes of virtual machines in Pools, see Choose a VM size for Compute Nodes in an Azure Batch Pool (https://docs.microsoft.com/azure/batch/batch-pool-vm-sizes).
@@ -1629,9 +1630,9 @@ type ComputeNode struct {
 	// ID - Every Compute Node that is added to a Pool is assigned a unique ID. Whenever a Compute Node is removed from a Pool, all of its local files are deleted, and the ID is reclaimed and could be reused for new Compute Nodes.
 	ID  *string `json:"id,omitempty"`
 	URL *string `json:"url,omitempty"`
-	// State - The low-priority Compute Node has been preempted. Tasks which were running on the Compute Node when it was preempted will be rescheduled when another Compute Node becomes available. Possible values include: 'Idle', 'Rebooting', 'Reimaging', 'Running', 'Unusable', 'Creating', 'Starting', 'WaitingForStartTask', 'StartTaskFailed', 'Unknown', 'LeavingPool', 'Offline', 'Preempted'
+	// State - The low-priority Compute Node has been preempted. Tasks which were running on the Compute Node when it was preempted will be rescheduled when another Compute Node becomes available. Possible values include: 'ComputeNodeStateIdle', 'ComputeNodeStateRebooting', 'ComputeNodeStateReimaging', 'ComputeNodeStateRunning', 'ComputeNodeStateUnusable', 'ComputeNodeStateCreating', 'ComputeNodeStateStarting', 'ComputeNodeStateWaitingForStartTask', 'ComputeNodeStateStartTaskFailed', 'ComputeNodeStateUnknown', 'ComputeNodeStateLeavingPool', 'ComputeNodeStateOffline', 'ComputeNodeStatePreempted'
 	State ComputeNodeState `json:"state,omitempty"`
-	// SchedulingState - Possible values include: 'Enabled', 'Disabled'
+	// SchedulingState - Possible values include: 'SchedulingStateEnabled', 'SchedulingStateDisabled'
 	SchedulingState     SchedulingState `json:"schedulingState,omitempty"`
 	StateTransitionTime *date.Time      `json:"stateTransitionTime,omitempty"`
 	// LastBootTime - This property may not be present if the Compute Node state is unusable.
@@ -1879,10 +1880,10 @@ type ContainerRegistry struct {
 type DataDisk struct {
 	// Lun - The lun is used to uniquely identify each data disk. If attaching multiple disks, each should have a distinct lun.
 	Lun *int32 `json:"lun,omitempty"`
-	// Caching - The default value for caching is readwrite. For information about the caching options see: https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/. Possible values include: 'None', 'ReadOnly', 'ReadWrite'
+	// Caching - The default value for caching is readwrite. For information about the caching options see: https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/. Possible values include: 'CachingTypeNone', 'CachingTypeReadOnly', 'CachingTypeReadWrite'
 	Caching    CachingType `json:"caching,omitempty"`
 	DiskSizeGB *int32      `json:"diskSizeGB,omitempty"`
-	// StorageAccountType - If omitted, the default is "standard_lrs". Possible values include: 'StandardLRS', 'PremiumLRS'
+	// StorageAccountType - If omitted, the default is "standard_lrs". Possible values include: 'StorageAccountTypeStandardLRS', 'StorageAccountTypePremiumLRS'
 	StorageAccountType StorageAccountType `json:"storageAccountType,omitempty"`
 }
 
@@ -1954,7 +1955,7 @@ type ExitConditions struct {
 type ExitOptions struct {
 	// JobAction - The default is none for exit code 0 and terminate for all other exit conditions. If the Job's onTaskFailed property is noaction, then specifying this property returns an error and the add Task request fails with an invalid property value error; if you are calling the REST API directly, the HTTP status code is 400 (Bad Request). Possible values include: 'JobActionNone', 'JobActionDisable', 'JobActionTerminate'
 	JobAction JobAction `json:"jobAction,omitempty"`
-	// DependencyAction - Possible values are 'satisfy' (allowing dependent tasks to progress) and 'block' (dependent tasks continue to wait). Batch does not yet support cancellation of dependent tasks. Possible values include: 'Satisfy', 'Block'
+	// DependencyAction - Possible values are 'satisfy' (allowing dependent tasks to progress) and 'block' (dependent tasks continue to wait). Batch does not yet support cancellation of dependent tasks. Possible values include: 'DependencyActionSatisfy', 'DependencyActionBlock'
 	DependencyAction DependencyAction `json:"dependencyAction,omitempty"`
 }
 
@@ -1973,12 +1974,12 @@ type FileProperties struct {
 type ImageInformation struct {
 	NodeAgentSKUID *string         `json:"nodeAgentSKUId,omitempty"`
 	ImageReference *ImageReference `json:"imageReference,omitempty"`
-	// OsType - Possible values include: 'Linux', 'Windows'
+	// OsType - Possible values include: 'OSTypeLinux', 'OSTypeWindows'
 	OsType OSType `json:"osType,omitempty"`
 	// Capabilities - Not every capability of the Image is listed. Capabilities in this list are considered of special interest and are generally related to integration with other features in the Azure Batch service.
 	Capabilities          *[]string  `json:"capabilities,omitempty"`
 	BatchSupportEndOfLife *date.Time `json:"batchSupportEndOfLife,omitempty"`
-	// VerificationType - Possible values include: 'Verified', 'Unverified'
+	// VerificationType - Possible values include: 'VerificationTypeVerified', 'VerificationTypeUnverified'
 	VerificationType VerificationType `json:"verificationType,omitempty"`
 }
 
@@ -1999,7 +2000,7 @@ type ImageReference struct {
 // InboundEndpoint ...
 type InboundEndpoint struct {
 	Name *string `json:"name,omitempty"`
-	// Protocol - Possible values include: 'TCP', 'UDP'
+	// Protocol - Possible values include: 'InboundEndpointProtocolTCP', 'InboundEndpointProtocolUDP'
 	Protocol        InboundEndpointProtocol `json:"protocol,omitempty"`
 	PublicIPAddress *string                 `json:"publicIPAddress,omitempty"`
 	PublicFQDN      *string                 `json:"publicFQDN,omitempty"`
@@ -2011,7 +2012,7 @@ type InboundEndpoint struct {
 type InboundNATPool struct {
 	// Name - The name must be unique within a Batch Pool, can contain letters, numbers, underscores, periods, and hyphens. Names must start with a letter or number, must end with a letter, number, or underscore, and cannot exceed 77 characters.  If any invalid values are provided the request fails with HTTP status code 400.
 	Name *string `json:"name,omitempty"`
-	// Protocol - Possible values include: 'TCP', 'UDP'
+	// Protocol - Possible values include: 'InboundEndpointProtocolTCP', 'InboundEndpointProtocolUDP'
 	Protocol InboundEndpointProtocol `json:"protocol,omitempty"`
 	// BackendPort - This must be unique within a Batch Pool. Acceptable values are between 1 and 65535 except for 22, 3389, 29876 and 29877 as these are reserved. If any reserved values are provided the request fails with HTTP status code 400.
 	BackendPort *int32 `json:"backendPort,omitempty"`
@@ -2042,7 +2043,7 @@ type JobAddParameter struct {
 	// CommonEnvironmentSettings - Individual Tasks can override an environment setting specified here by specifying the same setting name with a different value.
 	CommonEnvironmentSettings *[]EnvironmentSetting `json:"commonEnvironmentSettings,omitempty"`
 	PoolInfo                  *PoolInformation      `json:"poolInfo,omitempty"`
-	// OnAllTasksComplete - Note that if a Job contains no Tasks, then all Tasks are considered complete. This option is therefore most commonly used with a Job Manager task; if you want to use automatic Job termination without a Job Manager, you should initially set onAllTasksComplete to noaction and update the Job properties to set onAllTasksComplete to terminatejob once you have finished adding Tasks. The default is noaction. Possible values include: 'NoAction', 'TerminateJob'
+	// OnAllTasksComplete - Note that if a Job contains no Tasks, then all Tasks are considered complete. This option is therefore most commonly used with a Job Manager task; if you want to use automatic Job termination without a Job Manager, you should initially set onAllTasksComplete to noaction and update the Job properties to set onAllTasksComplete to terminatejob once you have finished adding Tasks. The default is noaction. Possible values include: 'OnAllTasksCompleteNoAction', 'OnAllTasksCompleteTerminateJob'
 	OnAllTasksComplete OnAllTasksComplete `json:"onAllTasksComplete,omitempty"`
 	// OnTaskFailure - A Task is considered to have failed if has a failureInfo. A failureInfo is set if the Task completes with a non-zero exit code after exhausting its retry count, or if there was an error starting the Task, for example due to a resource file download error. The default is noaction. Possible values include: 'OnTaskFailureNoAction', 'OnTaskFailurePerformExitOptionsJobAction'
 	OnTaskFailure OnTaskFailure `json:"onTaskFailure,omitempty"`
@@ -2136,7 +2137,7 @@ type JobNetworkConfiguration struct {
 type JobPatchParameter struct {
 	// Priority - Priority values can range from -1000 to 1000, with -1000 being the lowest priority and 1000 being the highest priority. If omitted, the priority of the Job is left unchanged.
 	Priority *int32 `json:"priority,omitempty"`
-	// OnAllTasksComplete - If omitted, the completion behavior is left unchanged. You may not change the value from terminatejob to noaction - that is, once you have engaged automatic Job termination, you cannot turn it off again. If you try to do this, the request fails with an 'invalid property value' error response; if you are calling the REST API directly, the HTTP status code is 400 (Bad Request). Possible values include: 'NoAction', 'TerminateJob'
+	// OnAllTasksComplete - If omitted, the completion behavior is left unchanged. You may not change the value from terminatejob to noaction - that is, once you have engaged automatic Job termination, you cannot turn it off again. If you try to do this, the request fails with an 'invalid property value' error response; if you are calling the REST API directly, the HTTP status code is 400 (Bad Request). Possible values include: 'OnAllTasksCompleteNoAction', 'OnAllTasksCompleteTerminateJob'
 	OnAllTasksComplete OnAllTasksComplete `json:"onAllTasksComplete,omitempty"`
 	// Constraints - If omitted, the existing execution constraints are left unchanged.
 	Constraints *JobConstraints `json:"constraints,omitempty"`
@@ -2214,7 +2215,7 @@ type JobPreparationTaskExecutionInformation struct {
 	RetryCount *int32 `json:"retryCount,omitempty"`
 	// LastRetryTime - This property is set only if the Task was retried (i.e. retryCount is nonzero). If present, this is typically the same as startTime, but may be different if the Task has been restarted for reasons other than retry; for example, if the Compute Node was rebooted during a retry, then the startTime is updated but the lastRetryTime is not.
 	LastRetryTime *date.Time `json:"lastRetryTime,omitempty"`
-	// Result - If the value is 'failed', then the details of the failure can be found in the failureInfo property. Possible values include: 'Success', 'Failure'
+	// Result - If the value is 'failed', then the details of the failure can be found in the failureInfo property. Possible values include: 'TaskExecutionResultSuccess', 'TaskExecutionResultFailure'
 	Result TaskExecutionResult `json:"result,omitempty"`
 }
 
@@ -2262,7 +2263,7 @@ type JobReleaseTaskExecutionInformation struct {
 	ContainerInfo *TaskContainerExecutionInformation `json:"containerInfo,omitempty"`
 	// FailureInfo - This property is set only if the Task is in the completed state and encountered a failure.
 	FailureInfo *TaskFailureInformation `json:"failureInfo,omitempty"`
-	// Result - If the value is 'failed', then the details of the failure can be found in the failureInfo property. Possible values include: 'Success', 'Failure'
+	// Result - If the value is 'failed', then the details of the failure can be found in the failureInfo property. Possible values include: 'TaskExecutionResultSuccess', 'TaskExecutionResultFailure'
 	Result TaskExecutionResult `json:"result,omitempty"`
 }
 
@@ -2330,7 +2331,7 @@ type JobScheduleUpdateParameter struct {
 
 // JobSchedulingError ...
 type JobSchedulingError struct {
-	// Category - Possible values include: 'UserError', 'ServerError'
+	// Category - Possible values include: 'ErrorCategoryUserError', 'ErrorCategoryServerError'
 	Category ErrorCategory    `json:"category,omitempty"`
 	Code     *string          `json:"code,omitempty"`
 	Message  *string          `json:"message,omitempty"`
@@ -2344,7 +2345,7 @@ type JobSpecification struct {
 	// DisplayName - The name need not be unique and can contain any Unicode characters up to a maximum length of 1024.
 	DisplayName          *string `json:"displayName,omitempty"`
 	UsesTaskDependencies *bool   `json:"usesTaskDependencies,omitempty"`
-	// OnAllTasksComplete - Note that if a Job contains no Tasks, then all Tasks are considered complete. This option is therefore most commonly used with a Job Manager task; if you want to use automatic Job termination without a Job Manager, you should initially set onAllTasksComplete to noaction and update the Job properties to set onAllTasksComplete to terminatejob once you have finished adding Tasks. The default is noaction. Possible values include: 'NoAction', 'TerminateJob'
+	// OnAllTasksComplete - Note that if a Job contains no Tasks, then all Tasks are considered complete. This option is therefore most commonly used with a Job Manager task; if you want to use automatic Job termination without a Job Manager, you should initially set onAllTasksComplete to noaction and update the Job properties to set onAllTasksComplete to terminatejob once you have finished adding Tasks. The default is noaction. Possible values include: 'OnAllTasksCompleteNoAction', 'OnAllTasksCompleteTerminateJob'
 	OnAllTasksComplete OnAllTasksComplete `json:"onAllTasksComplete,omitempty"`
 	// OnTaskFailure - The default is noaction. Possible values include: 'OnTaskFailureNoAction', 'OnTaskFailurePerformExitOptionsJobAction'
 	OnTaskFailure        OnTaskFailure            `json:"onTaskFailure,omitempty"`
@@ -2401,7 +2402,7 @@ type JobUpdateParameter struct {
 	PoolInfo *PoolInformation `json:"poolInfo,omitempty"`
 	// Metadata - If omitted, it takes the default value of an empty list; in effect, any existing metadata is deleted.
 	Metadata *[]MetadataItem `json:"metadata,omitempty"`
-	// OnAllTasksComplete - If omitted, the completion behavior is set to noaction. If the current value is terminatejob, this is an error because a Job's completion behavior may not be changed from terminatejob to noaction. You may not change the value from terminatejob to noaction - that is, once you have engaged automatic Job termination, you cannot turn it off again. If you try to do this, the request fails and Batch returns status code 400 (Bad Request) and an 'invalid property value' error response. If you do not specify this element in a PUT request, it is equivalent to passing noaction. This is an error if the current value is terminatejob. Possible values include: 'NoAction', 'TerminateJob'
+	// OnAllTasksComplete - If omitted, the completion behavior is set to noaction. If the current value is terminatejob, this is an error because a Job's completion behavior may not be changed from terminatejob to noaction. You may not change the value from terminatejob to noaction - that is, once you have engaged automatic Job termination, you cannot turn it off again. If you try to do this, the request fails and Batch returns status code 400 (Bad Request) and an 'invalid property value' error response. If you do not specify this element in a PUT request, it is equivalent to passing noaction. This is an error if the current value is terminatejob. Possible values include: 'OnAllTasksCompleteNoAction', 'OnAllTasksCompleteTerminateJob'
 	OnAllTasksComplete OnAllTasksComplete `json:"onAllTasksComplete,omitempty"`
 }
 
@@ -2447,6 +2448,15 @@ type MultiInstanceSettings struct {
 	CommonResourceFiles *[]ResourceFile `json:"commonResourceFiles,omitempty"`
 }
 
+// NFSMountConfiguration ...
+type NFSMountConfiguration struct {
+	Source *string `json:"source,omitempty"`
+	// RelativeMountPath - All file systems are mounted relative to the Batch mounts directory, accessible via the AZ_BATCH_NODE_MOUNTS_DIR environment variable.
+	RelativeMountPath *string `json:"relativeMountPath,omitempty"`
+	// MountOptions - These are 'net use' options in Windows and 'mount' options in Linux.
+	MountOptions *string `json:"mountOptions,omitempty"`
+}
+
 // NameValuePair ...
 type NameValuePair struct {
 	Name  *string `json:"name,omitempty"`
@@ -2469,21 +2479,12 @@ type NetworkConfiguration struct {
 type NetworkSecurityGroupRule struct {
 	// Priority - Priorities within a Pool must be unique and are evaluated in order of priority. The lower the number the higher the priority. For example, rules could be specified with order numbers of 150, 250, and 350. The rule with the order number of 150 takes precedence over the rule that has an order of 250. Allowed priorities are 150 to 4096. If any reserved or duplicate values are provided the request fails with HTTP status code 400.
 	Priority *int32 `json:"priority,omitempty"`
-	// Access - Possible values include: 'Allow', 'Deny'
+	// Access - Possible values include: 'NetworkSecurityGroupRuleAccessAllow', 'NetworkSecurityGroupRuleAccessDeny'
 	Access NetworkSecurityGroupRuleAccess `json:"access,omitempty"`
 	// SourceAddressPrefix - Valid values are a single IP address (i.e. 10.10.10.10), IP subnet (i.e. 192.168.1.0/24), default tag, or * (for all addresses).  If any other values are provided the request fails with HTTP status code 400.
 	SourceAddressPrefix *string `json:"sourceAddressPrefix,omitempty"`
 	// SourcePortRanges - Valid values are '*' (for all ports 0 - 65535), a specific port (i.e. 22), or a port range (i.e. 100-200). The ports must be in the range of 0 to 65535. Each entry in this collection must not overlap any other entry (either a range or an individual port). If any other values are provided the request fails with HTTP status code 400. The default value is '*'.
 	SourcePortRanges *[]string `json:"sourcePortRanges,omitempty"`
-}
-
-// NFSMountConfiguration ...
-type NFSMountConfiguration struct {
-	Source *string `json:"source,omitempty"`
-	// RelativeMountPath - All file systems are mounted relative to the Batch mounts directory, accessible via the AZ_BATCH_NODE_MOUNTS_DIR environment variable.
-	RelativeMountPath *string `json:"relativeMountPath,omitempty"`
-	// MountOptions - These are 'net use' options in Windows and 'mount' options in Linux.
-	MountOptions *string `json:"mountOptions,omitempty"`
 }
 
 // NodeAgentInformation the Batch Compute Node agent is a program that runs on each Compute Node in the
@@ -2701,7 +2702,7 @@ type NodeRemoveParameter struct {
 	NodeList *[]string `json:"nodeList,omitempty"`
 	// ResizeTimeout - The default value is 15 minutes. The minimum value is 5 minutes. If you specify a value less than 5 minutes, the Batch service returns an error; if you are calling the REST API directly, the HTTP status code is 400 (Bad Request).
 	ResizeTimeout *string `json:"resizeTimeout,omitempty"`
-	// NodeDeallocationOption - The default value is requeue. Possible values include: 'Requeue', 'Terminate', 'TaskCompletion', 'RetainedData'
+	// NodeDeallocationOption - The default value is requeue. Possible values include: 'ComputeNodeDeallocationOptionRequeue', 'ComputeNodeDeallocationOptionTerminate', 'ComputeNodeDeallocationOptionTaskCompletion', 'ComputeNodeDeallocationOptionRetainedData'
 	NodeDeallocationOption ComputeNodeDeallocationOption `json:"nodeDeallocationOption,omitempty"`
 }
 
@@ -3158,7 +3159,7 @@ type PoolResizeParameter struct {
 	TargetLowPriorityNodes *int32 `json:"targetLowPriorityNodes,omitempty"`
 	// ResizeTimeout - The default value is 15 minutes. The minimum value is 5 minutes. If you specify a value less than 5 minutes, the Batch service returns an error; if you are calling the REST API directly, the HTTP status code is 400 (Bad Request).
 	ResizeTimeout *string `json:"resizeTimeout,omitempty"`
-	// NodeDeallocationOption - The default value is requeue. Possible values include: 'Requeue', 'Terminate', 'TaskCompletion', 'RetainedData'
+	// NodeDeallocationOption - The default value is requeue. Possible values include: 'ComputeNodeDeallocationOptionRequeue', 'ComputeNodeDeallocationOptionTerminate', 'ComputeNodeDeallocationOptionTaskCompletion', 'ComputeNodeDeallocationOptionRetainedData'
 	NodeDeallocationOption ComputeNodeDeallocationOption `json:"nodeDeallocationOption,omitempty"`
 }
 
@@ -3240,7 +3241,7 @@ type PoolUsageMetrics struct {
 // PublicIPAddressConfiguration the public IP Address configuration of the networking configuration of a
 // Pool.
 type PublicIPAddressConfiguration struct {
-	// Provision - The default value is BatchManaged. Possible values include: 'BatchManaged', 'UserManaged', 'NoPublicIPAddresses'
+	// Provision - The default value is BatchManaged. Possible values include: 'IPAddressProvisioningTypeBatchManaged', 'IPAddressProvisioningTypeUserManaged', 'IPAddressProvisioningTypeNoPublicIPAddresses'
 	Provision IPAddressProvisioningType `json:"provision,omitempty"`
 	// IPAddressIds - The number of IPs specified here limits the maximum size of the Pool - 50 dedicated nodes or 20 low-priority nodes can be allocated for each public IP. For example, a pool needing 150 dedicated VMs would need at least 3 public IPs specified. Each element of this collection is of the form: /subscriptions/{subscription}/resourceGroups/{group}/providers/Microsoft.Network/publicIPAddresses/{ip}.
 	IPAddressIds *[]string `json:"ipAddressIds,omitempty"`
@@ -3354,7 +3355,7 @@ type StartTaskInformation struct {
 	RetryCount *int32 `json:"retryCount,omitempty"`
 	// LastRetryTime - This element is present only if the Task was retried (i.e. retryCount is nonzero). If present, this is typically the same as startTime, but may be different if the Task has been restarted for reasons other than retry; for example, if the Compute Node was rebooted during a retry, then the startTime is updated but the lastRetryTime is not.
 	LastRetryTime *date.Time `json:"lastRetryTime,omitempty"`
-	// Result - If the value is 'failed', then the details of the failure can be found in the failureInfo property. Possible values include: 'Success', 'Failure'
+	// Result - If the value is 'failed', then the details of the failure can be found in the failureInfo property. Possible values include: 'TaskExecutionResultSuccess', 'TaskExecutionResultFailure'
 	Result TaskExecutionResult `json:"result,omitempty"`
 }
 
@@ -3378,7 +3379,7 @@ type SubtaskInformation struct {
 	PreviousState SubtaskState `json:"previousState,omitempty"`
 	// PreviousStateTransitionTime - This property is not set if the subtask is in its initial running state.
 	PreviousStateTransitionTime *date.Time `json:"previousStateTransitionTime,omitempty"`
-	// Result - If the value is 'failed', then the details of the failure can be found in the failureInfo property. Possible values include: 'Success', 'Failure'
+	// Result - If the value is 'failed', then the details of the failure can be found in the failureInfo property. Possible values include: 'TaskExecutionResultSuccess', 'TaskExecutionResultFailure'
 	Result TaskExecutionResult `json:"result,omitempty"`
 }
 
@@ -3470,7 +3471,7 @@ type TaskContainerSettings struct {
 	ImageName *string `json:"imageName,omitempty"`
 	// Registry - This setting can be omitted if was already provided at Pool creation.
 	Registry *ContainerRegistry `json:"registry,omitempty"`
-	// WorkingDirectory - The default is 'taskWorkingDirectory'. Possible values include: 'TaskWorkingDirectory', 'ContainerImageDefault'
+	// WorkingDirectory - The default is 'taskWorkingDirectory'. Possible values include: 'ContainerWorkingDirectoryTaskWorkingDirectory', 'ContainerWorkingDirectoryContainerImageDefault'
 	WorkingDirectory ContainerWorkingDirectory `json:"workingDirectory,omitempty"`
 }
 
@@ -3511,13 +3512,13 @@ type TaskExecutionInformation struct {
 	RequeueCount *int32 `json:"requeueCount,omitempty"`
 	// LastRequeueTime - This property is set only if the requeueCount is nonzero.
 	LastRequeueTime *date.Time `json:"lastRequeueTime,omitempty"`
-	// Result - If the value is 'failed', then the details of the failure can be found in the failureInfo property. Possible values include: 'Success', 'Failure'
+	// Result - If the value is 'failed', then the details of the failure can be found in the failureInfo property. Possible values include: 'TaskExecutionResultSuccess', 'TaskExecutionResultFailure'
 	Result TaskExecutionResult `json:"result,omitempty"`
 }
 
 // TaskFailureInformation ...
 type TaskFailureInformation struct {
-	// Category - Possible values include: 'UserError', 'ServerError'
+	// Category - Possible values include: 'ErrorCategoryUserError', 'ErrorCategoryServerError'
 	Category ErrorCategory    `json:"category,omitempty"`
 	Code     *string          `json:"code,omitempty"`
 	Message  *string          `json:"message,omitempty"`
@@ -3544,7 +3545,7 @@ type TaskInformation struct {
 
 // TaskSchedulingPolicy ...
 type TaskSchedulingPolicy struct {
-	// NodeFillType - If not specified, the default is spread. Possible values include: 'Spread', 'Pack'
+	// NodeFillType - If not specified, the default is spread. Possible values include: 'ComputeNodeFillTypeSpread', 'ComputeNodeFillTypePack'
 	NodeFillType ComputeNodeFillType `json:"nodeFillType,omitempty"`
 }
 
@@ -3599,7 +3600,7 @@ type UsageStatistics struct {
 type UserAccount struct {
 	Name     *string `json:"name,omitempty"`
 	Password *string `json:"password,omitempty"`
-	// ElevationLevel - The default value is nonAdmin. Possible values include: 'NonAdmin', 'Admin'
+	// ElevationLevel - The default value is nonAdmin. Possible values include: 'ElevationLevelNonAdmin', 'ElevationLevelAdmin'
 	ElevationLevel ElevationLevel `json:"elevationLevel,omitempty"`
 	// LinuxUserConfiguration - This property is ignored if specified on a Windows Pool. If not specified, the user is created with the default options.
 	LinuxUserConfiguration *LinuxUserConfiguration `json:"linuxUserConfiguration,omitempty"`
@@ -3642,6 +3643,6 @@ type WindowsConfiguration struct {
 
 // WindowsUserConfiguration ...
 type WindowsUserConfiguration struct {
-	// LoginMode - The default value for VirtualMachineConfiguration Pools is 'batch' and for CloudServiceConfiguration Pools is 'interactive'. Possible values include: 'Batch', 'Interactive'
+	// LoginMode - The default value for VirtualMachineConfiguration Pools is 'batch' and for CloudServiceConfiguration Pools is 'interactive'. Possible values include: 'LoginModeBatch', 'LoginModeInteractive'
 	LoginMode LoginMode `json:"loginMode,omitempty"`
 }

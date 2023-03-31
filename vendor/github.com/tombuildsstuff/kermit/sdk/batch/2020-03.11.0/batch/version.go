@@ -1,6 +1,6 @@
 package batch
 
-import "github.com/Azure/azure-sdk-for-go/version"
+import "github.com/tombuildsstuff/kermit/version"
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -10,7 +10,7 @@ import "github.com/Azure/azure-sdk-for-go/version"
 
 // UserAgent returns the UserAgent string to use when sending http.Requests.
 func UserAgent() string {
-	return "Azure-SDK-For-Go/" + Version() + " batch/2020-03-01.11.0"
+	return "tombuildsstuff/kermit/" + Version() + " batch/2020-03-01.11.0"
 }
 
 // Version returns the semantic version (see http://semver.org) of the client.

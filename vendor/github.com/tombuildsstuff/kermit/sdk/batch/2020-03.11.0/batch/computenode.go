@@ -8,13 +8,14 @@ package batch
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"github.com/gofrs/uuid"
-	"net/http"
 )
 
 // ComputeNodeClient is the a client for issuing REST requests to the Azure Batch service.
