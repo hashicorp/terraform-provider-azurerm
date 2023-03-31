@@ -1,3 +1,17 @@
+## 3.51.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_linux_function_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_linux_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_linux_web_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_linux_web_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_windows_function_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_windows_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_windows_web_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_windows_web_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+
+
 ## 3.50.0 (March 30, 2023)
 
 FEATURES:
