@@ -24,11 +24,11 @@ data "azurerm_arc_machine" "example" {
 }
 
 resource "azurerm_arc_machine_extension" "example" {
-  name                      = "example"
-  location                  = "West Europe"
+  name           = "example"
+  location       = "West Europe"
   arc_machine_id = data.azurerm_arc_machine.example.id
-  publisher                 = "Microsoft.Azure.Monitor"
-  type                      = "AzureMonitorLinuxAgent"
+  publisher      = "Microsoft.Azure.Monitor"
+  type           = "AzureMonitorLinuxAgent"
 }
 ```
 
