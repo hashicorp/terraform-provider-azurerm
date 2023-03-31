@@ -12,15 +12,6 @@ type Differ struct {
 	current *providerjson.ProviderWrapper
 }
 
-const (
-	SchemaTypeSet    = "TypeSet"
-	SchemaTypeList   = "TypeList"
-	SchemaTypeInt    = "TypeInt"
-	SchemaTypeString = "String"
-	SchemaTypeBool   = "Bool"
-	SchemaTypeFloat  = "Float"
-)
-
 func (d *Differ) Diff(fileName string, providerName string) []string {
 	if err := d.loadFromProvider(providerjson.LoadData(), providerName); err != nil {
 		return []string{err.Error()}
@@ -114,7 +105,7 @@ func compareNodeDataSource(base providerjson.SchemaJSON, current providerjson.Sc
 }
 
 func nodeIsBlock(input providerjson.SchemaJSON) bool {
-	if input.Type == SchemaTypeList || input.Type == SchemaTypeSet {
+	if input.Type == providerjson.SchemaTypeList || input.Type == providerjson.SchemaTypeSet {
 		if _, ok := input.Elem.(providerjson.ResourceJSON); ok {
 			return true
 		}

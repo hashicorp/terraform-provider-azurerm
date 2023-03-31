@@ -3,12 +3,11 @@ package schema_rules
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/differ"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
 )
 
 var propertyTypeBaseNode = providerjson.SchemaJSON{
-	Type:        differ.SchemaTypeString,
+	Type:        providerjson.SchemaTypeString,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,
@@ -22,7 +21,7 @@ var propertyTypeBaseNode = providerjson.SchemaJSON{
 }
 
 var propertyTypePasses = providerjson.SchemaJSON{
-	Type:        differ.SchemaTypeString,
+	Type:        providerjson.SchemaTypeString,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,
@@ -36,7 +35,7 @@ var propertyTypePasses = providerjson.SchemaJSON{
 }
 
 var propertyTypeViolates = providerjson.SchemaJSON{
-	Type:        differ.SchemaTypeInt,
+	Type:        providerjson.SchemaTypeInt,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,
@@ -50,7 +49,7 @@ var propertyTypeViolates = providerjson.SchemaJSON{
 }
 
 var propertyTypeList = providerjson.SchemaJSON{
-	Type:        differ.SchemaTypeList,
+	Type:        providerjson.SchemaTypeList,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,
@@ -64,7 +63,7 @@ var propertyTypeList = providerjson.SchemaJSON{
 }
 
 var propertyTypeSet = providerjson.SchemaJSON{
-	Type:        differ.SchemaTypeSet,
+	Type:        providerjson.SchemaTypeSet,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,
