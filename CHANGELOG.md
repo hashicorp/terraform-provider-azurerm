@@ -1,7 +1,8 @@
-## 3.51.0 (Unreleased)
+## 3.51.0 (Unreleased)
 
 BUG FIXES:
 
+* Data Source: `azurerm_app_configuration_keys` - fixing a regression where the API doesn't return the http endpoint when listing items [GH-21208]
 * `azurerm_linux_function_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
 * `azurerm_linux_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
 * `azurerm_linux_web_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
@@ -10,7 +11,6 @@ BUG FIXES:
 * `azurerm_windows_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
 * `azurerm_windows_web_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
 * `azurerm_windows_web_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
-
 
 ## 3.50.0 (March 30, 2023)
 
