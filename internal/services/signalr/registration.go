@@ -21,6 +21,7 @@ func (r Registration) Resources() []sdk.Resource {
 		CustomDomainSignalrServiceResource{},
 		CustomDomainWebPubsubResource{},
 		CustomCertWebPubsubResource{},
+		CustomCertSignalrServiceResource{},
 	}
 }
 
