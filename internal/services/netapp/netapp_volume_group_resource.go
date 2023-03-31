@@ -259,7 +259,7 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForEndpointType(), false),
 								},
 
-								"remote_volume_location": commonschema.LocationComputed(),
+								"remote_volume_location": commonschema.LocationWithoutForceNew(),
 
 								"remote_volume_resource_id": {
 									Type:         pluginsdk.TypeString,
@@ -515,7 +515,6 @@ func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
 						if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, volumeId); err != nil {
 							return err
 						}
-
 					}
 				}
 			}
