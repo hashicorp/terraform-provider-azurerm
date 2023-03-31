@@ -1,5 +1,9 @@
 ## 3.51.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20230331.1143618` of `github.com/hashicorp/go-azure-sdk` [GH-21239]
+
 BUG FIXES:
 
 * Data Source: `azurerm_app_configuration_keys` - fixing a regression where the API doesn't return the http endpoint when listing items [GH-21208]
