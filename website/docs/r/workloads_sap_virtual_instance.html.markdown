@@ -49,7 +49,9 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `managed_resource_group_name` - (Optional) The name of the managed Resource Group for the SAP Virtual Instance.
+* `managed_resource_group_name` - (Optional) The name of the managed Resource Group for the SAP Virtual Instance. Changing this forces a new resource to be created.
+
+* `single_server_configuration` - (Optional) A `single_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the SAP Virtual Instance.
 
@@ -71,6 +73,110 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this SAP Virtual Instance.
 
+---
+
+A `single_server_configuration` block supports the following:
+
+* `app_resource_group_name` - (Optional) The name of the application Resource Group where SAP system resources will be deployed. Changing this forces a new resource to be created.
+
+* `database_type` - (Optional) The supported SAP database type. Changing this forces a new resource to be created.
+
+* `disk_volume_configuration` - (Optional) One or more `disk_volume_configuration` blocks as defined below. Changing this forces a new resource to be created.
+
+* `is_secondary_ip_enabled` - (Optional) Is a secondary IP Address that should be added to the Network Interface on all VMs of the SAP system being deployed enabled? Changing this forces a new resource to be created.
+
+* `subnet_id` - (Optional) The resource ID of the Subnet for the SAP Virtual Instance. Changing this forces a new resource to be created.
+
+* `virtual_machine_configuration` - (Optional) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
+
+* `virtual_machine_full_resource_names` - (Optional) A `virtual_machine_full_resource_names` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `disk_volume_configuration` block supports the following:
+
+* `volume_name` - (Required) The name of the DB volume of the disk configuration. Changing this forces a new resource to be created.
+
+* `count` - (Optional) The total number of disks required for the concerned volume. Changing this forces a new resource to be created.
+
+* `size_gb` - (Optional) The size of the Disk in GB. Changing this forces a new resource to be created.
+
+* `sku_name` - (Optional) The name of the Disk SKU. Changing this forces a new resource to be created.
+
+---
+
+A `virtual_machine_configuration` block supports the following:
+
+* `image_reference` - (Optional) An `image_reference` block as defined below. Changing this forces a new resource to be created.
+
+* `os_profile` - (Optional) An `os_profile` block as defined below. Changing this forces a new resource to be created.
+
+* `vm_size` - (Optional) The size of the Virtual Machine. Changing this forces a new resource to be created.
+
+---
+
+An `image_reference` block supports the following:
+
+* `offer` - (Optional) The offer of the platform image or marketplace image used to create the Virtual Machine. Changing this forces a new resource to be created.
+
+* `publisher` - (Optional) The publisher of the Image. Changing this forces a new resource to be created.
+
+* `sku` - (Optional) The SKU of the Image. Changing this forces a new resource to be created.
+
+* `version` - (Optional) The version of the platform image or marketplace image used to create the Virtual Machine. Changing this forces a new resource to be created.
+
+---
+
+An `os_profile` block supports the following:
+
+* `admin_password` - (Optional) The password of the administrator account. Changing this forces a new resource to be created.
+
+* `admin_username` - (Optional) The name of the administrator account. Changing this forces a new resource to be created.
+
+* `linux_configuration` - (Optional) A `linux_configuration` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `linux_configuration` block supports the following:
+
+* `password_authentication_enabled` - (Optional) Is the password authentication enabled. Changing this forces a new resource to be created.
+
+* `ssh_key_pair` - (Optional) A `ssh_key_pair` block as defined below. Changing this forces a new resource to be created.
+
+* `ssh_public_key_data_list` - (Optional) A list of the SSH public key certificate used to authenticate with the VM through SSH. Changing this forces a new resource to be created.
+
+---
+
+A `ssh_key_pair` block supports the following:
+
+* `private_key` - (Optional) The SSH public key that is used to authenticate with the VM. Changing this forces a new resource to be created.
+
+* `public_key` - (Optional) The SSH private key that is used to authenticate with the VM. Changing this forces a new resource to be created.
+
+---
+
+A `virtual_machine_full_resource_names` block supports the following:
+
+* `data_disk_names` - (Optional) A mapping of Data Disk names to pass to the backend host. The keys are Volume names and the values are a comma separated string of full names for Data Disks belonging to the specific Volume. This is converted to a list before being passed to the API. Changing this forces a new resource to be created.
+
+~> **Note:** If `data_disk_names` are not provided, service uses the default name based on the Volume.
+
+* `host_name` - (Optional) The full name of the host of the Virtual Machine. Changing this forces a new resource to be created.
+
+~> **Note:** If `host_name` is not provided, the name of the VM will be used as host name.
+
+* `network_interface_names` - (Optional) A list of full names for the Network Interface of the Virtual Machine. Changing this forces a new resource to be created.
+
+~> **Note:** If `network_interface_names` is not provided, service uses the default name based on the deployment type.
+
+* `os_disk_name` - (Optional) The full name of the OS Disk attached to the VM. Changing this forces a new resource to be created.
+
+~> **Note:** If `os_disk_name` is not provided, it will be named by ARM as per its default naming standards (prefixed with VM name).
+
+* `vm_name` - (Optional) The full name of the Virtual Machine in a single server SAP system. Changing this forces a new resource to be created.
+
+~> **Note:** If `vm_name` is not provided, service uses a default name based on the deployment type.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -81,10 +187,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the SAP Virtual Instance.
+* `create` - (Defaults to 60 minutes) Used when creating the SAP Virtual Instance.
 * `read` - (Defaults to 5 minutes) Used when retrieving the SAP Virtual Instance.
-* `update` - (Defaults to 30 minutes) Used when updating the SAP Virtual Instance.
-* `delete` - (Defaults to 30 minutes) Used when deleting the SAP Virtual Instance.
+* `update` - (Defaults to 60 minutes) Used when updating the SAP Virtual Instance.
+* `delete` - (Defaults to 60 minutes) Used when deleting the SAP Virtual Instance.
 
 ## Import
 
