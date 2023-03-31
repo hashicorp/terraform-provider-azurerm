@@ -2,6 +2,7 @@ package containers
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -693,7 +694,8 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	userCredentialsResp, err := client.ListClusterUserCredentials(ctx, id, managedclusters.ListClusterUserCredentialsOperationOptions{})
-	if err != nil {
+	// only raise the error if it's not a limited permissions error, since this is the Data Source
+	if err != nil && !response.WasStatusCode(userCredentialsResp.HttpResponse, http.StatusForbidden) {
 		return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
 	}
 
@@ -822,7 +824,8 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			var adminKubeConfigRaw *string
 			if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
 				adminCredentialsResp, err := client.ListClusterAdminCredentials(ctx, id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
-				if err != nil {
+				// only raise the error if it's not a limited permissions error, since this is the Data Source
+				if err != nil && !response.WasStatusCode(adminCredentialsResp.HttpResponse, http.StatusForbidden) {
 					return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
 				}
 
