@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/accessconnector` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector` Documentation
 
-The `accessconnector` SDK allows for interaction with the Azure Resource Manager Service `databricks` (API Version `2022-04-01-preview`).
+The `accessconnector` SDK allows for interaction with the Azure Resource Manager Service `databricks` (API Version `2022-10-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/accessconnector"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
 ```
 
 

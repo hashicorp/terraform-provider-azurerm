@@ -8,6 +8,6 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AccessConnectorUpdate struct {
-	Identity *identity.SystemAssigned `json:"identity,omitempty"`
-	Tags     *map[string]string       `json:"tags,omitempty"`
+	Identity *identity.LegacySystemAndUserAssignedMap `json:"identity,omitempty"`
+	Tags     *map[string]string                       `json:"tags,omitempty"`
 }
