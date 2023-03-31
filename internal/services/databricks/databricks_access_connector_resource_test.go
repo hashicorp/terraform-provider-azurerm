@@ -47,6 +47,20 @@ func TestAccDatabricksAccessConnector_complete(t *testing.T) {
 	})
 }
 
+func TestAccDatabricksAccessConnector_identityUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
+	r := DatabricksAccessConnectorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDatabricksAccessConnector_identityComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
 	r := DatabricksAccessConnectorResource{}
@@ -127,21 +141,13 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 resource "azurerm_databricks_access_connector" "test" {
-  name                = "acctestDBAC%[2]d"
+  name                = "acctestDBAC%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
   identity {
-    type = "UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
+    type = "SystemAssigned"
   }
 }
 `, template, data.RandomInteger)
