@@ -1,131 +1,131 @@
-## 3.50.0 (Unreleased)
+## 3.50.0 (March 30, 2023)
 
 FEATURES:
 
-* **New DataSource:** `azurerm_container_app` [GH-21199]
-* **New Resource:** `azurerm_web_pubsub_custom_certificate` [GH-21114]
+* **New DataSource:** `azurerm_container_app` ([#21199](https://github.com/hashicorp/terraform-provider-azurerm/issues/21199))
+* **New Resource:** `azurerm_web_pubsub_custom_certificate` ([#21114](https://github.com/hashicorp/terraform-provider-azurerm/issues/21114))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230329.1052505` of `github.com/hashicorp/go-azure-sdk` [GH-21175]
-* dependencies: updated `azurerm_subscription` to use new SDK [GH-18813]
-* `azurerm_databricks_access_connector` - support for user assigned identities [GH-21059]
-* `azurerm_linux_function_app`  - add support for `zip_deploy_file` [GH-20544]
-* `azurerm_monitor_scheduled_query_rules_alert` - `trigger.x.metric_column` is now optional [GH-21203]
-* `azurerm_mssql_database` - HyperScale Skus now support `long_term_retention_policy` and `short_term_retention_policy` [GH-21166]
-* `azurerm_windows_function_app` - add support for `zip_deploy_file` [GH-20544]
+* dependencies: updating to `v0.20230329.1052505` of `github.com/hashicorp/go-azure-sdk` ([#21175](https://github.com/hashicorp/terraform-provider-azurerm/issues/21175))
+* dependencies: updated `azurerm_subscription` to use new SDK ([#18813](https://github.com/hashicorp/terraform-provider-azurerm/issues/18813))
+* `azurerm_databricks_access_connector` - support for user assigned identities ([#21059](https://github.com/hashicorp/terraform-provider-azurerm/issues/21059))
+* `azurerm_linux_function_app`  - add support for `zip_deploy_file` ([#20544](https://github.com/hashicorp/terraform-provider-azurerm/issues/20544))
+* `azurerm_monitor_scheduled_query_rules_alert` - `trigger.x.metric_column` is now optional ([#21203](https://github.com/hashicorp/terraform-provider-azurerm/issues/21203))
+* `azurerm_mssql_database` - HyperScale Skus now support `long_term_retention_policy` and `short_term_retention_policy` ([#21166](https://github.com/hashicorp/terraform-provider-azurerm/issues/21166))
+* `azurerm_windows_function_app` - add support for `zip_deploy_file` ([#20544](https://github.com/hashicorp/terraform-provider-azurerm/issues/20544))
 
 BUG FIXES:
 
-* Data Source: `azurerm_databricks_workspace_private_endpoint_connection`: validating `private_endpoint_id` and `workspace_id` [GH-21129]
-* Data Source: `azurerm_healthcare_medtech_service` - the `workspace_id` field is no longer marked as ForceNew [GH-21077]
-* Data Source: `azurerm_healthcare_medtech_service` - support for Azure Environments other then Azure Public [GH-21077]
-* `azurerm_api_management` - validating `public_ip_address_id` and `subnet_id` [GH-21129]
-* `azurerm_api_management_custom_domain` - validating `api_management_id` [GH-21129]
-* `azurerm_api_management_policy` - validating `api_management_id` [GH-21129]
-* `azurerm_api_management_gateway_api` - validating `api_id` [GH-21129]
-* `azurerm_application_gateway` - validating `firewall_policy_id` and `subnet_id` [GH-21129]
-* `azurerm_application_gateway` - validating that `data` within the `ssl_certificate` block is a base64-encoded value [GH-21191]
-* `azurerm_application_insights_analytics_item` - validating `application_insights_id` [GH-21129]
-* `azurerm_application_insights_api_key` - validating `application_insights_id` [GH-21129]
-* `azurerm_application_insights_smart_detection_rule` - validating `application_insights_id` [GH-21129]
-* `azurerm_application_insights_standard_webtests` - validating `application_insights_id` [GH-21129]
-* `azurerm_application_insights_webtests` - validating `application_insights_id` [GH-21129]
-* `azurerm_app_service_virtual_network_swift_connection` - validating `app_service_id` and `virtual_network_id` [GH-21129]
-* `azurerm_bastion_host` - validating `public_ip_address_id` [GH-21129]
-* `azurerm_container_registry` - validating `subnet_id` [GH-21129]
-* `azurerm_database_migration_service` - validating `subnet_id` [GH-21129]
-* `azurerm_databricks_workspace` - validating `load_balancer_backend_address_pool_id`, `machine_learning_workspace_id` and `virtual_network_id` [GH-21129]
-* `azurerm_data_factory_linked_service_key_vault` - validating `key_vault_id` [GH-21129]
-* `azurerm_data_factory_integration_runtime_managed` - validating `vnet_id` [GH-21129]
-* `azurerm_data_share_dataset_kusto_cluster` - validating `kusto_cluster_id` [GH-21129]
-* `azurerm_data_share_dataset_kusto_database` - validating `kusto_database_id` [GH-21129]
-* `azurerm_eventhub_namespace` - validating the `subnet_id` [GH-21129]
-* `azurerm_eventhub_namespace_disaster_recovery_config` - fixing a bug where `partner_namespace_id` would validate with an empty string when the field should instead be omitted [GH-21129]
-* `azurerm_express_route_circuit_peering` - validating `route_filter_id` [GH-21129]
-* `azurerm_express_route_gateway` - validating `virtual_hub_id` [GH-21129]
-* `azurerm_eventhub` - validating `storage_account_id` [GH-21129]
-* `azurerm_eventgrid_event_subscription` - validating `eventhub_resource_id`, `servicebus_queue_endpoint_id`, `servicebus_topic_endpoint_id` and `storage_account_id` [GH-21129]
-* `azurerm_frontdoor` - validating `web_application_firewall_policy_link_id` [GH-21129]
-* `azurerm_hdinsight_hadoop_cluster` - validating `storage_resource_id`, `subnet_id` and `virtual_network_id` [GH-21129]
-* `azurerm_hdinsight_hbase_cluster` - validating `storage_resource_id`, `subnet_id` and `virtual_network_id` [GH-21129]
-* `azurerm_hdinsight_interactive_query_cluster` - validating `storage_resource_id`, `subnet_id` and `virtual_network_id` [GH-21129]
-* `azurerm_hdinsight_kafka_cluster` - validating `storage_resource_id`, `subnet_id` and `virtual_network_id` [GH-21129]
-* `azurerm_hdinsight_spark_cluster` - validating `storage_resource_id`, `subnet_id` and `virtual_network_id` [GH-21129]
-* `azurerm_healthcare_medtech_service` - support for Azure Environments other then Azure Public [GH-21077]
-* `azurerm_hpc_cache` - validating `subnet_id` [GH-21129]
-* `azurerm_image` - validating `managed_disk_id` and `source_virtual_machine_id` [GH-21129]
-* `azurerm_iothub_certificate` - certificate content now updates correctly [GH-21163]
-* `azurerm_iothub_dps_certificate` - certificate content now updates correctly [GH-21163]
-* `azurerm_key_vault_access_policy` - validating `key_vault_id` [GH-21129]
-* `azurerm_key_vault_certificate_issuer` - validating `key_vault_id` [GH-21129]
-* `azurerm_kubernetes_cluster` - validating `vnet_subnet_id` [GH-21129]
-* `azurerm_kubernetes_cluster_node_pool` - validating `vnet_subnet_id` [GH-21129]
-* `azurerm_kusto_attached_database_configuration` - validating the `cluster_id` [GH-21129]
-* `azurerm_kusto_cluster` - validating `subnet_id`, `engine_public_ip_id` and `data_management_public_ip_id` [GH-21129]
-* `azurerm_kusto_eventgrid_data_connection` - validating `eventgrid_resource_id` [GH-21129]
-* `azurerm_lb` - validating `public_ip_address_id`, `public_ip_prefix_id` and `subnet_id` [GH-21129]
-* `azurerm_lb_nat_rule` - validating the `backend_address_pool_id` [GH-21129]
-* `azurerm_linux_function_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
-* `azurerm_linux_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
-* `azurerm_linux_web_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
-* `azurerm_linux_web_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
-* `azurerm_linux_virtual_machine` - validating `application_security_group_ids` and `key_vault_id` [GH-21129]
-* `azurerm_linux_virtual_machine_scale_set` - validating `key_vault_id`, `network_security_group_id`, `public_ip_prefix_id` and `subnet_id` [GH-21129]
-* `azurerm_log_analytics_linked_service` - validating the workspace id [GH-21170]
-* `azurerm_log_analytics_linked_storage_account` - validating the `storage_account_id` [GH-21129]
-* `azurerm_logic_app_action_custom` - validating `logic_app_id` [GH-21129]
-* `azurerm_logic_app_action_http` - validating `subnet_id` [GH-21129]
-* `azurerm_logic_app_trigger_custom` - validating `logic_app_id` [GH-21129]
-* `azurerm_logic_app_trigger_http_request` - validating `logic_app_id` [GH-21129]
-* `azurerm_logic_app_trigger_recurrence` - validating `logic_app_id` [GH-21129]
-* `azurerm_mssql_virtual_machine` - the `sql_license_type` property is now optional [GH-21138]
-* `azurerm_managed_disk` - validating `disk_access_id` and `storage_account_id` [GH-21129]
-* `azurerm_mariadb_virtual_network_rule` - validating `subnet_id` [GH-21129]
-* `azurerm_monitor_action_group` - validating `automation_account_id` and `function_app_resource_id` [GH-21129]
-* `azurerm_monitor_log_profile` - validating `storage_account_id` [GH-21129]
-* `azurerm_mssql_database` - fixing an int64 overflow for `max_size_gb` on 32-bit platforms [GH-21155]
-* `azurerm_mssql_database` - validating `subnet_id` [GH-21129]
-* `azurerm_mysql_virtual_network_rule` - validating `subnet_id` [GH-21129]
-* `azurerm_netapp_volume` - validating `subnet_id` [GH-21129]
-* `azurerm_network_interface` - validating `public_ip_address_id` and `subnet_id` [GH-21129]
-* `azurerm_network_interface_application_gateway_association` - validating `backend_address_pool_id` and `network_interface_id` [GH-21129]
-* `azurerm_network_interface_application_security_group_association` - validate `application_security_group_id` and `network_interface_id` [GH-21129]
-* `azurerm_network_interface_backend_address_pool_association` - validating the `backend_address_pool_id` and `subnet_id` [GH-21129]
-* `azurerm_network_interface_network_security_group_association` - validating `network_security_group_id` and `subnet_id` [GH-21129]
-* `azurerm_network_interface_nat_rule_association` - validating `network_interface_id` and `nat_rule_id` [GH-21129]
-* `azurerm_network_profile` - validating `subnet_id` [GH-21129]
-* `azurerm_network_watcher_flow_log` - fixing the delete function to work reliably during deletion [GH-21129]
-* `azurerm_network_watcher_flow_log` - validating `storage_account_id` [GH-21129]
-* `azurerm_orchestrated_virtual_machine_scale_set` - validating `application_security_group_ids`, `key_vault_id`,  `proximity_placement_group_id`, `public_ip_prefix_id` and `subnet_id` [GH-21129]
-* `azurerm_private_link_service` - validating `subnet_id` [GH-21129]
-* `azurerm_public_ip` - validating `public_ip_prefix_id` [GH-21129]
-* `azurerm_postgresql_virtual_network_rule` - validating `subnet_id` is a subnet [GH-21129]
-* `azurerm_private_dns_zone_virtual_network_link` - validating `virtual_network_id` [GH-21129]
-* `azurerm_role_definition` - polling for longer during deletion [GH-21151]
-* `azurerm_sentinel_automation_rule` - validating `logic_app_id` [GH-21129]
-* `azurerm_security_center_workspace` - validating `log_analytics_workspace_id` [GH-21129]
-* `azurerm_security_center_automation` - validating that a Scope is specified [GH-21129]
-* `azurerm_sql_managed_database` - validating `managed_instance_id` [GH-21129]
-* `azurerm_sql_managed_instance` - validating `subnet_id` [GH-21129]
-* `azurerm_static_site_custom_domain` - validating `static_site_id` [GH-21129]
-* `azurerm_storage_account` - updating the validation for `ip_rules` to highlight the IP Range that's invalid when the validation fails [GH-21178]
-* `azurerm_storage_account_network_rules` - validating `ip_rules` [GH-21178]
-* `azurerm_storage_management_policy` - validating `storage_account_id` [GH-21129]
-* `azurerm_subnet_nat_gateway_association` - validating `nat_gateway_id` and `subnet_id` [GH-21129]
-* `azurerm_subnet_network_security_group_association` - validating `network_security_group_id` and `subnet_id` [GH-21129]
-* `azurerm_subnet_route_table_association` - validating `subnet_id` [GH-21129]
-* `azurerm_virtual_hub` - validating `virtual_wan_id` [GH-21129]
-* `azurerm_virtual_machine_data_disk_attachment` - validating `managed_disk_id` and `virtual_machine_id` [GH-21129]
-* `azurerm_virtual_network` - validating `ddos_protection_plan_id` [GH-21129]
-* `azurerm_virtual_network_gateway` - validating `default_local_network_gateway_id` and `public_ip_address_id` [GH-21129]
-* `azurerm_virtual_network_gateway_connection` - validating `express_route_circuit_id`, `local_network_gateway_id` and `peer_virtual_network_gateway_id` [GH-21129]
-* `azurerm_web_application_firewall_policy` - the `match_values` property is now optional [GH-21125]
-* `azurerm_windows_function_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
-* `azurerm_windows_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
-* `azurerm_windows_virtual_machine_scale_set` - validating `application_security_group_ids`, `network_security_group_id`, `proximity_placement_group_id`, `public_ip_prefix_id`, `subnet_id` and `virtual_network_gateway_id` [GH-21129]
-* `azurerm_windows_web_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
-* `azurerm_windows_web_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21113]
+* Data Source: `azurerm_databricks_workspace_private_endpoint_connection`: validating `private_endpoint_id` and `workspace_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* Data Source: `azurerm_healthcare_medtech_service` - the `workspace_id` field is no longer marked as ForceNew ([#21077](https://github.com/hashicorp/terraform-provider-azurerm/issues/21077))
+* Data Source: `azurerm_healthcare_medtech_service` - support for Azure Environments other then Azure Public ([#21077](https://github.com/hashicorp/terraform-provider-azurerm/issues/21077))
+* `azurerm_api_management` - validating `public_ip_address_id` and `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_api_management_custom_domain` - validating `api_management_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_api_management_policy` - validating `api_management_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_api_management_gateway_api` - validating `api_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_application_gateway` - validating `firewall_policy_id` and `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_application_gateway` - validating that `data` within the `ssl_certificate` block is a base64-encoded value ([#21191](https://github.com/hashicorp/terraform-provider-azurerm/issues/21191))
+* `azurerm_application_insights_analytics_item` - validating `application_insights_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_application_insights_api_key` - validating `application_insights_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_application_insights_smart_detection_rule` - validating `application_insights_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_application_insights_standard_webtests` - validating `application_insights_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_application_insights_webtests` - validating `application_insights_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_app_service_virtual_network_swift_connection` - validating `app_service_id` and `virtual_network_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_bastion_host` - validating `public_ip_address_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_container_registry` - validating `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_database_migration_service` - validating `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_databricks_workspace` - validating `load_balancer_backend_address_pool_id`, `machine_learning_workspace_id` and `virtual_network_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_data_factory_linked_service_key_vault` - validating `key_vault_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_data_factory_integration_runtime_managed` - validating `vnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_data_share_dataset_kusto_cluster` - validating `kusto_cluster_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_data_share_dataset_kusto_database` - validating `kusto_database_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_eventhub_namespace` - validating the `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_eventhub_namespace_disaster_recovery_config` - fixing a bug where `partner_namespace_id` would validate with an empty string when the field should instead be omitted ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_express_route_circuit_peering` - validating `route_filter_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_express_route_gateway` - validating `virtual_hub_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_eventhub` - validating `storage_account_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_eventgrid_event_subscription` - validating `eventhub_resource_id`, `servicebus_queue_endpoint_id`, `servicebus_topic_endpoint_id` and `storage_account_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_frontdoor` - validating `web_application_firewall_policy_link_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_hdinsight_hadoop_cluster` - validating `storage_resource_id`, `subnet_id` and `virtual_network_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_hdinsight_hbase_cluster` - validating `storage_resource_id`, `subnet_id` and `virtual_network_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_hdinsight_interactive_query_cluster` - validating `storage_resource_id`, `subnet_id` and `virtual_network_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_hdinsight_kafka_cluster` - validating `storage_resource_id`, `subnet_id` and `virtual_network_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_hdinsight_spark_cluster` - validating `storage_resource_id`, `subnet_id` and `virtual_network_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_healthcare_medtech_service` - support for Azure Environments other then Azure Public ([#21077](https://github.com/hashicorp/terraform-provider-azurerm/issues/21077))
+* `azurerm_hpc_cache` - validating `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_image` - validating `managed_disk_id` and `source_virtual_machine_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_iothub_certificate` - certificate content now updates correctly ([#21163](https://github.com/hashicorp/terraform-provider-azurerm/issues/21163))
+* `azurerm_iothub_dps_certificate` - certificate content now updates correctly ([#21163](https://github.com/hashicorp/terraform-provider-azurerm/issues/21163))
+* `azurerm_key_vault_access_policy` - validating `key_vault_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_key_vault_certificate_issuer` - validating `key_vault_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_kubernetes_cluster` - validating `vnet_subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_kubernetes_cluster_node_pool` - validating `vnet_subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_kusto_attached_database_configuration` - validating the `cluster_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_kusto_cluster` - validating `subnet_id`, `engine_public_ip_id` and `data_management_public_ip_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_kusto_eventgrid_data_connection` - validating `eventgrid_resource_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_lb` - validating `public_ip_address_id`, `public_ip_prefix_id` and `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_lb_nat_rule` - validating the `backend_address_pool_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_linux_function_app`  - fix crash in `auth_v2` in `active_directory_v2` ([#21113](https://github.com/hashicorp/terraform-provider-azurerm/issues/21113))
+* `azurerm_linux_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` ([#21113](https://github.com/hashicorp/terraform-provider-azurerm/issues/21113))
+* `azurerm_linux_web_app`  - fix crash in `auth_v2` in `active_directory_v2` ([#21113](https://github.com/hashicorp/terraform-provider-azurerm/issues/21113))
+* `azurerm_linux_web_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` ([#21113](https://github.com/hashicorp/terraform-provider-azurerm/issues/21113))
+* `azurerm_linux_virtual_machine` - validating `application_security_group_ids` and `key_vault_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_linux_virtual_machine_scale_set` - validating `key_vault_id`, `network_security_group_id`, `public_ip_prefix_id` and `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_log_analytics_linked_service` - validating the workspace id ([#21170](https://github.com/hashicorp/terraform-provider-azurerm/issues/21170))
+* `azurerm_log_analytics_linked_storage_account` - validating the `storage_account_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_logic_app_action_custom` - validating `logic_app_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_logic_app_action_http` - validating `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_logic_app_trigger_custom` - validating `logic_app_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_logic_app_trigger_http_request` - validating `logic_app_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_logic_app_trigger_recurrence` - validating `logic_app_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_mssql_virtual_machine` - the `sql_license_type` property is now optional ([#21138](https://github.com/hashicorp/terraform-provider-azurerm/issues/21138))
+* `azurerm_managed_disk` - validating `disk_access_id` and `storage_account_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_mariadb_virtual_network_rule` - validating `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_monitor_action_group` - validating `automation_account_id` and `function_app_resource_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_monitor_log_profile` - validating `storage_account_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_mssql_database` - fixing an int64 overflow for `max_size_gb` on 32-bit platforms ([#21155](https://github.com/hashicorp/terraform-provider-azurerm/issues/21155))
+* `azurerm_mssql_database` - validating `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_mysql_virtual_network_rule` - validating `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_netapp_volume` - validating `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_network_interface` - validating `public_ip_address_id` and `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_network_interface_application_gateway_association` - validating `backend_address_pool_id` and `network_interface_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_network_interface_application_security_group_association` - validate `application_security_group_id` and `network_interface_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_network_interface_backend_address_pool_association` - validating the `backend_address_pool_id` and `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_network_interface_network_security_group_association` - validating `network_security_group_id` and `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_network_interface_nat_rule_association` - validating `network_interface_id` and `nat_rule_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_network_profile` - validating `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_network_watcher_flow_log` - fixing the delete function to work reliably during deletion ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_network_watcher_flow_log` - validating `storage_account_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_orchestrated_virtual_machine_scale_set` - validating `application_security_group_ids`, `key_vault_id`,  `proximity_placement_group_id`, `public_ip_prefix_id` and `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_private_link_service` - validating `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_public_ip` - validating `public_ip_prefix_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_postgresql_virtual_network_rule` - validating `subnet_id` is a subnet ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_private_dns_zone_virtual_network_link` - validating `virtual_network_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_role_definition` - polling for longer during deletion ([#21151](https://github.com/hashicorp/terraform-provider-azurerm/issues/21151))
+* `azurerm_sentinel_automation_rule` - validating `logic_app_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_security_center_workspace` - validating `log_analytics_workspace_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_security_center_automation` - validating that a Scope is specified ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_sql_managed_database` - validating `managed_instance_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_sql_managed_instance` - validating `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_static_site_custom_domain` - validating `static_site_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_storage_account` - updating the validation for `ip_rules` to highlight the IP Range that's invalid when the validation fails ([#21178](https://github.com/hashicorp/terraform-provider-azurerm/issues/21178))
+* `azurerm_storage_account_network_rules` - validating `ip_rules` ([#21178](https://github.com/hashicorp/terraform-provider-azurerm/issues/21178))
+* `azurerm_storage_management_policy` - validating `storage_account_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_subnet_nat_gateway_association` - validating `nat_gateway_id` and `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_subnet_network_security_group_association` - validating `network_security_group_id` and `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_subnet_route_table_association` - validating `subnet_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_virtual_hub` - validating `virtual_wan_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_virtual_machine_data_disk_attachment` - validating `managed_disk_id` and `virtual_machine_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_virtual_network` - validating `ddos_protection_plan_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_virtual_network_gateway` - validating `default_local_network_gateway_id` and `public_ip_address_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_virtual_network_gateway_connection` - validating `express_route_circuit_id`, `local_network_gateway_id` and `peer_virtual_network_gateway_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_web_application_firewall_policy` - the `match_values` property is now optional ([#21125](https://github.com/hashicorp/terraform-provider-azurerm/issues/21125))
+* `azurerm_windows_function_app`  - fix crash in `auth_v2` in `active_directory_v2` ([#21113](https://github.com/hashicorp/terraform-provider-azurerm/issues/21113))
+* `azurerm_windows_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` ([#21113](https://github.com/hashicorp/terraform-provider-azurerm/issues/21113))
+* `azurerm_windows_virtual_machine_scale_set` - validating `application_security_group_ids`, `network_security_group_id`, `proximity_placement_group_id`, `public_ip_prefix_id`, `subnet_id` and `virtual_network_gateway_id` ([#21129](https://github.com/hashicorp/terraform-provider-azurerm/issues/21129))
+* `azurerm_windows_web_app`  - fix crash in `auth_v2` in `active_directory_v2` ([#21113](https://github.com/hashicorp/terraform-provider-azurerm/issues/21113))
+* `azurerm_windows_web_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` ([#21113](https://github.com/hashicorp/terraform-provider-azurerm/issues/21113))
 
 ## 3.49.0 (March 23, 2023)
 
