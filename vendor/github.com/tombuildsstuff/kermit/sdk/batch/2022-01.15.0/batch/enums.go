@@ -179,7 +179,7 @@ func PossibleComputeNodeDeallocationOptionValues() []ComputeNodeDeallocationOpti
 type ComputeNodeFillType string
 
 const (
-	// ComputeNodeFillTypePack As many Tasks as possible (maxTasksPerNode) should be assigned to each Compute
+	// ComputeNodeFillTypePack As many Tasks as possible (taskSlotsPerNode) should be assigned to each Compute
 	// Node in the Pool before any Tasks are assigned to the next Compute Node in the Pool.
 	ComputeNodeFillTypePack ComputeNodeFillType = "pack"
 	// ComputeNodeFillTypeSpread Tasks should be assigned evenly across all Compute Nodes in the Pool.
@@ -258,8 +258,9 @@ const (
 	// ComputeNodeStateOffline The Compute Node is not currently running a Task, and scheduling of new Tasks to
 	// the Compute Node is disabled.
 	ComputeNodeStateOffline ComputeNodeState = "offline"
-	// ComputeNodeStatePreempted The low-priority Compute Node has been preempted. Tasks which were running on
-	// the Compute Node when it was preempted will be rescheduled when another Compute Node becomes available.
+	// ComputeNodeStatePreempted The Spot/Low-priority Compute Node has been preempted. Tasks which were
+	// running on the Compute Node when it was preempted will be rescheduled when another Compute Node becomes
+	// available.
 	ComputeNodeStatePreempted ComputeNodeState = "preempted"
 	// ComputeNodeStateRebooting The Compute Node is rebooting.
 	ComputeNodeStateRebooting ComputeNodeState = "rebooting"
@@ -318,6 +319,19 @@ const (
 // PossibleDependencyActionValues returns an array of possible values for the DependencyAction const type.
 func PossibleDependencyActionValues() []DependencyAction {
 	return []DependencyAction{DependencyActionBlock, DependencyActionSatisfy}
+}
+
+// DiffDiskPlacement enumerates the values for diff disk placement.
+type DiffDiskPlacement string
+
+const (
+	// DiffDiskPlacementCacheDisk The Ephemeral OS Disk is stored on the VM cache.
+	DiffDiskPlacementCacheDisk DiffDiskPlacement = "CacheDisk"
+)
+
+// PossibleDiffDiskPlacementValues returns an array of possible values for the DiffDiskPlacement const type.
+func PossibleDiffDiskPlacementValues() []DiffDiskPlacement {
+	return []DiffDiskPlacement{DiffDiskPlacementCacheDisk}
 }
 
 // DisableComputeNodeSchedulingOption enumerates the values for disable compute node scheduling option.
@@ -605,6 +619,22 @@ func PossibleNetworkSecurityGroupRuleAccessValues() []NetworkSecurityGroupRuleAc
 	return []NetworkSecurityGroupRuleAccess{NetworkSecurityGroupRuleAccessAllow, NetworkSecurityGroupRuleAccessDeny}
 }
 
+// NodePlacementPolicyType enumerates the values for node placement policy type.
+type NodePlacementPolicyType string
+
+const (
+	// NodePlacementPolicyTypeRegional All nodes in the pool will be allocated in the same region.
+	NodePlacementPolicyTypeRegional NodePlacementPolicyType = "regional"
+	// NodePlacementPolicyTypeZonal Nodes in the pool will be spread across different availability zones with
+	// best effort balancing.
+	NodePlacementPolicyTypeZonal NodePlacementPolicyType = "zonal"
+)
+
+// PossibleNodePlacementPolicyTypeValues returns an array of possible values for the NodePlacementPolicyType const type.
+func PossibleNodePlacementPolicyTypeValues() []NodePlacementPolicyType {
+	return []NodePlacementPolicyType{NodePlacementPolicyTypeRegional, NodePlacementPolicyTypeZonal}
+}
+
 // OSType enumerates the values for os type.
 type OSType string
 
@@ -675,6 +705,22 @@ func PossibleOutputFileUploadConditionValues() []OutputFileUploadCondition {
 	return []OutputFileUploadCondition{OutputFileUploadConditionTaskCompletion, OutputFileUploadConditionTaskFailure, OutputFileUploadConditionTaskSuccess}
 }
 
+// PoolIdentityType enumerates the values for pool identity type.
+type PoolIdentityType string
+
+const (
+	// PoolIdentityTypeNone Batch pool has no identity associated with it. Setting `None` in update pool will
+	// remove existing identities.
+	PoolIdentityTypeNone PoolIdentityType = "None"
+	// PoolIdentityTypeUserAssigned Batch pool has user assigned identities with it.
+	PoolIdentityTypeUserAssigned PoolIdentityType = "UserAssigned"
+)
+
+// PossiblePoolIdentityTypeValues returns an array of possible values for the PoolIdentityType const type.
+func PossiblePoolIdentityTypeValues() []PoolIdentityType {
+	return []PoolIdentityType{PoolIdentityTypeNone, PoolIdentityTypeUserAssigned}
+}
+
 // PoolLifetimeOption enumerates the values for pool lifetime option.
 type PoolLifetimeOption string
 
@@ -741,6 +787,23 @@ const (
 // PossibleStartTaskStateValues returns an array of possible values for the StartTaskState const type.
 func PossibleStartTaskStateValues() []StartTaskState {
 	return []StartTaskState{StartTaskStateCompleted, StartTaskStateRunning}
+}
+
+// StatusLevelTypes enumerates the values for status level types.
+type StatusLevelTypes string
+
+const (
+	// StatusLevelTypesError ...
+	StatusLevelTypesError StatusLevelTypes = "Error"
+	// StatusLevelTypesInfo ...
+	StatusLevelTypesInfo StatusLevelTypes = "Info"
+	// StatusLevelTypesWarning ...
+	StatusLevelTypesWarning StatusLevelTypes = "Warning"
+)
+
+// PossibleStatusLevelTypesValues returns an array of possible values for the StatusLevelTypes const type.
+func PossibleStatusLevelTypesValues() []StatusLevelTypes {
+	return []StatusLevelTypes{StatusLevelTypesError, StatusLevelTypesInfo, StatusLevelTypesWarning}
 }
 
 // StorageAccountType enumerates the values for storage account type.

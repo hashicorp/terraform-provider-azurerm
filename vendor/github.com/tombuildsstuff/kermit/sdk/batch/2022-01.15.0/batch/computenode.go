@@ -90,7 +90,7 @@ func (client ComputeNodeClient) AddUserPreparer(ctx context.Context, poolID stri
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -199,7 +199,7 @@ func (client ComputeNodeClient) DeleteUserPreparer(ctx context.Context, poolID s
 		"userName": autorest.Encode("path", userName),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -305,7 +305,7 @@ func (client ComputeNodeClient) DisableSchedulingPreparer(ctx context.Context, p
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -415,7 +415,7 @@ func (client ComputeNodeClient) EnableSchedulingPreparer(ctx context.Context, po
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -521,7 +521,7 @@ func (client ComputeNodeClient) GetPreparer(ctx context.Context, poolID string, 
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -632,7 +632,7 @@ func (client ComputeNodeClient) GetRemoteDesktopPreparer(ctx context.Context, po
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -739,7 +739,7 @@ func (client ComputeNodeClient) GetRemoteLoginSettingsPreparer(ctx context.Conte
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -862,7 +862,7 @@ func (client ComputeNodeClient) ListPreparer(ctx context.Context, poolID string,
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1017,7 +1017,7 @@ func (client ComputeNodeClient) RebootPreparer(ctx context.Context, poolID strin
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1129,7 +1129,7 @@ func (client ComputeNodeClient) ReimagePreparer(ctx context.Context, poolID stri
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1244,7 +1244,7 @@ func (client ComputeNodeClient) UpdateUserPreparer(ctx context.Context, poolID s
 		"userName": autorest.Encode("path", userName),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1361,7 +1361,7 @@ func (client ComputeNodeClient) UploadBatchServiceLogsPreparer(ctx context.Conte
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

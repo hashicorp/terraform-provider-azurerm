@@ -88,7 +88,7 @@ func (client FileClient) DeleteFromComputeNodePreparer(ctx context.Context, pool
 		"poolId":   autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -201,7 +201,7 @@ func (client FileClient) DeleteFromTaskPreparer(ctx context.Context, jobID strin
 		"taskId":   autorest.Encode("path", taskID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -318,7 +318,7 @@ func (client FileClient) GetFromComputeNodePreparer(ctx context.Context, poolID 
 		"poolId":   autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -444,7 +444,7 @@ func (client FileClient) GetFromTaskPreparer(ctx context.Context, jobID string, 
 		"taskId":   autorest.Encode("path", taskID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -568,7 +568,7 @@ func (client FileClient) GetPropertiesFromComputeNodePreparer(ctx context.Contex
 		"poolId":   autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -688,7 +688,7 @@ func (client FileClient) GetPropertiesFromTaskPreparer(ctx context.Context, jobI
 		"taskId":   autorest.Encode("path", taskID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -819,7 +819,7 @@ func (client FileClient) ListFromComputeNodePreparer(ctx context.Context, poolID
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -992,7 +992,7 @@ func (client FileClient) ListFromTaskPreparer(ctx context.Context, jobID string,
 		"taskId": autorest.Encode("path", taskID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

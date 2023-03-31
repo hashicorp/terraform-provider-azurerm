@@ -61,32 +61,17 @@ func (client JobClient) Add(ctx context.Context, job JobAddParameter, timeout *i
 					Chain: []validation.Constraint{{Target: "job.JobManagerTask.ID", Name: validation.Null, Rule: true, Chain: nil},
 						{Target: "job.JobManagerTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 						{Target: "job.JobManagerTask.ContainerSettings", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "job.JobManagerTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-								{Target: "job.JobManagerTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-									Chain: []validation.Constraint{{Target: "job.JobManagerTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-										{Target: "job.JobManagerTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-									}},
-							}},
+							Chain: []validation.Constraint{{Target: "job.JobManagerTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 					}},
 				{Target: "job.JobPreparationTask", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "job.JobPreparationTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 						{Target: "job.JobPreparationTask.ContainerSettings", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "job.JobPreparationTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-								{Target: "job.JobPreparationTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-									Chain: []validation.Constraint{{Target: "job.JobPreparationTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-										{Target: "job.JobPreparationTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-									}},
-							}},
+							Chain: []validation.Constraint{{Target: "job.JobPreparationTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 					}},
 				{Target: "job.JobReleaseTask", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "job.JobReleaseTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 						{Target: "job.JobReleaseTask.ContainerSettings", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "job.JobReleaseTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-								{Target: "job.JobReleaseTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-									Chain: []validation.Constraint{{Target: "job.JobReleaseTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-										{Target: "job.JobReleaseTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-									}},
-							}},
+							Chain: []validation.Constraint{{Target: "job.JobReleaseTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 					}},
 				{Target: "job.PoolInfo", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "job.PoolInfo.AutoPoolSpecification", Name: validation.Null, Rule: false,
@@ -107,12 +92,7 @@ func (client JobClient) Add(ctx context.Context, job JobAddParameter, timeout *i
 								{Target: "job.PoolInfo.AutoPoolSpecification.Pool.StartTask", Name: validation.Null, Rule: false,
 									Chain: []validation.Constraint{{Target: "job.PoolInfo.AutoPoolSpecification.Pool.StartTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 										{Target: "job.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings", Name: validation.Null, Rule: false,
-											Chain: []validation.Constraint{{Target: "job.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-												{Target: "job.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-													Chain: []validation.Constraint{{Target: "job.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "job.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-													}},
-											}},
+											Chain: []validation.Constraint{{Target: "job.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 									}},
 							}},
 						}},
@@ -150,7 +130,7 @@ func (client JobClient) AddPreparer(ctx context.Context, job JobAddParameter, ti
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -271,7 +251,7 @@ func (client JobClient) DeletePreparer(ctx context.Context, jobID string, timeou
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -407,7 +387,7 @@ func (client JobClient) DisablePreparer(ctx context.Context, jobID string, jobDi
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -542,7 +522,7 @@ func (client JobClient) EnablePreparer(ctx context.Context, jobID string, timeou
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -674,7 +654,7 @@ func (client JobClient) GetPreparer(ctx context.Context, jobID string, selectPar
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -797,7 +777,7 @@ func (client JobClient) GetAllLifetimeStatisticsPreparer(ctx context.Context, ti
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -860,7 +840,7 @@ func (client JobClient) GetAllLifetimeStatisticsResponder(resp *http.Response) (
 // returnClientRequestID - whether the server should return the client-request-id in the response.
 // ocpDate - the time the request was issued. Client libraries typically set this to the current system clock
 // time; set it explicitly if you are calling the REST API directly.
-func (client JobClient) GetTaskCounts(ctx context.Context, jobID string, timeout *int32, clientRequestID *uuid.UUID, returnClientRequestID *bool, ocpDate *date.TimeRFC1123) (result TaskCounts, err error) {
+func (client JobClient) GetTaskCounts(ctx context.Context, jobID string, timeout *int32, clientRequestID *uuid.UUID, returnClientRequestID *bool, ocpDate *date.TimeRFC1123) (result TaskCountsResult, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobClient.GetTaskCounts")
 		defer func() {
@@ -903,7 +883,7 @@ func (client JobClient) GetTaskCountsPreparer(ctx context.Context, jobID string,
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -944,7 +924,7 @@ func (client JobClient) GetTaskCountsSender(req *http.Request) (*http.Response, 
 
 // GetTaskCountsResponder handles the response to the GetTaskCounts request. The method always
 // closes the http.Response Body.
-func (client JobClient) GetTaskCountsResponder(resp *http.Response) (result TaskCounts, err error) {
+func (client JobClient) GetTaskCountsResponder(resp *http.Response) (result TaskCountsResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -1021,7 +1001,7 @@ func (client JobClient) ListPreparer(ctx context.Context, filter string, selectP
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1195,7 +1175,7 @@ func (client JobClient) ListFromJobSchedulePreparer(ctx context.Context, jobSche
 		"jobScheduleId": autorest.Encode("path", jobScheduleID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1371,7 +1351,7 @@ func (client JobClient) ListPreparationAndReleaseTaskStatusPreparer(ctx context.
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1536,7 +1516,7 @@ func (client JobClient) PatchPreparer(ctx context.Context, jobID string, jobPatc
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1673,7 +1653,7 @@ func (client JobClient) TerminatePreparer(ctx context.Context, jobID string, job
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1800,12 +1780,7 @@ func (client JobClient) Update(ctx context.Context, jobID string, jobUpdateParam
 							{Target: "jobUpdateParameter.PoolInfo.AutoPoolSpecification.Pool.StartTask", Name: validation.Null, Rule: false,
 								Chain: []validation.Constraint{{Target: "jobUpdateParameter.PoolInfo.AutoPoolSpecification.Pool.StartTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 									{Target: "jobUpdateParameter.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings", Name: validation.Null, Rule: false,
-										Chain: []validation.Constraint{{Target: "jobUpdateParameter.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-											{Target: "jobUpdateParameter.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-												Chain: []validation.Constraint{{Target: "jobUpdateParameter.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "jobUpdateParameter.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-												}},
-										}},
+										Chain: []validation.Constraint{{Target: "jobUpdateParameter.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 								}},
 						}},
 					}},
@@ -1845,7 +1820,7 @@ func (client JobClient) UpdatePreparer(ctx context.Context, jobID string, jobUpd
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

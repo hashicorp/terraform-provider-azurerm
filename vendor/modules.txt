@@ -768,7 +768,7 @@ github.com/tombuildsstuff/giovanni/version
 # github.com/tombuildsstuff/kermit v0.20230307.1105329
 ## explicit; go 1.18
 github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform
-github.com/tombuildsstuff/kermit/sdk/batch/2020-03.11.0/batch
+github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch
 github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice
 github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute
 github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub

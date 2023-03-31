@@ -60,32 +60,17 @@ func (client JobScheduleClient) Add(ctx context.Context, cloudJobSchedule JobSch
 							Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.JobManagerTask.ID", Name: validation.Null, Rule: true, Chain: nil},
 								{Target: "cloudJobSchedule.JobSpecification.JobManagerTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 								{Target: "cloudJobSchedule.JobSpecification.JobManagerTask.ContainerSettings", Name: validation.Null, Rule: false,
-									Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.JobManagerTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-										{Target: "cloudJobSchedule.JobSpecification.JobManagerTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-											Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.JobManagerTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-												{Target: "cloudJobSchedule.JobSpecification.JobManagerTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-											}},
-									}},
+									Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.JobManagerTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 							}},
 						{Target: "cloudJobSchedule.JobSpecification.JobPreparationTask", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.JobPreparationTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 								{Target: "cloudJobSchedule.JobSpecification.JobPreparationTask.ContainerSettings", Name: validation.Null, Rule: false,
-									Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.JobPreparationTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-										{Target: "cloudJobSchedule.JobSpecification.JobPreparationTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-											Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.JobPreparationTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-												{Target: "cloudJobSchedule.JobSpecification.JobPreparationTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-											}},
-									}},
+									Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.JobPreparationTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 							}},
 						{Target: "cloudJobSchedule.JobSpecification.JobReleaseTask", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.JobReleaseTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 								{Target: "cloudJobSchedule.JobSpecification.JobReleaseTask.ContainerSettings", Name: validation.Null, Rule: false,
-									Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.JobReleaseTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-										{Target: "cloudJobSchedule.JobSpecification.JobReleaseTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-											Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.JobReleaseTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-												{Target: "cloudJobSchedule.JobSpecification.JobReleaseTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-											}},
-									}},
+									Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.JobReleaseTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 							}},
 						{Target: "cloudJobSchedule.JobSpecification.PoolInfo", Name: validation.Null, Rule: true,
 							Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.PoolInfo.AutoPoolSpecification", Name: validation.Null, Rule: false,
@@ -106,12 +91,7 @@ func (client JobScheduleClient) Add(ctx context.Context, cloudJobSchedule JobSch
 										{Target: "cloudJobSchedule.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask", Name: validation.Null, Rule: false,
 											Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 												{Target: "cloudJobSchedule.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings", Name: validation.Null, Rule: false,
-													Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "cloudJobSchedule.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-															Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-																{Target: "cloudJobSchedule.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-															}},
-													}},
+													Chain: []validation.Constraint{{Target: "cloudJobSchedule.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 											}},
 									}},
 								}},
@@ -148,7 +128,7 @@ func (client JobScheduleClient) AddPreparer(ctx context.Context, cloudJobSchedul
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -267,7 +247,7 @@ func (client JobScheduleClient) DeletePreparer(ctx context.Context, jobScheduleI
 		"jobScheduleId": autorest.Encode("path", jobScheduleID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -397,7 +377,7 @@ func (client JobScheduleClient) DisablePreparer(ctx context.Context, jobSchedule
 		"jobScheduleId": autorest.Encode("path", jobScheduleID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -527,7 +507,7 @@ func (client JobScheduleClient) EnablePreparer(ctx context.Context, jobScheduleI
 		"jobScheduleId": autorest.Encode("path", jobScheduleID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -657,7 +637,7 @@ func (client JobScheduleClient) ExistsPreparer(ctx context.Context, jobScheduleI
 		"jobScheduleId": autorest.Encode("path", jobScheduleID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -789,7 +769,7 @@ func (client JobScheduleClient) GetPreparer(ctx context.Context, jobScheduleID s
 		"jobScheduleId": autorest.Encode("path", jobScheduleID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -930,7 +910,7 @@ func (client JobScheduleClient) ListPreparer(ctx context.Context, filter string,
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1100,7 +1080,7 @@ func (client JobScheduleClient) PatchPreparer(ctx context.Context, jobScheduleID
 		"jobScheduleId": autorest.Encode("path", jobScheduleID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1232,7 +1212,7 @@ func (client JobScheduleClient) TerminatePreparer(ctx context.Context, jobSchedu
 		"jobScheduleId": autorest.Encode("path", jobScheduleID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1344,32 +1324,17 @@ func (client JobScheduleClient) Update(ctx context.Context, jobScheduleID string
 							Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.JobManagerTask.ID", Name: validation.Null, Rule: true, Chain: nil},
 								{Target: "jobScheduleUpdateParameter.JobSpecification.JobManagerTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 								{Target: "jobScheduleUpdateParameter.JobSpecification.JobManagerTask.ContainerSettings", Name: validation.Null, Rule: false,
-									Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.JobManagerTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-										{Target: "jobScheduleUpdateParameter.JobSpecification.JobManagerTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-											Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.JobManagerTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-												{Target: "jobScheduleUpdateParameter.JobSpecification.JobManagerTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-											}},
-									}},
+									Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.JobManagerTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 							}},
 						{Target: "jobScheduleUpdateParameter.JobSpecification.JobPreparationTask", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.JobPreparationTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 								{Target: "jobScheduleUpdateParameter.JobSpecification.JobPreparationTask.ContainerSettings", Name: validation.Null, Rule: false,
-									Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.JobPreparationTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-										{Target: "jobScheduleUpdateParameter.JobSpecification.JobPreparationTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-											Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.JobPreparationTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-												{Target: "jobScheduleUpdateParameter.JobSpecification.JobPreparationTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-											}},
-									}},
+									Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.JobPreparationTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 							}},
 						{Target: "jobScheduleUpdateParameter.JobSpecification.JobReleaseTask", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.JobReleaseTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 								{Target: "jobScheduleUpdateParameter.JobSpecification.JobReleaseTask.ContainerSettings", Name: validation.Null, Rule: false,
-									Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.JobReleaseTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-										{Target: "jobScheduleUpdateParameter.JobSpecification.JobReleaseTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-											Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.JobReleaseTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-												{Target: "jobScheduleUpdateParameter.JobSpecification.JobReleaseTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-											}},
-									}},
+									Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.JobReleaseTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 							}},
 						{Target: "jobScheduleUpdateParameter.JobSpecification.PoolInfo", Name: validation.Null, Rule: true,
 							Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.PoolInfo.AutoPoolSpecification", Name: validation.Null, Rule: false,
@@ -1390,12 +1355,7 @@ func (client JobScheduleClient) Update(ctx context.Context, jobScheduleID string
 										{Target: "jobScheduleUpdateParameter.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask", Name: validation.Null, Rule: false,
 											Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 												{Target: "jobScheduleUpdateParameter.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings", Name: validation.Null, Rule: false,
-													Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "jobScheduleUpdateParameter.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-															Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-																{Target: "jobScheduleUpdateParameter.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-															}},
-													}},
+													Chain: []validation.Constraint{{Target: "jobScheduleUpdateParameter.JobSpecification.PoolInfo.AutoPoolSpecification.Pool.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 											}},
 									}},
 								}},
@@ -1436,7 +1396,7 @@ func (client JobScheduleClient) UpdatePreparer(ctx context.Context, jobScheduleI
 		"jobScheduleId": autorest.Encode("path", jobScheduleID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

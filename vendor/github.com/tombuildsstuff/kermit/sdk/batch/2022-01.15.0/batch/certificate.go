@@ -85,7 +85,7 @@ func (client CertificateClient) AddPreparer(ctx context.Context, certificate Cer
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -196,7 +196,7 @@ func (client CertificateClient) CancelDeletionPreparer(ctx context.Context, thum
 		"thumbprintAlgorithm": autorest.Encode("path", thumbprintAlgorithm),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -307,7 +307,7 @@ func (client CertificateClient) DeletePreparer(ctx context.Context, thumbprintAl
 		"thumbprintAlgorithm": autorest.Encode("path", thumbprintAlgorithm),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -413,7 +413,7 @@ func (client CertificateClient) GetPreparer(ctx context.Context, thumbprintAlgor
 		"thumbprintAlgorithm": autorest.Encode("path", thumbprintAlgorithm),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -534,7 +534,7 @@ func (client CertificateClient) ListPreparer(ctx context.Context, filter string,
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

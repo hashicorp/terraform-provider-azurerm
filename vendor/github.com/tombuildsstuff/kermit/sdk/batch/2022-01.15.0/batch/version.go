@@ -10,7 +10,7 @@ import "github.com/tombuildsstuff/kermit/version"
 
 // UserAgent returns the UserAgent string to use when sending http.Requests.
 func UserAgent() string {
-	return "tombuildsstuff/kermit/" + Version() + " batch/2020-03-01.11.0"
+	return "tombuildsstuff/kermit/" + Version() + " batch/2022-01-01.15.0"
 }
 
 // Version returns the semantic version (see http://semver.org) of the client.

@@ -69,12 +69,7 @@ func (client PoolClient) Add(ctx context.Context, pool PoolAddParameter, timeout
 				{Target: "pool.StartTask", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "pool.StartTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 						{Target: "pool.StartTask.ContainerSettings", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "pool.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-								{Target: "pool.StartTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-									Chain: []validation.Constraint{{Target: "pool.StartTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-										{Target: "pool.StartTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-									}},
-							}},
+							Chain: []validation.Constraint{{Target: "pool.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 					}}}}}); err != nil {
 		return result, validation.NewError("batch.PoolClient", "Add", err.Error())
 	}
@@ -107,7 +102,7 @@ func (client PoolClient) AddPreparer(ctx context.Context, pool PoolAddParameter,
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -230,7 +225,7 @@ func (client PoolClient) DeletePreparer(ctx context.Context, poolID string, time
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -349,7 +344,7 @@ func (client PoolClient) DisableAutoScalePreparer(ctx context.Context, poolID st
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -467,7 +462,7 @@ func (client PoolClient) EnableAutoScalePreparer(ctx context.Context, poolID str
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -596,7 +591,7 @@ func (client PoolClient) EvaluateAutoScalePreparer(ctx context.Context, poolID s
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -713,7 +708,7 @@ func (client PoolClient) ExistsPreparer(ctx context.Context, poolID string, time
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -845,7 +840,7 @@ func (client PoolClient) GetPreparer(ctx context.Context, poolID string, selectP
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -968,7 +963,7 @@ func (client PoolClient) GetAllLifetimeStatisticsPreparer(ctx context.Context, t
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1086,7 +1081,7 @@ func (client PoolClient) ListPreparer(ctx context.Context, filter string, select
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1262,7 +1257,7 @@ func (client PoolClient) ListUsageMetricsPreparer(ctx context.Context, startTime
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1430,7 +1425,7 @@ func (client PoolClient) PatchPreparer(ctx context.Context, poolID string, poolP
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1499,7 +1494,7 @@ func (client PoolClient) PatchResponder(resp *http.Response) (result autorest.Re
 }
 
 // RemoveNodes this operation can only run when the allocation state of the Pool is steady. When this operation runs,
-// the allocation state changes from steady to resizing.
+// the allocation state changes from steady to resizing. Each request may remove up to 100 nodes.
 // Parameters:
 // poolID - the ID of the Pool from which you want to remove Compute Nodes.
 // nodeRemoveParameter - the parameters for the request.
@@ -1571,7 +1566,7 @@ func (client PoolClient) RemoveNodesPreparer(ctx context.Context, poolID string,
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1708,7 +1703,7 @@ func (client PoolClient) ResizePreparer(ctx context.Context, poolID string, pool
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1844,7 +1839,7 @@ func (client PoolClient) StopResizePreparer(ctx context.Context, poolID string, 
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1939,12 +1934,7 @@ func (client PoolClient) UpdateProperties(ctx context.Context, poolID string, po
 			Constraints: []validation.Constraint{{Target: "poolUpdatePropertiesParameter.StartTask", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "poolUpdatePropertiesParameter.StartTask.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "poolUpdatePropertiesParameter.StartTask.ContainerSettings", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "poolUpdatePropertiesParameter.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "poolUpdatePropertiesParameter.StartTask.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "poolUpdatePropertiesParameter.StartTask.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-									{Target: "poolUpdatePropertiesParameter.StartTask.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-								}},
-						}},
+						Chain: []validation.Constraint{{Target: "poolUpdatePropertiesParameter.StartTask.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 				}},
 				{Target: "poolUpdatePropertiesParameter.CertificateReferences", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "poolUpdatePropertiesParameter.ApplicationPackageReferences", Name: validation.Null, Rule: true, Chain: nil},
@@ -1984,7 +1974,7 @@ func (client PoolClient) UpdatePropertiesPreparer(ctx context.Context, poolID st
 		"poolId": autorest.Encode("path", poolID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

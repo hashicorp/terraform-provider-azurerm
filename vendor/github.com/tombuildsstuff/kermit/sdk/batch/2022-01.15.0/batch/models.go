@@ -8,6 +8,7 @@ package batch
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -18,7 +19,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "home/runner/work/kermit/kermit/sdk/batch/2020-03.11.0/batch"
+const fqdn = "home/runner/work/kermit/kermit/sdk/batch/2022-01.15.0/batch"
 
 // AccountListSupportedImagesResult ...
 type AccountListSupportedImagesResult struct {
@@ -401,14 +402,16 @@ type AutoUserSpecification struct {
 type AzureBlobFileSystemConfiguration struct {
 	AccountName   *string `json:"accountName,omitempty"`
 	ContainerName *string `json:"containerName,omitempty"`
-	// AccountKey - This property is mutually exclusive with sasKey and one must be specified.
+	// AccountKey - This property is mutually exclusive with both sasKey and identity; exactly one must be specified.
 	AccountKey *string `json:"accountKey,omitempty"`
-	// SasKey - This property is mutually exclusive with accountKey and one must be specified.
+	// SasKey - This property is mutually exclusive with both accountKey and identity; exactly one must be specified.
 	SasKey *string `json:"sasKey,omitempty"`
 	// BlobfuseOptions - These are 'net use' options in Windows and 'mount' options in Linux.
 	BlobfuseOptions *string `json:"blobfuseOptions,omitempty"`
 	// RelativeMountPath - All file systems are mounted relative to the Batch mounts directory, accessible via the AZ_BATCH_NODE_MOUNTS_DIR environment variable.
 	RelativeMountPath *string `json:"relativeMountPath,omitempty"`
+	// IdentityReference - This property is mutually exclusive with both accountKey and sasKey; exactly one must be specified.
+	IdentityReference *ComputeNodeIdentityReference `json:"identityReference,omitempty"`
 }
 
 // AzureFileShareConfiguration ...
@@ -654,9 +657,13 @@ type CloudJob struct {
 	// PreviousStateTransitionTime - This property is not set if the Job is in its initial Active state.
 	PreviousStateTransitionTime *date.Time `json:"previousStateTransitionTime,omitempty"`
 	// Priority - Priority values can range from -1000 to 1000, with -1000 being the lowest priority and 1000 being the highest priority. The default value is 0.
-	Priority       *int32          `json:"priority,omitempty"`
-	Constraints    *JobConstraints `json:"constraints,omitempty"`
-	JobManagerTask *JobManagerTask `json:"jobManagerTask,omitempty"`
+	Priority *int32 `json:"priority,omitempty"`
+	// AllowTaskPreemption - If the value is set to True, other high priority jobs submitted to the system will take precedence and will be able requeue tasks from this job. You can update a job's allowTaskPreemption after it has been created using the update job API.
+	AllowTaskPreemption *bool `json:"allowTaskPreemption,omitempty"`
+	// MaxParallelTasks - The value of maxParallelTasks must be -1 or greater than 0 if specified. If not specified, the default value is -1, which means there's no limit to the number of tasks that can be run at once. You can update a job's maxParallelTasks after it has been created using the update job API.
+	MaxParallelTasks *int32          `json:"maxParallelTasks,omitempty"`
+	Constraints      *JobConstraints `json:"constraints,omitempty"`
+	JobManagerTask   *JobManagerTask `json:"jobManagerTask,omitempty"`
 	// JobPreparationTask - The Job Preparation Task is a special Task run on each Compute Node before any other Task of the Job.
 	JobPreparationTask *JobPreparationTask `json:"jobPreparationTask,omitempty"`
 	// JobReleaseTask - The Job Release Task is a special Task run at the end of the Job on each Compute Node that has run any other Task of the Job.
@@ -1009,10 +1016,11 @@ type CloudJobSchedule struct {
 	// PreviousState - This property is not present if the Job Schedule is in its initial active state. Possible values include: 'JobScheduleStateActive', 'JobScheduleStateCompleted', 'JobScheduleStateDisabled', 'JobScheduleStateTerminating', 'JobScheduleStateDeleting'
 	PreviousState JobScheduleState `json:"previousState,omitempty"`
 	// PreviousStateTransitionTime - This property is not present if the Job Schedule is in its initial active state.
-	PreviousStateTransitionTime *date.Time                       `json:"previousStateTransitionTime,omitempty"`
-	Schedule                    *Schedule                        `json:"schedule,omitempty"`
-	JobSpecification            *JobSpecification                `json:"jobSpecification,omitempty"`
-	ExecutionInfo               *JobScheduleExecutionInformation `json:"executionInfo,omitempty"`
+	PreviousStateTransitionTime *date.Time `json:"previousStateTransitionTime,omitempty"`
+	// Schedule - All times are fixed respective to UTC and are not impacted by daylight saving time.
+	Schedule         *Schedule                        `json:"schedule,omitempty"`
+	JobSpecification *JobSpecification                `json:"jobSpecification,omitempty"`
+	ExecutionInfo    *JobScheduleExecutionInformation `json:"executionInfo,omitempty"`
 	// Metadata - The Batch service does not assign any meaning to metadata; it is solely for the use of user code.
 	Metadata *[]MetadataItem        `json:"metadata,omitempty"`
 	Stats    *JobScheduleStatistics `json:"stats,omitempty"`
@@ -1205,11 +1213,11 @@ type CloudPool struct {
 	// ResizeErrors - This property is set only if one or more errors occurred during the last Pool resize, and only when the Pool allocationState is Steady.
 	ResizeErrors          *[]ResizeError `json:"resizeErrors,omitempty"`
 	CurrentDedicatedNodes *int32         `json:"currentDedicatedNodes,omitempty"`
-	// CurrentLowPriorityNodes - Low-priority Compute Nodes which have been preempted are included in this count.
+	// CurrentLowPriorityNodes - Spot/Low-priority Compute Nodes which have been preempted are included in this count.
 	CurrentLowPriorityNodes *int32 `json:"currentLowPriorityNodes,omitempty"`
 	TargetDedicatedNodes    *int32 `json:"targetDedicatedNodes,omitempty"`
 	TargetLowPriorityNodes  *int32 `json:"targetLowPriorityNodes,omitempty"`
-	// EnableAutoScale - If false, at least one of targetDedicateNodes and targetLowPriorityNodes must be specified. If true, the autoScaleFormula property is required and the Pool automatically resizes according to the formula. The default value is false.
+	// EnableAutoScale - If false, at least one of targetDedicatedNodes and targetLowPriorityNodes must be specified. If true, the autoScaleFormula property is required and the Pool automatically resizes according to the formula. The default value is false.
 	EnableAutoScale *bool `json:"enableAutoScale,omitempty"`
 	// AutoScaleFormula - This property is set only if the Pool automatically scales, i.e. enableAutoScale is true.
 	AutoScaleFormula *string `json:"autoScaleFormula,omitempty"`
@@ -1227,8 +1235,8 @@ type CloudPool struct {
 	ApplicationPackageReferences *[]ApplicationPackageReference `json:"applicationPackageReferences,omitempty"`
 	// ApplicationLicenses - The list of application licenses must be a subset of available Batch service application licenses. If a license is requested which is not supported, Pool creation will fail.
 	ApplicationLicenses *[]string `json:"applicationLicenses,omitempty"`
-	// MaxTasksPerNode - The default value is 1. The maximum value is the smaller of 4 times the number of cores of the vmSize of the Pool or 256.
-	MaxTasksPerNode *int32 `json:"maxTasksPerNode,omitempty"`
+	// TaskSlotsPerNode - The default value is 1. The maximum value is the smaller of 4 times the number of cores of the vmSize of the pool or 256.
+	TaskSlotsPerNode *int32 `json:"taskSlotsPerNode,omitempty"`
 	// TaskSchedulingPolicy - If not specified, the default is spread.
 	TaskSchedulingPolicy *TaskSchedulingPolicy `json:"taskSchedulingPolicy,omitempty"`
 	UserAccounts         *[]UserAccount        `json:"userAccounts,omitempty"`
@@ -1237,6 +1245,8 @@ type CloudPool struct {
 	Stats *PoolStatistics `json:"stats,omitempty"`
 	// MountConfiguration - This supports Azure Files, NFS, CIFS/SMB, and Blobfuse.
 	MountConfiguration *[]MountConfiguration `json:"mountConfiguration,omitempty"`
+	// Identity - The list of user identities associated with the Batch pool. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'.
+	Identity *PoolIdentity `json:"identity,omitempty"`
 }
 
 // CloudPoolListResult ...
@@ -1447,6 +1457,8 @@ type CloudTask struct {
 	EnvironmentSettings *[]EnvironmentSetting `json:"environmentSettings,omitempty"`
 	AffinityInfo        *AffinityInformation  `json:"affinityInfo,omitempty"`
 	Constraints         *TaskConstraints      `json:"constraints,omitempty"`
+	// RequiredSlots - The default is 1. A Task can only be scheduled to run on a compute node if the node has enough free scheduling slots available. For multi-instance Tasks, this must be 1.
+	RequiredSlots *int32 `json:"requiredSlots,omitempty"`
 	// UserIdentity - If omitted, the Task runs as a non-administrative user unique to the Task.
 	UserIdentity          *UserIdentity             `json:"userIdentity,omitempty"`
 	ExecutionInfo         *TaskExecutionInformation `json:"executionInfo,omitempty"`
@@ -1630,7 +1642,7 @@ type ComputeNode struct {
 	// ID - Every Compute Node that is added to a Pool is assigned a unique ID. Whenever a Compute Node is removed from a Pool, all of its local files are deleted, and the ID is reclaimed and could be reused for new Compute Nodes.
 	ID  *string `json:"id,omitempty"`
 	URL *string `json:"url,omitempty"`
-	// State - The low-priority Compute Node has been preempted. Tasks which were running on the Compute Node when it was preempted will be rescheduled when another Compute Node becomes available. Possible values include: 'ComputeNodeStateIdle', 'ComputeNodeStateRebooting', 'ComputeNodeStateReimaging', 'ComputeNodeStateRunning', 'ComputeNodeStateUnusable', 'ComputeNodeStateCreating', 'ComputeNodeStateStarting', 'ComputeNodeStateWaitingForStartTask', 'ComputeNodeStateStartTaskFailed', 'ComputeNodeStateUnknown', 'ComputeNodeStateLeavingPool', 'ComputeNodeStateOffline', 'ComputeNodeStatePreempted'
+	// State - The Spot/Low-priority Compute Node has been preempted. Tasks which were running on the Compute Node when it was preempted will be rescheduled when another Compute Node becomes available. Possible values include: 'ComputeNodeStateIdle', 'ComputeNodeStateRebooting', 'ComputeNodeStateReimaging', 'ComputeNodeStateRunning', 'ComputeNodeStateUnusable', 'ComputeNodeStateCreating', 'ComputeNodeStateStarting', 'ComputeNodeStateWaitingForStartTask', 'ComputeNodeStateStartTaskFailed', 'ComputeNodeStateUnknown', 'ComputeNodeStateLeavingPool', 'ComputeNodeStateOffline', 'ComputeNodeStatePreempted'
 	State ComputeNodeState `json:"state,omitempty"`
 	// SchedulingState - Possible values include: 'SchedulingStateEnabled', 'SchedulingStateDisabled'
 	SchedulingState     SchedulingState `json:"schedulingState,omitempty"`
@@ -1644,10 +1656,11 @@ type ComputeNode struct {
 	// AffinityID - Note that this is just a soft affinity. If the target Compute Node is busy or unavailable at the time the Task is scheduled, then the Task will be scheduled elsewhere.
 	AffinityID *string `json:"affinityId,omitempty"`
 	// VMSize - For information about available sizes of virtual machines in Pools, see Choose a VM size for Compute Nodes in an Azure Batch Pool (https://docs.microsoft.com/azure/batch/batch-pool-vm-sizes).
-	VMSize              *string `json:"vmSize,omitempty"`
-	TotalTasksRun       *int32  `json:"totalTasksRun,omitempty"`
-	RunningTasksCount   *int32  `json:"runningTasksCount,omitempty"`
-	TotalTasksSucceeded *int32  `json:"totalTasksSucceeded,omitempty"`
+	VMSize                *string `json:"vmSize,omitempty"`
+	TotalTasksRun         *int32  `json:"totalTasksRun,omitempty"`
+	RunningTasksCount     *int32  `json:"runningTasksCount,omitempty"`
+	RunningTaskSlotsCount *int32  `json:"runningTaskSlotsCount,omitempty"`
+	TotalTasksSucceeded   *int32  `json:"totalTasksSucceeded,omitempty"`
 	// RecentTasks - This property is present only if at least one Task has run on this Compute Node since it was assigned to the Pool.
 	RecentTasks   *[]TaskInformation    `json:"recentTasks,omitempty"`
 	StartTask     *StartTask            `json:"startTask,omitempty"`
@@ -1658,6 +1671,7 @@ type ComputeNode struct {
 	IsDedicated           *bool                             `json:"isDedicated,omitempty"`
 	EndpointConfiguration *ComputeNodeEndpointConfiguration `json:"endpointConfiguration,omitempty"`
 	NodeAgentInfo         *NodeAgentInformation             `json:"nodeAgentInfo,omitempty"`
+	VirtualMachineInfo    *VirtualMachineInfo               `json:"virtualMachineInfo,omitempty"`
 }
 
 // ComputeNodeEndpointConfiguration ...
@@ -1677,6 +1691,13 @@ type ComputeNodeGetRemoteLoginSettingsResult struct {
 	autorest.Response    `json:"-"`
 	RemoteLoginIPAddress *string `json:"remoteLoginIPAddress,omitempty"`
 	RemoteLoginPort      *int32  `json:"remoteLoginPort,omitempty"`
+}
+
+// ComputeNodeIdentityReference the reference to a user assigned identity associated with the Batch pool
+// which a compute node will use.
+type ComputeNodeIdentityReference struct {
+	// ResourceID - The ARM resource id of the user assigned identity.
+	ResourceID *string `json:"resourceId,omitempty"`
 }
 
 // ComputeNodeInformation ...
@@ -1870,15 +1891,16 @@ type ContainerConfiguration struct {
 
 // ContainerRegistry ...
 type ContainerRegistry struct {
+	UserName *string `json:"username,omitempty"`
+	Password *string `json:"password,omitempty"`
 	// RegistryServer - If omitted, the default is "docker.io".
-	RegistryServer *string `json:"registryServer,omitempty"`
-	UserName       *string `json:"username,omitempty"`
-	Password       *string `json:"password,omitempty"`
+	RegistryServer    *string                       `json:"registryServer,omitempty"`
+	IdentityReference *ComputeNodeIdentityReference `json:"identityReference,omitempty"`
 }
 
 // DataDisk ...
 type DataDisk struct {
-	// Lun - The lun is used to uniquely identify each data disk. If attaching multiple disks, each should have a distinct lun.
+	// Lun - The lun is used to uniquely identify each data disk. If attaching multiple disks, each should have a distinct lun. The value must be between 0 and 63, inclusive.
 	Lun *int32 `json:"lun,omitempty"`
 	// Caching - The default value for caching is readwrite. For information about the caching options see: https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/. Possible values include: 'CachingTypeNone', 'CachingTypeReadOnly', 'CachingTypeReadWrite'
 	Caching    CachingType `json:"caching,omitempty"`
@@ -1893,6 +1915,12 @@ type DeleteCertificateError struct {
 	Message *string `json:"message,omitempty"`
 	// Values - This list includes details such as the active Pools and Compute Nodes referencing this Certificate. However, if a large number of resources reference the Certificate, the list contains only about the first hundred.
 	Values *[]NameValuePair `json:"values,omitempty"`
+}
+
+// DiffDiskSettings ...
+type DiffDiskSettings struct {
+	// Placement - This property can be used by user in the request to choose the location e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements and Linux VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements. Possible values include: 'DiffDiskPlacementCacheDisk'
+	Placement DiffDiskPlacement `json:"placement,omitempty"`
 }
 
 // DiskEncryptionConfiguration the disk encryption configuration applied on compute nodes in the pool. Disk
@@ -1970,6 +1998,12 @@ type FileProperties struct {
 	FileMode *string `json:"fileMode,omitempty"`
 }
 
+// HTTPHeader ...
+type HTTPHeader struct {
+	Name  *string `json:"name,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
 // ImageInformation ...
 type ImageInformation struct {
 	NodeAgentSKUID *string         `json:"nodeAgentSKUId,omitempty"`
@@ -1993,8 +2027,31 @@ type ImageReference struct {
 	Sku *string `json:"sku,omitempty"`
 	// Version - A value of 'latest' can be specified to select the latest version of an Image. If omitted, the default is 'latest'.
 	Version *string `json:"version,omitempty"`
-	// VirtualMachineImageID - This property is mutually exclusive with other ImageReference properties. For Virtual Machine Image it must be in the same region and subscription as the Azure Batch account. The Shared Image Gallery Image must have replicas in the same region as the Azure Batch account. For information about the firewall settings for the Batch Compute Node agent to communicate with the Batch service see https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#virtual-network-vnet-and-firewall-configuration.
+	// VirtualMachineImageID - This property is mutually exclusive with other ImageReference properties. The Shared Image Gallery Image must have replicas in the same region and must be in the same subscription as the Azure Batch account. If the image version is not specified in the imageId, the latest version will be used. For information about the firewall settings for the Batch Compute Node agent to communicate with the Batch service see https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#virtual-network-vnet-and-firewall-configuration.
 	VirtualMachineImageID *string `json:"virtualMachineImageId,omitempty"`
+	// ExactVersion - READ-ONLY; The specific version of the platform image or marketplace image used to create the node. This read-only field differs from 'version' only if the value specified for 'version' when the pool was created was 'latest'.
+	ExactVersion *string `json:"exactVersion,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ImageReference.
+func (ir ImageReference) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ir.Publisher != nil {
+		objectMap["publisher"] = ir.Publisher
+	}
+	if ir.Offer != nil {
+		objectMap["offer"] = ir.Offer
+	}
+	if ir.Sku != nil {
+		objectMap["sku"] = ir.Sku
+	}
+	if ir.Version != nil {
+		objectMap["version"] = ir.Version
+	}
+	if ir.VirtualMachineImageID != nil {
+		objectMap["virtualMachineImageId"] = ir.VirtualMachineImageID
+	}
+	return json.Marshal(objectMap)
 }
 
 // InboundEndpoint ...
@@ -2024,6 +2081,17 @@ type InboundNATPool struct {
 	NetworkSecurityGroupRules *[]NetworkSecurityGroupRule `json:"networkSecurityGroupRules,omitempty"`
 }
 
+// InstanceViewStatus ...
+type InstanceViewStatus struct {
+	Code          *string `json:"code,omitempty"`
+	DisplayStatus *string `json:"displayStatus,omitempty"`
+	// Level - Possible values include: 'StatusLevelTypesError', 'StatusLevelTypesInfo', 'StatusLevelTypesWarning'
+	Level   StatusLevelTypes `json:"level,omitempty"`
+	Message *string          `json:"message,omitempty"`
+	// Time - The time of the status.
+	Time *string `json:"time,omitempty"`
+}
+
 // JobAddParameter ...
 type JobAddParameter struct {
 	// ID - The ID can contain any combination of alphanumeric characters including hyphens and underscores, and cannot contain more than 64 characters. The ID is case-preserving and case-insensitive (that is, you may not have two IDs within an Account that differ only by case).
@@ -2032,6 +2100,10 @@ type JobAddParameter struct {
 	DisplayName *string `json:"displayName,omitempty"`
 	// Priority - Priority values can range from -1000 to 1000, with -1000 being the lowest priority and 1000 being the highest priority. The default value is 0.
 	Priority *int32 `json:"priority,omitempty"`
+	// MaxParallelTasks - The value of maxParallelTasks must be -1 or greater than 0 if specified. If not specified, the default value is -1, which means there's no limit to the number of tasks that can be run at once. You can update a job's maxParallelTasks after it has been created using the update job API.
+	MaxParallelTasks *int32 `json:"maxParallelTasks,omitempty"`
+	// AllowTaskPreemption - If the value is set to True, other high priority jobs submitted to the system will take precedence and will be able requeue tasks from this job. You can update a job's allowTaskPreemption after it has been created using the update job API.
+	AllowTaskPreemption *bool `json:"allowTaskPreemption,omitempty"`
 	// Constraints - The execution constraints for the Job.
 	Constraints *JobConstraints `json:"constraints,omitempty"`
 	// JobManagerTask - If the Job does not specify a Job Manager Task, the user must explicitly add Tasks to the Job. If the Job does specify a Job Manager Task, the Batch service creates the Job Manager Task when the Job is created, and will try to schedule the Job Manager Task before scheduling other Tasks in the Job. The Job Manager Task's typical purpose is to control and/or monitor Job execution, for example by deciding what additional Tasks to run, determining when the work is complete, etc. (However, a Job Manager Task is not restricted to these activities - it is a fully-fledged Task in the system and perform whatever actions are required for the Job.) For example, a Job Manager Task might download a file specified as a parameter, analyze the contents of that file and submit additional Tasks based on those contents.
@@ -2057,7 +2129,7 @@ type JobAddParameter struct {
 type JobConstraints struct {
 	// MaxWallClockTime - If the Job does not complete within the time limit, the Batch service terminates it and any Tasks that are still running. In this case, the termination reason will be MaxWallClockTimeExpiry. If this property is not specified, there is no time limit on how long the Job may run.
 	MaxWallClockTime *string `json:"maxWallClockTime,omitempty"`
-	// MaxTaskRetryCount - Note that this value specifically controls the number of retries. The Batch service will try each Task once, and may then retry up to this limit. For example, if the maximum retry count is 3, Batch tries a Task up to 4 times (one initial try and 3 retries). If the maximum retry count is 0, the Batch service does not retry Tasks. If the maximum retry count is -1, the Batch service retries Tasks without limit. The default value is 0 (no retries).
+	// MaxTaskRetryCount - Note that this value specifically controls the number of retries. The Batch service will try each Task once, and may then retry up to this limit. For example, if the maximum retry count is 3, Batch tries a Task up to 4 times (one initial try and 3 retries). If the maximum retry count is 0, the Batch service does not retry Tasks. If the maximum retry count is -1, the Batch service retries the Task without limit, however this is not recommended for a start task or any task. The default value is 0 (no retries)
 	MaxTaskRetryCount *int32 `json:"maxTaskRetryCount,omitempty"`
 }
 
@@ -2113,6 +2185,8 @@ type JobManagerTask struct {
 	OutputFiles         *[]OutputFile         `json:"outputFiles,omitempty"`
 	EnvironmentSettings *[]EnvironmentSetting `json:"environmentSettings,omitempty"`
 	Constraints         *TaskConstraints      `json:"constraints,omitempty"`
+	// RequiredSlots - The default is 1. A Task can only be scheduled to run on a compute node if the node has enough free scheduling slots available. For multi-instance Tasks, this property is not supported and must not be specified.
+	RequiredSlots *int32 `json:"requiredSlots,omitempty"`
 	// KillJobOnCompletion - If true, when the Job Manager Task completes, the Batch service marks the Job as complete. If any Tasks are still running at this time (other than Job Release), those Tasks are terminated. If false, the completion of the Job Manager Task does not affect the Job status. In this case, you should either use the onAllTasksComplete attribute to terminate the Job, or have a client or user terminate the Job explicitly. An example of this is if the Job Manager creates a set of Tasks but then takes no further role in their execution. The default value is true. If you are using the onAllTasksComplete and onTaskFailure attributes to control Job lifetime, and using the Job Manager Task only to create the Tasks for the Job (not to monitor progress), then it is important to set killJobOnCompletion to false.
 	KillJobOnCompletion *bool `json:"killJobOnCompletion,omitempty"`
 	// UserIdentity - If omitted, the Task runs as a non-administrative user unique to the Task.
@@ -2137,6 +2211,10 @@ type JobNetworkConfiguration struct {
 type JobPatchParameter struct {
 	// Priority - Priority values can range from -1000 to 1000, with -1000 being the lowest priority and 1000 being the highest priority. If omitted, the priority of the Job is left unchanged.
 	Priority *int32 `json:"priority,omitempty"`
+	// MaxParallelTasks - The value of maxParallelTasks must be -1 or greater than 0 if specified. If not specified, the default value is -1, which means there's no limit to the number of tasks that can be run at once. You can update a job's maxParallelTasks after it has been created using the update job API.
+	MaxParallelTasks *int32 `json:"maxParallelTasks,omitempty"`
+	// AllowTaskPreemption - If the value is set to True, other high priority jobs submitted to the system will take precedence and will be able requeue tasks from this job. You can update a job's allowTaskPreemption after it has been created using the update job API.
+	AllowTaskPreemption *bool `json:"allowTaskPreemption,omitempty"`
 	// OnAllTasksComplete - If omitted, the completion behavior is left unchanged. You may not change the value from terminatejob to noaction - that is, once you have engaged automatic Job termination, you cannot turn it off again. If you try to do this, the request fails with an 'invalid property value' error response; if you are calling the REST API directly, the HTTP status code is 400 (Bad Request). Possible values include: 'OnAllTasksCompleteNoAction', 'OnAllTasksCompleteTerminateJob'
 	OnAllTasksComplete OnAllTasksComplete `json:"onAllTasksComplete,omitempty"`
 	// Constraints - If omitted, the existing execution constraints are left unchanged.
@@ -2229,7 +2307,7 @@ type JobPreparationTaskExecutionInformation struct {
 // does not run on that Compute Node. If a Node reboots while the Job Release Task is still running, the
 // Job Release Task runs again when the Compute Node starts up. The Job is not marked as complete until all
 // Job Release Tasks have completed. The Job Release Task runs in the background. It does not occupy a
-// scheduling slot; that is, it does not count towards the maxTasksPerNode limit specified on the Pool.
+// scheduling slot; that is, it does not count towards the taskSlotsPerNode limit specified on the Pool.
 type JobReleaseTask struct {
 	// ID - The ID can contain any combination of alphanumeric characters including hyphens and underscores and cannot contain more than 64 characters. If you do not specify this property, the Batch service assigns a default value of 'jobrelease'. No other Task in the Job can have the same ID as the Job Release Task. If you try to submit a Task with the same id, the Batch service rejects the request with error code TaskIdSameAsJobReleaseTask; if you are calling the REST API directly, the HTTP status code is 409 (Conflict).
 	ID *string `json:"id,omitempty"`
@@ -2272,7 +2350,8 @@ type JobScheduleAddParameter struct {
 	// ID - The ID can contain any combination of alphanumeric characters including hyphens and underscores, and cannot contain more than 64 characters. The ID is case-preserving and case-insensitive (that is, you may not have two IDs within an Account that differ only by case).
 	ID *string `json:"id,omitempty"`
 	// DisplayName - The display name need not be unique and can contain any Unicode characters up to a maximum length of 1024.
-	DisplayName      *string           `json:"displayName,omitempty"`
+	DisplayName *string `json:"displayName,omitempty"`
+	// Schedule - All times are fixed respective to UTC and are not impacted by daylight saving time.
 	Schedule         *Schedule         `json:"schedule,omitempty"`
 	JobSpecification *JobSpecification `json:"jobSpecification,omitempty"`
 	// Metadata - The Batch service does not assign any meaning to metadata; it is solely for the use of user code.
@@ -2291,7 +2370,7 @@ type JobScheduleExecutionInformation struct {
 
 // JobSchedulePatchParameter ...
 type JobSchedulePatchParameter struct {
-	// Schedule - If you do not specify this element, the existing schedule is left unchanged.
+	// Schedule - All times are fixed respective to UTC and are not impacted by daylight saving time. If you do not specify this element, the existing schedule is left unchanged.
 	Schedule *Schedule `json:"schedule,omitempty"`
 	// JobSpecification - Updates affect only Jobs that are started after the update has taken place. Any currently active Job continues with the older specification.
 	JobSpecification *JobSpecification `json:"jobSpecification,omitempty"`
@@ -2321,7 +2400,7 @@ type JobScheduleStatistics struct {
 
 // JobScheduleUpdateParameter ...
 type JobScheduleUpdateParameter struct {
-	// Schedule - If you do not specify this element, it is equivalent to passing the default schedule: that is, a single Job scheduled to run immediately.
+	// Schedule - All times are fixed respective to UTC and are not impacted by daylight saving time. If you do not specify this element, it is equivalent to passing the default schedule: that is, a single Job scheduled to run immediately.
 	Schedule *Schedule `json:"schedule,omitempty"`
 	// JobSpecification - Updates affect only Jobs that are started after the update has taken place. Any currently active Job continues with the older specification.
 	JobSpecification *JobSpecification `json:"jobSpecification,omitempty"`
@@ -2342,6 +2421,10 @@ type JobSchedulingError struct {
 type JobSpecification struct {
 	// Priority - Priority values can range from -1000 to 1000, with -1000 being the lowest priority and 1000 being the highest priority. The default value is 0. This priority is used as the default for all Jobs under the Job Schedule. You can update a Job's priority after it has been created using by using the update Job API.
 	Priority *int32 `json:"priority,omitempty"`
+	// AllowTaskPreemption - If the value is set to True, other high priority jobs submitted to the system will take precedence and will be able requeue tasks from this job. You can update a job's allowTaskPreemption after it has been created using the update job API.
+	AllowTaskPreemption *bool `json:"allowTaskPreemption,omitempty"`
+	// MaxParallelTasks - The value of maxParallelTasks must be -1 or greater than 0 if specified. If not specified, the default value is -1, which means there's no limit to the number of tasks that can be run at once. You can update a job's maxParallelTasks after it has been created using the update job API.
+	MaxParallelTasks *int32 `json:"maxParallelTasks,omitempty"`
 	// DisplayName - The name need not be unique and can contain any Unicode characters up to a maximum length of 1024.
 	DisplayName          *string `json:"displayName,omitempty"`
 	UsesTaskDependencies *bool   `json:"usesTaskDependencies,omitempty"`
@@ -2396,6 +2479,10 @@ type JobTerminateParameter struct {
 type JobUpdateParameter struct {
 	// Priority - Priority values can range from -1000 to 1000, with -1000 being the lowest priority and 1000 being the highest priority. If omitted, it is set to the default value 0.
 	Priority *int32 `json:"priority,omitempty"`
+	// MaxParallelTasks - The value of maxParallelTasks must be -1 or greater than 0 if specified. If not specified, the default value is -1, which means there's no limit to the number of tasks that can be run at once. You can update a job's maxParallelTasks after it has been created using the update job API.
+	MaxParallelTasks *int32 `json:"maxParallelTasks,omitempty"`
+	// AllowTaskPreemption - If the value is set to True, other high priority jobs submitted to the system will take precedence and will be able requeue tasks from this job. You can update a job's allowTaskPreemption after it has been created using the update job API.
+	AllowTaskPreemption *bool `json:"allowTaskPreemption,omitempty"`
 	// Constraints - If omitted, the constraints are cleared.
 	Constraints *JobConstraints `json:"constraints,omitempty"`
 	// PoolInfo - You may change the Pool for a Job only when the Job is disabled. The Update Job call will fail if you include the poolInfo element and the Job is not disabled. If you specify an autoPoolSpecification in the poolInfo, only the keepAlive property of the autoPoolSpecification can be updated, and then only if the autoPoolSpecification has a poolLifetimeOption of Job (other job properties can be updated as normal).
@@ -2685,6 +2772,14 @@ func NewNodeFileListResultPage(cur NodeFileListResult, getNextPage func(context.
 	}
 }
 
+// NodePlacementConfiguration for regional placement, nodes in the pool will be allocated in the same
+// region. For zonal placement, nodes in the pool will be spread across different zones with best effort
+// balancing.
+type NodePlacementConfiguration struct {
+	// Policy - Allocation policy used by Batch Service to provision the nodes. If not specified, Batch will use the regional policy. Possible values include: 'NodePlacementPolicyTypeRegional', 'NodePlacementPolicyTypeZonal'
+	Policy NodePlacementPolicyType `json:"policy,omitempty"`
+}
+
 // NodeRebootParameter ...
 type NodeRebootParameter struct {
 	// NodeRebootOption - The default value is requeue. Possible values include: 'ComputeNodeRebootOptionRequeue', 'ComputeNodeRebootOptionTerminate', 'ComputeNodeRebootOptionTaskCompletion', 'ComputeNodeRebootOptionRetainedData'
@@ -2699,6 +2794,7 @@ type NodeReimageParameter struct {
 
 // NodeRemoveParameter ...
 type NodeRemoveParameter struct {
+	// NodeList - A maximum of 100 nodes may be removed per request.
 	NodeList *[]string `json:"nodeList,omitempty"`
 	// ResizeTimeout - The default value is 15 minutes. The minimum value is 5 minutes. If you specify a value less than 5 minutes, the Batch service returns an error; if you are calling the REST API directly, the HTTP status code is 400 (Bad Request).
 	ResizeTimeout *string `json:"resizeTimeout,omitempty"`
@@ -2716,6 +2812,176 @@ type NodeUpdateUserParameter struct {
 	SSHPublicKey *string `json:"sshPublicKey,omitempty"`
 }
 
+// NodeVMExtension ...
+type NodeVMExtension struct {
+	autorest.Response `json:"-"`
+	ProvisioningState *string                  `json:"provisioningState,omitempty"`
+	VMExtension       *VMExtension             `json:"vmExtension,omitempty"`
+	InstanceView      *VMExtensionInstanceView `json:"instanceView,omitempty"`
+}
+
+// NodeVMExtensionList ...
+type NodeVMExtensionList struct {
+	autorest.Response `json:"-"`
+	Value             *[]NodeVMExtension `json:"value,omitempty"`
+	OdataNextLink     *string            `json:"odata.nextLink,omitempty"`
+}
+
+// NodeVMExtensionListIterator provides access to a complete listing of NodeVMExtension values.
+type NodeVMExtensionListIterator struct {
+	i    int
+	page NodeVMExtensionListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *NodeVMExtensionListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/NodeVMExtensionListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *NodeVMExtensionListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter NodeVMExtensionListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter NodeVMExtensionListIterator) Response() NodeVMExtensionList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter NodeVMExtensionListIterator) Value() NodeVMExtension {
+	if !iter.page.NotDone() {
+		return NodeVMExtension{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the NodeVMExtensionListIterator type.
+func NewNodeVMExtensionListIterator(page NodeVMExtensionListPage) NodeVMExtensionListIterator {
+	return NodeVMExtensionListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (nvel NodeVMExtensionList) IsEmpty() bool {
+	return nvel.Value == nil || len(*nvel.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (nvel NodeVMExtensionList) hasNextLink() bool {
+	return nvel.OdataNextLink != nil && len(*nvel.OdataNextLink) != 0
+}
+
+// nodeVMExtensionListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (nvel NodeVMExtensionList) nodeVMExtensionListPreparer(ctx context.Context) (*http.Request, error) {
+	if !nvel.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(nvel.OdataNextLink)))
+}
+
+// NodeVMExtensionListPage contains a page of NodeVMExtension values.
+type NodeVMExtensionListPage struct {
+	fn   func(context.Context, NodeVMExtensionList) (NodeVMExtensionList, error)
+	nvel NodeVMExtensionList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *NodeVMExtensionListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/NodeVMExtensionListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.nvel)
+		if err != nil {
+			return err
+		}
+		page.nvel = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *NodeVMExtensionListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page NodeVMExtensionListPage) NotDone() bool {
+	return !page.nvel.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page NodeVMExtensionListPage) Response() NodeVMExtensionList {
+	return page.nvel
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page NodeVMExtensionListPage) Values() []NodeVMExtension {
+	if page.nvel.IsEmpty() {
+		return nil
+	}
+	return *page.nvel.Value
+}
+
+// Creates a new instance of the NodeVMExtensionListPage type.
+func NewNodeVMExtensionListPage(cur NodeVMExtensionList, getNextPage func(context.Context, NodeVMExtensionList) (NodeVMExtensionList, error)) NodeVMExtensionListPage {
+	return NodeVMExtensionListPage{
+		fn:   getNextPage,
+		nvel: cur,
+	}
+}
+
+// OSDisk ...
+type OSDisk struct {
+	EphemeralOSDiskSettings *DiffDiskSettings `json:"ephemeralOSDiskSettings,omitempty"`
+}
+
 // OutputFile on every file uploads, Batch service writes two log files to the compute node,
 // 'fileuploadout.txt' and 'fileuploaderr.txt'. These log files are used to learn more about a specific
 // failure.
@@ -2730,8 +2996,12 @@ type OutputFile struct {
 type OutputFileBlobContainerDestination struct {
 	// Path - If filePattern refers to a specific file (i.e. contains no wildcards), then path is the name of the blob to which to upload that file. If filePattern contains one or more wildcards (and therefore may match multiple files), then path is the name of the blob virtual directory (which is prepended to each blob name) to which to upload the file(s). If omitted, file(s) are uploaded to the root of the container with a blob name matching their file name.
 	Path *string `json:"path,omitempty"`
-	// ContainerURL - The URL must include a Shared Access Signature (SAS) granting write permissions to the container.
+	// ContainerURL - If not using a managed identity, the URL must include a Shared Access Signature (SAS) granting write permissions to the container.
 	ContainerURL *string `json:"containerUrl,omitempty"`
+	// IdentityReference - The identity must have write access to the Azure Blob Storage container
+	IdentityReference *ComputeNodeIdentityReference `json:"identityReference,omitempty"`
+	// UploadHeaders - These headers will be specified when uploading files to Azure Storage. For more information, see [Request Headers (All Blob Types)](https://docs.microsoft.com/rest/api/storageservices/put-blob#request-headers-all-blob-types).
+	UploadHeaders *[]HTTPHeader `json:"uploadHeaders,omitempty"`
 }
 
 // OutputFileDestination ...
@@ -2763,7 +3033,7 @@ type PoolAddParameter struct {
 	TargetDedicatedNodes *int32 `json:"targetDedicatedNodes,omitempty"`
 	// TargetLowPriorityNodes - This property must not be specified if enableAutoScale is set to true. If enableAutoScale is set to false, then you must set either targetDedicatedNodes, targetLowPriorityNodes, or both.
 	TargetLowPriorityNodes *int32 `json:"targetLowPriorityNodes,omitempty"`
-	// EnableAutoScale - If false, at least one of targetDedicateNodes and targetLowPriorityNodes must be specified. If true, the autoScaleFormula property is required and the Pool automatically resizes according to the formula. The default value is false.
+	// EnableAutoScale - If false, at least one of targetDedicatedNodes and targetLowPriorityNodes must be specified. If true, the autoScaleFormula property is required and the Pool automatically resizes according to the formula. The default value is false.
 	EnableAutoScale *bool `json:"enableAutoScale,omitempty"`
 	// AutoScaleFormula - This property must not be specified if enableAutoScale is set to false. It is required if enableAutoScale is set to true. The formula is checked for validity before the Pool is created. If the formula is not valid, the Batch service rejects the request with detailed error information. For more information about specifying this formula, see 'Automatically scale Compute Nodes in an Azure Batch Pool' (https://azure.microsoft.com/documentation/articles/batch-automatic-scaling/).
 	AutoScaleFormula *string `json:"autoScaleFormula,omitempty"`
@@ -2780,8 +3050,8 @@ type PoolAddParameter struct {
 	ApplicationPackageReferences *[]ApplicationPackageReference `json:"applicationPackageReferences,omitempty"`
 	// ApplicationLicenses - The list of application licenses must be a subset of available Batch service application licenses. If a license is requested which is not supported, Pool creation will fail.
 	ApplicationLicenses *[]string `json:"applicationLicenses,omitempty"`
-	// MaxTasksPerNode - The default value is 1. The maximum value is the smaller of 4 times the number of cores of the vmSize of the Pool or 256.
-	MaxTasksPerNode *int32 `json:"maxTasksPerNode,omitempty"`
+	// TaskSlotsPerNode - The default value is 1. The maximum value is the smaller of 4 times the number of cores of the vmSize of the pool or 256.
+	TaskSlotsPerNode *int32 `json:"taskSlotsPerNode,omitempty"`
 	// TaskSchedulingPolicy - If not specified, the default is spread.
 	TaskSchedulingPolicy *TaskSchedulingPolicy `json:"taskSchedulingPolicy,omitempty"`
 	UserAccounts         *[]UserAccount        `json:"userAccounts,omitempty"`
@@ -2801,7 +3071,7 @@ type PoolEnableAutoScaleParameter struct {
 
 // PoolEndpointConfiguration ...
 type PoolEndpointConfiguration struct {
-	// InboundNATPools - The maximum number of inbound NAT Pools per Batch Pool is 5. If the maximum number of inbound NAT Pools is exceeded the request fails with HTTP status code 400.
+	// InboundNATPools - The maximum number of inbound NAT Pools per Batch Pool is 5. If the maximum number of inbound NAT Pools is exceeded the request fails with HTTP status code 400. This cannot be specified if the IPAddressProvisioningType is NoPublicIPAddresses.
 	InboundNATPools *[]InboundNATPool `json:"inboundNATPools,omitempty"`
 }
 
@@ -2809,6 +3079,14 @@ type PoolEndpointConfiguration struct {
 type PoolEvaluateAutoScaleParameter struct {
 	// AutoScaleFormula - The formula is validated and its results calculated, but it is not applied to the Pool. To apply the formula to the Pool, 'Enable automatic scaling on a Pool'. For more information about specifying this formula, see Automatically scale Compute Nodes in an Azure Batch Pool (https://azure.microsoft.com/en-us/documentation/articles/batch-automatic-scaling).
 	AutoScaleFormula *string `json:"autoScaleFormula,omitempty"`
+}
+
+// PoolIdentity the identity of the Batch pool, if configured.
+type PoolIdentity struct {
+	// Type - The list of user identities associated with the Batch pool. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'. Possible values include: 'PoolIdentityTypeUserAssigned', 'PoolIdentityTypeNone'
+	Type PoolIdentityType `json:"type,omitempty"`
+	// UserAssignedIdentities - The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'.
+	UserAssignedIdentities *[]UserAssignedIdentity `json:"userAssignedIdentities,omitempty"`
 }
 
 // PoolInformation ...
@@ -3173,8 +3451,8 @@ type PoolSpecification struct {
 	CloudServiceConfiguration *CloudServiceConfiguration `json:"cloudServiceConfiguration,omitempty"`
 	// VirtualMachineConfiguration - This property must be specified if the Pool needs to be created with Azure IaaS VMs. This property and cloudServiceConfiguration are mutually exclusive and one of the properties must be specified. If neither is specified then the Batch service returns an error; if you are calling the REST API directly, the HTTP status code is 400 (Bad Request).
 	VirtualMachineConfiguration *VirtualMachineConfiguration `json:"virtualMachineConfiguration,omitempty"`
-	// MaxTasksPerNode - The default value is 1. The maximum value is the smaller of 4 times the number of cores of the vmSize of the Pool or 256.
-	MaxTasksPerNode *int32 `json:"maxTasksPerNode,omitempty"`
+	// TaskSlotsPerNode - The default value is 1. The maximum value is the smaller of 4 times the number of cores of the vmSize of the pool or 256.
+	TaskSlotsPerNode *int32 `json:"taskSlotsPerNode,omitempty"`
 	// TaskSchedulingPolicy - If not specified, the default is spread.
 	TaskSchedulingPolicy *TaskSchedulingPolicy `json:"taskSchedulingPolicy,omitempty"`
 	// ResizeTimeout - This timeout applies only to manual scaling; it has no effect when enableAutoScale is set to true. The default value is 15 minutes. The minimum value is 5 minutes. If you specify a value less than 5 minutes, the Batch service rejects the request with an error; if you are calling the REST API directly, the HTTP status code is 400 (Bad Request).
@@ -3183,7 +3461,7 @@ type PoolSpecification struct {
 	TargetDedicatedNodes *int32 `json:"targetDedicatedNodes,omitempty"`
 	// TargetLowPriorityNodes - This property must not be specified if enableAutoScale is set to true. If enableAutoScale is set to false, then you must set either targetDedicatedNodes, targetLowPriorityNodes, or both.
 	TargetLowPriorityNodes *int32 `json:"targetLowPriorityNodes,omitempty"`
-	// EnableAutoScale - If false, at least one of targetDedicateNodes and targetLowPriorityNodes must be specified. If true, the autoScaleFormula element is required. The Pool automatically resizes according to the formula. The default value is false.
+	// EnableAutoScale - If false, at least one of targetDedicatedNodes and targetLowPriorityNodes must be specified. If true, the autoScaleFormula element is required. The Pool automatically resizes according to the formula. The default value is false.
 	EnableAutoScale *bool `json:"enableAutoScale,omitempty"`
 	// AutoScaleFormula - This property must not be specified if enableAutoScale is set to false. It is required if enableAutoScale is set to true. The formula is checked for validity before the Pool is created. If the formula is not valid, the Batch service rejects the request with detailed error information.
 	AutoScaleFormula *string `json:"autoScaleFormula,omitempty"`
@@ -3243,7 +3521,7 @@ type PoolUsageMetrics struct {
 type PublicIPAddressConfiguration struct {
 	// Provision - The default value is BatchManaged. Possible values include: 'IPAddressProvisioningTypeBatchManaged', 'IPAddressProvisioningTypeUserManaged', 'IPAddressProvisioningTypeNoPublicIPAddresses'
 	Provision IPAddressProvisioningType `json:"provision,omitempty"`
-	// IPAddressIds - The number of IPs specified here limits the maximum size of the Pool - 50 dedicated nodes or 20 low-priority nodes can be allocated for each public IP. For example, a pool needing 150 dedicated VMs would need at least 3 public IPs specified. Each element of this collection is of the form: /subscriptions/{subscription}/resourceGroups/{group}/providers/Microsoft.Network/publicIPAddresses/{ip}.
+	// IPAddressIds - The number of IPs specified here limits the maximum size of the Pool - 100 dedicated nodes or 100 Spot/Low-priority nodes can be allocated for each public IP. For example, a pool needing 250 dedicated VMs would need at least 3 public IPs specified. Each element of this collection is of the form: /subscriptions/{subscription}/resourceGroups/{group}/providers/Microsoft.Network/publicIPAddresses/{ip}.
 	IPAddressIds *[]string `json:"ipAddressIds,omitempty"`
 }
 
@@ -3270,16 +3548,17 @@ type ResizeError struct {
 type ResourceFile struct {
 	// AutoStorageContainerName - The autoStorageContainerName, storageContainerUrl and httpUrl properties are mutually exclusive and one of them must be specified.
 	AutoStorageContainerName *string `json:"autoStorageContainerName,omitempty"`
-	// StorageContainerURL - The autoStorageContainerName, storageContainerUrl and httpUrl properties are mutually exclusive and one of them must be specified. This URL must be readable and listable using anonymous access; that is, the Batch service does not present any credentials when downloading blobs from the container. There are two ways to get such a URL for a container in Azure storage: include a Shared Access Signature (SAS) granting read and list permissions on the container, or set the ACL for the container to allow public access.
+	// StorageContainerURL - The autoStorageContainerName, storageContainerUrl and httpUrl properties are mutually exclusive and one of them must be specified. This URL must be readable and listable from compute nodes. There are three ways to get such a URL for a container in Azure storage: include a Shared Access Signature (SAS) granting read and list permissions on the container, use a managed identity with read and list permissions, or set the ACL for the container to allow public access.
 	StorageContainerURL *string `json:"storageContainerUrl,omitempty"`
-	// HTTPURL - The autoStorageContainerName, storageContainerUrl and httpUrl properties are mutually exclusive and one of them must be specified. If the URL points to Azure Blob Storage, it must be readable using anonymous access; that is, the Batch service does not present any credentials when downloading the blob. There are two ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read permissions on the blob, or set the ACL for the blob or its container to allow public access.
+	// HTTPURL - The autoStorageContainerName, storageContainerUrl and httpUrl properties are mutually exclusive and one of them must be specified. If the URL points to Azure Blob Storage, it must be readable from compute nodes. There are three ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read permissions on the blob, use a managed identity with read permission, or set the ACL for the blob or its container to allow public access.
 	HTTPURL *string `json:"httpUrl,omitempty"`
 	// BlobPrefix - The property is valid only when autoStorageContainerName or storageContainerUrl is used. This prefix can be a partial filename or a subdirectory. If a prefix is not specified, all the files in the container will be downloaded.
 	BlobPrefix *string `json:"blobPrefix,omitempty"`
 	// FilePath - If the httpUrl property is specified, the filePath is required and describes the path which the file will be downloaded to, including the filename. Otherwise, if the autoStorageContainerName or storageContainerUrl property is specified, filePath is optional and is the directory to download the files to. In the case where filePath is used as a directory, any directory structure already associated with the input data will be retained in full and appended to the specified filePath directory. The specified relative path cannot break out of the Task's working directory (for example by using '..').
 	FilePath *string `json:"filePath,omitempty"`
 	// FileMode - This property applies only to files being downloaded to Linux Compute Nodes. It will be ignored if it is specified for a resourceFile which will be downloaded to a Windows Compute Node. If this property is not specified for a Linux Compute Node, then a default value of 0770 is applied to the file.
-	FileMode *string `json:"fileMode,omitempty"`
+	FileMode          *string                       `json:"fileMode,omitempty"`
+	IdentityReference *ComputeNodeIdentityReference `json:"identityReference,omitempty"`
 }
 
 // ResourceStatistics ...
@@ -3331,7 +3610,7 @@ type StartTask struct {
 	EnvironmentSettings *[]EnvironmentSetting `json:"environmentSettings,omitempty"`
 	// UserIdentity - If omitted, the Task runs as a non-administrative user unique to the Task.
 	UserIdentity *UserIdentity `json:"userIdentity,omitempty"`
-	// MaxTaskRetryCount - The Batch service retries a Task if its exit code is nonzero. Note that this value specifically controls the number of retries. The Batch service will try the Task once, and may then retry up to this limit. For example, if the maximum retry count is 3, Batch tries the Task up to 4 times (one initial try and 3 retries). If the maximum retry count is 0, the Batch service does not retry the Task. If the maximum retry count is -1, the Batch service retries the Task without limit.
+	// MaxTaskRetryCount - The Batch service retries a Task if its exit code is nonzero. Note that this value specifically controls the number of retries. The Batch service will try the Task once, and may then retry up to this limit. For example, if the maximum retry count is 3, Batch tries the Task up to 4 times (one initial try and 3 retries). If the maximum retry count is 0, the Batch service does not retry the Task. If the maximum retry count is -1, the Batch service retries the Task without limit, however this is not recommended for a start task or any task. The default value is 0 (no retries)
 	MaxTaskRetryCount *int32 `json:"maxTaskRetryCount,omitempty"`
 	// WaitForSuccess - If true and the StartTask fails on a Node, the Batch service retries the StartTask up to its maximum retry count (maxTaskRetryCount). If the Task has still not completed successfully after all retries, then the Batch service marks the Node unusable, and will not schedule Tasks to it. This condition can be detected via the Compute Node state and failure info details. If false, the Batch service will not wait for the StartTask to complete. In this case, other Tasks can start executing on the Compute Node while the StartTask is still running; and even if the StartTask fails, new Tasks will continue to be scheduled on the Compute Node. The default is true.
 	WaitForSuccess *bool `json:"waitForSuccess,omitempty"`
@@ -3421,6 +3700,8 @@ type TaskAddParameter struct {
 	AffinityInfo        *AffinityInformation  `json:"affinityInfo,omitempty"`
 	// Constraints - If you do not specify constraints, the maxTaskRetryCount is the maxTaskRetryCount specified for the Job, the maxWallClockTime is infinite, and the retentionTime is 7 days.
 	Constraints *TaskConstraints `json:"constraints,omitempty"`
+	// RequiredSlots - The default is 1. A Task can only be scheduled to run on a compute node if the node has enough free scheduling slots available. For multi-instance Tasks, this must be 1.
+	RequiredSlots *int32 `json:"requiredSlots,omitempty"`
 	// UserIdentity - If omitted, the Task runs as a non-administrative user unique to the Task.
 	UserIdentity          *UserIdentity          `json:"userIdentity,omitempty"`
 	MultiInstanceSettings *MultiInstanceSettings `json:"multiInstanceSettings,omitempty"`
@@ -3450,7 +3731,7 @@ type TaskConstraints struct {
 	MaxWallClockTime *string `json:"maxWallClockTime,omitempty"`
 	// RetentionTime - The default is 7 days, i.e. the Task directory will be retained for 7 days unless the Compute Node is removed or the Job is deleted.
 	RetentionTime *string `json:"retentionTime,omitempty"`
-	// MaxTaskRetryCount - Note that this value specifically controls the number of retries for the Task executable due to a nonzero exit code. The Batch service will try the Task once, and may then retry up to this limit. For example, if the maximum retry count is 3, Batch tries the Task up to 4 times (one initial try and 3 retries). If the maximum retry count is 0, the Batch service does not retry the Task after the first attempt. If the maximum retry count is -1, the Batch service retries the Task without limit.
+	// MaxTaskRetryCount - Note that this value specifically controls the number of retries for the Task executable due to a nonzero exit code. The Batch service will try the Task once, and may then retry up to this limit. For example, if the maximum retry count is 3, Batch tries the Task up to 4 times (one initial try and 3 retries). If the maximum retry count is 0, the Batch service does not retry the Task after the first attempt. If the maximum retry count is -1, the Batch service retries the Task without limit, however this is not recommended for a start task or any task. The default value is 0 (no retries)
 	MaxTaskRetryCount *int32 `json:"maxTaskRetryCount,omitempty"`
 }
 
@@ -3477,12 +3758,18 @@ type TaskContainerSettings struct {
 
 // TaskCounts ...
 type TaskCounts struct {
+	Active    *int32 `json:"active,omitempty"`
+	Running   *int32 `json:"running,omitempty"`
+	Completed *int32 `json:"completed,omitempty"`
+	Succeeded *int32 `json:"succeeded,omitempty"`
+	Failed    *int32 `json:"failed,omitempty"`
+}
+
+// TaskCountsResult ...
+type TaskCountsResult struct {
 	autorest.Response `json:"-"`
-	Active            *int32 `json:"active,omitempty"`
-	Running           *int32 `json:"running,omitempty"`
-	Completed         *int32 `json:"completed,omitempty"`
-	Succeeded         *int32 `json:"succeeded,omitempty"`
-	Failed            *int32 `json:"failed,omitempty"`
+	TaskCounts        *TaskCounts     `json:"taskCounts,omitempty"`
+	TaskSlotCounts    *TaskSlotCounts `json:"taskSlotCounts,omitempty"`
 }
 
 // TaskDependencies ...
@@ -3549,6 +3836,15 @@ type TaskSchedulingPolicy struct {
 	NodeFillType ComputeNodeFillType `json:"nodeFillType,omitempty"`
 }
 
+// TaskSlotCounts ...
+type TaskSlotCounts struct {
+	Active    *int32 `json:"active,omitempty"`
+	Running   *int32 `json:"running,omitempty"`
+	Completed *int32 `json:"completed,omitempty"`
+	Succeeded *int32 `json:"succeeded,omitempty"`
+	Failed    *int32 `json:"failed,omitempty"`
+}
+
 // TaskStatistics ...
 type TaskStatistics struct {
 	URL            *string    `json:"url,omitempty"`
@@ -3573,12 +3869,14 @@ type TaskUpdateParameter struct {
 
 // UploadBatchServiceLogsConfiguration ...
 type UploadBatchServiceLogsConfiguration struct {
-	// ContainerURL - The URL must include a Shared Access Signature (SAS) granting write permissions to the container. The SAS duration must allow enough time for the upload to finish. The start time for SAS is optional and recommended to not be specified.
+	// ContainerURL - If a user assigned managed identity is not being used, the URL must include a Shared Access Signature (SAS) granting write permissions to the container. The SAS duration must allow enough time for the upload to finish. The start time for SAS is optional and recommended to not be specified.
 	ContainerURL *string `json:"containerUrl,omitempty"`
 	// StartTime - Any log file containing a log message in the time range will be uploaded. This means that the operation might retrieve more logs than have been requested since the entire log file is always uploaded, but the operation should not retrieve fewer logs than have been requested.
 	StartTime *date.Time `json:"startTime,omitempty"`
 	// EndTime - Any log file containing a log message in the time range will be uploaded. This means that the operation might retrieve more logs than have been requested since the entire log file is always uploaded, but the operation should not retrieve fewer logs than have been requested. If omitted, the default is to upload all logs available after the startTime.
 	EndTime *date.Time `json:"endTime,omitempty"`
+	// IdentityReference - The identity must have write access to the Azure Blob Storage container.
+	IdentityReference *ComputeNodeIdentityReference `json:"identityReference,omitempty"`
 }
 
 // UploadBatchServiceLogsResult ...
@@ -3608,12 +3906,55 @@ type UserAccount struct {
 	WindowsUserConfiguration *WindowsUserConfiguration `json:"windowsUserConfiguration,omitempty"`
 }
 
+// UserAssignedIdentity the user assigned Identity
+type UserAssignedIdentity struct {
+	// ResourceID - The ARM resource id of the user assigned identity
+	ResourceID *string `json:"resourceId,omitempty"`
+	// ClientID - READ-ONLY; The client id of the user assigned identity.
+	ClientID *string `json:"clientId,omitempty"`
+	// PrincipalID - READ-ONLY; The principal id of the user assigned identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UserAssignedIdentity.
+func (uai UserAssignedIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if uai.ResourceID != nil {
+		objectMap["resourceId"] = uai.ResourceID
+	}
+	return json.Marshal(objectMap)
+}
+
 // UserIdentity specify either the userName or autoUser property, but not both.
 type UserIdentity struct {
 	// UserName - The userName and autoUser properties are mutually exclusive; you must specify one but not both.
 	UserName *string `json:"username,omitempty"`
 	// AutoUser - The userName and autoUser properties are mutually exclusive; you must specify one but not both.
 	AutoUser *AutoUserSpecification `json:"autoUser,omitempty"`
+}
+
+// VMExtension ...
+type VMExtension struct {
+	Name               *string `json:"name,omitempty"`
+	Publisher          *string `json:"publisher,omitempty"`
+	Type               *string `json:"type,omitempty"`
+	TypeHandlerVersion *string `json:"typeHandlerVersion,omitempty"`
+	// AutoUpgradeMinorVersion - Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.
+	AutoUpgradeMinorVersion *bool       `json:"autoUpgradeMinorVersion,omitempty"`
+	Settings                interface{} `json:"settings,omitempty"`
+	// ProtectedSettings - The extension can contain either protectedSettings or protectedSettingsFromKeyVault or no protected settings at all.
+	ProtectedSettings interface{} `json:"protectedSettings,omitempty"`
+	// ProvisionAfterExtensions - Collection of extension names after which this extension needs to be provisioned.
+	ProvisionAfterExtensions *[]string `json:"provisionAfterExtensions,omitempty"`
+}
+
+// VMExtensionInstanceView ...
+type VMExtensionInstanceView struct {
+	Name *string `json:"name,omitempty"`
+	// Statuses - The resource status information.
+	Statuses *[]InstanceViewStatus `json:"statuses,omitempty"`
+	// SubStatuses - The resource status information.
+	SubStatuses *[]InstanceViewStatus `json:"subStatuses,omitempty"`
 }
 
 // VirtualMachineConfiguration ...
@@ -3633,6 +3974,16 @@ type VirtualMachineConfiguration struct {
 	ContainerConfiguration *ContainerConfiguration `json:"containerConfiguration,omitempty"`
 	// DiskEncryptionConfiguration - If specified, encryption is performed on each node in the pool during node provisioning.
 	DiskEncryptionConfiguration *DiskEncryptionConfiguration `json:"diskEncryptionConfiguration,omitempty"`
+	// NodePlacementConfiguration - This configuration will specify rules on how nodes in the pool will be physically allocated.
+	NodePlacementConfiguration *NodePlacementConfiguration `json:"nodePlacementConfiguration,omitempty"`
+	// Extensions - If specified, the extensions mentioned in this configuration will be installed on each node.
+	Extensions *[]VMExtension `json:"extensions,omitempty"`
+	OsDisk     *OSDisk        `json:"osDisk,omitempty"`
+}
+
+// VirtualMachineInfo ...
+type VirtualMachineInfo struct {
+	ImageReference *ImageReference `json:"imageReference,omitempty"`
 }
 
 // WindowsConfiguration ...
