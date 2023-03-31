@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230329.1052505` of `github.com/hashicorp/go-azure-sdk` [GH-21175]
 * dependencies: updated `azurerm_subscription` to use new SDK [GH-18813]
+* `azurerm_databricks_access_connector` - support for user assigned identities [GH-21059]
 * `azurerm_linux_function_app`  - add support for `zip_deploy_file` [GH-20544]
 * `azurerm_monitor_scheduled_query_rules_alert` - `trigger.x.metric_column` is now optional [GH-21203]
 * `azurerm_mssql_database` - HyperScale Skus now support `long_term_retention_policy` and `short_term_retention_policy` [GH-21166]
