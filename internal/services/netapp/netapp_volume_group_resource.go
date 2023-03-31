@@ -357,8 +357,8 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			// TODO: This is a temporary workaround until the backend is updated and DeploymentSpecId is not required anymore,
-			// it will be handled internally by the RP
+			// TODO: deploymentSpecId is temporary until the backend is updated and deploymentSpecId is not required anymore,
+			//       it will be handled internally by the RP
 			deploymentSpecId := "20542149-bfca-5618-1879-9863dc6767f1"
 
 			parameters := volumegroups.VolumeGroupDetails{
