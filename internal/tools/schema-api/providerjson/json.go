@@ -7,6 +7,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 )
 
+const (
+	SchemaTypeSet    = "TypeSet"
+	SchemaTypeList   = "TypeList"
+	SchemaTypeInt    = "TypeInt"
+	SchemaTypeString = "String"
+	SchemaTypeBool   = "Bool"
+	SchemaTypeFloat  = "Float"
+)
+
 type ProviderJSON schema.Provider
 
 type SchemaJSON struct {

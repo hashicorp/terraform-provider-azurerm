@@ -7,7 +7,7 @@ import (
 )
 
 var propertyTypeBaseNode = providerjson.SchemaJSON{
-	Type:        "TypeString",
+	Type:        providerjson.SchemaTypeString,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,
@@ -21,7 +21,7 @@ var propertyTypeBaseNode = providerjson.SchemaJSON{
 }
 
 var propertyTypePasses = providerjson.SchemaJSON{
-	Type:        "TypeString",
+	Type:        providerjson.SchemaTypeString,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,
@@ -35,7 +35,7 @@ var propertyTypePasses = providerjson.SchemaJSON{
 }
 
 var propertyTypeViolates = providerjson.SchemaJSON{
-	Type:        "TypeInt",
+	Type:        providerjson.SchemaTypeInt,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,
@@ -49,7 +49,7 @@ var propertyTypeViolates = providerjson.SchemaJSON{
 }
 
 var propertyTypeList = providerjson.SchemaJSON{
-	Type:        "TypeList",
+	Type:        providerjson.SchemaTypeList,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,
@@ -63,7 +63,7 @@ var propertyTypeList = providerjson.SchemaJSON{
 }
 
 var propertyTypeSet = providerjson.SchemaJSON{
-	Type:        "TypeSet",
+	Type:        providerjson.SchemaTypeSet,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,

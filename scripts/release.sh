@@ -110,13 +110,13 @@ fi
 echo "exporting Provider Schema JSON"
 (
   set -x
-  go run internal/tools/schema-api/main.go -export azurermProviderSchema.json
+  go run internal/tools/schema-api/main.go -export .release/provider-schema.json
 )
 
 echo "Committing changelog and provider schema..."
 (
   set -x
-  git commit CHANGELOG.md azurermProviderSchema.json -m v"${RELEASE}"
+  git commit CHANGELOG.md .release/provider-schema.json -m v"${RELEASE}"
   git push origin "${BRANCH}"
 )
 

@@ -40,7 +40,7 @@ func (d *Differ) Diff(fileName string, providerName string) []string {
 				// New property, could be breaking - Required etc
 				baseItem = providerjson.SchemaJSON{}
 			}
-			if errs := compareNode(baseItem, propertySchema, propertyName); errs != nil {
+			if errs := compareNodeResource(baseItem, propertySchema, propertyName); errs != nil {
 				violations = append(violations, errs...)
 			}
 		}
@@ -49,7 +49,7 @@ func (d *Differ) Diff(fileName string, providerName string) []string {
 	for dataSource, ds := range d.current.ProviderSchema.DataSourcesMap {
 		_, ok := d.base.ProviderSchema.DataSourcesMap[dataSource]
 		if !ok {
-			// New resource, no breaking changes to worry about
+			// New data source, no breaking changes to worry about
 			continue
 		}
 		for propertyName, propertySchema := range ds.Schema {
@@ -59,7 +59,7 @@ func (d *Differ) Diff(fileName string, providerName string) []string {
 				// New property, could be breaking - Required etc
 				baseItem = providerjson.SchemaJSON{}
 			}
-			if errs := compareNode(baseItem, propertySchema, propertyName); errs != nil {
+			if errs := compareNodeDataSource(baseItem, propertySchema, propertyName); errs != nil {
 				violations = append(violations, errs...)
 			}
 		}
@@ -68,12 +68,12 @@ func (d *Differ) Diff(fileName string, providerName string) []string {
 	return violations
 }
 
-func compareNode(base providerjson.SchemaJSON, current providerjson.SchemaJSON, nodeName string) (errs []string) {
+func compareNodeResource(base providerjson.SchemaJSON, current providerjson.SchemaJSON, nodeName string) (errs []string) {
 	if nodeIsBlock(base) {
 		newBaseRaw := base.Elem.(providerjson.ResourceJSON).Schema
 		newCurrent := current.Elem.(*providerjson.ResourceJSON).Schema
 		for k, newBase := range newBaseRaw {
-			errs = append(errs, compareNode(newBase, newCurrent[k], k)...)
+			errs = append(errs, compareNodeResource(newBase, newCurrent[k], k)...)
 		}
 	}
 
@@ -86,11 +86,30 @@ func compareNode(base providerjson.SchemaJSON, current providerjson.SchemaJSON, 
 	return
 }
 
+func compareNodeDataSource(base providerjson.SchemaJSON, current providerjson.SchemaJSON, nodeName string) (errs []string) {
+	if nodeIsBlock(base) {
+		newBaseRaw := base.Elem.(providerjson.ResourceJSON).Schema
+		newCurrent := current.Elem.(*providerjson.ResourceJSON).Schema
+		for k, newBase := range newBaseRaw {
+			errs = append(errs, compareNodeDataSource(newBase, newCurrent[k], k)...)
+		}
+	}
+
+	for _, v := range schema_rules.BreakingChangeRulesDataSource {
+		if err := v.Check(base, current, nodeName); err != nil {
+			errs = append(errs, *err)
+		}
+	}
+
+	return
+}
+
 func nodeIsBlock(input providerjson.SchemaJSON) bool {
-	if input.Type == "TypeList" || input.Type == "TypeSet" {
+	if input.Type == providerjson.SchemaTypeList || input.Type == providerjson.SchemaTypeSet {
 		if _, ok := input.Elem.(providerjson.ResourceJSON); ok {
 			return true
 		}
 	}
+
 	return false
 }
