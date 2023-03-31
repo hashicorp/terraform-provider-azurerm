@@ -190,6 +190,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 									"POST",
 									"OPTIONS",
 									"PUT",
+									"PATCH",
 								}, false),
 							},
 						},

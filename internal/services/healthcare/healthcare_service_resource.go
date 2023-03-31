@@ -162,6 +162,7 @@ func resourceHealthcareService() *pluginsdk.Resource {
 									"POST",
 									"OPTIONS",
 									"PUT",
+									"PATCH",
 								}, false),
 							},
 							AtLeastOneOf: []string{
