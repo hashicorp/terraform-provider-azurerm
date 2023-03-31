@@ -33,6 +33,7 @@ resource "azurerm_batch_account" "example" {
   location             = azurerm_resource_group.example.location
   pool_allocation_mode = "BatchService"
   storage_account_id   = azurerm_storage_account.example.id
+  storage_account_authentication_mode = "StorageKeys"
 
   tags = {
     env = "test"
@@ -65,6 +66,8 @@ The following arguments are supported:
 * `key_vault_reference` - (Optional) A `key_vault_reference` block, as defined below, that describes the Azure KeyVault reference to use when deploying the Azure Batch account using the `UserSubscription` pool allocation mode.
 
 * `storage_account_id` - (Optional) Specifies the storage account to use for the Batch account. If not specified, Azure Batch will manage the storage.
+
+~> **NOTE:** When using `storage_account_id`, the `storage_account_authentication_mode` must be specified as well.
 
 * `storage_account_authentication_mode` - (Optional) Specifies the storage account authentication mode. Possible values include `StorageKeys`, `BatchAccountManagedIdentity`.
 
