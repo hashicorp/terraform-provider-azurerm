@@ -47,21 +47,6 @@ func TestAccDatabricksAccessConnector_complete(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksAccessConnector_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
-	r := DatabricksAccessConnectorResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
 func TestAccDatabricksAccessConnector_identityComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
 	r := DatabricksAccessConnectorResource{}
@@ -87,6 +72,21 @@ func TestAccDatabricksAccessConnector_identityComplete(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccDatabricksAccessConnector_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
+	r := DatabricksAccessConnectorResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 

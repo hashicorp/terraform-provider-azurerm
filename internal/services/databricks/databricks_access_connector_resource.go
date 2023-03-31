@@ -65,6 +65,7 @@ func (r AccessConnectorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 
 func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model AccessConnectorResourceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -76,7 +77,7 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 			id := accessconnector.NewAccessConnectorID(subscriptionId, model.ResourceGroup, model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing Databricks %s: %+v", id, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -96,18 +97,18 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, accessConnector); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+				return fmt.Errorf("creating Databricks %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
 			return nil
 		},
-		Timeout: 5 * time.Minute,
 	}
 }
 
 func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataBricks.AccessConnectorClient
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
@@ -122,7 +123,18 @@ func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %v", id, err)
+				return fmt.Errorf("reading Databricks %s: %v", id, err)
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				// TODO: Switch this to 'identity.ExpandSystemOrSingleUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))'
+				// once SDK Helpers PR #164 has been merged and integrated into the provider...
+				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+
+				existing.Model.Identity = identityValue
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -130,18 +142,17 @@ func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+				return fmt.Errorf("updating Databricks %s: %+v", id, err)
 			}
 
 			return nil
 		},
-
-		Timeout: 5 * time.Minute,
 	}
 }
 
 func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
 			if err != nil {
@@ -155,7 +166,7 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
+				return fmt.Errorf("retrieving Databricks %s: %+v", *id, err)
 			}
 
 			state := AccessConnectorResourceModel{
@@ -168,11 +179,13 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 				if model.Tags != nil {
 					state.Tags = *model.Tags
 				}
+
 				if model.Identity != nil {
 					identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
 					if err != nil {
 						return fmt.Errorf("flattening `identity`: %+v", err)
 					}
+
 					if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
 						return fmt.Errorf("setting `identity`: %+v", err)
 					}
@@ -180,12 +193,12 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 			}
 			return metadata.Encode(&state)
 		},
-		Timeout: 5 * time.Minute,
 	}
 }
 
 func (r AccessConnectorResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
 
@@ -196,11 +209,10 @@ func (r AccessConnectorResource) Delete() sdk.ResourceFunc {
 			client := metadata.Client.DataBricks.AccessConnectorClient
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", *id, err)
+				return fmt.Errorf("deleting Databricks %s: %+v", *id, err)
 			}
 
 			return nil
 		},
-		Timeout: 30 * time.Minute,
 	}
 }
