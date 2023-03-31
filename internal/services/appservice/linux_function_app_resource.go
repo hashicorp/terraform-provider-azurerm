@@ -444,19 +444,15 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					suffix := uuid.New().String()[0:4]
 					_, contentOverVnetEnabled := functionApp.AppSettings["WEBSITE_CONTENTOVERVNET"]
 					_, contentSharePresent := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]
-					_, contentShareConnectionString := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]
+					if _, contentShareConnectionStringPresent := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !contentShareConnectionStringPresent {
+						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+					}
 
 					if !contentSharePresent {
 						if contentOverVnetEnabled {
 							return fmt.Errorf("the app_setting WEBSITE_CONTENTSHARE must be specified and set to a valid share when WEBSITE_CONTENTOVERVNET is specified")
 						}
 						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
-					}
-					if !contentShareConnectionString {
-						if contentOverVnetEnabled && contentSharePresent {
-							return fmt.Errorf("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING must be set when WEBSITE_CONTENTSHARE and WEBSITE_CONTENTOVERVNET are specified")
-						}
-						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
 				} else {
 					if _, present := functionApp.AppSettings["AzureWebJobsStorage__accountName"]; !present {
@@ -911,19 +907,15 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 					suffix := uuid.New().String()[0:4]
 					_, contentOverVnetEnabled := state.AppSettings["WEBSITE_CONTENTOVERVNET"]
 					_, contentSharePresent := state.AppSettings["WEBSITE_CONTENTSHARE"]
-					_, contentShareConnectionString := state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]
+					if _, contentShareConnectionStringPresent := state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !contentShareConnectionStringPresent {
+						state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+					}
 
 					if !contentSharePresent {
 						if contentOverVnetEnabled {
 							return fmt.Errorf("the value of WEBSITE_CONTENTSHARE must be set to a predefined share when the storage account is restricted to a virtual network")
 						}
 						state.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(state.Name), suffix)
-					}
-					if !contentShareConnectionString {
-						if contentOverVnetEnabled && contentSharePresent {
-							return fmt.Errorf("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING must be set when WEBSITE_CONTENTSHARE and WEBSITE_CONTENTOVERVNET is specified")
-						}
-						state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
 				} else {
 					if _, present := state.AppSettings["AzureWebJobsStorage__accountName"]; !present {
