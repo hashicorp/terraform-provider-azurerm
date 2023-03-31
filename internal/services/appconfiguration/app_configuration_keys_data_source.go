@@ -135,12 +135,12 @@ func (k KeysDataSource) Read() sdk.ResourceFunc {
 			// Link: "</kv?somepath...>; rel=next;"
 			// whereas the client expects a complete URI to be present and therefore fails to fetch all results if
 			// store contains more than 100 entries
-			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(*configurationStoreEndpoint)
+			client, err := metadata.Client.AppConfiguration.LinkWorkaroundDataPlaneClientWithEndpoint(*configurationStoreEndpoint)
 			if err != nil {
 				return err
 			}
 
-			nestedItemId, err := parse.NewNestedItemID(client.Endpoint, model.Key, model.Label)
+			nestedItemId, err := parse.NewNestedItemID(*configurationStoreEndpoint, model.Key, model.Label)
 			if err != nil {
 				return err
 			}
