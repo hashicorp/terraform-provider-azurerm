@@ -103,8 +103,7 @@ func (r HybridComputeMachineExtensionResource) Exists(ctx context.Context, clien
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	exists = resp.Model != nil
-	return &exists, nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func templateInit(data acceptance.TestData) (HybridComputeMachineExtensionResource, error) {
