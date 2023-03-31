@@ -351,6 +351,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(agentpools.WorkloadRuntimeOCIContainer),
 					string(agentpools.WorkloadRuntimeWasmWasi),
+					string(agentpools.WorkloadRuntimeKataMshvVMIsolation),
 				}, false),
 			},
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
