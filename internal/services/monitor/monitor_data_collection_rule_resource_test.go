@@ -649,14 +649,24 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     }
   }
 
-  description = "acc test monitor_data_collection_rule complete"
-  tags = {
-    ENV  = "test"
-    ENV2 = "test2"
+  stream_declaration {
+    stream_name = "Custom-MyTableRawData"
+    column {
+      name = "Time"
+      type = "datetime"
+    }
+    column {
+      name = "Computer"
+      type = "string"
+    }
+    column {
+      name = "AdditionalContext"
+      type = "string"
+    }
   }
 
   stream_declaration {
-    stream_name = "Custom-MyTableRawData"
+    stream_name = "Custom-MyTableRawData2"
     column {
       name = "Time"
       type = "datetime"
@@ -674,6 +684,12 @@ resource "azurerm_monitor_data_collection_rule" "test" {
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  description = "acc test monitor_data_collection_rule complete"
+  tags = {
+    ENV  = "test"
+    ENV2 = "test2"
   }
 
   depends_on = [

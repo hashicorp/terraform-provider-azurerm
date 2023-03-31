@@ -719,7 +719,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 									},
 								},
 								"label_include_filter": {
-									Type:     pluginsdk.TypeList,
+									Type:     pluginsdk.TypeSet,
 									Optional: true,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
@@ -863,7 +863,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"stream_declaration": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
