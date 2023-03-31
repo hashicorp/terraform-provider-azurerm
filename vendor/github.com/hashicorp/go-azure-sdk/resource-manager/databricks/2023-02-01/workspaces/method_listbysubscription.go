@@ -50,7 +50,7 @@ func (c WorkspacesClient) ListBySubscription(ctx context.Context, id commonids.S
 	}
 
 	var values struct {
-		Values *[]Workspace `json:"values"`
+		Values *[]Workspace `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

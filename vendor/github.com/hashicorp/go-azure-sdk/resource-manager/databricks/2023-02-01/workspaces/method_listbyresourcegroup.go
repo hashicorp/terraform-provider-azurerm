@@ -50,7 +50,7 @@ func (c WorkspacesClient) ListByResourceGroup(ctx context.Context, id commonids.
 	}
 
 	var values struct {
-		Values *[]Workspace `json:"values"`
+		Values *[]Workspace `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
