@@ -34,7 +34,7 @@ func generateRandomPassword(n int) string {
 }
 
 func TestAccHybridComputeMachine_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_hybrid_compute_machine", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_arc_machine", "test")
 	d := HybridComputeMachineDataSource{}
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	randomUUID, _ := uuid.GenerateUUID()
@@ -194,7 +194,7 @@ func (r HybridComputeMachineDataSource) basic(data acceptance.TestData, secret s
 	return fmt.Sprintf(`
 				%s
 
-data "azurerm_hybrid_compute_machine" "test" {
+data "azurerm_arc_machine" "test" {
   name                = azurerm_linux_virtual_machine.test.name
   resource_group_name = azurerm_resource_group.test.name
   depends_on = [

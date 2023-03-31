@@ -3,6 +3,7 @@ package hybridcompute_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"os"
 	"regexp"
 	"testing"
@@ -17,45 +18,51 @@ import (
 )
 
 type HybridComputeMachineExtensionResource struct {
-	template string
 }
 
 func TestAccHybridComputeMachineExtension_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hybrid_compute_machine_extension", "test")
-	r, _ := templateInit(data)
+	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
+	r := HybridComputeMachineExtensionResource{}
+	template := r.template(data)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, template),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("publisher").HasValue("Microsoft.Azure.Monitor"),
 				check.That(data.ResourceName).Key("type").HasValue("AzureMonitorLinuxAgent"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("protected_settings"),
 	})
 }
 
 func TestAccHybridComputeMachineExtension_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hybrid_compute_machine_extension", "test")
-	r, _ := templateInit(data)
+	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
+	r := HybridComputeMachineExtensionResource{}
+	template := r.template(data)
+	basicConfig := r.basic(data, template)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: basicConfig,
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		{
+			Config:      r.requiresImport(basicConfig),
+			ExpectError: acceptance.RequiresImportError("azurerm_arc_machine_extension"),
+		},
 	})
 }
 
 func TestAccHybridComputeMachineExtension_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hybrid_compute_machine_extension", "test")
-	r, _ := templateInit(data)
+	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
+	r := HybridComputeMachineExtensionResource{}
+	template := r.template(data)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, template),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("publisher").HasValue("Microsoft.Azure.Monitor"),
@@ -63,28 +70,29 @@ func TestAccHybridComputeMachineExtension_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("type_handler_version").MatchesRegex(regexp.MustCompile("^1[.]24.*$")),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("protected_settings"),
 	})
 }
 
 func TestAccHybridComputeMachineExtension_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hybrid_compute_machine_extension", "test")
-	r, _ := templateInit(data)
+	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
+	r := HybridComputeMachineExtensionResource{}
+	template := r.template(data)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, template),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("protected_settings"),
 		{
-			Config: r.update(data),
+			Config: r.update(data, template),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("protected_settings"),
 	})
 }
 
@@ -106,76 +114,70 @@ func (r HybridComputeMachineExtensionResource) Exists(ctx context.Context, clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func templateInit(data acceptance.TestData) (HybridComputeMachineExtensionResource, error) {
-	d := HybridComputeMachineDataSource{}
-	r := HybridComputeMachineExtensionResource{}
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	randomUUID, err := uuid.GenerateUUID()
-	if err != nil {
-		return r, err
-	}
-	password := generateRandomPassword(10)
-	r.template = d.basic(data, clientSecret, randomUUID, password)
-	return r, nil
-}
-
-func (r HybridComputeMachineExtensionResource) basic(data acceptance.TestData) string {
+func (r HybridComputeMachineExtensionResource) basic(data acceptance.TestData, template string) string {
 	return fmt.Sprintf(`
 				%s
 
-resource "azurerm_hybrid_compute_machine_extension" "test" {
+resource "azurerm_arc_machine_extension" "test" {
   name                      = "acctest-hcme-%d"
-  hybrid_compute_machine_id = data.azurerm_hybrid_compute_machine.test.id
+  hybrid_compute_machine_id = data.azurerm_arc_machine.test.id
   publisher                 = "Microsoft.Azure.Monitor"
   type                      = "AzureMonitorLinuxAgent"
   location                  = "%s"
 }
-`, r.template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r HybridComputeMachineExtensionResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
+func (r HybridComputeMachineExtensionResource) requiresImport(basicConfig string) string {
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_hybrid_compute_machine_extension" "import" {
-  name                      = azurerm_hybrid_compute_machine_extension.test.name
-  hybrid_compute_machine_id = azurerm_hybrid_compute_machine_extension.test.hybrid_compute_machine_id
-  publisher                 = azurerm_hybrid_compute_machine_extension.test.publisher
-  type                      = azurerm_hybrid_compute_machine_extension.test.type
-  location                  = azurerm_hybrid_compute_machine_extension.test.location
+resource "azurerm_arc_machine_extension" "import" {
+  name                      = azurerm_arc_machine_extension.test.name
+  hybrid_compute_machine_id = azurerm_arc_machine_extension.test.hybrid_compute_machine_id
+  publisher                 = azurerm_arc_machine_extension.test.publisher
+  type                      = azurerm_arc_machine_extension.test.type
+  location                  = azurerm_arc_machine_extension.test.location
 }
-`, config)
+`, basicConfig)
 }
 
-func (r HybridComputeMachineExtensionResource) complete(data acceptance.TestData) string {
+func (r HybridComputeMachineExtensionResource) complete(data acceptance.TestData, template string) string {
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_hybrid_compute_machine_extension" "test" {
+resource "azurerm_arc_machine_extension" "test" {
   name                               = "acctest-hcme-%d"
-  hybrid_compute_machine_id          = data.azurerm_hybrid_compute_machine.test.id
+  hybrid_compute_machine_id          = data.azurerm_arc_machine.test.id
   location                           = "%s"
   automatic_upgrade_enabled          = false
   publisher                          = "Microsoft.Azure.Monitor"
   type                               = "AzureMonitorLinuxAgent"
   type_handler_version               = "1.24"
 }
-`, r.template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r HybridComputeMachineExtensionResource) update(data acceptance.TestData) string {
+func (r HybridComputeMachineExtensionResource) update(data acceptance.TestData, template string) string {
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_hybrid_compute_machine_extension" "test" {
+resource "azurerm_arc_machine_extension" "test" {
   name                               = "acctest-hcme-%d"
-  hybrid_compute_machine_id          = data.azurerm_hybrid_compute_machine.test.id
+  hybrid_compute_machine_id          = data.azurerm_arc_machine.test.id
   location                           = "%s"
   automatic_upgrade_enabled          = true
   publisher                          = "Microsoft.Azure.Monitor"
   type                               = "AzureMonitorLinuxAgent"
   type_handler_version               = "1.25"
 }
-`, r.template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r HybridComputeMachineExtensionResource) template(data acceptance.TestData) string {
+	d := HybridComputeMachineDataSource{}
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	randomUUID, _ := uuid.GenerateUUID()
+	password := generateRandomPassword(10)
+	return d.basic(data, clientSecret, randomUUID, password)
 }

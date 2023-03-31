@@ -48,23 +48,23 @@ type MachineExtensionInstanceViewStatusModel struct {
 	Time          string                             `tfschema:"time"`
 }
 
-type HybridComputeMachineExtensionResource struct{}
+type ArcMachineExtensionResource struct{}
 
-var _ sdk.ResourceWithUpdate = HybridComputeMachineExtensionResource{}
+var _ sdk.ResourceWithUpdate = ArcMachineExtensionResource{}
 
-func (r HybridComputeMachineExtensionResource) ResourceType() string {
-	return "azurerm_hybrid_compute_machine_extension"
+func (r ArcMachineExtensionResource) ResourceType() string {
+	return "azurerm_arc_machine_extension"
 }
 
-func (r HybridComputeMachineExtensionResource) ModelObject() interface{} {
+func (r ArcMachineExtensionResource) ModelObject() interface{} {
 	return &MachineExtensionModel{}
 }
 
-func (r HybridComputeMachineExtensionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ArcMachineExtensionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return machineextensions.ValidateExtensionID
 }
 
-func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk.Schema {
+func (r ArcMachineExtensionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -86,7 +86,7 @@ func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk
 		"automatic_upgrade_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Default:  true,
 		},
 
 		"force_update_tag": {
@@ -100,6 +100,7 @@ func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk
 		"protected_settings": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
+			Sensitive:        true,
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
@@ -147,7 +148,7 @@ func (r HybridComputeMachineExtensionResource) Arguments() map[string]*pluginsdk
 	}
 }
 
-func (r HybridComputeMachineExtensionResource) Attributes() map[string]*pluginsdk.Schema {
+func (r ArcMachineExtensionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"instance_view": {
 			Type:     pluginsdk.TypeList,
@@ -207,7 +208,7 @@ func (r HybridComputeMachineExtensionResource) Attributes() map[string]*pluginsd
 	}
 }
 
-func (r HybridComputeMachineExtensionResource) Create() sdk.ResourceFunc {
+func (r ArcMachineExtensionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -284,7 +285,7 @@ func (r HybridComputeMachineExtensionResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r HybridComputeMachineExtensionResource) Update() sdk.ResourceFunc {
+func (r ArcMachineExtensionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -381,7 +382,7 @@ func (r HybridComputeMachineExtensionResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r HybridComputeMachineExtensionResource) Read() sdk.ResourceFunc {
+func (r ArcMachineExtensionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -469,7 +470,7 @@ func (r HybridComputeMachineExtensionResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r HybridComputeMachineExtensionResource) Delete() sdk.ResourceFunc {
+func (r ArcMachineExtensionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

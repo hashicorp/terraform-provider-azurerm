@@ -1,12 +1,12 @@
 ---
 subcategory: "Hybrid Compute"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_hybrid_compute_machine_extension"
+page_title: "Azure Resource Manager: azurerm_arc_machine_extension"
 description: |-
   Manages a Hybrid Compute Machine Extension.
 ---
 
-# azurerm_hybrid_compute_machine_extension
+# azurerm_arc_machine_extension
 
 Manages a Hybrid Compute Machine Extension.
 
@@ -18,15 +18,15 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-data "azurerm_hybrid_compute_machine" "example" {
+data "azurerm_arc_machine" "example" {
   name                = "existing-hcmachine"
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_hybrid_compute_machine_extension" "example" {
+resource "azurerm_arc_machine_extension" "example" {
   name                      = "example"
   location                  = "West Europe"
-  hybrid_compute_machine_id = data.azurerm_hybrid_compute_machine.example.id
+  hybrid_compute_machine_id = data.azurerm_arc_machine.example.id
   publisher                 = "Microsoft.Azure.Monitor"
   type                      = "AzureMonitorLinuxAgent"
 }
@@ -108,5 +108,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Hybrid Compute Machine Extensions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hybrid_compute_machine_extension.example C:/Program Files/Git/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HybridCompute/machines/hcmachine1/extensions/ext1
+terraform import azurerm_arc_machine_extension.example C:/Program Files/Git/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HybridCompute/machines/hcmachine1/extensions/ext1
 ```

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type HybridComputeMachineModel struct {
+type ArcMachineModel struct {
 	Name                       string                    `tfschema:"name"`
 	ResourceGroupName          string                    `tfschema:"resource_group_name"`
 	AgentConfiguration         []AgentConfigurationModel `tfschema:"agent_configuration"`
@@ -116,23 +116,23 @@ type ErrorAdditionalInfoModel struct {
 	Type string `tfschema:"type"`
 }
 
-type HybridComputeMachineDataSource struct{}
+type ArcMachineDataSource struct{}
 
-var _ sdk.DataSource = HybridComputeMachineDataSource{}
+var _ sdk.DataSource = ArcMachineDataSource{}
 
-func (r HybridComputeMachineDataSource) ResourceType() string {
-	return "azurerm_hybrid_compute_machine"
+func (r ArcMachineDataSource) ResourceType() string {
+	return "azurerm_arc_machine"
 }
 
-func (r HybridComputeMachineDataSource) ModelObject() interface{} {
-	return &HybridComputeMachineModel{}
+func (r ArcMachineDataSource) ModelObject() interface{} {
+	return &ArcMachineModel{}
 }
 
-func (r HybridComputeMachineDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ArcMachineDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return machines.ValidateMachineID
 }
 
-func (r HybridComputeMachineDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r ArcMachineDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -144,7 +144,7 @@ func (r HybridComputeMachineDataSource) Arguments() map[string]*pluginsdk.Schema
 	}
 }
 
-func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r ArcMachineDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"agent_configuration": {
 			Type:     pluginsdk.TypeList,
@@ -529,14 +529,14 @@ func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schem
 	}
 }
 
-func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
+func (r ArcMachineDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.HybridCompute.MachinesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var hybridComputeMachineModel HybridComputeMachineModel
+			var hybridComputeMachineModel ArcMachineModel
 			if err := metadata.Decode(&hybridComputeMachineModel); err != nil {
 				return err
 			}
@@ -557,7 +557,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := HybridComputeMachineModel{
+			state := ArcMachineModel{
 				Name:              id.MachineName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),

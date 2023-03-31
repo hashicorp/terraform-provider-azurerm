@@ -1,25 +1,25 @@
 ---
 subcategory: "Hybrid Compute"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_hybrid_compute_machine"
+page_title: "Azure Resource Manager: Data Source: azurerm_arc_machine"
 description: |-
   Gets information about an existing hybrid compute machine.
 ---
 
-# Data Source: azurerm_hybrid_compute_machine
+# Data Source: azurerm_arc_machine
 
 Use this data source to access information about an existing Hybrid Compute.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_hybrid_compute_machine" "example" {
+data "azurerm_arc_machine" "example" {
   name                = "existing-hcmachine"
   resource_group_name = "existing-rg"
 }
 
 output "id" {
-  value = data.azurerm_hybrid_compute_machine.example.id
+  value = data.azurerm_arc_machine.example.id
 }
 ```
 
