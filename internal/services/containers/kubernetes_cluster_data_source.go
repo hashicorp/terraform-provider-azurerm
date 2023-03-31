@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -823,23 +824,22 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `service_principal`: %+v", err)
 			}
 
+			d.Set("kube_admin_config_raw", "")
+			d.Set("kube_admin_config", []interface{}{})
 			// adminProfile is only available for RBAC enabled clusters with AAD and without local accounts disabled
 			if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
 				adminCredentials, err := client.ListClusterAdminCredentials(ctx, id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
 				if err != nil {
-					return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
-				}
-
-				if adminCredentialModel := adminCredentials.Model; adminCredentialModel != nil {
+					if !utils.ResponseWasForbidden(autorest.Response{Response: adminCredentials.HttpResponse}) {
+						return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
+					}
+				} else if adminCredentialModel := adminCredentials.Model; adminCredentialModel != nil {
 					adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterCredentials(*adminCredentialModel, "clusterAdmin")
 					d.Set("kube_admin_config_raw", adminKubeConfigRaw)
 					if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
 						return fmt.Errorf("setting `kube_admin_config`: %+v", err)
 					}
 				}
-			} else {
-				d.Set("kube_admin_config_raw", "")
-				d.Set("kube_admin_config", []interface{}{})
 			}
 		}
 
