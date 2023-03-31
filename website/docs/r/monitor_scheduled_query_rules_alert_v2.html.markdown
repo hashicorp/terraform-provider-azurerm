@@ -186,7 +186,7 @@ A `failing_periods` block supports the following:
 
 ## Attributes Reference
 
-The following Attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Monitor Scheduled Query Rule.
 

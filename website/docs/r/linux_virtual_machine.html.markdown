@@ -154,7 +154,7 @@ The following arguments are supported:
 
 * `extensions_time_budget` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. Defaults to 90 minutes (`PT1H30M`).
 
-* `gallery_application` - (Optional) A `gallery_application` block as defined below.
+* `gallery_application` - (Optional) One or more `gallery_application` blocks as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -348,7 +348,7 @@ A `termination_notification` block supports the following:
 
 ## Attributes Reference
 
-In addition to all arguments above, the following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Linux Virtual Machine.
 

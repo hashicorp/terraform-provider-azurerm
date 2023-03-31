@@ -88,7 +88,7 @@ A `timewindow_filter` block represents a feature filter of type `Microsoft.TimeW
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The App Configuration Feature ID.
 
@@ -106,11 +106,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 App Configuration Features can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/label1
+terraform import azurerm_app_configuration_feature.test https://appconfname1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label=labelName
 ```
 
-If you wish to import a key with an empty label then sustitute the label's name with `%00`, like this:
+If you wish to import with an empty label then simply leave the label's name blank:
 
 ```shell
-terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/%00
+terraform import azurerm_app_configuration_feature.test https://appconfname1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label=
 ```

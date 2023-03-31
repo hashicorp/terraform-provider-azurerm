@@ -1,7 +1,6 @@
 package compute
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -172,7 +171,7 @@ func linuxSecretSchema() *pluginsdk.Schema {
 				"key_vault_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: azure.ValidateResourceID, // TODO: more granular validation
+					ValidateFunc: keyVaultValidate.VaultID,
 				},
 
 				// whilst we /could/ flatten this to `certificate_urls` we're intentionally not to keep this
@@ -587,7 +586,7 @@ func windowsSecretSchema() *pluginsdk.Schema {
 				"key_vault_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: keyVaultValidate.VaultID,
 				},
 
 				"certificate": {

@@ -49,7 +49,7 @@ func (c DisasterRecoveryConfigsClient) ListAuthorizationRules(ctx context.Contex
 	}
 
 	var values struct {
-		Values *[]SBAuthorizationRule `json:"values"`
+		Values *[]SBAuthorizationRule `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -301,7 +302,7 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 				"network_security_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					ValidateFunc: networkValidate.NetworkSecurityGroupID,
 				},
 
 				"primary": {
@@ -339,7 +340,7 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: networkValidate.ApplicationSecurityGroupID,
 					},
 					Set:      pluginsdk.HashString,
 					MaxItems: 20,
@@ -363,7 +364,7 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 				"subnet_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: networkValidate.SubnetID,
 				},
 
 				"version": {
@@ -432,7 +433,7 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					ValidateFunc: networkValidate.PublicIpPrefixID,
 				},
 
 				"sku_name": {

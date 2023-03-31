@@ -49,7 +49,7 @@ func (c NamespacesClient) ListNetworkRuleSets(ctx context.Context, id NamespaceI
 	}
 
 	var values struct {
-		Values *[]NetworkRuleSet `json:"values"`
+		Values *[]NetworkRuleSet `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
