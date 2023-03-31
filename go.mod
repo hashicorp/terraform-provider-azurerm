@@ -7,6 +7,7 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-autorest/autorest/validation v0.3.1
 	github.com/Azure/go-autorest/tracing v0.6.0
+	github.com/agiledragon/gomonkey/v2 v2.9.0
 	github.com/btubbs/datetime v0.1.0
 	github.com/dave/jennifer v1.6.0
 	github.com/davecgh/go-spew v1.1.1
@@ -14,7 +15,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/go-azure-helpers v0.55.0
-	github.com/hashicorp/go-azure-sdk v0.20230323.1151043
+	github.com/hashicorp/go-azure-sdk v0.20230329.1052505
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/go-version v1.6.0

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/automationrules"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -161,7 +161,7 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 					"logic_app_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: workflows.ValidateWorkflowID,
 					},
 
 					"tenant_id": {

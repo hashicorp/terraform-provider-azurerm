@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	firewallValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -402,7 +403,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: networkValidate.SubnetID,
 						},
 
 						"id": {
@@ -539,7 +540,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"firewall_policy_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: firewallValidate.FirewallPolicyID,
 						},
 
 						"ssl_profile_name": {
@@ -598,7 +599,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 									"subnet_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: azure.ValidateResourceID,
+										ValidateFunc: networkValidate.SubnetID,
 									},
 
 									"private_ip_address": {
@@ -1157,10 +1158,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"data": {
-							Type:      pluginsdk.TypeString,
-							Optional:  true,
-							Sensitive: true,
-							StateFunc: base64EncodedStateFunc,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							StateFunc:    base64EncodedStateFunc,
+							ValidateFunc: validation.StringIsBase64,
 						},
 
 						"password": {
@@ -1502,7 +1504,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			"firewall_policy_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: firewallValidate.FirewallPolicyID,
 			},
 
 			"custom_error_configuration": {

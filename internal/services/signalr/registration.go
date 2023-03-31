@@ -12,19 +12,20 @@ var (
 	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
 )
 
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/signalr"
+}
+
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		CustomDomainSignalrServiceResource{},
 		CustomDomainWebPubsubResource{},
+		CustomCertWebPubsubResource{},
 	}
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{}
-}
-
-func (r Registration) AssociatedGitHubLabel() string {
-	return "service/signalr"
 }
 
 // Name is the name of this Service

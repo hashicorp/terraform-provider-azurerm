@@ -178,6 +178,10 @@ func resourceHealthcareApisMedTechServiceCreate(d *pluginsdk.ResourceData, meta 
 
 func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceMedTechServiceClient
+	domainSuffix, ok := meta.(*clients.Client).Account.Environment.ServiceBus.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("unable to retrieve the Domain Suffix for ServiceBus, this is not configured for this Cloud Environment")
+	}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -197,26 +201,36 @@ func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta in
 	}
 
 	d.Set("name", id.IotConnectorName)
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
-	d.Set("workspace_id", workspaceId.ID())
+	d.Set("workspace_id", parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if resp.Location != nil {
-		d.Set("location", location.NormalizeNilable(resp.Location))
-	}
-
-	if resp.Identity != nil {
-		d.Set("identity", flattenMedTechServiceIdentity(resp.Identity))
+	if err := d.Set("identity", flattenMedTechServiceIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if props := resp.IotConnectorProperties; props != nil {
-		if props.IngestionEndpointConfiguration.EventHubName != nil {
-			d.Set("eventhub_name", props.IngestionEndpointConfiguration.EventHubName)
-		}
+		eventHubConsumerGroupName := ""
+		eventHubName := ""
+		eventHubNamespaceName := ""
+		if config := props.IngestionEndpointConfiguration; config != nil {
+			if config.ConsumerGroup != nil {
+				eventHubConsumerGroupName = *config.ConsumerGroup
+			}
 
-		if props.IngestionEndpointConfiguration.ConsumerGroup != nil {
-			d.Set("eventhub_consumer_group_name", props.IngestionEndpointConfiguration.ConsumerGroup)
-		}
+			if config.EventHubName != nil {
+				eventHubName = *config.EventHubName
+			}
 
+			if props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace != nil {
+				suffixToTrim := "." + *domainSuffix
+				eventHubNamespaceName = strings.TrimSuffix(*props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace, suffixToTrim)
+			}
+		}
+		d.Set("eventhub_consumer_group_name", eventHubConsumerGroupName)
+		d.Set("eventhub_name", eventHubName)
+		d.Set("eventhub_namespace_name", eventHubNamespaceName)
+
+		mapContent := ""
 		if props.DeviceMapping != nil {
 			deviceMapData, err := json.Marshal(props.DeviceMapping)
 			if err != nil {
@@ -227,7 +241,6 @@ func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta in
 			if err = json.Unmarshal(deviceMapData, &m); err != nil {
 				return err
 			}
-			mapContent := ""
 			if v, ok := m["content"]; ok {
 				contents, err := json.Marshal(v)
 				if err != nil {
@@ -235,12 +248,8 @@ func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta in
 				}
 				mapContent = string(contents)
 			}
-			d.Set("device_mapping_json", mapContent)
 		}
-
-		if props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace != nil {
-			d.Set("eventhub_namespace_name", strings.TrimSuffix(*props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace, ".servicebus.windows.net"))
-		}
+		d.Set("device_mapping_json", mapContent)
 	}
 
 	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
@@ -331,6 +340,7 @@ func resourceHealthcareApisMedTechServiceDelete(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
+	// NOTE: this can be removed when using `hashicorp/go-azure-sdk`'s base layer
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Pending"},
 		Target:                    []string{"Deleted"},
