@@ -2190,8 +2190,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherWinRMHTTPS(data acceptance.TestData) string {
-	// key vault name can only be up to 24 chars
-	trimmedName := fmt.Sprintf("%d", data.RandomInteger)[0:5]
 	return fmt.Sprintf(`
 %s
 
@@ -2356,7 +2354,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     protocol        = "Https"
   }
 }
-`, r.template(data), trimmedName)
+`, r.template(data), data.RandomString)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) updateLoadBalancerHealthProbeSKU(data acceptance.TestData, isStandardSku bool) string {

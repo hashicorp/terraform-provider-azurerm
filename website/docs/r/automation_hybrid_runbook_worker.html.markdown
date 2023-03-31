@@ -18,7 +18,7 @@ resource "azurerm_automation_hybrid_runbook_worker" "example" {
   automation_account_name = azurerm_automation_account.test.name
   worker_group_name       = azurerm_automation_hybrid_runbook_worker_group.test.name
   vm_resource_id          = azurerm_linux_virtual_machine.test.id
-  worker_id               = "00000000-0000-0000-0000-000000000000"
+  worker_id               = "00000000-0000-0000-0000-000000000000" #unique uuid
 }
 ```
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `worker_group_name` - (Required) The name of the HybridWorker Group. Changing this forces a new Automation to be created.
 
-* `worker_id` - (Required) The ID of the HybridWorker. Changing this forces a new Automation to be created.
+* `worker_id` - (Required) Specify the ID of this HybridWorker in UUID notation. Changing this forces a new Automation to be created.
 
 * `vm_resource_id` - (Required) The ID of the virtual machine used for this HybridWorker. Changing this forces a new Automation to be created.
 

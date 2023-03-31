@@ -113,6 +113,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web"
 )
 
@@ -164,11 +165,13 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
 		storage.Registration{},
+		signalr.Registration{},
 		orbital.Registration{},
 		streamanalytics.Registration{},
 		search.Registration{},
 		springcloud.Registration{},
 		vmware.Registration{},
+		voiceservices.Registration{},
 		web.Registration{},
 	}
 	services = append(services, autoRegisteredTypedServices()...)

@@ -580,8 +580,6 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			model.SystemData = nil
-
 			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = &resourceModel.Tags
 			}

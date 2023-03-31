@@ -31,7 +31,7 @@ func TestAccMobileNetworkSimGroupDataSource_complete(t *testing.T) {
 
 func (r MobileNetworkSimGroupDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
+%s
 
 data "azurerm_mobile_network_sim_group" "test" {
   name              = azurerm_mobile_network_sim_group.test.name

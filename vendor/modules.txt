@@ -82,6 +82,10 @@ github.com/Azure/go-autorest/tracing
 # github.com/agext/levenshtein v1.2.3
 ## explicit
 github.com/agext/levenshtein
+# github.com/agiledragon/gomonkey/v2 v2.9.0
+## explicit; go 1.14
+github.com/agiledragon/gomonkey/v2
+github.com/agiledragon/gomonkey/v2/creflect
 # github.com/apparentlymart/go-textseg v1.0.0
 ## explicit
 github.com/apparentlymart/go-textseg/textseg
@@ -252,6 +256,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/device
 github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/orders
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector
+github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/vnetpeering
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/agreements
@@ -541,6 +546,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/pr
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/transformations
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs
+github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions
 github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15
 github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/accesspolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/environments
@@ -555,6 +561,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/authorizati
 github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/privateclouds
 github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2021-12-01/datastores
+github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-01-31/communicationsgateways
+github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-01-31/testlines
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/managedapis
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01

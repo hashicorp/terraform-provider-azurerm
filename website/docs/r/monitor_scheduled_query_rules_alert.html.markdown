@@ -136,10 +136,10 @@ The `action` block supports the following:
 
 The `metric_trigger` block supports the following:
 
-* `metric_column` - (Required) Evaluation of metric on a particular column.
 * `metric_trigger_type` - (Required) Metric Trigger Type - 'Consecutive' or 'Total'.
 * `operator` - (Required) Evaluation operation for rule - 'Equal', 'GreaterThan', GreaterThanOrEqual', 'LessThan', or 'LessThanOrEqual'.
 * `threshold` - (Required) The threshold of the metric trigger. Values must be between 0 and 10000 inclusive.
+* `metric_column` - (Optional) Evaluation of metric on a particular column.
 
 ---
 
@@ -151,7 +151,7 @@ The `trigger` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the scheduled query rule.
 

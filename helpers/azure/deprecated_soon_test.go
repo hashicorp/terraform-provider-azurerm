@@ -86,7 +86,7 @@ func TestAzureResourceIDOrEmpty(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.ID, func(t *testing.T) {
-			_, errors := azure.ValidateResourceIDOrEmpty(tc.ID, "test")
+			_, errors := azure.ValidateResourceIDOrEmpty(tc.ID, "test") // nolint: staticcheck
 
 			if len(errors) < tc.Errors {
 				t.Fatalf("Expected TestAzureResourceIdOrEmpty to have %d not %d errors for %q", tc.Errors, len(errors), tc.ID)

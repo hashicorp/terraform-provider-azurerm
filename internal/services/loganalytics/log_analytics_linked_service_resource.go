@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -212,10 +211,9 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 		"workspace_id": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     azure.ValidateResourceID,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: linkedservices.ValidateWorkspaceID,
 		},
 
 		"read_access_id": {

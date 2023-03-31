@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -159,7 +160,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 									"subnet_id": {
 										Type:             pluginsdk.TypeString,
 										Required:         true,
-										ValidateFunc:     azure.ValidateResourceID,
+										ValidateFunc:     networkValidate.SubnetID,
 										DiffSuppressFunc: suppress.CaseDifference,
 									},
 
