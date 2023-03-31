@@ -31,7 +31,7 @@ output "action_group_id" {
 ## Attributes Reference
 
 * `id` - The ID of the Action Group.
-* `short_name` - The short name of the action group.
+* `short_name` - The short name of the action group. The length should be no greater than 12 and no less than 1.
 * `enabled` - Whether this action group is enabled.
 * `arm_role_receiver` - One or more `arm_role_receiver` blocks as defined below.
 * `automation_runbook_receiver` - One or more `automation_runbook_receiver` blocks as defined below.
