@@ -4,6 +4,8 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230331.1143618` of `github.com/hashicorp/go-azure-sdk` [GH-21239]
 * dependencies: updating to `v0.20230331.1120327` of `github.com/tombuildsstuff/kermit` [GH-21235]
+* `azurerm_healthcare_fhir_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
+* `azurerm_healthcare_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
 
 BUG FIXES:
 
