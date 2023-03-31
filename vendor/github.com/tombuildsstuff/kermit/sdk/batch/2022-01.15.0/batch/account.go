@@ -8,13 +8,14 @@ package batch
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"github.com/gofrs/uuid"
-	"net/http"
 )
 
 // AccountClient is the a client for issuing REST requests to the Azure Batch service.
@@ -93,7 +94,7 @@ func (client AccountClient) ListPoolNodeCountsPreparer(ctx context.Context, filt
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -255,7 +256,7 @@ func (client AccountClient) ListSupportedImagesPreparer(ctx context.Context, fil
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

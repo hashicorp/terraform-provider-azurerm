@@ -8,13 +8,14 @@ package batch
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"github.com/gofrs/uuid"
-	"net/http"
 )
 
 // ApplicationClient is the a client for issuing REST requests to the Azure Batch service.
@@ -82,7 +83,7 @@ func (client ApplicationClient) GetPreparer(ctx context.Context, applicationID s
 		"applicationId": autorest.Encode("path", applicationID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -199,7 +200,7 @@ func (client ApplicationClient) ListPreparer(ctx context.Context, maxResults *in
 		"batchUrl": client.BatchURL,
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

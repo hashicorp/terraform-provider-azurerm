@@ -8,13 +8,14 @@ package batch
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"github.com/gofrs/uuid"
-	"net/http"
 )
 
 // TaskClient is the a client for issuing REST requests to the Azure Batch service.
@@ -55,12 +56,7 @@ func (client TaskClient) Add(ctx context.Context, jobID string, task TaskAddPara
 			Constraints: []validation.Constraint{{Target: "task.ID", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "task.CommandLine", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "task.ContainerSettings", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "task.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil},
-						{Target: "task.ContainerSettings.Registry", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "task.ContainerSettings.Registry.UserName", Name: validation.Null, Rule: true, Chain: nil},
-								{Target: "task.ContainerSettings.Registry.Password", Name: validation.Null, Rule: true, Chain: nil},
-							}},
-					}},
+					Chain: []validation.Constraint{{Target: "task.ContainerSettings.ImageName", Name: validation.Null, Rule: true, Chain: nil}}},
 				{Target: "task.AffinityInfo", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "task.AffinityInfo.AffinityID", Name: validation.Null, Rule: true, Chain: nil}}},
 				{Target: "task.MultiInstanceSettings", Name: validation.Null, Rule: false,
@@ -100,7 +96,7 @@ func (client TaskClient) AddPreparer(ctx context.Context, jobID string, task Tas
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -222,7 +218,7 @@ func (client TaskClient) AddCollectionPreparer(ctx context.Context, jobID string
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -343,7 +339,7 @@ func (client TaskClient) DeletePreparer(ctx context.Context, jobID string, taskI
 		"taskId": autorest.Encode("path", taskID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -478,7 +474,7 @@ func (client TaskClient) GetPreparer(ctx context.Context, jobID string, taskID s
 		"taskId": autorest.Encode("path", taskID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -624,7 +620,7 @@ func (client TaskClient) ListPreparer(ctx context.Context, jobID string, filter 
 		"jobId": autorest.Encode("path", jobID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -782,7 +778,7 @@ func (client TaskClient) ListSubtasksPreparer(ctx context.Context, jobID string,
 		"taskId": autorest.Encode("path", taskID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -906,7 +902,7 @@ func (client TaskClient) ReactivatePreparer(ctx context.Context, jobID string, t
 		"taskId": autorest.Encode("path", taskID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1040,7 +1036,7 @@ func (client TaskClient) TerminatePreparer(ctx context.Context, jobID string, ta
 		"taskId": autorest.Encode("path", taskID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1173,7 +1169,7 @@ func (client TaskClient) UpdatePreparer(ctx context.Context, jobID string, taskI
 		"taskId": autorest.Encode("path", taskID),
 	}
 
-	const APIVersion = "2020-03-01.11.0"
+	const APIVersion = "2022-01-01.15.0"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
