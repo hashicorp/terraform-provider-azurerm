@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -58,14 +57,13 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
 					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Required: true,
 					Default:  true,
 				},
 
 				"api_management_api_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validate.ApiID,
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 
 				"api_definition_url": {
@@ -106,7 +104,6 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -129,7 +126,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"scm_ip_restriction": IpRestrictionSchema(),
 
 				"local_mysql_enabled": {
-					Type:     pluginsdk.TypeBool,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Default:  false,
 				},
