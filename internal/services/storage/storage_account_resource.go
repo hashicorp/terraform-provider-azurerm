@@ -691,6 +691,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"smb": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
