@@ -26,7 +26,7 @@ data "azurerm_arc_machine" "example" {
 resource "azurerm_arc_machine_extension" "example" {
   name                      = "example"
   location                  = "West Europe"
-  hybrid_compute_machine_id = data.azurerm_arc_machine.example.id
+  arc_machine_id = data.azurerm_arc_machine.example.id
   publisher                 = "Microsoft.Azure.Monitor"
   type                      = "AzureMonitorLinuxAgent"
 }
@@ -36,7 +36,7 @@ resource "azurerm_arc_machine_extension" "example" {
 
 The following arguments are supported:
 
-* `hybrid_compute_machine_id` - (Required) The ID of the Hybrid Compute Machine Extension. Changing this forces a new Hybrid Compute Machine Extension to be created.
+* `arc_machine_id` - (Required) The ID of the Hybrid Compute Machine Extension. Changing this forces a new Hybrid Compute Machine Extension to be created.
 
 * `location` - (Required) The Azure Region where the Hybrid Compute Machine Extension should exist. Changing this forces a new Hybrid Compute Machine Extension to be created.
 

@@ -120,7 +120,7 @@ func (r HybridComputeMachineExtensionResource) basic(data acceptance.TestData, t
 
 resource "azurerm_arc_machine_extension" "test" {
   name                      = "acctest-hcme-%d"
-  hybrid_compute_machine_id = data.azurerm_arc_machine.test.id
+  arc_machine_id            = data.azurerm_arc_machine.test.id
   publisher                 = "Microsoft.Azure.Monitor"
   type                      = "AzureMonitorLinuxAgent"
   location                  = "%s"
@@ -134,7 +134,7 @@ func (r HybridComputeMachineExtensionResource) requiresImport(basicConfig string
 
 resource "azurerm_arc_machine_extension" "import" {
   name                      = azurerm_arc_machine_extension.test.name
-  hybrid_compute_machine_id = azurerm_arc_machine_extension.test.hybrid_compute_machine_id
+  arc_machine_id            = azurerm_arc_machine_extension.test.arc_machine_id
   publisher                 = azurerm_arc_machine_extension.test.publisher
   type                      = azurerm_arc_machine_extension.test.type
   location                  = azurerm_arc_machine_extension.test.location
@@ -148,7 +148,7 @@ func (r HybridComputeMachineExtensionResource) complete(data acceptance.TestData
 
 resource "azurerm_arc_machine_extension" "test" {
   name                               = "acctest-hcme-%d"
-  hybrid_compute_machine_id          = data.azurerm_arc_machine.test.id
+  arc_machine_id                     = data.azurerm_arc_machine.test.id
   location                           = "%s"
   automatic_upgrade_enabled          = false
   publisher                          = "Microsoft.Azure.Monitor"
@@ -164,7 +164,7 @@ func (r HybridComputeMachineExtensionResource) update(data acceptance.TestData, 
 
 resource "azurerm_arc_machine_extension" "test" {
   name                               = "acctest-hcme-%d"
-  hybrid_compute_machine_id          = data.azurerm_arc_machine.test.id
+  arc_machine_id                     = data.azurerm_arc_machine.test.id
   location                           = "%s"
   automatic_upgrade_enabled          = true
   publisher                          = "Microsoft.Azure.Monitor"

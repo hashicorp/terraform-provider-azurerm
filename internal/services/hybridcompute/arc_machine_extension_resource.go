@@ -20,7 +20,7 @@ import (
 
 type MachineExtensionModel struct {
 	Name                   string                              `tfschema:"name"`
-	HybridComputeMachineId string                              `tfschema:"hybrid_compute_machine_id"`
+	HybridComputeMachineId string                              `tfschema:"arc_machine_id"`
 	EnableAutomaticUpgrade bool                                `tfschema:"automatic_upgrade_enabled"`
 	ForceUpdateTag         string                              `tfschema:"force_update_tag"`
 	InstanceView           []MachineExtensionInstanceViewModel `tfschema:"instance_view"`
@@ -76,7 +76,7 @@ func (r ArcMachineExtensionResource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
-		"hybrid_compute_machine_id": {
+		"arc_machine_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
