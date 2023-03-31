@@ -7,6 +7,9 @@ ENHANCEMENTS:
 * Batch data plane: switching to use `tombuildsstuff/kermit` / updating to API Version `2022-01-01.15.0` [GH-21234]
 * `azurerm_healthcare_fhir_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
 * `azurerm_healthcare_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
+* `azurerm_kubernetes_cluster` - Add `KataMshvVmIsolation` as `workload_runtime` option [GH-21176]
+* `azurerm_kubernetes_cluster_node_pool` - Add `KataMshvVmIsolation` as `workload_runtime` option [GH-21176]
+
 
 BUG FIXES:
 
