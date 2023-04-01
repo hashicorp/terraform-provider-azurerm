@@ -12,6 +12,8 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230331.1143618` of `github.com/hashicorp/go-azure-sdk` [GH-21239]
 * dependencies: updating to `v0.20230331.1120327` of `github.com/tombuildsstuff/kermit` [GH-21235]
 * Batch data plane: switching to use `tombuildsstuff/kermit` / updating to API Version `2022-01-01.15.0` [GH-21234]
+* `azurerm_container_app` - the `app_port property` is now optional [GH-20567]
+
 * `azurerm_healthcare_fhir_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
 * `azurerm_healthcare_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
 * `azurerm_kubernetes_cluster` - Add `KataMshvVmIsolation` as `workload_runtime` option [GH-21176]
