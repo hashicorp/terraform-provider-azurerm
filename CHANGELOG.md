@@ -1,5 +1,10 @@
 ## 3.51.0 (Unreleased)
 
+FEATURES:
+
+
+* **New Resource:** `azurerm_signalr_service_custom_certificate` [GH-21112]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230331.1143618` of `github.com/hashicorp/go-azure-sdk` [GH-21239]
