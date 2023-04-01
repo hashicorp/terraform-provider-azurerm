@@ -4,6 +4,7 @@ FEATURES:
 
 
 * **New Resource:** `azurerm_signalr_service_custom_certificate` [GH-21112]
+* **New Resource:** `azurerm_voice_services_communications_gateway_test_line` [GH-21111]
 
 ENHANCEMENTS:
 
