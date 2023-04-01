@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * `azurerm_healthcare_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
 * `azurerm_kubernetes_cluster` - Add `KataMshvVmIsolation` as `workload_runtime` option [GH-21176]
 * `azurerm_kubernetes_cluster_node_pool` - Add `KataMshvVmIsolation` as `workload_runtime` option [GH-21176]
+* `azurerm_signalr_service` - support for the `http_request_logs_enabled` property [GH-21032]
 
 BUG FIXES:
 
