@@ -20,6 +20,7 @@ func (r Registration) Name() string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		ContainerAppDataSource{},
 		ContainerAppEnvironmentDataSource{},
 		ContainerAppEnvironmentCertificateDataSource{},
 	}

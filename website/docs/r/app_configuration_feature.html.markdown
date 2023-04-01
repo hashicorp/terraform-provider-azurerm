@@ -88,7 +88,7 @@ A `timewindow_filter` block represents a feature filter of type `Microsoft.TimeW
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The App Configuration Feature ID.
 

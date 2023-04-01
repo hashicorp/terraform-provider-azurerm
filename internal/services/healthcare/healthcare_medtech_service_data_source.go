@@ -109,7 +109,8 @@ func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta interf
 			}
 
 			if props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace != nil {
-				eventHubNamespaceName = strings.TrimSuffix(*props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace, *domainSuffix)
+				suffixToTrim := "." + *domainSuffix
+				eventHubNamespaceName = strings.TrimSuffix(*props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace, suffixToTrim)
 			}
 		}
 		d.Set("eventhub_consumer_group_name", eventHubConsumerGroupName)
