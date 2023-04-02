@@ -24,6 +24,7 @@ BUG FIXES:
 * Data Source: `azurerm_app_configuration_keys` - fixing a regression where the API doesn't return the http endpoint when listing items [GH-21208]
 * `azurerm_application_gateway` - corredctly validaute the `firewall_policy_id` property [GH-21238]
 * `azurerm_express_route_circuit` - can now set `authorization_key` during creation [GH-21132]
+* `azurerm_kubernetes_cluster` - correct maintenance window hours order [GH-21190]
 * `azurerm_linux_function_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
 * `azurerm_linux_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
 * `azurerm_linux_web_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
