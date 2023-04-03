@@ -90,5 +90,6 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		GalleryApplicationResource{},
 		GalleryApplicationVersionResource{},
+		VirtualMachineGalleryApplicationAssignmentResource{},
 	}
 }
