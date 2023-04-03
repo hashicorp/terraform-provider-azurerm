@@ -463,7 +463,11 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	id.ResourceUri = normalizeMonitorDiagnosticSettingTargetResourceId(id.ResourceUri)
+	if strings.Contains(strings.ToLower(id.ResourceUri), "microsoft.kusto/clusters/") {
+		if v, err := kustoParse.ClusterIDInsensitively(id.ResourceUri); err == nil {
+			id.ResourceUri = v.ID()
+		}
+	}
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -875,14 +879,4 @@ func resourceMonitorDiagnosticMetricsSettingHash(input interface{}) int {
 		}
 	}
 	return pluginsdk.HashString(buf.String())
-}
-
-func normalizeMonitorDiagnosticSettingTargetResourceId(input string) string {
-	if strings.Contains(strings.ToLower(input), "microsoft.kusto/clusters/") {
-		if id, err := kustoParse.ClusterIDInsensitively(input); err == nil {
-			return id.ID()
-		}
-	}
-
-	return input
 }
