@@ -3889,6 +3889,11 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
+
+  # These need to be the same as in customerManagedKey, since they are all force new properties.
+  infrastructure_encryption_enabled = true
+  table_encryption_key_type         = "Account"
+  queue_encryption_key_type         = "Account"
 }
 `, r.cmkTemplate(data), data.RandomString)
 }

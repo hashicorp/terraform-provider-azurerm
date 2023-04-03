@@ -74,7 +74,7 @@ A `certificate_based_security_principal` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of this Confidential Ledger.
 

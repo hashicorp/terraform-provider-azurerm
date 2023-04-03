@@ -689,7 +689,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									},
 
 									"hours": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MinItems: 1,
 										Elem: &pluginsdk.Schema{

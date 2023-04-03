@@ -165,7 +165,7 @@ resource "azurerm_iothub_certificate" "test" {
   iothub_name         = azurerm_iothub.test.name
   is_verified         = true
 
-  certificate_content = filebase64("testdata/application_gateway_test.cer")
+  certificate_content = filebase64("testdata/iothub_test.cer")
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

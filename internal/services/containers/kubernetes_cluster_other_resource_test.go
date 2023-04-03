@@ -230,6 +230,21 @@ func TestAccKubernetesCluster_nodePoolOther(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_nodePoolKataMshvVmIsolation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodePoolKataMshvVmIsolation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_upgradeSkuTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -508,6 +523,8 @@ func TestAccKubernetesCluster_basicMaintenanceConfig(t *testing.T) {
 			Config: r.basicMaintenanceConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.0").HasValue("2"),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.1").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -553,6 +570,8 @@ func TestAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
 			Config: r.basicMaintenanceConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.0").HasValue("2"),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.1").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -567,6 +586,8 @@ func TestAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
 			Config: r.basicMaintenanceConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.0").HasValue("2"),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.1").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -1368,6 +1389,39 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func (KubernetesClusterResource) nodePoolKataMshvVmIsolation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name               = "default"
+    node_count         = 1
+    vm_size            = "Standard_D2s_v3"
+    message_of_the_day = "daily message"
+    os_sku             = "Mariner"
+    workload_runtime   = "KataMshvVmIsolation"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) paidSkuConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1900,7 +1954,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   maintenance_window {
     allowed {
       day   = "Monday"
-      hours = [1, 2]
+      hours = [2, 1]
     }
   }
 }

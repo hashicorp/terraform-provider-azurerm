@@ -64,6 +64,7 @@ func resourceWebPubSub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"Premium_P1",
 					"Standard_S1",
 					"Free_F1",
 				}, false),

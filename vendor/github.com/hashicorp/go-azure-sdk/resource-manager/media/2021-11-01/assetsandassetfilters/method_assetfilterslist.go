@@ -49,7 +49,7 @@ func (c AssetsAndAssetFiltersClient) AssetFiltersList(ctx context.Context, id As
 	}
 
 	var values struct {
-		Values *[]AssetFilter `json:"values"`
+		Values *[]AssetFilter `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

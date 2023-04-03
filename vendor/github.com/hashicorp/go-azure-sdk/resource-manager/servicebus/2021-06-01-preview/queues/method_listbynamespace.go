@@ -81,7 +81,7 @@ func (c QueuesClient) ListByNamespace(ctx context.Context, id NamespaceId, optio
 	}
 
 	var values struct {
-		Values *[]SBQueue `json:"values"`
+		Values *[]SBQueue `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

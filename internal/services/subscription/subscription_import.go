@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions" // nolint: staticcheck
+	subscriptionAliasPandora "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -14,18 +14,18 @@ func importSubscriptionByAlias() pluginsdk.ImporterFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
 		aliasClient := meta.(*clients.Client).Subscription.AliasClient
 		client := meta.(*clients.Client).Subscription.Client
-		aliasId, err := parse.SubscriptionAliasID(d.Id())
+		aliasId, err := subscriptionAliasPandora.ParseAliasID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("failed parsing Subscription Alias ID for import")
 		}
-		alias, err := aliasClient.Get(ctx, aliasId.Name)
+		alias, err := aliasClient.AliasGet(ctx, *aliasId)
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("failed reading Subscription Alias: %+v", err)
 		}
-		if alias.Properties == nil || alias.Properties.SubscriptionID == nil {
+		if alias.Model == nil || alias.Model.Properties == nil || alias.Model.Properties.SubscriptionId == nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("failed reading Subscription Alias Properties, empty response or missing Subscription ID")
 		}
-		subscription, err := client.Get(ctx, *alias.Properties.SubscriptionID)
+		subscription, err := client.Get(ctx, *alias.Model.Properties.SubscriptionId)
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("failed parsing Subscription details for import: %+v", err)
 		}

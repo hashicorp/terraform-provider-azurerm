@@ -50,7 +50,7 @@ func (c NamespacesClient) ListByResourceGroup(ctx context.Context, id commonids.
 	}
 
 	var values struct {
-		Values *[]SBNamespace `json:"values"`
+		Values *[]SBNamespace `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

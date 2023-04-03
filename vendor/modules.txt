@@ -5,7 +5,6 @@ github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad
 github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor
 github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement
 github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights
-github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb
@@ -82,6 +81,10 @@ github.com/Azure/go-autorest/tracing
 # github.com/agext/levenshtein v1.2.3
 ## explicit
 github.com/agext/levenshtein
+# github.com/agiledragon/gomonkey/v2 v2.9.0
+## explicit; go 1.14
+github.com/agiledragon/gomonkey/v2
+github.com/agiledragon/gomonkey/v2/creflect
 # github.com/apparentlymart/go-textseg v1.0.0
 ## explicit
 github.com/apparentlymart/go-textseg/textseg
@@ -148,7 +151,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk v0.20230323.1151043
+# github.com/hashicorp/go-azure-sdk v0.20230331.1143618
 ## explicit; go 1.19
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -250,8 +253,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/customproviders/2018-09-01-pr
 github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2022-08-01/grafanaresource
 github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/devices
 github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/orders
-github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/accessconnector
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces
+github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/vnetpeering
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01
@@ -533,6 +536,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/skus
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/tableservice
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/tableserviceproperties
+github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/storagemovers
 github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools
 github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/clusters
@@ -542,6 +546,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/pr
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/transformations
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs
+github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions
 github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15
 github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/accesspolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/environments
@@ -761,9 +766,10 @@ github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/endpoints
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 github.com/tombuildsstuff/giovanni/version
-# github.com/tombuildsstuff/kermit v0.20230307.1105329
+# github.com/tombuildsstuff/kermit v0.20230331.1120327
 ## explicit; go 1.18
 github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform
+github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch
 github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice
 github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute
 github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub

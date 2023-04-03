@@ -50,7 +50,7 @@ func (c AccountsClient) ListByResourceGroup(ctx context.Context, id commonids.Re
 	}
 
 	var values struct {
-		Values *[]MapsAccount `json:"values"`
+		Values *[]MapsAccount `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
