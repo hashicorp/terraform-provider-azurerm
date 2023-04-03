@@ -21,7 +21,7 @@ var newRequiredPropertyBase = providerjson.SchemaJSON{
 }
 
 var newRequiredPropertyPasses = providerjson.SchemaJSON{
-	Type:        "TypeString",
+	Type:        providerjson.SchemaTypeString,
 	ConfigMode:  "",
 	Optional:    true,
 	Required:    false,
@@ -35,7 +35,7 @@ var newRequiredPropertyPasses = providerjson.SchemaJSON{
 }
 
 var newRequiredPropertyViolates = providerjson.SchemaJSON{
-	Type:        "TypeString",
+	Type:        providerjson.SchemaTypeString,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    true,

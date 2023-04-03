@@ -1,3 +1,39 @@
+## 3.51.0 (Unreleased)
+
+FEATURES:
+
+
+* **New Resource:** `azurerm_signalr_service_custom_certificate` [GH-21112]
+* **New Resource:** `azurerm_storage_mover` [GH-21000]
+* **New Resource:** `azurerm_voice_services_communications_gateway_test_line` [GH-21111]
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20230331.1143618` of `github.com/hashicorp/go-azure-sdk` [GH-21239]
+* dependencies: updating to `v0.20230331.1120327` of `github.com/tombuildsstuff/kermit` [GH-21235]
+* Batch data plane: switching to use `tombuildsstuff/kermit` / updating to API Version `2022-01-01.15.0` [GH-21234]
+* `azurerm_container_app` - the `app_port property` is now optional [GH-20567]
+* `azurerm_healthcare_fhir_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
+* `azurerm_healthcare_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
+* `azurerm_kubernetes_cluster` - Add `KataMshvVmIsolation` as `workload_runtime` option [GH-21176]
+* `azurerm_kubernetes_cluster_node_pool` - Add `KataMshvVmIsolation` as `workload_runtime` option [GH-21176]
+* `azurerm_signalr_service` - support for the `http_request_logs_enabled` property [GH-21032]
+
+BUG FIXES:
+
+* Data Source: `azurerm_app_configuration_keys` - fixing a regression where the API doesn't return the http endpoint when listing items [GH-21208]
+* `azurerm_application_gateway` - corredctly validaute the `firewall_policy_id` property [GH-21238]
+* `azurerm_express_route_circuit` - can now set `authorization_key` during creation [GH-21132]
+* `azurerm_kubernetes_cluster` - correct maintenance window hours order [GH-21190]
+* `azurerm_linux_function_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_linux_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_linux_web_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_linux_web_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_windows_function_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_windows_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_windows_web_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_windows_web_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+
 ## 3.50.0 (March 30, 2023)
 
 FEATURES:

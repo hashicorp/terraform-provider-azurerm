@@ -160,7 +160,7 @@ resource "azurerm_voice_services_communications_gateway" "import" {
   on_prem_mcp_enabled = azurerm_voice_services_communications_gateway.test.on_prem_mcp_enabled
 
   service_location {
-    location                                  = "useast"
+    location                                  = "eastus"
     allowed_media_source_address_prefixes     = ["10.1.2.0/24"]
     allowed_signaling_source_address_prefixes = ["10.1.1.0/24"]
     operator_addresses                        = ["198.51.100.1"]

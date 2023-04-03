@@ -107,6 +107,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse"
@@ -164,8 +165,9 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		sentinel.Registration{},
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
-		signalr.Registration{},
 		storage.Registration{},
+		storagemover.Registration{},
+		signalr.Registration{},
 		orbital.Registration{},
 		streamanalytics.Registration{},
 		search.Registration{},

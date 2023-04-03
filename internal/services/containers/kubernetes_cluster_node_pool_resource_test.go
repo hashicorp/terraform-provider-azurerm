@@ -893,6 +893,13 @@ func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.workloadRuntime(data, "KataMshvVmIsolation"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 

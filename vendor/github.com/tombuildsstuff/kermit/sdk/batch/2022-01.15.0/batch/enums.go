@@ -10,118 +10,122 @@ package batch
 type AccessScope string
 
 const (
-	// Job Grants access to perform all operations on the Job containing the Task.
-	Job AccessScope = "job"
+	// AccessScopeJob Grants access to perform all operations on the Job containing the Task.
+	AccessScopeJob AccessScope = "job"
 )
 
 // PossibleAccessScopeValues returns an array of possible values for the AccessScope const type.
 func PossibleAccessScopeValues() []AccessScope {
-	return []AccessScope{Job}
+	return []AccessScope{AccessScopeJob}
 }
 
 // AllocationState enumerates the values for allocation state.
 type AllocationState string
 
 const (
-	// Resizing The Pool is resizing; that is, Compute Nodes are being added to or removed from the Pool.
-	Resizing AllocationState = "resizing"
-	// Steady The Pool is not resizing. There are no changes to the number of Compute Nodes in the Pool in
-	// progress. A Pool enters this state when it is created and when no operations are being performed on the
-	// Pool to change the number of Compute Nodes.
-	Steady AllocationState = "steady"
-	// Stopping The Pool was resizing, but the user has requested that the resize be stopped, but the stop
-	// request has not yet been completed.
-	Stopping AllocationState = "stopping"
+	// AllocationStateResizing The Pool is resizing; that is, Compute Nodes are being added to or removed from
+	// the Pool.
+	AllocationStateResizing AllocationState = "resizing"
+	// AllocationStateSteady The Pool is not resizing. There are no changes to the number of Compute Nodes in
+	// the Pool in progress. A Pool enters this state when it is created and when no operations are being
+	// performed on the Pool to change the number of Compute Nodes.
+	AllocationStateSteady AllocationState = "steady"
+	// AllocationStateStopping The Pool was resizing, but the user has requested that the resize be stopped,
+	// but the stop request has not yet been completed.
+	AllocationStateStopping AllocationState = "stopping"
 )
 
 // PossibleAllocationStateValues returns an array of possible values for the AllocationState const type.
 func PossibleAllocationStateValues() []AllocationState {
-	return []AllocationState{Resizing, Steady, Stopping}
+	return []AllocationState{AllocationStateResizing, AllocationStateSteady, AllocationStateStopping}
 }
 
 // AutoUserScope enumerates the values for auto user scope.
 type AutoUserScope string
 
 const (
-	// Pool Specifies that the Task runs as the common auto user Account which is created on every Compute Node
-	// in a Pool.
-	Pool AutoUserScope = "pool"
-	// Task Specifies that the service should create a new user for the Task.
-	Task AutoUserScope = "task"
+	// AutoUserScopePool Specifies that the Task runs as the common auto user Account which is created on every
+	// Compute Node in a Pool.
+	AutoUserScopePool AutoUserScope = "pool"
+	// AutoUserScopeTask Specifies that the service should create a new user for the Task.
+	AutoUserScopeTask AutoUserScope = "task"
 )
 
 // PossibleAutoUserScopeValues returns an array of possible values for the AutoUserScope const type.
 func PossibleAutoUserScopeValues() []AutoUserScope {
-	return []AutoUserScope{Pool, Task}
+	return []AutoUserScope{AutoUserScopePool, AutoUserScopeTask}
 }
 
 // CachingType enumerates the values for caching type.
 type CachingType string
 
 const (
-	// None The caching mode for the disk is not enabled.
-	None CachingType = "none"
-	// ReadOnly The caching mode for the disk is read only.
-	ReadOnly CachingType = "readonly"
-	// ReadWrite The caching mode for the disk is read and write.
-	ReadWrite CachingType = "readwrite"
+	// CachingTypeNone The caching mode for the disk is not enabled.
+	CachingTypeNone CachingType = "none"
+	// CachingTypeReadOnly The caching mode for the disk is read only.
+	CachingTypeReadOnly CachingType = "readonly"
+	// CachingTypeReadWrite The caching mode for the disk is read and write.
+	CachingTypeReadWrite CachingType = "readwrite"
 )
 
 // PossibleCachingTypeValues returns an array of possible values for the CachingType const type.
 func PossibleCachingTypeValues() []CachingType {
-	return []CachingType{None, ReadOnly, ReadWrite}
+	return []CachingType{CachingTypeNone, CachingTypeReadOnly, CachingTypeReadWrite}
 }
 
 // CertificateFormat enumerates the values for certificate format.
 type CertificateFormat string
 
 const (
-	// Cer The Certificate is a base64-encoded X.509 Certificate.
-	Cer CertificateFormat = "cer"
-	// Pfx The Certificate is a PFX (PKCS#12) formatted Certificate or Certificate chain.
-	Pfx CertificateFormat = "pfx"
+	// CertificateFormatCer The Certificate is a base64-encoded X.509 Certificate.
+	CertificateFormatCer CertificateFormat = "cer"
+	// CertificateFormatPfx The Certificate is a PFX (PKCS#12) formatted Certificate or Certificate chain.
+	CertificateFormatPfx CertificateFormat = "pfx"
 )
 
 // PossibleCertificateFormatValues returns an array of possible values for the CertificateFormat const type.
 func PossibleCertificateFormatValues() []CertificateFormat {
-	return []CertificateFormat{Cer, Pfx}
+	return []CertificateFormat{CertificateFormatCer, CertificateFormatPfx}
 }
 
 // CertificateState enumerates the values for certificate state.
 type CertificateState string
 
 const (
-	// Active The Certificate is available for use in Pools.
-	Active CertificateState = "active"
-	// DeleteFailed The user requested that the Certificate be deleted, but there are Pools that still have
-	// references to the Certificate, or it is still installed on one or more Nodes. (The latter can occur if
-	// the Certificate has been removed from the Pool, but the Compute Node has not yet restarted. Compute
-	// Nodes refresh their Certificates only when they restart.) You may use the cancel Certificate delete
-	// operation to cancel the delete, or the delete Certificate operation to retry the delete.
-	DeleteFailed CertificateState = "deletefailed"
-	// Deleting The user has requested that the Certificate be deleted, but the delete operation has not yet
-	// completed. You may not reference the Certificate when creating or updating Pools.
-	Deleting CertificateState = "deleting"
+	// CertificateStateActive The Certificate is available for use in Pools.
+	CertificateStateActive CertificateState = "active"
+	// CertificateStateDeleteFailed The user requested that the Certificate be deleted, but there are Pools
+	// that still have references to the Certificate, or it is still installed on one or more Nodes. (The
+	// latter can occur if the Certificate has been removed from the Pool, but the Compute Node has not yet
+	// restarted. Compute Nodes refresh their Certificates only when they restart.) You may use the cancel
+	// Certificate delete operation to cancel the delete, or the delete Certificate operation to retry the
+	// delete.
+	CertificateStateDeleteFailed CertificateState = "deletefailed"
+	// CertificateStateDeleting The user has requested that the Certificate be deleted, but the delete
+	// operation has not yet completed. You may not reference the Certificate when creating or updating Pools.
+	CertificateStateDeleting CertificateState = "deleting"
 )
 
 // PossibleCertificateStateValues returns an array of possible values for the CertificateState const type.
 func PossibleCertificateStateValues() []CertificateState {
-	return []CertificateState{Active, DeleteFailed, Deleting}
+	return []CertificateState{CertificateStateActive, CertificateStateDeleteFailed, CertificateStateDeleting}
 }
 
 // CertificateStoreLocation enumerates the values for certificate store location.
 type CertificateStoreLocation string
 
 const (
-	// CurrentUser Certificates should be installed to the CurrentUser Certificate store.
-	CurrentUser CertificateStoreLocation = "currentuser"
-	// LocalMachine Certificates should be installed to the LocalMachine Certificate store.
-	LocalMachine CertificateStoreLocation = "localmachine"
+	// CertificateStoreLocationCurrentUser Certificates should be installed to the CurrentUser Certificate
+	// store.
+	CertificateStoreLocationCurrentUser CertificateStoreLocation = "currentuser"
+	// CertificateStoreLocationLocalMachine Certificates should be installed to the LocalMachine Certificate
+	// store.
+	CertificateStoreLocationLocalMachine CertificateStoreLocation = "localmachine"
 )
 
 // PossibleCertificateStoreLocationValues returns an array of possible values for the CertificateStoreLocation const type.
 func PossibleCertificateStoreLocationValues() []CertificateStoreLocation {
-	return []CertificateStoreLocation{CurrentUser, LocalMachine}
+	return []CertificateStoreLocation{CertificateStoreLocationCurrentUser, CertificateStoreLocationLocalMachine}
 }
 
 // CertificateVisibility enumerates the values for certificate visibility.
@@ -149,40 +153,42 @@ func PossibleCertificateVisibilityValues() []CertificateVisibility {
 type ComputeNodeDeallocationOption string
 
 const (
-	// Requeue Terminate running Task processes and requeue the Tasks. The Tasks will run again when a Compute
-	// Node is available. Remove Compute Nodes as soon as Tasks have been terminated.
-	Requeue ComputeNodeDeallocationOption = "requeue"
-	// RetainedData Allow currently running Tasks to complete, then wait for all Task data retention periods to
-	// expire. Schedule no new Tasks while waiting. Remove Compute Nodes when all Task retention periods have
-	// expired.
-	RetainedData ComputeNodeDeallocationOption = "retaineddata"
-	// TaskCompletion Allow currently running Tasks to complete. Schedule no new Tasks while waiting. Remove
-	// Compute Nodes when all Tasks have completed.
-	TaskCompletion ComputeNodeDeallocationOption = "taskcompletion"
-	// Terminate Terminate running Tasks. The Tasks will be completed with failureInfo indicating that they
-	// were terminated, and will not run again. Remove Compute Nodes as soon as Tasks have been terminated.
-	Terminate ComputeNodeDeallocationOption = "terminate"
+	// ComputeNodeDeallocationOptionRequeue Terminate running Task processes and requeue the Tasks. The Tasks
+	// will run again when a Compute Node is available. Remove Compute Nodes as soon as Tasks have been
+	// terminated.
+	ComputeNodeDeallocationOptionRequeue ComputeNodeDeallocationOption = "requeue"
+	// ComputeNodeDeallocationOptionRetainedData Allow currently running Tasks to complete, then wait for all
+	// Task data retention periods to expire. Schedule no new Tasks while waiting. Remove Compute Nodes when
+	// all Task retention periods have expired.
+	ComputeNodeDeallocationOptionRetainedData ComputeNodeDeallocationOption = "retaineddata"
+	// ComputeNodeDeallocationOptionTaskCompletion Allow currently running Tasks to complete. Schedule no new
+	// Tasks while waiting. Remove Compute Nodes when all Tasks have completed.
+	ComputeNodeDeallocationOptionTaskCompletion ComputeNodeDeallocationOption = "taskcompletion"
+	// ComputeNodeDeallocationOptionTerminate Terminate running Tasks. The Tasks will be completed with
+	// failureInfo indicating that they were terminated, and will not run again. Remove Compute Nodes as soon
+	// as Tasks have been terminated.
+	ComputeNodeDeallocationOptionTerminate ComputeNodeDeallocationOption = "terminate"
 )
 
 // PossibleComputeNodeDeallocationOptionValues returns an array of possible values for the ComputeNodeDeallocationOption const type.
 func PossibleComputeNodeDeallocationOptionValues() []ComputeNodeDeallocationOption {
-	return []ComputeNodeDeallocationOption{Requeue, RetainedData, TaskCompletion, Terminate}
+	return []ComputeNodeDeallocationOption{ComputeNodeDeallocationOptionRequeue, ComputeNodeDeallocationOptionRetainedData, ComputeNodeDeallocationOptionTaskCompletion, ComputeNodeDeallocationOptionTerminate}
 }
 
 // ComputeNodeFillType enumerates the values for compute node fill type.
 type ComputeNodeFillType string
 
 const (
-	// Pack As many Tasks as possible (maxTasksPerNode) should be assigned to each Compute Node in the Pool
-	// before any Tasks are assigned to the next Compute Node in the Pool.
-	Pack ComputeNodeFillType = "pack"
-	// Spread Tasks should be assigned evenly across all Compute Nodes in the Pool.
-	Spread ComputeNodeFillType = "spread"
+	// ComputeNodeFillTypePack As many Tasks as possible (taskSlotsPerNode) should be assigned to each Compute
+	// Node in the Pool before any Tasks are assigned to the next Compute Node in the Pool.
+	ComputeNodeFillTypePack ComputeNodeFillType = "pack"
+	// ComputeNodeFillTypeSpread Tasks should be assigned evenly across all Compute Nodes in the Pool.
+	ComputeNodeFillTypeSpread ComputeNodeFillType = "spread"
 )
 
 // PossibleComputeNodeFillTypeValues returns an array of possible values for the ComputeNodeFillType const type.
 func PossibleComputeNodeFillTypeValues() []ComputeNodeFillType {
-	return []ComputeNodeFillType{Pack, Spread}
+	return []ComputeNodeFillType{ComputeNodeFillTypePack, ComputeNodeFillTypeSpread}
 }
 
 // ComputeNodeRebootOption enumerates the values for compute node reboot option.
@@ -241,76 +247,91 @@ func PossibleComputeNodeReimageOptionValues() []ComputeNodeReimageOption {
 type ComputeNodeState string
 
 const (
-	// Creating The Batch service has obtained the underlying virtual machine from Azure Compute, but it has
-	// not yet started to join the Pool.
-	Creating ComputeNodeState = "creating"
-	// Idle The Compute Node is not currently running a Task.
-	Idle ComputeNodeState = "idle"
-	// LeavingPool The Compute Node is leaving the Pool, either because the user explicitly removed it or
-	// because the Pool is resizing or autoscaling down.
-	LeavingPool ComputeNodeState = "leavingpool"
-	// Offline The Compute Node is not currently running a Task, and scheduling of new Tasks to the Compute
-	// Node is disabled.
-	Offline ComputeNodeState = "offline"
-	// Preempted The low-priority Compute Node has been preempted. Tasks which were running on the Compute Node
-	// when it was preempted will be rescheduled when another Compute Node becomes available.
-	Preempted ComputeNodeState = "preempted"
-	// Rebooting The Compute Node is rebooting.
-	Rebooting ComputeNodeState = "rebooting"
-	// Reimaging The Compute Node is reimaging.
-	Reimaging ComputeNodeState = "reimaging"
-	// Running The Compute Node is running one or more Tasks (other than a StartTask).
-	Running ComputeNodeState = "running"
-	// Starting The Batch service is starting on the underlying virtual machine.
-	Starting ComputeNodeState = "starting"
-	// StartTaskFailed The StartTask has failed on the Compute Node (and exhausted all retries), and
-	// waitForSuccess is set. The Compute Node is not usable for running Tasks.
-	StartTaskFailed ComputeNodeState = "starttaskfailed"
-	// Unknown The Batch service has lost contact with the Compute Node, and does not know its true state.
-	Unknown ComputeNodeState = "unknown"
-	// Unusable The Compute Node cannot be used for Task execution due to errors.
-	Unusable ComputeNodeState = "unusable"
-	// WaitingForStartTask The StartTask has started running on the Compute Node, but waitForSuccess is set and
-	// the StartTask has not yet completed.
-	WaitingForStartTask ComputeNodeState = "waitingforstarttask"
+	// ComputeNodeStateCreating The Batch service has obtained the underlying virtual machine from Azure
+	// Compute, but it has not yet started to join the Pool.
+	ComputeNodeStateCreating ComputeNodeState = "creating"
+	// ComputeNodeStateIdle The Compute Node is not currently running a Task.
+	ComputeNodeStateIdle ComputeNodeState = "idle"
+	// ComputeNodeStateLeavingPool The Compute Node is leaving the Pool, either because the user explicitly
+	// removed it or because the Pool is resizing or autoscaling down.
+	ComputeNodeStateLeavingPool ComputeNodeState = "leavingpool"
+	// ComputeNodeStateOffline The Compute Node is not currently running a Task, and scheduling of new Tasks to
+	// the Compute Node is disabled.
+	ComputeNodeStateOffline ComputeNodeState = "offline"
+	// ComputeNodeStatePreempted The Spot/Low-priority Compute Node has been preempted. Tasks which were
+	// running on the Compute Node when it was preempted will be rescheduled when another Compute Node becomes
+	// available.
+	ComputeNodeStatePreempted ComputeNodeState = "preempted"
+	// ComputeNodeStateRebooting The Compute Node is rebooting.
+	ComputeNodeStateRebooting ComputeNodeState = "rebooting"
+	// ComputeNodeStateReimaging The Compute Node is reimaging.
+	ComputeNodeStateReimaging ComputeNodeState = "reimaging"
+	// ComputeNodeStateRunning The Compute Node is running one or more Tasks (other than a StartTask).
+	ComputeNodeStateRunning ComputeNodeState = "running"
+	// ComputeNodeStateStartTaskFailed The StartTask has failed on the Compute Node (and exhausted all
+	// retries), and waitForSuccess is set. The Compute Node is not usable for running Tasks.
+	ComputeNodeStateStartTaskFailed ComputeNodeState = "starttaskfailed"
+	// ComputeNodeStateStarting The Batch service is starting on the underlying virtual machine.
+	ComputeNodeStateStarting ComputeNodeState = "starting"
+	// ComputeNodeStateUnknown The Batch service has lost contact with the Compute Node, and does not know its
+	// true state.
+	ComputeNodeStateUnknown ComputeNodeState = "unknown"
+	// ComputeNodeStateUnusable The Compute Node cannot be used for Task execution due to errors.
+	ComputeNodeStateUnusable ComputeNodeState = "unusable"
+	// ComputeNodeStateWaitingForStartTask The StartTask has started running on the Compute Node, but
+	// waitForSuccess is set and the StartTask has not yet completed.
+	ComputeNodeStateWaitingForStartTask ComputeNodeState = "waitingforstarttask"
 )
 
 // PossibleComputeNodeStateValues returns an array of possible values for the ComputeNodeState const type.
 func PossibleComputeNodeStateValues() []ComputeNodeState {
-	return []ComputeNodeState{Creating, Idle, LeavingPool, Offline, Preempted, Rebooting, Reimaging, Running, Starting, StartTaskFailed, Unknown, Unusable, WaitingForStartTask}
+	return []ComputeNodeState{ComputeNodeStateCreating, ComputeNodeStateIdle, ComputeNodeStateLeavingPool, ComputeNodeStateOffline, ComputeNodeStatePreempted, ComputeNodeStateRebooting, ComputeNodeStateReimaging, ComputeNodeStateRunning, ComputeNodeStateStartTaskFailed, ComputeNodeStateStarting, ComputeNodeStateUnknown, ComputeNodeStateUnusable, ComputeNodeStateWaitingForStartTask}
 }
 
 // ContainerWorkingDirectory enumerates the values for container working directory.
 type ContainerWorkingDirectory string
 
 const (
-	// ContainerImageDefault Use the working directory defined in the container Image. Beware that this
-	// directory will not contain the Resource Files downloaded by Batch.
-	ContainerImageDefault ContainerWorkingDirectory = "containerImageDefault"
-	// TaskWorkingDirectory Use the standard Batch service Task working directory, which will contain the Task
-	// Resource Files populated by Batch.
-	TaskWorkingDirectory ContainerWorkingDirectory = "taskWorkingDirectory"
+	// ContainerWorkingDirectoryContainerImageDefault Use the working directory defined in the container Image.
+	// Beware that this directory will not contain the Resource Files downloaded by Batch.
+	ContainerWorkingDirectoryContainerImageDefault ContainerWorkingDirectory = "containerImageDefault"
+	// ContainerWorkingDirectoryTaskWorkingDirectory Use the standard Batch service Task working directory,
+	// which will contain the Task Resource Files populated by Batch.
+	ContainerWorkingDirectoryTaskWorkingDirectory ContainerWorkingDirectory = "taskWorkingDirectory"
 )
 
 // PossibleContainerWorkingDirectoryValues returns an array of possible values for the ContainerWorkingDirectory const type.
 func PossibleContainerWorkingDirectoryValues() []ContainerWorkingDirectory {
-	return []ContainerWorkingDirectory{ContainerImageDefault, TaskWorkingDirectory}
+	return []ContainerWorkingDirectory{ContainerWorkingDirectoryContainerImageDefault, ContainerWorkingDirectoryTaskWorkingDirectory}
 }
 
 // DependencyAction enumerates the values for dependency action.
 type DependencyAction string
 
 const (
-	// Block Blocks tasks waiting on this task, preventing them from being scheduled.
-	Block DependencyAction = "block"
-	// Satisfy Satisfy tasks waiting on this task; once all dependencies are satisfied, the task will be
-	// scheduled to run.
-	Satisfy DependencyAction = "satisfy"
+	// DependencyActionBlock Blocks tasks waiting on this task, preventing them from being scheduled.
+	DependencyActionBlock DependencyAction = "block"
+	// DependencyActionSatisfy Satisfy tasks waiting on this task; once all dependencies are satisfied, the
+	// task will be scheduled to run.
+	DependencyActionSatisfy DependencyAction = "satisfy"
 )
 
 // PossibleDependencyActionValues returns an array of possible values for the DependencyAction const type.
 func PossibleDependencyActionValues() []DependencyAction {
-	return []DependencyAction{Block, Satisfy}
+	return []DependencyAction{DependencyActionBlock, DependencyActionSatisfy}
+}
+
+// DiffDiskPlacement enumerates the values for diff disk placement.
+type DiffDiskPlacement string
+
+const (
+	// DiffDiskPlacementCacheDisk The Ephemeral OS Disk is stored on the VM cache.
+	DiffDiskPlacementCacheDisk DiffDiskPlacement = "CacheDisk"
+)
+
+// PossibleDiffDiskPlacementValues returns an array of possible values for the DiffDiskPlacement const type.
+func PossibleDiffDiskPlacementValues() []DiffDiskPlacement {
+	return []DiffDiskPlacement{DiffDiskPlacementCacheDisk}
 }
 
 // DisableComputeNodeSchedulingOption enumerates the values for disable compute node scheduling option.
@@ -358,16 +379,17 @@ func PossibleDisableJobOptionValues() []DisableJobOption {
 type DiskEncryptionTarget string
 
 const (
-	// OsDisk The OS Disk on the compute node is encrypted.
-	OsDisk DiskEncryptionTarget = "osdisk"
-	// TemporaryDisk The temporary disk on the compute node is encrypted. On Linux this encryption applies to
-	// other partitions (such as those on mounted data disks) when encryption occurs at boot time.
-	TemporaryDisk DiskEncryptionTarget = "temporarydisk"
+	// DiskEncryptionTargetOsDisk The OS Disk on the compute node is encrypted.
+	DiskEncryptionTargetOsDisk DiskEncryptionTarget = "osdisk"
+	// DiskEncryptionTargetTemporaryDisk The temporary disk on the compute node is encrypted. On Linux this
+	// encryption applies to other partitions (such as those on mounted data disks) when encryption occurs at
+	// boot time.
+	DiskEncryptionTargetTemporaryDisk DiskEncryptionTarget = "temporarydisk"
 )
 
 // PossibleDiskEncryptionTargetValues returns an array of possible values for the DiskEncryptionTarget const type.
 func PossibleDiskEncryptionTargetValues() []DiskEncryptionTarget {
-	return []DiskEncryptionTarget{OsDisk, TemporaryDisk}
+	return []DiskEncryptionTarget{DiskEncryptionTargetOsDisk, DiskEncryptionTargetTemporaryDisk}
 }
 
 // DynamicVNetAssignmentScope enumerates the values for dynamic v net assignment scope.
@@ -389,63 +411,65 @@ func PossibleDynamicVNetAssignmentScopeValues() []DynamicVNetAssignmentScope {
 type ElevationLevel string
 
 const (
-	// Admin The user is a user with elevated access and operates with full Administrator permissions.
-	Admin ElevationLevel = "admin"
-	// NonAdmin The user is a standard user without elevated access.
-	NonAdmin ElevationLevel = "nonadmin"
+	// ElevationLevelAdmin The user is a user with elevated access and operates with full Administrator
+	// permissions.
+	ElevationLevelAdmin ElevationLevel = "admin"
+	// ElevationLevelNonAdmin The user is a standard user without elevated access.
+	ElevationLevelNonAdmin ElevationLevel = "nonadmin"
 )
 
 // PossibleElevationLevelValues returns an array of possible values for the ElevationLevel const type.
 func PossibleElevationLevelValues() []ElevationLevel {
-	return []ElevationLevel{Admin, NonAdmin}
+	return []ElevationLevel{ElevationLevelAdmin, ElevationLevelNonAdmin}
 }
 
 // ErrorCategory enumerates the values for error category.
 type ErrorCategory string
 
 const (
-	// ServerError The error is due to an internal server issue.
-	ServerError ErrorCategory = "servererror"
-	// UserError The error is due to a user issue, such as misconfiguration.
-	UserError ErrorCategory = "usererror"
+	// ErrorCategoryServerError The error is due to an internal server issue.
+	ErrorCategoryServerError ErrorCategory = "servererror"
+	// ErrorCategoryUserError The error is due to a user issue, such as misconfiguration.
+	ErrorCategoryUserError ErrorCategory = "usererror"
 )
 
 // PossibleErrorCategoryValues returns an array of possible values for the ErrorCategory const type.
 func PossibleErrorCategoryValues() []ErrorCategory {
-	return []ErrorCategory{ServerError, UserError}
-}
-
-// InboundEndpointProtocol enumerates the values for inbound endpoint protocol.
-type InboundEndpointProtocol string
-
-const (
-	// TCP Use TCP for the endpoint.
-	TCP InboundEndpointProtocol = "tcp"
-	// UDP Use UDP for the endpoint.
-	UDP InboundEndpointProtocol = "udp"
-)
-
-// PossibleInboundEndpointProtocolValues returns an array of possible values for the InboundEndpointProtocol const type.
-func PossibleInboundEndpointProtocolValues() []InboundEndpointProtocol {
-	return []InboundEndpointProtocol{TCP, UDP}
+	return []ErrorCategory{ErrorCategoryServerError, ErrorCategoryUserError}
 }
 
 // IPAddressProvisioningType enumerates the values for ip address provisioning type.
 type IPAddressProvisioningType string
 
 const (
-	// BatchManaged A public IP will be created and managed by Batch. There may be multiple public IPs
-	// depending on the size of the Pool.
-	BatchManaged IPAddressProvisioningType = "batchmanaged"
-	// NoPublicIPAddresses No public IP Address will be created.
-	NoPublicIPAddresses IPAddressProvisioningType = "nopublicipaddresses"
-	// UserManaged Public IPs are provided by the user and will be used to provision the Compute Nodes.
-	UserManaged IPAddressProvisioningType = "usermanaged"
+	// IPAddressProvisioningTypeBatchManaged A public IP will be created and managed by Batch. There may be
+	// multiple public IPs depending on the size of the Pool.
+	IPAddressProvisioningTypeBatchManaged IPAddressProvisioningType = "batchmanaged"
+	// IPAddressProvisioningTypeNoPublicIPAddresses No public IP Address will be created.
+	IPAddressProvisioningTypeNoPublicIPAddresses IPAddressProvisioningType = "nopublicipaddresses"
+	// IPAddressProvisioningTypeUserManaged Public IPs are provided by the user and will be used to provision
+	// the Compute Nodes.
+	IPAddressProvisioningTypeUserManaged IPAddressProvisioningType = "usermanaged"
 )
 
 // PossibleIPAddressProvisioningTypeValues returns an array of possible values for the IPAddressProvisioningType const type.
 func PossibleIPAddressProvisioningTypeValues() []IPAddressProvisioningType {
-	return []IPAddressProvisioningType{BatchManaged, NoPublicIPAddresses, UserManaged}
+	return []IPAddressProvisioningType{IPAddressProvisioningTypeBatchManaged, IPAddressProvisioningTypeNoPublicIPAddresses, IPAddressProvisioningTypeUserManaged}
+}
+
+// InboundEndpointProtocol enumerates the values for inbound endpoint protocol.
+type InboundEndpointProtocol string
+
+const (
+	// InboundEndpointProtocolTCP Use TCP for the endpoint.
+	InboundEndpointProtocolTCP InboundEndpointProtocol = "tcp"
+	// InboundEndpointProtocolUDP Use UDP for the endpoint.
+	InboundEndpointProtocolUDP InboundEndpointProtocol = "udp"
+)
+
+// PossibleInboundEndpointProtocolValues returns an array of possible values for the InboundEndpointProtocol const type.
+func PossibleInboundEndpointProtocolValues() []InboundEndpointProtocol {
+	return []InboundEndpointProtocol{InboundEndpointProtocolTCP, InboundEndpointProtocolUDP}
 }
 
 // JobAction enumerates the values for job action.
@@ -564,50 +588,83 @@ func PossibleJobStateValues() []JobState {
 type LoginMode string
 
 const (
-	// Batch The LOGON32_LOGON_BATCH Win32 login mode. The batch login mode is recommended for long running
-	// parallel processes.
-	Batch LoginMode = "batch"
-	// Interactive The LOGON32_LOGON_INTERACTIVE Win32 login mode. UAC is enabled on Windows
+	// LoginModeBatch The LOGON32_LOGON_BATCH Win32 login mode. The batch login mode is recommended for long
+	// running parallel processes.
+	LoginModeBatch LoginMode = "batch"
+	// LoginModeInteractive The LOGON32_LOGON_INTERACTIVE Win32 login mode. UAC is enabled on Windows
 	// VirtualMachineConfiguration Pools. If this option is used with an elevated user identity in a Windows
 	// VirtualMachineConfiguration Pool, the user session will not be elevated unless the application executed
 	// by the Task command line is configured to always require administrative privilege or to always require
 	// maximum privilege.
-	Interactive LoginMode = "interactive"
+	LoginModeInteractive LoginMode = "interactive"
 )
 
 // PossibleLoginModeValues returns an array of possible values for the LoginMode const type.
 func PossibleLoginModeValues() []LoginMode {
-	return []LoginMode{Batch, Interactive}
+	return []LoginMode{LoginModeBatch, LoginModeInteractive}
 }
 
 // NetworkSecurityGroupRuleAccess enumerates the values for network security group rule access.
 type NetworkSecurityGroupRuleAccess string
 
 const (
-	// Allow Allow access.
-	Allow NetworkSecurityGroupRuleAccess = "allow"
-	// Deny Deny access.
-	Deny NetworkSecurityGroupRuleAccess = "deny"
+	// NetworkSecurityGroupRuleAccessAllow Allow access.
+	NetworkSecurityGroupRuleAccessAllow NetworkSecurityGroupRuleAccess = "allow"
+	// NetworkSecurityGroupRuleAccessDeny Deny access.
+	NetworkSecurityGroupRuleAccessDeny NetworkSecurityGroupRuleAccess = "deny"
 )
 
 // PossibleNetworkSecurityGroupRuleAccessValues returns an array of possible values for the NetworkSecurityGroupRuleAccess const type.
 func PossibleNetworkSecurityGroupRuleAccessValues() []NetworkSecurityGroupRuleAccess {
-	return []NetworkSecurityGroupRuleAccess{Allow, Deny}
+	return []NetworkSecurityGroupRuleAccess{NetworkSecurityGroupRuleAccessAllow, NetworkSecurityGroupRuleAccessDeny}
+}
+
+// NodePlacementPolicyType enumerates the values for node placement policy type.
+type NodePlacementPolicyType string
+
+const (
+	// NodePlacementPolicyTypeRegional All nodes in the pool will be allocated in the same region.
+	NodePlacementPolicyTypeRegional NodePlacementPolicyType = "regional"
+	// NodePlacementPolicyTypeZonal Nodes in the pool will be spread across different availability zones with
+	// best effort balancing.
+	NodePlacementPolicyTypeZonal NodePlacementPolicyType = "zonal"
+)
+
+// PossibleNodePlacementPolicyTypeValues returns an array of possible values for the NodePlacementPolicyType const type.
+func PossibleNodePlacementPolicyTypeValues() []NodePlacementPolicyType {
+	return []NodePlacementPolicyType{NodePlacementPolicyTypeRegional, NodePlacementPolicyTypeZonal}
+}
+
+// OSType enumerates the values for os type.
+type OSType string
+
+const (
+	// OSTypeLinux The Linux operating system.
+	OSTypeLinux OSType = "linux"
+	// OSTypeWindows The Windows operating system.
+	OSTypeWindows OSType = "windows"
+)
+
+// PossibleOSTypeValues returns an array of possible values for the OSType const type.
+func PossibleOSTypeValues() []OSType {
+	return []OSType{OSTypeLinux, OSTypeWindows}
 }
 
 // OnAllTasksComplete enumerates the values for on all tasks complete.
 type OnAllTasksComplete string
 
 const (
-	// NoAction Do nothing. The Job remains active unless terminated or disabled by some other means.
-	NoAction OnAllTasksComplete = "noaction"
-	// TerminateJob Terminate the Job. The Job's terminateReason is set to 'AllTasksComplete'.
-	TerminateJob OnAllTasksComplete = "terminatejob"
+	// OnAllTasksCompleteNoAction Do nothing. The Job remains active unless terminated or disabled by some
+	// other means.
+	OnAllTasksCompleteNoAction OnAllTasksComplete = "noaction"
+	// OnAllTasksCompleteTerminateJob Terminate the Job. The Job's terminateReason is set to
+	// 'AllTasksComplete'.
+	OnAllTasksCompleteTerminateJob OnAllTasksComplete = "terminatejob"
 )
 
 // PossibleOnAllTasksCompleteValues returns an array of possible values for the OnAllTasksComplete const type.
 func PossibleOnAllTasksCompleteValues() []OnAllTasksComplete {
-	return []OnAllTasksComplete{NoAction, TerminateJob}
+	return []OnAllTasksComplete{OnAllTasksCompleteNoAction, OnAllTasksCompleteTerminateJob}
 }
 
 // OnTaskFailure enumerates the values for on task failure.
@@ -628,21 +685,6 @@ func PossibleOnTaskFailureValues() []OnTaskFailure {
 	return []OnTaskFailure{OnTaskFailureNoAction, OnTaskFailurePerformExitOptionsJobAction}
 }
 
-// OSType enumerates the values for os type.
-type OSType string
-
-const (
-	// Linux The Linux operating system.
-	Linux OSType = "linux"
-	// Windows The Windows operating system.
-	Windows OSType = "windows"
-)
-
-// PossibleOSTypeValues returns an array of possible values for the OSType const type.
-func PossibleOSTypeValues() []OSType {
-	return []OSType{Linux, Windows}
-}
-
 // OutputFileUploadCondition enumerates the values for output file upload condition.
 type OutputFileUploadCondition string
 
@@ -661,6 +703,22 @@ const (
 // PossibleOutputFileUploadConditionValues returns an array of possible values for the OutputFileUploadCondition const type.
 func PossibleOutputFileUploadConditionValues() []OutputFileUploadCondition {
 	return []OutputFileUploadCondition{OutputFileUploadConditionTaskCompletion, OutputFileUploadConditionTaskFailure, OutputFileUploadConditionTaskSuccess}
+}
+
+// PoolIdentityType enumerates the values for pool identity type.
+type PoolIdentityType string
+
+const (
+	// PoolIdentityTypeNone Batch pool has no identity associated with it. Setting `None` in update pool will
+	// remove existing identities.
+	PoolIdentityTypeNone PoolIdentityType = "None"
+	// PoolIdentityTypeUserAssigned Batch pool has user assigned identities with it.
+	PoolIdentityTypeUserAssigned PoolIdentityType = "UserAssigned"
+)
+
+// PossiblePoolIdentityTypeValues returns an array of possible values for the PoolIdentityType const type.
+func PossiblePoolIdentityTypeValues() []PoolIdentityType {
+	return []PoolIdentityType{PoolIdentityTypeNone, PoolIdentityTypeUserAssigned}
 }
 
 // PoolLifetimeOption enumerates the values for pool lifetime option.
@@ -702,16 +760,16 @@ func PossiblePoolStateValues() []PoolState {
 type SchedulingState string
 
 const (
-	// Disabled No new Tasks will be scheduled on the Compute Node. Tasks already running on the Compute Node
-	// may still run to completion. All Compute Nodes start with scheduling enabled.
-	Disabled SchedulingState = "disabled"
-	// Enabled Tasks can be scheduled on the Compute Node.
-	Enabled SchedulingState = "enabled"
+	// SchedulingStateDisabled No new Tasks will be scheduled on the Compute Node. Tasks already running on the
+	// Compute Node may still run to completion. All Compute Nodes start with scheduling enabled.
+	SchedulingStateDisabled SchedulingState = "disabled"
+	// SchedulingStateEnabled Tasks can be scheduled on the Compute Node.
+	SchedulingStateEnabled SchedulingState = "enabled"
 )
 
 // PossibleSchedulingStateValues returns an array of possible values for the SchedulingState const type.
 func PossibleSchedulingStateValues() []SchedulingState {
-	return []SchedulingState{Disabled, Enabled}
+	return []SchedulingState{SchedulingStateDisabled, SchedulingStateEnabled}
 }
 
 // StartTaskState enumerates the values for start task state.
@@ -731,19 +789,36 @@ func PossibleStartTaskStateValues() []StartTaskState {
 	return []StartTaskState{StartTaskStateCompleted, StartTaskStateRunning}
 }
 
+// StatusLevelTypes enumerates the values for status level types.
+type StatusLevelTypes string
+
+const (
+	// StatusLevelTypesError ...
+	StatusLevelTypesError StatusLevelTypes = "Error"
+	// StatusLevelTypesInfo ...
+	StatusLevelTypesInfo StatusLevelTypes = "Info"
+	// StatusLevelTypesWarning ...
+	StatusLevelTypesWarning StatusLevelTypes = "Warning"
+)
+
+// PossibleStatusLevelTypesValues returns an array of possible values for the StatusLevelTypes const type.
+func PossibleStatusLevelTypesValues() []StatusLevelTypes {
+	return []StatusLevelTypes{StatusLevelTypesError, StatusLevelTypesInfo, StatusLevelTypesWarning}
+}
+
 // StorageAccountType enumerates the values for storage account type.
 type StorageAccountType string
 
 const (
-	// PremiumLRS The data disk should use premium locally redundant storage.
-	PremiumLRS StorageAccountType = "premium_lrs"
-	// StandardLRS The data disk should use standard locally redundant storage.
-	StandardLRS StorageAccountType = "standard_lrs"
+	// StorageAccountTypePremiumLRS The data disk should use premium locally redundant storage.
+	StorageAccountTypePremiumLRS StorageAccountType = "premium_lrs"
+	// StorageAccountTypeStandardLRS The data disk should use standard locally redundant storage.
+	StorageAccountTypeStandardLRS StorageAccountType = "standard_lrs"
 )
 
 // PossibleStorageAccountTypeValues returns an array of possible values for the StorageAccountType const type.
 func PossibleStorageAccountTypeValues() []StorageAccountType {
-	return []StorageAccountType{PremiumLRS, StandardLRS}
+	return []StorageAccountType{StorageAccountTypePremiumLRS, StorageAccountTypeStandardLRS}
 }
 
 // SubtaskState enumerates the values for subtask state.
@@ -793,16 +868,17 @@ func PossibleTaskAddStatusValues() []TaskAddStatus {
 type TaskExecutionResult string
 
 const (
-	// Failure There was an error during processing of the Task. The failure may have occurred before the Task
-	// process was launched, while the Task process was executing, or after the Task process exited.
-	Failure TaskExecutionResult = "failure"
-	// Success The Task ran successfully.
-	Success TaskExecutionResult = "success"
+	// TaskExecutionResultFailure There was an error during processing of the Task. The failure may have
+	// occurred before the Task process was launched, while the Task process was executing, or after the Task
+	// process exited.
+	TaskExecutionResultFailure TaskExecutionResult = "failure"
+	// TaskExecutionResultSuccess The Task ran successfully.
+	TaskExecutionResultSuccess TaskExecutionResult = "success"
 )
 
 // PossibleTaskExecutionResultValues returns an array of possible values for the TaskExecutionResult const type.
 func PossibleTaskExecutionResultValues() []TaskExecutionResult {
-	return []TaskExecutionResult{Failure, Success}
+	return []TaskExecutionResult{TaskExecutionResultFailure, TaskExecutionResultSuccess}
 }
 
 // TaskState enumerates the values for task state.
@@ -837,15 +913,15 @@ func PossibleTaskStateValues() []TaskState {
 type VerificationType string
 
 const (
-	// Unverified The associated Compute Node agent SKU should have binary compatibility with the Image, but
-	// specific functionality has not been verified.
-	Unverified VerificationType = "unverified"
-	// Verified The Image is guaranteed to be compatible with the associated Compute Node agent SKU and all
-	// Batch features have been confirmed to work as expected.
-	Verified VerificationType = "verified"
+	// VerificationTypeUnverified The associated Compute Node agent SKU should have binary compatibility with
+	// the Image, but specific functionality has not been verified.
+	VerificationTypeUnverified VerificationType = "unverified"
+	// VerificationTypeVerified The Image is guaranteed to be compatible with the associated Compute Node agent
+	// SKU and all Batch features have been confirmed to work as expected.
+	VerificationTypeVerified VerificationType = "verified"
 )
 
 // PossibleVerificationTypeValues returns an array of possible values for the VerificationType const type.
 func PossibleVerificationTypeValues() []VerificationType {
-	return []VerificationType{Unverified, Verified}
+	return []VerificationType{VerificationTypeUnverified, VerificationTypeVerified}
 }

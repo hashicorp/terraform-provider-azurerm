@@ -544,7 +544,7 @@ func ContainerDaprSchema() *pluginsdk.Schema {
 
 				"app_port": {
 					Type:        pluginsdk.TypeInt,
-					Required:    true,
+					Optional:    true,
 					Description: "The port which the application is listening on. This is the same as the `ingress` port.",
 				},
 
