@@ -839,6 +839,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"time_zone": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						Default:      "Etc/UTC",
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
