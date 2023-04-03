@@ -207,7 +207,7 @@ resource "azurerm_media_transform" "test" {
     face_detector_preset {
       analysis_resolution = "StandardDefinition"
       blur_type           = "Med"
-      mode                = "Combined"
+      face_redactor_mode  = "Combined"
       experimental_options = {
         env = "test"
       }

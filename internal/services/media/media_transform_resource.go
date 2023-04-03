@@ -241,7 +241,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 										},
 									},
-									"mode": {
+									"face_redactor_mode": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      string(encodings.FaceRedactorModeAnalyze),
@@ -328,38 +328,38 @@ func resourceMediaTransform() *pluginsdk.Resource {
 														},
 													},
 												},
-												//"dd_audio": {
-												//	Type:     pluginsdk.TypeList,
-												//	Optional: true,
-												//	MaxItems: 1,
-												//	Elem: &pluginsdk.Resource{
-												//		Schema: map[string]*schema.Schema{
-												//			"bitrate": {
-												//				Type:         pluginsdk.TypeInt,
-												//				Optional:     true,
-												//				Default:      192000,
-												//				ValidateFunc: validation.IntAtLeast(1),
-												//			},
-												//			"channels": {
-												//				Type:         pluginsdk.TypeInt,
-												//				Default:      2,
-												//				Optional:     true,
-												//				ValidateFunc: validation.IntBetween(1, 6),
-												//			},
-												//			"label": {
-												//				Type:         pluginsdk.TypeString,
-												//				Optional:     true,
-												//				ValidateFunc: validation.StringIsNotEmpty,
-												//			},
-												//			"sampling_rate": {
-												//				Type:         pluginsdk.TypeInt,
-												//				Default:      48000,
-												//				Optional:     true,
-												//				ValidateFunc: validation.IntBetween(32000, 48000),
-												//			},
-												//		},
-												//	},
-												//},
+												"dd_audio": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"bitrate": {
+																Type:         pluginsdk.TypeInt,
+																Optional:     true,
+																Default:      192000,
+																ValidateFunc: validation.IntAtLeast(1),
+															},
+															"channels": {
+																Type:         pluginsdk.TypeInt,
+																Default:      2,
+																Optional:     true,
+																ValidateFunc: validation.IntBetween(1, 6),
+															},
+															"label": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"sampling_rate": {
+																Type:         pluginsdk.TypeInt,
+																Default:      48000,
+																Optional:     true,
+																ValidateFunc: validation.IntBetween(32000, 48000),
+															},
+														},
+													},
+												},
 												"h264_video": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
@@ -1360,7 +1360,7 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 		presetsCount++
 	}
 	if presetsCount == 0 {
-		return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset,face_detector_preset,video_analyzer_preset or audio_analyzer_preset")
+		return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset, custom_preset, face_detector_preset, video_analyzer_preset or audio_analyzer_preset")
 	}
 	if presetsCount > 1 {
 		return nil, fmt.Errorf("more than one type of preset in the same output is not allowed")
@@ -1442,7 +1442,7 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 			faceDetectorPreset.BlurType = pointer.To(encodings.BlurType(v))
 		}
 
-		if v := preset["mode"].(string); v != "" {
+		if v := preset["face_redactor_mode"].(string); v != "" {
 			faceDetectorPreset.Mode = pointer.To(encodings.FaceRedactorMode(v))
 		}
 
@@ -1474,7 +1474,7 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 		return videoAnalyzerPreset, nil
 	}
 
-	return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset,face_detector_preset,video_analyzer_preset or audio_analyzer_preset")
+	return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset, custom_preset, face_detector_preset, video_analyzer_preset or audio_analyzer_preset")
 }
 
 type flattenedPresets struct {
@@ -1720,7 +1720,7 @@ func expandCustomPresetCodecs(input []interface{}) ([]encodings.Codec, error) {
 		aacAudio := codec["aac_audio"].([]interface{})
 		copyAudio := codec["copy_audio"].([]interface{})
 		copyVideo := codec["copy_video"].([]interface{})
-		//ddAudio := codec["dd_audio"].([]interface{})
+		ddAudio := codec["dd_audio"].([]interface{})
 		h264Video := codec["h264_video"].([]interface{})
 		h265Video := codec["h265_video"].([]interface{})
 		//jpgImage := codec["jpg_image"].([]interface{})
@@ -1736,9 +1736,9 @@ func expandCustomPresetCodecs(input []interface{}) ([]encodings.Codec, error) {
 		if len(copyVideo) > 0 {
 			codecsCount++
 		}
-		//if len(ddAudio) > 0 {
-		//	codecsCount++
-		//}
+		if len(ddAudio) > 0 {
+			codecsCount++
+		}
 		if len(h264Video) > 0 {
 			codecsCount++
 		}
@@ -1752,8 +1752,7 @@ func expandCustomPresetCodecs(input []interface{}) ([]encodings.Codec, error) {
 		//	codecsCount++
 		//}
 		if codecsCount == 0 {
-			//dd_audio jpg_image or png_image
-			return nil, fmt.Errorf("custom preset codec must contain at least one type of: aac_audio, copy_audio, copy_video, h264_video or h265_video")
+			return nil, fmt.Errorf("custom preset codec must contain at least one type of: aac_audio, copy_audio, copy_video, dd_audio, h264_video, h265_video, jpg_image or png_image")
 		}
 		if codecsCount > 1 {
 			return nil, fmt.Errorf("more than one type of codec in the same custom preset codec is not allowed")
@@ -1765,8 +1764,8 @@ func expandCustomPresetCodecs(input []interface{}) ([]encodings.Codec, error) {
 			results = append(results, expandCustomPresetCodecsCopyAudio(copyAudio))
 		} else if len(copyVideo) > 0 {
 			results = append(results, expandCustomPresetCodecsCopyVideo(copyVideo))
-			//} else if len(ddAudio) > 0 {
-			//results = append(results, expandCustomPresetCodecsDdAudio(ddAudio))
+		} else if len(ddAudio) > 0 {
+			results = append(results, expandCustomPresetCodecsDdAudio(ddAudio))
 		} else if len(h264Video) > 0 {
 			results = append(results, expandCustomPresetCodecsH264Video(h264Video))
 		} else if len(h265Video) > 0 {
@@ -1785,7 +1784,7 @@ type flattenedCustomPresetsCodec struct {
 	aacAudio  []interface{}
 	copyAudio []interface{}
 	copyVideo []interface{}
-	//ddAudio   []interface{}
+	ddAudio   []interface{}
 	h264Video []interface{}
 	h265Video []interface{}
 	//jpgImage  []interface{}
@@ -1804,7 +1803,7 @@ func flattenCustomPresetCodecs(input []encodings.Codec) []interface{} {
 			aacAudio:  []interface{}{},
 			copyAudio: []interface{}{},
 			copyVideo: []interface{}{},
-			//ddAudio:   []interface{}{},
+			ddAudio:   []interface{}{},
 			h264Video: []interface{}{},
 			h265Video: []interface{}{},
 			//jpgImage:  []interface{}{},
@@ -1823,9 +1822,9 @@ func flattenCustomPresetCodecs(input []encodings.Codec) []interface{} {
 			result.copyVideo = flattenCustomPresetCodecsCopyVideo(codec)
 		}
 
-		//if codec,ok:= v.(encodings.DdAudio); ok{
-		//	result.DdAudio = flattenCustomPresetCodecsDdVideo(codec)
-		//}
+		if codec, ok := v.(encodings.DDAudio); ok {
+			result.ddAudio = flattenCustomPresetCodecsDdAudio(codec)
+		}
 
 		if codec, ok := v.(encodings.H264Video); ok {
 			result.h264Video = flattenCustomPresetCodecsH264Video(codec)
@@ -1847,7 +1846,7 @@ func flattenCustomPresetCodecs(input []encodings.Codec) []interface{} {
 			"aac_audio":  result.aacAudio,
 			"copy_audio": result.copyAudio,
 			"copy_video": result.copyVideo,
-			//"dd_audio":   result.ddAudio,
+			"dd_audio":   result.ddAudio,
 			"h264_video": result.h264Video,
 			"h265_video": result.h265Video,
 			//"jpg_image":  result.jpgImage,
@@ -1982,65 +1981,63 @@ func flattenCustomPresetCodecsCopyVideo(input encodings.CopyVideo) []interface{}
 	}
 }
 
-//func expandCustomPresetCodecsDdAudio(input []interface{}) encodings.AacAudio {
-//	// TODO: modify to encoding.DdAudio
-//	if len(input) == 0 || input[0] == nil {
-//		return encodings.AacAudio{}
-//	}
-//
-//	ddAudio := input[0].(map[string]interface{})
-//	result := encodings.AacAudio{}
-//
-//	if v := ddAudio["bitrate"].(int); v != 0 {
-//		result.Bitrate = utils.Int64(int64(v))
-//	}
-//
-//	if v := ddAudio["channels"].(int); v != 0 {
-//		result.Channels = utils.Int64(int64(v))
-//	}
-//
-//	if v := ddAudio["label"].(string); v != "" {
-//		result.Label = utils.String(v)
-//	}
-//
-//	if v := ddAudio["sampling_rate"].(int); v != 0 {
-//		result.SamplingRate = utils.Int64(int64(v))
-//	}
-//
-//	return result
-//}
-//
-//func flattenCustomPresetCodecsDdAudio(input encodings.AacAudio) []interface{} {
-//	// TODO: modify to encoding.DdAudio
-//	bitrate := 0
-//	if input.Bitrate != nil {
-//		bitrate = int(*input.Bitrate)
-//	}
-//
-//	channels := 0
-//	if input.Channels != nil {
-//		channels = int(*input.Channels)
-//	}
-//
-//	label := ""
-//	if input.Label != nil {
-//		label = *input.Label
-//	}
-//
-//	samplingRate := 0
-//	if input.SamplingRate != nil {
-//		samplingRate = int(*input.SamplingRate)
-//	}
-//
-//	return []interface{}{
-//		map[string]interface{}{
-//			"bitrate":       bitrate,
-//			"channels":      channels,
-//			"label":         label,
-//			"sampling_rate": samplingRate,
-//		},
-//	}
-//}
+func expandCustomPresetCodecsDdAudio(input []interface{}) encodings.DDAudio {
+	if len(input) == 0 || input[0] == nil {
+		return encodings.DDAudio{}
+	}
+
+	ddAudio := input[0].(map[string]interface{})
+	result := encodings.DDAudio{}
+
+	if v := ddAudio["bitrate"].(int); v != 0 {
+		result.Bitrate = utils.Int64(int64(v))
+	}
+
+	if v := ddAudio["channels"].(int); v != 0 {
+		result.Channels = utils.Int64(int64(v))
+	}
+
+	if v := ddAudio["label"].(string); v != "" {
+		result.Label = utils.String(v)
+	}
+
+	if v := ddAudio["sampling_rate"].(int); v != 0 {
+		result.SamplingRate = utils.Int64(int64(v))
+	}
+
+	return result
+}
+
+func flattenCustomPresetCodecsDdAudio(input encodings.DDAudio) []interface{} {
+	bitrate := 0
+	if input.Bitrate != nil {
+		bitrate = int(*input.Bitrate)
+	}
+
+	channels := 0
+	if input.Channels != nil {
+		channels = int(*input.Channels)
+	}
+
+	label := ""
+	if input.Label != nil {
+		label = *input.Label
+	}
+
+	samplingRate := 0
+	if input.SamplingRate != nil {
+		samplingRate = int(*input.SamplingRate)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"bitrate":       bitrate,
+			"channels":      channels,
+			"label":         label,
+			"sampling_rate": samplingRate,
+		},
+	}
+}
 
 func expandCustomPresetCodecsH264Video(input []interface{}) encodings.H264Video {
 	if len(input) == 0 || input[0] == nil {
