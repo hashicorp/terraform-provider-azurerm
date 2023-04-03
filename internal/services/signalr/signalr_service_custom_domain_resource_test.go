@@ -153,7 +153,7 @@ resource "azurerm_signalr_service_custom_domain" "test" {
   name                          = "signalr-custom-domain-%s"
   signalr_service_id            = azurerm_signalr_service.test.id
   domain_name                   = "www.tftestzone.com"
-  signalr_custom_certificate_id = azurerm_signalr_custom_certificate.test.id
+  signalr_custom_certificate_id = azurerm_signalr_service_custom_certificate.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }

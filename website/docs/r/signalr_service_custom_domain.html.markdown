@@ -85,7 +85,7 @@ resource "azurerm_key_vault_certificate" "example" {
   }
 }
 
-resource "azurerm_signalr_custom_certificate" "test" {
+resource "azurerm_signalr_service_custom_certificate" "test" {
   name                  = "example-cert"
   signalr_service_id    = azurerm_signalr_service.example.id
   custom_certificate_id = azurerm_key_vault_certificate.example.id
@@ -97,7 +97,7 @@ resource "azurerm_signalr_service_custom_domain" "test" {
   name                          = "example-domain"
   signalr_service_id            = azurerm_signalr_service.test.id
   domain_name                   = "tftest.com"
-  signalr_custom_certificate_id = azurerm_signalr_custom_certificate.test.id
+  signalr_custom_certificate_id = azurerm_signalr_service_custom_certificate.test.id
 }
 ```
 
