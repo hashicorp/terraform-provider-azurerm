@@ -156,17 +156,15 @@ func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, 
 	id := dataconnections.NewDataConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		connectionModel, err := client.Get(ctx, id)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if !response.WasNotFound(connectionModel.HttpResponse) {
+			if !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if dataConnection, ok := (*connectionModel.Model).(dataconnections.EventHubDataConnection); ok {
-			if dataConnection.Id != nil && *dataConnection.Id != "" {
-				return tf.ImportAsExistsError("azurerm_kusto_eventhub_data_connection", *dataConnection.Id)
-			}
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_kusto_eventhub_data_connection", id.ID())
 		}
 	}
 

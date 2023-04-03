@@ -1,9 +1,9 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-03-10/machineextensions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-03-10/machines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-03-10/privateendpointconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machineextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privateendpointconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

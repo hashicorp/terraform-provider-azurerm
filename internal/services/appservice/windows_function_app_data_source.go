@@ -34,6 +34,7 @@ type WindowsFunctionAppDataSourceModel struct {
 
 	AppSettings               map[string]string                      `tfschema:"app_settings"`
 	AuthSettings              []helpers.AuthSettings                 `tfschema:"auth_settings"`
+	AuthV2Settings            []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
 	Backup                    []helpers.Backup                       `tfschema:"backup"`
 	BuiltinLogging            bool                                   `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled         bool                                   `tfschema:"client_certificate_enabled"`
@@ -122,6 +123,8 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 		},
 
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
+
+		"auth_settings_v2": helpers.AuthV2SettingsComputedSchema(),
 
 		"backup": helpers.BackupSchemaComputed(),
 
@@ -295,7 +298,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+				return fmt.Errorf("reading Sticky Settings for Windows %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
@@ -314,6 +317,11 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			auth, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
+			}
+
+			authV2, err := client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading authV2 settings for Windows %s: %+v", id, err)
 			}
 
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
@@ -347,6 +355,8 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
 			functionApp.AuthSettings = helpers.FlattenAuthSettings(auth)
+
+			functionApp.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
 			functionApp.Backup = helpers.FlattenBackupConfig(backup)
 

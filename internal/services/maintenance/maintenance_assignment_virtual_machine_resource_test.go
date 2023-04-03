@@ -47,6 +47,22 @@ func TestAccMaintenanceAssignmentVirtualMachine_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccMaintenanceAssignmentVirtualMachine_linkMultipleMaintenanceAssignmentsToOneVM(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_virtual_machine", "test")
+	r := MaintenanceAssignmentVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linkMultipleMaintenanceAssignmentsToOneVM(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// location not returned by list rest api
+		data.ImportStep("location"),
+	})
+}
+
 func (MaintenanceAssignmentVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	maintenanceAssignmentVirtualMachineId, err := parse.MaintenanceAssignmentVirtualMachineID(state.ID)
 	if err != nil {
@@ -158,4 +174,29 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MaintenanceAssignmentVirtualMachineResource) linkMultipleMaintenanceAssignmentsToOneVM(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_maintenance_configuration" "test2" {
+  name                = "acctest-MC2%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scope               = "SQLDB"
+}
+
+resource "azurerm_maintenance_assignment_virtual_machine" "test" {
+  location                     = azurerm_resource_group.test.location
+  maintenance_configuration_id = azurerm_maintenance_configuration.test.id
+  virtual_machine_id           = azurerm_linux_virtual_machine.test.id
+}
+
+resource "azurerm_maintenance_assignment_virtual_machine" "test2" {
+  location                     = azurerm_resource_group.test.location
+  maintenance_configuration_id = azurerm_maintenance_configuration.test2.id
+  virtual_machine_id           = azurerm_linux_virtual_machine.test.id
+}
+`, r.template(data), data.RandomInteger)
 }

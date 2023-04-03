@@ -58,7 +58,7 @@ An `sku` block exports the following:
 
 ## Attributes Reference
 
-The following Attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Capacity Reservation.
 

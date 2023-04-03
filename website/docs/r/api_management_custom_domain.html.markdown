@@ -98,12 +98,12 @@ resource "azurerm_api_management_custom_domain" "example" {
 
   gateway {
     host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.example.secret_id
+    key_vault_id = azurerm_key_vault_certificate.example.versionless_secret_id
   }
 
   developer_portal {
     host_name    = "portal.example.com"
-    key_vault_id = azurerm_key_vault_certificate.example.secret_id
+    key_vault_id = azurerm_key_vault_certificate.example.versionless_secret_id
   }
 }
 ```

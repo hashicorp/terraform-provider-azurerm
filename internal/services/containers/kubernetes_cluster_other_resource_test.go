@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -199,11 +200,15 @@ func TestAccKubernetesCluster_nodeResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
+	nodeResourceGroupName := fmt.Sprintf("acctestRGAKS-%d", data.RandomInteger)
+	nodeResourceGroupId := commonids.NewResourceGroupID(data.Subscriptions.Primary, nodeResourceGroupName)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.nodeResourceGroupConfig(data),
+			Config: r.nodeResourceGroupConfig(data, nodeResourceGroupName),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_resource_group_id").HasValue(nodeResourceGroupId.ID()),
 			),
 		},
 		data.ImportStep(),
@@ -217,6 +222,21 @@ func TestAccKubernetesCluster_nodePoolOther(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nodePoolOther(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_nodePoolKataMshvVmIsolation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodePoolKataMshvVmIsolation(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -503,6 +523,8 @@ func TestAccKubernetesCluster_basicMaintenanceConfig(t *testing.T) {
 			Config: r.basicMaintenanceConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.0").HasValue("2"),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.1").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -548,6 +570,8 @@ func TestAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
 			Config: r.basicMaintenanceConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.0").HasValue("2"),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.1").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -562,6 +586,8 @@ func TestAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
 			Config: r.basicMaintenanceConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.0").HasValue("2"),
+				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.1").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -1298,7 +1324,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, labelsStr)
 }
 
-func (KubernetesClusterResource) nodeResourceGroupConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) nodeResourceGroupConfig(data acceptance.TestData, nodeResourceGroupName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1314,7 +1340,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  node_resource_group = "acctestRGAKS-%d"
+  node_resource_group = "%s"
 
   default_node_pool {
     name       = "default"
@@ -1326,7 +1352,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, nodeResourceGroupName)
 }
 
 func (KubernetesClusterResource) nodePoolOther(data acceptance.TestData) string {
@@ -1354,6 +1380,39 @@ resource "azurerm_kubernetes_cluster" "test" {
     kubelet_disk_type  = "OS"
     message_of_the_day = "daily message"
     workload_runtime   = "OCIContainer"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) nodePoolKataMshvVmIsolation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name               = "default"
+    node_count         = 1
+    vm_size            = "Standard_D2s_v3"
+    message_of_the_day = "daily message"
+    os_sku             = "Mariner"
+    workload_runtime   = "KataMshvVmIsolation"
   }
 
   identity {
@@ -1895,7 +1954,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   maintenance_window {
     allowed {
       day   = "Monday"
-      hours = [1, 2]
+      hours = [2, 1]
     }
   }
 }

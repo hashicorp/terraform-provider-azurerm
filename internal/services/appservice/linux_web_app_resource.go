@@ -169,7 +169,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` on the App in `app_settings`.",
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Linux Web App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 
 		"tags": tags.Schema(),
@@ -469,7 +469,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			var authV2 web.SiteAuthSettingsV2
-			if pointer.From(auth.ConfigVersion) == "v2" {
+			if strings.EqualFold(pointer.From(auth.ConfigVersion), "v2") {
 				authV2, err = client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
 				if err != nil {
 					return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)

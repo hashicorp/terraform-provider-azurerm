@@ -46,7 +46,6 @@ func NewManagedIdentityAuthorizer(ctx context.Context, options ManagedIdentityAu
 const (
 	msiDefaultApiVersion = "2018-02-01"
 	msiDefaultEndpoint   = "http://169.254.169.254/metadata/identity/oauth2/token"
-	msiDefaultTimeout    = 10 * time.Second
 )
 
 var _ Authorizer = &ManagedIdentityAuthorizer{}
@@ -158,21 +157,24 @@ func (c *managedIdentityConfig) TokenSource(_ context.Context) (Authorizer, erro
 }
 
 func azureMetadata(ctx context.Context, url string) (body []byte, err error) {
-	ctx2, cancel := context.WithDeadline(ctx, time.Now().Add(time.Second*30))
-	defer cancel()
-
 	var req *http.Request
-	req, err = http.NewRequestWithContext(ctx2, http.MethodGet, url, http.NoBody)
+	req, err = http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return
 	}
 	req.Header = http.Header{
 		"Metadata": []string{"true"},
 	}
-	client := &http.Client{
-		Transport: http.DefaultTransport,
-		Timeout:   msiDefaultTimeout,
-	}
+
+	client := httpClient(httpClientParams{
+		instanceMetadataService: true,
+
+		retryWaitMin:  2 * time.Second,
+		retryWaitMax:  60 * time.Second,
+		retryMaxCount: 5,
+		useProxy:      false,
+	})
+
 	var resp *http.Response
 	log.Printf("[DEBUG] Performing %s Request to %q", req.Method, url)
 	resp, err = client.Do(req)
