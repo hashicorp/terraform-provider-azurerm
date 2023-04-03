@@ -114,14 +114,14 @@ type VirtualMachineFullResourceNames struct {
 }
 
 type ThreeTierConfiguration struct {
-	ApplicationServer    []ApplicationServer    `tfschema:"application_server"`
-	AppResourceGroupName string                 `tfschema:"app_resource_group_name"`
-	CentralServer        []CentralServer        `tfschema:"central_server"`
-	DatabaseServer       []DatabaseServer       `tfschema:"database_server"`
-	FullResourceNames    []FullResourceNames    `tfschema:"full_resource_names"`
-	HighAvailabilityType string                 `tfschema:"high_availability_type"`
-	IsSecondaryIpEnabled bool                   `tfschema:"is_secondary_ip_enabled"`
-	StorageConfiguration []StorageConfiguration `tfschema:"storage_configuration"`
+	ApplicationServerConfiguration []ApplicationServerConfiguration `tfschema:"application_server_configuration"`
+	AppResourceGroupName           string                           `tfschema:"app_resource_group_name"`
+	CentralServerConfiguration     []CentralServerConfiguration     `tfschema:"central_server_configuration"`
+	DatabaseServerConfiguration    []DatabaseServerConfiguration    `tfschema:"database_server_configuration"`
+	FullResourceNames              []FullResourceNames              `tfschema:"full_resource_names"`
+	HighAvailabilityType           string                           `tfschema:"high_availability_type"`
+	IsSecondaryIpEnabled           bool                             `tfschema:"is_secondary_ip_enabled"`
+	StorageConfiguration           []StorageConfiguration           `tfschema:"storage_configuration"`
 }
 
 type StorageConfiguration struct {
@@ -139,19 +139,19 @@ type TransportMount struct {
 	PrivateEndpointId string `tfschema:"private_endpoint_id"`
 }
 
-type ApplicationServer struct {
+type ApplicationServerConfiguration struct {
 	InstanceCount               int64                         `tfschema:"instance_count"`
 	SubnetId                    string                        `tfschema:"subnet_id"`
 	VirtualMachineConfiguration []VirtualMachineConfiguration `tfschema:"virtual_machine_configuration"`
 }
 
-type CentralServer struct {
+type CentralServerConfiguration struct {
 	InstanceCount               int64                         `tfschema:"instance_count"`
 	SubnetId                    string                        `tfschema:"subnet_id"`
 	VirtualMachineConfiguration []VirtualMachineConfiguration `tfschema:"virtual_machine_configuration"`
 }
 
-type DatabaseServer struct {
+type DatabaseServerConfiguration struct {
 	DatabaseType                string                        `tfschema:"database_type"`
 	DiskVolumeConfigurations    []DiskVolumeConfiguration     `tfschema:"disk_volume_configuration"`
 	InstanceCount               int64                         `tfschema:"instance_count"`

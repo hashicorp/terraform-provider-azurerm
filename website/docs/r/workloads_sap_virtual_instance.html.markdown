@@ -203,11 +203,11 @@ A `three_tier_configuration` block supports the following:
 
 * `app_resource_group_name` - (Optional) The name of the application Resource Group where SAP system resources will be deployed. Changing this forces a new resource to be created.
 
-* `application_server` - (Optional) An `application_server` block as defined below. Changing this forces a new resource to be created.
+* `application_server_configuration` - (Optional) An `application_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
-* `central_server` - (Optional) A `central_server` block as defined below. Changing this forces a new resource to be created.
+* `central_server_configuration` - (Optional) A `central_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
-* `database_server` - (Optional) A `database_server` block as defined below. Changing this forces a new resource to be created.
+* `database_server_configuration` - (Optional) A `database_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `full_resource_names` - (Optional) A `full_resource_names` block as defined below. Changing this forces a new resource to be created.
 
@@ -243,7 +243,7 @@ A `transport_mount` block supports the following:
 
 ---
 
-An `application_server` block supports the following:
+An `application_server_configuration` block supports the following:
 
 * `instance_count` - (Optional) The number of instances for the Application Server. Changing this forces a new resource to be created.
 
@@ -253,7 +253,7 @@ An `application_server` block supports the following:
 
 ---
 
-A `central_server` block supports the following:
+A `central_server_configuration` block supports the following:
 
 * `instance_count` - (Optional) The number of instances for the Central Server. Changing this forces a new resource to be created.
 
@@ -263,7 +263,7 @@ A `central_server` block supports the following:
 
 ---
 
-A `database_server` block supports the following:
+A `database_server_configuration` block supports the following:
 
 * `instance_count` - (Optional) The number of instances for the Database Server. Changing this forces a new resource to be created.
 

@@ -278,7 +278,7 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				"application_server": {
+				"application_server_configuration": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					ForceNew: true,
@@ -303,7 +303,7 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration() *pluginsdk.Schema {
 					},
 				},
 
-				"central_server": {
+				"central_server_configuration": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					ForceNew: true,
@@ -328,7 +328,7 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration() *pluginsdk.Schema {
 					},
 				},
 
-				"database_server": {
+				"database_server_configuration": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					ForceNew: true,
@@ -457,6 +457,13 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration() *pluginsdk.Schema {
 											MaxItems: 1,
 											Elem: &pluginsdk.Resource{
 												Schema: map[string]*pluginsdk.Schema{
+													"name": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+
 													"backend_pool_names": {
 														Type:     pluginsdk.TypeList,
 														Optional: true,
@@ -485,13 +492,6 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration() *pluginsdk.Schema {
 															Type:         pluginsdk.TypeString,
 															ValidateFunc: validation.StringIsNotEmpty,
 														},
-													},
-
-													"name": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
 													},
 												},
 											},
@@ -1257,15 +1257,15 @@ func expandThreeTierConfiguration(input []ThreeTierConfiguration) *sapvirtualins
 		}
 	}
 
-	if v := threeTierConfiguration.ApplicationServer; v != nil {
+	if v := threeTierConfiguration.ApplicationServerConfiguration; v != nil {
 		result.ApplicationServer = expandApplicationServer(v)
 	}
 
-	if v := threeTierConfiguration.CentralServer; v != nil {
+	if v := threeTierConfiguration.CentralServerConfiguration; v != nil {
 		result.CentralServer = expandCentralServer(v)
 	}
 
-	if v := threeTierConfiguration.DatabaseServer; v != nil {
+	if v := threeTierConfiguration.DatabaseServerConfiguration; v != nil {
 		result.DatabaseServer = expandDatabaseServer(v)
 	}
 
@@ -1280,7 +1280,7 @@ func expandThreeTierConfiguration(input []ThreeTierConfiguration) *sapvirtualins
 	return &result
 }
 
-func expandApplicationServer(input []ApplicationServer) sapvirtualinstances.ApplicationServerConfiguration {
+func expandApplicationServer(input []ApplicationServerConfiguration) sapvirtualinstances.ApplicationServerConfiguration {
 	if len(input) == 0 {
 		return sapvirtualinstances.ApplicationServerConfiguration{}
 	}
@@ -1302,7 +1302,7 @@ func expandApplicationServer(input []ApplicationServer) sapvirtualinstances.Appl
 	return result
 }
 
-func expandCentralServer(input []CentralServer) sapvirtualinstances.CentralServerConfiguration {
+func expandCentralServer(input []CentralServerConfiguration) sapvirtualinstances.CentralServerConfiguration {
 	if len(input) == 0 {
 		return sapvirtualinstances.CentralServerConfiguration{}
 	}
@@ -1324,7 +1324,7 @@ func expandCentralServer(input []CentralServer) sapvirtualinstances.CentralServe
 	return result
 }
 
-func expandDatabaseServer(input []DatabaseServer) sapvirtualinstances.DatabaseConfiguration {
+func expandDatabaseServer(input []DatabaseServerConfiguration) sapvirtualinstances.DatabaseConfiguration {
 	if len(input) == 0 {
 		return sapvirtualinstances.DatabaseConfiguration{}
 	}
@@ -1574,9 +1574,9 @@ func expandSharedStorage(input []SharedStorage) *sapvirtualinstances.SharedStora
 
 func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfiguration) []ThreeTierConfiguration {
 	result := ThreeTierConfiguration{
-		ApplicationServer: flattenApplicationServer(input.ApplicationServer),
-		CentralServer:     flattenCentralServer(input.CentralServer),
-		DatabaseServer:    flattenDatabaseServer(input.DatabaseServer),
+		ApplicationServerConfiguration: flattenApplicationServer(input.ApplicationServer),
+		CentralServerConfiguration:     flattenCentralServer(input.CentralServer),
+		DatabaseServerConfiguration:    flattenDatabaseServer(input.DatabaseServer),
 	}
 
 	if v := input.AppResourceGroup; v != "" {
@@ -1652,8 +1652,8 @@ func flattenStorageConfiguration(input *sapvirtualinstances.StorageConfiguration
 	}
 }
 
-func flattenApplicationServer(input sapvirtualinstances.ApplicationServerConfiguration) []ApplicationServer {
-	result := ApplicationServer{
+func flattenApplicationServer(input sapvirtualinstances.ApplicationServerConfiguration) []ApplicationServerConfiguration {
+	result := ApplicationServerConfiguration{
 		InstanceCount:               input.InstanceCount,
 		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration),
 	}
@@ -1662,13 +1662,13 @@ func flattenApplicationServer(input sapvirtualinstances.ApplicationServerConfigu
 		result.SubnetId = v
 	}
 
-	return []ApplicationServer{
+	return []ApplicationServerConfiguration{
 		result,
 	}
 }
 
-func flattenCentralServer(input sapvirtualinstances.CentralServerConfiguration) []CentralServer {
-	result := CentralServer{
+func flattenCentralServer(input sapvirtualinstances.CentralServerConfiguration) []CentralServerConfiguration {
+	result := CentralServerConfiguration{
 		InstanceCount:               input.InstanceCount,
 		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration),
 	}
@@ -1677,13 +1677,13 @@ func flattenCentralServer(input sapvirtualinstances.CentralServerConfiguration) 
 		result.SubnetId = v
 	}
 
-	return []CentralServer{
+	return []CentralServerConfiguration{
 		result,
 	}
 }
 
-func flattenDatabaseServer(input sapvirtualinstances.DatabaseConfiguration) []DatabaseServer {
-	result := DatabaseServer{
+func flattenDatabaseServer(input sapvirtualinstances.DatabaseConfiguration) []DatabaseServerConfiguration {
+	result := DatabaseServerConfiguration{
 		InstanceCount:               input.InstanceCount,
 		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration),
 	}
@@ -1700,7 +1700,7 @@ func flattenDatabaseServer(input sapvirtualinstances.DatabaseConfiguration) []Da
 		result.SubnetId = v
 	}
 
-	return []DatabaseServer{
+	return []DatabaseServerConfiguration{
 		result,
 	}
 }
