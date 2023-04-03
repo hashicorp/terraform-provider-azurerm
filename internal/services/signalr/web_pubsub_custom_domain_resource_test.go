@@ -75,74 +75,72 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_web_pubsub" "test" {
- name                = "acctestwebPubsub%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
- sku {
-   name     = "Premium_P1"
-   capacity = 1
- }
- identity {
-   type = "SystemAssigned"
- }
+  name                = "acctestwebPubsub%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Premium_P1"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_key_vault" "test" {
- name                       = "acctestkeyvault%s"
- location                   = azurerm_resource_group.test.location
- resource_group_name        = azurerm_resource_group.test.name
- tenant_id                  = data.azurerm_client_config.current.tenant_id
- sku_name                   = "standard"
- soft_delete_retention_days = 7
+  name                       = "acctestkeyvault%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
 
- access_policy {
-   tenant_id = data.azurerm_client_config.current.tenant_id
-   object_id = data.azurerm_client_config.current.object_id
-   certificate_permissions = [
-     "Create",
-     "Delete",
-     "Get",
-     "Import",
-     "Purge",
-     "Recover",
-     "Update",
-     "List",
-   ]
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    certificate_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Import",
+      "Purge",
+      "Recover",
+      "Update",
+      "List",
+    ]
 
-   secret_permissions = [
-     "Get",
-     "Set",
-   ]
- }
+    secret_permissions = [
+      "Get",
+      "Set",
+    ]
+  }
 
- access_policy {
-   tenant_id = data.azurerm_client_config.current.tenant_id
-   object_id = azurerm_web_pubsub.test.identity[0].principal_id
-   certificate_permissions = [
-     "Create",
-     "Delete",
-     "Get",
-     "Import",
-     "Purge",
-     "Recover",
-     "Update",
-     "List",
-   ]
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_web_pubsub.test.identity[0].principal_id
+    certificate_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Import",
+      "Purge",
+      "Recover",
+      "Update",
+      "List",
+    ]
 
-   secret_permissions = [
-     "Get",
-     "Set",
-   ]
- }
+    secret_permissions = [
+      "Get",
+      "Set",
+    ]
+  }
 }
 
 resource "azurerm_key_vault_certificate" "test" {
- name         = "acctestcert%s"
- key_vault_id = azurerm_key_vault.test.id
- certificate {
-   contents = filebase64("testdata/certificate-to-import.pfx")
-   password = ""
- }
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
+  certificate {
+    contents = filebase64("testdata/certificate-to-import.pfx")
+    password = ""
+  }
 }
 
 resource "azurerm_web_pubsub_custom_certificate" "test" {
@@ -153,9 +151,9 @@ resource "azurerm_web_pubsub_custom_certificate" "test" {
 }
 
 resource "azurerm_web_pubsub_custom_domain" "test" {
-  name                  = "webPubsubcustom-domain-%s"
-  web_pubsub_id         = azurerm_web_pubsub.test.id
-  domain_name           = "www.tftestzone.com"
+  name                             = "webPubsubcustom-domain-%s"
+  web_pubsub_id                    = azurerm_web_pubsub.test.id
+  domain_name                      = "www.tftestzone.com"
   web_pubsub_custom_certificate_id = azurerm_web_pubsub_custom_certificate.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
@@ -166,9 +164,9 @@ func (r WebPubsubCustomDomainResource) requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_web_pubsub_custom_domain" "import" {
-  name                  = azurerm_web_pubsub_custom_domain.test.name
-  web_pubsub_id         = azurerm_web_pubsub_custom_domain.test.web_pubsub_id
-  domain_name           = azurerm_web_pubsub_custom_domain.test.domain_name
+  name                             = azurerm_web_pubsub_custom_domain.test.name
+  web_pubsub_id                    = azurerm_web_pubsub_custom_domain.test.web_pubsub_id
+  domain_name                      = azurerm_web_pubsub_custom_domain.test.domain_name
   web_pubsub_custom_certificate_id = azurerm_web_pubsub_custom_domain.test.web_pubsub_custom_certificate_id
 }
 `, r.basic(data))

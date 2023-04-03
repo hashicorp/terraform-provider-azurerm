@@ -114,7 +114,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_signalr_service.test.identity[0].principal_id
+    object_id = azurerm_signalr_service.test.identity[0].principal_id
     certificate_permissions = [
       "Create",
       "Delete",
@@ -149,7 +149,7 @@ resource "azurerm_signalr_service_custom_certificate" "test" {
   depends_on            = [azurerm_key_vault.test]
 }
 
-resource "azurerm_signalr_custom_domain" "test" {
+resource "azurerm_signalr_service_custom_domain" "test" {
   name                          = "signalr-custom-domain-%s"
   signalr_service_id            = azurerm_signalr_service.test.id
   domain_name                   = "www.tftestzone.com"
