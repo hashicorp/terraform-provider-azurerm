@@ -165,6 +165,9 @@ func (m AutomationConnectionTypeResource) Read() sdk.ResourceFunc {
 			client := meta.Client.Automation.ConnectionTypeClient
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return meta.MarkAsGone(id)
+				}
 				return err
 			}
 

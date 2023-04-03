@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -122,38 +121,40 @@ func (k KeysDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			decodedKey, err := url.QueryUnescape(model.Key)
+			configurationStoreId, err := configurationstores.ParseConfigurationStoreID(model.ConfigurationStoreId)
 			if err != nil {
-				return fmt.Errorf("while decoding key of resource ID: %+v", err)
+				return err
 			}
 
-			id := parse.AppConfigurationKeyId{
-				ConfigurationStoreId: model.ConfigurationStoreId,
-				Key:                  decodedKey,
-				Label:                model.Label,
+			configurationStoreEndpoint, err := metadata.Client.AppConfiguration.EndpointForConfigurationStore(ctx, *configurationStoreId)
+			if err != nil {
+				return fmt.Errorf("retrieving Endpoint for feature %q in %q: %s", model.Key, *configurationStoreId, err)
 			}
+
 			// @favoretti: API returns pagination nextLink (Link header) without complete URI, only path:
 			// Link: "</kv?somepath...>; rel=next;"
 			// whereas the client expects a complete URI to be present and therefore fails to fetch all results if
 			// store contains more than 100 entries
-			client, err := metadata.Client.AppConfiguration.LinkWorkaroundDataPlaneClient(ctx, model.ConfigurationStoreId)
+			client, err := metadata.Client.AppConfiguration.LinkWorkaroundDataPlaneClientWithEndpoint(*configurationStoreEndpoint)
 			if err != nil {
 				return err
 			}
-			if client == nil {
-				return fmt.Errorf("building data plane client: app configuration %q was not found", model.ConfigurationStoreId)
+
+			nestedItemId, err := parse.NewNestedItemID(*configurationStoreEndpoint, model.Key, model.Label)
+			if err != nil {
+				return err
 			}
 
-			iter, err := client.GetKeyValuesComplete(ctx, decodedKey, model.Label, "", "", []string{})
+			iter, err := client.GetKeyValuesComplete(ctx, model.Key, model.Label, "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return fmt.Errorf("key %s was not found", decodedKey)
+						return fmt.Errorf("key %s was not found", model.Key)
 					}
 				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", decodedKey, err)
+					return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
 				}
-				return fmt.Errorf("while checking for key's %q existence: %+v", decodedKey, err)
+				return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
 			}
 
 			for iter.NotDone() {
@@ -183,17 +184,13 @@ func (k KeysDataSource) Read() sdk.ResourceFunc {
 					krmodel.Locked = *kv.Locked
 				}
 				krmodel.Etag = utils.NormalizeNilableString(kv.Etag)
-				if id.Label == "" {
-					// We set an empty label as %00 in the resource ID
-					// Otherwise it breaks the ID parsing logic
-					id.Label = "%00"
-				}
+
 				model.Items = append(model.Items, krmodel)
 				if err := iter.NextWithContext(ctx); err != nil {
-					return fmt.Errorf("fetching keys for %q: %+v", id, err)
+					return fmt.Errorf("fetching keys for %q: %+v", nestedItemId, err)
 				}
 			}
-			metadata.SetID(id)
+			metadata.SetID(nestedItemId)
 			return metadata.Encode(&model)
 		},
 	}

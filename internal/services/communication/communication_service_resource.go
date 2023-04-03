@@ -58,6 +58,7 @@ func resourceArmCommunicationService() *pluginsdk.Resource {
 				Type: pluginsdk.TypeString,
 				// TODO: should this become Required and remove the default in 4.0?
 				Optional: true,
+				ForceNew: true,
 				Default:  "United States",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Africa",

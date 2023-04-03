@@ -162,7 +162,7 @@ A `machine_scope` block contains:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Virtual Machine Scale Set Packet Capture ID.
 

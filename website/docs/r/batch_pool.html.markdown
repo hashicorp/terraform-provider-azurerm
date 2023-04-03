@@ -535,7 +535,7 @@ Windows operating system settings on the virtual machine. This property must not
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Batch Pool.
 

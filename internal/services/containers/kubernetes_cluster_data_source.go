@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -339,6 +339,10 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+						"msi_auth_for_monitoring_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
 						"oms_agent_identity": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -602,6 +606,11 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"node_resource_group_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"oidc_issuer_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -683,15 +692,14 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	profileId := managedclusters.NewAccessProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string), "clusterUser")
-	profile, err := client.GetAccessProfile(ctx, profileId)
+	credentials, err := client.ListClusterUserCredentials(ctx, id, managedclusters.ListClusterUserCredentialsOperationOptions{})
 	if err != nil {
-		return fmt.Errorf("retrieving Access Profile for %s: %+v", id, err)
+		return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
 	}
-	if profile.Model == nil {
-		return fmt.Errorf("retrieving Access Profile for %s: payload is empty", id)
+	if credentials.Model == nil {
+		return fmt.Errorf("retrieving User Credentials for %s: payload is empty", id)
 	}
-	profileModel := profile.Model
+	credentialsModel := credentials.Model
 
 	d.SetId(id.ID())
 	if model := resp.Model; model != nil {
@@ -707,7 +715,15 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 			d.Set("private_fqdn", props.PrivateFQDN)
 			d.Set("kubernetes_version", props.KubernetesVersion)
-			d.Set("node_resource_group", props.NodeResourceGroup)
+
+			nodeResourceGroup := ""
+			if v := props.NodeResourceGroup; v != nil {
+				nodeResourceGroup = *props.NodeResourceGroup
+			}
+			d.Set("node_resource_group", nodeResourceGroup)
+
+			nodeResourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup)
+			d.Set("node_resource_group_id", nodeResourceGroupId.ID())
 
 			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
 				apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
@@ -809,14 +825,13 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 
 			// adminProfile is only available for RBAC enabled clusters with AAD and without local accounts disabled
 			if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-				profileId := managedclusters.NewAccessProfileID(subscriptionId, id.ResourceGroupName, id.ManagedClusterName, "clusterAdmin")
-				adminProfile, err := client.GetAccessProfile(ctx, profileId)
+				adminCredentials, err := client.ListClusterAdminCredentials(ctx, id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
 				if err != nil {
-					return fmt.Errorf("retrieving Admin Access Profile for %s: %+v", id, err)
+					return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
 				}
 
-				if adminProfileModel := adminProfile.Model; adminProfileModel != nil {
-					adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(*adminProfileModel)
+				if adminCredentialModel := adminCredentials.Model; adminCredentialModel != nil {
+					adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterCredentials(*adminCredentialModel, "clusterAdmin")
 					d.Set("kube_admin_config_raw", adminKubeConfigRaw)
 					if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
 						return fmt.Errorf("setting `kube_admin_config`: %+v", err)
@@ -837,7 +852,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceAccessProfile(*profileModel)
+		kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentials(*credentialsModel, "clusterUser")
 		d.Set("kube_config_raw", kubeConfigRaw)
 		if err := d.Set("kube_config", kubeConfig); err != nil {
 			return fmt.Errorf("setting `kube_config`: %+v", err)
@@ -913,36 +928,41 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 	return storageProfile
 }
 
-func flattenKubernetesClusterDataSourceAccessProfile(profile managedclusters.ManagedClusterAccessProfile) (*string, []interface{}) {
-	if profile.Properties == nil {
+func flattenKubernetesClusterCredentials(model managedclusters.CredentialResults, configName string) (*string, []interface{}) {
+	if model.Kubeconfigs == nil || len(*model.Kubeconfigs) < 1 {
 		return nil, []interface{}{}
 	}
 
-	if kubeConfigRaw := profile.Properties.KubeConfig; kubeConfigRaw != nil {
-		rawConfig := *kubeConfigRaw
-		if base64IsEncoded(*kubeConfigRaw) {
-			rawConfig = base64Decode(*kubeConfigRaw)
+	for _, c := range *model.Kubeconfigs {
+		if c.Name == nil || *c.Name != configName {
+			continue
 		}
-
-		var flattenedKubeConfig []interface{}
-
-		if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
-			kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
-			if err != nil {
-				return utils.String(rawConfig), []interface{}{}
+		if kubeConfigRaw := c.Value; kubeConfigRaw != nil {
+			rawConfig := *kubeConfigRaw
+			if base64IsEncoded(*kubeConfigRaw) {
+				rawConfig = base64Decode(*kubeConfigRaw)
 			}
 
-			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
-		} else {
-			kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
-			if err != nil {
-				return utils.String(rawConfig), []interface{}{}
+			var flattenedKubeConfig []interface{}
+
+			if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
+				kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
+				if err != nil {
+					return utils.String(rawConfig), []interface{}{}
+				}
+
+				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
+			} else {
+				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
+				if err != nil {
+					return utils.String(rawConfig), []interface{}{}
+				}
+
+				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
 			}
 
-			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
+			return utils.String(rawConfig), flattenedKubeConfig
 		}
-
-		return utils.String(rawConfig), flattenedKubeConfig
 	}
 
 	return nil, []interface{}{}
@@ -983,17 +1003,24 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 	omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey)
 	if enabled := omsAgent.Enabled; enabled {
 		workspaceID := ""
+		useAADAuth := false
+
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
 			if lawid, err := workspaces.ParseWorkspaceID(v); err == nil {
 				workspaceID = lawid.ID()
 			}
 		}
 
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "useAADAuth"); v != "false" && v != "" {
+			useAADAuth = true
+		}
+
 		omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
 
 		omsAgents = append(omsAgents, map[string]interface{}{
-			"log_analytics_workspace_id": workspaceID,
-			"oms_agent_identity":         omsAgentIdentity,
+			"log_analytics_workspace_id":      workspaceID,
+			"msi_auth_for_monitoring_enabled": useAADAuth,
+			"oms_agent_identity":              omsAgentIdentity,
 		})
 	}
 

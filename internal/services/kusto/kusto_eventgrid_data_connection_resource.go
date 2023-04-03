@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	eventGridValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/validate"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -135,17 +136,18 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForDatabaseRouting(), false),
 			},
 
+			// TODO: rename this to `eventgrid_event_subscription_id` in 4.0
 			"eventgrid_resource_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: eventGridValidate.EventSubscriptionID,
 			},
 
+			// TODO: rename this to `managed_identity_id` in 4.0
 			"managed_identity_resource_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.Any(
-					validation.StringIsEmpty,
 					clusters.ValidateClusterID,
 					commonids.ValidateUserAssignedIdentityID,
 				),

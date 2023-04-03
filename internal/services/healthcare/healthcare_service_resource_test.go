@@ -183,6 +183,7 @@ resource "azurerm_key_vault" "test" {
       "Get",
       "Purge",
       "Update",
+      "GetRotationPolicy"
     ]
   }
 
@@ -194,6 +195,7 @@ resource "azurerm_key_vault" "test" {
       "Get",
       "UnwrapKey",
       "WrapKey",
+      "GetRotationPolicy"
     ]
   }
 }
@@ -297,6 +299,7 @@ resource "azurerm_key_vault" "test" {
       "Get",
       "Purge",
       "Update",
+      "GetRotationPolicy"
     ]
   }
 
@@ -308,6 +311,7 @@ resource "azurerm_key_vault" "test" {
       "Get",
       "UnwrapKey",
       "WrapKey",
+      "GetRotationPolicy"
     ]
   }
 }

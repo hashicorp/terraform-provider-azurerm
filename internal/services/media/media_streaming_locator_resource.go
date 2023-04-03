@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -220,7 +219,7 @@ func resourceMediaStreamingLocatorCreate(d *pluginsdk.ResourceData, meta interfa
 
 	if endTimeRaw, ok := d.GetOk("end_time"); ok {
 		if endTimeRaw.(string) != "" {
-			endTime, err := date.ParseTime(time.RFC3339, endTimeRaw.(string))
+			endTime, err := time.Parse(time.RFC3339, endTimeRaw.(string))
 			if err != nil {
 				return err
 			}
@@ -234,7 +233,7 @@ func resourceMediaStreamingLocatorCreate(d *pluginsdk.ResourceData, meta interfa
 
 	if startTimeRaw, ok := d.GetOk("start_time"); ok {
 		if startTimeRaw.(string) != "" {
-			startTime, err := date.ParseTime(time.RFC3339, startTimeRaw.(string))
+			startTime, err := time.Parse(time.RFC3339, startTimeRaw.(string))
 			if err != nil {
 				return err
 			}

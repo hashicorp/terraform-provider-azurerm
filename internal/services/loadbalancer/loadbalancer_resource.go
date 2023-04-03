@@ -19,9 +19,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -432,14 +432,14 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
-						ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						Computed:     true, // TODO: why is this computed?
+						ValidateFunc: networkValidate.SubnetID,
 					},
 
 					"private_ip_address": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
+						Computed: true, // TODO: remove computed in 4.0 and use ignore_changes
 						ValidateFunc: validation.Any(
 							validation.IsIPAddress,
 							validation.StringIsEmpty,
@@ -449,7 +449,7 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"private_ip_address_version": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
+						Computed: true, // TODO: why is this computed?
 						ValidateFunc: validation.StringInSlice([]string{
 							string(network.IPVersionIPv4),
 							string(network.IPVersionIPv6),
@@ -459,15 +459,15 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
-						ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						Computed:     true, // TODO: why is this computed?
+						ValidateFunc: networkValidate.PublicIpAddressID,
 					},
 
 					"public_ip_prefix_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
-						ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						ValidateFunc: networkValidate.PublicIpPrefixID,
 					},
 
 					"private_ip_address_allocation": {
@@ -478,7 +478,6 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 							string(network.IPAllocationMethodDynamic),
 							string(network.IPAllocationMethodStatic),
 						}, true),
-						StateFunc:        state.IgnoreCase,
 						DiffSuppressFunc: suppress.CaseDifference,
 					},
 
