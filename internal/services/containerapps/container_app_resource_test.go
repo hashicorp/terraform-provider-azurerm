@@ -593,7 +593,7 @@ resource "azurerm_container_app" "test" {
   }
 
   dapr {
-    app_id       = "acctest-cont-%[2]d"
+    app_id = "acctest-cont-%[2]d"
   }
 
   tags = {
@@ -1152,7 +1152,7 @@ resource "azurerm_container_app" "test" {
   }
 
   dapr {
-    app_id       = "acctest-cont-%[2]d"
+    app_id = "acctest-cont-%[2]d"
   }
 
   tags = {
