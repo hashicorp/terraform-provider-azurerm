@@ -274,7 +274,7 @@ A `gallery_application` block supports the following:
 
 * `configuration_blob_uri` - (Optional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided.
 
-* `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2,147,483,647`.
+* `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2147483647`. Defaults to `0`.
 
 * `tag` - (Optional) Specifies a passthrough value for more generic context. This field can be any valid `string` value.
 
