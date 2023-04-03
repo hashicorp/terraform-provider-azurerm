@@ -78,7 +78,7 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						// one type MUST have only one policy as most, add this validation in Create/Update
-						"type": {
+						"environment_type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -164,8 +164,7 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 		url := *resp.Model.Properties.AttestUri
 		cli := meta.(*clients.Client).Attestation.PolicyClient
 		for _, policy := range policies {
-			_, err = cli.Set(ctx, url, policy.Type, policy.Data)
-			if err != nil {
+			if _, err = cli.Set(ctx, url, policy.Type, policy.Data); err != nil {
 				return fmt.Errorf("set policy: %+v", err)
 			}
 		}
@@ -237,16 +236,17 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("policy") {
 		policies, err := expandPolicies(d.Get("policy").([]interface{}))
 		if err != nil {
-			log.Printf("[Warn] expand policies: %+v", err)
+			return fmt.Errorf("expand policies: %+v", err)
 		}
 		policyClient := meta.(*clients.Client).Attestation.PolicyClient
+
 		url := d.Get("attestation_uri").(string)
 		if url == "" {
 			log.Printf("[Warn] got empty attestation instance url")
 		} else {
 			for _, policy := range policies {
 				if _, err = policyClient.Set(ctx, url, policy.Type, policy.Data); err != nil {
-					log.Printf("[Warn] set policy in %s: %+v", url, err)
+					return fmt.Errorf("set policy in %s: %+v", url, err)
 				}
 			}
 		}
@@ -303,6 +303,7 @@ func expandPolicies(input []interface{}) (res []policyDef, err error) {
 		}
 		policy := ins.(map[string]interface{})
 		typ := attestation.Type(policy["type"].(string))
+
 		for _, def := range res {
 			if def.Type == typ {
 				return nil, fmt.Errorf("repeated policy type: %s", typ)

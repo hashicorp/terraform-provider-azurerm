@@ -352,7 +352,6 @@ issuancerules
 	})
 	token.Header["jku"] = "https://xxx.us.attest.azure.net/certs"
 	token.Header["kid"] = "xxx"
-	str, err := token.SignedString(jwt.UnsafeAllowNoneSignatureType)
-	_ = err
+	str, _ := token.SignedString(jwt.UnsafeAllowNoneSignatureType)
 	return str
 }

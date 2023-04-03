@@ -51,7 +51,7 @@ The following arguments are supported:
 
 A `policy` supports the followings:
 
-* `type` - (Required) Specifies the type of the trusted environment to be used. Possible values are `OpenEnclave`, `SgxEnclave` and `Tpm`.
+* `environment_type` - (Required) Specifies the type of the trusted environment to be used. Possible values are `OpenEnclave`, `SgxEnclave` and `Tpm`.
 
 -> **NOTE:** Each environment type can have at most one policy to set.
 
