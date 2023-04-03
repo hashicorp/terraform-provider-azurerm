@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - Add `KataMshvVmIsolation` as `workload_runtime` option [GH-21176]
 * `azurerm_kubernetes_cluster_node_pool` - Add `KataMshvVmIsolation` as `workload_runtime` option [GH-21176]
 * `azurerm_signalr_service` - support for the `http_request_logs_enabled` property [GH-21032]
+* `azurerm_snapshot` - add support for the `incremental_enabled` property [GH-21263]
 
 BUG FIXES:
 
