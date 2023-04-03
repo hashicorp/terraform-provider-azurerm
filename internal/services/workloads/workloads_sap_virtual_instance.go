@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -32,40 +33,7 @@ func SchemaForSAPVirtualInstanceSingleServerConfiguration() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				"disk_volume_configuration": {
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
-					ForceNew: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"volume_name": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ForceNew:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-
-							"count": {
-								Type:     pluginsdk.TypeInt,
-								Optional: true,
-								ForceNew: true,
-							},
-
-							"size_gb": {
-								Type:     pluginsdk.TypeInt,
-								Optional: true,
-								ForceNew: true,
-							},
-
-							"sku_name": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ForceNew:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-					},
-				},
+				"disk_volume_configuration": SchemaForSAPVirtualInstanceDiskVolumeConfiguration(),
 
 				"is_secondary_ip_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -80,134 +48,7 @@ func SchemaForSAPVirtualInstanceSingleServerConfiguration() *pluginsdk.Schema {
 					ValidateFunc: networkValidate.SubnetID,
 				},
 
-				"virtual_machine_configuration": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					ForceNew: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"image_reference": {
-								Type:     pluginsdk.TypeList,
-								Optional: true,
-								ForceNew: true,
-								MaxItems: 1,
-								Elem: &pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
-										"offer": {
-											Type:         pluginsdk.TypeString,
-											Optional:     true,
-											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
-										},
-
-										"publisher": {
-											Type:         pluginsdk.TypeString,
-											Optional:     true,
-											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
-										},
-
-										"sku": {
-											Type:         pluginsdk.TypeString,
-											Optional:     true,
-											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
-										},
-
-										"version": {
-											Type:         pluginsdk.TypeString,
-											Optional:     true,
-											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
-										},
-									},
-								},
-							},
-
-							"os_profile": {
-								Type:     pluginsdk.TypeList,
-								Optional: true,
-								ForceNew: true,
-								MaxItems: 1,
-								Elem: &pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
-										"admin_password": {
-											Type:         pluginsdk.TypeString,
-											Optional:     true,
-											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
-										},
-
-										"admin_username": {
-											Type:         pluginsdk.TypeString,
-											Optional:     true,
-											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
-										},
-
-										"linux_configuration": {
-											Type:     pluginsdk.TypeList,
-											Optional: true,
-											ForceNew: true,
-											MaxItems: 1,
-											Elem: &pluginsdk.Resource{
-												Schema: map[string]*pluginsdk.Schema{
-													"password_authentication_enabled": {
-														Type:     pluginsdk.TypeBool,
-														Optional: true,
-														ForceNew: true,
-													},
-
-													"ssh_key_pair": {
-														Type:     pluginsdk.TypeList,
-														Optional: true,
-														ForceNew: true,
-														MaxItems: 1,
-														Elem: &pluginsdk.Resource{
-															Schema: map[string]*pluginsdk.Schema{
-																"private_key": {
-																	Type:         pluginsdk.TypeString,
-																	Optional:     true,
-																	ForceNew:     true,
-																	ValidateFunc: validation.StringIsNotEmpty,
-																},
-
-																"public_key": {
-																	Type:         pluginsdk.TypeString,
-																	Optional:     true,
-																	ForceNew:     true,
-																	ValidateFunc: validation.StringIsNotEmpty,
-																},
-															},
-														},
-													},
-
-													"ssh_public_key_data_list": {
-														Type:     pluginsdk.TypeList,
-														Optional: true,
-														ForceNew: true,
-														Elem: &pluginsdk.Schema{
-															Type:         pluginsdk.TypeString,
-															ValidateFunc: validation.StringIsNotEmpty,
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-
-							"vm_size": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ForceNew:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-					},
-				},
+				"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
 
 				"virtual_machine_full_resource_names": {
 					Type:     pluginsdk.TypeList,
@@ -255,6 +96,667 @@ func SchemaForSAPVirtualInstanceSingleServerConfiguration() *pluginsdk.Schema {
 								Optional:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func SchemaForSAPVirtualInstanceVirtualMachineConfiguration() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"image_reference": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"offer": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"publisher": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"sku": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"version": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+
+				"os_profile": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"admin_password": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"admin_username": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"linux_configuration": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								ForceNew: true,
+								MaxItems: 1,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"password_authentication_enabled": {
+											Type:     pluginsdk.TypeBool,
+											Optional: true,
+											ForceNew: true,
+										},
+
+										"ssh_key_pair": {
+											Type:     pluginsdk.TypeList,
+											Optional: true,
+											ForceNew: true,
+											MaxItems: 1,
+											Elem: &pluginsdk.Resource{
+												Schema: map[string]*pluginsdk.Schema{
+													"private_key": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+
+													"public_key": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+
+				"vm_size": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func SchemaForSAPVirtualInstanceDiskVolumeConfiguration() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"volume_name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"count": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					ForceNew: true,
+				},
+
+				"size_gb": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					ForceNew: true,
+				},
+
+				"sku_name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func SchemaForSAPVirtualInstanceThreeTierConfiguration() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"app_resource_group_name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"application_server": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"instance_count": {
+								Type:     pluginsdk.TypeInt,
+								Optional: true,
+								ForceNew: true,
+							},
+
+							"subnet_id": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: networkValidate.SubnetID,
+							},
+
+							"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
+						},
+					},
+				},
+
+				"central_server": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"instance_count": {
+								Type:     pluginsdk.TypeInt,
+								Optional: true,
+								ForceNew: true,
+							},
+
+							"subnet_id": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: networkValidate.SubnetID,
+							},
+
+							"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
+						},
+					},
+				},
+
+				"database_server": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"database_type": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"disk_volume_configuration": SchemaForSAPVirtualInstanceDiskVolumeConfiguration(),
+
+							"instance_count": {
+								Type:     pluginsdk.TypeInt,
+								Optional: true,
+								ForceNew: true,
+							},
+
+							"subnet_id": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: networkValidate.SubnetID,
+							},
+
+							"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
+						},
+					},
+				},
+
+				"full_resource_names": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"application_server": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								ForceNew: true,
+								MaxItems: 1,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"availability_set_name": {
+											Type:         pluginsdk.TypeString,
+											Optional:     true,
+											ForceNew:     true,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+
+										"virtual_machine": {
+											Type:     pluginsdk.TypeList,
+											Optional: true,
+											ForceNew: true,
+											Elem: &pluginsdk.Resource{
+												Schema: map[string]*pluginsdk.Schema{
+													"data_disk_names": {
+														Type:     pluginsdk.TypeMap,
+														Optional: true,
+														ForceNew: true,
+														Elem: &pluginsdk.Schema{
+															Type:         pluginsdk.TypeString,
+															ValidateFunc: validation.StringIsNotEmpty,
+														},
+													},
+
+													"host_name": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+
+													"network_interface_names": {
+														Type:     pluginsdk.TypeList,
+														Optional: true,
+														ForceNew: true,
+														Elem: &pluginsdk.Schema{
+															Type:         pluginsdk.TypeString,
+															ValidateFunc: validation.StringIsNotEmpty,
+														},
+													},
+
+													"os_disk_name": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+
+													"vm_name": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+
+							"central_server": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								ForceNew: true,
+								MaxItems: 1,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"availability_set_name": {
+											Type:         pluginsdk.TypeString,
+											Optional:     true,
+											ForceNew:     true,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+
+										"load_balancer": {
+											Type:     pluginsdk.TypeList,
+											Optional: true,
+											ForceNew: true,
+											MaxItems: 1,
+											Elem: &pluginsdk.Resource{
+												Schema: map[string]*pluginsdk.Schema{
+													"backend_pool_names": {
+														Type:     pluginsdk.TypeList,
+														Optional: true,
+														ForceNew: true,
+														Elem: &pluginsdk.Schema{
+															Type:         pluginsdk.TypeString,
+															ValidateFunc: validation.StringIsNotEmpty,
+														},
+													},
+
+													"frontend_ip_configuration_names": {
+														Type:     pluginsdk.TypeList,
+														Optional: true,
+														ForceNew: true,
+														Elem: &pluginsdk.Schema{
+															Type:         pluginsdk.TypeString,
+															ValidateFunc: validation.StringIsNotEmpty,
+														},
+													},
+
+													"health_probe_names": {
+														Type:     pluginsdk.TypeList,
+														Optional: true,
+														ForceNew: true,
+														Elem: &pluginsdk.Schema{
+															Type:         pluginsdk.TypeString,
+															ValidateFunc: validation.StringIsNotEmpty,
+														},
+													},
+
+													"name": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+												},
+											},
+										},
+
+										"virtual_machine": {
+											Type:     pluginsdk.TypeList,
+											Optional: true,
+											ForceNew: true,
+											Elem: &pluginsdk.Resource{
+												Schema: map[string]*pluginsdk.Schema{
+													"data_disk_names": {
+														Type:     pluginsdk.TypeMap,
+														Optional: true,
+														ForceNew: true,
+														Elem: &pluginsdk.Schema{
+															Type:         pluginsdk.TypeString,
+															ValidateFunc: validation.StringIsNotEmpty,
+														},
+													},
+
+													"host_name": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+
+													"network_interface_names": {
+														Type:     pluginsdk.TypeList,
+														Optional: true,
+														ForceNew: true,
+														Elem: &pluginsdk.Schema{
+															Type:         pluginsdk.TypeString,
+															ValidateFunc: validation.StringIsNotEmpty,
+														},
+													},
+
+													"os_disk_name": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+
+													"vm_name": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+
+							"database_server": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								ForceNew: true,
+								MaxItems: 1,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"availability_set_name": {
+											Type:         pluginsdk.TypeString,
+											Optional:     true,
+											ForceNew:     true,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+
+										"load_balancer": {
+											Type:     pluginsdk.TypeList,
+											Optional: true,
+											ForceNew: true,
+											MaxItems: 1,
+											Elem: &pluginsdk.Resource{
+												Schema: map[string]*pluginsdk.Schema{
+													"backend_pool_names": {
+														Type:     pluginsdk.TypeList,
+														Optional: true,
+														ForceNew: true,
+														Elem: &pluginsdk.Schema{
+															Type:         pluginsdk.TypeString,
+															ValidateFunc: validation.StringIsNotEmpty,
+														},
+													},
+
+													"frontend_ip_configuration_names": {
+														Type:     pluginsdk.TypeList,
+														Optional: true,
+														ForceNew: true,
+														Elem: &pluginsdk.Schema{
+															Type:         pluginsdk.TypeString,
+															ValidateFunc: validation.StringIsNotEmpty,
+														},
+													},
+
+													"health_probe_names": {
+														Type:     pluginsdk.TypeList,
+														Optional: true,
+														ForceNew: true,
+														Elem: &pluginsdk.Schema{
+															Type:         pluginsdk.TypeString,
+															ValidateFunc: validation.StringIsNotEmpty,
+														},
+													},
+
+													"name": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+												},
+											},
+										},
+
+										"virtual_machine": {
+											Type:     pluginsdk.TypeList,
+											Optional: true,
+											ForceNew: true,
+											Elem: &pluginsdk.Resource{
+												Schema: map[string]*pluginsdk.Schema{
+													"data_disk_names": {
+														Type:     pluginsdk.TypeMap,
+														Optional: true,
+														ForceNew: true,
+														Elem: &pluginsdk.Schema{
+															Type:         pluginsdk.TypeString,
+															ValidateFunc: validation.StringIsNotEmpty,
+														},
+													},
+
+													"host_name": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+
+													"network_interface_names": {
+														Type:     pluginsdk.TypeList,
+														Optional: true,
+														ForceNew: true,
+														Elem: &pluginsdk.Schema{
+															Type:         pluginsdk.TypeString,
+															ValidateFunc: validation.StringIsNotEmpty,
+														},
+													},
+
+													"os_disk_name": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+
+													"vm_name": {
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ForceNew:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+
+							"shared_storage": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								ForceNew: true,
+								MaxItems: 1,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"account_name": {
+											Type:         pluginsdk.TypeString,
+											Optional:     true,
+											ForceNew:     true,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+
+										"private_endpoint_name": {
+											Type:         pluginsdk.TypeString,
+											Optional:     true,
+											ForceNew:     true,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+
+				"high_availability_type": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"is_secondary_ip_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					ForceNew: true,
+				},
+
+				"storage_configuration": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"transport_create_and_mount": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								ForceNew: true,
+								MaxItems: 1,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"resource_group_name": {
+											Type:         pluginsdk.TypeString,
+											Optional:     true,
+											ForceNew:     true,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+
+										"storage_account_name": {
+											Type:         pluginsdk.TypeString,
+											Optional:     true,
+											ForceNew:     true,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+									},
+								},
+							},
+
+							"transport_mount": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								ForceNew: true,
+								MaxItems: 1,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"file_share_id": {
+											Type:         pluginsdk.TypeString,
+											Optional:     true,
+											ForceNew:     true,
+											ValidateFunc: storageValidate.StorageShareID,
+										},
+
+										"private_endpoint_id": {
+											Type:         pluginsdk.TypeString,
+											Optional:     true,
+											ForceNew:     true,
+											ValidateFunc: networkValidate.PrivateEndpointID,
+										},
+									},
+								},
 							},
 						},
 					},
@@ -392,22 +894,6 @@ func expandLinuxConfiguration(input []LinuxConfiguration) sapvirtualinstances.Li
 
 	result := sapvirtualinstances.LinuxConfiguration{
 		DisablePasswordAuthentication: utils.Bool(!linuxConfiguration.PasswordAuthenticationEnabled), // mabye need GetRawConfig
-	}
-
-	if sshPublicKeyDatas := linuxConfiguration.SshPublicKeyDataList; sshPublicKeyDatas != nil {
-		publicKeys := make([]sapvirtualinstances.SshPublicKey, 0)
-
-		for _, v := range sshPublicKeyDatas {
-			sshPublicKey := sapvirtualinstances.SshPublicKey{
-				KeyData: utils.String(v),
-			}
-
-			publicKeys = append(publicKeys, sshPublicKey)
-		}
-
-		result.Ssh = &sapvirtualinstances.SshConfiguration{
-			PublicKeys: &publicKeys,
-		}
 	}
 
 	if v := linuxConfiguration.SshKeyPair; v != nil {
@@ -723,10 +1209,6 @@ func flattenLinuxConfiguration(input sapvirtualinstances.LinuxConfiguration) []L
 		result.SshKeyPair = flattenSshKeyPair(v)
 	}
 
-	if ssh := input.Ssh; ssh != nil && ssh.PublicKeys != nil {
-		result.SshPublicKeyDataList = flattenSshPublicKeyDatas(ssh.PublicKeys)
-	}
-
 	return []LinuxConfiguration{
 		result,
 	}
@@ -752,16 +1234,340 @@ func flattenSshKeyPair(input *sapvirtualinstances.SshKeyPair) []SshKeyPair {
 	}
 }
 
-func flattenSshPublicKeyDatas(input *[]sapvirtualinstances.SshPublicKey) []string {
-	if input == nil {
+func expandThreeTierConfiguration(input []ThreeTierConfiguration) *sapvirtualinstances.ThreeTierConfiguration {
+	if len(input) == 0 {
 		return nil
 	}
 
-	result := make([]string, 0)
+	threeTierConfiguration := &input[0]
 
-	for _, v := range *input {
-		result = append(result, *v.KeyData)
+	result := sapvirtualinstances.ThreeTierConfiguration{
+		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
+			IsSecondaryIPEnabled: utils.Bool(threeTierConfiguration.IsSecondaryIpEnabled), //maybe need to use GetRawConfig
+		},
+	}
+
+	if v := threeTierConfiguration.AppResourceGroupName; v != "" {
+		result.AppResourceGroup = v
+	}
+
+	if v := threeTierConfiguration.HighAvailabilityType; v != "" {
+		result.HighAvailabilityConfig = &sapvirtualinstances.HighAvailabilityConfiguration{
+			HighAvailabilityType: sapvirtualinstances.SAPHighAvailabilityType(v),
+		}
+	}
+
+	if v := threeTierConfiguration.ApplicationServer; v != nil {
+		result.ApplicationServer = expandApplicationServer(v)
+	}
+
+	if v := threeTierConfiguration.CentralServer; v != nil {
+		result.CentralServer = expandCentralServer(v)
+	}
+
+	if v := threeTierConfiguration.DatabaseServer; v != nil {
+		result.DatabaseServer = expandDatabaseServer(v)
+	}
+
+	if v := threeTierConfiguration.StorageConfiguration; v != nil {
+		result.StorageConfiguration = expandStorageConfiguration(v)
+	}
+
+	if v := threeTierConfiguration.FullResourceNames; v != nil {
+		result.CustomResourceNames = expandFullResourceNames(v)
+	}
+
+	return &result
+}
+
+func expandApplicationServer(input []ApplicationServer) sapvirtualinstances.ApplicationServerConfiguration {
+	if len(input) == 0 {
+		return sapvirtualinstances.ApplicationServerConfiguration{}
+	}
+
+	applicationServer := &input[0]
+
+	result := sapvirtualinstances.ApplicationServerConfiguration{
+		InstanceCount: applicationServer.InstanceCount, // Maybe it needs Getrawconfig
+	}
+
+	if v := applicationServer.SubnetId; v != "" {
+		result.SubnetId = v
+	}
+
+	if v := applicationServer.VirtualMachineConfiguration; v != nil {
+		result.VirtualMachineConfiguration = expandVirtualMachineConfiguration(v)
 	}
 
 	return result
+}
+
+func expandCentralServer(input []CentralServer) sapvirtualinstances.CentralServerConfiguration {
+	if len(input) == 0 {
+		return sapvirtualinstances.CentralServerConfiguration{}
+	}
+
+	centralServer := &input[0]
+
+	result := sapvirtualinstances.CentralServerConfiguration{
+		InstanceCount: centralServer.InstanceCount, // Maybe it needs Getrawconfig
+	}
+
+	if v := centralServer.SubnetId; v != "" {
+		result.SubnetId = v
+	}
+
+	if v := centralServer.VirtualMachineConfiguration; v != nil {
+		result.VirtualMachineConfiguration = expandVirtualMachineConfiguration(v)
+	}
+
+	return result
+}
+
+func expandDatabaseServer(input []DatabaseServer) sapvirtualinstances.DatabaseConfiguration {
+	if len(input) == 0 {
+		return sapvirtualinstances.DatabaseConfiguration{}
+	}
+
+	databaseServer := &input[0]
+
+	result := sapvirtualinstances.DatabaseConfiguration{
+		InstanceCount: databaseServer.InstanceCount, // Maybe it needs Getrawconfig
+	}
+
+	if v := databaseServer.SubnetId; v != "" {
+		result.SubnetId = v
+	}
+
+	if v := databaseServer.DatabaseType; v != "" {
+		dbType := sapvirtualinstances.SAPDatabaseType(v)
+		result.DatabaseType = &dbType
+	}
+
+	if v := databaseServer.DiskVolumeConfigurations; v != nil {
+		result.DiskConfiguration = expandDiskVolumeConfigurations(v)
+	}
+
+	if v := databaseServer.VirtualMachineConfiguration; v != nil {
+		result.VirtualMachineConfiguration = expandVirtualMachineConfiguration(v)
+	}
+
+	return result
+}
+
+func expandStorageConfiguration(input []StorageConfiguration) *sapvirtualinstances.StorageConfiguration {
+	if len(input) == 0 {
+		return nil
+	}
+
+	storageConfiguration := &input[0]
+
+	result := sapvirtualinstances.StorageConfiguration{}
+
+	if v := storageConfiguration.TransportCreateAndMount; v != nil {
+		result.TransportFileShareConfiguration = expandTransportCreateAndMount(v)
+	}
+
+	if v := storageConfiguration.TransportMount; v != nil {
+		result.TransportFileShareConfiguration = expandTransportMount(v)
+	}
+
+	return &result
+}
+
+func expandTransportCreateAndMount(input []TransportCreateAndMount) sapvirtualinstances.CreateAndMountFileShareConfiguration {
+	if len(input) == 0 {
+		return sapvirtualinstances.CreateAndMountFileShareConfiguration{}
+	}
+
+	transportCreateAndMount := &input[0]
+
+	result := sapvirtualinstances.CreateAndMountFileShareConfiguration{}
+
+	if v := transportCreateAndMount.ResourceGroupName; v != "" {
+		result.ResourceGroup = utils.String(v)
+	}
+
+	if v := transportCreateAndMount.StorageAccountName; v != "" {
+		result.StorageAccountName = utils.String(v)
+	}
+
+	return result
+}
+
+func expandTransportMount(input []TransportMount) sapvirtualinstances.MountFileShareConfiguration {
+	if len(input) == 0 {
+		return sapvirtualinstances.MountFileShareConfiguration{}
+	}
+
+	transportMount := &input[0]
+
+	result := sapvirtualinstances.MountFileShareConfiguration{}
+
+	if v := transportMount.FileShareId; v != "" {
+		result.Id = v
+	}
+
+	if v := transportMount.PrivateEndpointId; v != "" {
+		result.PrivateEndpointId = v
+	}
+
+	return result
+}
+
+func expandFullResourceNames(input []FullResourceNames) sapvirtualinstances.ThreeTierFullResourceNames {
+	if len(input) == 0 {
+		return sapvirtualinstances.ThreeTierFullResourceNames{}
+	}
+
+	fullResourceNames := &input[0]
+
+	result := sapvirtualinstances.ThreeTierFullResourceNames{
+		ApplicationServer: expandApplicationServerFullResourceNames(fullResourceNames.ApplicationServer),
+		CentralServer:     expandCentralServerFullResourceNames(fullResourceNames.CentralServer),
+		DatabaseServer:    expandDatabaseServerFullResourceNames(fullResourceNames.DatabaseServer),
+		SharedStorage:     expandSharedStorage(fullResourceNames.SharedStorage),
+	}
+
+	return result
+}
+
+func expandApplicationServerFullResourceNames(input []ApplicationServerFullResourceNames) *sapvirtualinstances.ApplicationServerFullResourceNames {
+	if len(input) == 0 {
+		return nil
+	}
+
+	applicationServerFullResourceNames := &input[0]
+
+	result := sapvirtualinstances.ApplicationServerFullResourceNames{
+		VirtualMachines: expandVirtualMachinesFullResourceNames(applicationServerFullResourceNames.VirtualMachines),
+	}
+
+	if v := applicationServerFullResourceNames.AvailabilitySetName; v != "" {
+		result.AvailabilitySetName = utils.String(v)
+	}
+
+	return &result
+}
+
+func expandVirtualMachinesFullResourceNames(input []VirtualMachineFullResourceNames) *[]sapvirtualinstances.VirtualMachineResourceNames {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]sapvirtualinstances.VirtualMachineResourceNames, 0)
+
+	for _, item := range input {
+		vmResourceNames := sapvirtualinstances.VirtualMachineResourceNames{}
+
+		if v := item.HostName; v != "" {
+			vmResourceNames.HostName = utils.String(v)
+		}
+
+		if v := item.OSDiskName; v != "" {
+			vmResourceNames.OsDiskName = utils.String(v)
+		}
+
+		if v := item.VMName; v != "" {
+			vmResourceNames.VirtualMachineName = utils.String(v)
+		}
+
+		if v := item.NetworkInterfaceNames; v != nil {
+			vmResourceNames.NetworkInterfaces = expandNetworkInterfaceNames(v)
+		}
+
+		if v := item.DataDiskNames; v != nil {
+			vmResourceNames.DataDiskNames = expandDataDiskNames(v)
+		}
+
+		result = append(result, vmResourceNames)
+	}
+
+	return &result
+}
+
+func expandCentralServerFullResourceNames(input []CentralServerFullResourceNames) *sapvirtualinstances.CentralServerFullResourceNames {
+	if len(input) == 0 {
+		return nil
+	}
+
+	centralServerFullResourceNames := &input[0]
+
+	result := sapvirtualinstances.CentralServerFullResourceNames{
+		LoadBalancer:    expandLoadBalancerFullResourceNames(centralServerFullResourceNames.LoadBalancer),
+		VirtualMachines: expandVirtualMachinesFullResourceNames(centralServerFullResourceNames.VirtualMachines),
+	}
+
+	if v := centralServerFullResourceNames.AvailabilitySetName; v != "" {
+		result.AvailabilitySetName = utils.String(v)
+	}
+
+	return &result
+}
+
+func expandLoadBalancerFullResourceNames(input []LoadBalancer) *sapvirtualinstances.LoadBalancerResourceNames {
+	if len(input) == 0 {
+		return nil
+	}
+
+	loadBalancerFullResourceNames := &input[0]
+
+	result := sapvirtualinstances.LoadBalancerResourceNames{}
+
+	if v := loadBalancerFullResourceNames.Name; v != "" {
+		result.LoadBalancerName = utils.String(v)
+	}
+
+	if v := loadBalancerFullResourceNames.BackendPoolNames; v != nil {
+		result.BackendPoolNames = &v
+	}
+
+	if v := loadBalancerFullResourceNames.FrontendIpConfigurationNames; v != nil {
+		result.FrontendIPConfigurationNames = &v
+	}
+
+	if v := loadBalancerFullResourceNames.HealthProbeNames; v != nil {
+		result.HealthProbeNames = &v
+	}
+
+	return &result
+}
+
+func expandDatabaseServerFullResourceNames(input []DatabaseServerFullResourceNames) *sapvirtualinstances.DatabaseServerFullResourceNames {
+	if len(input) == 0 {
+		return nil
+	}
+
+	databaseServerFullResourceNames := &input[0]
+
+	result := sapvirtualinstances.DatabaseServerFullResourceNames{
+		LoadBalancer:    expandLoadBalancerFullResourceNames(databaseServerFullResourceNames.LoadBalancer),
+		VirtualMachines: expandVirtualMachinesFullResourceNames(databaseServerFullResourceNames.VirtualMachines),
+	}
+
+	if v := databaseServerFullResourceNames.AvailabilitySetName; v != "" {
+		result.AvailabilitySetName = utils.String(v)
+	}
+
+	return &result
+}
+
+func expandSharedStorage(input []SharedStorage) *sapvirtualinstances.SharedStorageResourceNames {
+	if len(input) == 0 {
+		return nil
+	}
+
+	sharedStorage := &input[0]
+
+	result := sapvirtualinstances.SharedStorageResourceNames{}
+
+	if v := sharedStorage.AccountName; v != "" {
+		result.SharedStorageAccountName = utils.String(v)
+	}
+
+	if v := sharedStorage.PrivateEndpointName; v != "" {
+		result.SharedStorageAccountPrivateEndPointName = utils.String(v)
+	}
+
+	return &result
 }

@@ -143,8 +143,6 @@ A `linux_configuration` block supports the following:
 
 * `ssh_key_pair` - (Optional) A `ssh_key_pair` block as defined below. Changing this forces a new resource to be created.
 
-* `ssh_public_key_data_list` - (Optional) A list of the SSH public key certificate used to authenticate with the VM through SSH. Changing this forces a new resource to be created.
-
 ---
 
 A `ssh_key_pair` block supports the following:

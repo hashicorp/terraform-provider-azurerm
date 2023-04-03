@@ -39,6 +39,7 @@ type DeploymentWithOSConfiguration struct {
 	AppLocation               string                      `tfschema:"app_location"`
 	OsSapConfiguration        []OsSapConfiguration        `tfschema:"os_sap_configuration"`
 	SingleServerConfiguration []SingleServerConfiguration `tfschema:"single_server_configuration"`
+	ThreeTierConfiguration    []ThreeTierConfiguration    `tfschema:"three_tier_configuration"`
 }
 
 type OsSapConfiguration struct {
@@ -90,7 +91,6 @@ type OSProfile struct {
 type LinuxConfiguration struct {
 	PasswordAuthenticationEnabled bool         `tfschema:"password_authentication_enabled"`
 	SshKeyPair                    []SshKeyPair `tfschema:"ssh_key_pair"`
-	SshPublicKeyDataList          []string     `tfschema:"ssh_public_key_data_list"`
 }
 
 type SshKeyPair struct {
@@ -104,6 +104,88 @@ type VirtualMachineFullResourceNames struct {
 	NetworkInterfaceNames []string               `tfschema:"network_interface_names"`
 	OSDiskName            string                 `tfschema:"os_disk_name"`
 	VMName                string                 `tfschema:"vm_name"`
+}
+
+type ThreeTierConfiguration struct {
+	ApplicationServer    []ApplicationServer    `tfschema:"application_server"`
+	AppResourceGroupName string                 `tfschema:"app_resource_group_name"`
+	CentralServer        []CentralServer        `tfschema:"central_server"`
+	DatabaseServer       []DatabaseServer       `tfschema:"database_server"`
+	FullResourceNames    []FullResourceNames    `tfschema:"full_resource_names"`
+	HighAvailabilityType string                 `tfschema:"high_availability_type"`
+	IsSecondaryIpEnabled bool                   `tfschema:"is_secondary_ip_enabled"`
+	StorageConfiguration []StorageConfiguration `tfschema:"storage_configuration"`
+}
+
+type StorageConfiguration struct {
+	TransportCreateAndMount []TransportCreateAndMount `tfschema:"transport_create_and_mount"`
+	TransportMount          []TransportMount          `tfschema:"transport_mount"`
+}
+
+type TransportCreateAndMount struct {
+	ResourceGroupName  string `tfschema:"resource_group_name"`
+	StorageAccountName string `tfschema:"storage_account_name"`
+}
+
+type TransportMount struct {
+	FileShareId       string `tfschema:"file_share_id"`
+	PrivateEndpointId string `tfschema:"private_endpoint_id"`
+}
+
+type ApplicationServer struct {
+	InstanceCount               int64                         `tfschema:"instance_count"`
+	SubnetId                    string                        `tfschema:"subnet_id"`
+	VirtualMachineConfiguration []VirtualMachineConfiguration `tfschema:"virtual_machine_configuration"`
+}
+
+type CentralServer struct {
+	InstanceCount               int64                         `tfschema:"instance_count"`
+	SubnetId                    string                        `tfschema:"subnet_id"`
+	VirtualMachineConfiguration []VirtualMachineConfiguration `tfschema:"virtual_machine_configuration"`
+}
+
+type DatabaseServer struct {
+	DatabaseType                string                        `tfschema:"database_type"`
+	DiskVolumeConfigurations    []DiskVolumeConfiguration     `tfschema:"disk_volume_configuration"`
+	InstanceCount               int64                         `tfschema:"instance_count"`
+	SubnetId                    string                        `tfschema:"subnet_id"`
+	VirtualMachineConfiguration []VirtualMachineConfiguration `tfschema:"virtual_machine_configuration"`
+}
+
+type FullResourceNames struct {
+	ApplicationServer []ApplicationServerFullResourceNames `tfschema:"application_server"`
+	CentralServer     []CentralServerFullResourceNames     `tfschema:"central_server"`
+	DatabaseServer    []DatabaseServerFullResourceNames    `tfschema:"database_server"`
+	SharedStorage     []SharedStorage                      `tfschema:"shared_storage"`
+}
+
+type ApplicationServerFullResourceNames struct {
+	AvailabilitySetName string                            `tfschema:"availability_set_name"`
+	VirtualMachines     []VirtualMachineFullResourceNames `tfschema:"virtual_machine"`
+}
+
+type CentralServerFullResourceNames struct {
+	AvailabilitySetName string                            `tfschema:"availability_set_name"`
+	LoadBalancer        []LoadBalancer                    `tfschema:"load_balancer"`
+	VirtualMachines     []VirtualMachineFullResourceNames `tfschema:"virtual_machine"`
+}
+
+type DatabaseServerFullResourceNames struct {
+	AvailabilitySetName string                            `tfschema:"availability_set_name"`
+	LoadBalancer        []LoadBalancer                    `tfschema:"load_balancer"`
+	VirtualMachines     []VirtualMachineFullResourceNames `tfschema:"virtual_machine"`
+}
+
+type LoadBalancer struct {
+	BackendPoolNames             []string `tfschema:"backend_pool_names"`
+	FrontendIpConfigurationNames []string `tfschema:"frontend_ip_configuration_names"`
+	HealthProbeNames             []string `tfschema:"health_probe_names"`
+	Name                         string   `tfschema:"name"`
+}
+
+type SharedStorage struct {
+	AccountName         string `tfschema:"account_name"`
+	PrivateEndpointName string `tfschema:"private_endpoint_name"`
 }
 
 type WorkloadsSAPVirtualInstanceResource struct{}
@@ -186,6 +268,8 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"single_server_configuration": SchemaForSAPVirtualInstanceSingleServerConfiguration(),
+
+					"three_tier_configuration": SchemaForSAPVirtualInstanceThreeTierConfiguration(),
 				},
 			},
 			ConflictsWith: []string{"discovery_configuration"},
@@ -500,6 +584,10 @@ func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) 
 
 	if v := configuration.SingleServerConfiguration; v != nil {
 		result.InfrastructureConfiguration = expandSingleServerConfiguration(v)
+	}
+
+	if v := configuration.ThreeTierConfiguration; v != nil {
+		result.InfrastructureConfiguration = expandThreeTierConfiguration(v)
 	}
 
 	return &result
