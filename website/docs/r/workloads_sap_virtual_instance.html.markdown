@@ -45,35 +45,55 @@ The following arguments are supported:
 
 * `sap_product` - (Required) The SAP Product type for the SAP Virtual Instance. Possible values are `ECC`, `Other` and `S4HANA`. Changing this forces a new resource to be created.
 
+* `deployment_configuration` - (Optional) A `deployment_configuration` block as defined below. Changing this forces a new resource to be created.
+
+* `deployment_with_os_configuration` - (Optional) A `deployment_with_os_configuration` block as defined below. Changing this forces a new resource to be created.
+
 * `discovery_configuration` - (Optional) A `discovery_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `managed_resource_group_name` - (Optional) The name of the managed Resource Group for the SAP Virtual Instance. Changing this forces a new resource to be created.
 
-* `single_server_configuration` - (Optional) A `single_server_configuration` block as defined below. Changing this forces a new resource to be created.
-
-* `three_tier_configuration` - (Optional) A `three_tier_configuration` block as defined below. Changing this forces a new resource to be created.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to the SAP Virtual Instance.
 
 ---
 
-A `discovery_configuration` block supports the following:
+A `deployment_configuration` block supports the following:
 
-* `central_server_vm_id` - (Optional) The resource ID of the Virtual Machine of the Central Server. Changing this forces a new resource to be created.
+* `app_location` - (Optional) The Geo-Location where the SAP system is to be created. Changing this forces a new resource to be created.
 
-* `managed_storage_account_name` - (Optional) The name of the custom Storage Account created by the service in the managed Resource Group. Changing this forces a new resource to be created.
+* `single_server_configuration` - (Optional) A `single_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
-~> **Note:** If not provided, the service will create the Storage Account with a random name.
+* `three_tier_configuration` - (Optional) A `three_tier_configuration` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
-An `identity` block supports the following:
+A `deployment_with_os_configuration` block supports the following:
 
-* `type` - (Required) The type of Managed Service Identity that should be configured on this SAP Virtual Instance. Only possible value is `UserAssigned`.
+* `app_location` - (Optional) The Geo-Location where the SAP system is to be created. Changing this forces a new resource to be created.
 
-* `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this SAP Virtual Instance.
+* `os_sap_configuration` - (Optional) An `os_sap_configuration` block as defined below. Changing this forces a new resource to be created.
+
+* `single_server_configuration` - (Optional) A `single_server_configuration` block as defined below. Changing this forces a new resource to be created.
+
+* `three_tier_configuration` - (Optional) A `three_tier_configuration` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+An `os_sap_configuration` block supports the following:
+
+* `deployer_vm_packages` - (Optional) A `deployer_vm_packages` block as defined below. Changing this forces a new resource to be created.
+
+* `sap_fqdn` - (Optional) The FQDN of the SAP system. Changing this forces a new resource to be created.
+
+---
+
+A `deployer_vm_packages` block supports the following:
+
+* `storage_account_id` - (Optional) A `deployer_vm_packages` block as defined below. Changing this forces a new resource to be created.
+
+* `url` - (Optional) The URL of the deployer VM packages file. Changing this forces a new resource to be created.
 
 ---
 
@@ -338,6 +358,24 @@ A `shared_storage` block supports the following:
 * `account_name` - (Optional) The full name of the Shared Storage Account. Changing this forces a new resource to be created.
 
 * `private_endpoint_name` - (Optional) The full name of Private Endpoint for the Shared Storage Account. Changing this forces a new resource to be created.
+
+---
+
+A `discovery_configuration` block supports the following:
+
+* `central_server_vm_id` - (Optional) The resource ID of the Virtual Machine of the Central Server. Changing this forces a new resource to be created.
+
+* `managed_storage_account_name` - (Optional) The name of the custom Storage Account created by the service in the managed Resource Group. Changing this forces a new resource to be created.
+
+~> **Note:** If not provided, the service will create the Storage Account with a random name.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The type of Managed Service Identity that should be configured on this SAP Virtual Instance. Only possible value is `UserAssigned`.
+
+* `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this SAP Virtual Instance.
 
 ## Attributes Reference
 

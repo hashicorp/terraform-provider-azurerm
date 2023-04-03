@@ -21,6 +21,7 @@ type WorkloadsSAPVirtualInstanceModel struct {
 	Name                          string                          `tfschema:"name"`
 	ResourceGroupName             string                          `tfschema:"resource_group_name"`
 	Location                      string                          `tfschema:"location"`
+	DeploymentConfiguration       []DeploymentConfiguration       `tfschema:"deployment_configuration"`
 	DeploymentWithOSConfiguration []DeploymentWithOSConfiguration `tfschema:"deployment_with_os_configuration"`
 	DiscoveryConfiguration        []DiscoveryConfiguration        `tfschema:"discovery_configuration"`
 	Environment                   string                          `tfschema:"environment"`
@@ -30,9 +31,10 @@ type WorkloadsSAPVirtualInstanceModel struct {
 	Tags                          map[string]string               `tfschema:"tags"`
 }
 
-type DiscoveryConfiguration struct {
-	CentralServerVmId         string `tfschema:"central_server_vm_id"`
-	ManagedStorageAccountName string `tfschema:"managed_storage_account_name"`
+type DeploymentConfiguration struct {
+	AppLocation               string                      `tfschema:"app_location"`
+	SingleServerConfiguration []SingleServerConfiguration `tfschema:"single_server_configuration"`
+	ThreeTierConfiguration    []ThreeTierConfiguration    `tfschema:"three_tier_configuration"`
 }
 
 type DeploymentWithOSConfiguration struct {
@@ -40,6 +42,11 @@ type DeploymentWithOSConfiguration struct {
 	OsSapConfiguration        []OsSapConfiguration        `tfschema:"os_sap_configuration"`
 	SingleServerConfiguration []SingleServerConfiguration `tfschema:"single_server_configuration"`
 	ThreeTierConfiguration    []ThreeTierConfiguration    `tfschema:"three_tier_configuration"`
+}
+
+type DiscoveryConfiguration struct {
+	CentralServerVmId         string `tfschema:"central_server_vm_id"`
+	ManagedStorageAccountName string `tfschema:"managed_storage_account_name"`
 }
 
 type OsSapConfiguration struct {
@@ -217,6 +224,23 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 
 		"location": commonschema.Location(),
 
+		"deployment_configuration": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"app_location": commonschema.LocationOptional(),
+
+					"single_server_configuration": SchemaForSAPVirtualInstanceSingleServerConfiguration(),
+
+					"three_tier_configuration": SchemaForSAPVirtualInstanceThreeTierConfiguration(),
+				},
+			},
+			ConflictsWith: []string{"discovery_configuration", "deployment_with_os_configuration"},
+		},
+
 		"deployment_with_os_configuration": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -272,7 +296,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 					"three_tier_configuration": SchemaForSAPVirtualInstanceThreeTierConfiguration(),
 				},
 			},
-			ConflictsWith: []string{"discovery_configuration"},
+			ConflictsWith: []string{"discovery_configuration", "deployment"},
 		},
 
 		"discovery_configuration": {
@@ -297,7 +321,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 					},
 				},
 			},
-			ConflictsWith: []string{"deployment_with_os_configuration"},
+			ConflictsWith: []string{"deployment", "deployment_with_os_configuration"},
 		},
 
 		"environment": {
@@ -373,6 +397,10 @@ func (r WorkloadsSAPVirtualInstanceResource) Create() sdk.ResourceFunc {
 					SapProduct:  sapvirtualinstances.SAPProductType(model.SapProduct),
 				},
 				Tags: &model.Tags,
+			}
+
+			if v := model.DeploymentConfiguration; v != nil {
+				parameters.Properties.Configuration = expandDeploymentConfiguration(v)
 			}
 
 			if v := model.DeploymentWithOSConfiguration; v != nil {
@@ -483,6 +511,10 @@ func (r WorkloadsSAPVirtualInstanceResource) Read() sdk.ResourceFunc {
 			state.SapProduct = string(properties.SapProduct)
 
 			if properties.Configuration != nil {
+				if v, ok := properties.Configuration.(sapvirtualinstances.DeploymentConfiguration); ok {
+					state.DeploymentConfiguration = flattenDeploymentConfiguration(&v)
+				}
+
 				if v, ok := properties.Configuration.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
 					state.DeploymentWithOSConfiguration = flattenDeploymentWithOSConfiguration(&v)
 				}
@@ -565,6 +597,30 @@ func flattenDiscoveryConfiguration(input *sapvirtualinstances.DiscoveryConfigura
 	}
 }
 
+func expandDeploymentConfiguration(input []DeploymentConfiguration) *sapvirtualinstances.DeploymentConfiguration {
+	if len(input) == 0 {
+		return nil
+	}
+
+	configuration := &input[0]
+
+	result := sapvirtualinstances.DeploymentConfiguration{}
+
+	if v := configuration.AppLocation; v != "" {
+		result.AppLocation = utils.String(v)
+	}
+
+	if v := configuration.SingleServerConfiguration; v != nil {
+		result.InfrastructureConfiguration = expandSingleServerConfiguration(v)
+	}
+
+	if v := configuration.ThreeTierConfiguration; v != nil {
+		result.InfrastructureConfiguration = expandThreeTierConfiguration(v)
+	}
+
+	return &result
+}
+
 func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) *sapvirtualinstances.DeploymentWithOSConfiguration {
 	if len(input) == 0 {
 		return nil
@@ -631,6 +687,32 @@ func expandDeployerVmPackages(input []DeployerVmPackages) *sapvirtualinstances.D
 	}
 
 	return &result
+}
+
+func flattenDeploymentConfiguration(input *sapvirtualinstances.DeploymentConfiguration) []DeploymentConfiguration {
+	if input == nil {
+		return nil
+	}
+
+	result := DeploymentConfiguration{}
+
+	if v := input.AppLocation; v != nil {
+		result.AppLocation = *v
+	}
+
+	if configuration := input.InfrastructureConfiguration; configuration != nil {
+		if v, ok := configuration.(sapvirtualinstances.SingleServerConfiguration); ok {
+			result.SingleServerConfiguration = flattenSingleServerConfiguration(v)
+		}
+
+		if v, ok := configuration.(sapvirtualinstances.ThreeTierConfiguration); ok {
+			result.ThreeTierConfiguration = flattenThreeTierConfiguration(v)
+		}
+	}
+
+	return []DeploymentConfiguration{
+		result,
+	}
 }
 
 func flattenDeploymentWithOSConfiguration(input *sapvirtualinstances.DeploymentWithOSConfiguration) []DeploymentWithOSConfiguration {
