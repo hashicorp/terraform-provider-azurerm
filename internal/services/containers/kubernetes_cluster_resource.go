@@ -3104,8 +3104,10 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		}
 	}
 	ebpfDataPlane := ""
-	if profile.NetworkDataplane != nil {
-		ebpfDataPlane = string(*profile.NetworkDataplane)
+	// 2023-02-02-preview returns the default value `azure` for this new property
+	// @stephybun: we should look into replacing `ebpf_data_plane` with a new property called `network_data_plane`
+	if v := profile.NetworkDataplane; v != nil && *v != managedclusters.NetworkDataplaneAzure {
+		ebpfDataPlane = string(*v)
 	}
 
 	return []interface{}{
