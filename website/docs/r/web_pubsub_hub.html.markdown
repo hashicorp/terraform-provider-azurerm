@@ -53,7 +53,21 @@ resource "azurerm_web_pubsub_hub" "example" {
 
   event_listener {
     system_event_name_filter = ["connected"]
-    user_event_name_filter   = ["event1, event2"]
+    user_event_name_filter   = ["event1", "event2"]
+    eventhub_namespace_name  = azurerm_eventhub_namespace.test.name
+    eventhub_name            = azurerm_eventhub.test1.name
+  }
+
+  event_listener {
+    system_event_name_filter = ["connected"]
+    user_event_name_filter   = ["*"]
+    eventhub_namespace_name  = azurerm_eventhub_namespace.test.name
+    eventhub_name            = azurerm_eventhub.test1.name
+  }
+
+  event_listener {
+    system_event_name_filter = ["connected"]
+    user_event_name_filter   = ["event1"]
     eventhub_namespace_name  = azurerm_eventhub_namespace.test.name
     eventhub_name            = azurerm_eventhub.test1.name
   }
