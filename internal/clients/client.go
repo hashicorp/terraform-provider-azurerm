@@ -120,12 +120,14 @@ import (
 	appPlatform "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	sql "github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/client"
 	storage "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	storageMover "github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/client"
 	streamAnalytics "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/client"
 	subscription "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/client"
 	synapse "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	trafficManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
 	videoAnalyzer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
+	voiceServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 )
 
@@ -240,6 +242,7 @@ type Client struct {
 	ServiceFabricManaged  *serviceFabricManaged.Client
 	SignalR               *signalr.Client
 	Storage               *storage.Client
+	StorageMover          *storageMover.Client
 	StreamAnalytics       *streamAnalytics.Client
 	Subscription          *subscription.Client
 	Sql                   *sql.Client
@@ -247,6 +250,7 @@ type Client struct {
 	TrafficManager        *trafficManager.Client
 	VideoAnalyzer         *videoAnalyzer.Client
 	Vmware                *vmware.Client
+	VoiceServices         *voiceServices.Client
 	Web                   *web.Client
 }
 
@@ -385,12 +389,16 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	client.Sql = sql.NewClient(o)
 	client.Storage = storage.NewClient(o)
+	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for StorageMover: %+v", err)
+	}
 	client.StreamAnalytics = streamAnalytics.NewClient(o)
 	client.Subscription = subscription.NewClient(o)
 	client.Synapse = synapse.NewClient(o)
 	client.TrafficManager = trafficManager.NewClient(o)
 	client.VideoAnalyzer = videoAnalyzer.NewClient(o)
 	client.Vmware = vmware.NewClient(o)
+	client.VoiceServices = voiceServices.NewClient(o)
 	client.Web = web.NewClient(o)
 
 	return nil

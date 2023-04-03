@@ -1276,7 +1276,7 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int, er
 
 func flattenVirtualApplications(appVirtualApplications *[]web.VirtualApplication) []VirtualApplication {
 	if appVirtualApplications == nil || onlyDefaultVirtualApplication(*appVirtualApplications) {
-		return nil
+		return []VirtualApplication{}
 	}
 
 	var virtualApplications []VirtualApplication

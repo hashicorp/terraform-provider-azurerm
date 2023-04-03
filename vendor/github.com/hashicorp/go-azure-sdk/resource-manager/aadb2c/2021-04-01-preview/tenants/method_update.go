@@ -22,6 +22,7 @@ func (c TenantsClient) Update(ctx context.Context, id B2CDirectoryId, input Upda
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
+			http.StatusCreated,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPatch,

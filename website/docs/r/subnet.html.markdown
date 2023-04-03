@@ -99,7 +99,7 @@ A `service_delegation` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The subnet ID.
 * `name` - (Required) The name of the subnet. Changing this forces a new resource to be created.

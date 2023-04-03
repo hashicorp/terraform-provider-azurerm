@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `messaging_logs_enabled` - (Optional) Specifies if Messaging Logs are enabled or not. Defaults to `false`.
 
+* `http_request_logs_enabled` - (Optional) Specifies if Http Request Logs are enabled or not. Defaults to `false`.
+
 * `live_trace_enabled` - (Optional) Specifies if Live Trace is enabled or not. Defaults to `false`.
 
 * `identity` - (Optional) An `identity` block as defined below.
@@ -141,7 +143,7 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the SignalR service.
 

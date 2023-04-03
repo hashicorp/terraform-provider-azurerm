@@ -85,7 +85,7 @@ func (c AssetsAndAssetFiltersClient) AssetsList(ctx context.Context, id MediaSer
 	}
 
 	var values struct {
-		Values *[]Asset `json:"values"`
+		Values *[]Asset `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

@@ -1249,6 +1249,7 @@ resource "azurerm_api_management" "test" {
 
   additional_location {
     zones    = []
+    capacity = 1
     location = azurerm_resource_group.test2.location
   }
 

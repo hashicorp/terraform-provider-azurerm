@@ -81,7 +81,6 @@ func TestAccAutomationAccount_encryption(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
 				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("encryption.0.key_source").HasValue("Microsoft.Keyvault"),
 			),
 		},
 		data.ImportStep(),
@@ -386,7 +385,6 @@ resource "azurerm_automation_account" "test" {
   local_authentication_enabled = false
 
   encryption {
-    key_source                = "Microsoft.Keyvault"
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
     key_vault_key_id          = azurerm_key_vault_key.test.id
   }

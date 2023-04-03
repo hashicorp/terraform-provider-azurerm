@@ -81,7 +81,7 @@ func (c RulesClient) ListBySubscriptions(ctx context.Context, id Subscriptions2I
 	}
 
 	var values struct {
-		Values *[]Rule `json:"values"`
+		Values *[]Rule `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

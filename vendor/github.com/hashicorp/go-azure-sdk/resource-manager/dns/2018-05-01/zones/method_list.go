@@ -78,7 +78,7 @@ func (c ZonesClient) List(ctx context.Context, id commonids.SubscriptionId, opti
 	}
 
 	var values struct {
-		Values *[]Zone `json:"values"`
+		Values *[]Zone `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
