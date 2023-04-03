@@ -821,7 +821,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.EbpfDataplaneCilium),
+								string(managedclusters.NetworkDataplaneCilium),
 							}, false),
 						},
 
@@ -1121,8 +1121,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Default:  string(managedclusters.ManagedClusterSKUTierFree),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(managedclusters.ManagedClusterSKUTierFree),
-					string(managedclusters.ManagedClusterSKUTierPaid),
 					string(managedclusters.ManagedClusterSKUTierStandard),
+					// Allow this value for the time being so users can be informed by the breaking change error message from the AKS API
+					"Paid",
 				}, false),
 			},
 
@@ -1430,7 +1431,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location,
 		Sku: &managedclusters.ManagedClusterSKU{
-			Name: utils.ToPtr(managedclusters.ManagedClusterSKUNameBasic), // the only possible value at this point
+			Name: utils.ToPtr(managedclusters.ManagedClusterSKUNameBase), // the only possible value at this point
 			Tier: utils.ToPtr(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
 		},
 		Properties: &managedclusters.ManagedClusterProperties{
@@ -1857,7 +1858,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("sku_tier") {
 		updateCluster = true
 		if existing.Model.Sku == nil {
-			basic := managedclusters.ManagedClusterSKUNameBasic
+			basic := managedclusters.ManagedClusterSKUNameBase
 			existing.Model.Sku = &managedclusters.ManagedClusterSKU{
 				Name: &basic,
 			}
@@ -2801,7 +2802,7 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 	}
 
 	if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
-		networkProfile.EbpfDataplane = utils.ToPtr(managedclusters.EbpfDataplane(ebpfDataPlane))
+		networkProfile.NetworkDataplane = utils.ToPtr(managedclusters.NetworkDataplane(ebpfDataPlane))
 	}
 	if networkPluginMode := config["network_plugin_mode"].(string); networkPluginMode != "" {
 		networkProfile.NetworkPluginMode = utils.ToPtr(managedclusters.NetworkPluginMode(networkPluginMode))
@@ -3103,8 +3104,8 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		}
 	}
 	ebpfDataPlane := ""
-	if profile.EbpfDataplane != nil {
-		ebpfDataPlane = string(*profile.EbpfDataplane)
+	if profile.NetworkDataplane != nil {
+		ebpfDataPlane = string(*profile.NetworkDataplane)
 	}
 
 	return []interface{}{
