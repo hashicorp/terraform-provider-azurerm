@@ -50,6 +50,14 @@ resource "azurerm_web_pubsub_hub" "example" {
       managed_identity_id = azurerm_user_assigned_identity.example.id
     }
   }
+
+  event_listener {
+    system_event_name_filter = ["connected"]
+    user_event_name_filter   = ["event1, event2"]
+    eventhub_namespace_name  = azurerm_eventhub_namespace.test.name
+    eventhub_name            = azurerm_eventhub.test1.name
+  }
+
   anonymous_connections_enabled = true
 
   depends_on = [
@@ -95,11 +103,8 @@ An `event_listener` block supports the following:
 
 * `system_event_name_filter` - (Optional) Specify the list of system events. Supported values are `connected` and `disconnected`.
 
-* `user_event_name_filter` - (Optional) Specify the matching event names. There are 3 kind of patterns supported: (Defaults to `"*"`)
-  * `"*"` matches any event name 
-  * Use `,` to combine multiple events, for example `event1,event2`, it matches event `event1` and `event2` 
-  * The single event name, for example `event1`, it matches `event1`.
-
+* `user_event_name_filter` - (Optional) Specify the list of matching user event names. If the filter is to match all events, use `["*"]`.
+ 
 * `eventhub_namespace_name` - (Required) Specify the event hub namespace name to receive the events.
 
 * `eventhub_name` - (Required) Specify the event hub name to receive the events.

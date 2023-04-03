@@ -129,7 +129,7 @@ func TestAccWebPubsubHub_withMultipleEventHandlerSettingsUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withMultipleEventhandlerSettings(data),
+			Config: r.withMultipleEventHandlerSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
@@ -260,7 +260,7 @@ resource "azurerm_web_pubsub_hub" "import" {
 `, r.basic(data))
 }
 
-func (r WebPubsubHubResource) withMultipleEventhandlerSettings(data acceptance.TestData) string {
+func (r WebPubsubHubResource) withMultipleEventHandlerSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -330,14 +330,14 @@ resource "azurerm_web_pubsub_hub" "test" {
 
   event_listener {
     system_event_name_filter = ["disconnected", "connected"]
-    user_event_name_filter   = "test1"
+    user_event_name_filter   = ["event1"]
     eventhub_namespace_name  = azurerm_eventhub_namespace.test.name
     eventhub_name            = azurerm_eventhub.test.name
   }
 
   event_listener {
     system_event_name_filter = ["connected"]
-    user_event_name_filter = "event1, event2"
+    user_event_name_filter   = ["event1", "event2"]
     eventhub_namespace_name  = azurerm_eventhub_namespace.test.name
     eventhub_name            = azurerm_eventhub.test1.name
   }

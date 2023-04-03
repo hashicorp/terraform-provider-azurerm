@@ -112,9 +112,11 @@ func resourceWebPubSubHub() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"user_event_name_filter": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
 						},
 
 						"system_event_name_filter": {
@@ -336,10 +338,12 @@ func expandEventListener(input []interface{}) (*[]webpubsub.EventListener, error
 	for _, eventListenerItem := range input {
 		block := eventListenerItem.(map[string]interface{})
 		systemEvents := make([]string, 0)
-		userEventPattern := "*"
-		if v, ok := block["user_event_name_filter"]; ok {
-			userEventPattern = v.(string)
+		userEventPattern := ""
+		if v, ok := block["user_event_name_filter"]; ok && len(v.(*pluginsdk.Set).List()) > 0 {
+			userEventPatternList := utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+			userEventPattern = strings.Join(*userEventPatternList, ",")
 		}
+
 		if v, ok := block["system_event_name_filter"]; ok {
 			for _, item := range v.(*pluginsdk.Set).List() {
 				systemEvents = append(systemEvents, item.(string))
@@ -380,11 +384,16 @@ func flattenEventListener(listener *[]webpubsub.EventListener) []interface{} {
 		// todo use the type Assertion or Type field in sdk to get the different sub-class
 		if eventFilter := item.Filter; eventFilter != nil {
 			eventNameFilter := item.Filter.(webpubsub.EventNameFilter)
+			userNameFilterList := make([]interface{}, 0)
 			if eventNameFilter.SystemEvents != nil {
 				listenerBlock["system_event_name_filter"] = utils.FlattenStringSlice(eventNameFilter.SystemEvents)
 			}
-			if eventNameFilter.UserEventPattern != nil {
-				listenerBlock["user_event_name_filter"] = *eventNameFilter.UserEventPattern
+			if eventNameFilter.UserEventPattern != nil && *eventNameFilter.UserEventPattern != "" {
+				v := strings.Split(*eventNameFilter.UserEventPattern, ",")
+				for _, s := range v {
+					userNameFilterList = append(userNameFilterList, s)
+				}
+				listenerBlock["user_event_name_filter"] = userNameFilterList
 			}
 		}
 
