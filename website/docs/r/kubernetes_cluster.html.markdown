@@ -229,6 +229,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `sku_tier` - (Optional) The SKU Tier that should be used for this Kubernetes Cluster. Possible values are `Free`, and `Standard` (which includes the Uptime SLA). Defaults to `Free`.
 
+-> **Note:** Whilst the AKS API previously supported the `Paid` SKU - the AKS API introduced a breaking change in API Version `2023-02-01` where the value `Paid` must now be set to `Standard`.
+
 * `storage_profile` - (Optional) A `storage_profile` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

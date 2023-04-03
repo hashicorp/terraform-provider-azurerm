@@ -1122,8 +1122,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(managedclusters.ManagedClusterSKUTierFree),
 					string(managedclusters.ManagedClusterSKUTierStandard),
-					// Allow this value for the time being so users can be informed by the breaking change error message from the AKS API
-					"Paid",
 				}, false),
 			},
 
