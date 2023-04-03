@@ -463,10 +463,8 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	if strings.Contains(strings.ToLower(id.ResourceUri), "microsoft.kusto/clusters/") {
-		if v, err := kustoParse.ClusterIDInsensitively(id.ResourceUri); err == nil {
-			id.ResourceUri = v.ID()
-		}
+	if v, err := kustoParse.ClusterIDInsensitively(id.ResourceUri); err == nil {
+		id.ResourceUri = v.ID()
 	}
 
 	resp, err := client.Get(ctx, *id)
