@@ -3,14 +3,13 @@ package bot
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2020-12-08/healthbots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08/healthbots"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
@@ -162,11 +161,8 @@ func resourceHealthbotServiceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if resp, err := client.BotsUpdate(ctx, *id, payload); err != nil {
-		// update check logic once the issue https://github.com/Azure/azure-rest-api-specs/issues/22791 is fixed
-		if !response.WasStatusCode(resp.HttpResponse, http.StatusCreated) {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
+	if err := client.BotsUpdateThenPoll(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 	return resourceHealthbotServiceRead(d, meta)
 }
