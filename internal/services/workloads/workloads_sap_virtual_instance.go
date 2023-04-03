@@ -1034,8 +1034,8 @@ func flattenSingleServerConfiguration(input sapvirtualinstances.SingleServerConf
 		result.SubnetId = v
 	}
 
-	if dbDiskConfiguration := input.DbDiskConfiguration; dbDiskConfiguration != nil && dbDiskConfiguration.DiskVolumeConfigurations != nil {
-		result.DiskVolumeConfigurations = flattenDiskVolumeConfigurations(dbDiskConfiguration.DiskVolumeConfigurations)
+	if v := input.DbDiskConfiguration; v != nil && v.DiskVolumeConfigurations != nil {
+		result.DiskVolumeConfigurations = flattenDiskVolumeConfigurations(v.DiskVolumeConfigurations)
 	}
 
 	if customResourceNames := input.CustomResourceNames; customResourceNames != nil {
@@ -1570,4 +1570,313 @@ func expandSharedStorage(input []SharedStorage) *sapvirtualinstances.SharedStora
 	}
 
 	return &result
+}
+
+func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfiguration) []ThreeTierConfiguration {
+	result := ThreeTierConfiguration{
+		ApplicationServer: flattenApplicationServer(input.ApplicationServer),
+		CentralServer:     flattenCentralServer(input.CentralServer),
+		DatabaseServer:    flattenDatabaseServer(input.DatabaseServer),
+	}
+
+	if v := input.AppResourceGroup; v != "" {
+		result.AppResourceGroupName = v
+	}
+
+	if customResourceNames := input.CustomResourceNames; customResourceNames != nil {
+		if v, ok := customResourceNames.(sapvirtualinstances.ThreeTierFullResourceNames); ok {
+			result.FullResourceNames = flattenFullResourceNames(v)
+		}
+	}
+
+	if v := input.HighAvailabilityConfig; v != nil && v.HighAvailabilityType != "" {
+		result.HighAvailabilityType = string(v.HighAvailabilityType)
+	}
+
+	if networkConfiguration := input.NetworkConfiguration; networkConfiguration != nil && networkConfiguration.IsSecondaryIPEnabled != nil {
+		result.IsSecondaryIpEnabled = *networkConfiguration.IsSecondaryIPEnabled
+	}
+
+	if v := input.StorageConfiguration; v != nil {
+		result.StorageConfiguration = flattenStorageConfiguration(v)
+	}
+
+	return []ThreeTierConfiguration{
+		result,
+	}
+}
+
+func flattenStorageConfiguration(input *sapvirtualinstances.StorageConfiguration) []StorageConfiguration {
+	if input == nil {
+		return nil
+	}
+
+	result := StorageConfiguration{}
+
+	if transportFileShareConfiguration := input.TransportFileShareConfiguration; transportFileShareConfiguration != nil {
+		if createAndMountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.CreateAndMountFileShareConfiguration); ok {
+			transportCreateAndMount := TransportCreateAndMount{}
+
+			if v := createAndMountFileShareConfiguration.ResourceGroup; v != nil {
+				transportCreateAndMount.ResourceGroupName = *v
+			}
+
+			if v := createAndMountFileShareConfiguration.StorageAccountName; v != nil {
+				transportCreateAndMount.StorageAccountName = *v
+			}
+
+			result.TransportCreateAndMount = []TransportCreateAndMount{
+				transportCreateAndMount,
+			}
+		}
+
+		if mountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.MountFileShareConfiguration); ok {
+			transportMount := TransportMount{}
+
+			if v := mountFileShareConfiguration.Id; v != "" {
+				transportMount.FileShareId = v
+			}
+
+			if v := mountFileShareConfiguration.PrivateEndpointId; v != "" {
+				transportMount.PrivateEndpointId = v
+			}
+
+			result.TransportMount = []TransportMount{
+				transportMount,
+			}
+		}
+	}
+
+	return []StorageConfiguration{
+		result,
+	}
+}
+
+func flattenApplicationServer(input sapvirtualinstances.ApplicationServerConfiguration) []ApplicationServer {
+	result := ApplicationServer{
+		InstanceCount:               input.InstanceCount,
+		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration),
+	}
+
+	if v := input.SubnetId; v != "" {
+		result.SubnetId = v
+	}
+
+	return []ApplicationServer{
+		result,
+	}
+}
+
+func flattenCentralServer(input sapvirtualinstances.CentralServerConfiguration) []CentralServer {
+	result := CentralServer{
+		InstanceCount:               input.InstanceCount,
+		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration),
+	}
+
+	if v := input.SubnetId; v != "" {
+		result.SubnetId = v
+	}
+
+	return []CentralServer{
+		result,
+	}
+}
+
+func flattenDatabaseServer(input sapvirtualinstances.DatabaseConfiguration) []DatabaseServer {
+	result := DatabaseServer{
+		InstanceCount:               input.InstanceCount,
+		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration),
+	}
+
+	if v := input.DatabaseType; v != nil {
+		result.DatabaseType = string(*v)
+	}
+
+	if v := input.DiskConfiguration; v != nil && v.DiskVolumeConfigurations != nil {
+		result.DiskVolumeConfigurations = flattenDiskVolumeConfigurations(v.DiskVolumeConfigurations)
+	}
+
+	if v := input.SubnetId; v != "" {
+		result.SubnetId = v
+	}
+
+	return []DatabaseServer{
+		result,
+	}
+}
+
+func flattenFullResourceNames(input sapvirtualinstances.ThreeTierFullResourceNames) []FullResourceNames {
+	result := FullResourceNames{}
+
+	if v := input.ApplicationServer; v != nil {
+		result.ApplicationServer = flattenApplicationServerFullResourceNames(v)
+	}
+
+	if v := input.CentralServer; v != nil {
+		result.CentralServer = flattenCentralServerFullResourceNames(v)
+	}
+
+	if v := input.DatabaseServer; v != nil {
+		result.DatabaseServer = flattenDatabaseServerFullResourceNames(v)
+	}
+
+	if v := input.SharedStorage; v != nil {
+		result.SharedStorage = flattenSharedStorage(v)
+	}
+
+	return []FullResourceNames{
+		result,
+	}
+}
+
+func flattenApplicationServerFullResourceNames(input *sapvirtualinstances.ApplicationServerFullResourceNames) []ApplicationServerFullResourceNames {
+	if input == nil {
+		return nil
+	}
+
+	result := ApplicationServerFullResourceNames{}
+
+	if v := input.AvailabilitySetName; v != nil {
+		result.AvailabilitySetName = *v
+	}
+
+	if v := input.VirtualMachines; v != nil {
+		result.VirtualMachines = flattenVirtualMachinesFullResourceNames(v)
+	}
+
+	return []ApplicationServerFullResourceNames{
+		result,
+	}
+}
+
+func flattenVirtualMachinesFullResourceNames(input *[]sapvirtualinstances.VirtualMachineResourceNames) []VirtualMachineFullResourceNames {
+	if input == nil {
+		return nil
+	}
+
+	result := make([]VirtualMachineFullResourceNames, 0)
+
+	for _, item := range *input {
+		virtualMachineFullResourceNames := VirtualMachineFullResourceNames{}
+
+		if v := item.HostName; v != nil {
+			virtualMachineFullResourceNames.HostName = *v
+		}
+
+		if v := item.OsDiskName; v != nil {
+			virtualMachineFullResourceNames.OSDiskName = *v
+		}
+
+		if v := item.VirtualMachineName; v != nil {
+			virtualMachineFullResourceNames.VMName = *v
+		}
+
+		if v := item.NetworkInterfaces; v != nil {
+			virtualMachineFullResourceNames.NetworkInterfaceNames = flattenNetworkInterfaceResourceNames(v)
+		}
+
+		if v := item.DataDiskNames; v != nil {
+			virtualMachineFullResourceNames.DataDiskNames = flattenDataDiskNames(v)
+		}
+
+		result = append(result, virtualMachineFullResourceNames)
+	}
+
+	return result
+}
+
+func flattenCentralServerFullResourceNames(input *sapvirtualinstances.CentralServerFullResourceNames) []CentralServerFullResourceNames {
+	if input == nil {
+		return nil
+	}
+
+	result := CentralServerFullResourceNames{}
+
+	if v := input.AvailabilitySetName; v != nil {
+		result.AvailabilitySetName = *v
+	}
+
+	if v := input.LoadBalancer; v != nil {
+		result.LoadBalancer = flattenLoadBalancerFullResourceNames(v)
+	}
+
+	if v := input.VirtualMachines; v != nil {
+		result.VirtualMachines = flattenVirtualMachinesFullResourceNames(v)
+	}
+
+	return []CentralServerFullResourceNames{
+		result,
+	}
+}
+
+func flattenLoadBalancerFullResourceNames(input *sapvirtualinstances.LoadBalancerResourceNames) []LoadBalancer {
+	if input == nil {
+		return nil
+	}
+
+	result := LoadBalancer{}
+
+	if v := input.LoadBalancerName; v != nil {
+		result.Name = *v
+	}
+
+	if v := input.BackendPoolNames; v != nil {
+		result.BackendPoolNames = *v
+	}
+
+	if v := input.FrontendIPConfigurationNames; v != nil {
+		result.FrontendIpConfigurationNames = *v
+	}
+
+	if v := input.HealthProbeNames; v != nil {
+		result.HealthProbeNames = *v
+	}
+
+	return []LoadBalancer{
+		result,
+	}
+}
+
+func flattenDatabaseServerFullResourceNames(input *sapvirtualinstances.DatabaseServerFullResourceNames) []DatabaseServerFullResourceNames {
+	if input == nil {
+		return nil
+	}
+
+	result := DatabaseServerFullResourceNames{}
+
+	if v := input.AvailabilitySetName; v != nil {
+		result.AvailabilitySetName = *v
+	}
+
+	if v := input.LoadBalancer; v != nil {
+		result.LoadBalancer = flattenLoadBalancerFullResourceNames(v)
+	}
+
+	if v := input.VirtualMachines; v != nil {
+		result.VirtualMachines = flattenVirtualMachinesFullResourceNames(v)
+	}
+
+	return []DatabaseServerFullResourceNames{
+		result,
+	}
+}
+
+func flattenSharedStorage(input *sapvirtualinstances.SharedStorageResourceNames) []SharedStorage {
+	if input == nil {
+		return nil
+	}
+
+	result := SharedStorage{}
+
+	if v := input.SharedStorageAccountName; v != nil {
+		result.AccountName = *v
+	}
+
+	if v := input.SharedStorageAccountPrivateEndPointName; v != nil {
+		result.PrivateEndpointName = *v
+	}
+
+	return []SharedStorage{
+		result,
+	}
 }

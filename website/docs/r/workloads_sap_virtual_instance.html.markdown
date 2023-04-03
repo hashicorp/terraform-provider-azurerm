@@ -53,6 +53,8 @@ The following arguments are supported:
 
 * `single_server_configuration` - (Optional) A `single_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
+* `three_tier_configuration` - (Optional) A `three_tier_configuration` block as defined below. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the SAP Virtual Instance.
 
 ---
@@ -174,6 +176,168 @@ A `virtual_machine_full_resource_names` block supports the following:
 * `vm_name` - (Optional) The full name of the Virtual Machine in a single server SAP system. Changing this forces a new resource to be created.
 
 ~> **Note:** If `vm_name` is not provided, service uses a default name based on the deployment type.
+
+---
+
+A `three_tier_configuration` block supports the following:
+
+* `app_resource_group_name` - (Optional) The name of the application Resource Group where SAP system resources will be deployed. Changing this forces a new resource to be created.
+
+* `application_server` - (Optional) An `application_server` block as defined below. Changing this forces a new resource to be created.
+
+* `central_server` - (Optional) A `central_server` block as defined below. Changing this forces a new resource to be created.
+
+* `database_server` - (Optional) A `database_server` block as defined below. Changing this forces a new resource to be created.
+
+* `full_resource_names` - (Optional) A `full_resource_names` block as defined below. Changing this forces a new resource to be created.
+
+* `high_availability_type` - (Optional) The high availability type for the three tier configuration. Changing this forces a new resource to be created.
+
+* `is_secondary_ip_enabled` - (Optional) Is a secondary IP Address that should be added to the Network Interface on all VMs of the SAP system being deployed enabled? Changing this forces a new resource to be created.
+
+* `storage_configuration` - (Optional) A `storage_configuration` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `storage_configuration` block supports the following:
+
+* `transport_create_and_mount` - (Optional) A `transport_create_and_mount` block as defined below. Changing this forces a new resource to be created.
+
+* `transport_mount` - (Optional) A `transport_mount` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `transport_create_and_mount` block supports the following:
+
+* `resource_group_name` - (Optional) The name of Resource Group of the transport File Share. Changing this forces a new resource to be created.
+
+* `storage_account_name` - (Optional) The name of the Storage Account of the File Share. Changing this forces a new resource to be created.
+
+---
+
+A `transport_mount` block supports the following:
+
+* `file_share_id` - (Optional) The resource ID of the File Share resource. Changing this forces a new resource to be created.
+
+* `private_endpoint_id` - (Optional) The resource ID of the Private Endpoint. Changing this forces a new resource to be created.
+
+---
+
+An `application_server` block supports the following:
+
+* `instance_count` - (Optional) The number of instances for the Application Server. Changing this forces a new resource to be created.
+
+* `subnet_id` - (Optional) The resource ID of the Subnet for the Application Server. Changing this forces a new resource to be created.
+
+* `virtual_machine_configuration` - (Optional) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `central_server` block supports the following:
+
+* `instance_count` - (Optional) The number of instances for the Central Server. Changing this forces a new resource to be created.
+
+* `subnet_id` - (Optional) The resource ID of the Subnet for the Central Server. Changing this forces a new resource to be created.
+
+* `virtual_machine_configuration` - (Optional) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `database_server` block supports the following:
+
+* `instance_count` - (Optional) The number of instances for the Database Server. Changing this forces a new resource to be created.
+
+* `database_type` - (Optional) The database type for the Database Server. Changing this forces a new resource to be created.
+
+* `disk_volume_configuration` - (Optional) One or more `disk_volume_configuration` blocks as defined below. Changing this forces a new resource to be created.
+
+* `subnet_id` - (Optional) The resource ID of the Subnet for the Database Server. Changing this forces a new resource to be created.
+
+* `virtual_machine_configuration` - (Optional) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `full_resource_names` block supports the following:
+
+* `application_server` - (Optional) An `application_server` block as defined below. Changing this forces a new resource to be created.
+
+* `central_server` - (Optional) A `central_server` block as defined below. Changing this forces a new resource to be created.
+
+* `database_server` - (Optional) A `database_server` block as defined below. Changing this forces a new resource to be created.
+
+* `shared_storage` - (Optional) A `shared_storage` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+An `application_server` block supports the following:
+
+* `availability_set_name` - (Optional) The full name for the availability set. Changing this forces a new resource to be created.
+
+* `virtual_machine` - (Optional) One or more `virtual_machine` blocks as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `virtual_machine` block supports the following:
+
+* `data_disk_names` - (Optional) A mapping of Data Disk names to pass to the backend host. The keys are Volume names and the values are a comma separated string of full names for Data Disks belonging to the specific Volume. This is converted to a list before being passed to the API. Changing this forces a new resource to be created.
+
+~> **Note:** If `data_disk_names` are not provided, service uses the default name based on the Volume.
+
+* `host_name` - (Optional) The full name of the host of the Virtual Machine. Changing this forces a new resource to be created.
+
+~> **Note:** If `host_name` is not provided, the name of the VM will be used as host name.
+
+* `network_interface_names` - (Optional) A list of full names for the Network Interface of the Virtual Machine. Changing this forces a new resource to be created.
+
+~> **Note:** If `network_interface_names` is not provided, service uses the default name based on the deployment type.
+
+* `os_disk_name` - (Optional) The full name of the OS Disk attached to the VM. Changing this forces a new resource to be created.
+
+~> **Note:** If `os_disk_name` is not provided, it will be named by ARM as per its default naming standards (prefixed with VM name).
+
+* `vm_name` - (Optional) The full name of the Virtual Machine in a single server SAP system. Changing this forces a new resource to be created.
+
+~> **Note:** If `vm_name` is not provided, service uses a default name based on the deployment type.
+
+---
+
+A `central_server` block supports the following:
+
+* `availability_set_name` - (Optional) The full name for the availability set. Changing this forces a new resource to be created.
+
+* `load_balancer` - (Optional) A `load_balancer` block as defined below. Changing this forces a new resource to be created.
+
+* `virtual_machine` - (Optional) One or more `virtual_machine` blocks as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `load_balancer` block supports the following:
+
+* `name` - (Optional) The full resource name of the Load Balancer. Changing this forces a new resource to be created.
+
+* `backend_pool_names` - (Optional) A list of Backend Pool names for the Load Balancer. Changing this forces a new resource to be created.
+
+* `frontend_ip_configuration_names` - (Optional) A list of Frontend IP Configuration names. Changing this forces a new resource to be created.
+
+* `health_probe_names` - (Optional) A list of Health Probe names. Changing this forces a new resource to be created.
+
+---
+
+A `database_server` block supports the following:
+
+* `availability_set_name` - (Optional) The full name for the availability set. Changing this forces a new resource to be created.
+
+* `load_balancer` - (Optional) A `load_balancer` block as defined below. Changing this forces a new resource to be created.
+
+* `virtual_machine` - (Optional) One or more `virtual_machine` blocks as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `shared_storage` block supports the following:
+
+* `account_name` - (Optional) The full name of the Shared Storage Account. Changing this forces a new resource to be created.
+
+* `private_endpoint_name` - (Optional) The full name of Private Endpoint for the Shared Storage Account. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

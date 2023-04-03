@@ -652,6 +652,10 @@ func flattenDeploymentWithOSConfiguration(input *sapvirtualinstances.DeploymentW
 		if v, ok := configuration.(sapvirtualinstances.SingleServerConfiguration); ok {
 			result.SingleServerConfiguration = flattenSingleServerConfiguration(v)
 		}
+
+		if v, ok := configuration.(sapvirtualinstances.ThreeTierConfiguration); ok {
+			result.ThreeTierConfiguration = flattenThreeTierConfiguration(v)
+		}
 	}
 
 	return []DeploymentWithOSConfiguration{
