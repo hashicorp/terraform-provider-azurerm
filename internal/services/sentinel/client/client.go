@@ -19,6 +19,7 @@ type Client struct {
 	WatchlistItemsClient     *securityinsight.WatchlistItemsClient
 	OnboardingStatesClient   *sentinelonboardingstates.SentinelOnboardingStatesClient
 	AnalyticsSettingsClient  *securityinsight.SecurityMLAnalyticsSettingsClient
+	ThreatIntelligenceClient *securityinsight.ThreatIntelligenceIndicatorClient
 	MetadataClient           *metadata.MetadataClient
 }
 
@@ -47,6 +48,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	analyticsSettingsClient := securityinsight.NewSecurityMLAnalyticsSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&analyticsSettingsClient.Client, o.ResourceManagerAuthorizer)
 
+	threatIntelligenceClient := securityinsight.NewThreatIntelligenceIndicatorClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&threatIntelligenceClient.Client, o.ResourceManagerAuthorizer)
+
 	metadataClient := metadata.NewMetadataClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&metadataClient.Client, o.ResourceManagerAuthorizer)
 
@@ -59,6 +63,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		WatchlistItemsClient:     &watchListItemsClient,
 		OnboardingStatesClient:   &onboardingStatesClient,
 		AnalyticsSettingsClient:  &analyticsSettingsClient,
+		ThreatIntelligenceClient: &threatIntelligenceClient,
 		MetadataClient:           &metadataClient,
 	}
 }

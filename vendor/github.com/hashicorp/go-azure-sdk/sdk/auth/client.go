@@ -5,6 +5,7 @@ package auth
 
 import (
 	"context"
+	"log"
 	"math"
 	"net"
 	"net/http"
@@ -22,7 +23,6 @@ type httpClientParams struct {
 	retryWaitMin  time.Duration
 	retryWaitMax  time.Duration
 	retryMaxCount int
-	timeout       time.Duration
 	useProxy      bool
 }
 
@@ -33,7 +33,6 @@ func defaultHttpClientParams() httpClientParams {
 		retryWaitMin:  1 * time.Second,
 		retryWaitMax:  30 * time.Second,
 		retryMaxCount: 8,
-		timeout:       10 * time.Second,
 		useProxy:      true,
 	}
 }
@@ -42,6 +41,8 @@ func defaultHttpClientParams() httpClientParams {
 // retry settings which can be customized per instance as needed.
 func httpClient(params httpClientParams) *http.Client {
 	r := retryablehttp.NewClient()
+
+	r.Logger = log.Default()
 
 	r.Backoff = func(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
 		// note: min and max contain the values of r.RetryWaitMin and r.RetryWaitMax
@@ -96,8 +97,5 @@ func httpClient(params httpClientParams) *http.Client {
 		},
 	}
 
-	client := r.StandardClient()
-	client.Timeout = params.timeout
-
-	return client
+	return r.StandardClient()
 }

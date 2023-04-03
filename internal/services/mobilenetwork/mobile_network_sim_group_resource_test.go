@@ -126,19 +126,30 @@ func (r MobileNetworkSimGroupResource) Exists(ctx context.Context, clients *clie
 }
 
 func (r MobileNetworkSimGroupResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
+
 resource "azurerm_mobile_network_sim_group" "test" {
   name              = "acctest-mnsg-%d"
   location          = azurerm_resource_group.test.location
   mobile_network_id = azurerm_mobile_network.test.id
 }
-`, MobileNetworkResource{}.basic(data), data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func (r MobileNetworkSimGroupResource) withEncryptionKeyUrl(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 data "azurerm_client_config" "test" {}
 
@@ -191,25 +202,31 @@ resource "azurerm_mobile_network_sim_group" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MobileNetworkSimGroupResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_mobile_network_sim_group" "import" {
   name              = azurerm_mobile_network_sim_group.test.name
-  location          = "%s"
+  location          = azurerm_mobile_network_sim_group.test.location
   mobile_network_id = azurerm_mobile_network_sim_group.test.mobile_network_id
 
 }
-`, r.basic(data), data.Locations.Primary)
+`, template)
 }
 
 func (r MobileNetworkSimGroupResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-			%[1]s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 data "azurerm_client_config" "test" {}
 
@@ -254,7 +271,7 @@ resource "azurerm_user_assigned_identity" "test" {
 
 resource "azurerm_mobile_network_sim_group" "test" {
   name               = "acctest-mnsg-%[2]d"
-  location           = "%[3]s"
+  location           = azurerm_mobile_network.test.location
   mobile_network_id  = azurerm_mobile_network.test.id
   encryption_key_url = azurerm_key_vault_key.test.versionless_id
 
@@ -267,12 +284,17 @@ resource "azurerm_mobile_network_sim_group" "test" {
     key = "value"
   }
 }
-`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func (r MobileNetworkSimGroupResource) update(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 data "azurerm_client_config" "test" {}
 
@@ -317,7 +339,7 @@ resource "azurerm_key_vault_key" "test" {
 
 resource "azurerm_mobile_network_sim_group" "test" {
   name               = "acctest-mnsg-%[2]d"
-  location           = "%[3]s"
+  location           = azurerm_mobile_network.test.location
   mobile_network_id  = azurerm_mobile_network.test.id
   encryption_key_url = azurerm_key_vault_key.test.versionless_id
 
@@ -329,7 +351,23 @@ resource "azurerm_mobile_network_sim_group" "test" {
   tags = {
     key = "updated"
   }
-
 }
-`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
+}
+
+func (r MobileNetworkSimGroupResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-mn-%[1]d"
+  location = %[2]q
+}
+
+resource "azurerm_mobile_network" "test" {
+  name                = "acctest-mn-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  mobile_country_code = "001"
+  mobile_network_code = "01"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

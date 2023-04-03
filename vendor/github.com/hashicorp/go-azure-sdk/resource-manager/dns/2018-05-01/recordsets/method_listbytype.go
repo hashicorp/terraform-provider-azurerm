@@ -81,7 +81,7 @@ func (c RecordSetsClient) ListByType(ctx context.Context, id ZoneId, options Lis
 	}
 
 	var values struct {
-		Values *[]RecordSet `json:"values"`
+		Values *[]RecordSet `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

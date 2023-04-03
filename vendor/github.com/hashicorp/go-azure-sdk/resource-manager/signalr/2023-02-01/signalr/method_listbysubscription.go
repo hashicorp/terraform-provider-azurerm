@@ -50,7 +50,7 @@ func (c SignalRClient) ListBySubscription(ctx context.Context, id commonids.Subs
 	}
 
 	var values struct {
-		Values *[]SignalRResource `json:"values"`
+		Values *[]SignalRResource `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

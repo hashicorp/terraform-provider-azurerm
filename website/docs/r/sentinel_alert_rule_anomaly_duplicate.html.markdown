@@ -32,7 +32,7 @@ resource "azurerm_security_insights_sentinel_onboarding" "example" {
 
 data "azurerm_sentinel_alert_rule_anomaly" "example" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
-  display_name               = "UEBA Anomalous Sign In"
+  display_name               = "(Preview) UEBA Anomalous Sign In"
 
   depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.example]
 }
@@ -171,5 +171,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Built In Anomaly Alert Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_sentinel_alert_rule_anomaly_built_in.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/securityMLAnalyticsSettings/setting1
+terraform import azurerm_sentinel_alert_rule_anomaly_duplicate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/securityMLAnalyticsSettings/setting1
 ```

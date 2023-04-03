@@ -172,26 +172,9 @@ A `private_service_connection` block supports the following:
 
 * `private_connection_resource_alias` - (Optional) The Service Alias of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. One of `private_connection_resource_id` or `private_connection_resource_alias` must be specified. Changing this forces a new resource to be created.
 
-* `subresource_names` - (Optional) A list of subresource names which the Private Endpoint is able to connect to. `subresource_names` corresponds to `group_id`. Changing this forces a new resource to be created.
+* `subresource_names` - (Optional) A list of subresource names which the Private Endpoint is able to connect to. `subresource_names` corresponds to `group_id`. Possible values are detailed in the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) in the `Subresources` column. Changing this forces a new resource to be created.
 
--> Several possible values for this field are shown below, however this is not extensive:
-
-| Resource Type                 | SubResource Name       | Secondary SubResource Name |
-|-------------------------------|------------------------|----------------------------|
-| Data Lake File System Gen2    | dfs                    | dfs_secondary              |
-| SQL Database / Data Warehouse | sqlServer              |                            |
-| SQL Managed Instance          | managedInstance        |                            |
-| Storage Account               | blob                   | blob_secondary             |
-| Storage Account               | file                   | file_secondary             |
-| Storage Account               | queue                  | queue_secondary            |
-| Storage Account               | table                  | table_secondary            |
-| Storage Account               | web                    | web_secondary              |
-| Web App / Function App        | sites                  |                            |
-| Web App / Function App Slots  | sites-&lt;slotName&gt; |                            |
-| Recovery Services Vault       | AzureBackup            |                            |
-| Recovery Services Vault       | AzureSiteRecovery      |                            |
-
-Some resource types (such as Storage Account) only support 1 subresource per private endpoint. See the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) for more information.
+-> **NOTE:** Some resource types (such as Storage Account) only support 1 subresource per private endpoint.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
 
@@ -211,7 +194,7 @@ An `ip_configuration` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Private Endpoint.
 
