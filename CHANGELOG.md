@@ -12,7 +12,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230331.1143618` of `github.com/hashicorp/go-azure-sdk` [GH-21239]
+* dependencies: updating to `v0.20230404.1155830` of `github.com/hashicorp/go-azure-sdk` [GH-21285]
 * dependencies: updating to `v0.20230331.1120327` of `github.com/tombuildsstuff/kermit` [GH-21235]
 * dependencies: updating `containerservice/2022-09-02-preview` to `2023-02-02-preview` [GH-21256]
 * `batch`: updating to API Version `2022-01-01.15.0` (from `github.com/tombuildsstuff/kermit`) [GH-21234]
