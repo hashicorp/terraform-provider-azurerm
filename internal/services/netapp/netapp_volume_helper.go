@@ -137,7 +137,6 @@ const (
 func PossibleValuesForSecurityStyle() []string {
 	return []string{
 		string(SecurityStyleUnix),
-		string(SecurityStyleNtfs),
 	}
 }
 
@@ -514,7 +513,7 @@ func flattenNetAppVolumeGroupVolumesDPReplication(input *volumes.ReplicationObje
 	if input == nil {
 		return []DataProtectionReplication{}
 	}
-	if string(*input.EndpointType) == "" || strings.EqualFold(string(*input.EndpointType), string(volumes.EndpointTypeDst)) {
+	if string(*input.EndpointType) == "" || !strings.EqualFold(string(*input.EndpointType), string(volumes.EndpointTypeDst)) {
 		return []DataProtectionReplication{}
 	}
 
@@ -883,21 +882,40 @@ func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolu
 				errors = append(errors, fmt.Errorf("'`protocols` list cannot be greater than 1 for %v on volume %v'", applicationType, *volume.Name))
 			}
 
-			// Validating protocols
-			for _, protocol := range *volume.Properties.ProtocolTypes {
+			// Validating protocol, it supports only one and that is enforced by the schema
 
-				// Can't be CIFS at all times
-				if strings.EqualFold(protocol, string(ProtocolTypeCifs)) {
-					errors = append(errors, fmt.Errorf("'cifs is not supported for %v on volume %v'", applicationType, *volume.Name))
-				}
+			// Can't be CIFS at all times
+			if strings.EqualFold(string((*volume.Properties.ProtocolTypes)[0]), string(ProtocolTypeCifs)) {
+				errors = append(errors, fmt.Errorf("'cifs is not supported for %v on volume %v'", applicationType, *volume.Name))
+			}
 
-				// Can't be nfsv3 on data, log and share volumes
-				if strings.EqualFold(protocol, string(ProtocolTypeNfsV3)) &&
-					(strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameData)) ||
-						strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameShared)) ||
-						strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameLog))) {
+			// Can't be nfsv3 on data, log and share volumes
+			if strings.EqualFold(string((*volume.Properties.ProtocolTypes)[0]), string(ProtocolTypeNfsV3)) &&
+				(strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameData)) ||
+					strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameShared)) ||
+					strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameLog))) {
 
-					errors = append(errors, fmt.Errorf("'nfsv3 on data, log and shared volumes for %v is not supported on volume %v'", applicationType, *volume.Name))
+				errors = append(errors, fmt.Errorf("'nfsv3 on data, log and shared volumes for %v is not supported on volume %v'", applicationType, *volume.Name))
+			}
+
+			// Validating export policies
+			if volume.Properties.ExportPolicy != nil {
+				for _, rule := range *volume.Properties.ExportPolicy.Rules {
+
+					// Validating that nfsv3 and nfsv4.1 are not enabled in the same rule
+					if *rule.Nfsv3 && *rule.Nfsv41 {
+						errors = append(errors, fmt.Errorf("'nfsv3 and nfsv4.1 cannot be enabled at the same time for %v on volume %v'", applicationType, *volume.Name))
+					}
+
+					// Validating that nfsv4.1 export policy is not set on nfsv3 volume
+					if *rule.Nfsv41 && strings.EqualFold(string((*volume.Properties.ProtocolTypes)[0]), string(ProtocolTypeNfsV3)) {
+						errors = append(errors, fmt.Errorf("'nfsv4.1 export policy cannot be enabled on nfsv3 volume %v'", *volume.Name))
+					}
+
+					// Validating that nfsv3 export policy is not set on nfsv4.1 volume
+					if *rule.Nfsv3 && strings.EqualFold(string((*volume.Properties.ProtocolTypes)[0]), string(ProtocolTypeNfsV41)) {
+						errors = append(errors, fmt.Errorf("'nfsv3 export policy cannot be enabled on nfsv4.1 volume %v'", *volume.Name))
+					}
 				}
 			}
 

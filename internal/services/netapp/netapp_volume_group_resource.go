@@ -550,6 +550,8 @@ func (r NetAppVolumeGroupResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			model := NetAppVolumeGroupModel{
 				Name:              id.VolumeGroupName,
 				AccountName:       id.AccountName,
