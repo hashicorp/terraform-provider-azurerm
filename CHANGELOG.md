@@ -1,7 +1,10 @@
 ## 3.51.0 (Unreleased)
 
-FEATURES:
+BREAKING CHANGES:
 
+* `azurerm_kubernetes_cluster` - `sku_tier` no longer accepts the value `Paid`, it must be updated to `Standard`
+
+FEATURES:
 
 * **New Resource:** `azurerm_signalr_service_custom_certificate` [GH-21112]
 * **New Resource:** `azurerm_storage_mover` [GH-21000]
@@ -11,6 +14,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230331.1143618` of `github.com/hashicorp/go-azure-sdk` [GH-21239]
 * dependencies: updating to `v0.20230331.1120327` of `github.com/tombuildsstuff/kermit` [GH-21235]
+* dependencies: updating `containerservice/2022-09-02-preview` to `2023-02-02-preview` [GH-21256]
 * `batch`: updating to API Version `2022-01-01.15.0` (from `github.com/tombuildsstuff/kermit`) [GH-21234]
 * `azurerm_container_app` - the `app_port property` is now optional [GH-20567]
 * `azurerm_healthcare_fhir_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
@@ -27,7 +31,6 @@ BUG FIXES:
 * `azurerm_automation_software_update_configuration` - `time_zone` correctly defaults to `Etc/UTC` [GH-21254]
 * `azurerm_digital_twins_time_series_database_connection` - insensitively parse `kusto_cluster_uri` [GH-21243]
 * `azurerm_express_route_circuit` - can now set `authorization_key` during creation [GH-21132]
-* `azurerm_kubernetes_cluster` - correct maintenance window hours order [GH-21190]
 * `azurerm_kusto_eventhub_data_connection` - insensitively parse `identity_id` if it applies to a Kusto Cluster [GH-21243]
 * `azurerm_linux_function_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
 * `azurerm_linux_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
