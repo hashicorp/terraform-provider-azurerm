@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230331.1120327` of `github.com/tombuildsstuff/kermit` [GH-21235]
 * dependencies: updating `containerservice/2022-09-02-preview` to `2023-02-02-preview` [GH-21256]
 * `batch`: updating to API Version `2022-01-01.15.0` (from `github.com/tombuildsstuff/kermit`) [GH-21234]
+* `azurerm_app_configuration_feature` - add support for the `key` property [GH-21252]
 * `azurerm_container_app` - the `app_port property` is now optional [GH-20567]
 * `azurerm_healthcare_fhir_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
 * `azurerm_healthcare_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
