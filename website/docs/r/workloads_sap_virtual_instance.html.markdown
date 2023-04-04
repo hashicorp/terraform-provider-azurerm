@@ -61,7 +61,7 @@ The following arguments are supported:
 
 A `deployment_configuration` block supports the following:
 
-* `app_location` - (Optional) The Geo-Location where the SAP system is to be created. Changing this forces a new resource to be created.
+* `app_location` - (Required) The Geo-Location where the SAP system is to be created. Changing this forces a new resource to be created.
 
 * `single_server_configuration` - (Optional) A `single_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
@@ -71,9 +71,9 @@ A `deployment_configuration` block supports the following:
 
 A `deployment_with_os_configuration` block supports the following:
 
-* `app_location` - (Optional) The Geo-Location where the SAP system is to be created. Changing this forces a new resource to be created.
+* `app_location` - (Required) The Geo-Location where the SAP system is to be created. Changing this forces a new resource to be created.
 
-* `os_sap_configuration` - (Optional) An `os_sap_configuration` block as defined below. Changing this forces a new resource to be created.
+* `os_sap_configuration` - (Required) An `os_sap_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `single_server_configuration` - (Optional) A `single_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
@@ -83,31 +83,31 @@ A `deployment_with_os_configuration` block supports the following:
 
 An `os_sap_configuration` block supports the following:
 
-* `deployer_vm_packages` - (Optional) A `deployer_vm_packages` block as defined below. Changing this forces a new resource to be created.
+* `sap_fqdn` - (Required) The FQDN of the SAP system. Changing this forces a new resource to be created.
 
-* `sap_fqdn` - (Optional) The FQDN of the SAP system. Changing this forces a new resource to be created.
+* `deployer_vm_packages` - (Optional) A `deployer_vm_packages` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
 A `deployer_vm_packages` block supports the following:
 
-* `storage_account_id` - (Optional) A `deployer_vm_packages` block as defined below. Changing this forces a new resource to be created.
+* `storage_account_id` - (Required) A `deployer_vm_packages` block as defined below. Changing this forces a new resource to be created.
 
-* `url` - (Optional) The URL of the deployer VM packages file. Changing this forces a new resource to be created.
+* `url` - (Required) The URL of the deployer VM packages file. Changing this forces a new resource to be created.
 
 ---
 
 A `single_server_configuration` block supports the following:
 
-* `app_resource_group_name` - (Optional) The name of the application Resource Group where SAP system resources will be deployed. Changing this forces a new resource to be created.
+* `app_resource_group_name` - (Required) The name of the application Resource Group where SAP system resources will be deployed. Changing this forces a new resource to be created.
 
-* `database_type` - (Optional) The supported SAP database type. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The resource ID of the Subnet for the SAP Virtual Instance. Changing this forces a new resource to be created.
+
+* `database_type` - (Optional) The supported SAP database type. Possible values are `DB2` and `HANA`. Changing this forces a new resource to be created.
 
 * `disk_volume_configuration` - (Optional) One or more `disk_volume_configuration` blocks as defined below. Changing this forces a new resource to be created.
 
 * `is_secondary_ip_enabled` - (Optional) Is a secondary IP Address that should be added to the Network Interface on all VMs of the SAP system being deployed enabled? Changing this forces a new resource to be created.
-
-* `subnet_id` - (Optional) The resource ID of the Subnet for the SAP Virtual Instance. Changing this forces a new resource to be created.
 
 * `virtual_machine_configuration` - (Optional) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
 
@@ -201,7 +201,7 @@ A `virtual_machine_full_resource_names` block supports the following:
 
 A `three_tier_configuration` block supports the following:
 
-* `app_resource_group_name` - (Optional) The name of the application Resource Group where SAP system resources will be deployed. Changing this forces a new resource to be created.
+* `app_resource_group_name` - (Required) The name of the application Resource Group where SAP system resources will be deployed. Changing this forces a new resource to be created.
 
 * `application_server_configuration` - (Optional) An `application_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
@@ -363,7 +363,7 @@ A `shared_storage` block supports the following:
 
 A `discovery_configuration` block supports the following:
 
-* `central_server_vm_id` - (Optional) The resource ID of the Virtual Machine of the Central Server. Changing this forces a new resource to be created.
+* `central_server_vm_id` - (Required) The resource ID of the Virtual Machine of the Central Server. Changing this forces a new resource to be created.
 
 * `managed_storage_account_name` - (Optional) The name of the custom Storage Account created by the service in the managed Resource Group. Changing this forces a new resource to be created.
 

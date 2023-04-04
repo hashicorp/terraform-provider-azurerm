@@ -9,9 +9,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -217,7 +220,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.SAPVirtualInstanceName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -231,14 +234,14 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"app_location": commonschema.LocationOptional(),
+					"app_location": commonschema.Location(),
 
-					"single_server_configuration": SchemaForSAPVirtualInstanceSingleServerConfiguration(),
+					"single_server_configuration": SchemaForSAPVirtualInstanceSingleServerConfiguration("deployment_configuration"),
 
-					"three_tier_configuration": SchemaForSAPVirtualInstanceThreeTierConfiguration(),
+					"three_tier_configuration": SchemaForSAPVirtualInstanceThreeTierConfiguration("deployment_configuration"),
 				},
 			},
-			ConflictsWith: []string{"discovery_configuration", "deployment_with_os_configuration"},
+			AtLeastOneOf: []string{"deployment_configuration", "deployment_with_os_configuration", "discovery_configuration"},
 		},
 
 		"deployment_with_os_configuration": {
@@ -248,15 +251,22 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"app_location": commonschema.LocationOptional(),
+					"app_location": commonschema.Location(),
 
 					"os_sap_configuration": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Required: true,
 						ForceNew: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
+								"sap_fqdn": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validate.SAPFQDN,
+								},
+
 								"deployer_vm_packages": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
@@ -266,37 +276,30 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 										Schema: map[string]*pluginsdk.Schema{
 											"storage_account_id": {
 												Type:         pluginsdk.TypeString,
-												Optional:     true,
+												Required:     true,
 												ForceNew:     true,
-												ValidateFunc: validate.StorageAccountID,
+												ValidateFunc: storageValidate.StorageAccountID,
 											},
 
 											"url": {
 												Type:         pluginsdk.TypeString,
-												Optional:     true,
+												Required:     true,
 												ForceNew:     true,
 												ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 											},
 										},
 									},
 								},
-
-								"sap_fqdn": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
 							},
 						},
 					},
 
-					"single_server_configuration": SchemaForSAPVirtualInstanceSingleServerConfiguration(),
+					"single_server_configuration": SchemaForSAPVirtualInstanceSingleServerConfiguration("deployment_with_os_configuration"),
 
-					"three_tier_configuration": SchemaForSAPVirtualInstanceThreeTierConfiguration(),
+					"three_tier_configuration": SchemaForSAPVirtualInstanceThreeTierConfiguration("deployment_with_os_configuration"),
 				},
 			},
-			ConflictsWith: []string{"discovery_configuration", "deployment"},
+			AtLeastOneOf: []string{"deployment_configuration", "deployment_with_os_configuration", "discovery_configuration"},
 		},
 
 		"discovery_configuration": {
@@ -308,20 +311,20 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 				Schema: map[string]*pluginsdk.Schema{
 					"central_server_vm_id": {
 						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: computeValidate.VirtualMachineID,
 					},
 
 					"managed_storage_account_name": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: storageValidate.StorageAccountName,
 					},
 				},
 			},
-			ConflictsWith: []string{"deployment", "deployment_with_os_configuration"},
+			AtLeastOneOf: []string{"deployment_configuration", "deployment_with_os_configuration", "discovery_configuration"},
 		},
 
 		"environment": {
@@ -351,7 +354,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: resourcegroups.ValidateName,
 		},
 
 		"tags": commonschema.Tags(),
@@ -564,10 +567,8 @@ func expandDiscoveryConfiguration(input []DiscoveryConfiguration) *sapvirtualins
 
 	configuration := &input[0]
 
-	result := sapvirtualinstances.DiscoveryConfiguration{}
-
-	if v := configuration.CentralServerVmId; v != "" {
-		result.CentralServerVMId = utils.String(v)
+	result := sapvirtualinstances.DiscoveryConfiguration{
+		CentralServerVMId: utils.String(configuration.CentralServerVmId),
 	}
 
 	if v := configuration.ManagedStorageAccountName; v != "" {
@@ -582,10 +583,8 @@ func flattenDiscoveryConfiguration(input *sapvirtualinstances.DiscoveryConfigura
 		return nil
 	}
 
-	result := DiscoveryConfiguration{}
-
-	if v := input.CentralServerVMId; v != nil {
-		result.CentralServerVmId = *v
+	result := DiscoveryConfiguration{
+		CentralServerVmId: *input.CentralServerVMId,
 	}
 
 	if v := input.ManagedRgStorageAccountName; v != nil {
@@ -628,14 +627,9 @@ func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) 
 
 	configuration := &input[0]
 
-	result := sapvirtualinstances.DeploymentWithOSConfiguration{}
-
-	if v := configuration.AppLocation; v != "" {
-		result.AppLocation = utils.String(v)
-	}
-
-	if v := configuration.OsSapConfiguration; v != nil {
-		result.OsSapConfiguration = expandOsSapConfiguration(v)
+	result := sapvirtualinstances.DeploymentWithOSConfiguration{
+		AppLocation:        utils.String(configuration.AppLocation),
+		OsSapConfiguration: expandOsSapConfiguration(configuration.OsSapConfiguration),
 	}
 
 	if v := configuration.SingleServerConfiguration; v != nil {
@@ -656,14 +650,12 @@ func expandOsSapConfiguration(input []OsSapConfiguration) *sapvirtualinstances.O
 
 	osSapConfiguration := &input[0]
 
-	result := sapvirtualinstances.OsSapConfiguration{}
+	result := sapvirtualinstances.OsSapConfiguration{
+		SapFqdn: utils.String(osSapConfiguration.SapFqdn),
+	}
 
 	if v := osSapConfiguration.DeployerVmPackages; v != nil {
 		result.DeployerVMPackages = expandDeployerVmPackages(v)
-	}
-
-	if v := osSapConfiguration.SapFqdn; v != "" {
-		result.SapFqdn = utils.String(v)
 	}
 
 	return &result
@@ -676,14 +668,9 @@ func expandDeployerVmPackages(input []DeployerVmPackages) *sapvirtualinstances.D
 
 	deployerVmPackages := &input[0]
 
-	result := sapvirtualinstances.DeployerVMPackages{}
-
-	if v := deployerVmPackages.StorageAccountId; v != "" {
-		result.StorageAccountId = utils.String(v)
-	}
-
-	if v := deployerVmPackages.Url; v != "" {
-		result.Url = utils.String(v)
+	result := sapvirtualinstances.DeployerVMPackages{
+		StorageAccountId: utils.String(deployerVmPackages.StorageAccountId),
+		Url:              utils.String(deployerVmPackages.Url),
 	}
 
 	return &result
@@ -720,14 +707,9 @@ func flattenDeploymentWithOSConfiguration(input *sapvirtualinstances.DeploymentW
 		return nil
 	}
 
-	result := DeploymentWithOSConfiguration{}
-
-	if v := input.AppLocation; v != nil {
-		result.AppLocation = *v
-	}
-
-	if v := input.OsSapConfiguration; v != nil {
-		result.OsSapConfiguration = flattenOsSapConfiguration(v)
+	result := DeploymentWithOSConfiguration{
+		AppLocation:        *input.AppLocation,
+		OsSapConfiguration: flattenOsSapConfiguration(input.OsSapConfiguration),
 	}
 
 	if configuration := input.InfrastructureConfiguration; configuration != nil {
@@ -750,14 +732,12 @@ func flattenOsSapConfiguration(input *sapvirtualinstances.OsSapConfiguration) []
 		return nil
 	}
 
-	result := OsSapConfiguration{}
+	result := OsSapConfiguration{
+		SapFqdn: *input.SapFqdn,
+	}
 
 	if v := input.DeployerVMPackages; v != nil {
 		result.DeployerVmPackages = flattenDeployerVMPackages(v)
-	}
-
-	if v := input.SapFqdn; v != nil {
-		result.SapFqdn = *v
 	}
 
 	return []OsSapConfiguration{
@@ -770,14 +750,9 @@ func flattenDeployerVMPackages(input *sapvirtualinstances.DeployerVMPackages) []
 		return nil
 	}
 
-	result := DeployerVmPackages{}
-
-	if v := input.StorageAccountId; v != nil {
-		result.StorageAccountId = *v
-	}
-
-	if v := input.Url; v != nil {
-		result.Url = *v
+	result := DeployerVmPackages{
+		StorageAccountId: *input.StorageAccountId,
+		Url:              *input.Url,
 	}
 
 	return []DeployerVmPackages{
