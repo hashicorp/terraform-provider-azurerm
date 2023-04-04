@@ -1058,9 +1058,9 @@ func (r MsSqlDatabaseResource) s0WithRetentionPolicy(data acceptance.TestData) s
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name               = "acctest-db-%[2]d"
-  server_id          = azurerm_mssql_server.test.id
-  sku_name           = "S0"
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+  sku_name  = "S0"
 
   long_term_retention_policy {
     weekly_retention  = "P1W"
