@@ -112,7 +112,7 @@ func resourceWebPubSubHub() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"user_event_name_filter": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
@@ -120,7 +120,7 @@ func resourceWebPubSubHub() *pluginsdk.Resource {
 						},
 
 						"system_event_name_filter": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
@@ -339,13 +339,13 @@ func expandEventListener(input []interface{}) (*[]webpubsub.EventListener, error
 		block := eventListenerItem.(map[string]interface{})
 		systemEvents := make([]string, 0)
 		userEventPattern := ""
-		if v, ok := block["user_event_name_filter"]; ok && len(v.(*pluginsdk.Set).List()) > 0 {
-			userEventPatternList := utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+		if v, ok := block["user_event_name_filter"]; ok && len(v.([]interface{})) > 0 {
+			userEventPatternList := utils.ExpandStringSlice(v.([]interface{}))
 			userEventPattern = strings.Join(*userEventPatternList, ",")
 		}
 
 		if v, ok := block["system_event_name_filter"]; ok {
-			for _, item := range v.(*pluginsdk.Set).List() {
+			for _, item := range v.([]interface{}) {
 				systemEvents = append(systemEvents, item.(string))
 			}
 		}
