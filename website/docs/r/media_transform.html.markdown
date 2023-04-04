@@ -136,7 +136,7 @@ A `aac_audio` block supports the following:
 
 * `channels` - (Optional) The number of audio channels. Default to `2`.
 
-* `label` - (Optional) Specifies the label for the codec.
+* `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior.
 
 * `profile` - (Optional) The encoding profile to be used when encoding audio with AAC. Possible values are `AacLc`, `HeAacV1`,and `HeAacV2`. Default to `AacLc`.
 
@@ -151,6 +151,22 @@ A `audio_analyzer_preset` block supports the following:
 * `audio_analysis_mode` - (Optional) Possible values are `Basic` or `Standard`. Determines the set of audio analysis operations to be performed. Default to `Standard`.
 
 * `experimental_options` - (Optional) Dictionary containing key value pairs for parameters not exposed in the preset itself.
+
+---
+
+An `audio` block supports the following:
+
+* `input_label` - (Required) The label of the job input which is to be used as an overlay. The input must specify exact one file. You can specify an image file in JPG, PNG, GIF or BMP format, or an audio file (such as a WAV, MP3, WMA or M4A file), or a video file.
+
+* `audio_gain_level` - (Optional) The gain level of audio in the overlay. The value should be in the range `0` to `1.0`. The default is `1.0`.
+
+* `end` - (Optional) The end position, with reference to the input video, at which the overlay ends. The value should be in ISO 8601 format. For example, `PT30S` to end the overlay at 30 seconds into the input video. If not specified or the value is greater than the input video duration, the overlay will be applied until the end of the input video if the overlay media duration is greater than the input video duration, else the overlay will last as long as the overlay media duration.
+
+* `fade_in_duration` - (Optional) The duration over which the overlay fades in onto the input video. The value should be in ISO 8601 duration format. If not specified the default behavior is to have no fade in (same as `PT0S`).
+
+* `fade_out_duration` - (Optional) The duration over which the overlay fades out of the input video. The value should be in ISO 8601 duration format. If not specified the default behavior is to have no fade out (same as `PT0S`).
+
+* `start` - (Optional) The start position, with reference to the input video, at which the overlay starts. The value should be in ISO 8601 format. For example, `PT05S` to start the overlay at 5 seconds into the input video. If not specified the overlay starts from the beginning of the input video.
 
 ---
 
@@ -176,20 +192,33 @@ A `codec` block supports the following:
 
 * `h265_video` - (Optional) A `h265_video` block as defined below.
 
--> **NOTE:** Each preset can only have one type of codec: `aac_audio`, `copy_audio`, `copy_video`, `dd_audio`, `h264_video` or `h265_video`. If you need to apply different presets you must create one output for each one.
+-> **NOTE:** Each codec can only have one type: `aac_audio`, `copy_audio`, `copy_video`, `dd_audio`, `h264_video` or `h265_video`. If you need to apply different codec you must create one codec for each one.
 
 ---
 
 A `copy_audio` block supports the following:
 
-* `label` - (Optional) Specifies the label for the codec.
+* `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior. 
 
 ---
 
 A `copy_video` block supports the following:
 
-* `label` - (Optional) Specifies the label for the codec.
+* `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior. 
  
+---
+
+A `crop_rectangle` block supports the following:
+
+* `height` - (Optional) The height of the rectangular region in pixels. This can be absolute pixel value (e.g `100`), or relative to the size of the video (For example, `50%`).
+
+* `left` - (Optional) The number of pixels from the left-margin. This can be absolute pixel value (e.g `100`), or relative to the size of the video (For example, `50%`).
+
+* `top` - (Optional) 	
+  The number of pixels from the top-margin. This can be absolute pixel value (e.g `100`), or relative to the size of the video (For example, `50%`).
+
+* `width` - (Optional) The width of the rectangular region in pixels. This can be absolute pixel value (e.g` 100`), or relative to the size of the video (For example, `50%`).
+
 ---
 
 A `custom_preset` block supports the following:
@@ -208,9 +237,17 @@ A `dd_audio` block supports the following:
 
 * `channels` - (Optional) The number of audio channels. Default to `2`.
 
-* `label` - (Optional) Specifies the label for the codec.
+* `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior.
 
 * `sampling_rate` - (Optional) The sampling rate to use for encoding in Hertz. Default to `48000`.
+
+---
+
+A `deinterlace` block supports the following:
+
+* `parity` - (Optional) The field parity to use for deinterlacing. Possible values are `Auto`, `TopFieldFirst` or `BottomFieldFirst`. Default to `Auto`.
+
+* `mode` - (Optional) The deinterlacing mode. Possible values are `AutoPixelAdaptive` or `Off`. Default to `AutoPixelAdaptive`.
 
 ---
 
@@ -222,7 +259,55 @@ A `face_detector_preset` block supports the following:
 
 * `experimental_options` - (Optional) Dictionary containing key value pairs for parameters not exposed in the preset itself.
 
-* `face_redactor_mode` - (Optional) This mode provides the ability to choose between the following settings: 1) `Analyze` - For detection only. This mode generates a metadata JSON file marking appearances of faces throughout the video.Where possible, appearances of the same person are assigned the same ID. 2) `Combined` - Additionally redacts(blurs) detected faces. 3) `Redact` - This enables a 2-pass process, allowing for selective redaction of a subset of detected faces. It takes in the metadata file from a prior analyze pass, along with the source video, and a user-selected subset of IDs that require redaction. Default to `Analyze`.
+* `face_redactor_mode` - (Optional) This mode provides the ability to choose between the following settings: 1) `Analyze` - For detection only. This mode generates a metadata JSON file marking appearances of faces throughout the video. Where possible, appearances of the same person are assigned the same ID. 2) `Combined` - Additionally redacts(blurs) detected faces. 3) `Redact` - This enables a 2-pass process, allowing for selective redaction of a subset of detected faces. It takes in the metadata file from a prior analyze pass, along with the source video, and a user-selected subset of IDs that require redaction. Default to `Analyze`.
+
+---
+
+A `fade_in` block supports the following:
+
+* `duration` - (Required) The duration of the fade effect in the video. The value can be in ISO 8601 format (For example, PT05S to fade In/Out a color during 5 seconds), or a frame count (For example, 10 to fade 10 frames from the start time), or a relative value to stream duration (For example, 10% to fade 10% of stream duration).
+
+* `fade_color` - (Required) 	
+  The color for the fade in/out. It can be on the [CSS Level1 colors](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/color_keywords) or an RGB/hex value: e.g: `rgb(255,0,0)`, `0xFF0000` or `#FF0000`.
+
+* `start` - (Optional) The position in the input video from where to start fade. The value can be in ISO 8601 format (For example, `PT05S` to start at 5 seconds), or a frame count (For example, `10` to start at the 10th frame), or a relative value to stream duration (For example, `10%` to start at 10% of stream duration). Default to `0`.
+
+---
+
+A `fade_out` block supports the following:
+
+* `duration` - (Required) The duration of the fade effect in the video. The value can be in ISO 8601 format (For example, PT05S to fade In/Out a color during 5 seconds), or a frame count (For example, 10 to fade 10 frames from the start time), or a relative value to stream duration (For example, 10% to fade 10% of stream duration).
+
+* `fade_color` - (Required) 	
+  The color for the fade in/out. It can be on the [CSS Level1 colors](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/color_keywords) or an RGB/hex value: e.g: `rgb(255,0,0)`, `0xFF0000` or `#FF0000`.
+
+* `start` - (Optional) The position in the input video from where to start fade. The value can be in ISO 8601 format (For example, `PT05S` to start at 5 seconds), or a frame count (For example, `10` to start at the 10th frame), or a relative value to stream duration (For example, `10%` to start at 10% of stream duration). Default to `0`.
+
+---
+
+A `filter` block supports the following:
+
+* `crop_rectangle` - (Optional) A `crop_rectangle` block as defined above.
+
+* `deinterlace` - (Optional) A `deinterlace` block as defined below.
+
+* `fade_in` - (Optional) A `fade_in` block as defined above.
+
+* `fade_out` - (Optional) A `fade_out` block as defined above.
+
+* `overlay` - (Optional) One or more `overlay` blocks as defined below.
+
+* `rotation` - (Optional) The rotation to be applied to the input video before it is encoded. Possible values are `Auto`, `None`, `Rotate90`, `Rotate180`, `Rotate270`,or `Rotate0`. Default to `Auto`.
+
+---
+
+A `format` block supports the following:
+
+* `mp4` - (Optional) A `mp4` block as defined below.
+
+* `transport_stream` - (Optional) A `transport_stream` block as defined below.
+ 
+-> **NOTE:** Each format can only have one type: `mp4` or `transport_stream`. If you need to apply different type you must create one format for each one.
 
 ---
 
@@ -232,11 +317,29 @@ A `h264_video` block supports the following:
 
 * `key_frame_interval` - (Optional) The distance between two key frames. The value should be non-zero in the range `0.5` to `20` seconds, specified in ISO 8601 format. The default is `2` seconds (`PT2S`). Note that this setting is ignored if `sync_mode` is set to `Passthrough`, where the KeyFrameInterval value will follow the input source setting.
 
-* `label` - (Optional) Specifies the label for the codec.
+* `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior.
 
 * `layer` - (Optional) One or more `layer` blocks as defined below.
 
 * `rate_control_mode` - (Optional) The rate control mode. Possible values are `ABR`, `CBR` or `CRF`. Default to `ABR`.
+
+* `scene_change_detection_enabled` - (Optional) Whether the encoder should insert key frames at scene changes. This flag should be set to true only when the encoder is being configured to produce a single output video. Default to `false`.
+
+* `stretch_mode` - (Optional) Specifies the resizing mode - how the input video will be resized to fit the desired output resolution(s). Possible values are `AutoFit`, `AutoSize` or `None`. Default to `AutoSize`.
+
+* `sync_mode` - (Optional) Specifies the synchronization mode for the video. Possible values are `Auto`, `Cfr`, `Passthrough` or `Vfr`. Default to `Auto`.
+
+---
+
+A `h265_video` block supports the following:
+
+* `complexity` - (Optional) The complexity of the encoding. Possible values are `Balanced`, `Speed` or `Quality`. Default to `Balanced`.
+
+* `key_frame_interval` - (Optional) The distance between two key frames. The value should be non-zero in the range `0.5` to `20` seconds, specified in ISO 8601 format. The default is `2` seconds (`PT2S`). Note that this setting is ignored if `sync_mode` is set to `Passthrough`, where the KeyFrameInterval value will follow the input source setting.
+
+* `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior.
+
+* `layer` - (Optional) One or more `layer` blocks as defined below.
 
 * `scene_change_detection_enabled` - (Optional) Whether the encoder should insert key frames at scene changes. This flag should be set to true only when the encoder is being configured to produce a single output video. Default to `false`.
 
@@ -258,9 +361,72 @@ A `layer` block within `h264_video` block supports the following:
 
 * `crf` - (Optional) The value of CRF to be used when encoding this layer. This setting takes effect when `rate_control_mode` is set `CRF`. The range of CRF value is between `0` and `51`, where lower values would result in better quality, at the expense of higher file sizes. Higher values mean more compression, but at some point quality degradation will be noticed. Default to `23`.
 
+* `entropy_mode` - (Optional) The entropy mode to be used for this layer. Possible values are `Cabac` or `Cavlc`. If not specified, the encoder chooses the mode that is appropriate for the profile and level.
+
+* `frame_rate` - (Optional) The frame rate (in frames per second) at which to encode this layer. The value can be in the form of `M/N` where `M` and `N` are integers (For example, `30000/1001`), or in the form of a number (For example, `30`, or `29.97`). The encoder enforces constraints on allowed frame rates based on the profile and level. If it is not specified, the encoder will use the same frame rate as the input video.
+
+* `height` - (Optional) The height of the output video for this layer. The value can be absolute (in pixels) or relative (in percentage). For example `50%` means the output video has half as many pixels in height as the input.
+
+* `label` - (Optional) The alphanumeric label for this layer, which can be used in multiplexing different video and audio layers, or in naming the output file.
+
+* `level` - (Optional) The H.264 levels. Currently, the resource support Level up to `6.2`. The value can be `auto`, or a number that matches the H.264 profile. If not specified, the default is `auto`, which lets the encoder choose the Level that is appropriate for this layer.
+
+* `max_bitrate` - (Optional) The maximum bitrate (in bits per second), at which the VBV buffer should be assumed to refill. If not specified, defaults to the same value as bitrate.
+
+* `profile` - (Optional) The H.264 profile. Possible values are `Auto`, `Baseline`, `High`, `High422`, `High444`,or `Main`. Default to `Auto`.
+
+* `reference_frames` - (Optional) The number of reference frames to be used when encoding this layer. If not specified, the encoder determines an appropriate number based on the encoder complexity setting.
+
+* `slices` - (Optional) The number of slices to be used when encoding this layer. If not specified, default is `1`, which means that encoder will use a single slice for each frame.
+
+* `width` - (Optional) The width of the output video for this layer. The value can be absolute (in pixels) or relative (in percentage). For example `50%` means the output video has half as many pixels in width as the input.
+
 ---
 
-A `output` block supports the following:
+A `layer` block within `h265_video` block supports the following:
+
+* `bitrate` - (Required) The average bitrate in bits per second at which to encode the input video when generating this layer.
+
+* `adaptive_b_frame_enabled` - (Optional) Whether adaptive B-frames are used when encoding this layer. If not specified, the encoder will turn it on whenever the video profile permits its use. Default to `true`.
+
+* `b_frames` - (Optional) The number of B-frames to use when encoding this layer. If not specified, the encoder chooses an appropriate number based on the video profile and level.
+
+* `buffer_window` - (Optional) Specifies the maximum amount of time that the encoder should buffer frames before encoding. The value should be in ISO 8601 format. The value should be in the range `0.1` to `100` seconds. The default is `5` seconds (`PT5S`).
+
+* `crf` - (Optional) The value of CRF to be used when encoding this layer. This setting takes effect when `rate_control_mode` is set `CRF`. The range of CRF value is between `0` and `51`, where lower values would result in better quality, at the expense of higher file sizes. Higher values mean more compression, but at some point quality degradation will be noticed. Default to `28`.
+
+* `entropy_mode` - (Optional) The entropy mode to be used for this layer. Possible values are `Cabac` or `Cavlc`. If not specified, the encoder chooses the mode that is appropriate for the profile and level.
+
+* `frame_rate` - (Optional) 	
+  The frame rate (in frames per second) at which to encode this layer. The value can be in the form of `M/N` where `M` and `N` are integers (For example, `30000/1001`), or in the form of a number (For example, `30`, or `29.97`). The encoder enforces constraints on allowed frame rates based on the profile and level. If it is not specified, the encoder will use the same frame rate as the input video.
+
+* `height` - (Optional) The height of the output video for this layer. The value can be absolute (in pixels) or relative (in percentage). For example `50%` means the output video has half as many pixels in height as the input.
+
+* `label` - (Optional) The alphanumeric label for this layer, which can be used in multiplexing different video and audio layers, or in naming the output file.
+
+* `level` - (Optional) The H.264 levels. Currently, the resource support Level up to `6.2`. The value can be `auto`, or a number that matches the H.264 profile. If not specified, the default is `auto`, which lets the encoder choose the Level that is appropriate for this layer.
+
+* `max_bitrate` - (Optional) The maximum bitrate (in bits per second), at which the VBV buffer should be assumed to refill. If not specified, defaults to the same value as bitrate.
+
+* `profile` - (Optional) The H.264 profile. Possible values are `Auto`, `Baseline`, `High`, `High422`, `High444`,or `Main`. Default to `Auto`.
+
+* `reference_frames` - (Optional) The number of reference frames to be used when encoding this layer. If not specified, the encoder determines an appropriate number based on the encoder complexity setting.
+
+* `slices` - (Optional) The number of slices to be used when encoding this layer. If not specified, default is `1`, which means that encoder will use a single slice for each frame.
+
+* `width` - (Optional) The width of the output video for this layer. The value can be absolute (in pixels) or relative (in percentage). For example `50%` means the output video has half as many pixels in width as the input.
+
+---
+
+A `mp4` block supports the following:
+
+* `filename_pattern` - (Required) The file naming pattern used for the creation of output files. The following macros are supported in the file name: `{Basename}` - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. `{Extension}` - The appropriate extension for this format. `{Label}` - The label assigned to the codec/layer. `{Index}` - A unique index for thumbnails. Only applicable to thumbnails. `{AudioStream}` - string "Audio" plus audio stream number(start from 1). `{Bitrate}` - The audio/video bitrate in kbps. Not applicable to thumbnails. `{Codec}` - The type of the audio/video codec. `{Resolution}` - The video resolution. Any unsubstituted macros will be collapsed and removed from the filename.
+
+* `output_file` - (Optional) One or more `output_file` blocks as defined below.
+
+---
+
+An `output` block supports the following:
 
 * `audio_analyzer_preset` - (Optional) An `audio_analyzer_preset` block as defined above.
 
@@ -277,6 +443,35 @@ A `output` block supports the following:
 * `video_analyzer_preset` - (Optional) A `video_analyzer_preset` block as defined below.
 
 -> **NOTE:** Each output can only have one type of preset: `builtin_preset`, `audio_analyzer_preset`, `custom_preset`, `face_detector_preset` or `video_analyzer_preset`. If you need to apply different presets you must create one output for each one.
+
+---
+
+An `output_file` block supports the following:
+
+* `labels` - (Required) The list of labels that describe how the encoder should multiplex video and audio into an output file. For example, if the encoder is producing two video layers with labels `v1` and `v2`, and one audio layer with label `a1`, then an array like `["v1", "a1"]` tells the encoder to produce an output file with the video track represented by `v1` and the audio track represented by `a1`.
+
+---
+
+An `overlay` block supports the following:
+
+* `audio` - (Optional) An `audio` block as defined above.
+
+* `video` - (Optional) A `video` block as defined below.
+
+-> **NOTE:** Each overlay can only have one type: `audio` or `video`. If you need to apply different type you must create one overlay for each one.
+
+---
+
+A `position` block supports the following:
+
+* `height` - (Optional) The height of the rectangular region in pixels. This can be absolute pixel value (e.g `100`), or relative to the size of the video (For example, `50%`).
+
+* `left` - (Optional) The number of pixels from the left-margin. This can be absolute pixel value (e.g `100`), or relative to the size of the video (For example, `50%`).
+
+* `top` - (Optional) 	
+  The number of pixels from the top-margin. This can be absolute pixel value (e.g `100`), or relative to the size of the video (For example, `50%`).
+
+* `width` - (Optional) The width of the rectangular region in pixels. This can be absolute pixel value (e.g` 100`), or relative to the size of the video (For example, `50%`).
 
 ---
 
@@ -297,6 +492,36 @@ A `preset_configuration` block supports the following:
 * `min_bitrate_bps` - (Optional) The minimum bitrate in bits per second (threshold for the bottom video layer). For example, set as `200000` to have a bottom layer that covers users with low network bandwidth.
 
 * `min_height` - (Optional) The minimum height of output video layers. For example, set as `360` to avoid output layers of smaller resolutions like 180P.
+
+---
+
+A `transport_stream` block supports the following:
+
+* `filename_pattern` - (Required) The file naming pattern used for the creation of output files. The following macros are supported in the file name: `{Basename}` - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. `{Extension}` - The appropriate extension for this format. `{Label}` - The label assigned to the codec/layer. `{Index}` - A unique index for thumbnails. Only applicable to thumbnails. `{AudioStream}` - string "Audio" plus audio stream number(start from 1). `{Bitrate}` - The audio/video bitrate in kbps. Not applicable to thumbnails. `{Codec}` - The type of the audio/video codec. `{Resolution}` - The video resolution. Any unsubstituted macros will be collapsed and removed from the filename.
+
+* `output_file` - (Optional) One or more `output_file` blocks as defined above.
+
+---
+
+An `video` block supports the following:
+
+* `input_label` - (Required) The label of the job input which is to be used as an overlay. The input must specify exact one file. You can specify an image file in JPG, PNG, GIF or BMP format, or an audio file (such as a WAV, MP3, WMA or M4A file), or a video file.
+
+* `audio_gain_level` - (Optional) The gain level of audio in the overlay. The value should be in range between `0` to `1.0`. The default is `1.0`.
+
+* `crop_rectangle` - (Optional) A `crop_rectangle` block as defined above.
+
+* `end` - (Optional) The end position, with reference to the input video, at which the overlay ends. The value should be in ISO 8601 format. For example, `PT30S` to end the overlay at 30 seconds into the input video. If not specified or the value is greater than the input video duration, the overlay will be applied until the end of the input video if the overlay media duration is greater than the input video duration, else the overlay will last as long as the overlay media duration.
+
+* `fade_in_duration` - (Optional) The duration over which the overlay fades in onto the input video. The value should be in ISO 8601 duration format. If not specified the default behavior is to have no fade in (same as `PT0S`).
+
+* `fade_out_duration` - (Optional) The duration over which the overlay fades out of the input video. The value should be in ISO 8601 duration format. If not specified the default behavior is to have no fade out (same as `PT0S`).
+
+* `opacity` - (Optional) The opacity of the overlay. The value should be in the range between `0` to `1.0`. Default to `1.0`, which means the overlay is opaque.
+
+* `position` - (Optional) A `position` block as defined above.
+
+* `start` - (Optional) The start position, with reference to the input video, at which the overlay starts. The value should be in ISO 8601 format. For example, `PT05S` to start the overlay at 5 seconds into the input video. If not specified the overlay starts from the beginning of the input video.
 
 ---
 

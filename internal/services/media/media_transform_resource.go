@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -465,7 +464,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																		"slices": {
 																			Type:         pluginsdk.TypeInt,
 																			Optional:     true,
-																			Default:      0,
+																			Computed:     true,
 																			ValidateFunc: validation.IntAtLeast(0),
 																		},
 																		"width": {
@@ -602,7 +601,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																		"slices": {
 																			Type:         pluginsdk.TypeInt,
 																			Optional:     true,
-																			Default:      0,
+																			Computed:     true,
 																			ValidateFunc: validation.IntAtLeast(0),
 																		},
 																		"width": {
@@ -824,7 +823,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																Required:     true,
 																ValidateFunc: validation.StringIsNotEmpty,
 															},
-															"output_files": {
+															"output_file": {
 																Type:     pluginsdk.TypeList,
 																Optional: true,
 																MinItems: 1,
@@ -870,7 +869,7 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																Required:     true,
 																ValidateFunc: validation.StringIsNotEmpty,
 															},
-															"output_files": {
+															"output_file": {
 																Type:     pluginsdk.TypeList,
 																Optional: true,
 																MinItems: 1,
@@ -950,56 +949,56 @@ func resourceMediaTransform() *pluginsdk.Resource {
 														},
 													},
 												},
-												//"fade_in": {
-												//	Type:     pluginsdk.TypeList,
-												//	Optional: true,
-												//	MaxItems: 1,
-												//	Elem: &pluginsdk.Resource{
-												//		Schema: map[string]*schema.Schema{
-												//			"duration": {
-												//				Type:         pluginsdk.TypeString,
-												//				Required:     true,
-												//				ValidateFunc: validation.StringIsNotEmpty,
-												//			},
-												//			"fate_color": {
-												//				Type:         pluginsdk.TypeString,
-												//				Required:     true,
-												//				ValidateFunc: validation.StringIsNotEmpty,
-												//			},
-												//			"start": {
-												//				Type:         pluginsdk.TypeString,
-												//				Optional:     true,
-												//				Default:      "0",
-												//				ValidateFunc: validation.StringIsNotEmpty,
-												//			},
-												//		},
-												//	},
-												//},
-												//"fade_out": {
-												//	Type:     pluginsdk.TypeList,
-												//	Optional: true,
-												//	MaxItems: 1,
-												//	Elem: &pluginsdk.Resource{
-												//		Schema: map[string]*schema.Schema{
-												//			"duration": {
-												//				Type:         pluginsdk.TypeString,
-												//				Required:     true,
-												//				ValidateFunc: validation.StringIsNotEmpty,
-												//			},
-												//			"fate_color": {
-												//				Type:         pluginsdk.TypeString,
-												//				Required:     true,
-												//				ValidateFunc: validation.StringIsNotEmpty,
-												//			},
-												//			"start": {
-												//				Type:         pluginsdk.TypeString,
-												//				Optional:     true,
-												//				Default:      "0",
-												//				ValidateFunc: validation.StringIsNotEmpty,
-												//			},
-												//		},
-												//	},
-												//},
+												"fade_in": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"duration": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"fade_color": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"start": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																Default:      "0",
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+														},
+													},
+												},
+												"fade_out": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*schema.Schema{
+															"duration": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"fade_color": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"start": {
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																Default:      "0",
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+														},
+													},
+												},
 												"overlay": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
@@ -1063,6 +1062,35 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																			Default:      1.0,
 																			ValidateFunc: validation.FloatBetween(0, 1.0),
 																		},
+																		"crop_rectangle": {
+																			Type:     pluginsdk.TypeList,
+																			Optional: true,
+																			MaxItems: 1,
+																			Elem: &pluginsdk.Resource{
+																				Schema: map[string]*schema.Schema{
+																					"height": {
+																						Type:         pluginsdk.TypeString,
+																						Optional:     true,
+																						ValidateFunc: validation.StringIsNotEmpty,
+																					},
+																					"left": {
+																						Type:         pluginsdk.TypeString,
+																						Optional:     true,
+																						ValidateFunc: validation.StringIsNotEmpty,
+																					},
+																					"top": {
+																						Type:         pluginsdk.TypeString,
+																						Optional:     true,
+																						ValidateFunc: validation.StringIsNotEmpty,
+																					},
+																					"width": {
+																						Type:         pluginsdk.TypeString,
+																						Optional:     true,
+																						ValidateFunc: validation.StringIsNotEmpty,
+																					},
+																				},
+																			},
+																		},
 																		"end": {
 																			Type:         pluginsdk.TypeString,
 																			Optional:     true,
@@ -1078,10 +1106,11 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																			Optional:     true,
 																			ValidateFunc: validate.ISO8601Duration,
 																		},
-																		"start": {
-																			Type:         pluginsdk.TypeString,
+																		"opacity": {
+																			Type:         pluginsdk.TypeFloat,
 																			Optional:     true,
-																			ValidateFunc: validate.ISO8601Duration,
+																			Default:      1.0,
+																			ValidateFunc: validation.FloatBetween(0, 1.0),
 																		},
 																		"position": {
 																			Type:     pluginsdk.TypeList,
@@ -1112,40 +1141,10 @@ func resourceMediaTransform() *pluginsdk.Resource {
 																				},
 																			},
 																		},
-																		"opacity": {
-																			Type:         pluginsdk.TypeFloat,
+																		"start": {
+																			Type:         pluginsdk.TypeString,
 																			Optional:     true,
-																			Default:      1.0,
-																			ValidateFunc: validation.FloatBetween(0, 1.0),
-																		},
-																		"crop_rectangle": {
-																			Type:     pluginsdk.TypeList,
-																			Optional: true,
-																			MaxItems: 1,
-																			Elem: &pluginsdk.Resource{
-																				Schema: map[string]*schema.Schema{
-																					"height": {
-																						Type:         pluginsdk.TypeString,
-																						Optional:     true,
-																						ValidateFunc: validation.StringIsNotEmpty,
-																					},
-																					"left": {
-																						Type:         pluginsdk.TypeString,
-																						Optional:     true,
-																						ValidateFunc: validation.StringIsNotEmpty,
-																					},
-																					"top": {
-																						Type:         pluginsdk.TypeString,
-																						Optional:     true,
-																						ValidateFunc: validation.StringIsNotEmpty,
-																					},
-																					"width": {
-																						Type:         pluginsdk.TypeString,
-																						Optional:     true,
-																						ValidateFunc: validation.StringIsNotEmpty,
-																					},
-																				},
-																			},
+																			ValidateFunc: validate.ISO8601Duration,
 																		},
 																	},
 																},
@@ -1548,7 +1547,7 @@ func flattenPreset(input encodings.Preset) flattenedPresets {
 			"analysis_resolution":  resolution,
 			"blur_type":            blurType,
 			"experimental_options": flattenExperimentalOptions(v.ExperimentalOptions),
-			"mode":                 mode,
+			"face_redactor_mode":   mode,
 		})
 	}
 
@@ -1681,12 +1680,10 @@ func flattenBuiltInPresetConfiguration(input *encodings.PresetConfigurations) []
 func expandExperimentalOptions(input map[string]interface{}) (*map[string]string, error) {
 	output := make(map[string]string, len(input))
 
-	for i, v := range input {
-		value, err := tags.TagValueToString(v)
-		if err != nil {
-			return nil, err
-		}
-		output[i] = value
+	for k, v := range input {
+		key := k
+		value := v.(string)
+		output[key] = value
 	}
 
 	return &output, nil
@@ -1697,8 +1694,10 @@ func flattenExperimentalOptions(input *map[string]string) map[string]interface{}
 	if input == nil {
 		return result
 	}
-	for i, v := range *input {
-		result[i] = v
+	for k, v := range *input {
+		key := k
+		value := v
+		result[key] = value
 	}
 
 	return result
@@ -2876,6 +2875,14 @@ func expandCustomPresetFilters(input []interface{}) (*encodings.Filters, error) 
 		result.Deinterlace = expandCustomPresetFiltersDeinterlace(deinterlace)
 	}
 
+	if fadeIn, ok := filters["fade_in"].([]interface{}); ok {
+		result.FadeIn = expandCustomPresetFiltersFade(fadeIn)
+	}
+
+	if fadeOut, ok := filters["fade_out"].([]interface{}); ok {
+		result.FadeOut = expandCustomPresetFiltersFade(fadeOut)
+	}
+
 	if v := filters["rotation"].(string); v != "" {
 		result.Rotation = pointer.To(encodings.Rotation(v))
 	}
@@ -2897,6 +2904,8 @@ func flattenCustomPresetFilters(input *encodings.Filters) []interface{} {
 		map[string]interface{}{
 			"crop_rectangle": flattenCustomPresetFilterCropRectangle(input.Crop),
 			"deinterlace":    flattenCustomPresetFilterDeinterlace(input.Deinterlace),
+			"fade_in":        flattenCustomPresetFilterFade(input.FadeIn),
+			"fade_out":       flattenCustomPresetFilterFade(input.FadeOut),
 			"overlay":        flattenCustomPresetFilterOverlays(input.Overlays),
 			"rotation":       rotation,
 		},
@@ -3003,6 +3012,43 @@ func flattenCustomPresetFilterDeinterlace(input *encodings.Deinterlace) []interf
 		map[string]interface{}{
 			"parity": parity,
 			"mode":   mode,
+		},
+	}
+}
+
+func expandCustomPresetFiltersFade(input []interface{}) *encodings.Fade {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := encodings.Fade{
+		Duration:  v["duration"].(string),
+		FadeColor: v["fade_color"].(string),
+	}
+
+	if start := v["start"].(string); start != "" {
+		result.Start = utils.String(start)
+	}
+
+	return &result
+}
+
+func flattenCustomPresetFilterFade(input *encodings.Fade) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	start := ""
+	if input.Start != nil {
+		start = *input.Start
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"duration":   input.Duration,
+			"fade_color": input.FadeColor,
+			"start":      start,
 		},
 	}
 }
@@ -3365,7 +3411,7 @@ func expandCustomPresetFormatsMp4(input []interface{}) encodings.Mp4Format {
 	mp4 := input[0].(map[string]interface{})
 	result := encodings.Mp4Format{
 		FilenamePattern: mp4["filename_pattern"].(string),
-		OutputFiles:     expandCustomPresetFormatsOutputFiles(mp4["output_files"].([]interface{})),
+		OutputFiles:     expandCustomPresetFormatsOutputFiles(mp4["output_file"].([]interface{})),
 	}
 
 	return result
@@ -3375,7 +3421,7 @@ func flattenCustomPresetFormatsMp4(input encodings.Mp4Format) []interface{} {
 	return []interface{}{
 		map[string]interface{}{
 			"filename_pattern": input.FilenamePattern,
-			"output_files":     flattenCustomPresetFormatOutputFiles(input.OutputFiles),
+			"output_file":      flattenCustomPresetFormatOutputFiles(input.OutputFiles),
 		},
 	}
 }
@@ -3409,7 +3455,7 @@ func expandCustomPresetFormatsTransportStream(input []interface{}) encodings.Tra
 	transportStream := input[0].(map[string]interface{})
 	result := encodings.TransportStreamFormat{
 		FilenamePattern: transportStream["filename_pattern"].(string),
-		OutputFiles:     expandCustomPresetFormatsOutputFiles(transportStream["output_files"].([]interface{})),
+		OutputFiles:     expandCustomPresetFormatsOutputFiles(transportStream["output_file"].([]interface{})),
 	}
 
 	return result
@@ -3419,7 +3465,7 @@ func flattenCustomPresetFormatsTransportStream(input encodings.TransportStreamFo
 	return []interface{}{
 		map[string]interface{}{
 			"filename_pattern": input.FilenamePattern,
-			"output_files":     flattenCustomPresetFormatOutputFiles(input.OutputFiles),
+			"output_file":      flattenCustomPresetFormatOutputFiles(input.OutputFiles),
 		},
 	}
 }
