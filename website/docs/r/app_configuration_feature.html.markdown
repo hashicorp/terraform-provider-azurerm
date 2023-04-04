@@ -44,13 +44,13 @@ The following arguments are supported:
 
 * `enabled` - (Optional) The status of the App Configuration Feature. By default, this is set to false.
 
-* `key` - (Optional) The key of the App Configuration Feature. `%` character is not allowed in key. If not specified, `name` will be used as the key. Changing this forces a new resource to be created.
+* `key` - (Optional) The key of the App Configuration Feature. The value for `name` will be used if this is unspecified. Changing this forces a new resource to be created.
 
 * `label` - (Optional) The label of the App Configuration Feature. Changing this forces a new resource to be created.
 
 * `locked` - (Optional) Should this App Configuration Feature be Locked to prevent changes?
 
-* `name` - (Required) The name of the App Configuration Feature. `:` or `%` characters are not allowed in name. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the App Configuration Feature. Changing this forces a new resource to be created.
 
 * `percentage_filter_value` - (Optional) A list of one or more numbers representing the value of the percentage required to enable this feature.
 
