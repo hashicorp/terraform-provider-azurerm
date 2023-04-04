@@ -24,13 +24,13 @@ provider "azurerm" {
 }
 
 resource "random_string" "test" {
-  length = 12
+  length  = 12
   special = true
 }
 
 locals {
-  admin_username    = "testadmin"
-  admin_password    = random_string.test.result
+  admin_username = "testadmin"
+  admin_password = random_string.test.result
 }
 
 resource "azurerm_resource_group" "test" {
@@ -62,10 +62,10 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_subnet" "test1" {
-  name                      = "${var.prefix}-hosts-subnet"
-  resource_group_name       = azurerm_resource_group.test.name
-  virtual_network_name      = azurerm_virtual_network.test.name
-  address_prefixes          = ["10.6.1.0/24"]
+  name                 = "${var.prefix}-hosts-subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.6.1.0/24"]
 }
 
 resource "azurerm_proximity_placement_group" "test" {
@@ -150,7 +150,7 @@ resource "azurerm_netapp_volume_group" "test" {
   group_description      = "Test volume group"
   application_type       = "SAP-HANA"
   application_identifier = "TST"
-  
+
   volume {
     name                         = "${var.prefix}-netapp-volume-1"
     volume_path                  = "my-unique-file-path-1"
@@ -164,17 +164,17 @@ resource "azurerm_netapp_volume_group" "test" {
     protocols                    = ["NFSv4.1"]
     security_style               = "Unix"
     snapshot_directory_visible   = false
-    
+
     export_policy_rule {
-      rule_index            = 1
-      allowed_clients       = "0.0.0.0/0"
-      nfsv3_enabled         = false
-      nfsv41_enabled        = true
-      unix_read_only        = false
-      unix_read_write       = true
-      root_access_enabled   = false
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
     }
-  
+
     tags = {
       "foo" = "bar"
     }
@@ -193,17 +193,17 @@ resource "azurerm_netapp_volume_group" "test" {
     protocols                    = ["NFSv4.1"]
     security_style               = "Unix"
     snapshot_directory_visible   = false
-    
+
     export_policy_rule {
-      rule_index            = 1
-      allowed_clients       = "0.0.0.0/0"
-      nfsv3_enabled         = false
-      nfsv41_enabled        = true
-      unix_read_only        = false
-      unix_read_write       = true
-      root_access_enabled   = false
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
     }
-  
+
     tags = {
       "foo" = "bar"
     }
@@ -222,15 +222,15 @@ resource "azurerm_netapp_volume_group" "test" {
     protocols                    = ["NFSv4.1"]
     security_style               = "Unix"
     snapshot_directory_visible   = false
-    
+
     export_policy_rule {
-      rule_index            = 1
-      allowed_clients       = "0.0.0.0/0"
-      nfsv3_enabled         = false
-      nfsv41_enabled        = true
-      unix_read_only        = false
-      unix_read_write       = true
-      root_access_enabled   = false
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
     }
   }
 
