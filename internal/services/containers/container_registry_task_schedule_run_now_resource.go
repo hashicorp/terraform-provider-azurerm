@@ -80,13 +80,37 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 				TaskId: taskId.ID(),
 			}
 
+<<<<<<< HEAD
 			registryId := registries.NewRegistryID(taskId.SubscriptionId, taskId.ResourceGroupName, taskId.RegistryName)
 			registryClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Registries
+=======
+			//step := resp.Model.Properties.Step
+
+			//if _, ok := step.(registries.DockerBuildRequest); ok {
+			//}
+			//switch resp.TaskProperties.Step.(type) {
+			//case tasks.DockerBuildStep:
+			//	req.Type = tasks.TypeDockerBuildRequest
+			//case tasks.FileTaskStep:
+			//	req.Type = tasks.TypeFileTaskRunRequest
+			//case tasks.EncodedTaskStep:
+			//	req.Type = tasks.TypeEncodedTaskRunRequest
+			//default:
+			//	return fmt.Errorf("unexpected container registry task step type: %T", resp.TaskProperties.Step)
+			//}
+
+			registryId := registries.NewRegistryID(taskId.SubscriptionId, taskId.ResourceGroupName, taskId.RegistryName)
+			registryClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Registries
+			//if err := registryClient.ScheduleRunThenPoll(ctx, registryId, req); err != nil {
+			//	return fmt.Errorf("scheduling the task: %v", err)
+			//}
+>>>>>>> 55f67f0b6de0274f1d16b5e59c824a98eaa814d0
 
 			_, err = registryClient.ScheduleRun(ctx, registryId, req)
 			if err != nil {
 				return fmt.Errorf("scheduling the task: %+v", err)
 
+<<<<<<< HEAD
 			}
 
 			runsClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Runs
@@ -96,6 +120,21 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("model was nil for %s", registryId)
 			}
 
+=======
+			}
+
+			//if err := future.Poller.PollUntilDone(ctx); err != nil {
+			//	return fmt.Errorf("polling on task: %+v", err)
+			//}
+
+			runsClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Runs
+			run, err := runsClient.List(ctx, runs.RegistryId(registryId), runs.ListOperationOptions{})
+
+			//if run.Model == nil {
+			//	return fmt.Errorf("model was nil for %s", registryId)
+			//}
+
+>>>>>>> 55f67f0b6de0274f1d16b5e59c824a98eaa814d0
 			runName := ""
 			for _, v := range *run.Model {
 				if *v.Properties.Task == taskId.TaskName {

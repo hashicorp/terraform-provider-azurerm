@@ -129,6 +129,7 @@ func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta int
 		},
 	}
 
+<<<<<<< HEAD
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -138,6 +139,14 @@ func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta int
 	//		return fmt.Errorf("updating %s: %+v", id, err)
 	//	}
 	//}
+=======
+	future, err := client.Update(ctx, *id, parameters)
+	if !response.WasStatusCode(future.HttpResponse, 201) {
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+	}
+>>>>>>> 55f67f0b6de0274f1d16b5e59c824a98eaa814d0
 
 	d.SetId(id.ID())
 
