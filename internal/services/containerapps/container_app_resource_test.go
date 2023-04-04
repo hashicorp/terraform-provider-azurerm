@@ -470,6 +470,27 @@ resource "azurerm_container_app" "test" {
     min_replicas = 2
     max_replicas = 3
 
+    scale {
+      rule {
+        name = "http-concurrency"
+        http {
+          metadata = {
+            concurrentRequests = "10"
+          }
+        }
+      }
+      rule {
+        name = "cpu-utilization"
+        custom {
+          type = "cpu"
+          metadata = {
+            type  = "Utilization"
+            value = "90"
+          }
+        }
+      }
+    }
+
     revision_suffix = "%[3]s"
   }
 

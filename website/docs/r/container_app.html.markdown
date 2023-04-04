@@ -32,6 +32,7 @@ resource "azurerm_container_app_environment" "example" {
   resource_group_name        = azurerm_resource_group.example.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
 }
+
 resource "azurerm_container_app" "example" {
   name                         = "example-app"
   container_app_environment_id = azurerm_container_app_environment.example.id
@@ -44,6 +45,27 @@ resource "azurerm_container_app" "example" {
       image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
       cpu    = 0.25
       memory = "0.5Gi"
+    }
+
+    scale {
+      rule {
+        name = "http-concurrency"
+        http {
+          metadata = {
+            concurrentRequests = "20"
+          }
+        }
+      }
+      rule {
+        name = "cpu-utilization"
+        custom {
+          type = "cpu"
+          metadata = {
+            type  = "Utilization"
+            value = "90"
+          }
+        }
+      }
     }
   }
 }
@@ -97,6 +119,8 @@ A `template` block supports the following:
 
 * `min_replicas` - (Optional) The minimum number of replicas for this container.
 
+* `scale` - (Optional) A `scale` block as detailed below.
+
 * `revision_suffix` - (Optional) The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.
 
 * `volume` - (Optional) A `volume` block as detailed below.
@@ -144,6 +168,36 @@ A `container` block supports the following:
 * `startup_probe` - (Optional) A `startup_probe` block as detailed below.
 
 * `volume_mounts` - (Optional) A `volume_mounts` block as detailed below.
+
+---
+
+A `scale` block supports the following:
+
+* `rule` - (Optional) One or more `rule` blocks as outlined below.
+
+---
+
+A `rule` block supports the following, `custom` and `http` are mutually exclusive, at least one is required to define a valid rule:
+
+* `name` - (Required) The name of the rule.
+
+* `custom` - (Optional) A `custom` block as detailed below.
+
+* `http` - (Optional) A `http` block as detailed below.
+
+---
+
+A `custom` block supports the following:
+
+* `type` - (Required) The type of custom rule.
+
+* `metadata` - (Required) Map of metadata values to pass to the custom scaler.
+
+---
+
+A `http` block supports the following:
+
+* `metadata` - (Required) Map of metadata values to pass to the custom scaler.
 
 ---
 

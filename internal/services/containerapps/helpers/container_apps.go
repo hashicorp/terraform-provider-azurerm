@@ -698,6 +698,7 @@ type ContainerTemplate struct {
 	Suffix      string            `tfschema:"revision_suffix"`
 	MinReplicas int               `tfschema:"min_replicas"`
 	MaxReplicas int               `tfschema:"max_replicas"`
+	Scale       []ContainerScale  `tfschema:"scale"`
 	Volumes     []ContainerVolume `tfschema:"volume"`
 }
 
@@ -725,6 +726,8 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(1, 30),
 					Description:  "The maximum number of replicas for this container.",
 				},
+
+				"scale": ContainerScaleSchema(),
 
 				"volume": ContainerVolumeSchema(),
 
@@ -759,6 +762,8 @@ func ContainerTemplateSchemaComputed() *pluginsdk.Schema {
 					Description: "The maximum number of replicas for this container.",
 				},
 
+				"scale": ContainerScaleSchema(),
+
 				"volume": ContainerVolumeSchema(),
 
 				"revision_suffix": {
@@ -771,29 +776,20 @@ func ContainerTemplateSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.ResourceMetaData) *containerapps.Template {
+func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.ResourceMetaData) (*containerapps.Template, error) {
 	if len(input) != 1 {
-		return nil
+		return nil, nil
 	}
 
 	config := input[0]
+	scale, err := expandContainerScale(config.Scale, config.MaxReplicas, config.MinReplicas)
+	if err != nil {
+		return nil, err
+	}
 	template := &containerapps.Template{
 		Containers: expandContainerAppContainers(config.Containers),
+		Scale:      scale,
 		Volumes:    expandContainerAppVolumes(config.Volumes),
-	}
-
-	if config.MaxReplicas != 0 {
-		if template.Scale == nil {
-			template.Scale = &containerapps.Scale{}
-		}
-		template.Scale.MaxReplicas = pointer.To(int64(config.MaxReplicas))
-	}
-
-	if config.MinReplicas != 0 {
-		if template.Scale == nil {
-			template.Scale = &containerapps.Scale{}
-		}
-		template.Scale.MinReplicas = pointer.To(int64(config.MinReplicas))
 	}
 
 	if config.Suffix != "" {
@@ -802,7 +798,7 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 		}
 	}
 
-	return template
+	return template, nil
 }
 
 func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTemplate {
@@ -811,6 +807,7 @@ func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTempl
 	}
 	result := ContainerTemplate{
 		Containers: flattenContainerAppContainers(input.Containers),
+		Scale:      flattenContainerScale(input.Scale),
 		Suffix:     pointer.From(input.RevisionSuffix),
 		Volumes:    flattenContainerAppVolumes(input.Volumes),
 	}
@@ -1056,6 +1053,190 @@ func flattenContainerAppContainers(input *[]containerapps.Container) []Container
 		result = append(result, container)
 	}
 	return result
+}
+
+type ContainerScale struct {
+	Rules []ContainerScaleRule `tfschema:"rule"`
+}
+
+type ContainerScaleRule struct {
+	Name   string                     `tfschema:"name"`
+	Custom []ContainerCustomScaleRule `tfschema:"custom"`
+	HTTP   []ContainerHTTPScaleRule   `tfschema:"http"`
+}
+
+func ContainerScaleSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		MaxItems: 1,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"rule": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MinItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"name": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+								Description:  "The name of the rule.",
+							},
+							"custom": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"type": {
+											Type:         pluginsdk.TypeString,
+											Required:     true,
+											ValidateFunc: validation.StringIsNotEmpty,
+											Description:  "The name of the volume.",
+										},
+										"metadata": {
+											Type:     pluginsdk.TypeMap,
+											Required: true,
+											Elem: &pluginsdk.Schema{
+												Type: pluginsdk.TypeString,
+											},
+										},
+									},
+								},
+							},
+							"http": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"metadata": {
+											Type:     pluginsdk.TypeMap,
+											Optional: true,
+											Elem: &pluginsdk.Schema{
+												Type: pluginsdk.TypeString,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func expandContainerScale(scale []ContainerScale, maxReplicas, minReplicas int) (*containerapps.Scale, error) {
+	result := &containerapps.Scale{}
+
+	if maxReplicas != 0 {
+		result.MaxReplicas = pointer.To(int64(maxReplicas))
+	}
+	if minReplicas != 0 {
+		result.MinReplicas = pointer.To(int64(minReplicas))
+	}
+
+	if scale == nil {
+		return result, nil
+	}
+
+	rules := make([]containerapps.ScaleRule, 0)
+	for _, v := range scale {
+		for _, r := range v.Rules {
+			rule := containerapps.ScaleRule{}
+			rule.Name = pointer.To(r.Name)
+			rule.Custom = expandContainerCustomScaleRule(r.Custom)
+			rule.HTTP = expandContainerHTTPScaleRule(r.HTTP)
+			if rule.Custom != nil && rule.HTTP != nil {
+				return nil, fmt.Errorf("rule %q cannot specify multiple triggers", r.Name)
+			}
+			if rule.Custom == nil && rule.HTTP == nil {
+				return nil, fmt.Errorf("rule %q must specify at least one trigger: custom, http", r.Name)
+			}
+			rules = append(rules, rule)
+		}
+	}
+
+	result.Rules = &rules
+	return result, nil
+}
+
+func flattenContainerScale(input *containerapps.Scale) []ContainerScale {
+	if input == nil || input.Rules == nil {
+		return nil
+	}
+	result := ContainerScale{}
+	rules := make([]ContainerScaleRule, 0)
+	for _, v := range *input.Rules {
+		rule := ContainerScaleRule{}
+		rule.Name = pointer.From(v.Name)
+		rule.Custom = flattenContainerCustomScaleRule(v.Custom)
+		rule.HTTP = flattenContainerHTTPScaleRule(v.HTTP)
+		rules = append(rules, rule)
+	}
+	result.Rules = rules
+	return []ContainerScale{result}
+}
+
+type ContainerHTTPScaleRule struct {
+	Metadata map[string]string `tfschema:"metadata"`
+}
+
+func expandContainerHTTPScaleRule(input []ContainerHTTPScaleRule) *containerapps.HTTPScaleRule {
+	if input == nil {
+		return nil
+	}
+	if len(input) != 1 {
+		return nil
+	}
+	rule := input[0]
+	return &containerapps.HTTPScaleRule{
+		Metadata: pointer.To(rule.Metadata),
+	}
+}
+
+func flattenContainerHTTPScaleRule(input *containerapps.HTTPScaleRule) []ContainerHTTPScaleRule {
+	if input == nil {
+		return nil
+	}
+	rule := ContainerHTTPScaleRule{
+		Metadata: pointer.From(input.Metadata),
+	}
+	return []ContainerHTTPScaleRule{rule}
+}
+
+type ContainerCustomScaleRule struct {
+	Type     string            `tfschema:"type"`
+	Metadata map[string]string `tfschema:"metadata"`
+}
+
+func expandContainerCustomScaleRule(input []ContainerCustomScaleRule) *containerapps.CustomScaleRule {
+	if input == nil {
+		return nil
+	}
+	if len(input) != 1 {
+		return nil
+	}
+	rule := input[0]
+	return &containerapps.CustomScaleRule{
+		Type:     pointer.To(rule.Type),
+		Metadata: pointer.To(rule.Metadata),
+	}
+}
+
+func flattenContainerCustomScaleRule(input *containerapps.CustomScaleRule) []ContainerCustomScaleRule {
+	if input == nil {
+		return nil
+	}
+	rule := ContainerCustomScaleRule{
+		Metadata: pointer.From(input.Metadata),
+		Type:     pointer.From(input.Type),
+	}
+	return []ContainerCustomScaleRule{rule}
 }
 
 type ContainerVolume struct {

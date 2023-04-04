@@ -69,6 +69,8 @@ A `template` block supports the following:
 
 * `min_replicas` - The minimum number of replicas for this container.
 
+* `scale` - A `scale` block as detailed below.
+
 * `revision_suffix` - The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.
 
 * `volume` - A `volume` block as detailed below.
@@ -110,6 +112,36 @@ A `container` block supports the following:
 * `startup_probe` - A `startup_probe` block as detailed below.
 
 * `volume_mounts` - A `volume_mounts` block as detailed below.
+
+---
+
+A `scale` block supports the following:
+
+* `rule` - One or more `rule` blocks as outlined below.
+
+---
+
+A `rule` block supports the following, `custom` and `http` are mutually exclusive:
+
+* `name` - The name of the rule.
+
+* `custom` - A `custom` block as detailed below.
+
+* `http` - A `http` block as detailed below.
+
+---
+
+A `custom` block supports the following:
+
+* `type` - The type of custom rule.
+
+* `metadata` - Map of metadata values supplied to the custom scaler.
+
+---
+
+A `http` block supports the following:
+
+* `metadata` - Map of metadata values supplied to the custom scaler.
 
 ---
 

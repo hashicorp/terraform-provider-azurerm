@@ -182,6 +182,11 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("invalid registry config for %s: %+v", id, err)
 			}
 
+			template, err := helpers.ExpandContainerAppTemplate(app.Template, metadata)
+			if err != nil {
+				return fmt.Errorf("invalid template config for %s: %+v", id, err)
+			}
+
 			containerApp := containerapps.ContainerApp{
 				Location: location.Normalize(env.Model.Location),
 				Properties: &containerapps.ContainerAppProperties{
@@ -192,7 +197,7 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 						Registries: registries,
 					},
 					ManagedEnvironmentId: pointer.To(app.ManagedEnvironmentId),
-					Template:             helpers.ExpandContainerAppTemplate(app.Template, metadata),
+					Template:             template,
 				},
 				Tags: tags.Expand(app.Tags),
 			}
@@ -392,7 +397,10 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 				model.Tags = tags.Expand(state.Tags)
 			}
 
-			model.Properties.Template = helpers.ExpandContainerAppTemplate(state.Template, metadata)
+			model.Properties.Template, err = helpers.ExpandContainerAppTemplate(state.Template, metadata)
+			if err != nil {
+				return fmt.Errorf("invalid template config for %s: %+v", id, err)
+			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
