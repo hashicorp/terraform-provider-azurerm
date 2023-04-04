@@ -199,6 +199,8 @@ func (r StorageMoverAgentResource) Read() sdk.ResourceFunc {
 
 			state.ArcVmUuid = properties.ArcVMUuid
 
+			state.ArcResourceId = properties.ArcResourceId
+
 			des := ""
 			if properties.Description != nil {
 				des = *properties.Description
