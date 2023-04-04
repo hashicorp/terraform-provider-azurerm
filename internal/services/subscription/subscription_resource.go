@@ -261,10 +261,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("could not read Subscription Alias for update: %+v", err)
 	}
 
-	subscriptionId, err := commonids.ParseSubscriptionID(fmt.Sprintf("/subscriptions/%s", *resp.Model.Properties.SubscriptionId))
-	if err != nil {
-		return fmt.Errorf("could not parse Subscription ID from Alias: %+v", err)
-	}
+	subscriptionId := commonids.NewSubscriptionID(*resp.Model.Properties.SubscriptionId)
 
 	if d.HasChange("subscription_name") {
 		locks.ByID(subscriptionId.ID())
@@ -273,20 +270,21 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		displayName := subscriptionAlias.SubscriptionName{
 			SubscriptionName: utils.String(d.Get("subscription_name").(string)),
 		}
-		if _, err := aliasClient.SubscriptionRename(ctx, *subscriptionId, displayName); err != nil {
-			return fmt.Errorf("could not update Display Name of Subscription %q: %+v", *subscriptionId, err)
+		if _, err := aliasClient.SubscriptionRename(ctx, subscriptionId, displayName); err != nil {
+			return fmt.Errorf("could not update Display Name of Subscription %q: %+v", subscriptionId, err)
 		}
 	}
 
 	if d.HasChange("tags") {
 		tagsClient := meta.(*clients.Client).Resource.TagsClientForSubscription(subscriptionId.ID())
 		t := tags.Expand(d.Get("tags").(map[string]interface{}))
+		scope := fmt.Sprintf("subscriptions/%s", *resp.Model.Properties.SubscriptionId)
 		tagsResource := resources.TagsResource{
 			Properties: &resources.Tags{
 				Tags: t,
 			},
 		}
-		if _, err = tagsClient.CreateOrUpdateAtScope(ctx, subscriptionId.ID(), tagsResource); err != nil {
+		if _, err = tagsClient.CreateOrUpdateAtScope(ctx, scope, tagsResource); err != nil {
 			return fmt.Errorf("setting tags on %s: %+v", *id, err)
 		}
 	}
