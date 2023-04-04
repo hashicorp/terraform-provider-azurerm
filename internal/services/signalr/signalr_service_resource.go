@@ -82,6 +82,11 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	if v, ok := d.GetOk("messaging_logs_enabled"); ok {
 		messagingLogsEnabled = v.(bool)
 	}
+
+	httpLogsEnabled := false
+	if v, ok := d.GetOk("http_request_logs_enabled"); ok {
+		httpLogsEnabled = v.(bool)
+	}
 	liveTraceEnabled := false
 	if v, ok := d.GetOk("live_trace_enabled"); ok {
 		liveTraceEnabled = v.(bool)
@@ -126,17 +131,19 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
+	resourceLogsData := expandSignalRResourceLogConfig(connectivityLogsEnabled, messagingLogsEnabled, httpLogsEnabled)
 	resourceType := signalr.SignalRResource{
 		Location: utils.String(location),
 		Identity: identity,
 		Properties: &signalr.SignalRProperties{
-			Cors:                   expandSignalRCors(cors),
-			Features:               &expandedFeatures,
-			Upstream:               expandUpstreamSettings(upstreamSettings),
-			LiveTraceConfiguration: expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{})),
-			PublicNetworkAccess:    utils.String(publicNetworkAcc),
-			DisableAadAuth:         utils.Bool(!d.Get("aad_auth_enabled").(bool)),
-			DisableLocalAuth:       utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			Cors:                     expandSignalRCors(cors),
+			Features:                 &expandedFeatures,
+			Upstream:                 expandUpstreamSettings(upstreamSettings),
+			LiveTraceConfiguration:   expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{})),
+			ResourceLogConfiguration: resourceLogsData,
+			PublicNetworkAccess:      utils.String(publicNetworkAcc),
+			DisableAadAuth:           utils.Bool(!d.Get("aad_auth_enabled").(bool)),
+			DisableLocalAuth:         utils.Bool(!d.Get("local_auth_enabled").(bool)),
 			Tls: &signalr.SignalRTlsSettings{
 				ClientCertEnabled: utils.Bool(tlsClientCertEnabled),
 			},
@@ -200,15 +207,10 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			connectivityLogsEnabled := false
 			messagingLogsEnabled := false
+			httpLogsEnabled := false
 			liveTraceEnabled := false
 			serviceMode := "Default"
 			for _, feature := range *props.Features {
-				if feature.Flag == signalr.FeatureFlagsEnableConnectivityLogs {
-					connectivityLogsEnabled = strings.EqualFold(feature.Value, "True")
-				}
-				if feature.Flag == signalr.FeatureFlagsEnableMessagingLogs {
-					messagingLogsEnabled = strings.EqualFold(feature.Value, "True")
-				}
 				if feature.Flag == "EnableLiveTrace" {
 					liveTraceEnabled = strings.EqualFold(feature.Value, "True")
 				}
@@ -216,8 +218,7 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 					serviceMode = feature.Value
 				}
 			}
-			d.Set("connectivity_logs_enabled", connectivityLogsEnabled)
-			d.Set("messaging_logs_enabled", messagingLogsEnabled)
+
 			d.Set("live_trace_enabled", liveTraceEnabled)
 			d.Set("service_mode", serviceMode)
 
@@ -261,6 +262,33 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `live_trace`:%+v", err)
 			}
 
+			if props.ResourceLogConfiguration != nil && props.ResourceLogConfiguration.Categories != nil {
+				for _, item := range *props.ResourceLogConfiguration.Categories {
+					name := ""
+					if item.Name != nil {
+						name = *item.Name
+					}
+
+					var cateEnabled string
+					if item.Enabled != nil {
+						cateEnabled = *item.Enabled
+					}
+
+					switch name {
+					case "MessagingLogs":
+						messagingLogsEnabled = strings.EqualFold(cateEnabled, "true")
+					case "ConnectivityLogs":
+						connectivityLogsEnabled = strings.EqualFold(cateEnabled, "true")
+					case "HttpRequestLogs":
+						httpLogsEnabled = strings.EqualFold(cateEnabled, "true")
+					default:
+						continue
+					}
+				}
+				d.Set("connectivity_logs_enabled", connectivityLogsEnabled)
+				d.Set("messaging_logs_enabled", messagingLogsEnabled)
+				d.Set("http_request_logs_enabled", httpLogsEnabled)
+			}
 			identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
@@ -313,7 +341,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		currentSku = resourceType.Sku.Name
 	}
 
-	if d.HasChanges("cors", "features", "upstream_endpoint", "connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled", "live_trace", "public_network_access_enabled", "local_auth_enabled", "aad_auth_enabled", "tls_client_cert_enabled", "serverless_connection_timeout_in_seconds") {
+	if d.HasChanges("cors", "features", "upstream_endpoint", "connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled", "service_mode", "live_trace_enabled", "live_trace") {
 		resourceType.Properties = &signalr.SignalRProperties{}
 
 		if d.HasChange("cors") {
@@ -325,96 +353,110 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			resourceType.Properties.LiveTraceConfiguration = expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{}))
 		}
 
-		if d.HasChange("public_network_access_enabled") {
-			publicNetworkAcc := "Enabled"
-			if !d.Get("public_network_access_enabled").(bool) {
-				publicNetworkAcc = "Disabled"
-			}
-			if currentSku == "Free_F1" && publicNetworkAcc == "Disabled" {
-				return fmt.Errorf("SKU Free_F1 does not support disabling public network access")
-			}
-			resourceType.Properties.PublicNetworkAccess = utils.String(publicNetworkAcc)
-		}
-
-		if d.HasChange("local_auth_enabled") {
-			resourceType.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_auth_enabled").(bool))
-		}
-
-		if d.HasChange("aad_auth_enabled") {
-			resourceType.Properties.DisableAadAuth = utils.Bool(!d.Get("aad_auth_enabled").(bool))
-		}
-
-		if d.HasChange("tls_client_cert_enabled") {
-			tlsClientCertEnabled := d.Get("tls_client_cert_enabled").(bool)
-			resourceType.Properties.Tls = &signalr.SignalRTlsSettings{
-				ClientCertEnabled: utils.Bool(tlsClientCertEnabled),
-			}
-			if currentSku == "Free_F1" && tlsClientCertEnabled {
-				return fmt.Errorf("SKU Free_F1 does not support enabling tls client cert")
-			}
-		}
-
-		if d.HasChange("serverless_connection_timeout_in_seconds") {
-			resourceType.Properties.Serverless = &signalr.ServerlessSettings{
-				ConnectionTimeoutInSeconds: utils.Int64(int64(d.Get("serverless_connection_timeout_in_seconds").(int))),
-			}
-		}
-
-		if d.HasChange("identity") {
-			identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
-			}
-			resourceType.Identity = identity
-		}
-
-		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled") {
-			features := make([]signalr.SignalRFeature, 0)
-			if d.HasChange("connectivity_logs_enabled") {
-				connectivityLogsEnabled := false
-				if v, ok := d.GetOk("connectivity_logs_enabled"); ok {
-					connectivityLogsEnabled = v.(bool)
+		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled", "http_request_logs_enabled") {
+			if d.HasChange("public_network_access_enabled") {
+				publicNetworkAcc := "Enabled"
+				if !d.Get("public_network_access_enabled").(bool) {
+					publicNetworkAcc = "Disabled"
 				}
-				features = append(features, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsEnabled)))
+				if currentSku == "Free_F1" && publicNetworkAcc == "Disabled" {
+					return fmt.Errorf("SKU Free_F1 does not support disabling public network access")
+				}
+				resourceType.Properties.PublicNetworkAccess = utils.String(publicNetworkAcc)
 			}
 
-			if d.HasChange("messaging_logs_enabled") {
-				messagingLogsEnabled := false
-				if v, ok := d.GetOk("messaging_logs_enabled"); ok {
-					messagingLogsEnabled = v.(bool)
-				}
-				features = append(features, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
+			if d.HasChange("local_auth_enabled") {
+				resourceType.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_auth_enabled").(bool))
 			}
 
-			if d.HasChange("live_trace_enabled") {
-				liveTraceEnabled := false
-				if v, ok := d.GetOk("live_trace_enabled"); ok {
-					liveTraceEnabled = v.(bool)
-				}
-				features = append(features, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
+			if d.HasChange("aad_auth_enabled") {
+				resourceType.Properties.DisableAadAuth = utils.Bool(!d.Get("aad_auth_enabled").(bool))
 			}
 
-			if d.HasChange("service_mode") {
-				serviceMode := "Default"
-				if v, ok := d.GetOk("service_mode"); ok {
-					serviceMode = v.(string)
+			if d.HasChange("tls_client_cert_enabled") {
+				tlsClientCertEnabled := d.Get("tls_client_cert_enabled").(bool)
+				resourceType.Properties.Tls = &signalr.SignalRTlsSettings{
+					ClientCertEnabled: utils.Bool(tlsClientCertEnabled),
 				}
-				features = append(features, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
+				if currentSku == "Free_F1" && tlsClientCertEnabled {
+					return fmt.Errorf("SKU Free_F1 does not support enabling tls client cert")
+				}
 			}
-			resourceType.Properties.Features = &features
+
+			if d.HasChange("serverless_connection_timeout_in_seconds") {
+				resourceType.Properties.Serverless = &signalr.ServerlessSettings{
+					ConnectionTimeoutInSeconds: utils.Int64(int64(d.Get("serverless_connection_timeout_in_seconds").(int))),
+				}
+			}
+
+			if d.HasChange("identity") {
+				identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				resourceType.Identity = identity
+			}
+
+			if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled", "http_request_logs_enabled") {
+				features := make([]signalr.SignalRFeature, 0)
+				logChanged := false
+				var connectivityLogsEnabled, messagingLogsEnabled, httpLogsEnabled bool
+				if d.HasChange("connectivity_logs_enabled") {
+					if v, ok := d.GetOk("connectivity_logs_enabled"); ok {
+						connectivityLogsEnabled = v.(bool)
+					}
+					features = append(features, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsEnabled)))
+					logChanged = true
+				}
+
+				if d.HasChange("messaging_logs_enabled") {
+					if v, ok := d.GetOk("messaging_logs_enabled"); ok {
+						messagingLogsEnabled = v.(bool)
+					}
+					features = append(features, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
+					logChanged = true
+				}
+
+				if d.HasChange("http_request_logs_enabled") {
+					if v, ok := d.GetOk("http_request_logs_enabled"); ok {
+						httpLogsEnabled = v.(bool)
+					}
+					logChanged = true
+				}
+
+				if logChanged {
+					resourceType.Properties.ResourceLogConfiguration = expandSignalRResourceLogConfig(connectivityLogsEnabled, messagingLogsEnabled, httpLogsEnabled)
+				}
+
+				if d.HasChange("live_trace_enabled") {
+					liveTraceEnabled := false
+					if v, ok := d.GetOk("live_trace_enabled"); ok {
+						liveTraceEnabled = v.(bool)
+					}
+					features = append(features, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
+				}
+
+				if d.HasChange("service_mode") {
+					serviceMode := "Default"
+					if v, ok := d.GetOk("service_mode"); ok {
+						serviceMode = v.(string)
+					}
+					features = append(features, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
+				}
+				resourceType.Properties.Features = &features
+			}
+
+			if d.HasChange("upstream_endpoint") {
+				featuresRaw := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
+				resourceType.Properties.Upstream = expandUpstreamSettings(featuresRaw)
+			}
 		}
 
-		if d.HasChange("upstream_endpoint") {
-			featuresRaw := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
-			resourceType.Properties.Upstream = expandUpstreamSettings(featuresRaw)
+		if d.HasChange("tags") {
+			tagsRaw := d.Get("tags").(map[string]interface{})
+			resourceType.Tags = tags.Expand(tagsRaw)
 		}
 	}
-
-	if d.HasChange("tags") {
-		tagsRaw := d.Get("tags").(map[string]interface{})
-		resourceType.Tags = tags.Expand(tagsRaw)
-	}
-
 	if err := client.UpdateThenPoll(ctx, *id, resourceType); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -684,6 +726,41 @@ func flattenSignalRLiveTraceConfig(input *signalr.LiveTraceConfiguration) []inte
 	}}
 }
 
+func expandSignalRResourceLogConfig(connectivityLogEnabled bool, messagingLogEnabled bool, httpLogEnabled bool) *signalr.ResourceLogConfiguration {
+	resourceLogCategories := make([]signalr.ResourceLogCategory, 0)
+
+	messagingLog := "false"
+	if messagingLogEnabled {
+		messagingLog = "true"
+	}
+	resourceLogCategories = append(resourceLogCategories, signalr.ResourceLogCategory{
+		Name:    utils.String("MessagingLogs"),
+		Enabled: utils.String(messagingLog),
+	})
+
+	connectivityLog := "false"
+	if connectivityLogEnabled {
+		connectivityLog = "true"
+	}
+	resourceLogCategories = append(resourceLogCategories, signalr.ResourceLogCategory{
+		Name:    utils.String("ConnectivityLogs"),
+		Enabled: utils.String(connectivityLog),
+	})
+
+	httpLog := "false"
+	if httpLogEnabled {
+		httpLog = "true"
+	}
+	resourceLogCategories = append(resourceLogCategories, signalr.ResourceLogCategory{
+		Name:    utils.String("HttpRequestLogs"),
+		Enabled: utils.String(httpLog),
+	})
+
+	return &signalr.ResourceLogConfiguration{
+		Categories: &resourceLogCategories,
+	}
+}
+
 func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -729,6 +806,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"messaging_logs_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"http_request_logs_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,

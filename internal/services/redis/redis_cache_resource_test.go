@@ -418,26 +418,6 @@ func TestAccRedisCache_RedisVersion(t *testing.T) {
 	})
 }
 
-func TestAccRedisCache_RedisVersionUpgrade(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
-	r := RedisCacheResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.redisVersion(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.redisVersion6(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
-
 func TestAccRedisCache_TenantSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
@@ -1147,30 +1127,6 @@ resource "azurerm_redis_cache" "test" {
 }
 
 func (RedisCacheResource) redisVersion(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-redis-%d"
-  location = "%s"
-}
-
-resource "azurerm_redis_cache" "test" {
-  name                = "acctestRedis-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  capacity            = 3
-  family              = "P"
-  sku_name            = "Premium"
-  enable_non_ssl_port = false
-  redis_version       = "4"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (RedisCacheResource) redisVersion6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

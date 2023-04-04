@@ -169,7 +169,7 @@ A `schedule` block supports the following:
 
 * `expiry_time` - (Optional) The end time of the schedule.
 
-* `time_zone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
+* `time_zone` - (Optional) The timezone of the start time. Defaults to `Etc/UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
 
 * `advanced_week_days` - (Optional) List of days of the week that the job should execute on. Only valid when frequency is `Week`.
 
