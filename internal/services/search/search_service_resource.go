@@ -164,7 +164,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return tf.ImportAsExistsError("azurerm_search_service", id.ID())
 	}
 
-	properties, err := resourceSearchServiceCreateOrUpdateProperties(d, meta)
+	properties, err := resourceSearchServiceCreateOrUpdateProperties(d)
 	if err != nil {
 		return fmt.Errorf("%+v", err)
 	}
@@ -193,7 +193,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	properties, err := resourceSearchServiceCreateOrUpdateProperties(d, meta)
+	properties, err := resourceSearchServiceCreateOrUpdateProperties(d)
 	if err != nil {
 		return fmt.Errorf("%+v", err)
 	}
@@ -206,7 +206,9 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceSearchServiceRead(d, meta)
 }
 
-func resourceSearchServiceCreateOrUpdateProperties(d *pluginsdk.ResourceData, meta interface{}) (*services.SearchService, error) {
+func resourceSearchServiceCreateOrUpdateProperties(d *pluginsdk.ResourceData) (*services.SearchService, error) {
+	// this might be broken because of how terraform treats ResourceData in the Create vs. the Update function... I think in
+	// update it is pulling it from state instead of the config, like it does in Create...
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
