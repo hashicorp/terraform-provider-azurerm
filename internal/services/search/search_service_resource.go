@@ -321,7 +321,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			if props.HostingMode != nil {
-				hostingMode = services.HostingMode(*props.HostingMode)
+				hostingMode = *props.HostingMode
 			}
 
 			d.Set("partition_count", partitionCount)
