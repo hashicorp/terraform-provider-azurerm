@@ -28,8 +28,8 @@ resource "azurerm_app_configuration" "appconf" {
 resource "azurerm_app_configuration_feature" "test" {
   configuration_store_id = azurerm_app_configuration.appconf.id
   description            = "test description"
-  name                   = "acctest-ackey-%d"
-  label                  = "acctest-ackeylabel-%d"
+  name                   = "test-ackey"
+  label                  = "test-ackeylabel"
   enabled                = true
 }
 ```
@@ -43,6 +43,8 @@ The following arguments are supported:
 * `description` - (Optional) The description of the App Configuration Feature. 
 
 * `enabled` - (Optional) The status of the App Configuration Feature. By default, this is set to false.
+
+* `key` - (Optional) The key of the App Configuration Feature. The value for `name` will be used if this is unspecified. Changing this forces a new resource to be created.
 
 * `label` - (Optional) The label of the App Configuration Feature. Changing this forces a new resource to be created.
 
