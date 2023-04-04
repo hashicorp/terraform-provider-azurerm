@@ -252,7 +252,7 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegr
 			return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for %s", id)
 		}
 
-		storageQuotaInGB := int64(item.StorageQuotaInGB * 1073741824)
+		storageQuotaInGB := item.StorageQuotaInGB * 1073741824
 		exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy)
 		dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication)
 		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
@@ -269,7 +269,7 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegr
 				UsageThreshold:           storageQuotaInGB,
 				ExportPolicy:             exportPolicyRule,
 				SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
-				ThroughputMibps:          utils.Float(float64(item.ThroughputInMibps)),
+				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
 				ProximityPlacementGroup:  utils.String(item.ProximityPlacementGroupId),
 				VolumeSpecName:           utils.String(item.VolumeSpecName),
 				DataProtection: &volumegroups.VolumePropertiesDataProtection{
@@ -422,13 +422,13 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 		volumeGroupVolume.Protocols = *props.ProtocolTypes
 		volumeGroupVolume.SecurityStyle = string(*props.SecurityStyle)
 		volumeGroupVolume.SnapshotDirectoryVisible = *props.SnapshotDirectoryVisible
-		volumeGroupVolume.ThroughputInMibps = float64(*props.ThroughputMibps)
+		volumeGroupVolume.ThroughputInMibps = *props.ThroughputMibps
 		volumeGroupVolume.Tags = *item.Tags
 		volumeGroupVolume.ProximityPlacementGroupId = utils.NormalizeNilableString(props.ProximityPlacementGroup)
-		volumeGroupVolume.VolumeSpecName = string(*props.VolumeSpecName)
+		volumeGroupVolume.VolumeSpecName = *props.VolumeSpecName
 
-		if int64(props.UsageThreshold) > 0 {
-			usageThreshold := int64(props.UsageThreshold) / 1073741824
+		if props.UsageThreshold > 0 {
+			usageThreshold := props.UsageThreshold / 1073741824
 			volumeGroupVolume.StorageQuotaInGB = usageThreshold
 		}
 
@@ -461,7 +461,7 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 			volumeGroupVolume.DataProtectionSnapshotPolicy = flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(standaloneVol.Model.Properties.DataProtection.Snapshot)
 		}
 
-		volumeGroupVolume.Id = string(*standaloneVol.Model.Id)
+		volumeGroupVolume.Id = *standaloneVol.Model.Id
 
 		results = append(results, volumeGroupVolume)
 	}
@@ -539,7 +539,7 @@ func flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(input *volumes.VolumeSnapsh
 
 	return []DataProtectionSnapshotPolicy{
 		{
-			DataProtectionSnapshotPolicy: string(*input.SnapshotPolicyId),
+			DataProtectionSnapshotPolicy: *input.SnapshotPolicyId,
 		},
 	}
 }
@@ -885,12 +885,12 @@ func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolu
 			// Validating protocol, it supports only one and that is enforced by the schema
 
 			// Can't be CIFS at all times
-			if strings.EqualFold(string((*volume.Properties.ProtocolTypes)[0]), string(ProtocolTypeCifs)) {
+			if strings.EqualFold((*volume.Properties.ProtocolTypes)[0], string(ProtocolTypeCifs)) {
 				errors = append(errors, fmt.Errorf("'cifs is not supported for %v on volume %v'", applicationType, *volume.Name))
 			}
 
 			// Can't be nfsv3 on data, log and share volumes
-			if strings.EqualFold(string((*volume.Properties.ProtocolTypes)[0]), string(ProtocolTypeNfsV3)) &&
+			if strings.EqualFold((*volume.Properties.ProtocolTypes)[0], string(ProtocolTypeNfsV3)) &&
 				(strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameData)) ||
 					strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameShared)) ||
 					strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameLog))) {
@@ -908,12 +908,12 @@ func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolu
 					}
 
 					// Validating that nfsv4.1 export policy is not set on nfsv3 volume
-					if *rule.Nfsv41 && strings.EqualFold(string((*volume.Properties.ProtocolTypes)[0]), string(ProtocolTypeNfsV3)) {
+					if *rule.Nfsv41 && strings.EqualFold((*volume.Properties.ProtocolTypes)[0], string(ProtocolTypeNfsV3)) {
 						errors = append(errors, fmt.Errorf("'nfsv4.1 export policy cannot be enabled on nfsv3 volume %v'", *volume.Name))
 					}
 
 					// Validating that nfsv3 export policy is not set on nfsv4.1 volume
-					if *rule.Nfsv3 && strings.EqualFold(string((*volume.Properties.ProtocolTypes)[0]), string(ProtocolTypeNfsV41)) {
+					if *rule.Nfsv3 && strings.EqualFold((*volume.Properties.ProtocolTypes)[0], string(ProtocolTypeNfsV41)) {
 						errors = append(errors, fmt.Errorf("'nfsv3 export policy cannot be enabled on nfsv4.1 volume %v'", *volume.Name))
 					}
 				}
