@@ -175,14 +175,14 @@ resource "azurerm_media_transform" "test" {
     builtin_preset {
       preset_name = "AACGoodQualityAudio"
       preset_configuration {
-        complexity                    = "Balanced"
+        complexity = "Balanced"
       }
     }
   }
 
   output {
     audio_analyzer_preset {
-      audio_language      = "ar-SA"
+      audio_language = "ar-SA"
     }
   }
 
@@ -194,7 +194,7 @@ resource "azurerm_media_transform" "test" {
 
   output {
     video_analyzer_preset {
-      insights_type       = "AllInsights"
+      insights_type = "AllInsights"
       experimental_options = {
         env = "prod"
       }
@@ -207,67 +207,29 @@ resource "azurerm_media_transform" "test" {
     custom_preset {
       codec {
         aac_audio {
-          bitrate       = 128000
+          bitrate = 128000
         }
       }
 
       codec {
         h264_video {
           layer {
-            bitrate                  = 1045000
+            bitrate = 1045000
           }
           layer {
-            bitrate                  = 1000
+            bitrate = 1000
           }
         }
       }
 
       codec {
         h265_video {
-          complexity                     = "Speed"
+          complexity = "Speed"
           layer {
-            bitrate                  = 1045000
+            bitrate = 1045000
           }
         }
       }
-
-      #codec {
-      #  jpg_image {
-      #    stretch_mode  = "AutoSize"
-      #    sync_mode     = "Auto"
-      #    start         = "10"
-      #    range         = "100%%"
-      #    sprite_column = 1
-      #    step          = "10"
-      #    layer {
-      #      quality = 70
-      #      height  = "180"
-      #      label   = "test"
-      #      width   = "120"
-      #    }
-      #  }
-      #}
-
-      #codec {
-      #  png_image {
-      #    stretch_mode = "AutoSize"
-      #    sync_mode    = "Auto"
-      #    start        = "{Best}"
-      #    range        = "80"
-      #    step         = "10"
-      #    layer {
-      #      height = "180"
-      #      label  = "test"
-      #      width  = "120"
-      #    }
-      #  }
-      #}
-
-      #format {
-      #  jpg {
-      #    filename_pattern = "test{Basename}"
-      #  }
-      #}
 
       format {
         mp4 {
@@ -277,12 +239,6 @@ resource "azurerm_media_transform" "test" {
           }
         }
       }
-
-      #format {
-      #  png {
-      #    filename_pattern = "test{Basename}"
-      #  }
-      #}
 
       filter {
         crop_rectangle {
@@ -298,17 +254,17 @@ resource "azurerm_media_transform" "test" {
         rotation = "Auto"
         overlay {
           audio {
-            input_label       = "label.jpg"
+            input_label = "label.jpg"
           }
         }
         overlay {
           video {
-            input_label       = "test.wav"
+            input_label = "test.wav"
             position {
-              width  = "140"
+              width = "140"
             }
             crop_rectangle {
-              width  = "70"
+              width = "70"
             }
           }
         }
@@ -477,44 +433,6 @@ resource "azurerm_media_transform" "test" {
         }
       }
 
-      #codec {
-      #  jpg_image {
-      #    stretch_mode  = "AutoSize"
-      #    sync_mode     = "Auto"
-      #    start         = "10"
-      #    range         = "100%%"
-      #    sprite_column = 1
-      #    step          = "10"
-      #    layer {
-      #      quality = 70
-      #      height  = "180"
-      #      label   = "test"
-      #      width   = "120"
-      #    }
-      #  }
-      #}
-
-      #codec {
-      #  png_image {
-      #    stretch_mode = "AutoSize"
-      #    sync_mode    = "Auto"
-      #    start        = "{Best}"
-      #    range        = "80"
-      #    step         = "10"
-      #    layer {
-      #      height = "180"
-      #      label  = "test"
-      #      width  = "120"
-      #    }
-      #  }
-      #}
-
-      #format {
-      #  jpg {
-      #    filename_pattern = "test{Basename}"
-      #  }
-      #}
-
       format {
         mp4 {
           filename_pattern = "test{Bitrate}"
@@ -523,12 +441,6 @@ resource "azurerm_media_transform" "test" {
           }
         }
       }
-
-      #format {
-      #  png {
-      #    filename_pattern = "test{Basename}"
-      #  }
-      #}
 
       format {
         transport_stream {
