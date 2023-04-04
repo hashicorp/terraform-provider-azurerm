@@ -3,7 +3,10 @@ package storagemover_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
+
+	"github.com/hashicorp/go-uuid"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/agents"
 
@@ -34,6 +37,7 @@ func TestAccStorageMoverAgent_basic(t *testing.T) {
 func TestAccStorageMoverAgent_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_agent", "test")
 	r := StorageMoverAgentTestResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -98,35 +102,169 @@ func (r StorageMoverAgentTestResource) Exists(ctx context.Context, clients *clie
 }
 
 func (r StorageMoverAgentTestResource) template(data acceptance.TestData) string {
+	randomUUID, _ := uuid.GenerateUUID()
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestnic-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_network_security_group" "my_terraform_nsg" {
+  name                = "myNetworkSecurityGroup"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_network_interface_security_group_association" "example" {
+  network_interface_id      = azurerm_network_interface.test.id
+  network_security_group_id = azurerm_network_security_group.my_terraform_nsg.id
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "acctestVM-%[1]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_F2"
+  admin_username                  = "adminuser"
+  admin_password                  = "TerraformTest01!"
+  provision_vm_agent              = false
+  allow_extension_operations      = false
+  disable_password_authentication = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+
+  connection {
+    type     = "ssh"
+    host     = azurerm_public_ip.test.ip_address
+    user     = "adminuser"
+    password = "TerraformTest01!"
+  }
+
+  provisioner "file" {
+    content = templatefile("scripts/install_arc.sh.tftpl", {
+      resource_group_name = azurerm_resource_group.test.name
+      uuid                = "%[3]s"
+      location            = azurerm_resource_group.test.location
+      tenant_id           = data.azurerm_client_config.current.tenant_id
+      client_id           = data.azurerm_client_config.current.client_id
+      client_secret       = "%[4]s"
+      subscription_id     = data.azurerm_client_config.current.subscription_id
+    })
+    destination = "/home/adminuser/install_arc_agent.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt-get install -y python-ctypes",
+      "sudo sed -i 's/\r$//' /home/adminuser/install_arc_agent.sh",
+      "sudo chmod +x /home/adminuser/install_arc_agent.sh",
+      "bash /home/adminuser/install_arc_agent.sh",
+    ]
+  }
+}
+
+data "azurerm_hybrid_compute_machine" "test" {
+  name                = azurerm_linux_virtual_machine.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  depends_on = [
+    azurerm_linux_virtual_machine.test
+  ]
 }
 
 resource "azurerm_storage_mover" "test" {
-  name                = "acctest-ssm-%d"
+  name                = "acctest-ssm-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  depends_on = [
+    data.azurerm_hybrid_compute_machine.test
+  ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+
+`, data.RandomInteger, data.Locations.Primary, randomUUID, os.Getenv("ARM_CLIENT_SECRET"))
 }
 
 func (r StorageMoverAgentTestResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %s
 
 resource "azurerm_storage_mover_agent" "test" {
-  name             = "acctest-sa-%d"
-  storage_mover_id = azurerm_storage_mover.test.id
-  arc_resource_id  = "${azurerm_resource_group.test.id}/providers/Microsoft.HybridCompute/machines/examples-hybridComputeName"
-  arc_vm_uuid      = "3bb2c024-eba9-4d18-9e7a-1d772fcc5fe9"
+  name                   = "acctest-sa-%d"
+  storage_mover_id       = azurerm_storage_mover.test.id
+  arc_virtual_machine_id = data.azurerm_hybrid_compute_machine.test.id
+  arc_vm_uuid            = data.azurerm_hybrid_compute_machine.test.vm_uuid
 }
 `, template, data.RandomInteger)
 }
@@ -134,15 +272,15 @@ resource "azurerm_storage_mover_agent" "test" {
 func (r StorageMoverAgentTestResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-
 %s
 
 resource "azurerm_storage_mover_agent" "import" {
-  name             = azurerm_storage_mover_agent.test.name
-  storage_mover_id = azurerm_storage_mover_agent.test.storage_mover_id
-  arc_resource_id  = azurerm_storage_mover_agent.test.arc_resource_id
-  arc_vm_uuid      = azurerm_storage_mover_agent.test.arc_vm_uuid
+  name                   = azurerm_storage_mover_agent.test.name
+  storage_mover_id       = azurerm_storage_mover_agent.test.storage_mover_id
+  arc_virtual_machine_id = azurerm_storage_mover_agent.test.arc_virtual_machine_id
+  arc_vm_uuid            = azurerm_storage_mover_agent.test.arc_vm_uuid
 }
+
 `, config)
 }
 
@@ -150,14 +288,22 @@ func (r StorageMoverAgentTestResource) complete(data acceptance.TestData) string
 	template := r.template(data)
 	return fmt.Sprintf(`
 
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %s
 
 resource "azurerm_storage_mover_agent" "test" {
-  name             = "acctest-sa-%d"
-  storage_mover_id = azurerm_storage_mover.test.id
-  arc_resource_id  = "${azurerm_resource_group.test.id}/providers/Microsoft.HybridCompute/machines/examples-hybridComputeName"
-  arc_vm_uuid      = "3bb2c024-eba9-4d18-9e7a-1d772fcc5fe9"
-  description      = "Example Agent Description"
+  name                   = "acctest-sa-%d"
+  storage_mover_id       = azurerm_storage_mover.test.id
+  arc_virtual_machine_id = data.azurerm_hybrid_compute_machine.test.id
+  arc_vm_uuid            = data.azurerm_hybrid_compute_machine.test.vm_uuid
+  description            = "Example Agent Description"
 }
 `, template, data.RandomInteger)
 }
@@ -166,14 +312,22 @@ func (r StorageMoverAgentTestResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %s
 
 resource "azurerm_storage_mover_agent" "test" {
-  name             = "acctest-sa-%d"
-  storage_mover_id = azurerm_storage_mover.test.id
-  arc_resource_id  = "${azurerm_resource_group.test.id}/providers/Microsoft.HybridCompute/machines/examples-hybridComputeName"
-  arc_vm_uuid      = "3bb2c024-eba9-4d18-9e7a-1d772fcc5fe9"
-  description      = "Update Example Agent Description"
+  name                   = "acctest-sa-%d"
+  storage_mover_id       = azurerm_storage_mover.test.id
+  arc_virtual_machine_id = data.azurerm_hybrid_compute_machine.test.id
+  arc_vm_uuid            = data.azurerm_hybrid_compute_machine.test.vm_uuid
+  description            = "Update Example Agent Description"
 
 }
 `, template, data.RandomInteger)

@@ -8,14 +8,14 @@ description: |-
 
 # azurerm_storage_mover_agent
 
-Manages a Storage Mover Agents.
+Manages a Storage Mover Agent.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West Europe"
+  location = "East US"
 }
 
 resource "azurerm_storage_mover" "example" {
@@ -24,11 +24,11 @@ resource "azurerm_storage_mover" "example" {
 }
 
 resource "azurerm_storage_mover_agent" "example" {
-  name             = "example-sa"
-  storage_mover_id = azurerm_storage_mover.example.id
-  arc_resource_id  = "${azurerm_resource_group.example.id}/providers/Microsoft.HybridCompute/machines/examples-hybridComputeName"
-  arc_vm_uuid      = "3bb2c024-eba9-4d18-9e7a-1d772fcc5fe9"
-  description      = "Example Agent Description"
+  name                   = "example-sa"
+  storage_mover_id       = azurerm_storage_mover.example.id
+  arc_virtual_machine_id = "${azurerm_resource_group.example.id}/providers/Microsoft.HybridCompute/machines/examples-hybridComputeName"
+  arc_vm_uuid            = "3bb2c024-eba9-4d18-9e7a-1d772fcc5fe9"
+  description            = "Example Agent Description"
 }
 ```
 
@@ -38,13 +38,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name which should be used for this Storage Mover Agent. Changing this forces a new resource to be created.
 
-* `arc_resource_id` - (Required) Specifies the fully qualified resource ID of the Hybrid Compute resource for the Storage Mover Agent. Changing this forces a new resource to be created.
+* `arc_virtual_machine_id` - (Required) Specifies the fully qualified ID of the Hybrid Compute resource for the Storage Mover Agent. Changing this forces a new resource to be created.
 
-* `arc_vm_uuid` - (Required) Specifies the VM UUID of the Hybrid Compute resource for the Storage Mover Agent. Changing this forces a new resource to be created.
+* `arc_vm_uuid` - (Required) Specifies the Hybrid Compute resource's unique SMBIOS ID. Changing this forces a new resource to be created.
 
-* `storage_mover_id` - (Required) Specifies the ID of the Storage Mover. Changing this forces a new resource to be created.
+* `storage_mover_id` - (Required) Specifies the ID of the Storage Mover that this Agent should be connected to. Changing this forces a new resource to be created.
 
-* `description` - (Optional) A description for the Storage Mover Agent.
+* `description` - (Optional) Specifies a description for this Storage Mover Agent.
 
 ## Attributes Reference
 

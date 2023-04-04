@@ -15,11 +15,11 @@ import (
 )
 
 type StorageMoverAgentResourceModel struct {
-	Name           string `tfschema:"name"`
-	StorageMoverId string `tfschema:"storage_mover_id"`
-	ArcResourceId  string `tfschema:"arc_resource_id"`
-	ArcVmUuid      string `tfschema:"arc_vm_uuid"`
-	Description    string `tfschema:"description"`
+	Name                string `tfschema:"name"`
+	StorageMoverId      string `tfschema:"storage_mover_id"`
+	ArcVirtualMachineId string `tfschema:"arc_virtual_machine_id"`
+	ArcVmUuid           string `tfschema:"arc_vm_uuid"`
+	Description         string `tfschema:"description"`
 }
 
 type StorageMoverAgentResource struct{}
@@ -47,7 +47,7 @@ func (r StorageMoverAgentResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"arc_resource_id": {
+		"arc_virtual_machine_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -108,7 +108,7 @@ func (r StorageMoverAgentResource) Create() sdk.ResourceFunc {
 
 			properties := agents.Agent{
 				Properties: agents.AgentProperties{
-					ArcResourceId: model.ArcResourceId,
+					ArcResourceId: model.ArcVirtualMachineId,
 					ArcVMUuid:     model.ArcVmUuid,
 				},
 			}
@@ -185,27 +185,21 @@ func (r StorageMoverAgentResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
-			}
-
 			state := StorageMoverAgentResourceModel{
 				Name:           id.AgentName,
 				StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
 			}
 
-			properties := &model.Properties
+			if model := resp.Model; model != nil {
+				state.ArcVmUuid = model.Properties.ArcVMUuid
+				state.ArcVirtualMachineId = model.Properties.ArcResourceId
 
-			state.ArcVmUuid = properties.ArcVMUuid
-
-			state.ArcResourceId = properties.ArcResourceId
-
-			des := ""
-			if properties.Description != nil {
-				des = *properties.Description
+				des := ""
+				if model.Properties.Description != nil {
+					des = *model.Properties.Description
+				}
+				state.Description = des
 			}
-			state.Description = des
 
 			return metadata.Encode(&state)
 		},
