@@ -901,21 +901,7 @@ func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolu
 			// Validating export policies
 			if volume.Properties.ExportPolicy != nil {
 				for _, rule := range *volume.Properties.ExportPolicy.Rules {
-
-					// Validating that nfsv3 and nfsv4.1 are not enabled in the same rule
-					if *rule.Nfsv3 && *rule.Nfsv41 {
-						errors = append(errors, fmt.Errorf("'nfsv3 and nfsv4.1 cannot be enabled at the same time for %v on volume %v'", applicationType, *volume.Name))
-					}
-
-					// Validating that nfsv4.1 export policy is not set on nfsv3 volume
-					if *rule.Nfsv41 && strings.EqualFold((*volume.Properties.ProtocolTypes)[0], string(ProtocolTypeNfsV3)) {
-						errors = append(errors, fmt.Errorf("'nfsv4.1 export policy cannot be enabled on nfsv3 volume %v'", *volume.Name))
-					}
-
-					// Validating that nfsv3 export policy is not set on nfsv4.1 volume
-					if *rule.Nfsv3 && strings.EqualFold((*volume.Properties.ProtocolTypes)[0], string(ProtocolTypeNfsV41)) {
-						errors = append(errors, fmt.Errorf("'nfsv3 export policy cannot be enabled on nfsv4.1 volume %v'", *volume.Name))
-					}
+					errors = append(errors, validateNetAppVolumeGroupExportPolicyRule(rule, (*volume.Properties.ProtocolTypes)[0])...)
 				}
 			}
 
@@ -945,6 +931,27 @@ func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolu
 		if len(requiredVolumes) != 2 {
 			errors = append(errors, fmt.Errorf("'required volume spec types are not present for %v, missing ones: %v'", applicationType, diffSliceString(requiredVolumes, RequiredVolumesForSAPHANA())))
 		}
+	}
+
+	return errors
+}
+
+func validateNetAppVolumeGroupExportPolicyRule(rule volumegroups.ExportPolicyRule, protocolType string) []error {
+	errors := make([]error, 0)
+
+	// Validating that nfsv3 and nfsv4.1 are not enabled in the same rule
+	if *rule.Nfsv3 && *rule.Nfsv41 {
+		errors = append(errors, fmt.Errorf("'nfsv3 and nfsv4.1 cannot be enabled at the same time'"))
+	}
+
+	// Validating that nfsv4.1 export policy is not set on nfsv3 volume
+	if *rule.Nfsv41 && strings.EqualFold(protocolType, string(ProtocolTypeNfsV3)) {
+		errors = append(errors, fmt.Errorf("'nfsv4.1 export policy cannot be enabled on nfsv3 volume'"))
+	}
+
+	// Validating that nfsv3 export policy is not set on nfsv4.1 volume
+	if *rule.Nfsv3 && strings.EqualFold(protocolType, string(ProtocolTypeNfsV41)) {
+		errors = append(errors, fmt.Errorf("'nfsv3 export policy cannot be enabled on nfsv4.1 volume'"))
 	}
 
 	return errors

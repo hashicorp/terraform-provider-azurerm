@@ -126,6 +126,7 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 					"volume_spec_name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(PossibleValuesForVolumeSpecName(), false),
 					},
 
@@ -475,6 +476,28 @@ func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.export_policy_rule", volumeItem)) {
 							exportPolicyRuleRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.export_policy_rule", volumeItem)).([]interface{})
+
+							// Validating export policy rules
+							volumeProtocolRaw := (metadata.ResourceData.Get(fmt.Sprintf("%v.protocols", volumeItem)).([]interface{}))[0]
+							volumeProtocol := volumeProtocolRaw.(string)
+
+							errors := make([]error, 0)
+							for _, ruleRaw := range exportPolicyRuleRaw {
+								if ruleRaw != nil {
+									rule := volumegroups.ExportPolicyRule{}
+
+									v := ruleRaw.(map[string]interface{})
+									rule.Nfsv3 = utils.Bool(v["nfsv3_enabled"].(bool))
+									rule.Nfsv41 = utils.Bool(v["nfsv41_enabled"].(bool))
+
+									errors = append(errors, validateNetAppVolumeGroupExportPolicyRule(rule, volumeProtocol)...)
+								}
+							}
+
+							if len(errors) > 0 {
+								return fmt.Errorf("one or more issues found while performing export policies validations for %s:\n%+v", id, errors)
+							}
+
 							exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRulePatch(exportPolicyRuleRaw)
 							update.Properties.ExportPolicy = exportPolicyRule
 						}
