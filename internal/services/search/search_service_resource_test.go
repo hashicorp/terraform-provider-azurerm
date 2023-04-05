@@ -157,51 +157,6 @@ func TestAccSearchService_identity(t *testing.T) {
 	})
 }
 
-// NOTE: These are currently commented out because the service returns the error:
-// "Message="Operation would exceed 'standard3' tier service quota. You are using 0 out of 0 'standard3' tier service quota.
-// If you need more quota, please submit a quota increase request with issue type 'Service and subscription limits (quota)'
-// and quota type 'Search' following https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-manager-quota-errors."
-
-// func TestAccSearchService_hostingMode(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-// 	r := SearchServiceResource{}
-
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.hostingMode(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 	})
-// }
-
-// func TestAccSearchService_hostingModeUpdate(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-// 	r := SearchServiceResource{}
-
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.hostingMode(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 		{
-// 			Config: r.hostingModeUpdate(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 	})
-// }
-
 func (t SearchServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := services.ParseSearchServiceID(state.ID)
 	if err != nil {
@@ -216,23 +171,16 @@ func (t SearchServiceResource) Exists(ctx context.Context, clients *clients.Clie
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (SearchServiceResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-search-%d"
-  location = "%s"
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r SearchServiceResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
+func (SearchServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
 resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
@@ -244,14 +192,13 @@ resource "azurerm_search_service" "test" {
     environment = "staging"
   }
 }
-`, template, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (SearchServiceResource) requiresImport(data acceptance.TestData) string {
 	template := SearchServiceResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_search_service" "import" {
   name                = azurerm_search_service.test.name
   resource_group_name = azurerm_search_service.test.resource_group_name
@@ -265,14 +212,16 @@ resource "azurerm_search_service" "import" {
 `, template)
 }
 
-func (r SearchServiceResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
+func (SearchServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
 resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
@@ -289,17 +238,19 @@ resource "azurerm_search_service" "test" {
     residential = "Area"
   }
 }
-`, template, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r SearchServiceResource) ipRules(data acceptance.TestData) string {
-	template := r.template(data)
+func (SearchServiceResource) ipRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-search-%d"
+  location = "%s"
+}
 
 resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
@@ -313,17 +264,19 @@ resource "azurerm_search_service" "test" {
     environment = "staging"
   }
 }
-`, template, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r SearchServiceResource) identity(data acceptance.TestData) string {
-	template := r.template(data)
+func (SearchServiceResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
 resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
@@ -339,55 +292,5 @@ resource "azurerm_search_service" "test" {
     environment = "staging"
   }
 }
-`, template, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
-
-// NOTE: These are currently commented out because the service returns the error:
-// "Message="Operation would exceed 'standard3' tier service quota. You are using 0 out of 0 'standard3' tier service quota.
-// If you need more quota, please submit a quota increase request with issue type 'Service and subscription limits (quota)'
-// and quota type 'Search' following https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-manager-quota-errors."
-
-// func (r SearchServiceResource) hostingMode(data acceptance.TestData) string {
-// 	template := r.template(data)
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
-
-// %s
-
-// resource "azurerm_search_service" "test" {
-//   name                = "acctestsearchservice%d"
-//   resource_group_name = azurerm_resource_group.test.name
-//   location            = azurerm_resource_group.test.location
-//   sku                 = "standard3"
-//   hosting_mode        = "highDensity"
-
-//   tags = {
-//     environment = "staging"
-//   }
-// }
-// `, template, data.RandomInteger)
-// }
-
-// func (r SearchServiceResource) hostingModeUpdate(data acceptance.TestData) string {
-// 	template := r.template(data)
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
-
-// %s
-
-// resource "azurerm_search_service" "test" {
-//   name                = "acctestsearchservice%d"
-//   resource_group_name = azurerm_resource_group.test.name
-//   location            = azurerm_resource_group.test.location
-//   sku                 = "standard3"
-
-//   tags = {
-//     environment = "staging"
-//   }
-// }
-// `, template, data.RandomInteger)
-// }
