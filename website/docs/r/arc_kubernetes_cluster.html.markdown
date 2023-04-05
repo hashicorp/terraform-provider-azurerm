@@ -36,6 +36,8 @@ resource "azurerm_arc_kubernetes_cluster" "example" {
 }
 ```
 
+-> **Note:** An extensive example on connecting the `azurerm_arc_kubernetes_cluster` to an external kubernetes cluster can be found in [the `./examples/arckubernetes` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/arckubernetes).
+
 ## Arguments Reference
 
 The following arguments are supported:

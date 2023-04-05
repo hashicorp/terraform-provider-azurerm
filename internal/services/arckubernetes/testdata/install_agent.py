@@ -239,7 +239,6 @@ def install_agent():
                          args.location,
                          args.tenantId,
                          privateKey,
-                         # private_key_pem2,
                          False,
                          "AZUREPUBLICCLOUD",
                          helm_client_location)

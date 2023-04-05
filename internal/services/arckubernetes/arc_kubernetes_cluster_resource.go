@@ -5,16 +5,16 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -98,7 +98,7 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -111,17 +111,15 @@ func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := arckubernetes.NewConnectedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.ConnectedClusterGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.ConnectedClusterGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_arc_kubernetes_cluster", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_arc_kubernetes_cluster", id.ID())
 	}
 
 	identityValue, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
@@ -136,7 +134,7 @@ func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interfac
 		Properties: arckubernetes.ConnectedClusterProperties{
 			AgentPublicKeyCertificate: d.Get("agent_public_key_certificate").(string),
 		},
-		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.ConnectedClusterCreateThenPoll(ctx, id, props); err != nil {
@@ -185,7 +183,7 @@ func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("total_core_count", props.TotalCoreCount)
 		d.Set("total_node_count", props.TotalNodeCount)
 
-		if err := tagsHelper.FlattenAndSet(d, model.Tags); err != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}
@@ -204,7 +202,7 @@ func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	props := arckubernetes.ConnectedClusterPatch{
-		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.ConnectedClusterUpdate(ctx, *id, props); err != nil {
