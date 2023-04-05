@@ -50,7 +50,7 @@ func CacheInsertOrUpdateAccessPolicy(policies []caches.NfsAccessPolicy, policy c
 	return append(newPolicies, policy), nil
 }
 
-func resourceHPCCacheWaitForCreating(ctx context.Context, client *caches.CachesClient, id caches.CacheId, d *pluginsdk.ResourceData) (caches.Cache, error) {
+func resourceHPCCacheWaitForCreating(ctx context.Context, client *caches.CachesClient, id caches.CacheId, d *pluginsdk.ResourceData) (caches.GetOperationResponse, error) {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
@@ -62,10 +62,10 @@ func resourceHPCCacheWaitForCreating(ctx context.Context, client *caches.CachesC
 
 	resp, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(caches.Cache), fmt.Errorf("waiting for the HPC Cache to be missing (%q): %+v", id.String(), err)
+		return resp.(caches.GetOperationResponse), fmt.Errorf("waiting for the HPC Cache to be missing (%q): %+v", id.String(), err)
 	}
 
-	return resp.(caches.Cache), nil
+	return resp.(caches.GetOperationResponse), nil
 }
 
 func resourceHPCCacheRefresh(ctx context.Context, client *caches.CachesClient, id caches.CacheId) pluginsdk.StateRefreshFunc {
