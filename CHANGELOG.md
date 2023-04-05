@@ -31,6 +31,7 @@ ENHANCEMENTS:
 * `azurerm_monitor_data_collection_rule` - add support for additional `destinations`, `data_sources` and `data_flow` transformations [GH-21159]
 * `azurerm_signalr_service` - support for the `http_request_logs_enabled` property [GH-21032]
 * `azurerm_snapshot` - add support for the `incremental_enabled` property [GH-21263]
+* `azurerm_web_pubsub_hub` - add support for the `event_listener` block [GH-21145]
 
 BUG FIXES:
 
