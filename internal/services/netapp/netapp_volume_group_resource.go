@@ -460,7 +460,7 @@ func (r NetAppVolumeGroupResource) Update() sdk.ResourceFunc {
 
 						volumeId := volumes.NewVolumeID(id.SubscriptionId,
 							id.ResourceGroupName,
-							id.AccountName,
+							id.NetAppAccountName,
 							capacityPoolName,
 							metadata.ResourceData.Get(fmt.Sprintf("%v.name", volumeItem)).(string))
 
@@ -554,7 +554,7 @@ func (r NetAppVolumeGroupResource) Read() sdk.ResourceFunc {
 
 			model := NetAppVolumeGroupModel{
 				Name:              id.VolumeGroupName,
-				AccountName:       id.AccountName,
+				AccountName:       id.NetAppAccountName,
 				Location:          location.NormalizeNilable(existing.Model.Location),
 				ResourceGroupName: id.ResourceGroupName,
 			}
