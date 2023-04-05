@@ -228,7 +228,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("Unexpected nil `activeDirectory` in response")
 			}
 			if *ad.DomainJoined != caches.DomainJoinedTypeYes {
-				return fmt.Errorf("failed to join domain, current status: %s", ad.DomainJoined)
+				return fmt.Errorf("failed to join domain, current status: %s", *ad.DomainJoined)
 			}
 		} else {
 			ud := ds.UsernameDownload
@@ -236,7 +236,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("Unexpected nil `usernameDownload` in response")
 			}
 			if *ud.UsernameDownloaded != caches.UsernameDownloadedTypeYes {
-				return fmt.Errorf("failed to download directory info, current status: %s", ud.UsernameDownloaded)
+				return fmt.Errorf("failed to download directory info, current status: %s", *ud.UsernameDownloaded)
 			}
 		}
 	}
@@ -616,7 +616,7 @@ func flattenStorageCacheDirectorySettings(d *pluginsdk.ResourceData, input *cach
 			},
 		}, nil
 	default:
-		return nil, nil, nil, fmt.Errorf("source type %q is not supported", ud.UsernameSource)
+		return nil, nil, nil, fmt.Errorf("source type %q is not supported", *ud.UsernameSource)
 	}
 }
 
