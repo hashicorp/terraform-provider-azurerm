@@ -62,9 +62,9 @@ func resourceHPCCacheAccessPolicy() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(storagetargets.NfsAccessRuleScopeDefault),
-								string(storagetargets.NfsAccessRuleScopeNetwork),
-								string(storagetargets.NfsAccessRuleScopeHost),
+								string(caches.NfsAccessRuleScopeDefault),
+								string(caches.NfsAccessRuleScopeNetwork),
+								string(caches.NfsAccessRuleScopeHost),
 							}, false),
 						},
 
@@ -72,9 +72,9 @@ func resourceHPCCacheAccessPolicy() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(storagetargets.NfsAccessRuleAccessRw),
-								string(storagetargets.NfsAccessRuleAccessRo),
-								string(storagetargets.NfsAccessRuleAccessNo),
+								string(caches.NfsAccessRuleAccessRw),
+								string(caches.NfsAccessRuleAccessRo),
+								string(caches.NfsAccessRuleAccessNo),
 							}, false),
 						},
 

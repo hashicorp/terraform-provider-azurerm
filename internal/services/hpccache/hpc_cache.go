@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2021-09-01/caches"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2021-09-01/storagetargets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -49,7 +50,7 @@ func CacheInsertOrUpdateAccessPolicy(policies []caches.NfsAccessPolicy, policy c
 	return append(newPolicies, policy), nil
 }
 
-func resourceHPCCacheWaitForCreating(ctx context.Context, client *caches.CachesClient, id caches.CacheId, d *pluginsdk.ResourceData) (storagetargets.Cache, error) {
+func resourceHPCCacheWaitForCreating(ctx context.Context, client *caches.CachesClient, id caches.CacheId, d *pluginsdk.ResourceData) (caches.Cache, error) {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
@@ -61,10 +62,10 @@ func resourceHPCCacheWaitForCreating(ctx context.Context, client *caches.CachesC
 
 	resp, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(storagetargets.Cache), fmt.Errorf("waiting for the HPC Cache to be missing (%q): %+v", id.String(), err)
+		return resp.(caches.Cache), fmt.Errorf("waiting for the HPC Cache to be missing (%q): %+v", id.String(), err)
 	}
 
-	return resp.(storagetargets.Cache), nil
+	return resp.(caches.Cache), nil
 }
 
 func resourceHPCCacheRefresh(ctx context.Context, client *caches.CachesClient, id caches.CacheId) pluginsdk.StateRefreshFunc {
