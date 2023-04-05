@@ -3,6 +3,7 @@ package search
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -25,9 +26,9 @@ import (
 
 func resourceSearchService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSearchServiceCreateUpdate,
+		Create: resourceSearchServiceCreate,
 		Read:   resourceSearchServiceRead,
-		Update: resourceSearchServiceCreateUpdate,
+		Update: resourceSearchServiceUpdate,
 		Delete: resourceSearchServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -49,6 +50,8 @@ func resourceSearchService() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			// NOTE: in the 2022-09-01 version of the API 'location'
+			// is now just a string instead of a *string
 			"location": commonschema.Location(),
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -64,7 +67,7 @@ func resourceSearchService() *pluginsdk.Resource {
 					string(services.SkuNameStandardTwo),
 					string(services.SkuNameStandardThree),
 					string(services.SkuNameStorageOptimizedLOne),
-					string(services.SkuNameStorageOptimizedLOne),
+					string(services.SkuNameStorageOptimizedLTwo),
 				}, false),
 			},
 
@@ -79,6 +82,16 @@ func resourceSearchService() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntAtMost(12),
+			},
+
+			"hosting_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  services.HostingModeDefault,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(services.HostingModeDefault),
+					string(services.HostingModeHighDensity),
+				}, false),
 			},
 
 			"primary_key": {
@@ -134,25 +147,68 @@ func resourceSearchService() *pluginsdk.Resource {
 	}
 }
 
-func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Search.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := services.NewSearchServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, services.GetOperationOptions{})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_search_service", id.ID())
-		}
+	existing, err := client.Get(ctx, id, services.GetOperationOptions{})
+	if err != nil && !response.WasNotFound(existing.HttpResponse) {
+		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_search_service", id.ID())
+	}
+
+	properties, err := resourceSearchServiceCreateOrUpdateProperties(d)
+	if err != nil {
+		return fmt.Errorf("%+v", err)
+	}
+
+	err = client.CreateOrUpdateThenPoll(ctx, id, *properties, services.CreateOrUpdateOperationOptions{})
+	if err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceSearchServiceRead(d, meta)
+}
+
+func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Search.ServicesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := services.ParseSearchServiceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Get(ctx, *id, services.GetOperationOptions{})
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	properties, err := resourceSearchServiceCreateOrUpdateProperties(d)
+	if err != nil {
+		return fmt.Errorf("%+v", err)
+	}
+
+	err = client.CreateOrUpdateThenPoll(ctx, *id, *properties, services.CreateOrUpdateOperationOptions{})
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceSearchServiceRead(d, meta)
+}
+
+func resourceSearchServiceCreateOrUpdateProperties(d *pluginsdk.ResourceData) (*services.SearchService, error) {
+	// this might be broken because of how terraform treats ResourceData in the Create vs. the Update function... I think in
+	// update it is pulling it from state instead of the config, like it does in Create...
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
@@ -163,11 +219,17 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
+		return nil, fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	skuName := services.SkuName(d.Get("sku").(string))
-	properties := services.SearchService{
+	hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
+
+	if skuName != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
+		return nil, fmt.Errorf("'hosting_mode' can only be set to 'highDensity' if the 'sku' is 'standard3', got %q", skuName)
+	}
+
+	searchService := services.SearchService{
 		Location: location,
 		Sku: &services.Sku{
 			Name: &skuName,
@@ -177,6 +239,7 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			NetworkRuleSet: &services.NetworkRuleSet{
 				IPRules: expandSearchServiceIPRules(d.Get("allowed_ips").([]interface{})),
 			},
+			HostingMode: &hostingMode,
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -184,21 +247,28 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if v, ok := d.GetOk("replica_count"); ok {
 		replicaCount := int64(v.(int))
-		properties.Properties.ReplicaCount = utils.Int64(replicaCount)
+		searchService.Properties.ReplicaCount = utils.Int64(replicaCount)
 	}
 
+	// NOTE: 1 is now the "default" value for partitionCount...
+	var partitionCount int64
 	if v, ok := d.GetOk("partition_count"); ok {
-		partitionCount := int64(v.(int))
-		properties.Properties.PartitionCount = utils.Int64(partitionCount)
+		partitionCount = int64(v.(int))
+		searchService.Properties.PartitionCount = utils.Int64(partitionCount)
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, properties, services.CreateOrUpdateOperationOptions{})
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	// NOTE: 'partition_count' values greater than 1 are only valid for standard SKUs...
+	if !strings.HasPrefix(strings.ToLower(string(skuName)), "standard") && partitionCount > 1 {
+		return nil, fmt.Errorf("'partition_count' values greater than 1 are only valid for 'standard' SKUs, got (sku: %q, partition_count: %d)", skuName, partitionCount)
 	}
 
-	d.SetId(id.ID())
-	return resourceSearchServiceRead(d, meta)
+	// NOTE: If SKU is 'standard3' and the 'hosting_mode' is set to 'highDensity' the maximum number of partitions allowed is 3
+	// where if 'hosting_mode' is set to 'default' the maximum number of partitions is 12...
+	if skuName == services.SkuNameStandardThree && partitionCount > 3 && hostingMode == services.HostingModeHighDensity {
+		return nil, fmt.Errorf("'standard3' SKUs in 'highDensity' mode can have a maximum of 3 partitions, got %d", partitionCount)
+	}
+
+	return &searchService, nil
 }
 
 func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -238,6 +308,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			partitionCount := 0
 			replicaCount := 0
 			publicNetworkAccess := false
+			hostingMode := services.HostingModeDefault
 
 			if count := props.PartitionCount; count != nil {
 				partitionCount = int(*count)
@@ -248,12 +319,17 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			if props.PublicNetworkAccess != nil {
-				publicNetworkAccess = *props.PublicNetworkAccess != "Disabled"
+				publicNetworkAccess = *props.PublicNetworkAccess != services.PublicNetworkAccessDisabled
+			}
+
+			if props.HostingMode != nil {
+				hostingMode = *props.HostingMode
 			}
 
 			d.Set("partition_count", partitionCount)
 			d.Set("replica_count", replicaCount)
 			d.Set("public_network_access_enabled", publicNetworkAccess)
+			d.Set("hosting_mode", hostingMode)
 			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 		}
 
