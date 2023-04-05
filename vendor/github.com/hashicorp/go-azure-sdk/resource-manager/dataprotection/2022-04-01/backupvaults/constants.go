@@ -158,12 +158,14 @@ type StorageSettingTypes string
 const (
 	StorageSettingTypesGeoRedundant     StorageSettingTypes = "GeoRedundant"
 	StorageSettingTypesLocallyRedundant StorageSettingTypes = "LocallyRedundant"
+	StorageSettingTypesZoneRedundant    StorageSettingTypes = "ZoneRedundant"
 )
 
 func PossibleValuesForStorageSettingTypes() []string {
 	return []string{
 		string(StorageSettingTypesGeoRedundant),
 		string(StorageSettingTypesLocallyRedundant),
+		string(StorageSettingTypesZoneRedundant),
 	}
 }
 
@@ -171,6 +173,7 @@ func parseStorageSettingTypes(input string) (*StorageSettingTypes, error) {
 	vals := map[string]StorageSettingTypes{
 		"georedundant":     StorageSettingTypesGeoRedundant,
 		"locallyredundant": StorageSettingTypesLocallyRedundant,
+		"zoneredundant":    StorageSettingTypesZoneRedundant,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
