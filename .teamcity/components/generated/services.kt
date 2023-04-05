@@ -115,5 +115,5 @@ var services = mapOf(
         "videoanalyzer" to "Video Analyzer",
         "voiceservices" to "Voice Services",
         "web" to "Web",
-        "netapp" to "netapp"
+        "netapp" to "NetApp"
 )
