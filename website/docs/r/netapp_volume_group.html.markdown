@@ -245,19 +245,19 @@ resource "azurerm_netapp_volume_group" "test" {
 
 The following arguments are supported:
 
-* `account_name` - (Required) Name of the account where the application volume group belong to. Changing this forces a new Application Volume Group to be created.
+* `account_name` - (Required) Name of the account where the application volume group belong to. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `application_identifier` - (Required) The SAP System ID, maximum 3 characters, e.g. `SH9`. Changing this forces a new Application Volume Group to be created.
+* `application_identifier` - (Required) The SAP System ID, maximum 3 characters, e.g. `SH9`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `application_type` - (Required) The application type. The only possible value is `SAP-HANA`. Changing this forces a new Application Volume Group to be created.
+* `application_type` - (Required) The application type. The only possible value is `SAP-HANA`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `group_description` - (Required) Volume group description. Changing this forces a new Application Volume Group to be created.
+* `group_description` - (Required) Volume group description. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `location` - (Required) The Azure Region where the Application Volume Group should exist. Changing this forces a new Application Volume Group to be created.
+* `location` - (Required) The Azure Region where the Application Volume Group should exist. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `name` - (Required) The name which should be used for this Application Volume Group. Changing this forces a new Application Volume Group to be created.
+* `name` - (Required) The name which should be used for this Application Volume Group. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Application Volume Group should exist. Changing this forces a new Application Volume Group to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Application Volume Group should exist. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `volume` - (Required) One or more `volume` blocks as defined below.
 
@@ -265,35 +265,35 @@ The following arguments are supported:
 
 A `volume` block supports the following:
 
-* `capacity_pool_id` - (Required) The ID of the Capacity Pool. Changing this forces a new Application Volume Group to be created.
+* `capacity_pool_id` - (Required) The ID of the Capacity Pool. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `name` - (Required) The name which should be used for this volume. Changing this forces a new Application Volume Group to be created.
+* `name` - (Required) The name which should be used for this volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `protocols` - (Required) The target volume protocol expressed as a list. Changing this forces a new Application Volume Group to be created. Supported values for Application Volume Group include `NFSv3` or `NFSv4.1`, multi-protocol is not supported and there are certain rules on which protocol is supporteed per volume spec, please check [Configure application volume groups for the SAP HANA REST API](https://learn.microsoft.com/en-us/azure/azure-netapp-files/configure-application-volume-group-sap-hana-api) document for details.
+* `protocols` - (Required) The target volume protocol expressed as a list. Changing this forces a new Application Volume Group to be created and data will be lost. Supported values for Application Volume Group include `NFSv3` or `NFSv4.1`, multi-protocol is not supported and there are certain rules on which protocol is supporteed per volume spec, please check [Configure application volume groups for the SAP HANA REST API](https://learn.microsoft.com/en-us/azure/azure-netapp-files/configure-application-volume-group-sap-hana-api) document for details.
 
-* `proximity_placement_group_id` - (Required) The ID of the proximity placement group. Changing this forces a new Application Volume Group to be created. For SAP-HANA application, it is required to have PPG enabled so Azure NetApp Files can pin the volumes next to your compute resources, please check [Requirements and considerations for application volume group for SAP HANA](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-considerations) for details and other requirements.
+* `proximity_placement_group_id` - (Required) The ID of the proximity placement group. Changing this forces a new Application Volume Group to be created and data will be lost. For SAP-HANA application, it is required to have PPG enabled so Azure NetApp Files can pin the volumes next to your compute resources, please check [Requirements and considerations for application volume group for SAP HANA](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-considerations) for details and other requirements.
 
-* `security_style` - (Required) Volume security style. Possible value is `Unix`. Changing this forces a new Application Volume Group to be created.
+* `security_style` - (Required) Volume security style. Possible value is `Unix`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `service_level` - (Required) Volume security style. Possible values are `Premium`, `Standard` and `Ultra`. Changing this forces a new Application Volume Group to be created.
+* `service_level` - (Required) Volume security style. Possible values are `Premium`, `Standard` and `Ultra`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `snapshot_directory_visible` - (Required) Specifies whether the .snapshot (NFS clients) path of a volume is visible. Changing this forces a new Application Volume Group to be created.
+* `snapshot_directory_visible` - (Required) Specifies whether the .snapshot (NFS clients) path of a volume is visible. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
 
-* `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new Application Volume Group to be created.
+* `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `throughput_in_mibps` - (Required) Throughput of this volume in Mibps.
 
-* `volume_path` - (Required) A unique file path for the volume. Changing this forces a new Application Volume Group to be created.
+* `volume_path` - (Required) A unique file path for the volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `volume_spec_name` - (Required) Volume specification name. Possible values are `data`, `log`, `shared`, `data-backup` and `log-backup`.
+* `volume_spec_name` - (Required) Volume specification name. Possible values are `data`, `log`, `shared`, `data-backup` and `log-backup`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Application Volume Group.
 
 * `export_policy_rule` - (Required) One or more `export_policy_rule` blocks as defined below.
 
-* `data_protection_replication` - (Optional) A `data_protection_replication` block as defined below. Changing this forces a new Application Volume Group to be created.
+* `data_protection_replication` - (Optional) A `data_protection_replication` block as defined below. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `data_protection_snapshot_policy` - (Optional) A `data_protection_snapshot_policy` block as defined below.
 
@@ -303,7 +303,7 @@ A `data_protection_replication` block is used when enabling the Cross-Region Rep
 
 This block supports the following:
 
-* `remote_volume_location` - (Required) Location of the primary volume. Changing this forces a new resource to be created.
+* `remote_volume_location` - (Required) Location of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `remote_volume_resource_id` - (Required) Resource ID of the primary volume.
 
