@@ -492,10 +492,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments
-github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys
-github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/querykeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services
-github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-08-01/sharedprivatelinkresources
+github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/adminkeys
+github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/querykeys
+github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services
+github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/sharedprivatelinkresources
 github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-03-01/pricings
 github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules
 github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/automationrules

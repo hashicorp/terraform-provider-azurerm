@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/adminkeys` Documentation
 
-The `adminkeys` SDK allows for interaction with the Azure Resource Manager Service `search` (API Version `2020-03-13`).
+The `adminkeys` SDK allows for interaction with the Azure Resource Manager Service `search` (API Version `2022-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/adminkeys"
 ```
 
 
