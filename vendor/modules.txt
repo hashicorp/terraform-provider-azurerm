@@ -536,6 +536,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/skus
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/tableservice
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/tableserviceproperties
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2021-09-01/caches
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2021-09-01/storagetargets
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/storagemovers
 github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools
 github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets
