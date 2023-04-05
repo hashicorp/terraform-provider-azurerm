@@ -462,14 +462,6 @@ PasswordGenLoop:
 		if model := res.Model; model != nil {
 			value = *(*res.Model.Passwords)[idx].Value
 		}
-		//if err = future.Poller.PollUntilDone(ctx); err != nil {
-		//	return nil, fmt.Errorf("waiting for the creation of %s: %+v", id, err)
-		//}
-		//
-		//result, err := future.Result(*clients.RegistriesClient)
-		//if err != nil {
-		//	return nil, fmt.Errorf("getting password credential after creation for %s: %v", password.Name, err)
-		//}
 
 		genPasswords = append(genPasswords, tokens.TokenPassword{
 			Expiry: password.Expiry,

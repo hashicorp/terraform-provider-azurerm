@@ -228,6 +228,7 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
+  admin_enabled       = true
 }
 
 # use system wide scope map for tests
