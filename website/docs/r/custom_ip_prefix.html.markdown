@@ -72,7 +72,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 6 hours) Used when creating the Custom IP Prefix.
 * `update` - (Defaults to 17 hours) Used when updating the Custom IP Prefix.
-* `read` - (Defaults to 10 minutes) Used when retrieving the Custom IP Prefix.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Custom IP Prefix.
 * `delete` - (Defaults to 17 hours) Used when deleting the Custom IP Prefix.
 
 ## Import

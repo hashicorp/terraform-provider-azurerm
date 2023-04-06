@@ -263,7 +263,7 @@ func (r CustomIpPrefixResource) Update() sdk.ResourceFunc {
 
 func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 10 * time.Minute,
+		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			r.client = metadata.Client.Network.CustomIPPrefixesClient
