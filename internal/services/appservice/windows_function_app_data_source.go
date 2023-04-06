@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -280,7 +281,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.VirtualNetworkSubnetId = utils.NormalizeNilableString(props.VirtualNetworkSubnetID)
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-				functionApp.HostingEnvId = utils.NormalizeNilableString(hostingEnv.ID)
+				functionApp.HostingEnvId = pointer.From(hostingEnv.ID)
 			}
 
 			if v := props.OutboundIPAddresses; v != nil {

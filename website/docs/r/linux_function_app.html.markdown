@@ -504,7 +504,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Linux Function App.
 
-* `hosting_environment_id` - The hosting environment id used by Function App.
+* `hosting_environment_id` - The ID of the App Service Environment used by Function App.
 
 * `identity` - An `identity` block as defined below.
 

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -326,7 +327,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				webApp.PossibleOutboundIPAddresses = utils.NormalizeNilableString(props.PossibleOutboundIPAddresses)
 				webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
 				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-					webApp.HostingEnvId = utils.NormalizeNilableString(hostingEnv.ID)
+					webApp.HostingEnvId = pointer.From(hostingEnv.ID)
 				}
 				if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
 					webApp.VirtualNetworkSubnetID = subnetId

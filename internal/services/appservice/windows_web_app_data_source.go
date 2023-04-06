@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -321,7 +322,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 					webApp.VirtualNetworkSubnetID = subnetId
 				}
 				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-					webApp.HostingEnvId = utils.NormalizeNilableString(hostingEnv.ID)
+					webApp.HostingEnvId = pointer.From(hostingEnv.ID)
 				}
 			}
 
