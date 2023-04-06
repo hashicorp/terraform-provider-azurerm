@@ -30,6 +30,21 @@ func TestAccSubscriptionCostManagementView_basic(t *testing.T) {
 	})
 }
 
+func TestAccSubscriptionCostManagementView_table(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_view", "test")
+	r := SubscriptionCostManagementView{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.table(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSubscriptionCostManagementView_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_view", "test")
 	r := SubscriptionCostManagementView{}
@@ -251,4 +266,51 @@ resource "azurerm_subscription_cost_management_view" "import" {
 		}
 	}
 `, template)
+}
+
+func (SubscriptionCostManagementView) table(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "test" {}
+
+resource "azurerm_subscription_cost_management_view" "test" {
+  name            = "testcostview%s"
+  subscription_id = data.azurerm_subscription.test.id
+  chart_type      = "Table"
+  display_name    = "Test View %s"
+
+  accumulated = "false"
+  query {
+    type      = "Usage"
+    timeframe = "MonthToDate"
+
+    dataset {
+      granularity = "Monthly"
+      sorting {
+        direction = "Ascending"
+        name      = "BillingMonth"
+      }
+      grouping {
+        name = "ResourceGroupName"
+        type = "Dimension"
+      }
+      aggregation {
+        name        = "totalCost"
+        column_name = "Cost"
+      }
+      aggregation {
+        name        = "totalCostUSD"
+        column_name = "CostUSD"
+      }
+    }
+  }
+  kpi {
+    enabled = true
+    type    = "Forecast"
+  }
+}
+`, data.RandomString, data.RandomString)
 }

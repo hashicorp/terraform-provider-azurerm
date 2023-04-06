@@ -108,8 +108,9 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"type": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringInSlice(views.PossibleValuesForQueryColumnType(), false),
 											},
 											"name": {
 												Type:     pluginsdk.TypeString,
