@@ -223,7 +223,9 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	// fix for issue #10151
+	// fix for issue #10151, if the identity type is TypeNone do not include it
+	// in the create call, only in the update call when 'identity' is removed from the
+	// configuration file...
 	if expandedIdentity.Type != identity.TypeNone {
 		searchService.Identity = expandedIdentity
 	}
@@ -268,10 +270,8 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			// fix for issue #10151
-			if expandedIdentity.Type != identity.TypeNone {
-				model.Identity = expandedIdentity
-			}
+			// NOTE: Passing type 'None' on update will remove all identities from the service.
+			model.Identity = expandedIdentity
 		}
 
 		if d.HasChange("hosting_mode") {
@@ -392,11 +392,10 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 		}
 
-		// fix for issue #10151
-		if model.Identity != nil {
-			if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
-				return fmt.Errorf("setting `identity`: %s", err)
-			}
+		// NOTE: if the identity has been removed(e.g. by passing type "None" during update),
+		// this will also remove it from the state...
+		if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+			return fmt.Errorf("setting `identity`: %s", err)
 		}
 
 		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
