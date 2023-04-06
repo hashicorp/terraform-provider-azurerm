@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `cidr` - (Required) The `cidr` of the Custom IP Prefix, either IPv4 or IPv6. Changing this forces a new resource to be created.
 
--> **IPv6** This resource has only been tested with IPv4 and has not yet been tested with IPv6. It may not work correctly when managing an IPv6 prefix.
+-> **IPv6 Note** This resource has only been tested with IPv4 and does not yet support IPv6 prefixes.
 
 * `roa_validity_end_date` - (Required) The expiration date of the Route Origin Authorization (ROA) document which has been filed with the Routing Internet Registry (RIR) for this prefix. The expected format is `YYYY-MM-DD`. Changing this forces a new resource to be created.
 
