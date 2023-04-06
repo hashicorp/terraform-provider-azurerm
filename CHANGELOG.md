@@ -6,13 +6,14 @@ BREAKING CHANGES:
 
 FEATURES:
 
+* **New Resource:** `azurerm_arc_kubernetes_cluster` [GH-15401]
 * **New Resource:** `azurerm_signalr_service_custom_certificate` [GH-21112]
 * **New Resource:** `azurerm_storage_mover` [GH-21000]
 * **New Resource:** `azurerm_voice_services_communications_gateway_test_line` [GH-21111]
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230404.1155830` of `github.com/hashicorp/go-azure-sdk` [GH-21285]
+* dependencies: updating to `v0.20230405.1143248` of `github.com/hashicorp/go-azure-sdk` [GH-21312]
 * dependencies: updating to `v0.20230331.1120327` of `github.com/tombuildsstuff/kermit` [GH-21235]
 * dependencies: updating `containerservice/2022-09-02-preview` to `2023-02-02-preview` [GH-21256]
 * dependencies: updating `search/2020-03-13` to `search/2022-09-01` [GH-21250]
@@ -37,7 +38,8 @@ BUG FIXES:
 
 * Data Source: `azurerm_app_configuration_keys` - fixing a regression where the API doesn't return the http endpoint when listing items [GH-21208]
 * Data Source: `azurerm_kubernetes_cluster` - prevent errors when used with limited permissions [GH-21229]
-* `azurerm_application_gateway` - corredctly validaute the `firewall_policy_id` property [GH-21238]
+* `azurerm_api_management` - prevent error from empty response body when updating the resource [GH-21221]
+* `azurerm_application_gateway` - correctly validate the `firewall_policy_id` property [GH-21238]
 * `azurerm_automation_software_update_configuration` - `time_zone` correctly defaults to `Etc/UTC` [GH-21254]
 * `azurerm_digital_twins_time_series_database_connection` - insensitively parse `kusto_cluster_uri` [GH-21243]
 * `azurerm_express_route_circuit` - can now set `authorization_key` during creation [GH-21132]
