@@ -358,28 +358,6 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context, id parse.CustomIpPrefixId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := r.client.Get(ctx, id.ResourceGroup, id.CustomIpPrefixeName, "")
-		if err != nil {
-			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
-		}
-
-		return res, string(res.CommissionedState), nil
-	}
-}
-
-func (r CustomIpPrefixResource) provisioningStateRefreshFunc(ctx context.Context, id parse.CustomIpPrefixId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := r.client.Get(ctx, id.ResourceGroup, id.CustomIpPrefixeName, "")
-		if err != nil {
-			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
-		}
-
-		return res, string(res.ProvisioningState), nil
-	}
-}
-
 type transitioningStates []network.CommissionedState
 
 func (t transitioningStates) contains(i network.CommissionedState) bool {
@@ -430,7 +408,7 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 		},
 	}
 
-	becoming := func(finalState network.CommissionedState) (out transitioningStates) {
+	transitioningStatesFor := func(finalState network.CommissionedState) (out transitioningStates) {
 		switch finalState {
 		case network.CommissionedStateProvisioned:
 			out = transitioningStates{network.CommissionedStateProvisioning, network.CommissionedStateDecommissioning}
@@ -442,7 +420,7 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 		return
 	}
 
-	become := func(transitioningState network.CommissionedState) (finalState network.CommissionedState) {
+	finalStateFor := func(transitioningState network.CommissionedState) (finalState network.CommissionedState) {
 		switch transitioningState {
 		case network.CommissionedStateProvisioning:
 			finalState = network.CommissionedStateProvisioned
@@ -457,8 +435,8 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 	}
 
 	if plan, ok := stateTree[desiredState]; ok {
-		if becoming(desiredState).contains(currentState) {
-			if err := r.waitForCommissionedState(ctx, id, becoming(desiredState).strings(), []string{string(desiredState)}); err != nil {
+		if transitioningStatesFor(desiredState).contains(currentState) {
+			if err := r.waitForCommissionedState(ctx, id, transitioningStatesFor(desiredState).strings(), []string{string(desiredState)}); err != nil {
 				return err
 			}
 		}
@@ -468,8 +446,8 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 		}
 
 		for state, path := range plan {
-			if currentState == state || becoming(state).contains(currentState) {
-				if err := r.waitForCommissionedState(ctx, id, becoming(state).strings(), []string{string(state)}); err != nil {
+			if currentState == state || transitioningStatesFor(state).contains(currentState) {
+				if err := r.waitForCommissionedState(ctx, id, transitioningStatesFor(state).strings(), []string{string(state)}); err != nil {
 					return err
 				}
 
@@ -488,125 +466,17 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 						return err
 					}
 
-					if err := r.waitForCommissionedState(ctx, id, []string{string(steppingState)}, []string{string(become(steppingState))}); err != nil {
+					if err := r.waitForCommissionedState(ctx, id, []string{string(steppingState)}, []string{string(finalStateFor(steppingState))}); err != nil {
 						return err
 					}
 				}
 
-				return r.waitForCommissionedState(ctx, id, becoming(desiredState).strings(), []string{string(desiredState)})
+				return r.waitForCommissionedState(ctx, id, transitioningStatesFor(desiredState).strings(), []string{string(desiredState)})
 			}
 		}
 	} else {
 		return fmt.Errorf("unsupported state %q", desiredState)
 	}
-
-	//switch desiredState {
-	//case network.CommissionedStateDeprovisioned:
-	//	switch currentState {
-	//	case network.CommissionedStateDeprovisioning, network.CommissionedStateDeprovisioned:
-	//		return waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateDeprovisioning)}, []string{string(network.CommissionedStateDeprovisioned)})
-	//
-	//	case network.CommissionedStateProvisioning, network.CommissionedStateProvisioned:
-	//		if err := waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateProvisioning)}, []string{string(network.CommissionedStateProvisioned)}); err != nil {
-	//			return err
-	//		}
-	//
-	//		if err := setCommissionedState(ctx, client, id, network.CommissionedStateDeprovisioning); err != nil {
-	//			return err
-	//		}
-	//
-	//		return waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateDeprovisioning)}, []string{string(network.CommissionedStateDeprovisioned)})
-	//
-	//	case network.CommissionedStateCommissioning, network.CommissionedStateCommissioned, network.CommissionedStateCommissionedNoInternetAdvertise:
-	//		if err := waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateCommissioning)}, []string{string(network.CommissionedStateCommissioned), string(network.CommissionedStateCommissionedNoInternetAdvertise)}); err != nil {
-	//			return err
-	//		}
-	//
-	//		if err := setCommissionedState(ctx, client, id, network.CommissionedStateDecommissioning); err != nil {
-	//			return err
-	//		}
-	//
-	//		if err := waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateDecommissioning)}, []string{string(network.CommissionedStateProvisioned)}); err != nil {
-	//			return err
-	//		}
-	//
-	//		if err := setCommissionedState(ctx, client, id, network.CommissionedStateDeprovisioning); err != nil {
-	//			return err
-	//		}
-	//
-	//		return waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateDeprovisioning)}, []string{string(network.CommissionedStateDeprovisioned)})
-	//	}
-	//
-	//case network.CommissionedStateProvisioned:
-	//	switch currentState {
-	//	case network.CommissionedStateDeprovisioning, network.CommissionedStateDeprovisioned:
-	//		if err := waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateDeprovisioning)}, []string{string(network.CommissionedStateDeprovisioned)}); err != nil {
-	//			return err
-	//		}
-	//
-	//		if err := setCommissionedState(ctx, client, id, network.CommissionedStateProvisioning); err != nil {
-	//			return err
-	//		}
-	//
-	//		return waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateProvisioning), string(network.CommissionedStateDecommissioning)}, []string{string(network.CommissionedStateProvisioned)})
-	//
-	//	case network.CommissionedStateProvisioning, network.CommissionedStateProvisioned:
-	//		return waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateProvisioning)}, []string{string(network.CommissionedStateProvisioned)})
-	//
-	//	case network.CommissionedStateCommissioning, network.CommissionedStateCommissioned:
-	//		if err := waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateCommissioning)}, []string{string(network.CommissionedStateCommissioned)}); err != nil {
-	//			return err
-	//		}
-	//
-	//		if err := setCommissionedState(ctx, client, id, network.CommissionedStateDecommissioning); err != nil {
-	//			return err
-	//		}
-	//
-	//		return waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateProvisioning), string(network.CommissionedStateDecommissioning)}, []string{string(network.CommissionedStateProvisioned)})
-	//	}
-	//
-	//case network.CommissionedStateCommissioned:
-	//	switch currentState {
-	//	case network.CommissionedStateDeprovisioning, network.CommissionedStateDeprovisioned:
-	//		if err := waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateDeprovisioning)}, []string{string(network.CommissionedStateDeprovisioned)}); err != nil {
-	//			return err
-	//		}
-	//
-	//		if err := setCommissionedState(ctx, client, id, network.CommissionedStateProvisioning); err != nil {
-	//			return err
-	//		}
-	//
-	//		if err := waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateProvisioning)}, []string{string(network.CommissionedStateProvisioned)}); err != nil {
-	//			return err
-	//		}
-	//
-	//		if err := setCommissionedState(ctx, client, id, network.CommissionedStateCommissioning); err != nil {
-	//			return err
-	//		}
-	//
-	//		return waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateCommissioning)}, []string{string(network.CommissionedStateCommissioned), string(network.CommissionedStateCommissionedNoInternetAdvertise)})
-	//
-	//	case network.CommissionedStateProvisioning, network.CommissionedStateProvisioned:
-	//		if err := waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateProvisioning)}, []string{string(network.CommissionedStateProvisioned)}); err != nil {
-	//			return err
-	//		}
-	//
-	//		if err := setCommissionedState(ctx, client, id, network.CommissionedStateCommissioning); err != nil {
-	//			return err
-	//		}
-	//
-	//		return waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateCommissioning)}, []string{string(network.CommissionedStateCommissioned), string(network.CommissionedStateCommissionedNoInternetAdvertise)})
-	//
-	//	case network.CommissionedStateCommissioning, network.CommissionedStateCommissioned, network.CommissionedStateCommissionedNoInternetAdvertise:
-	//		return waitForCommissionedState(ctx, client, id, []string{string(network.CommissionedStateCommissioning)}, []string{string(network.CommissionedStateCommissioned), string(network.CommissionedStateCommissionedNoInternetAdvertise)})
-	//	}
-	//
-	//case network.CommissionedStateProvisioning, network.CommissionedStateDeprovisioning, network.CommissionedStateCommissioning, network.CommissionedStateDecommissioning:
-	//	return fmt.Errorf("expected desired state, not action for %q", desiredState)
-	//
-	//default:
-	//	return fmt.Errorf("unsupported state %q", desiredState)
-	//}
 
 	return nil
 }
@@ -628,6 +498,7 @@ func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id par
 	if err != nil {
 		return fmt.Errorf("updating CommissionedState to %q for %s: %+v", string(desiredState), id, err)
 	}
+
 	if err := future.WaitForCompletionRef(ctx, r.client.Client); err != nil {
 		return fmt.Errorf("waiting for the update of CommissionedState to %q for %s: %+v", string(desiredState), id, err)
 	}
@@ -638,6 +509,7 @@ func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id par
 func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, pendingStates, targetStates []string) error {
 	log.Printf("[DEBUG] Polling for the CommissionedState field for %s..", id)
 	timeout, _ := ctx.Deadline()
+
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    pendingStates,
 		Target:     targetStates,
@@ -645,8 +517,32 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
+
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for commissioned state of %s: %+v", id, err)
 	}
+
 	return nil
+}
+
+func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context, id parse.CustomIpPrefixId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := r.client.Get(ctx, id.ResourceGroup, id.CustomIpPrefixeName, "")
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
+		}
+
+		return res, string(res.CommissionedState), nil
+	}
+}
+
+func (r CustomIpPrefixResource) provisioningStateRefreshFunc(ctx context.Context, id parse.CustomIpPrefixId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := r.client.Get(ctx, id.ResourceGroup, id.CustomIpPrefixeName, "")
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
+		}
+
+		return res, string(res.ProvisioningState), nil
+	}
 }
