@@ -22,7 +22,7 @@ resource "azurerm_subscription_cost_management_view" "example" {
   subscription_id = "/subscription/00000000-0000-0000-0000-000000000000"
 
   query {
-    type = "Usage"
+    type      = "Usage"
     timeframe = "MonthToDate"
 
     dataset {
@@ -31,8 +31,8 @@ resource "azurerm_subscription_cost_management_view" "example" {
       totalCost {
         name     = "Cost"
         function = "Sum"
-      }    
-    }    
+      }
+    }
   }
 }
 ```
