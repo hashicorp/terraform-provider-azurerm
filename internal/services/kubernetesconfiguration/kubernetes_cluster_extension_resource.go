@@ -280,10 +280,8 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				}
 
 				properties.Identity = identityValue
-			} else {
-				if model.ClusterResourceName == string(ArcResource) {
-					return fmt.Errorf("`identity` must be set when `cluster_resource_name` is `%s`", model.ClusterResourceName)
-				}
+			} else if model.ClusterResourceName == string(ArcResource) {
+				return fmt.Errorf("`identity` must be set when `cluster_resource_name` is `%s`", model.ClusterResourceName)
 			}
 
 			if model.ExtensionType != "" {
