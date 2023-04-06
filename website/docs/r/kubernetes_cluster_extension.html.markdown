@@ -39,7 +39,6 @@ resource "azurerm_kubernetes_cluster_extension" "example" {
   name                  = "example-ext"
   resource_group_name   = azurerm_resource_group.example.name
   cluster_name          = azurerm_kubernetes_cluster.example.name
-  cluster_resource_name = "managedClusters"
   extension_type        = "microsoft.flux"
 }
 ```
@@ -54,15 +53,11 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) Specifies the Cluster Name. Changing this forces a new Kubernetes Cluster Extension to be created.
 
-* `cluster_resource_name` - (Required) Specifies the Cluster Resource Name. Possible values are `managedClusters` and `connectedClusters`. Changing this forces a new Kubernetes Cluster Extension to be created.
-
-* `extension_type` - (Required) Type of the Extension, of which this resource is an instance of. It must be one of the Extension Types registered with Microsoft.KubernetesConfiguration by the Extension publisher. For more information, please refer to [Available Extensions for AKS](https://learn.microsoft.com/en-us/azure/aks/cluster-extensions?tabs=azure-cli#currently-available-extensions) and [Available Extensions for Arc-enabled Kubernetes clusters](https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/extensions-release). Changing this forces a new Kubernetes Cluster Extension to be created.
+* `extension_type` - (Required) Type of the Extension, of which this resource is an instance of. It must be one of the Extension Types registered with Microsoft.KubernetesConfiguration by the Extension publisher. For more information, please refer to [Available Extensions for AKS](https://learn.microsoft.com/en-us/azure/aks/cluster-extensions?tabs=azure-cli#currently-available-extensions). Changing this forces a new Kubernetes Cluster Extension to be created.
 
 * `configuration_protected_settings` - (Optional) Configuration settings that are sensitive, as name-value pairs for configuring this extension.
 
 * `configuration_settings` - (Optional) Configuration settings, as name-value pairs for configuring this extension.
-
-* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Kubernetes Cluster Extension to be created.
 
 * `plan` - (Optional) A `plan` block as defined below.
 
@@ -73,12 +68,6 @@ The following arguments are supported:
 * `target_namespace` - (Optional) Namespace where the extension will be created for a Namespace scoped extension.  If this namespace does not exist, it will be created. Changing this forces a new Kubernetes Cluster Extension to be created.
 
 * `version` - (Optional) User-specified version of the extension for this extension to 'pin'. If it is not set, Azure will use the latest version and auto upgrade it. Changing this forces a new Kubernetes Cluster Extension to be created.
-
----
-
-An `identity` block supports the following:
-
-* `type` - (Required) Specifies the type of Managed Service Identity. Possible values are `SystemAssigned`.
 
 ---
 
@@ -100,29 +89,19 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Kubernetes Cluster Extension.
 
-* `aks_assigned_identity` - An `aks_assigned_identity` block as defined below.
+* `identity` - An `identity` block as defined below.
 
 * `current_version` - Currently installed version of the extension.
 
-* `identity` - An `identity` block as defined below.
-
 ---
 
-An `aks_assigned_identity` block exports the following:
+An `identity` block exports the following:
 
 * `type` - The identity type.
 
 * `principal_id` - The principal ID of resource identity.
 
 * `tenant_id` - The tenant ID of resource.
-
----
-
-An `identity` block exports the following:
-
-* `principal_id` - The Principal ID associated with this Managed Service Identity.
-
-* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 
@@ -139,5 +118,4 @@ Kubernetes Cluster Extension can be imported using the `resource id` for differe
 
 ```shell
 terraform import azurerm_kubernetes_cluster_extension.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1/providers/Microsoft.KubernetesConfiguration/extensions/extension1
-terraform import azurerm_kubernetes_cluster_extension.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Kubernetes/connectedClusters/cluster1/providers/Microsoft.KubernetesConfiguration/extensions/extension1
 ```

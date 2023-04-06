@@ -14,45 +14,33 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type KubernetesClusterExtensionModel struct {
-	Name                           string            `tfschema:"name"`
-	ResourceGroupName              string            `tfschema:"resource_group_name"`
-	ClusterName                    string            `tfschema:"cluster_name"`
-	ConfigurationProtectedSettings map[string]string `tfschema:"configuration_protected_settings"`
-	ConfigurationSettings          map[string]string `tfschema:"configuration_settings"`
-	ExtensionType                  string            `tfschema:"extension_type"`
-	Plan                           []PlanModel       `tfschema:"plan"`
-	ReleaseNamespace               string            `tfschema:"release_namespace"`
-	ReleaseTrain                   string            `tfschema:"release_train"`
-	TargetNamespace                string            `tfschema:"target_namespace"`
-	Version                        string            `tfschema:"version"`
-	CurrentVersion                 string            `tfschema:"current_version"`
+type ArcKubernetesClusterExtensionModel KubernetesClusterExtensionModel
+
+type ArcKubernetesClusterExtensionResource struct{}
+
+var _ sdk.ResourceWithUpdate = ArcKubernetesClusterExtensionResource{}
+
+func (r ArcKubernetesClusterExtensionResource) ResourceType() string {
+	return "azurerm_arc_kubernetes_cluster_extension"
 }
 
-type KubernetesClusterExtensionResource struct{}
-
-var _ sdk.ResourceWithUpdate = KubernetesClusterExtensionResource{}
-
-func (r KubernetesClusterExtensionResource) ResourceType() string {
-	return "azurerm_kubernetes_cluster_extension"
+func (r ArcKubernetesClusterExtensionResource) ModelObject() interface{} {
+	return &ArcKubernetesClusterExtensionModel{}
 }
 
-func (r KubernetesClusterExtensionResource) ModelObject() interface{} {
-	return &KubernetesClusterExtensionModel{}
-}
-
-func (r KubernetesClusterExtensionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ArcKubernetesClusterExtensionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return extensions.ValidateExtensionID
 }
 
-func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Schema {
-	return commonArguments()
+func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Schema {
+	arguments := commonArguments()
+	arguments["identity"] = commonschema.SystemAssignedIdentityRequiredForceNew()
+	return arguments
+
 }
 
-func (r KubernetesClusterExtensionResource) Attributes() map[string]*pluginsdk.Schema {
+func (r ArcKubernetesClusterExtensionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"identity": commonschema.SystemAssignedIdentityComputed(),
-
 		"current_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -60,18 +48,18 @@ func (r KubernetesClusterExtensionResource) Attributes() map[string]*pluginsdk.S
 	}
 }
 
-func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
+func (r ArcKubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model KubernetesClusterExtensionModel
+			var model ArcKubernetesClusterExtensionModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			client := metadata.Client.KubernetesConfiguration.ExtensionsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := extensions.NewExtensionID(subscriptionId, model.ResourceGroupName, "Microsoft.ContainerService", "managedClusters", model.ClusterName, model.Name)
+			id := extensions.NewExtensionID(subscriptionId, model.ResourceGroupName, "Microsoft.Kubernetes", "connectedClusters", model.ClusterName, model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -94,6 +82,13 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 					ConfigurationSettings:          &model.ConfigurationSettings,
 				},
 			}
+
+			identityValue, err := identity.ExpandSystemAssigned(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
+			properties.Identity = identityValue
 
 			if model.ExtensionType != "" {
 				properties.Properties.ExtensionType = &model.ExtensionType
@@ -123,7 +118,7 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				properties.Properties.Version = &model.Version
 			}
 
-			if err = client.CreateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -133,7 +128,7 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r KubernetesClusterExtensionResource) Update() sdk.ResourceFunc {
+func (r ArcKubernetesClusterExtensionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -144,7 +139,7 @@ func (r KubernetesClusterExtensionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model KubernetesClusterExtensionModel
+			var model ArcKubernetesClusterExtensionModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -170,7 +165,7 @@ func (r KubernetesClusterExtensionResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r KubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
+func (r ArcKubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -196,12 +191,12 @@ func (r KubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 			}
 
 			if model.Identity != nil {
-				if err := metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+				if err = metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
 					return fmt.Errorf("setting `identity`: %+v", err)
 				}
 			}
 
-			state := KubernetesClusterExtensionModel{
+			state := ArcKubernetesClusterExtensionModel{
 				Name:              id.ExtensionName,
 				ResourceGroupName: id.ResourceGroupName,
 				ClusterName:       id.ClusterName,
@@ -209,16 +204,9 @@ func (r KubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 			}
 
 			if properties := model.Properties; properties != nil {
-				var originalModel KubernetesClusterExtensionModel
+				var originalModel ArcKubernetesClusterExtensionModel
 				if err := metadata.Decode(&originalModel); err != nil {
 					return fmt.Errorf("decoding: %+v", err)
-				}
-
-				identityValue := flattenExtensionPropertiesAksAssignedIdentityModel(properties.AksAssignedIdentity)
-				if identityValue != nil {
-					if err = metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(identityValue)); err != nil {
-						return fmt.Errorf("setting `identity`: %+v", err)
-					}
 				}
 
 				state.ConfigurationProtectedSettings = originalModel.ConfigurationProtectedSettings
@@ -259,30 +247,6 @@ func (r KubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r KubernetesClusterExtensionResource) Delete() sdk.ResourceFunc {
+func (r ArcKubernetesClusterExtensionResource) Delete() sdk.ResourceFunc {
 	return deleteExtension()
-}
-
-func flattenExtensionPropertiesAksAssignedIdentityModel(input *extensions.ExtensionPropertiesAksAssignedIdentity) *identity.SystemAssigned {
-	if input == nil {
-		return nil
-	}
-
-	output := identity.SystemAssigned{
-		Type: identity.TypeNone,
-	}
-
-	if input.Type != nil && *input.Type == extensions.AKSIdentityTypeSystemAssigned {
-		output.Type = identity.TypeSystemAssigned
-	}
-
-	if input.PrincipalId != nil {
-		output.PrincipalId = *input.PrincipalId
-	}
-
-	if input.TenantId != nil {
-		output.TenantId = *input.TenantId
-	}
-
-	return &output
 }
