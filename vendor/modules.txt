@@ -151,7 +151,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk v0.20230331.1143618
+# github.com/hashicorp/go-azure-sdk v0.20230404.1155830
 ## explicit; go 1.19
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -241,9 +241,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-p
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/resolveprivatelinkserviceid
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/trustedaccess
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/agentpools
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/maintenanceconfigurations
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/maintenanceconfigurations
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway
@@ -492,10 +492,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments
-github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys
-github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/querykeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services
-github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-08-01/sharedprivatelinkresources
+github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/adminkeys
+github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/querykeys
+github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services
+github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/sharedprivatelinkresources
 github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-03-01/pricings
 github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules
 github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/automationrules

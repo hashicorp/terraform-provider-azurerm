@@ -232,7 +232,23 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 				d.Set("database_routing_type", props.DatabaseRouting)
 				d.Set("compression", props.Compression)
 				d.Set("event_system_properties", props.EventSystemProperties)
-				d.Set("identity_id", props.ManagedIdentityResourceId)
+
+				identityId := ""
+				if props.ManagedIdentityResourceId != nil {
+					identityId = *props.ManagedIdentityResourceId
+					clusterId, clusterIdErr := clusters.ParseClusterIDInsensitively(identityId)
+					if clusterIdErr == nil {
+						identityId = clusterId.ID()
+					} else {
+						userAssignedIdentityId, userAssignedIdentityIdErr := commonids.ParseUserAssignedIdentityIDInsensitively(identityId)
+						if userAssignedIdentityIdErr == nil {
+							identityId = userAssignedIdentityId.ID()
+						} else {
+							return fmt.Errorf("parsing `identity_id`: %+v; %+v", clusterIdErr, userAssignedIdentityIdErr)
+						}
+					}
+				}
+				d.Set("identity_id", identityId)
 			}
 		}
 	}
