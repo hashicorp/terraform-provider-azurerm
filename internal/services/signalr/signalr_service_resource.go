@@ -402,11 +402,13 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled", "live_trace_enabled", "service_mode") {
 			features := make([]signalr.SignalRFeature, 0)
 			if d.HasChange("connectivity_logs_enabled") || d.HasChange("messaging_logs_enabled") || d.HasChange("http_request_logs_enabled") {
-				_, connectivityLogsNew := d.GetChange("connectivity_logs_enabled")
+				connectivityLogsNew := d.Get("connectivity_logs_enabled")
 				features = append(features, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsNew.(bool))))
-				_, messagingLogsNew := d.GetChange("messaging_logs_enabled")
+
+				messagingLogsNew := d.Get("messaging_logs_enabled")
 				features = append(features, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsNew.(bool))))
-				_, httpLogsNew := d.GetChange("http_request_logs_enabled")
+
+				httpLogsNew := d.Get("http_request_logs_enabled")
 
 				resourceType.Properties.ResourceLogConfiguration = expandSignalRResourceLogConfig(connectivityLogsNew.(bool), messagingLogsNew.(bool), httpLogsNew.(bool))
 			}
