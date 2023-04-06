@@ -3,6 +3,7 @@ package search
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -367,8 +368,10 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				replicaCount = int(*count)
 			}
 
+			// NOTE: There is a bug in the API where it returns the PublicNetworkAccess value
+			// as 'Disabled' instead of with the casing of their const 'disabled'
 			if props.PublicNetworkAccess != nil {
-				publicNetworkAccess = *props.PublicNetworkAccess != services.PublicNetworkAccessDisabled
+				publicNetworkAccess = strings.EqualFold(string(*props.PublicNetworkAccess), string(services.PublicNetworkAccessEnabled))
 			}
 
 			if props.HostingMode != nil {
