@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
@@ -189,6 +190,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			appconfiguration.Registration{},
 			springcloud.Registration{},
 			applicationinsights.Registration{},
+			arckubernetes.Registration{},
 			attestation.Registration{},
 			authorization.Registration{},
 			automation.Registration{},
