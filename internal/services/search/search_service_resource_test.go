@@ -3,6 +3,7 @@ package search_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services"
@@ -157,50 +158,60 @@ func TestAccSearchService_identity(t *testing.T) {
 	})
 }
 
-// NOTE: These are currently commented out because the service returns the error:
-// "Message="Operation would exceed 'standard3' tier service quota. You are using 0 out of 0 'standard3' tier service quota.
-// If you need more quota, please submit a quota increase request with issue type 'Service and subscription limits (quota)'
-// and quota type 'Search' following https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-manager-quota-errors."
+func TestAccSearchService_hostingMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
 
-// func TestAccSearchService_hostingMode(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-// 	r := SearchServiceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hostingMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.hostingMode(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 	})
-// }
+func TestAccSearchService_hostingModeInvalidSKU(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
 
-// func TestAccSearchService_hostingModeUpdate(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-// 	r := SearchServiceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.hostingModeInvalidSKU(data),
+			Check:       acceptance.ComposeTestCheckFunc(),
+			ExpectError: regexp.MustCompile("can only be defined if"),
+		},
+	})
+}
 
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.hostingMode(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 		{
-// 			Config: r.hostingModeUpdate(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 	})
-// }
+func TestAccSearchService_partitionCountInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.partitionCountInvalid(data),
+			Check:       acceptance.ComposeTestCheckFunc(),
+			ExpectError: regexp.MustCompile("values greater than 1 cannot be set"),
+		},
+	})
+}
+
+func TestAccSearchService_replicaCountInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.replicaCountInvalid(data),
+			Check:       acceptance.ComposeTestCheckFunc(),
+			ExpectError: regexp.MustCompile("cannot be greater than 1 for the"),
+		},
+	})
+}
 
 func (t SearchServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := services.ParseSearchServiceID(state.ID)
@@ -342,52 +353,86 @@ resource "azurerm_search_service" "test" {
 `, template, data.RandomInteger)
 }
 
-// NOTE: These are currently commented out because the service returns the error:
-// "Message="Operation would exceed 'standard3' tier service quota. You are using 0 out of 0 'standard3' tier service quota.
-// If you need more quota, please submit a quota increase request with issue type 'Service and subscription limits (quota)'
-// and quota type 'Search' following https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-manager-quota-errors."
+func (r SearchServiceResource) hostingMode(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
-// func (r SearchServiceResource) hostingMode(data acceptance.TestData) string {
-// 	template := r.template(data)
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
+%s
 
-// %s
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard3"
+  hosting_mode        = "highDensity"
 
-// resource "azurerm_search_service" "test" {
-//   name                = "acctestsearchservice%d"
-//   resource_group_name = azurerm_resource_group.test.name
-//   location            = azurerm_resource_group.test.location
-//   sku                 = "standard3"
-//   hosting_mode        = "highDensity"
+  tags = {
+    environment = "staging"
+  }
+}
+`, template, data.RandomInteger)
+}
 
-//   tags = {
-//     environment = "staging"
-//   }
-// }
-// `, template, data.RandomInteger)
-// }
+func (r SearchServiceResource) hostingModeInvalidSKU(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
-// func (r SearchServiceResource) hostingModeUpdate(data acceptance.TestData) string {
-// 	template := r.template(data)
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
+%s
 
-// %s
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard2"
+  hosting_mode        = "highDensity"
 
-// resource "azurerm_search_service" "test" {
-//   name                = "acctestsearchservice%d"
-//   resource_group_name = azurerm_resource_group.test.name
-//   location            = azurerm_resource_group.test.location
-//   sku                 = "standard3"
+  tags = {
+    environment = "staging"
+  }
+}
+`, template, data.RandomInteger)
+}
 
-//   tags = {
-//     environment = "staging"
-//   }
-// }
-// `, template, data.RandomInteger)
-// }
+func (r SearchServiceResource) partitionCountInvalid(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "free"
+  partition_count     = 3
+}
+`, template, data.RandomInteger)
+}
+
+func (r SearchServiceResource) replicaCountInvalid(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "free"
+  replica_count       = 2
+}
+`, template, data.RandomInteger)
+}

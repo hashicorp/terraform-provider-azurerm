@@ -3,7 +3,6 @@ package search
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	validateSearch "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -50,8 +50,6 @@ func resourceSearchService() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			// NOTE: in the 2022-09-01 version of the API 'location'
-			// is now just a string instead of a *string
 			"location": commonschema.Location(),
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -72,21 +70,23 @@ func resourceSearchService() *pluginsdk.Resource {
 			},
 
 			"replica_count": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntBetween(1, 12),
 			},
 
 			"partition_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntAtMost(12),
+				Default:      1,
+				ValidateFunc: validateSearch.PartitionCount,
 			},
 
 			"hosting_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  services.HostingModeDefault,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(services.HostingModeDefault),
@@ -129,7 +129,7 @@ func resourceSearchService() *pluginsdk.Resource {
 			},
 
 			"allowed_ips": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -164,12 +164,66 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return tf.ImportAsExistsError("azurerm_search_service", id.ID())
 	}
 
-	properties, err := resourceSearchServiceCreateOrUpdateProperties(d)
-	if err != nil {
-		return fmt.Errorf("%+v", err)
+	location := azure.NormalizeLocation(d.Get("location").(string))
+
+	publicNetworkAccess := services.PublicNetworkAccessEnabled
+	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+		publicNetworkAccess = services.PublicNetworkAccessDisabled
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, *properties, services.CreateOrUpdateOperationOptions{})
+	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	skuName := services.SkuName(d.Get("sku").(string))
+	hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
+
+	// NOTE: hosting mode is only valid if the SKU is 'standard3'
+	if skuName != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
+		return fmt.Errorf("'hosting_mode' can only be defined if the 'sku' field is set to the 'standard3' SKU, got %q", skuName)
+	}
+
+	// NOTE: 'partition_count' values greater than 1 are not valid for 'free' or 'basic' SKUs...
+	partitionCount := int64(d.Get("partition_count").(int))
+
+	if (skuName == services.SkuNameFree || skuName == services.SkuNameBasic) && partitionCount > 1 {
+		return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", skuName, partitionCount)
+	}
+
+	// NOTE: 'standard3' services with 'hostingMode' set to 'highDensity' the
+	// 'partition_count' must be between 1 and 3.
+	if skuName == services.SkuNameStandardThree && partitionCount > 3 && hostingMode == services.HostingModeHighDensity {
+		return fmt.Errorf("'standard3' SKUs in 'highDensity' mode can have a maximum of 3 partitions, got %d", partitionCount)
+	}
+
+	// The number of replicas can be between 1 and 12 for 'standard', 'storage_optimized_l1' and storage_optimized_l2' SKUs
+	// or between 1 and 3 for 'basic' SKU. Defaults to 1.
+	replicaCount, err := validateSearchServiceReplicaCount(int64(d.Get("replica_count").(int)), skuName)
+	if err != nil {
+		return err
+	}
+
+	ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
+	searchService := services.SearchService{
+		Location: location,
+		Sku: &services.Sku{
+			Name: &skuName,
+		},
+		Properties: &services.SearchServiceProperties{
+			PublicNetworkAccess: &publicNetworkAccess,
+			NetworkRuleSet: &services.NetworkRuleSet{
+				IPRules: expandSearchServiceIPRules(ipRulesRaw),
+			},
+			HostingMode:    &hostingMode,
+			PartitionCount: &partitionCount,
+			ReplicaCount:   &replicaCount,
+		},
+		Identity: expandedIdentity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	err = client.CreateOrUpdateThenPoll(ctx, id, searchService, services.CreateOrUpdateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -188,87 +242,82 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	_, err = client.Get(ctx, *id, services.GetOperationOptions{})
+	resp, err := client.Get(ctx, *id, services.GetOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	properties, err := resourceSearchServiceCreateOrUpdateProperties(d)
-	if err != nil {
-		return fmt.Errorf("%+v", err)
+	if model := resp.Model; model != nil {
+		if d.HasChange("public_network_access_enabled") {
+			publicNetworkAccess := services.PublicNetworkAccessEnabled
+			if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+				publicNetworkAccess = services.PublicNetworkAccessDisabled
+			}
+
+			model.Properties.PublicNetworkAccess = &publicNetworkAccess
+		}
+
+		if d.HasChange("identity") {
+			expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
+			model.Identity = expandedIdentity
+		}
+
+		if d.HasChange("hosting_mode") {
+			hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
+			if *model.Sku.Name != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
+				return fmt.Errorf("'hosting_mode' can only be set to 'highDensity' if the 'sku' is 'standard3', got %q", *model.Sku.Name)
+			}
+
+			model.Properties.HostingMode = &hostingMode
+		}
+
+		if d.HasChange("replica_count") {
+			replicaCount, err := validateSearchServiceReplicaCount(int64(d.Get("replica_count").(int)), *model.Sku.Name)
+			if err != nil {
+				return err
+			}
+
+			model.Properties.ReplicaCount = utils.Int64(replicaCount)
+		}
+
+		if d.HasChange("partition_count") {
+			partitionCount := int64(d.Get("partition_count").(int))
+			// NOTE: 'partition_count' values greater than 1 are not valid for 'free' or 'basic' SKUs...
+			if (*model.Sku.Name == services.SkuNameFree || *model.Sku.Name == services.SkuNameBasic) && partitionCount > 1 {
+				return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", *model.Sku.Name, partitionCount)
+			}
+
+			// NOTE: If SKU is 'standard3' and the 'hosting_mode' is set to 'highDensity' the maximum number of partitions allowed is 3
+			// where if 'hosting_mode' is set to 'default' the maximum number of partitions is 12...
+			if *model.Sku.Name == services.SkuNameStandardThree && partitionCount > 3 && *model.Properties.HostingMode == services.HostingModeHighDensity {
+				return fmt.Errorf("'standard3' SKUs in 'highDensity' mode can have a maximum of 3 partitions, got %d", partitionCount)
+			}
+
+			model.Properties.PartitionCount = utils.Int64(partitionCount)
+		}
+
+		if d.HasChange("allowed_ips") {
+			ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
+			model.Properties.NetworkRuleSet.IPRules = expandSearchServiceIPRules(ipRulesRaw)
+		}
+
+		if d.HasChange("tags") {
+			model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		}
+
+		err = client.CreateOrUpdateThenPoll(ctx, *id, *model, services.CreateOrUpdateOperationOptions{})
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+
+		return resourceSearchServiceRead(d, meta)
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *properties, services.CreateOrUpdateOperationOptions{})
-	if err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
-	return resourceSearchServiceRead(d, meta)
-}
-
-func resourceSearchServiceCreateOrUpdateProperties(d *pluginsdk.ResourceData) (*services.SearchService, error) {
-	// this might be broken because of how terraform treats ResourceData in the Create vs. the Update function... I think in
-	// update it is pulling it from state instead of the config, like it does in Create...
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
-	publicNetworkAccess := services.PublicNetworkAccessEnabled
-	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
-		publicNetworkAccess = services.PublicNetworkAccessDisabled
-	}
-
-	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
-	if err != nil {
-		return nil, fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
-	skuName := services.SkuName(d.Get("sku").(string))
-	hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
-
-	if skuName != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
-		return nil, fmt.Errorf("'hosting_mode' can only be set to 'highDensity' if the 'sku' is 'standard3', got %q", skuName)
-	}
-
-	searchService := services.SearchService{
-		Location: location,
-		Sku: &services.Sku{
-			Name: &skuName,
-		},
-		Properties: &services.SearchServiceProperties{
-			PublicNetworkAccess: &publicNetworkAccess,
-			NetworkRuleSet: &services.NetworkRuleSet{
-				IPRules: expandSearchServiceIPRules(d.Get("allowed_ips").([]interface{})),
-			},
-			HostingMode: &hostingMode,
-		},
-		Identity: expandedIdentity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if v, ok := d.GetOk("replica_count"); ok {
-		replicaCount := int64(v.(int))
-		searchService.Properties.ReplicaCount = utils.Int64(replicaCount)
-	}
-
-	// NOTE: 1 is now the "default" value for partitionCount...
-	var partitionCount int64
-	if v, ok := d.GetOk("partition_count"); ok {
-		partitionCount = int64(v.(int))
-		searchService.Properties.PartitionCount = utils.Int64(partitionCount)
-	}
-
-	// NOTE: 'partition_count' values greater than 1 are only valid for standard SKUs...
-	if !strings.HasPrefix(strings.ToLower(string(skuName)), "standard") && partitionCount > 1 {
-		return nil, fmt.Errorf("'partition_count' values greater than 1 are only valid for 'standard' SKUs, got (sku: %q, partition_count: %d)", skuName, partitionCount)
-	}
-
-	// NOTE: If SKU is 'standard3' and the 'hosting_mode' is set to 'highDensity' the maximum number of partitions allowed is 3
-	// where if 'hosting_mode' is set to 'default' the maximum number of partitions is 12...
-	if skuName == services.SkuNameStandardThree && partitionCount > 3 && hostingMode == services.HostingModeHighDensity {
-		return nil, fmt.Errorf("'standard3' SKUs in 'highDensity' mode can have a maximum of 3 partitions, got %d", partitionCount)
-	}
-
-	return &searchService, nil
+	return nil
 }
 
 func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -307,7 +356,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if props := model.Properties; props != nil {
 			partitionCount := 0
 			replicaCount := 0
-			publicNetworkAccess := false
+			publicNetworkAccess := true // publicNetworkAccess defaults to true...
 			hostingMode := services.HostingModeDefault
 
 			if count := props.PartitionCount; count != nil {
@@ -436,4 +485,19 @@ func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
 		result = append(result, rule.Value)
 	}
 	return result
+}
+
+func validateSearchServiceReplicaCount(replicaCount int64, skuName services.SkuName) (int64, error) {
+	switch skuName {
+	case services.SkuNameFree:
+		if replicaCount > 1 {
+			return 0, fmt.Errorf("'replica_count' cannot be greater than 1 for the %q SKU, got %d", skuName, replicaCount)
+		}
+	case services.SkuNameBasic:
+		if replicaCount > 3 {
+			return 0, fmt.Errorf("'replica_count' must be between 1 and 3 for the %q SKU, got %d)", skuName, replicaCount)
+		}
+	}
+
+	return replicaCount, nil
 }

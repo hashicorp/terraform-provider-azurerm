@@ -36,21 +36,24 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Search Service should exist. Changing this forces a new Search Service to be created.
 
-* `sku` - (Required) The SKU which should be used for this Search Service. Possible values are `basic`, `free`, `standard`, `standard2`, `standard3`, `storage_optimized_l1` and `storage_optimized_l2`. Changing this forces a new Search Service to be created.
+* `sku` - (Required) The SKU which should be used for this Search Service. Possible values include `basic`, `free`, `standard`, `standard2`, `standard3`, `storage_optimized_l1` and `storage_optimized_l2`. Changing this forces a new Search Service to be created.
 
 -> The `basic` and `free` SKUs provision the Search Service in a Shared Cluster - the `standard` SKUs use a Dedicated Cluster.
 
-~> **Note:** The SKUs `standard2` and `standard3` are only available when enabled on the backend by Microsoft.
+~> **NOTE:** The SKUs `standard2` and `standard3` are only available by submitting a quota increase request to Microsoft. Please see the [product documentation](https://learn.microsoft.com/azure/azure-resource-manager/troubleshooting/error-resource-quota?tabs=azure-cli) on how to submit a quota increase request.
 
 ---
+* `hosting_mode` - (Optional) Enable high density partitions that allow for up to a 1000 indexes. Possible values are `highDensity` or `default`. Defaults to `default`. Changing this forces a new Search Service to be created.
+
+-> **NOTE:** When the Search Service is in `highDensity` mode the maximum number of partitions allowed is `3`, to enable `hosting_mode` you must use a `standard3` SKU.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this resource. Defaults to `true`.
 
-* `partition_count` - (Optional) The number of partitions which should be created.
+* `partition_count` - (Optional) The number of partitions which should be created. Possible values include `1`, `2`, `3`, `4`, `6`, or `12`. Defaults to `1`.
 
 * `replica_count` - (Optional) The number of replica's which should be created.
 
--> **Note:** `partition_count` and `replica_count` can only be configured when using a `standard` sku.
+-> **NOTE:** `replica_count` cannot be configured when using a `free` SKU, `partition_count` cannot be configured when using a `free` or `basic` SKU. For more information please to the [product documentation](https://learn.microsoft.com/azure/search/search-sku-tier).
 
 * `allowed_ips` - (Optional) A list of IPv4 addresses or CIDRs that are allowed access to the search service endpoint.
 
