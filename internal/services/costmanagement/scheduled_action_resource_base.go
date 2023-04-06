@@ -1,0 +1,350 @@
+package costmanagement
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/scheduledactions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/views"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+type costManagementScheduledActionBaseResource struct{}
+
+func (br costManagementScheduledActionBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
+	output := map[string]*pluginsdk.Schema{
+		"display_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"view_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"email_subject": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringLenBetween(1, 70),
+		},
+
+		"email_addresses": {
+			Type:     pluginsdk.TypeSet,
+			Required: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
+
+		"message": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringLenBetween(1, 250),
+		},
+
+		"email_address_sender": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"frequency": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(scheduledactions.PossibleValuesForScheduleFrequency(), false),
+		},
+
+		"days_of_week": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice(scheduledactions.PossibleValuesForDaysOfWeek(), false),
+			},
+		},
+
+		"weeks_of_month": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice(scheduledactions.PossibleValuesForWeeksOfMonth(), false),
+			},
+		},
+
+		"start_date": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.IsRFC3339Time,
+		},
+
+		"end_date": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.IsRFC3339Time,
+		},
+	}
+
+	for k, v := range fields {
+		output[k] = v
+	}
+
+	return output
+}
+
+func (br costManagementScheduledActionBaseResource) attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
+
+func (br costManagementScheduledActionBaseResource) createFunc(resourceName, scopeFieldName string) sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.CostManagement.ScheduledActionsClient_v2022_10_01
+			id := scheduledactions.NewScopedScheduledActionID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
+
+			existing, err := client.GetByScope(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError(resourceName, id.ID())
+			}
+
+			emailAddressesRaw := metadata.ResourceData.Get("email_addresses").(*pluginsdk.Set).List()
+			emailAddresses := utils.ExpandStringSlice(emailAddressesRaw)
+
+			viewId := views.NewScopedViewID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("view_name").(string))
+
+			var daysOfWeek []scheduledactions.DaysOfWeek
+			if metadata.ResourceData.Get("days_of_week").(*pluginsdk.Set).Len() > 0 {
+				daysOfWeek = make([]scheduledactions.DaysOfWeek, 0)
+				for _, value := range metadata.ResourceData.Get("days_of_week").(*pluginsdk.Set).List() {
+					daysOfWeek = append(daysOfWeek, scheduledactions.DaysOfWeek(value.(string)))
+				}
+			}
+
+			var weeksOfMonth []scheduledactions.WeeksOfMonth
+			if metadata.ResourceData.Get("weeks_of_month").(*pluginsdk.Set).Len() > 0 {
+				weeksOfMonth = make([]scheduledactions.WeeksOfMonth, 0)
+				for _, value := range metadata.ResourceData.Get("weeks_of_month").(*pluginsdk.Set).List() {
+					weeksOfMonth = append(weeksOfMonth, scheduledactions.WeeksOfMonth(value.(string)))
+				}
+			}
+			schedule := scheduledactions.ScheduleProperties{
+				Frequency:    scheduledactions.ScheduleFrequency(metadata.ResourceData.Get("frequency").(string)),
+				WeeksOfMonth: &weeksOfMonth,
+				DaysOfWeek:   &daysOfWeek,
+				StartDate:    metadata.ResourceData.Get("start_date").(string),
+				EndDate:      metadata.ResourceData.Get("end_date").(string),
+			}
+
+			props := scheduledactions.ScheduledAction{
+				Kind: utils.ToPtr(scheduledactions.ScheduledActionKindEmail),
+				Properties: &scheduledactions.ScheduledActionProperties{
+					DisplayName: metadata.ResourceData.Get("display_name").(string),
+					Status:      scheduledactions.ScheduledActionStatusEnabled,
+					ViewId:      viewId.ID(),
+					FileDestination: &scheduledactions.FileDestination{
+						FileFormats: &[]scheduledactions.FileFormat{},
+					},
+					NotificationEmail: utils.String(metadata.ResourceData.Get("email_address_sender").(string)),
+					Notification: scheduledactions.NotificationProperties{
+						Subject: metadata.ResourceData.Get("email_subject").(string),
+						Message: utils.String(metadata.ResourceData.Get("message").(string)),
+						To:      *emailAddresses,
+					},
+					Schedule: schedule,
+				},
+			}
+
+			opts := scheduledactions.CreateOrUpdateByScopeOperationOptions{}
+			_, err = client.CreateOrUpdateByScope(ctx, id, props, opts)
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
+	}
+}
+
+func (br costManagementScheduledActionBaseResource) readFunc(scopeFieldName string) sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.CostManagement.ScheduledActionsClient_v2022_10_01
+
+			id, err := scheduledactions.ParseScopedScheduledActionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.GetByScope(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+
+			metadata.ResourceData.Set("name", id.ScheduledActionName)
+			//lintignore:R001
+			metadata.ResourceData.Set(scopeFieldName, id.Scope)
+
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					metadata.ResourceData.Set("display_name", props.DisplayName)
+					metadata.ResourceData.Set("email_address_sender", props.NotificationEmail)
+					viewId, err := views.ParseScopedViewID(props.ViewId)
+					if err != nil {
+						return err
+					}
+					metadata.ResourceData.Set("view_name", viewId.ViewName)
+
+					metadata.ResourceData.Set("email_subject", props.Notification.Subject)
+					metadata.ResourceData.Set("email_addresses", props.Notification.To)
+					metadata.ResourceData.Set("message", props.Notification.Message)
+
+					metadata.ResourceData.Set("frequency", props.Schedule.Frequency)
+					metadata.ResourceData.Set("days_of_week", props.Schedule.DaysOfWeek)
+					metadata.ResourceData.Set("weeks_of_month", props.Schedule.WeeksOfMonth)
+					metadata.ResourceData.Set("start_date", props.Schedule.StartDate)
+					metadata.ResourceData.Set("end_date", props.Schedule.EndDate)
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func (br costManagementScheduledActionBaseResource) deleteFunc() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.CostManagement.ScheduledActionsClient_v2022_10_01
+
+			id, err := scheduledactions.ParseScopedScheduledActionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if _, err = client.DeleteByScope(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (br costManagementScheduledActionBaseResource) updateFunc() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.CostManagement.ScheduledActionsClient_v2022_10_01
+
+			id, err := scheduledactions.ParseScopedScheduledActionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			// Update operation requires latest eTag to be set in the request.
+			existing, err := client.GetByScope(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+			model := existing.Model
+
+			if model != nil {
+				if model.ETag == nil {
+					return fmt.Errorf("add %s: etag was nil", *id)
+				}
+			}
+
+			if model.Properties == nil {
+				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
+			}
+
+			if metadata.ResourceData.HasChange("display_name") {
+				model.Properties.DisplayName = metadata.ResourceData.Get("display_name").(string)
+			}
+
+			if metadata.ResourceData.HasChange("view_name") {
+				model.Properties.ViewId = views.NewScopedViewID(id.Scope, metadata.ResourceData.Get("view_name").(string)).ID()
+			}
+
+			if metadata.ResourceData.HasChange("email_subject") {
+				model.Properties.Notification.Subject = metadata.ResourceData.Get("email_subject").(string)
+			}
+
+			if metadata.ResourceData.HasChange("email_addresses") {
+				model.Properties.Notification.To = *utils.ExpandStringSlice(metadata.ResourceData.Get("email_addresses").(*pluginsdk.Set).List())
+			}
+
+			if metadata.ResourceData.HasChange("message") {
+				model.Properties.Notification.Message = utils.String(metadata.ResourceData.Get("message").(string))
+			}
+
+			if metadata.ResourceData.HasChange("frequency") {
+				model.Properties.Schedule.Frequency = scheduledactions.ScheduleFrequency(metadata.ResourceData.Get("frequency").(string))
+			}
+
+			if metadata.ResourceData.HasChange("days_of_week") {
+				var daysOfWeek []scheduledactions.DaysOfWeek
+				if metadata.ResourceData.Get("days_of_week").(*pluginsdk.Set).Len() > 0 {
+					daysOfWeek = make([]scheduledactions.DaysOfWeek, 0)
+					for _, value := range metadata.ResourceData.Get("days_of_week").(*pluginsdk.Set).List() {
+						daysOfWeek = append(daysOfWeek, scheduledactions.DaysOfWeek(value.(string)))
+					}
+				}
+				model.Properties.Schedule.DaysOfWeek = &daysOfWeek
+			}
+
+			if metadata.ResourceData.HasChange("weeks_of_month") {
+				var weeksOfMonth []scheduledactions.WeeksOfMonth
+				if metadata.ResourceData.Get("weeks_of_month").(*pluginsdk.Set).Len() > 0 {
+					weeksOfMonth = make([]scheduledactions.WeeksOfMonth, 0)
+					for _, value := range metadata.ResourceData.Get("weeks_of_month").(*pluginsdk.Set).List() {
+						weeksOfMonth = append(weeksOfMonth, scheduledactions.WeeksOfMonth(value.(string)))
+					}
+				}
+				model.Properties.Schedule.WeeksOfMonth = &weeksOfMonth
+			}
+
+			if metadata.ResourceData.HasChange("start_date") {
+				model.Properties.Schedule.StartDate = metadata.ResourceData.Get("start_date").(string)
+			}
+
+			if metadata.ResourceData.HasChange("end_date") {
+				model.Properties.Schedule.EndDate = metadata.ResourceData.Get("end_date").(string)
+			}
+
+			opts := scheduledactions.CreateOrUpdateByScopeOperationOptions{}
+			_, err = client.CreateOrUpdateByScope(ctx, *id, *model, opts)
+			if err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
