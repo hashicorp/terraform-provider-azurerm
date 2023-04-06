@@ -18,11 +18,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -136,7 +138,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: networkValidate.SubnetID,
 					},
 				},
 			},
@@ -188,7 +190,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 								"subnet_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: azure.ValidateResourceID,
+									ValidateFunc: networkValidate.SubnetID,
 								},
 							},
 						},
@@ -219,7 +221,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: networkValidate.PublicIpAddressID,
 					},
 
 					"private_ip_addresses": {
@@ -493,6 +495,38 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"delegation": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"subscriptions_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"user_registration_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"url": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					},
+					"validation_key": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.Base64EncodedString,
+						Sensitive:    true,
+					},
+				},
+			},
+		},
+
 		"sign_up": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -558,7 +592,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"public_ip_address_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: networkValidate.PublicIpAddressID,
 		},
 
 		"public_network_access_enabled": {
@@ -751,7 +785,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	if _, ok := d.GetOk("additional_location"); ok {
 		var err error
-		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, sku)
+		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, *sku)
 		if err != nil {
 			return err
 		}
@@ -908,6 +942,18 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
+	delegationSettingsRaw := d.Get("delegation").([]interface{})
+	if sku.Name == apimanagement.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
+		return fmt.Errorf("`delegation` is not support for sku tier `Consumption`")
+	}
+	if sku.Name != apimanagement.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
+		delegationSettings := expandApiManagementDelegationSettings(delegationSettingsRaw)
+		delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
+		if _, err := delegationClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, delegationSettings, ""); err != nil {
+			return fmt.Errorf(" setting Delegation settings for %s: %+v", id, err)
+		}
+	}
+
 	policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
 	policiesRaw := d.Get("policy").([]interface{})
 	policy, err := expandApiManagementPolicies(policiesRaw)
@@ -951,6 +997,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
 	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
+	delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
 	tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1078,9 +1125,24 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
 			return fmt.Errorf("setting `sign_up`: %+v", err)
 		}
+
+		delegationSettings, err := delegationClient.Get(ctx, id.ResourceGroup, id.ServiceName)
+		if err != nil {
+			return fmt.Errorf("retrieving Delegation Settings for %s: %+v", *id, err)
+		}
+
+		delegationValidationKeyContract, err := delegationClient.ListSecrets(ctx, id.ResourceGroup, id.ServiceName)
+		if err != nil {
+			return fmt.Errorf("retrieving Delegation Validation Key for %s: %+v", *id, err)
+		}
+
+		if err := d.Set("delegation", flattenApiManagementDelegationSettings(delegationSettings, delegationValidationKeyContract)); err != nil {
+			return fmt.Errorf("setting `delegation`: %+v", err)
+		}
 	} else {
 		d.Set("sign_in", []interface{}{})
 		d.Set("sign_up", []interface{}{})
+		d.Set("delegation", []interface{}{})
 	}
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
@@ -1390,7 +1452,7 @@ func expandAzureRmApiManagementCertificates(d *pluginsdk.ResourceData) *[]apiman
 	return &results
 }
 
-func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sku *apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
+func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sku apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
 	inputLocations := d.Get("additional_location").([]interface{})
 	parentVnetConfig := d.Get("virtual_network_configuration").([]interface{})
 
@@ -1406,7 +1468,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 
 		additionalLocation := apimanagement.AdditionalLocation{
 			Location:       utils.String(location),
-			Sku:            sku,
+			Sku:            &sku,
 			DisableGateway: utils.Bool(config["gateway_disabled"].(bool)),
 		}
 
@@ -1804,6 +1866,78 @@ func flattenApiManagementSignInSettings(input apimanagement.PortalSigninSettings
 	return []interface{}{
 		map[string]interface{}{
 			"enabled": enabled,
+		},
+	}
+}
+
+func expandApiManagementDelegationSettings(input []interface{}) apimanagement.PortalDelegationSettings {
+	if len(input) == 0 {
+		return apimanagement.PortalDelegationSettings{}
+	}
+
+	vs := input[0].(map[string]interface{})
+
+	props := apimanagement.PortalDelegationSettingsProperties{
+		UserRegistration: &apimanagement.RegistrationDelegationSettingsProperties{
+			Enabled: utils.Bool(vs["user_registration_enabled"].(bool)),
+		},
+		Subscriptions: &apimanagement.SubscriptionsDelegationSettingsProperties{
+			Enabled: utils.Bool(vs["subscriptions_enabled"].(bool)),
+		},
+	}
+
+	validationKey := vs["validation_key"].(string)
+	if !vs["user_registration_enabled"].(bool) && !vs["subscriptions_enabled"].(bool) && validationKey == "" {
+		// for some reason we cannot leave this empty
+		props.ValidationKey = utils.String("cGxhY2Vob2xkZXIxCg==")
+	}
+	if validationKey != "" {
+		props.ValidationKey = utils.String(validationKey)
+	}
+
+	url := vs["url"].(string)
+	if !vs["user_registration_enabled"].(bool) && !vs["subscriptions_enabled"].(bool) && url == "" {
+		// for some reason we cannot leave this empty
+		props.URL = utils.String("https://www.placeholder.com")
+	}
+	if url != "" {
+		props.URL = utils.String(url)
+	}
+
+	return apimanagement.PortalDelegationSettings{
+		PortalDelegationSettingsProperties: &props,
+	}
+}
+
+func flattenApiManagementDelegationSettings(input apimanagement.PortalDelegationSettings, keyContract apimanagement.PortalSettingValidationKeyContract) []interface{} {
+	url := ""
+	subscriptionsEnabled := false
+	userRegistrationEnabled := false
+
+	if props := input.PortalDelegationSettingsProperties; props != nil {
+		if props.URL != nil {
+			url = *props.URL
+		}
+
+		if props.Subscriptions != nil && props.Subscriptions.Enabled != nil {
+			subscriptionsEnabled = *props.Subscriptions.Enabled
+		}
+
+		if props.UserRegistration != nil && props.UserRegistration.Enabled != nil {
+			userRegistrationEnabled = *props.UserRegistration.Enabled
+		}
+	}
+	validationKey := ""
+	if keyContract.ValidationKey != nil {
+		validationKey = *keyContract.ValidationKey
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"url":                       url,
+			"subscriptions_enabled":     subscriptionsEnabled,
+			"user_registration_enabled": userRegistrationEnabled,
+			"validation_key":            validationKey,
 		},
 	}
 }

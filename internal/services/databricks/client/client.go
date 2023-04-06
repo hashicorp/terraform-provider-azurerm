@@ -1,7 +1,10 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/accessconnector"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/vnetpeering"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -9,16 +12,31 @@ import (
 type Client struct {
 	AccessConnectorClient *accessconnector.AccessConnectorClient
 	WorkspacesClient      *workspaces.WorkspacesClient
+	VnetPeeringClient     *vnetpeering.VNetPeeringClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	AccessConnectorClient := accessconnector.NewAccessConnectorClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&AccessConnectorClient.Client, o.ResourceManagerAuthorizer)
-	WorkspacesClient := workspaces.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	accessConnectorClient, err := accessconnector.NewAccessConnectorClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building AccessConnector client: %+v", err)
+	}
+	o.Configure(accessConnectorClient.Client, o.Authorizers.ResourceManager)
+
+	workspacesClient, err := workspaces.NewWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Workspaces client: %+v", err)
+	}
+	o.Configure(workspacesClient.Client, o.Authorizers.ResourceManager)
+
+	vnetPeeringClient, err := vnetpeering.NewVNetPeeringClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VNetPeering client: %+v", err)
+	}
+	o.Configure(vnetPeeringClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AccessConnectorClient: &AccessConnectorClient,
-		WorkspacesClient:      &WorkspacesClient,
-	}
+		AccessConnectorClient: accessConnectorClient,
+		WorkspacesClient:      workspacesClient,
+		VnetPeeringClient:     vnetPeeringClient,
+	}, nil
 }

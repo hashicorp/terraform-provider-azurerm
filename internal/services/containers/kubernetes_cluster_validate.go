@@ -8,8 +8,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -23,7 +23,6 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 			profile := rawProfiles[0].(map[string]interface{})
 
 			if networkPlugin := profile["network_plugin"].(string); networkPlugin != "" {
-				dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
 				dnsServiceIP := profile["dns_service_ip"].(string)
 				serviceCidr := profile["service_cidr"].(string)
 				podCidr := profile["pod_cidr"].(string)
@@ -38,8 +37,8 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 				}
 
 				// if not All empty values or All set values.
-				if !(dockerBridgeCidr == "" && dnsServiceIP == "" && !isServiceCidrSet) && !(dockerBridgeCidr != "" && dnsServiceIP != "" && isServiceCidrSet) {
-					return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set")
+				if !(dnsServiceIP == "" && !isServiceCidrSet) && !(dnsServiceIP != "" && isServiceCidrSet) {
+					return fmt.Errorf("`dns_service_ip` and `service_cidr` should all be empty or both should be set")
 				}
 
 				ipVersions := profile["ip_versions"].([]interface{})

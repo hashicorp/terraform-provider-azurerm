@@ -22,6 +22,33 @@ type Client struct {
 	configureClientFunc              func(c *autorest.Client, authorizer autorest.Authorizer)
 }
 
+func (c Client) DataPlaneClientWithEndpoint(configurationStoreEndpoint string) (*appconfiguration.BaseClient, error) {
+	api := environments.NewApiEndpoint("AppConfiguration", configurationStoreEndpoint, nil)
+	appConfigAuth, err := c.authorizerFunc(api)
+	if err != nil {
+		return nil, fmt.Errorf("obtaining auth token for %q: %+v", configurationStoreEndpoint, err)
+	}
+
+	client := appconfiguration.NewWithoutDefaults("", configurationStoreEndpoint)
+	c.configureClientFunc(&client.Client, authWrapper.AutorestAuthorizer(appConfigAuth))
+
+	return &client, nil
+}
+
+func (c Client) LinkWorkaroundDataPlaneClientWithEndpoint(configurationStoreEndpoint string) (*azuresdkhacks.DataPlaneClient, error) {
+	api := environments.NewApiEndpoint("AppConfiguration", configurationStoreEndpoint, nil)
+	appConfigAuth, err := c.authorizerFunc(api)
+	if err != nil {
+		return nil, fmt.Errorf("obtaining auth token for %q: %+v", configurationStoreEndpoint, err)
+	}
+
+	client := appconfiguration.NewWithoutDefaults("", configurationStoreEndpoint)
+	c.configureClientFunc(&client.Client, authWrapper.AutorestAuthorizer(appConfigAuth))
+	workaroundClient := azuresdkhacks.NewDataPlaneClient(client)
+
+	return &workaroundClient, nil
+}
+
 func (c Client) DataPlaneClient(ctx context.Context, configurationStoreId string) (*appconfiguration.BaseClient, error) {
 	appConfigId, err := configurationstores.ParseConfigurationStoreID(configurationStoreId)
 	if err != nil {
@@ -42,13 +69,15 @@ func (c Client) DataPlaneClient(ctx context.Context, configurationStoreId string
 		return nil, fmt.Errorf("endpoint was nil")
 	}
 
-	api := environments.NewApiEndpoint("AppConfiguration", *appConfig.Model.Properties.Endpoint, nil)
+	endpoint := *appConfig.Model.Properties.Endpoint
+
+	api := environments.NewApiEndpoint("AppConfiguration", endpoint, nil)
 	appConfigAuth, err := c.authorizerFunc(api)
 	if err != nil {
-		return nil, fmt.Errorf("obtaining auth token for %q: %+v", *appConfig.Model.Properties.Endpoint, err)
+		return nil, fmt.Errorf("obtaining auth token for %q: %+v", endpoint, err)
 	}
 
-	client := appconfiguration.NewWithoutDefaults("", *appConfig.Model.Properties.Endpoint)
+	client := appconfiguration.NewWithoutDefaults("", endpoint)
 	c.configureClientFunc(&client.Client, authWrapper.AutorestAuthorizer(appConfigAuth))
 
 	return &client, nil

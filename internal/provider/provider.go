@@ -366,9 +366,13 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			}
 		}
 
+		oidcToken, err := getOidcToken(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
 		var (
 			env *environments.Environment
-			err error
 
 			envName      = d.Get("environment").(string)
 			metadataHost = d.Get("metadata_host").(string)
@@ -388,7 +392,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			enableOidc            = d.Get("use_oidc").(bool)
 		)
 
-		authConfig := auth.Credentials{
+		authConfig := &auth.Credentials{
 			Environment:        *env,
 			ClientID:           d.Get("client_id").(string),
 			TenantID:           d.Get("tenant_id").(string),
@@ -399,7 +403,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			ClientCertificatePassword: d.Get("client_certificate_password").(string),
 			ClientSecret:              d.Get("client_secret").(string),
 
-			OIDCAssertionToken:          d.Get("oidc_token").(string),
+			OIDCAssertionToken:          *oidcToken,
 			GitHubOIDCTokenRequestURL:   d.Get("oidc_request_url").(string),
 			GitHubOIDCTokenRequestToken: d.Get("oidc_request_token").(string),
 
@@ -413,58 +417,62 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			EnableAuthenticationUsingGitHubOIDC:        enableOidc,
 		}
 
-		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
-
-		clientBuilder := clients.ClientBuilder{
-			AuthConfig:                  &authConfig,
-			DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
-			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
-			Features:                    expandFeatures(d.Get("features").([]interface{})),
-			MetadataHost:                metadataHost,
-			PartnerID:                   d.Get("partner_id").(string),
-			SkipProviderRegistration:    skipProviderRegistration,
-			StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
-			SubscriptionID:              d.Get("subscription_id").(string),
-			TerraformVersion:            p.TerraformVersion,
-
-			// this field is intentionally not exposed in the provider block, since it's only used for
-			// platform level tracing
-			CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
-		}
-
-		//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
-		stopCtx, ok := schema.StopContext(ctx) //nolint:staticcheck
-		if !ok {
-			stopCtx = ctx
-		}
-
-		client, err := clients.Build(stopCtx, clientBuilder)
-		if err != nil {
-			return nil, diag.FromErr(err)
-		}
-
-		client.StopContext = stopCtx
-
-		if !skipProviderRegistration {
-			// List all the available providers and their registration state to avoid unnecessary
-			// requests. This also lets us check if the provider credentials are correct.
-			providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
-			if err != nil {
-				return nil, diag.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
-					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-					"error: %s", err)
-			}
-
-			availableResourceProviders := providerList.Values()
-			requiredResourceProviders := resourceproviders.Required()
-
-			if err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders); err != nil {
-				return nil, diag.Errorf(resourceProviderRegistrationErrorFmt, err)
-			}
-		}
-
-		return client, nil
+		return buildClient(ctx, p, d, authConfig)
 	}
+}
+
+func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials) (*clients.Client, diag.Diagnostics) {
+	skipProviderRegistration := d.Get("skip_provider_registration").(bool)
+
+	clientBuilder := clients.ClientBuilder{
+		AuthConfig:                  authConfig,
+		DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
+		DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
+		Features:                    expandFeatures(d.Get("features").([]interface{})),
+		MetadataHost:                d.Get("metadata_host").(string),
+		PartnerID:                   d.Get("partner_id").(string),
+		SkipProviderRegistration:    skipProviderRegistration,
+		StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
+		SubscriptionID:              d.Get("subscription_id").(string),
+		TerraformVersion:            p.TerraformVersion,
+
+		// this field is intentionally not exposed in the provider block, since it's only used for
+		// platform level tracing
+		CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
+	}
+
+	//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
+	stopCtx, ok := schema.StopContext(ctx) //nolint:staticcheck
+	if !ok {
+		stopCtx = ctx
+	}
+
+	client, err := clients.Build(stopCtx, clientBuilder)
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+
+	client.StopContext = stopCtx
+
+	if !skipProviderRegistration {
+		// List all the available providers and their registration state to avoid unnecessary
+		// requests. This also lets us check if the provider credentials are correct.
+		providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
+		if err != nil {
+			return nil, diag.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
+				"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
+				"error: %s", err)
+		}
+
+		availableResourceProviders := providerList.Values()
+		requiredResourceProviders := resourceproviders.Required()
+
+		if err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders); err != nil {
+			return nil, diag.Errorf(resourceProviderRegistrationErrorFmt, err)
+		}
+	}
+
+	return client, nil
 }
 
 func decodeCertificate(clientCertificate string) ([]byte, error) {
@@ -478,6 +486,28 @@ func decodeCertificate(clientCertificate string) ([]byte, error) {
 		pfx = out[:n]
 	}
 	return pfx, nil
+}
+
+func getOidcToken(d *schema.ResourceData) (*string, error) {
+	idToken := strings.TrimSpace(d.Get("oidc_token").(string))
+
+	if path := d.Get("oidc_token_file_path").(string); path != "" {
+		fileTokenRaw, err := os.ReadFile(path)
+
+		if err != nil {
+			return nil, fmt.Errorf("reading OIDC Token from file %q: %v", path, err)
+		}
+
+		fileToken := strings.TrimSpace(string(fileTokenRaw))
+
+		if idToken != "" && idToken != fileToken {
+			return nil, fmt.Errorf("mismatch between supplied OIDC token and supplied OIDC token file contents - please either remove one or ensure they match")
+		}
+
+		idToken = fileToken
+	}
+
+	return &idToken, nil
 }
 
 const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.

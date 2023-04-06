@@ -60,13 +60,12 @@ type Query struct {
 	Top int
 }
 
-// Headers returns an http.Header map containing OData specific headers, for use in requests
+// Headers returns an http.Header map containing OData specific headers
 func (q Query) Headers() http.Header {
 	// Take extra care over canonicalization of header names
-	headers := http.Header{
-		"Odata-Maxversion": []string{ODataVersion},
-		"Odata-Version":    []string{ODataVersion},
-	}
+	headers := http.Header{}
+	headers.Set("Odata-Maxversion", ODataVersion)
+	headers.Set("Odata-Version", ODataVersion)
 
 	accept := "application/json; charset=utf-8; IEEE754Compatible=false"
 	if q.Metadata != "" {
@@ -94,9 +93,10 @@ func (q Query) AppendHeaders(header http.Header) http.Header {
 	return header
 }
 
-// Values returns a url.Values map containing OData specific query parameters, for use in requests
+// Values returns a url.Values map containing OData specific query parameters
 func (q Query) Values() url.Values {
 	p := url.Values{}
+
 	if q.Count {
 		p.Add("$count", fmt.Sprintf("%t", q.Count))
 	}
@@ -124,6 +124,7 @@ func (q Query) Values() url.Values {
 	if q.Top > 0 {
 		p.Add("$top", strconv.Itoa(q.Top))
 	}
+
 	return p
 }
 

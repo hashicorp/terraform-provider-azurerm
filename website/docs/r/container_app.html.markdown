@@ -91,7 +91,7 @@ A `secret` block supports the following:
 
 A `template` block supports the following:
 
-* `container` - (Required) A `container` block as detailed below.
+* `container` - (Required) One or more `container` blocks as detailed below.
 
 * `max_replicas` - (Optional) The maximum number of replicas for this container.
 
@@ -287,6 +287,16 @@ An `ingress` block supports the following:
 
 ---
 
+A `custom_domain` block supports the following:
+
+* `certificate_binding_type` - (Optional) The Binding type. Possible values include `Disabled` and `SniEnabled`. Defaults to `Disabled`.
+
+* `certificate_id` - (Required) The ID of the Container App Environment Certificate.
+
+* `name` - (Required) The hostname of the Certificate. Must be the CN or a named SAN in the certificate.
+
+---
+
 A `traffic_weight` block supports the following:
 
 ~> **Note:** This block only applies when `revision_mode` is set to `Multiple`.
@@ -307,7 +317,7 @@ A `dapr` block supports the following:
 
 * `app_id` - (Required) The Dapr Application Identifier.
 
-* `app_port` - (Required) The port which the application is listening on. This is the same as the `ingress` port.
+* `app_port` - (Optional) The port which the application is listening on. This is the same as the `ingress` port.
 
 * `app_protocol` - (Optional) The protocol for the app. Possible values include `http` and `grpc`. Defaults to `http`.
 
@@ -315,11 +325,16 @@ A `dapr` block supports the following:
 
 A `registry` block supports the following:
 
-* `password_secret_name` - (Required) The name of the Secret Reference containing the password value for this user on the Container Registry.
-
 * `server` - (Required) The hostname for the Container Registry.
 
-* `username` - (Required) The username to use for this Container Registry.
+The authentication details must also be supplied, `identity` and `username`/`password_secret_name` are mutually exclusive.
+
+* `identity` - (Optional) Resource ID for the User Assigned Managed identity to use when pulling from the Container Registry.
+
+* `password_secret_name` - (Optional) The name of the Secret Reference containing the password value for this user on the Container Registry, `username` must also be supplied.
+
+* `username` - (Optional) The username to use for this Container Registry, `password_secret_name` must also be supplied..
+
 
 
 ## Attributes Reference

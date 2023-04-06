@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -31,11 +31,18 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: func() map[string]*pluginsdk.Schema {
 				s := map[string]*pluginsdk.Schema{
-					// Required
+					// Required and conditionally ForceNew: updating `name` back to name when it's been set to the value
+					// of `temporary_name_for_rotation` during the resizing of the default node pool should be allowed and
+					// not force cluster recreation
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ForceNew:     true,
+						ValidateFunc: validate.KubernetesAgentPoolName,
+					},
+
+					"temporary_name_for_rotation": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
 						ValidateFunc: validate.KubernetesAgentPoolName,
 					},
 
@@ -53,7 +60,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"vm_size": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
@@ -61,7 +67,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: computeValidate.CapacityReservationGroupID,
+						ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 					},
 
 					"custom_ca_trust_enabled": {
@@ -159,7 +165,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: networkValidate.PublicIpPrefixID,
 						RequiredWith: []string{"default_node_pool.0.enable_node_public_ip"},
 					},
 
@@ -218,7 +224,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: networkValidate.SubnetID,
 					},
 					"orchestrator_version": {
 						Type:         pluginsdk.TypeString,
@@ -269,6 +275,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.WorkloadRuntimeOCIContainer),
+							string(managedclusters.WorkloadRuntimeKataMshvVMIsolation),
 						}, false),
 					},
 				}
@@ -1180,6 +1187,9 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 
 	name := agentPool.Name
 
+	// we pull this from the config, since the temporary node pool for cycling the system node pool won't exist if the operation is successful
+	temporaryName := d.Get("default_node_pool.0.temporary_name_for_rotation").(string)
+
 	var nodeLabels map[string]string
 	if agentPool.NodeLabels != nil {
 		nodeLabels = make(map[string]string)
@@ -1305,6 +1315,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"os_sku":                        osSKU,
 		"scale_down_mode":               string(scaleDownMode),
 		"tags":                          tags.Flatten(agentPool.Tags),
+		"temporary_name_for_rotation":   temporaryName,
 		"type":                          agentPoolType,
 		"ultra_ssd_enabled":             enableUltraSSD,
 		"vm_size":                       vmSize,
@@ -1647,6 +1658,7 @@ func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]
 func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile, d *pluginsdk.ResourceData) (*managedclusters.ManagedClusterAgentPoolProfile, error) {
 	// first try loading this from the Resource Data if possible (e.g. when Created)
 	defaultNodePoolName := d.Get("default_node_pool.0.name")
+	tempNodePoolName := d.Get("default_node_pool.0.temporary_name_for_rotation")
 
 	var agentPool *managedclusters.ManagedClusterAgentPoolProfile
 	if defaultNodePoolName != "" {
@@ -1659,6 +1671,7 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 		}
 	}
 
+	// fallback to the temp node pool or other system node pools that exist for the cluster
 	if agentPool == nil {
 		// otherwise we need to fall back to the name of the first agent pool
 		for _, v := range *input {
@@ -1667,6 +1680,12 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 			}
 			if *v.Mode != managedclusters.AgentPoolModeSystem {
 				continue
+			}
+
+			if v.Name == tempNodePoolName {
+				defaultNodePoolName = v.Name
+				agentPool = &v
+				break
 			}
 
 			defaultNodePoolName = v.Name

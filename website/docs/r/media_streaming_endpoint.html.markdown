@@ -113,11 +113,11 @@ The following arguments are supported:
 
 * `media_services_account_name` - (Required) The Media Services account name. Changing this forces a new Streaming Endpoint to be created.
 
-* `name` - (Required) The name which should be used for this Streaming Endpoint maximum length is 24. Changing this forces a new Streaming Endpoint to be created.
+* `name` - (Required) The name which should be used for this Streaming Endpoint maximum length is `24`. Changing this forces a new Streaming Endpoint to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Streaming Endpoint should exist. Changing this forces a new Streaming Endpoint to be created.
 
-* `scale_units` - (Required) The number of scale units. To create a Standard Streaming Endpoint set 0. For Premium Streaming Endpoint valid values are between 1 and 10.
+* `scale_units` - (Required) The number of scale units. To create a Standard Streaming Endpoint set `0`. For Premium Streaming Endpoint valid values are between `1` and `10`.
 
 ---
 
@@ -172,9 +172,9 @@ A `ip_allow` block supports the following:
 ---
 A `cross_site_access_policy` block supports the following:
 
-* `client_access_policy` - (Optional) The content of clientaccesspolicy.xml used by Silverlight.
+* `client_access_policy` - (Optional) The content of `clientaccesspolicy.xml` used by Silverlight.
 
-* `cross_domain_policy` - (Optional) The content of crossdomain.xml used by Silverlight.
+* `cross_domain_policy` - (Optional) The content of `crossdomain.xml` used by Silverlight.
 
 ---
 
@@ -185,6 +185,18 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Streaming Endpoint.
 
 * `host_name` - The host name of the Streaming Endpoint.
+
+* `sku` - A `sku` block defined as below.
+
+---
+
+A `sku` block supports the following:
+
+* `name` - The sku name of Streaming Endpoint.
+
+* `capacity` - The sku capacity of Streaming Endpoint.
+ 
+---
 
 ## Timeouts
 

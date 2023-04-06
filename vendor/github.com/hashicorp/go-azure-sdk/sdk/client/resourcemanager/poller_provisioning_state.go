@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package resourcemanager
 
 import (
@@ -14,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
-const DefaultProvisioningStatePollingInterval = 2 * time.Second
+const DefaultPollingInterval = 10 * time.Second
 
 var _ pollers.PollerType = &provisioningStatePoller{}
 
@@ -176,7 +179,7 @@ func (p provisioningStateOptions) ToOData() *odata.Query {
 }
 
 func (p provisioningStateOptions) ToQuery() *client.QueryParams {
-	return client.QueryParamsFromValues(map[string]string{
-		"api-version": p.apiVersion,
-	})
+	q := client.QueryParams{}
+	q.Append("api-version", p.apiVersion)
+	return &q
 }

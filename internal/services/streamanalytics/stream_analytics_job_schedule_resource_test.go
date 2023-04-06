@@ -76,7 +76,7 @@ func (r StreamAnalyticsJobScheduleResource) Exists(ctx context.Context, client *
 		return nil, err
 	}
 
-	streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingjobName)
+	streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingJobName)
 
 	var opts streamingjobs.GetOperationOptions
 	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, streamingJobId, opts)

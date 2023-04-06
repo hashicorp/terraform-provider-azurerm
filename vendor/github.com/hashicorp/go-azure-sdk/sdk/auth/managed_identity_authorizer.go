@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -45,7 +46,6 @@ func NewManagedIdentityAuthorizer(ctx context.Context, options ManagedIdentityAu
 const (
 	msiDefaultApiVersion = "2018-02-01"
 	msiDefaultEndpoint   = "http://169.254.169.254/metadata/identity/oauth2/token"
-	msiDefaultTimeout    = 10 * time.Second
 )
 
 var _ Authorizer = &ManagedIdentityAuthorizer{}
@@ -114,7 +114,8 @@ func (a *ManagedIdentityAuthorizer) Token(ctx context.Context, _ *http.Request) 
 
 // AuxiliaryTokens returns additional tokens for auxiliary tenant IDs, for use in multi-tenant scenarios
 func (a *ManagedIdentityAuthorizer) AuxiliaryTokens(_ context.Context, _ *http.Request) ([]*oauth2.Token, error) {
-	return nil, fmt.Errorf("auxiliary tokens are not supported with MSI authentication")
+	// auxiliary tokens are not supported with MSI authentication, so just return an empty slice
+	return []*oauth2.Token{}, nil
 }
 
 // managedIdentityConfig configures an ManagedIdentityAuthorizer.
@@ -149,7 +150,7 @@ func newManagedIdentityConfig(resource, clientId, customManagedIdentityEndpoint 
 }
 
 // TokenSource provides a source for obtaining access tokens using ManagedIdentityAuthorizer.
-func (c *managedIdentityConfig) TokenSource(ctx context.Context) (Authorizer, error) {
+func (c *managedIdentityConfig) TokenSource(_ context.Context) (Authorizer, error) {
 	return NewCachedAuthorizer(&ManagedIdentityAuthorizer{
 		conf: c,
 	})
@@ -164,14 +165,23 @@ func azureMetadata(ctx context.Context, url string) (body []byte, err error) {
 	req.Header = http.Header{
 		"Metadata": []string{"true"},
 	}
-	client := &http.Client{
-		Timeout: msiDefaultTimeout,
-	}
+
+	client := httpClient(httpClientParams{
+		instanceMetadataService: true,
+
+		retryWaitMin:  2 * time.Second,
+		retryWaitMax:  60 * time.Second,
+		retryMaxCount: 5,
+		useProxy:      false,
+	})
+
 	var resp *http.Response
+	log.Printf("[DEBUG] Performing %s Request to %q", req.Method, url)
 	resp, err = client.Do(req)
 	if err != nil {
 		return
 	}
+	log.Printf("[DEBUG] Reading Body from %s %q", req.Method, url)
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return

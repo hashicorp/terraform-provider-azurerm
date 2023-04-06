@@ -89,6 +89,10 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A JSON mapping of any Parameters for this Policy.
 
+* `overrides` - (Optional) One or more `overrides` blocks as defined below. More detail about `overrides` and `resource_selectors` see [policy assignment structure](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure#resource-selectors-preview)
+
+* `resource_selectors` - (Optional) One or more `resource_selectors` blocks as defined below to filter polices by resource properties.
+
 ---
 
 A `identity` block supports the following:
@@ -106,6 +110,41 @@ A `non_compliance_message` block supports the following:
 * `content` - (Required) The non-compliance message text. When assigning policy sets (initiatives), unless `policy_definition_reference_id` is specified then this message will be the default for all policies.
 
 * `policy_definition_reference_id` - (Optional) When assigning policy sets (initiatives), this is the ID of the policy definition that the non-compliance message applies to.
+
+---
+
+A `overrides` block supports the following:
+
+* `value` - (Required) Specifies the value to override the policy property. Possible values for `policyEffect` override listed [policy effects](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/effects).
+
+* `selectors` - (Optional) One or more `override_selector` as defined below.
+
+---
+
+A `override_selector` block supports the following:
+
+* `in` - (Optional) Specify the list of policy reference id values to filter in. Cannot be used with `not_in`.
+
+* `not_in` - (Optional) Specify the list of policy reference id values to filter out. Cannot be used with `in`.
+
+---
+
+A `resource_selectors` block supports the following:
+
+* `name` - (Optional) Specifies a name for the resource selector.
+
+* `selectors` - (Required) One or more `resource_selector` block as defined below.
+
+---
+
+A `resource_selector` block supports the following:
+
+* `kind` - (Required) Specifies which characteristic will narrow down the set of evaluated resources. Possible values are `resourceLocation`,  `resourceType` and `resourceWithoutLocation`.
+
+* `in` - (Optional) The list of allowed values for the specified kind. Cannot be used with `not_in`. Can contain up to 50 values.
+
+* `not_in` - (Optional) The list of not-allowed values for the specified kind. Cannot be used with `in`. Can contain up to 50 values.
+
 
 ## Attributes Reference
 

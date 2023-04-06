@@ -78,7 +78,6 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
@@ -225,6 +224,13 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		PublicNetworkAccessForIngestion: internetIngestionEnabled,
 		PublicNetworkAccessForQuery:     internetQueryEnabled,
 		ForceCustomerStorageForProfiler: utils.Bool(forceCustomerStorageForProfiler),
+	}
+
+	if !d.IsNewResource() {
+		oldWorkspaceId, newWorkspaceId := d.GetChange("workspace_id")
+		if oldWorkspaceId.(string) != "" && newWorkspaceId.(string) == "" {
+			return fmt.Errorf("`workspace_id` can not be removed after set")
+		}
 	}
 
 	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {

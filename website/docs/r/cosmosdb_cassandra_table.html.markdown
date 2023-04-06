@@ -125,7 +125,7 @@ A `partition_key` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - the ID of the CosmosDB Cassandra Table.
 

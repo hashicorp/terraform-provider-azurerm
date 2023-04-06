@@ -11,6 +11,7 @@ on:
     paths:
       - '.github/workflows/gradually-deprecated.yaml'
       - '**.go'
+      - './scripts/run-gradually-deprecated.sh'
 
 jobs:
   test:
@@ -22,7 +23,7 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version-file: ./.go-version
-      - run: ./scripts/run-gradually-deprecated.sh
+      - run: bash ./scripts/run-gradually-deprecated.sh
       - name: Add waiting-response on fail
         if: failure()
         uses: actions-ecosystem/action-add-labels@v1
