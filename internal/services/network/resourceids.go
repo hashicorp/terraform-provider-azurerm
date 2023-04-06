@@ -118,3 +118,6 @@ package network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerSecurityAdminConfiguration -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/securityAdminConfigurations/conf1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerStaticMember -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/networkGroups/group1/staticMembers/member1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerSubscriptionConnection -id=/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Network/networkManagerConnections/connection1
+
+// Custom IP Prefix
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=CustomIpPrefix -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIpPrefixes/prefix1
