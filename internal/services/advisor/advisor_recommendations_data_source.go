@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	`github.com/hashicorp/go-azure-helpers/lang/pointer`
-	`github.com/hashicorp/go-azure-helpers/resourcemanager/commonids`
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2020-01-01/getrecommendations" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -141,7 +141,7 @@ func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.Resour
 	}
 
 	for _, r := range recommends {
-		var description, updatedTime string
+		var description string
 		var suppressionIds []interface{}
 
 		v := r.Properties
@@ -153,20 +153,17 @@ func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.Resour
 		if v.SuppressionIds != nil {
 			suppressionIds = flattenSuppressionSlice(v.SuppressionIds)
 		}
-		if v.LastUpdated != nil && !v.LastUpdated.IsZero() {
-			updatedTime = v.LastUpdated.Format(time.RFC3339)
-		}
 
 		result = append(result, map[string]interface{}{
 			"category":               string(pointer.From(v.Category)),
 			"description":            description,
 			"impact":                 string(pointer.From(v.Impact)),
-			"recommendation_name":    pointer.From(v.Label),
+			"recommendation_name":    pointer.From(r.Name),
 			"recommendation_type_id": pointer.From(v.RecommendationTypeId),
 			"resource_name":          pointer.From(v.ImpactedValue),
 			"resource_type":          pointer.From(v.ImpactedField),
 			"suppression_names":      suppressionIds,
-			"updated_time":           updatedTime,
+			"updated_time":           pointer.From(v.LastUpdated),
 		})
 	}
 
