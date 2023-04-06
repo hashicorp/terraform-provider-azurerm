@@ -267,9 +267,9 @@ func resourceLogzMonitorRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				return fmt.Errorf("setting `plan`: %+v", err)
 			}
 
-			if err := d.Set("user", flattenMonitorUserInfo(props.UserInfo)); err != nil {
-				return fmt.Errorf("setting `user`: %+v", err)
-			}
+			// NOTE: whilst the API defines `props.UserInfo` it's not returned, meaning that we can't
+			// use it to set this into the state.
+			// API Bug: https://github.com/Azure/azure-rest-api-specs/issues/23461
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -420,40 +420,5 @@ func expandMonitorUserInfo(input []interface{}) *monitors.UserInfo {
 		LastName:     utils.String(v["last_name"].(string)),
 		EmailAddress: utils.String(v["email"].(string)),
 		PhoneNumber:  utils.String(v["phone_number"].(string)),
-	}
-}
-
-func flattenMonitorUserInfo(input *monitors.UserInfo) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var firstName string
-	if input.FirstName != nil {
-		firstName = *input.FirstName
-	}
-
-	var lastName string
-	if input.LastName != nil {
-		lastName = *input.LastName
-	}
-
-	var email string
-	if input.EmailAddress != nil {
-		email = *input.EmailAddress
-	}
-
-	var phoneNumber string
-	if input.PhoneNumber != nil {
-		phoneNumber = *input.PhoneNumber
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"first_name":   firstName,
-			"last_name":    lastName,
-			"email":        email,
-			"phone_number": phoneNumber,
-		},
 	}
 }

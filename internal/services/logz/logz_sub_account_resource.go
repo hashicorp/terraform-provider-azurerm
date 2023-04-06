@@ -136,7 +136,7 @@ func resourceLogzSubAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return fmt.Errorf("retrieving parent %s: %+v", *monitorId, err)
 	}
-	if parentMonitor.Model != nil {
+	if parentMonitor.Model == nil {
 		return fmt.Errorf("retrieving parent %s: model was nil", *monitorId)
 	}
 
