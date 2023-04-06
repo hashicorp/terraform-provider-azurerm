@@ -66,13 +66,6 @@ resource "azurerm_linux_web_app" "example" {
   resource_group_name = azurerm_resource_group.example.name
   service_plan_id     = azurerm_service_plan.example.id
   site_config {}
-
-  lifecycle {
-    ignore_changes = [
-      app_setting,
-      identity,
-    ]
-  }
 }
 
 resource "azurerm_app_service_connection" "example" {
@@ -95,7 +88,7 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) The ID of the target resource. Changing this forces a new resource to be created. Possible values are `Postgres`, `PostgresFlexible`, `Mysql`, `Sql`, `Redis`, `RedisEnterprise`, `CosmosCassandra`, `CosmosGremlin`, `CosmosMongo`, `CosmosSql`, `CosmosTable`, `StorageBlob`, `StorageQueue`, `StorageFile`, `StorageTable`, `AppConfig`, `EventHub`, `ServiceBus`, `SignalR`, `WebPubSub`, `ConfluentKafka`.
 
-* `authentication` - (Required) The authentication info. Service connection will change the `identity` field of the linked app service, to avoid triggering Terraform alert on update in-place, please include a `lifecycle` block to ignore the change on identity as the example given above, or set `identity -> type` as `systemAssigned`.  An `authentication` block as defined below.
+* `authentication` - (Required) The authentication info.  An `authentication` block as defined below.
 
 ---
 
