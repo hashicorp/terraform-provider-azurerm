@@ -82,10 +82,10 @@ resource "azurerm_key_vault_certificate" "example" {
 
 resource "azurerm_web_pubsub_custom_certificate" "test" {
   name                  = "example-cert"
-  web_pubsub_id = azurerm_web_pubsub.example.id
+  web_pubsub_id         = azurerm_web_pubsub.example.id
   custom_certificate_id = azurerm_key_vault_certificate.example.id
-  
-  depends_on            = [azurerm_key_vault_access_policy.example]
+
+  depends_on = [azurerm_key_vault_access_policy.example]
 }
 
 resource "azurerm_web_pubsub_custom_domain" "test" {
