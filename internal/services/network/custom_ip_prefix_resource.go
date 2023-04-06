@@ -399,12 +399,14 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 			network.CommissionedStateCommissionedNoInternetAdvertise: {network.CommissionedStateDecommissioning},
 		},
 		network.CommissionedStateCommissioned: {
-			network.CommissionedStateDeprovisioned: {network.CommissionedStateProvisioning, network.CommissionedStateCommissioning},
-			network.CommissionedStateProvisioned:   {network.CommissionedStateCommissioning},
+			network.CommissionedStateDeprovisioned:                   {network.CommissionedStateProvisioning, network.CommissionedStateCommissioning},
+			network.CommissionedStateProvisioned:                     {network.CommissionedStateCommissioning},
+			network.CommissionedStateCommissionedNoInternetAdvertise: {network.CommissionedStateDecommissioning, network.CommissionedStateCommissioning},
 		},
 		network.CommissionedStateCommissionedNoInternetAdvertise: {
 			network.CommissionedStateDeprovisioned: {network.CommissionedStateProvisioning, network.CommissionedStateCommissioning},
 			network.CommissionedStateProvisioned:   {network.CommissionedStateCommissioning},
+			network.CommissionedStateCommissioned:  {network.CommissionedStateDecommissioning, network.CommissionedStateCommissioning},
 		},
 	}
 
