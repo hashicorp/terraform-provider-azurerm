@@ -265,7 +265,23 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 			d.Set("data_format", props.DataFormat)
 			d.Set("database_routing_type", props.DatabaseRouting)
 			d.Set("eventgrid_resource_id", props.EventGridResourceId)
-			d.Set("managed_identity_resource_id", props.ManagedIdentityResourceId)
+
+			managedIdentityResourceId := ""
+			if props.ManagedIdentityResourceId != nil && *props.ManagedIdentityResourceId != "" {
+				managedIdentityResourceId = *props.ManagedIdentityResourceId
+				clusterId, clusterIdErr := clusters.ParseClusterIDInsensitively(managedIdentityResourceId)
+				if clusterIdErr == nil {
+					managedIdentityResourceId = clusterId.ID()
+				} else {
+					userAssignedIdentityId, userAssignedIdentityIdErr := commonids.ParseUserAssignedIdentityIDInsensitively(managedIdentityResourceId)
+					if userAssignedIdentityIdErr == nil {
+						managedIdentityResourceId = userAssignedIdentityId.ID()
+					} else {
+						return fmt.Errorf("parsing `managed_identity_resource_id`: %+v; %+v", clusterIdErr, userAssignedIdentityIdErr)
+					}
+				}
+			}
+			d.Set("managed_identity_resource_id", managedIdentityResourceId)
 		}
 	}
 
