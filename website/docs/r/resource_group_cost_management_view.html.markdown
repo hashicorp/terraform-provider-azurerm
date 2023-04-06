@@ -1,32 +1,36 @@
 ---
 subcategory: "Cost Management"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_subscription_cost_management_view"
+page_title: "Azure Resource Manager: azurerm_resource_group_cost_management_view"
 description: |-
-  Manages an Azure Cost Management View for a Subscription.
+  Manages an Azure Cost Management View for a Resource Group.
 ---
 
-# azurerm_subscription_cost_management_view
+# azurerm_resource_group_cost_management_view
 
-Manages an Azure Cost Management View for a Subscription.
+Manages an Azure Cost Management View for a Resource Group.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_subscription_cost_management_view" "example" {
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_resource_group_cost_management_view" "example" {
   name         = "example"
   display_name = "Cost View per Month"
   chart_type   = "StackedColumn"
   accumulated  = false
 
-  subscription_id = "/subscription/00000000-0000-0000-0000-000000000000"
+  resource_group_id = azurerm_resource_group.example.id
 
   report_type = "Usage"
   timeframe   = "MonthToDate"
 
   dataset {
     granularity = "Monthly"
-
     aggregation {
       name        = "totalCost"
       column_name = "Cost"
@@ -44,7 +48,7 @@ resource "azurerm_subscription_cost_management_view" "example" {
 
 The following arguments are supported:
 
-* `accumulated` - (Required) Whether the costs data in the Cost Management View are accumulated over time. Changing this forces a new Cost Management View for a Subscription to be created.
+* `accumulated` - (Required) Whether the costs data in the Cost Management View are accumulated over time. Changing this forces a new Cost Management View for a Resource Group to be created.
 
 * `chart_type` - (Required) Chart type of the main view in Cost Analysis. Possible values are `Area`, `GroupedColumn`, `Line`, `StackedColumn` and `Table`.
 
@@ -52,11 +56,11 @@ The following arguments are supported:
 
 * `display_name` - (Required) User visible input name of the Cost Management View.
 
-* `name` - (Required) The name which should be used for this Cost Management View for a Subscription. Changing this forces a new Cost Management View for a Subscription to be created.
+* `name` - (Required) The name which should be used for this Cost Management View for a Resource Group. Changing this forces a new Cost Management View for a Resource Group to be created.
 
 * `report_type` - (Required) The type of the report. The only possible value is `Usage`.
 
-* `subscription_id` - (Required) The ID of the Subscription this View is scoped to. Changing this forces a new Cost Management View for a Subscription to be created.
+* `resource_group_id` - (Required) The ID of the Resource Group this View is scoped to. Changing this forces a new Cost Management View for a Resource Group to be created.
 
 * `timeframe` - (Required) The time frame for pulling data for the report. Possible values are `Custom`, `MonthToDate`, `WeekToDate` and `YearToDate`.
 
@@ -70,9 +74,9 @@ The following arguments are supported:
 
 A `aggregation` block supports the following:
 
-* `name` - (Required) The name which should be used for this aggregation. Changing this forces a new Cost Management View for a Subscription to be created.
+* `name` - (Required) The name which should be used for this aggregation. Changing this forces a new Cost Management View for a Resource Group to be created.
 
-* `column_name` - (Required) The name of the column to aggregate. Changing this forces a new Cost Management View for a Subscription to be created.
+* `column_name` - (Required) The name of the column to aggregate. Changing this forces a new Cost Management View for a Resource Group to be created.
 
 ---
 
@@ -122,21 +126,21 @@ A `sorting` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Cost Management View for a Subscription.
+* `id` - The ID of the Cost Management View for a Resource Group.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Cost Management View for a Subscription.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Cost Management View for a Subscription.
-* `update` - (Defaults to 30 minutes) Used when updating the Cost Management View for a Subscription.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Cost Management View for a Subscription.
+* `create` - (Defaults to 30 minutes) Used when creating the Cost Management View for a Resource Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Cost Management View for a Resource Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Cost Management View for a Resource Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Cost Management View for a Resource Group.
 
 ## Import
 
-Cost Management View for a Subscriptions can be imported using the `resource id`, e.g.
+Cost Management View for a Resource Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_subscription_cost_management_view.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.CostManagement/views/costmanagementview
+terraform import azurerm_resource_group_cost_management_view.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.CostManagement/views/costmanagementview
 ```
