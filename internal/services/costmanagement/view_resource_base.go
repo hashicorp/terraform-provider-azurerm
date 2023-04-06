@@ -35,89 +35,82 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 			ForceNew: true,
 		},
 
-		"query": {
+		"report_type": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(views.ReportTypeUsage),
+			}, false),
+		},
+
+		"timeframe": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(views.PossibleValuesForReportTimeframeType(), false),
+		},
+
+		"dataset": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
 			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(views.ReportTypeUsage),
-						}, false),
-					},
-					"timeframe": {
+					"granularity": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice(views.PossibleValuesForReportTimeframeType(), false),
+						ValidateFunc: validation.StringInSlice(views.PossibleValuesForReportGranularityType(), false),
 					},
-					"dataset": {
-						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
+
+					"aggregation": {
+						Type:     pluginsdk.TypeSet,
 						Required: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"granularity": {
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+								},
+								"column_name": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+								},
+							},
+						},
+					},
+
+					"sorting": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"direction": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringInSlice(views.PossibleValuesForReportGranularityType(), false),
+									ValidateFunc: validation.StringInSlice(views.PossibleValuesForReportConfigSortingType(), false),
 								},
-
-								"aggregation": {
-									Type:     pluginsdk.TypeSet,
+								"name": {
+									Type:     pluginsdk.TypeString,
 									Required: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"name": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
-												ForceNew: true,
-											},
-											"column_name": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
-												ForceNew: true,
-											},
-										},
-									},
 								},
+							},
+						},
+					},
 
-								"sorting": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"direction": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validation.StringInSlice(views.PossibleValuesForReportConfigSortingType(), false),
-											},
-											"name": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
-											},
-										},
-									},
+					"grouping": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"type": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(views.PossibleValuesForQueryColumnType(), false),
 								},
-
-								"grouping": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"type": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validation.StringInSlice(views.PossibleValuesForQueryColumnType(), false),
-											},
-											"name": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
-											},
-										},
-									},
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
 								},
 							},
 						},
@@ -198,9 +191,13 @@ func (br costManagementViewBaseResource) createFunc(resourceName, scopeFieldName
 					Accumulated: utils.ToPtr(accumulated),
 					DisplayName: utils.String(metadata.ResourceData.Get("display_name").(string)),
 					Chart:       utils.ToPtr(views.ChartType(metadata.ResourceData.Get("chart_type").(string))),
-					Query:       expandViewReportConfigDefinition(metadata.ResourceData.Get("query").([]interface{})),
-					Kpis:        expandKpis(metadata.ResourceData.Get("kpi").([]interface{})),
-					Pivots:      expandPivots(metadata.ResourceData.Get("pivot").([]interface{})),
+					Query: &views.ReportConfigDefinition{
+						DataSet:   expandDataset(metadata.ResourceData.Get("dataset").([]interface{})),
+						Timeframe: views.ReportTimeframeType(metadata.ResourceData.Get("timeframe").(string)),
+						Type:      views.ReportTypeUsage,
+					},
+					Kpis:   expandKpis(metadata.ResourceData.Get("kpi").([]interface{})),
+					Pivots: expandPivots(metadata.ResourceData.Get("pivot").([]interface{})),
 				},
 			}
 
@@ -253,7 +250,14 @@ func (br costManagementViewBaseResource) readFunc(scopeFieldName string) sdk.Res
 					metadata.ResourceData.Set("display_name", props.DisplayName)
 					metadata.ResourceData.Set("kpi", flattenKpis(props.Kpis))
 					metadata.ResourceData.Set("pivot", flattenPivots(props.Pivots))
-					metadata.ResourceData.Set("query", flattenQuery(props.Query))
+
+					if query := props.Query; query != nil {
+						metadata.ResourceData.Set("timeframe", string(query.Timeframe))
+						metadata.ResourceData.Set("report_type", string(query.Type))
+						if query.DataSet != nil {
+							metadata.ResourceData.Set("dataset", flattenDataset(query.DataSet))
+						}
+					}
 				}
 			}
 
@@ -294,36 +298,46 @@ func (br costManagementViewBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			// Update operation requires latest eTag to be set in the request.
-			resp, err := client.GetByScope(ctx, *id)
+			existing, err := client.GetByScope(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
+			model := existing.Model
 
-			if model := resp.Model; model != nil {
+			if model != nil {
 				if model.ETag == nil {
 					return fmt.Errorf("add %s: etag was nil", *id)
 				}
 			}
 
-			accumulated := views.AccumulatedTypeFalse
-			if accumulatedRaw := metadata.ResourceData.Get("accumulated").(bool); accumulatedRaw {
-				accumulated = views.AccumulatedTypeTrue
+			if model.Properties == nil {
+				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
 			}
 
-			props := views.View{
-				ETag: resp.Model.ETag,
-
-				Properties: &views.ViewProperties{
-					Accumulated: utils.ToPtr(accumulated),
-					DisplayName: utils.String(metadata.ResourceData.Get("display_name").(string)),
-					Chart:       utils.ToPtr(views.ChartType(metadata.ResourceData.Get("chart_type").(string))),
-					Query:       expandViewReportConfigDefinition(metadata.ResourceData.Get("query").([]interface{})),
-					Kpis:        expandKpis(metadata.ResourceData.Get("kpi").([]interface{})),
-					Pivots:      expandPivots(metadata.ResourceData.Get("pivot").([]interface{})),
-				},
+			if metadata.ResourceData.HasChange("display_name") {
+				model.Properties.DisplayName = utils.String(metadata.ResourceData.Get("display_name").(string))
 			}
 
-			_, err = client.CreateOrUpdateByScope(ctx, *id, props)
+			if metadata.ResourceData.HasChange("chart_type") {
+				model.Properties.Chart = utils.ToPtr(views.ChartType(metadata.ResourceData.Get("chart_type").(string)))
+			}
+
+			if metadata.ResourceData.HasChange("dataset") {
+				model.Properties.Query.DataSet = expandDataset(metadata.ResourceData.Get("dataset").([]interface{}))
+			}
+			if metadata.ResourceData.HasChange("timeframe") {
+				model.Properties.Query.Timeframe = views.ReportTimeframeType(metadata.ResourceData.Get("timeframe").(string))
+			}
+
+			if metadata.ResourceData.HasChange("kpi") {
+				model.Properties.Kpis = expandKpis(metadata.ResourceData.Get("kpi").([]interface{}))
+			}
+
+			if metadata.ResourceData.HasChange("pivot") {
+				model.Properties.Pivots = expandPivots(metadata.ResourceData.Get("pivot").([]interface{}))
+			}
+
+			_, err = client.CreateOrUpdateByScope(ctx, *id, *model)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -331,26 +345,6 @@ func (br costManagementViewBaseResource) updateFunc() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func expandViewReportConfigDefinition(input []interface{}) *views.ReportConfigDefinition {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	attrs := input[0].(map[string]interface{})
-
-	output := views.ReportConfigDefinition{
-		Type: views.ReportTypeUsage,
-	}
-	if datasetRaw := attrs["dataset"].([]interface{}); len(datasetRaw) != 0 {
-		output.DataSet = expandDataset(datasetRaw)
-	}
-	if timeframe := attrs["timeframe"].(string); timeframe != "" {
-		output.Timeframe = views.ReportTimeframeType(timeframe)
-	}
-
-	return &output
 }
 
 func expandDataset(input []interface{}) *views.ReportConfigDataset {
@@ -510,19 +504,6 @@ func flattenPivots(input *[]views.PivotProperties) []interface{} {
 	return outputPivots
 }
 
-func flattenQuery(input *views.ReportConfigDefinition) []interface{} {
-	outputQuery := map[string]interface{}{
-		"timeframe": string(input.Timeframe),
-		"type":      string(input.Type),
-	}
-
-	if input.DataSet != nil {
-		outputQuery["dataset"] = flattenDataset(input.DataSet)
-	}
-
-	return []interface{}{outputQuery}
-}
-
 func flattenDataset(input *views.ReportConfigDataset) []interface{} {
 	outputDataset := map[string]interface{}{
 		"aggregation": flattenAggregation(input.Aggregation),
@@ -561,7 +542,7 @@ func flattenGrouping(input *[]views.ReportConfigGrouping) []interface{} {
 
 	for _, item := range *input {
 		outputGroupings = append(outputGroupings, map[string]interface{}{
-			"name": string(item.Name),
+			"name": item.Name,
 			"type": string(item.Type),
 		})
 	}
@@ -580,7 +561,7 @@ func flattenSorting(input *[]views.ReportConfigSorting) []interface{} {
 			continue
 		}
 		outputSortings = append(outputSortings, map[string]interface{}{
-			"name":      string(item.Name),
+			"name":      item.Name,
 			"direction": string(*item.Direction),
 		})
 	}

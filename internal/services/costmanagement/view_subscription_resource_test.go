@@ -121,30 +121,29 @@ resource "azurerm_subscription_cost_management_view" "test" {
   display_name    = "Test View %s"
 
   accumulated = "false"
-  query {
-    type      = "Usage"
-    timeframe = "MonthToDate"
+  report_type = "Usage"
+  timeframe   = "MonthToDate"
 
-    dataset {
-      granularity = "Monthly"
-      sorting {
-        direction = "Ascending"
-        name      = "BillingMonth"
-      }
-      grouping {
-        name = "ResourceGroupName"
-        type = "Dimension"
-      }
-      aggregation {
-        name        = "totalCost"
-        column_name = "Cost"
-      }
-      aggregation {
-        name        = "totalCostUSD"
-        column_name = "CostUSD"
-      }
+  dataset {
+    granularity = "Monthly"
+    sorting {
+      direction = "Ascending"
+      name      = "BillingMonth"
+    }
+    grouping {
+      name = "ResourceGroupName"
+      type = "Dimension"
+    }
+    aggregation {
+      name        = "totalCost"
+      column_name = "Cost"
+    }
+    aggregation {
+      name        = "totalCostUSD"
+      column_name = "CostUSD"
     }
   }
+
   kpi {
     type = "Forecast"
   }
@@ -179,18 +178,17 @@ resource "azurerm_subscription_cost_management_view" "test" {
   display_name    = "Test View 2 %s"
 
   accumulated = "false"
-  query {
-    type      = "Usage"
-    timeframe = "YearToDate"
+  report_type = "Usage"
+  timeframe   = "YearToDate"
 
-    dataset {
-      granularity = "Daily"
-      aggregation {
-        name        = "totalCostUSD"
-        column_name = "CostUSD"
-      }
+  dataset {
+    granularity = "Daily"
+    aggregation {
+      name        = "totalCostUSD"
+      column_name = "CostUSD"
     }
   }
+
   kpi {
     type = "Forecast"
   }
@@ -222,30 +220,30 @@ resource "azurerm_subscription_cost_management_view" "import" {
   display_name    = azurerm_subscription_cost_management_view.test.display_name
 
   accumulated = azurerm_subscription_cost_management_view.test.accumulated
-  query {
-    type      = "Usage"
-    timeframe = "MonthToDate"
 
-    dataset {
-      granularity = "Monthly"
-      sorting {
-        direction = "Ascending"
-        name      = "BillingMonth"
-      }
-      grouping {
-        name = "ResourceGroupName"
-        type = "Dimension"
-      }
-      aggregation {
-        name        = "totalCost"
-        column_name = "Cost"
-      }
-      aggregation {
-        name        = "totalCostUSD"
-        column_name = "CostUSD"
-      }
+  report_type = "Usage"
+  timeframe   = "MonthToDate"
+
+  dataset {
+    granularity = "Monthly"
+    sorting {
+      direction = "Ascending"
+      name      = "BillingMonth"
+    }
+    grouping {
+      name = "ResourceGroupName"
+      type = "Dimension"
+    }
+    aggregation {
+      name        = "totalCost"
+      column_name = "Cost"
+    }
+    aggregation {
+      name        = "totalCostUSD"
+      column_name = "CostUSD"
     }
   }
+
   kpi {
     type = "Forecast"
   }
@@ -280,30 +278,29 @@ resource "azurerm_subscription_cost_management_view" "test" {
   display_name    = "Test View %s"
 
   accumulated = "false"
-  query {
-    type      = "Usage"
-    timeframe = "MonthToDate"
+  report_type = "Usage"
+  timeframe   = "MonthToDate"
 
-    dataset {
-      granularity = "Monthly"
-      sorting {
-        direction = "Ascending"
-        name      = "BillingMonth"
-      }
-      grouping {
-        name = "ResourceGroupName"
-        type = "Dimension"
-      }
-      aggregation {
-        name        = "totalCost"
-        column_name = "Cost"
-      }
-      aggregation {
-        name        = "totalCostUSD"
-        column_name = "CostUSD"
-      }
+  dataset {
+    granularity = "Monthly"
+    sorting {
+      direction = "Ascending"
+      name      = "BillingMonth"
+    }
+    grouping {
+      name = "ResourceGroupName"
+      type = "Dimension"
+    }
+    aggregation {
+      name        = "totalCost"
+      column_name = "Cost"
+    }
+    aggregation {
+      name        = "totalCostUSD"
+      column_name = "CostUSD"
     }
   }
+
   kpi {
     type = "Forecast"
   }

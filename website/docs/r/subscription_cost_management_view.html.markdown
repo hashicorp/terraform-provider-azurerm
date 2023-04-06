@@ -21,17 +21,15 @@ resource "azurerm_subscription_cost_management_view" "example" {
 
   subscription_id = "/subscription/00000000-0000-0000-0000-000000000000"
 
-  query {
-    type      = "Usage"
-    timeframe = "MonthToDate"
+  report_type = "Usage"
+  timeframe   = "MonthToDate"
 
-    dataset {
-      granularity = "Monthly"
+  dataset {
+    granularity = "Monthly"
 
-      totalCost {
-        name     = "Cost"
-        function = "Sum"
-      }
+    totalCost {
+      name     = "Cost"
+      function = "Sum"
     }
   }
 }
@@ -45,13 +43,17 @@ The following arguments are supported:
 
 * `chart_type` - (Required) Chart type of the main view in Cost Analysis. Possible values are `Area`, `GroupedColumn`, `Line`, `StackedColumn` and `Table`.
 
+* `dataset` - (Required) A `dataset` block as defined below.
+
 * `display_name` - (Required) User visible input name of the Cost Management View.
 
 * `name` - (Required) The name which should be used for this Cost Management View for a Subscription. Changing this forces a new Cost Management View for a Subscription to be created.
 
-* `query` - (Required) A `query` block as defined below, containing the definition of the data for the View.
+* `report_type` - (Required) The type of the report. The only possible value is `Usage`.
 
 * `subscription_id` - (Required) The ID of the Subscription this View is scoped to. Changing this forces a new Cost Management View for a Subscription to be created.
+
+* `timeframe` - (Required) The time frame for pulling data for the report. Possible values are `Custom`, `MonthToDate`, `WeekToDate` and `YearToDate`.
 
 ---
 
@@ -103,15 +105,8 @@ A `pivot` block supports the following:
 
 * `type` - (Required) The data type to show in this sub-view. Possible values are `Dimension` and `TagKey`.
 
----
 
-A `query` block supports the following:
 
-* `dataset` - (Required) A `dataset` block as defined above.
-
-* `timeframe` - (Required) The time frame for pulling data for the report. Possible values are `Custom`, `MonthToDate`, `WeekToDate` and `YearToDate`.
-
-* `type` - (Required) The type of the report. The only possible value is `Usage`.
 
 ---
 
