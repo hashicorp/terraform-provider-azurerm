@@ -63,6 +63,8 @@ The following arguments are supported:
 
 ~> **NOTE:** Removing `encryption_settings` forces a new resource to be created.
 
+* `incremental_enabled` - (Optional) Specifies if the Snapshot is incremental.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
