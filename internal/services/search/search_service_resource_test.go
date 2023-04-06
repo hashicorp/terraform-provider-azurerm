@@ -14,11 +14,45 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SearchServiceResource struct{}
+type SearchServiceResource struct {
+	sku string
+}
 
-func TestAccSearchService_basic(t *testing.T) {
+func TestAccSearchService_basicStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{}
+	r := SearchServiceResource{sku: "standard"}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSearchService_basicFree(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{sku: "free"}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSearchService_basicBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{sku: "basic"}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -34,7 +68,7 @@ func TestAccSearchService_basic(t *testing.T) {
 
 func TestAccSearchService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{}
+	r := SearchServiceResource{sku: "standard"}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +83,7 @@ func TestAccSearchService_requiresImport(t *testing.T) {
 
 func TestAccSearchService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{}
+	r := SearchServiceResource{sku: "standard"}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,7 +104,7 @@ func TestAccSearchService_complete(t *testing.T) {
 
 func TestAccSearchService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{}
+	r := SearchServiceResource{sku: "standard"}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -96,7 +130,7 @@ func TestAccSearchService_update(t *testing.T) {
 
 func TestAccSearchService_ipRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{}
+	r := SearchServiceResource{sku: "standard"}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -128,7 +162,7 @@ func TestAccSearchService_ipRules(t *testing.T) {
 
 func TestAccSearchService_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{}
+	r := SearchServiceResource{sku: "standard"}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -160,7 +194,7 @@ func TestAccSearchService_identity(t *testing.T) {
 
 func TestAccSearchService_hostingMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{}
+	r := SearchServiceResource{sku: "standard3"}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -176,7 +210,7 @@ func TestAccSearchService_hostingMode(t *testing.T) {
 
 func TestAccSearchService_hostingModeInvalidSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{}
+	r := SearchServiceResource{sku: "standard2"}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -189,7 +223,7 @@ func TestAccSearchService_hostingModeInvalidSKU(t *testing.T) {
 
 func TestAccSearchService_partitionCountInvalid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{}
+	r := SearchServiceResource{sku: "free"}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -202,7 +236,7 @@ func TestAccSearchService_partitionCountInvalid(t *testing.T) {
 
 func TestAccSearchService_replicaCountInvalid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{}
+	r := SearchServiceResource{sku: "free"}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -249,17 +283,17 @@ resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "standard"
+  sku                 = "%s"
 
   tags = {
     environment = "staging"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, r.sku)
 }
 
-func (SearchServiceResource) requiresImport(data acceptance.TestData) string {
-	template := SearchServiceResource{}.basic(data)
+func (r SearchServiceResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -289,7 +323,7 @@ resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "standard"
+  sku                 = "%s"
   replica_count       = 2
   partition_count     = 3
 
@@ -300,7 +334,7 @@ resource "azurerm_search_service" "test" {
     residential = "Area"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, r.sku)
 }
 
 func (r SearchServiceResource) ipRules(data acceptance.TestData) string {
@@ -316,7 +350,7 @@ resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "standard"
+  sku                 = "%s"
 
   allowed_ips = ["168.1.5.65", "1.2.3.0/24"]
 
@@ -324,7 +358,7 @@ resource "azurerm_search_service" "test" {
     environment = "staging"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, r.sku)
 }
 
 func (r SearchServiceResource) identity(data acceptance.TestData) string {
@@ -340,7 +374,7 @@ resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "standard"
+  sku                 = "%s"
 
   identity {
     type = "SystemAssigned"
@@ -350,7 +384,7 @@ resource "azurerm_search_service" "test" {
     environment = "staging"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, r.sku)
 }
 
 func (r SearchServiceResource) hostingMode(data acceptance.TestData) string {
@@ -366,14 +400,14 @@ resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "standard3"
+  sku                 = "%s"
   hosting_mode        = "highDensity"
 
   tags = {
     environment = "staging"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, r.sku)
 }
 
 func (r SearchServiceResource) hostingModeInvalidSKU(data acceptance.TestData) string {
@@ -389,14 +423,14 @@ resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "standard2"
+  sku                 = "%s"
   hosting_mode        = "highDensity"
 
   tags = {
     environment = "staging"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, r.sku)
 }
 
 func (r SearchServiceResource) partitionCountInvalid(data acceptance.TestData) string {
@@ -412,10 +446,10 @@ resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "free"
+  sku                 = "%s"
   partition_count     = 3
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, r.sku)
 }
 
 func (r SearchServiceResource) replicaCountInvalid(data acceptance.TestData) string {
@@ -431,8 +465,8 @@ resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "free"
+  sku                 = "%s"
   replica_count       = 2
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, r.sku)
 }

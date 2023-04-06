@@ -172,11 +172,6 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		publicNetworkAccess = services.PublicNetworkAccessDisabled
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
 	skuName := services.SkuName(d.Get("sku").(string))
 	hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
 
@@ -220,8 +215,17 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			PartitionCount: &partitionCount,
 			ReplicaCount:   &replicaCount,
 		},
-		Identity: expandedIdentity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	// fix for issue #10151
+	if expandedIdentity.Type != identity.TypeNone {
+		searchService.Identity = expandedIdentity
 	}
 
 	err = client.CreateOrUpdateThenPoll(ctx, id, searchService, services.CreateOrUpdateOperationOptions{})
@@ -264,7 +268,10 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			model.Identity = expandedIdentity
+			// fix for issue #10151
+			if expandedIdentity.Type != identity.TypeNone {
+				model.Identity = expandedIdentity
+			}
 		}
 
 		if d.HasChange("hosting_mode") {
@@ -355,8 +362,8 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("sku", skuName)
 
 		if props := model.Properties; props != nil {
-			partitionCount := 0
-			replicaCount := 0
+			partitionCount := 1         // Default
+			replicaCount := 1           // Default
 			publicNetworkAccess := true // publicNetworkAccess defaults to true...
 			hostingMode := services.HostingModeDefault
 
@@ -385,8 +392,11 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 		}
 
-		if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
-			return fmt.Errorf("setting `identity`: %s", err)
+		// fix for issue #10151
+		if model.Identity != nil {
+			if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+				return fmt.Errorf("setting `identity`: %s", err)
+			}
 		}
 
 		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
