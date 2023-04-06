@@ -729,6 +729,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 				},
 			}
 
+			// We only handle the error here because no request body is returned https://github.com/Azure/azure-rest-api-specs/issues/23456
 			_, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params)
 			if err != nil {
 				return fmt.Errorf("recovering %s: %+v", id, err)
