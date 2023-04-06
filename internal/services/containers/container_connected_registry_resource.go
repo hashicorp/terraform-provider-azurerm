@@ -3,12 +3,13 @@ package containers
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/connectedregistries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/tokens"
 	tfvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
@@ -57,21 +58,21 @@ func (r ContainerConnectedRegistryResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.RegistryID,
+			ValidateFunc: registries.ValidateRegistryID,
 		},
 
 		"parent_registry_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.Any(validate.ContainerConnectedRegistryID, validate.RegistryID),
+			ValidateFunc: validation.Any(connectedregistries.ValidateConnectedRegistryID, registries.ValidateRegistryID),
 		},
 
 		"sync_token_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ContainerRegistryTokenID,
+			ValidateFunc: tokens.ValidateTokenID,
 		},
 
 		"sync_schedule": {
@@ -148,7 +149,7 @@ func (r ContainerConnectedRegistryResource) Arguments() map[string]*pluginsdk.Sc
 			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.ContainerRegistryTokenID,
+				ValidateFunc: tokens.ValidateTokenID,
 			},
 		},
 
@@ -189,7 +190,7 @@ func (r ContainerConnectedRegistryResource) ModelObject() interface{} {
 }
 
 func (r ContainerConnectedRegistryResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ContainerConnectedRegistryID
+	return connectedregistries.ValidateConnectedRegistryID
 }
 
 func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
@@ -285,7 +286,7 @@ func (r ContainerConnectedRegistryResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			rid := parse.NewRegistryID(id.SubscriptionId, id.ResourceGroupName, id.RegistryName)
+			rid := registries.NewRegistryID(id.SubscriptionId, id.ResourceGroupName, id.RegistryName)
 
 			var (
 				mode             string

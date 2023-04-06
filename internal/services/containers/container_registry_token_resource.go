@@ -7,11 +7,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/scopemaps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -26,7 +26,7 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 		Delete: resourceContainerRegistryTokenDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ContainerRegistryTokenID(id)
+			_, err := tokens.ParseTokenID(id)
 			return err
 		}),
 
@@ -57,7 +57,7 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 			"scope_map_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ContainerRegistryScopeMapID,
+				ValidateFunc: scopemaps.ValidateScopeMapID,
 			},
 
 			"enabled": {

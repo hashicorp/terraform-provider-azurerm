@@ -42,7 +42,7 @@ func (r ContainerRegistryTokenPasswordResource) Arguments() map[string]*pluginsd
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ContainerRegistryTokenID,
+			ValidateFunc: tokens.ValidateTokenID,
 		},
 
 		"password1": {
@@ -199,7 +199,7 @@ func (r ContainerRegistryTokenPasswordResource) Read() sdk.ResourceFunc {
 			}
 
 			model := ContainerRegistryTokenPasswordModel{
-				TokenId: parse.NewContainerRegistryTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName).ID(),
+				TokenId: tokens.NewTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName).ID(),
 			}
 			for _, pwd := range pwds {
 				name := string(*pwd.Name)

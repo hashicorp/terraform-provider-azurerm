@@ -3,14 +3,14 @@ package containers
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -159,7 +159,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.RegistryID,
+			ValidateFunc: registries.ValidateRegistryID,
 		},
 		"platform": {
 			Type:     pluginsdk.TypeList,
@@ -1063,9 +1063,7 @@ func flattenRegistryTaskSourceTriggers(triggers *[]tasks.SourceTrigger, model Co
 			Enabled: *trigger.Status == tasks.TriggerStatusEnabled,
 		}
 		obj.Name = trigger.Name
-		//if trigger.Name != nil {
-		//	obj.Name = *trigger.Name
-		//}
+
 		if trigger.SourceTriggerEvents != nil {
 			events := make([]string, 0, len(trigger.SourceTriggerEvents))
 			for _, event := range trigger.SourceTriggerEvents {
@@ -1079,16 +1077,6 @@ func flattenRegistryTaskSourceTriggers(triggers *[]tasks.SourceTrigger, model Co
 		if trigger.SourceRepository.Branch != nil {
 			obj.Branch = *trigger.SourceRepository.Branch
 		}
-		//if sourceProp := trigger.SourceRepository; sourceProp != nil {
-		//	obj.SourceType = string(sourceProp.SourceControlType)
-		//	obj.RepositoryURL = sourceProp.RepositoryUrl
-		//	//if sourceProp.RepositoryUrl != nil {
-		//	//	obj.RepositoryURL = sourceProp.RepositoryUrl
-		//	//}
-		//	if sourceProp.Branch != nil {
-		//		obj.Branch = *sourceProp.Branch
-		//	}
-		//}
 
 		// Auth is not returned from API, setting it from config.
 		if len(model.SourceTrigger) > i {
@@ -1148,12 +1136,6 @@ func flattenRegistryTaskTimerTriggers(triggers *[]tasks.TimerTrigger) []TimerTri
 		}
 		obj.Name = trigger.Name
 		obj.Schedule = trigger.Schedule
-		//if trigger.Name != nil {
-		//	obj.Name = *trigger.Name
-		//}
-		//if trigger.Schedule != nil {
-		//	obj.Schedule = *trigger.Schedule
-		//}
 		out = append(out, obj)
 	}
 	return out
@@ -1212,9 +1194,7 @@ func flattenRegistryTaskDockerStep(step tasks.TaskStepProperties, model Containe
 		obj.ContextPath = *dockerStep.ContextPath
 	}
 	obj.DockerfilePath = dockerStep.DockerFilePath
-	//if dockerStep.DockerFilePath != nil {
-	//	obj.DockerfilePath = dockerStep.DockerFilePath
-	//}
+
 	if dockerStep.ImageNames != nil {
 		obj.ImageNames = *dockerStep.ImageNames
 	}
@@ -1274,9 +1254,7 @@ func flattenRegistryTaskFileTaskStep(step tasks.TaskStepProperties, model Contai
 		obj.ContextPath = *fileTaskStep.ContextPath
 	}
 	obj.TaskFilePath = fileTaskStep.TaskFilePath
-	//if fileTaskStep.TaskFilePath != nil {
-	//	obj.TaskFilePath = *fileTaskStep.TaskFilePath
-	//}
+
 	if fileTaskStep.ValuesFilePath != nil {
 		obj.ValueFilePath = *fileTaskStep.ValuesFilePath
 	}
@@ -1330,9 +1308,7 @@ func flattenRegistryTaskEncodedTaskStep(step tasks.TaskStepProperties, model Con
 		obj.ContextAccessToken = *encodedTaskStep.ContextAccessToken
 	}
 	obj.TaskContent = encodedTaskStep.EncodedTaskContent
-	//if encodedTaskStep.EncodedTaskContent != nil {
-	//	obj.TaskContent = *encodedTaskStep.EncodedTaskContent
-	//}
+
 	if encodedTaskStep.EncodedValuesContent != nil {
 		obj.ValueContent = *encodedTaskStep.EncodedValuesContent
 	}
@@ -1385,12 +1361,7 @@ func flattenRegistryTaskArguments(arguments *[]tasks.Argument) map[string]string
 		)
 		k = argument.Name
 		v = argument.Value
-		//if argument.Name != nil {
-		//	k = *argument.Name
-		//}
-		//if argument.Value != nil {
-		//	v = *argument.Value
-		//}
+
 		if argument.IsSecret != nil {
 			isSecret = *argument.IsSecret
 		}
@@ -1442,12 +1413,7 @@ func flattenRegistryTaskValues(values *[]tasks.SetValue) map[string]string {
 		)
 		k = value.Name
 		v = value.Value
-		//if value.Name != nil {
-		//	k = *value.Name
-		//}
-		//if value.Value != nil {
-		//	v = *value.Value
-		//}
+
 		if value.IsSecret != nil {
 			isSecret = *value.IsSecret
 		}

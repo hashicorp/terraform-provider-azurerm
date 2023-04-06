@@ -3,14 +3,13 @@ package containers
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/runs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
-	"time"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -28,7 +27,7 @@ func (r ContainerRegistryTaskScheduleResource) Arguments() map[string]*pluginsdk
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ContainerRegistryTaskID,
+			ValidateFunc: tasks.ValidateTaskID,
 		},
 	}
 }
@@ -46,7 +45,7 @@ func (r ContainerRegistryTaskScheduleResource) ModelObject() interface{} {
 }
 
 func (r ContainerRegistryTaskScheduleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ContainerRegistryTaskScheduleID
+	return tasks.ValidateTaskID
 }
 
 func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
@@ -91,6 +90,9 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 
 			runsClient := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Runs
 			run, err := runsClient.List(ctx, runs.RegistryId(registryId), runs.ListOperationOptions{})
+			if err != nil {
+				return fmt.Errorf("retrieving runs for %s: %+v", taskId, err)
+			}
 
 			if run.Model == nil {
 				return fmt.Errorf("model was nil for %s", registryId)
