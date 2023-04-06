@@ -131,10 +131,6 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-					},
 					"type": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -192,7 +188,24 @@ func (br costManagementViewBaseResource) createFunc(resourceName, scopeFieldName
 				return tf.ImportAsExistsError(resourceName, id.ID())
 			}
 
-			if err := createOrUpdateCostManagementView(ctx, client, metadata, id, nil); err != nil {
+			accumulated := views.AccumulatedTypeFalse
+			if accumulatedRaw := metadata.ResourceData.Get("accumulated").(bool); accumulatedRaw {
+				accumulated = views.AccumulatedTypeTrue
+			}
+
+			props := views.View{
+				Properties: &views.ViewProperties{
+					Accumulated: utils.ToPtr(accumulated),
+					DisplayName: utils.String(metadata.ResourceData.Get("display_name").(string)),
+					Chart:       utils.ToPtr(views.ChartType(metadata.ResourceData.Get("chart_type").(string))),
+					Query:       expandViewReportConfigDefinition(metadata.ResourceData.Get("query").([]interface{})),
+					Kpis:        expandKpis(metadata.ResourceData.Get("kpi").([]interface{})),
+					Pivots:      expandPivots(metadata.ResourceData.Get("pivot").([]interface{})),
+				},
+			}
+
+			_, err = client.CreateOrUpdateByScope(ctx, id, props)
+			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -292,37 +305,32 @@ func (br costManagementViewBaseResource) updateFunc() sdk.ResourceFunc {
 				}
 			}
 
-			if err := createOrUpdateCostManagementView(ctx, client, metadata, *id, resp.Model.ETag); err != nil {
+			accumulated := views.AccumulatedTypeFalse
+			if accumulatedRaw := metadata.ResourceData.Get("accumulated").(bool); accumulatedRaw {
+				accumulated = views.AccumulatedTypeTrue
+			}
+
+			props := views.View{
+				ETag: resp.Model.ETag,
+
+				Properties: &views.ViewProperties{
+					Accumulated: utils.ToPtr(accumulated),
+					DisplayName: utils.String(metadata.ResourceData.Get("display_name").(string)),
+					Chart:       utils.ToPtr(views.ChartType(metadata.ResourceData.Get("chart_type").(string))),
+					Query:       expandViewReportConfigDefinition(metadata.ResourceData.Get("query").([]interface{})),
+					Kpis:        expandKpis(metadata.ResourceData.Get("kpi").([]interface{})),
+					Pivots:      expandPivots(metadata.ResourceData.Get("pivot").([]interface{})),
+				},
+			}
+
+			_, err = client.CreateOrUpdateByScope(ctx, *id, props)
+			if err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
 		},
 	}
-}
-
-func createOrUpdateCostManagementView(ctx context.Context, client *views.ViewsClient, metadata sdk.ResourceMetaData, id views.ScopedViewId, etag *string) error {
-	accumulated := views.AccumulatedTypeFalse
-	if accumulatedRaw := metadata.ResourceData.Get("accumulated").(bool); accumulatedRaw {
-		accumulated = views.AccumulatedTypeTrue
-	}
-
-	props := views.View{
-		ETag: etag,
-
-		Properties: &views.ViewProperties{
-			Accumulated: utils.ToPtr(accumulated),
-			DisplayName: utils.String(metadata.ResourceData.Get("display_name").(string)),
-			Chart:       utils.ToPtr(views.ChartType(metadata.ResourceData.Get("chart_type").(string))),
-			Query:       expandViewReportConfigDefinition(metadata.ResourceData.Get("query").([]interface{})),
-			Kpis:        expandKpis(metadata.ResourceData.Get("kpi").([]interface{})),
-			Pivots:      expandPivots(metadata.ResourceData.Get("pivot").([]interface{})),
-		},
-	}
-
-	_, err := client.CreateOrUpdateByScope(ctx, id, props)
-
-	return err
 }
 
 func expandViewReportConfigDefinition(input []interface{}) *views.ReportConfigDefinition {
@@ -432,7 +440,7 @@ func expandKpis(input []interface{}) *[]views.KpiProperties {
 		v := item.(map[string]interface{})
 		outputKpis = append(outputKpis, views.KpiProperties{
 			Type:    utils.ToPtr(views.KpiTypeType(v["type"].(string))),
-			Enabled: utils.Bool(v["enabled"].(bool)),
+			Enabled: utils.Bool(true),
 		})
 	}
 
@@ -464,18 +472,12 @@ func flattenKpis(input *[]views.KpiProperties) []interface{} {
 
 	for _, item := range *input {
 		kpiType := ""
-		if v := item.Type; v != nil {
+		if v := item.Type; v != nil && item.Enabled != nil && *item.Enabled {
 			kpiType = string(*v)
 		}
 
-		enabled := false
-		if v := item.Enabled; v != nil {
-			enabled = *v
-		}
-
 		outputKpis = append(outputKpis, map[string]interface{}{
-			"enabled": enabled,
-			"type":    kpiType,
+			"type": kpiType,
 		})
 	}
 

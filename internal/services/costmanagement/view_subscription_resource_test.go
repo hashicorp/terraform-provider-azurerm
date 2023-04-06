@@ -146,8 +146,7 @@ resource "azurerm_subscription_cost_management_view" "test" {
     }
   }
   kpi {
-    enabled = true
-    type    = "Forecast"
+    type = "Forecast"
   }
   pivot {
     type = "Dimension"
@@ -193,8 +192,7 @@ resource "azurerm_subscription_cost_management_view" "test" {
     }
   }
   kpi {
-    enabled = true
-    type    = "Forecast"
+    type = "Forecast"
   }
   pivot {
     type = "Dimension"
@@ -249,8 +247,7 @@ resource "azurerm_subscription_cost_management_view" "import" {
     }
   }
   kpi {
-    enabled = true
-    type    = "Forecast"
+    type = "Forecast"
   }
   pivot {
     type = "Dimension"
@@ -308,8 +305,7 @@ resource "azurerm_subscription_cost_management_view" "test" {
     }
   }
   kpi {
-    enabled = true
-    type    = "Forecast"
+    type = "Forecast"
   }
 }
 `, data.RandomString, data.RandomString)
