@@ -105,7 +105,7 @@ func (r CustomDomainSignalrServiceResource) Create() sdk.ResourceFunc {
 				},
 			}
 			if err := client.CustomDomainsCreateOrUpdateThenPoll(ctx, id, customDomainObj); err != nil {
-				return fmt.Errorf("creating signalR custom domain: %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -129,27 +129,28 @@ func (r CustomDomainSignalrServiceResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading signalR custom domain %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: got nil model", *id)
-			}
-
-			signalrServiceId := signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName).ID()
 
 			state := CustomDomainSignalrServiceModel{
 				Name:             id.CustomDomainName,
-				DomainName:       resp.Model.Properties.DomainName,
-				SignalRServiceId: signalrServiceId,
+				SignalRServiceId: signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName).ID(),
 			}
 
-			if resp.Model.Properties.CustomCertificate.Id != nil {
-				signalrCustomCertId, err := signalr.ParseCustomCertificateIDInsensitively(*resp.Model.Properties.CustomCertificate.Id)
-				if err != nil {
-					return fmt.Errorf("parsing signalr custom cert id for %s: %+v", id, err)
+			if model := resp.Model; model != nil {
+				props := model.Properties
+
+				signalrCustomCertificateId := ""
+				if props.CustomCertificate.Id != nil {
+					signalrCustomCertificateID, err := signalr.ParseCustomCertificateIDInsensitively(*props.CustomCertificate.Id)
+					if err != nil {
+						return fmt.Errorf("parsing signalr custom cert id for %s: %+v", id, err)
+					}
+					signalrCustomCertificateId = signalrCustomCertificateID.ID()
 				}
-				state.SignalrCustomCertificateId = signalrCustomCertId.ID()
+
+				state.SignalrCustomCertificateId = signalrCustomCertificateId
+				state.DomainName = props.DomainName
 			}
 
 			return metadata.Encode(&state)
@@ -170,7 +171,7 @@ func (r CustomDomainSignalrServiceResource) Delete() sdk.ResourceFunc {
 
 			signalrId := signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName)
 
-			if err := waitForSignalrServiceStatusToBeReady(ctx, metadata, signalrId); err != nil {
+			if err := waitForSignalrServiceStatusToBeReady(ctx, client, signalrId); err != nil {
 				return fmt.Errorf("waiting for signalR service %s state to be ready error: %+v", signalrId, err)
 			}
 
@@ -187,9 +188,8 @@ func (r CustomDomainSignalrServiceResource) IDValidationFunc() pluginsdk.SchemaV
 	return signalr.ValidateCustomDomainID
 }
 
-func waitForSignalrServiceStatusToBeReady(ctx context.Context, metadata sdk.ResourceMetaData, id signalr.SignalRId) error {
-	signalrClient := metadata.Client.SignalR.SignalRClient
-
+func waitForSignalrServiceStatusToBeReady(ctx context.Context, client *signalr.SignalRClient, id signalr.SignalRId) error {
+	deadline, _ := ctx.Deadline()
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
 			string(signalr.ProvisioningStateUpdating),
@@ -198,8 +198,8 @@ func waitForSignalrServiceStatusToBeReady(ctx context.Context, metadata sdk.Reso
 			string(signalr.ProvisioningStateRunning),
 		},
 		Target:                    []string{string(signalr.ProvisioningStateSucceeded)},
-		Refresh:                   signalrServiceProvisioningStateRefreshFunc(ctx, signalrClient, id),
-		Timeout:                   5 * time.Minute,
+		Refresh:                   signalrServiceProvisioningStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
 		PollInterval:              10 * time.Second,
 		ContinuousTargetOccurence: 5,
 	}

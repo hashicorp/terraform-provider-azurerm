@@ -105,15 +105,15 @@ resource "azurerm_signalr_service_custom_domain" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the SignalR Custom Domain. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the SignalR Custom Domain. Changing this forces a new resource to be created.
 
-* `signalr_service_id` - (Required) The signalR ID of the SignalR Custom Domain. Changing this forces a new resource to be created.
+* `domain_name` - (Required) Specifies the custom domain name of the SignalR Custom Domain. Changing this forces a new resource to be created.
 
-* `signalr_custom_certificate_id` - (Required) The signalr custom certificate ID of the SignalR Custom Domain. Changing this forces a new resource to be created.
+-> **NOTE:** Please ensure the custom domain name is included in the Subject Alternative Names of the selected SignalR Custom Certificate.
 
-* `domain_name` - (Required) The custom domain name of the SignalR Custom Domain. Changing this forces a new resource to be created.
+* `signalr_service_id` - (Required) Specifies the SignalR ID of the SignalR Custom Domain. Changing this forces a new resource to be created.
 
--> **NOTE:** Please ensure the custom domain name is included in the subject alternative names of the selected signalr custom certificate.
+* `signalr_custom_certificate_id` - (Required) Specifies the SignalR Custom Certificate ID of the SignalR Custom Domain. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -125,9 +125,9 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Custom Domain of the SignalR service
-* `read` - (Defaults to 5 minutes) Used when retrieving the Custom Domain of the SignalR service
-* `delete` - (Defaults to 30 minutes) Used when deleting the Custom Domain of the SignalR service
+* `create` - (Defaults to 30 minutes) Used when creating the custom domain of the SignalR service
+* `read` - (Defaults to 5 minutes) Used when retrieving the custom domain of the SignalR service
+* `delete` - (Defaults to 30 minutes) Used when deleting the custom domain of the SignalR service
 
 ## Import
 

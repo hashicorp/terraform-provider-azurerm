@@ -3,12 +3,12 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub_custom_domain"
 description: |-
-  Manages an Azure Web Pubsub Custom Domain.
+  Manages an Azure Web PubSub Custom Domain.
 ---
 
 # azurerm_web_pubsub_custom_domain
 
-Manages an Azure Web Pubsub Custom Domain.
+Manages an Azure Web PubSub Custom Domain.
 
 ## Example Usage
 
@@ -57,7 +57,7 @@ resource "azurerm_key_vault" "example" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = azurerm_web_pubsub_service.test.identity[0].principal_id
+    object_id = azurerm_web_pubsub.test.identity[0].principal_id
     certificate_permissions = [
       "Create",
       "Get",
@@ -82,16 +82,16 @@ resource "azurerm_key_vault_certificate" "example" {
 
 resource "azurerm_web_pubsub_custom_certificate" "test" {
   name                  = "example-cert"
-  web_pubsub_service_id = azurerm_web_pubsub_service.example.id
+  web_pubsub_id = azurerm_web_pubsub.example.id
   custom_certificate_id = azurerm_key_vault_certificate.example.id
-  certificate_version   = "ec6faxx"
+  
   depends_on            = [azurerm_key_vault_access_policy.example]
 }
 
 resource "azurerm_web_pubsub_custom_domain" "test" {
   name                             = "example-domain"
-  web_pubsub_service_id            = azurerm_web_pubsub.test.id
   domain_name                      = "tftest.com"
+  web_pubsub_id                    = azurerm_web_pubsub.test.id
   web_pubsub_custom_certificate_id = azurerm_web_pubsub_custom_certificate.test.id
 }
 ```
@@ -99,33 +99,33 @@ resource "azurerm_web_pubsub_custom_domain" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the web pubsub Custom Domain. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Web PubSub Custom Domain. Changing this forces a new resource to be created.
 
-* `web_pubsub_id` - (Required) The web pubsub ID of the Web Pubsub Custom Domain. Changing this forces a new resource to be created.
+* `domain_name` - (Required) Specifies the custom domain name of the Web PubSub Custom Domain. Changing this forces a new resource to be created.
 
-* `web_pubsub_custom_certificate_id` - (Required) The web pubsub custom certificate id of the Web Pubsub Custom Domain. Changing this forces a new resource to be created.
+-> **NOTE:** Please ensure the custom domain name is included in the Subject Alternative Names of the selected Web PubSub Custom Certificate. 
 
-* `domain_name` - (Required) The custom domain name of the Web Pubsub Custom Domain. Changing this forces a new resource to be created.
+* `web_pubsub_id` - (Required) Specifies the Web PubSub ID of the Web PubSub Custom Domain. Changing this forces a new resource to be created.
 
--> **NOTE:** Please ensure the custom domain name is included in the subject alternative names of the selected Web Pubsub custom certificate. 
+* `web_pubsub_custom_certificate_id` - (Required) Specifies the Web PubSub Custom Certificate ID of the Web PubSub Custom Domain. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Web Pubsub Custom Domain.
+* `id` - The ID of the Web PubSub Custom Domain.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Custom Domain of the Web Pubsub service
-* `read` - (Defaults to 5 minutes) Used when retrieving the Custom Domain of the Web Pubsub service
-* `delete` - (Defaults to 30 minutes) Used when deleting the Custom Domain of the Web Pubsub service
+* `create` - (Defaults to 30 minutes) Used when creating the custom domain of the Web PubSub service
+* `read` - (Defaults to 5 minutes) Used when retrieving the custom domain of the Web PubSub service
+* `delete` - (Defaults to 30 minutes) Used when deleting the custom domain of the Web PubSub service
 
 ## Import
 
-Custom Domain for a Web Pubsub service can be imported using the `resource id`, e.g.
+Custom Domain for a Web PubSub service can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_web_pubsub_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/WebPubSub/webpubsub1/customDomains/customDomain1

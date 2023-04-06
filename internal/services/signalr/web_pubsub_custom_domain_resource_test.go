@@ -56,7 +56,7 @@ func (r WebPubsubCustomDomainResource) Exists(ctx context.Context, client *clien
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 
 }
 

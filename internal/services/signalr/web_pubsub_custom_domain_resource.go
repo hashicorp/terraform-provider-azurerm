@@ -105,7 +105,7 @@ func (r CustomDomainWebPubsubResource) Create() sdk.ResourceFunc {
 				},
 			}
 			if err := client.CustomDomainsCreateOrUpdateThenPoll(ctx, id, customDomainObj); err != nil {
-				return fmt.Errorf("creating web pubsub custom domain: %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -129,28 +129,30 @@ func (r CustomDomainWebPubsubResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading Web Pubsub custom domain %s: %+v", id, err)
-			}
-
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: got nil model", *id)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			webPubsubId := webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID()
 
 			state := CustomDomainWebPubsubModel{
 				Name:        id.CustomDomainName,
-				DomainName:  resp.Model.Properties.DomainName,
 				WebPubsubId: webPubsubId,
 			}
 
-			if resp.Model.Properties.CustomCertificate.Id != nil {
-				webPubsubCustomCertId, err := webpubsub.ParseCustomCertificateIDInsensitively(*resp.Model.Properties.CustomCertificate.Id)
-				if err != nil {
-					return fmt.Errorf("parsing web pubsub custom cert id for %s: %+v", id, err)
+			if model := resp.Model; model != nil {
+				props := model.Properties
+				webPubsubCustomCertificateId := ""
+				if props.CustomCertificate.Id != nil {
+					webPubsubCustomCertificateID, err := webpubsub.ParseCustomCertificateID(*props.CustomCertificate.Id)
+					if err != nil {
+						return fmt.Errorf("parsing web pubsub custom cert id for %s: %+v", id, err)
+					}
+					webPubsubCustomCertificateId = webPubsubCustomCertificateID.ID()
 				}
-				state.WebPubsubCustomCertificateId = webPubsubCustomCertId.ID()
+				state.WebPubsubCustomCertificateId = webPubsubCustomCertificateId
+				state.DomainName = props.DomainName
 			}
+
 			return metadata.Encode(&state)
 		},
 	}
@@ -169,7 +171,7 @@ func (r CustomDomainWebPubsubResource) Delete() sdk.ResourceFunc {
 
 			webPubsubId := webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName)
 
-			if err := waitForWebPubsubStatusToBeReady(ctx, metadata, webPubsubId); err != nil {
+			if err := waitForWebPubsubStatusToBeReady(ctx, client, webPubsubId); err != nil {
 				return fmt.Errorf("waiting for web pubsub %s state to be ready error: %+v", webPubsubId, err)
 			}
 			if err := client.CustomDomainsDeleteThenPoll(ctx, *id); err != nil {
@@ -185,9 +187,8 @@ func (r CustomDomainWebPubsubResource) IDValidationFunc() pluginsdk.SchemaValida
 	return webpubsub.ValidateCustomDomainID
 }
 
-func waitForWebPubsubStatusToBeReady(ctx context.Context, metadata sdk.ResourceMetaData, id webpubsub.WebPubSubId) error {
-	webPubsubClient := metadata.Client.SignalR.WebPubSubClient.WebPubSub
-
+func waitForWebPubsubStatusToBeReady(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.WebPubSubId) error {
+	deadline, _ := ctx.Deadline()
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
 			string(webpubsub.ProvisioningStateUpdating),
@@ -196,8 +197,8 @@ func waitForWebPubsubStatusToBeReady(ctx context.Context, metadata sdk.ResourceM
 			string(webpubsub.ProvisioningStateRunning),
 		},
 		Target:                    []string{string(webpubsub.ProvisioningStateSucceeded)},
-		Refresh:                   webPubsubProvisioningStateRefreshFunc(ctx, webPubsubClient, id),
-		Timeout:                   5 * time.Minute,
+		Refresh:                   webPubsubProvisioningStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
 		PollInterval:              10 * time.Second,
 		ContinuousTargetOccurence: 5,
 	}
