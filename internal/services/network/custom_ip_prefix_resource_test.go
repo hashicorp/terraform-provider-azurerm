@@ -64,6 +64,13 @@ func testAccCustomIpPrefix_ipv4CommissionedRegional(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.ipv4CommissionedRegional(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.ipv4Commissioned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -176,6 +183,7 @@ resource "azurerm_custom_ip_prefix" "test" {
 
   commissioning_enabled         = true
   cidr                          = "%[3]s"
+  internet_advertising_disabled = false
   roa_validity_end_date         = "2099-12-12"
   wan_validation_signed_message = "signed message for WAN validation"
   zones                         = ["1"]
