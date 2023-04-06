@@ -794,7 +794,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
-* `hosting_environment_id` - The ID of the App Service Environment used by App Service.
+* `hosting_environment_id` - The ID of the App Service Environment used by App Service Slot.
 
 * `default_hostname` - The default hostname of the Linux Web App.
 
