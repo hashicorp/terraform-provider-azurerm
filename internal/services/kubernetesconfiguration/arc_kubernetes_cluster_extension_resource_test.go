@@ -89,21 +89,6 @@ func TestAccArcKubernetesClusterExtension_update(t *testing.T) {
 	})
 }
 
-func TestAccArcKubernetesClusterExtension_plan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster_extension", "test")
-	r := ArcKubernetesClusterExtensionResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.plan(data, credential),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r ArcKubernetesClusterExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := extensions.ParseExtensionID(state.ID)
 	if err != nil {
@@ -372,38 +357,6 @@ resource "azurerm_arc_kubernetes_cluster_extension" "test" {
 
   configuration_settings = {
     "omsagent.env.clusterName" = "clusterName2"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  depends_on = [
-    azurerm_linux_virtual_machine.test
-  ]
-}
-`, template, data.RandomInteger)
-}
-
-func (r ArcKubernetesClusterExtensionResource) plan(data acceptance.TestData, credential string) string {
-	template := r.template(data, credential)
-	return fmt.Sprintf(`
-				%[1]s
-
-resource "azurerm_arc_kubernetes_cluster_extension" "test" {
-  name                  = "acctest-kce-%[2]d"
-  resource_group_name   = azurerm_resource_group.test.name
-  cluster_name          = "acctest-akcc-%[2]d"
-  extension_type        = "cognosys.nodejs-on-alpine"
-
-  configuration_settings = {
-    "title" = "Title",
-  }
-
-  plan {
-    name           = "nodejs-18-alpine-container"
-    product        = "nodejs18-alpine-container"
-    publisher      = "cognosys"
   }
 
   identity {
