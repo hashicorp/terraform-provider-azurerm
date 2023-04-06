@@ -93,14 +93,8 @@ type ImageReference struct {
 }
 
 type OSProfile struct {
-	AdminPassword      string               `tfschema:"admin_password"`
-	AdminUsername      string               `tfschema:"admin_username"`
-	LinuxConfiguration []LinuxConfiguration `tfschema:"linux_configuration"`
-}
-
-type LinuxConfiguration struct {
-	PasswordAuthenticationEnabled bool         `tfschema:"password_authentication_enabled"`
-	SshKeyPair                    []SshKeyPair `tfschema:"ssh_key_pair"`
+	AdminUsername string       `tfschema:"admin_username"`
+	SshKeyPair    []SshKeyPair `tfschema:"ssh_key_pair"`
 }
 
 type SshKeyPair struct {
@@ -227,6 +221,29 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 
 		"location": commonschema.Location(),
 
+		"environment": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(sapvirtualinstances.SAPEnvironmentTypeNonProd),
+				string(sapvirtualinstances.SAPEnvironmentTypeProd),
+			}, false),
+		},
+
+		"identity": commonschema.UserAssignedIdentityRequired(),
+
+		"sap_product": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(sapvirtualinstances.SAPProductTypeECC),
+				string(sapvirtualinstances.SAPProductTypeOther),
+				string(sapvirtualinstances.SAPProductTypeSFourHANA),
+			}, false),
+		},
+
 		"deployment_configuration": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -326,29 +343,6 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 			},
 			AtLeastOneOf: []string{"deployment_configuration", "deployment_with_os_configuration", "discovery_configuration"},
 		},
-
-		"environment": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sapvirtualinstances.SAPEnvironmentTypeNonProd),
-				string(sapvirtualinstances.SAPEnvironmentTypeProd),
-			}, false),
-		},
-
-		"sap_product": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sapvirtualinstances.SAPProductTypeECC),
-				string(sapvirtualinstances.SAPProductTypeOther),
-				string(sapvirtualinstances.SAPProductTypeSFourHANA),
-			}, false),
-		},
-
-		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"managed_resource_group_name": {
 			Type:         pluginsdk.TypeString,

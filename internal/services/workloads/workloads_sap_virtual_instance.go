@@ -32,6 +32,8 @@ func SchemaForSAPVirtualInstanceSingleServerConfiguration(deploymentType string)
 					ValidateFunc: networkValidate.SubnetID,
 				},
 
+				"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
+
 				"database_type": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -46,8 +48,6 @@ func SchemaForSAPVirtualInstanceSingleServerConfiguration(deploymentType string)
 					Optional: true,
 					ForceNew: true,
 				},
-
-				"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
 
 				"virtual_machine_full_resource_names": {
 					Type:     pluginsdk.TypeList,
@@ -111,42 +111,45 @@ func SchemaForSAPVirtualInstanceSingleServerConfiguration(deploymentType string)
 func SchemaForSAPVirtualInstanceVirtualMachineConfiguration() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Required: true,
 		ForceNew: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"image_reference": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Required: true,
 					ForceNew: true,
 					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"offer": {
 								Type:         pluginsdk.TypeString,
-								Optional:     true,
+								Required:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 
 							"publisher": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ForceNew:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								ForceNew: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									"RedHat",
+									"SUSE",
+								}, false),
 							},
 
 							"sku": {
 								Type:         pluginsdk.TypeString,
-								Optional:     true,
+								Required:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 
 							"version": {
 								Type:         pluginsdk.TypeString,
-								Optional:     true,
+								Required:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
@@ -156,60 +159,37 @@ func SchemaForSAPVirtualInstanceVirtualMachineConfiguration() *pluginsdk.Schema 
 
 				"os_profile": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Required: true,
 					ForceNew: true,
 					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							"admin_password": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ForceNew:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-
 							"admin_username": {
 								Type:         pluginsdk.TypeString,
-								Optional:     true,
+								Required:     true,
 								ForceNew:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
+								ValidateFunc: validate.AdminUsername,
 							},
 
-							"linux_configuration": {
+							"ssh_key_pair": {
 								Type:     pluginsdk.TypeList,
-								Optional: true,
+								Required: true,
 								ForceNew: true,
 								MaxItems: 1,
 								Elem: &pluginsdk.Resource{
 									Schema: map[string]*pluginsdk.Schema{
-										"password_authentication_enabled": {
-											Type:     pluginsdk.TypeBool,
-											Optional: true,
-											ForceNew: true,
+										"private_key": {
+											Type:         pluginsdk.TypeString,
+											Required:     true,
+											ForceNew:     true,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 
-										"ssh_key_pair": {
-											Type:     pluginsdk.TypeList,
-											Optional: true,
-											ForceNew: true,
-											MaxItems: 1,
-											Elem: &pluginsdk.Resource{
-												Schema: map[string]*pluginsdk.Schema{
-													"private_key": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
-													},
-
-													"public_key": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
-													},
-												},
-											},
+										"public_key": {
+											Type:         pluginsdk.TypeString,
+											Required:     true,
+											ForceNew:     true,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 								},
@@ -219,10 +199,25 @@ func SchemaForSAPVirtualInstanceVirtualMachineConfiguration() *pluginsdk.Schema 
 				},
 
 				"vm_size": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"Standard_E32ds_v4",
+						"Standard_E48ds_v4",
+						"Standard_E64ds_v4",
+						"Standard_M128ms",
+						"Standard_M128s",
+						"Standard_M208ms_v2",
+						"Standard_M208s_v2",
+						"Standard_M32Is",
+						"Standard_M32ts",
+						"Standard_M416ms_v2",
+						"Standard_M416s_v2",
+						"Standard_M64Is",
+						"Standard_M64ms",
+						"Standard_M64s",
+					}, false),
 				},
 			},
 		},
@@ -237,29 +232,36 @@ func SchemaForSAPVirtualInstanceDiskVolumeConfiguration() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"volume_name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"backup",
+						"hana/data",
+						"hana/log",
+						"hana/shared",
+						"os",
+						"usr/sap",
+					}, false),
 				},
 
 				"count": {
 					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Required: true,
 					ForceNew: true,
 				},
 
 				"size_gb": {
 					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Required: true,
 					ForceNew: true,
 				},
 
 				"sku_name": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForDiskSkuName(), false),
 				},
 			},
 		},
@@ -283,6 +285,8 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
+							"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
+
 							"instance_count": {
 								Type:     pluginsdk.TypeInt,
 								Optional: true,
@@ -295,8 +299,6 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 								ForceNew:     true,
 								ValidateFunc: networkValidate.SubnetID,
 							},
-
-							"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
 						},
 					},
 				},
@@ -308,6 +310,8 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
+							"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
+
 							"instance_count": {
 								Type:     pluginsdk.TypeInt,
 								Optional: true,
@@ -320,8 +324,6 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 								ForceNew:     true,
 								ValidateFunc: networkValidate.SubnetID,
 							},
-
-							"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
 						},
 					},
 				},
@@ -333,6 +335,8 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
+							"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
+
 							"database_type": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
@@ -354,8 +358,6 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 								ForceNew:     true,
 								ValidateFunc: networkValidate.SubnetID,
 							},
-
-							"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
 						},
 					},
 				},
@@ -780,7 +782,8 @@ func expandSingleServerConfiguration(input []SingleServerConfiguration) *sapvirt
 		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
 			IsSecondaryIPEnabled: utils.Bool(singleServerConfiguration.IsSecondaryIpEnabled), //maybe need to use GetRawConfig
 		},
-		SubnetId: singleServerConfiguration.SubnetId,
+		SubnetId:                    singleServerConfiguration.SubnetId,
+		VirtualMachineConfiguration: expandVirtualMachineConfiguration(singleServerConfiguration.VirtualMachineConfiguration),
 	}
 
 	if v := singleServerConfiguration.DatabaseType; v != "" {
@@ -790,10 +793,6 @@ func expandSingleServerConfiguration(input []SingleServerConfiguration) *sapvirt
 
 	if v := singleServerConfiguration.DiskVolumeConfigurations; v != nil {
 		result.DbDiskConfiguration = expandDiskVolumeConfigurations(v)
-	}
-
-	if v := singleServerConfiguration.VirtualMachineConfiguration; v != nil {
-		result.VirtualMachineConfiguration = expandVirtualMachineConfiguration(v)
 	}
 
 	if v := singleServerConfiguration.VirtualMachineFullResourceNames; v != nil {
@@ -810,18 +809,10 @@ func expandVirtualMachineConfiguration(input []VirtualMachineConfiguration) sapv
 
 	virtualMachineConfiguration := &input[0]
 
-	result := sapvirtualinstances.VirtualMachineConfiguration{}
-
-	if v := virtualMachineConfiguration.VmSize; v != "" {
-		result.VMSize = v
-	}
-
-	if v := virtualMachineConfiguration.ImageReference; v != nil {
-		result.ImageReference = expandImageReference(v)
-	}
-
-	if v := virtualMachineConfiguration.OSProfile; v != nil {
-		result.OsProfile = expandOsProfile(v)
+	result := sapvirtualinstances.VirtualMachineConfiguration{
+		ImageReference: expandImageReference(virtualMachineConfiguration.ImageReference),
+		OsProfile:      expandOsProfile(virtualMachineConfiguration.OSProfile),
+		VMSize:         virtualMachineConfiguration.VmSize,
 	}
 
 	return result
@@ -834,22 +825,11 @@ func expandImageReference(input []ImageReference) sapvirtualinstances.ImageRefer
 
 	imageReference := &input[0]
 
-	result := sapvirtualinstances.ImageReference{}
-
-	if v := imageReference.Offer; v != "" {
-		result.Offer = utils.String(v)
-	}
-
-	if v := imageReference.Publisher; v != "" {
-		result.Publisher = utils.String(v)
-	}
-
-	if v := imageReference.Sku; v != "" {
-		result.Sku = utils.String(v)
-	}
-
-	if v := imageReference.Version; v != "" {
-		result.Version = utils.String(v)
+	result := sapvirtualinstances.ImageReference{
+		Offer:     utils.String(imageReference.Offer),
+		Publisher: utils.String(imageReference.Publisher),
+		Sku:       utils.String(imageReference.Sku),
+		Version:   utils.String(imageReference.Version),
 	}
 
 	return result
@@ -862,61 +842,28 @@ func expandOsProfile(input []OSProfile) sapvirtualinstances.OSProfile {
 
 	osProfile := &input[0]
 
-	result := sapvirtualinstances.OSProfile{}
-
-	if v := osProfile.AdminUsername; v != "" {
-		result.AdminUsername = utils.String(v)
-	}
-
-	if v := osProfile.AdminPassword; v != "" {
-		result.AdminPassword = utils.String(v)
-	}
-
-	if v := osProfile.LinuxConfiguration; v != nil {
-		result.OsConfiguration = expandLinuxConfiguration(v)
-	} else {
-		result.OsConfiguration = sapvirtualinstances.WindowsConfiguration{}
+	result := sapvirtualinstances.OSProfile{
+		AdminUsername:   utils.String(osProfile.AdminUsername),
+		OsConfiguration: expandLinuxConfiguration(osProfile.SshKeyPair),
 	}
 
 	return result
 }
 
-func expandLinuxConfiguration(input []LinuxConfiguration) sapvirtualinstances.LinuxConfiguration {
-	if len(input) == 0 {
-		return sapvirtualinstances.LinuxConfiguration{}
-	}
-
-	linuxConfiguration := &input[0]
-
-	result := sapvirtualinstances.LinuxConfiguration{
-		DisablePasswordAuthentication: utils.Bool(!linuxConfiguration.PasswordAuthenticationEnabled), // mabye need GetRawConfig
-	}
-
-	if v := linuxConfiguration.SshKeyPair; v != nil {
-		result.SshKeyPair = expandSshKeyPair(v)
-	}
-
-	return result
-}
-
-func expandSshKeyPair(input []SshKeyPair) *sapvirtualinstances.SshKeyPair {
+func expandLinuxConfiguration(input []SshKeyPair) *sapvirtualinstances.LinuxConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 
 	sshKeyPair := &input[0]
 
-	result := sapvirtualinstances.SshKeyPair{}
-
-	if v := sshKeyPair.PrivateKey; v != "" {
-		result.PrivateKey = utils.String(v)
+	return &sapvirtualinstances.LinuxConfiguration{
+		DisablePasswordAuthentication: utils.Bool(true),
+		SshKeyPair: &sapvirtualinstances.SshKeyPair{
+			PrivateKey: utils.String(sshKeyPair.PrivateKey),
+			PublicKey:  utils.String(sshKeyPair.PublicKey),
+		},
 	}
-
-	if v := sshKeyPair.PublicKey; v != "" {
-		result.PublicKey = utils.String(v)
-	}
-
-	return &result
 }
 
 func expandVirtualMachineFullResourceNames(input []VirtualMachineFullResourceNames) sapvirtualinstances.SingleServerFullResourceNames {
@@ -996,8 +943,8 @@ func expandDiskVolumeConfigurations(input []DiskVolumeConfiguration) *sapvirtual
 		skuName := sapvirtualinstances.DiskSkuName(v.SkuName)
 
 		result[v.VolumeName] = sapvirtualinstances.DiskVolumeConfiguration{
-			Count:  utils.Int64(v.Count),  // maybe need GetRawConfig
-			SizeGB: utils.Int64(v.SizeGb), // maybe need GetRawConfig
+			Count:  utils.Int64(v.Count),
+			SizeGB: utils.Int64(v.SizeGb),
 			Sku: &sapvirtualinstances.DiskSku{
 				Name: &skuName,
 			},
@@ -1048,19 +995,10 @@ func flattenDiskVolumeConfigurations(input *map[string]sapvirtualinstances.DiskV
 
 	for k, v := range *input {
 		diskVolumeConfiguration := DiskVolumeConfiguration{
+			Count:      *v.Count,
+			SizeGb:     *v.SizeGB,
+			SkuName:    string(*v.Sku.Name),
 			VolumeName: k,
-		}
-
-		if count := v.Count; count != nil {
-			diskVolumeConfiguration.Count = *count
-		}
-
-		if sizeGB := v.SizeGB; sizeGB != nil {
-			diskVolumeConfiguration.SizeGb = *sizeGB
-		}
-
-		if sku := v.Sku; sku != nil && sku.Name != nil {
-			diskVolumeConfiguration.SkuName = string(*sku.Name)
 		}
 
 		result = append(result, diskVolumeConfiguration)
@@ -1131,10 +1069,7 @@ func flattenVirtualMachineConfiguration(input sapvirtualinstances.VirtualMachine
 	result := VirtualMachineConfiguration{
 		ImageReference: flattenImageReference(input.ImageReference),
 		OSProfile:      flattenOSProfile(input.OsProfile),
-	}
-
-	if v := input.VMSize; v != "" {
-		result.VmSize = v
+		VmSize:         input.VMSize,
 	}
 
 	return []VirtualMachineConfiguration{
@@ -1143,22 +1078,11 @@ func flattenVirtualMachineConfiguration(input sapvirtualinstances.VirtualMachine
 }
 
 func flattenImageReference(input sapvirtualinstances.ImageReference) []ImageReference {
-	result := ImageReference{}
-
-	if v := input.Offer; v != nil {
-		result.Offer = *v
-	}
-
-	if v := input.Publisher; v != nil {
-		result.Publisher = *v
-	}
-
-	if v := input.Sku; v != nil {
-		result.Sku = *v
-	}
-
-	if v := input.Version; v != nil {
-		result.Version = *v
+	result := ImageReference{
+		Offer:     *input.Offer,
+		Publisher: *input.Publisher,
+		Sku:       *input.Sku,
+		Version:   *input.Version,
 	}
 
 	return []ImageReference{
@@ -1167,39 +1091,17 @@ func flattenImageReference(input sapvirtualinstances.ImageReference) []ImageRefe
 }
 
 func flattenOSProfile(input sapvirtualinstances.OSProfile) []OSProfile {
-	result := OSProfile{}
-
-	if v := input.AdminPassword; v != nil {
-		result.AdminPassword = *v
-	}
-
-	if v := input.AdminUsername; v != nil {
-		result.AdminUsername = *v
+	result := OSProfile{
+		AdminUsername: *input.AdminUsername,
 	}
 
 	if osConfiguration := input.OsConfiguration; osConfiguration != nil {
 		if v, ok := osConfiguration.(sapvirtualinstances.LinuxConfiguration); ok {
-			result.LinuxConfiguration = flattenLinuxConfiguration(v)
+			result.SshKeyPair = flattenSshKeyPair(v.SshKeyPair)
 		}
 	}
 
 	return []OSProfile{
-		result,
-	}
-}
-
-func flattenLinuxConfiguration(input sapvirtualinstances.LinuxConfiguration) []LinuxConfiguration {
-	result := LinuxConfiguration{}
-
-	if v := input.DisablePasswordAuthentication; v != nil {
-		result.PasswordAuthenticationEnabled = !*v
-	}
-
-	if v := input.SshKeyPair; v != nil {
-		result.SshKeyPair = flattenSshKeyPair(v)
-	}
-
-	return []LinuxConfiguration{
 		result,
 	}
 }
@@ -1209,14 +1111,9 @@ func flattenSshKeyPair(input *sapvirtualinstances.SshKeyPair) []SshKeyPair {
 		return nil
 	}
 
-	result := SshKeyPair{}
-
-	if v := input.PrivateKey; v != nil {
-		result.PrivateKey = *v
-	}
-
-	if v := input.PublicKey; v != nil {
-		result.PublicKey = *v
+	result := SshKeyPair{
+		PrivateKey: *input.PrivateKey,
+		PublicKey:  *input.PublicKey,
 	}
 
 	return []SshKeyPair{

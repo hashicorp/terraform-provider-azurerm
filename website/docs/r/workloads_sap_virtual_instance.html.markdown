@@ -43,6 +43,8 @@ The following arguments are supported:
 
 * `environment` - (Required) The environment type for the SAP Virtual Instance. Possible values are `NonProd` and `Prod`. Changing this forces a new resource to be created.
 
+* `identity` - (Required) An `identity` block as defined below.
+
 * `sap_product` - (Required) The SAP Product type for the SAP Virtual Instance. Possible values are `ECC`, `Other` and `S4HANA`. Changing this forces a new resource to be created.
 
 * `deployment_configuration` - (Optional) A `deployment_configuration` block as defined below. Changing this forces a new resource to be created.
@@ -50,8 +52,6 @@ The following arguments are supported:
 * `deployment_with_os_configuration` - (Optional) A `deployment_with_os_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `discovery_configuration` - (Optional) A `discovery_configuration` block as defined below. Changing this forces a new resource to be created.
-
-* `identity` - (Optional) An `identity` block as defined below.
 
 * `managed_resource_group_name` - (Optional) The name of the managed Resource Group for the SAP Virtual Instance. Changing this forces a new resource to be created.
 
@@ -103,13 +103,13 @@ A `single_server_configuration` block supports the following:
 
 * `subnet_id` - (Required) The resource ID of the Subnet for the SAP Virtual Instance. Changing this forces a new resource to be created.
 
+* `virtual_machine_configuration` - (Required) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
+
 * `database_type` - (Optional) The supported SAP database type. Possible values are `DB2` and `HANA`. Changing this forces a new resource to be created.
 
 * `disk_volume_configuration` - (Optional) One or more `disk_volume_configuration` blocks as defined below. Changing this forces a new resource to be created.
 
 * `is_secondary_ip_enabled` - (Optional) Is a secondary IP Address that should be added to the Network Interface on all VMs of the SAP system being deployed enabled? Changing this forces a new resource to be created.
-
-* `virtual_machine_configuration` - (Optional) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `virtual_machine_full_resource_names` - (Optional) A `virtual_machine_full_resource_names` block as defined below. Changing this forces a new resource to be created.
 
@@ -117,61 +117,51 @@ A `single_server_configuration` block supports the following:
 
 A `disk_volume_configuration` block supports the following:
 
-* `volume_name` - (Required) The name of the DB volume of the disk configuration. Changing this forces a new resource to be created.
+* `volume_name` - (Required) The name of the DB volume of the disk configuration. Possible values are `backup`, `hana/data`, `hana/log`, `hana/shared`, `os` and `usr/sap`. Changing this forces a new resource to be created.
 
-* `count` - (Optional) The total number of disks required for the concerned volume. Changing this forces a new resource to be created.
+* `count` - (Required) The total number of disks required for the concerned volume. Changing this forces a new resource to be created.
 
-* `size_gb` - (Optional) The size of the Disk in GB. Changing this forces a new resource to be created.
+* `size_gb` - (Required) The size of the Disk in GB. Changing this forces a new resource to be created.
 
-* `sku_name` - (Optional) The name of the Disk SKU. Changing this forces a new resource to be created.
+* `sku_name` - (Required) The name of the Disk SKU. Changing this forces a new resource to be created.
 
 ---
 
 A `virtual_machine_configuration` block supports the following:
 
-* `image_reference` - (Optional) An `image_reference` block as defined below. Changing this forces a new resource to be created.
+* `image_reference` - (Required) An `image_reference` block as defined below. Changing this forces a new resource to be created.
 
-* `os_profile` - (Optional) An `os_profile` block as defined below. Changing this forces a new resource to be created.
+* `os_profile` - (Required) An `os_profile` block as defined below. Changing this forces a new resource to be created.
 
-* `vm_size` - (Optional) The size of the Virtual Machine. Changing this forces a new resource to be created.
+* `vm_size` - (Required) The size of the Virtual Machine. Possible values are `Standard_E32ds_v4`, `Standard_E48ds_v4`, `Standard_E64ds_v4`, `Standard_M128ms`,`Standard_M128s`, `Standard_M208ms_v2`, `Standard_M208s_v2`, `Standard_M32Is`, `Standard_M32ts`, `Standard_M416ms_v2`, `Standard_M416s_v2`, `Standard_M64Is`, `Standard_M64ms` and `Standard_M64s`. Changing this forces a new resource to be created.
 
 ---
 
 An `image_reference` block supports the following:
 
-* `offer` - (Optional) The offer of the platform image or marketplace image used to create the Virtual Machine. Changing this forces a new resource to be created.
+* `offer` - (Required) The offer of the platform image or marketplace image used to create the Virtual Machine. Changing this forces a new resource to be created.
 
-* `publisher` - (Optional) The publisher of the Image. Changing this forces a new resource to be created.
+* `publisher` - (Required) The publisher of the Image. Possible values are `RedHat` and `SUSE`. Changing this forces a new resource to be created.
 
-* `sku` - (Optional) The SKU of the Image. Changing this forces a new resource to be created.
+* `sku` - (Required) The SKU of the Image. Changing this forces a new resource to be created.
 
-* `version` - (Optional) The version of the platform image or marketplace image used to create the Virtual Machine. Changing this forces a new resource to be created.
+* `version` - (Required) The version of the platform image or marketplace image used to create the Virtual Machine. Changing this forces a new resource to be created.
 
 ---
 
 An `os_profile` block supports the following:
 
-* `admin_password` - (Optional) The password of the administrator account. Changing this forces a new resource to be created.
+* `admin_username` - (Required) The name of the administrator account. Changing this forces a new resource to be created.
 
-* `admin_username` - (Optional) The name of the administrator account. Changing this forces a new resource to be created.
-
-* `linux_configuration` - (Optional) A `linux_configuration` block as defined below. Changing this forces a new resource to be created.
-
----
-
-A `linux_configuration` block supports the following:
-
-* `password_authentication_enabled` - (Optional) Is the password authentication enabled. Changing this forces a new resource to be created.
-
-* `ssh_key_pair` - (Optional) A `ssh_key_pair` block as defined below. Changing this forces a new resource to be created.
+* `ssh_key_pair` - (Required) A `ssh_key_pair` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
 A `ssh_key_pair` block supports the following:
 
-* `private_key` - (Optional) The SSH public key that is used to authenticate with the VM. Changing this forces a new resource to be created.
+* `private_key` - (Required) The SSH public key that is used to authenticate with the VM. Changing this forces a new resource to be created.
 
-* `public_key` - (Optional) The SSH private key that is used to authenticate with the VM. Changing this forces a new resource to be created.
+* `public_key` - (Required) The SSH private key that is used to authenticate with the VM. Changing this forces a new resource to be created.
 
 ---
 
