@@ -159,11 +159,11 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basicWithSingleSelectObservatio
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "(Preview) Unusual web traffic detected with IP in URL path"
+  display_name               = "Unusual web traffic detected with IP in URL path"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
-  display_name               = "acctest duplicate (Preview) Unusual web traffic detected with IP in URL path"
+  display_name               = "acctest duplicate Unusual web traffic detected with IP in URL path"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   built_in_rule_id           = data.azurerm_sentinel_alert_rule_anomaly.test.id
   enabled                    = true
