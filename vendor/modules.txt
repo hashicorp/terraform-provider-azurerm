@@ -14,7 +14,6 @@ github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor
 github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration
 github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight
 github.com/Azure/azure-sdk-for-go/services/healthbot/mgmt/2020-12-08/healthbot
-github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis
 github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault
 github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz
 github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering
