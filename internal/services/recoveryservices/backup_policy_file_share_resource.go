@@ -91,7 +91,7 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 	if err != nil {
 		return fmt.Errorf("generating time from %q for %s: %+v", timeOfDay, id, err)
 	}
-	times := append(append(make([]string, 0), date.Time{Time: dateOfDay}.String()))
+	times := append(make([]string, 0), date.Time{Time: dateOfDay}.String())
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)

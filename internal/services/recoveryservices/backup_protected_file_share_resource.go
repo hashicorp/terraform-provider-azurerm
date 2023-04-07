@@ -122,7 +122,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	// it cannot be listed by Backup Protectable Items - List API after the storage account is registered with a RSV).
 	// After confirming with the service team, whenever new file shares are added, we need to run an 'inquire' API. but inquiry APIs are long running APIs and hence can't be included in GET API's (Backup Protectable Items - List) response.
 	// Therefore, add 'inquire' API to inquire all unprotected files shares under a storage account to fix this usecase.
-	respContainer, err := protectionContainerClient.Inquire(ctx, protectionContainerId, protectioncontainers.InquireOperationOptions{pointer.To(filter)})
+	respContainer, err := protectionContainerClient.Inquire(ctx, protectionContainerId, protectioncontainers.InquireOperationOptions{Filter: pointer.To(filter)})
 	if err != nil {
 		return fmt.Errorf("inquire all unprotected files shares under a storage account %q (Resource Group %q): %+v", parsedStorageAccountID.Name, resourceGroup, err)
 	}
