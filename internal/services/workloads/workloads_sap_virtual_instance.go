@@ -2,14 +2,15 @@ package workloads
 
 import (
 	"fmt"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/validate"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
+	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -21,6 +22,10 @@ func SchemaForSAPVirtualInstanceSingleServerConfiguration(deploymentType string)
 		Optional: true,
 		ForceNew: true,
 		MaxItems: 1,
+		AtLeastOneOf: []string{
+			fmt.Sprintf("%s.0.single_server_configuration", deploymentType),
+			fmt.Sprintf("%s.0.three_tier_configuration", deploymentType),
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"app_resource_group_name": commonschema.ResourceGroupName(),
@@ -49,61 +54,8 @@ func SchemaForSAPVirtualInstanceSingleServerConfiguration(deploymentType string)
 					ForceNew: true,
 				},
 
-				"virtual_machine_full_resource_names": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					ForceNew: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"data_disk_names": {
-								Type:     pluginsdk.TypeMap,
-								Optional: true,
-								ForceNew: true,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validate.DiskName,
-								},
-							},
-
-							"host_name": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ForceNew:     true,
-								ValidateFunc: validate.HostName,
-							},
-
-							"network_interface_names": {
-								Type:     pluginsdk.TypeList,
-								Optional: true,
-								ForceNew: true,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: networkValidate.NetworkInterfaceName,
-								},
-							},
-
-							"os_disk_name": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ForceNew:     true,
-								ValidateFunc: validate.DiskName,
-							},
-
-							"vm_name": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ForceNew:     true,
-								ValidateFunc: computeValidate.VirtualMachineName,
-							},
-						},
-					},
-				},
+				"virtual_machine_full_resource_names": SchemaForSAPVirtualInstanceVirtualMachineFullResourceNames(),
 			},
-		},
-		AtLeastOneOf: []string{
-			fmt.Sprintf("%s.0.single_server_configuration", deploymentType),
-			fmt.Sprintf("%s.0.three_tier_configuration", deploymentType),
 		},
 	}
 }
@@ -274,38 +226,42 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 		Optional: true,
 		ForceNew: true,
 		MaxItems: 1,
+		AtLeastOneOf: []string{
+			fmt.Sprintf("%s.0.single_server_configuration", deploymentType),
+			fmt.Sprintf("%s.0.three_tier_configuration", deploymentType),
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"app_resource_group_name": commonschema.ResourceGroupName(),
 
 				"application_server_configuration": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Required: true,
 					ForceNew: true,
 					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
-
 							"instance_count": {
 								Type:     pluginsdk.TypeInt,
-								Optional: true,
+								Required: true,
 								ForceNew: true,
 							},
 
 							"subnet_id": {
 								Type:         pluginsdk.TypeString,
-								Optional:     true,
+								Required:     true,
 								ForceNew:     true,
 								ValidateFunc: networkValidate.SubnetID,
 							},
+
+							"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
 						},
 					},
 				},
 
 				"central_server_configuration": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Required: true,
 					ForceNew: true,
 					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
@@ -314,13 +270,13 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 
 							"instance_count": {
 								Type:     pluginsdk.TypeInt,
-								Optional: true,
+								Required: true,
 								ForceNew: true,
 							},
 
 							"subnet_id": {
 								Type:         pluginsdk.TypeString,
-								Optional:     true,
+								Required:     true,
 								ForceNew:     true,
 								ValidateFunc: networkValidate.SubnetID,
 							},
@@ -330,34 +286,34 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 
 				"database_server_configuration": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Required: true,
 					ForceNew: true,
 					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
+							"instance_count": {
+								Type:     pluginsdk.TypeInt,
+								Required: true,
+								ForceNew: true,
+							},
+
+							"subnet_id": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								ValidateFunc: networkValidate.SubnetID,
+							},
+
 							"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
 
 							"database_type": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ForceNew:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
+								ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForSAPDatabaseType(), false),
 							},
 
 							"disk_volume_configuration": SchemaForSAPVirtualInstanceDiskVolumeConfiguration(),
-
-							"instance_count": {
-								Type:     pluginsdk.TypeInt,
-								Optional: true,
-								ForceNew: true,
-							},
-
-							"subnet_id": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ForceNew:     true,
-								ValidateFunc: networkValidate.SubnetID,
-							},
 						},
 					},
 				},
@@ -380,58 +336,10 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 											Type:         pluginsdk.TypeString,
 											Optional:     true,
 											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
+											ValidateFunc: validate.AvailabilitySetName,
 										},
 
-										"virtual_machine": {
-											Type:     pluginsdk.TypeList,
-											Optional: true,
-											ForceNew: true,
-											Elem: &pluginsdk.Resource{
-												Schema: map[string]*pluginsdk.Schema{
-													"data_disk_names": {
-														Type:     pluginsdk.TypeMap,
-														Optional: true,
-														ForceNew: true,
-														Elem: &pluginsdk.Schema{
-															Type:         pluginsdk.TypeString,
-															ValidateFunc: validation.StringIsNotEmpty,
-														},
-													},
-
-													"host_name": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
-													},
-
-													"network_interface_names": {
-														Type:     pluginsdk.TypeList,
-														Optional: true,
-														ForceNew: true,
-														Elem: &pluginsdk.Schema{
-															Type:         pluginsdk.TypeString,
-															ValidateFunc: validation.StringIsNotEmpty,
-														},
-													},
-
-													"os_disk_name": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
-													},
-
-													"vm_name": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
-													},
-												},
-											},
-										},
+										"virtual_machine": SchemaForSAPVirtualInstanceVirtualMachineFullResourceNames(),
 									},
 								},
 							},
@@ -447,105 +355,12 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 											Type:         pluginsdk.TypeString,
 											Optional:     true,
 											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
+											ValidateFunc: validate.AvailabilitySetName,
 										},
 
-										"load_balancer": {
-											Type:     pluginsdk.TypeList,
-											Optional: true,
-											ForceNew: true,
-											MaxItems: 1,
-											Elem: &pluginsdk.Resource{
-												Schema: map[string]*pluginsdk.Schema{
-													"name": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
-													},
+										"load_balancer": SchemaForSAPVirtualInstanceLoadBalancerFullResourceNames(),
 
-													"backend_pool_names": {
-														Type:     pluginsdk.TypeList,
-														Optional: true,
-														ForceNew: true,
-														Elem: &pluginsdk.Schema{
-															Type:         pluginsdk.TypeString,
-															ValidateFunc: validation.StringIsNotEmpty,
-														},
-													},
-
-													"frontend_ip_configuration_names": {
-														Type:     pluginsdk.TypeList,
-														Optional: true,
-														ForceNew: true,
-														Elem: &pluginsdk.Schema{
-															Type:         pluginsdk.TypeString,
-															ValidateFunc: validation.StringIsNotEmpty,
-														},
-													},
-
-													"health_probe_names": {
-														Type:     pluginsdk.TypeList,
-														Optional: true,
-														ForceNew: true,
-														Elem: &pluginsdk.Schema{
-															Type:         pluginsdk.TypeString,
-															ValidateFunc: validation.StringIsNotEmpty,
-														},
-													},
-												},
-											},
-										},
-
-										"virtual_machine": {
-											Type:     pluginsdk.TypeList,
-											Optional: true,
-											ForceNew: true,
-											Elem: &pluginsdk.Resource{
-												Schema: map[string]*pluginsdk.Schema{
-													"data_disk_names": {
-														Type:     pluginsdk.TypeMap,
-														Optional: true,
-														ForceNew: true,
-														Elem: &pluginsdk.Schema{
-															Type:         pluginsdk.TypeString,
-															ValidateFunc: validation.StringIsNotEmpty,
-														},
-													},
-
-													"host_name": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
-													},
-
-													"network_interface_names": {
-														Type:     pluginsdk.TypeList,
-														Optional: true,
-														ForceNew: true,
-														Elem: &pluginsdk.Schema{
-															Type:         pluginsdk.TypeString,
-															ValidateFunc: validation.StringIsNotEmpty,
-														},
-													},
-
-													"os_disk_name": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
-													},
-
-													"vm_name": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
-													},
-												},
-											},
-										},
+										"virtual_machine": SchemaForSAPVirtualInstanceVirtualMachineFullResourceNames(),
 									},
 								},
 							},
@@ -561,105 +376,12 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 											Type:         pluginsdk.TypeString,
 											Optional:     true,
 											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
+											ValidateFunc: validate.AvailabilitySetName,
 										},
 
-										"load_balancer": {
-											Type:     pluginsdk.TypeList,
-											Optional: true,
-											ForceNew: true,
-											MaxItems: 1,
-											Elem: &pluginsdk.Resource{
-												Schema: map[string]*pluginsdk.Schema{
-													"backend_pool_names": {
-														Type:     pluginsdk.TypeList,
-														Optional: true,
-														ForceNew: true,
-														Elem: &pluginsdk.Schema{
-															Type:         pluginsdk.TypeString,
-															ValidateFunc: validation.StringIsNotEmpty,
-														},
-													},
+										"load_balancer": SchemaForSAPVirtualInstanceLoadBalancerFullResourceNames(),
 
-													"frontend_ip_configuration_names": {
-														Type:     pluginsdk.TypeList,
-														Optional: true,
-														ForceNew: true,
-														Elem: &pluginsdk.Schema{
-															Type:         pluginsdk.TypeString,
-															ValidateFunc: validation.StringIsNotEmpty,
-														},
-													},
-
-													"health_probe_names": {
-														Type:     pluginsdk.TypeList,
-														Optional: true,
-														ForceNew: true,
-														Elem: &pluginsdk.Schema{
-															Type:         pluginsdk.TypeString,
-															ValidateFunc: validation.StringIsNotEmpty,
-														},
-													},
-
-													"name": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
-													},
-												},
-											},
-										},
-
-										"virtual_machine": {
-											Type:     pluginsdk.TypeList,
-											Optional: true,
-											ForceNew: true,
-											Elem: &pluginsdk.Resource{
-												Schema: map[string]*pluginsdk.Schema{
-													"data_disk_names": {
-														Type:     pluginsdk.TypeMap,
-														Optional: true,
-														ForceNew: true,
-														Elem: &pluginsdk.Schema{
-															Type:         pluginsdk.TypeString,
-															ValidateFunc: validation.StringIsNotEmpty,
-														},
-													},
-
-													"host_name": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
-													},
-
-													"network_interface_names": {
-														Type:     pluginsdk.TypeList,
-														Optional: true,
-														ForceNew: true,
-														Elem: &pluginsdk.Schema{
-															Type:         pluginsdk.TypeString,
-															ValidateFunc: validation.StringIsNotEmpty,
-														},
-													},
-
-													"os_disk_name": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
-													},
-
-													"vm_name": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ForceNew:     true,
-														ValidateFunc: validation.StringIsNotEmpty,
-													},
-												},
-											},
-										},
+										"virtual_machine": SchemaForSAPVirtualInstanceVirtualMachineFullResourceNames(),
 									},
 								},
 							},
@@ -675,14 +397,14 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 											Type:         pluginsdk.TypeString,
 											Optional:     true,
 											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
+											ValidateFunc: storageValidate.StorageAccountName,
 										},
 
 										"private_endpoint_name": {
 											Type:         pluginsdk.TypeString,
 											Optional:     true,
 											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
+											ValidateFunc: networkValidate.PrivateLinkName,
 										},
 									},
 								},
@@ -695,7 +417,7 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForSAPHighAvailabilityType(), false),
 				},
 
 				"is_secondary_ip_enabled": {
@@ -716,20 +438,24 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 								Optional: true,
 								ForceNew: true,
 								MaxItems: 1,
+								AtLeastOneOf: []string{
+									fmt.Sprintf("%s.0.three_tier_configuration.0.storage_configuration.0.transport_create_and_mount", deploymentType),
+									fmt.Sprintf("%s.0.three_tier_configuration.0.storage_configuration.0.transport_mount", deploymentType),
+								},
 								Elem: &pluginsdk.Resource{
 									Schema: map[string]*pluginsdk.Schema{
 										"resource_group_name": {
 											Type:         pluginsdk.TypeString,
 											Optional:     true,
 											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
+											ValidateFunc: resourcegroups.ValidateName,
 										},
 
 										"storage_account_name": {
 											Type:         pluginsdk.TypeString,
 											Optional:     true,
 											ForceNew:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
+											ValidateFunc: storageValidate.StorageAccountName,
 										},
 									},
 								},
@@ -740,18 +466,22 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 								Optional: true,
 								ForceNew: true,
 								MaxItems: 1,
+								AtLeastOneOf: []string{
+									fmt.Sprintf("%s.0.three_tier_configuration.0.storage_configuration.0.transport_create_and_mount", deploymentType),
+									fmt.Sprintf("%s.0.three_tier_configuration.0.storage_configuration.0.transport_mount", deploymentType),
+								},
 								Elem: &pluginsdk.Resource{
 									Schema: map[string]*pluginsdk.Schema{
 										"file_share_id": {
 											Type:         pluginsdk.TypeString,
-											Optional:     true,
+											Required:     true,
 											ForceNew:     true,
-											ValidateFunc: storageValidate.StorageShareID,
+											ValidateFunc: storageValidate.StorageShareResourceManagerID,
 										},
 
 										"private_endpoint_id": {
 											Type:         pluginsdk.TypeString,
-											Optional:     true,
+											Required:     true,
 											ForceNew:     true,
 											ValidateFunc: networkValidate.PrivateEndpointID,
 										},
@@ -763,16 +493,113 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 				},
 			},
 		},
-		AtLeastOneOf: []string{
-			fmt.Sprintf("%s.0.single_server_configuration", deploymentType),
-			fmt.Sprintf("%s.0.three_tier_configuration", deploymentType),
+	}
+}
+
+func SchemaForSAPVirtualInstanceVirtualMachineFullResourceNames() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"data_disk_names": {
+					Type:     pluginsdk.TypeMap,
+					Optional: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validate.DiskName,
+					},
+				},
+
+				"host_name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validate.HostName,
+				},
+
+				"network_interface_names": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: networkValidate.NetworkInterfaceName,
+					},
+				},
+
+				"os_disk_name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validate.DiskName,
+				},
+
+				"vm_name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: computeValidate.VirtualMachineName,
+				},
+			},
 		},
 	}
 }
 
-func expandSingleServerConfiguration(input []SingleServerConfiguration) *sapvirtualinstances.SingleServerConfiguration {
+func SchemaForSAPVirtualInstanceLoadBalancerFullResourceNames() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"backend_pool_names": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+
+				"frontend_ip_configuration_names": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+
+				"health_probe_names": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+	}
+}
+
+func expandSingleServerConfiguration(input []SingleServerConfiguration) (*sapvirtualinstances.SingleServerConfiguration, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	singleServerConfiguration := &input[0]
@@ -795,11 +622,13 @@ func expandSingleServerConfiguration(input []SingleServerConfiguration) *sapvirt
 		result.DbDiskConfiguration = expandDiskVolumeConfigurations(v)
 	}
 
-	if v := singleServerConfiguration.VirtualMachineFullResourceNames; v != nil {
-		result.CustomResourceNames = expandVirtualMachineFullResourceNames(v)
+	virtualMachineFullResourceNames, err := expandVirtualMachineFullResourceNames(singleServerConfiguration.VirtualMachineFullResourceNames)
+	if err != nil {
+		return nil, err
 	}
+	result.CustomResourceNames = virtualMachineFullResourceNames
 
-	return &result
+	return &result, nil
 }
 
 func expandVirtualMachineConfiguration(input []VirtualMachineConfiguration) sapvirtualinstances.VirtualMachineConfiguration {
@@ -866,9 +695,13 @@ func expandLinuxConfiguration(input []SshKeyPair) *sapvirtualinstances.LinuxConf
 	}
 }
 
-func expandVirtualMachineFullResourceNames(input []VirtualMachineFullResourceNames) sapvirtualinstances.SingleServerFullResourceNames {
+func expandVirtualMachineFullResourceNames(input []VirtualMachineFullResourceNames) (sapvirtualinstances.SingleServerFullResourceNames, error) {
 	if len(input) == 0 {
-		return sapvirtualinstances.SingleServerFullResourceNames{}
+		return sapvirtualinstances.SingleServerFullResourceNames{}, nil
+	}
+
+	if len(input) > 1 {
+		return sapvirtualinstances.SingleServerFullResourceNames{}, fmt.Errorf("`virtual_machine_full_resource_names` only supports 1 item")
 	}
 
 	virtualMachineFullResourceNames := &input[0]
@@ -897,7 +730,7 @@ func expandVirtualMachineFullResourceNames(input []VirtualMachineFullResourceNam
 		result.VirtualMachine.DataDiskNames = expandDataDiskNames(v)
 	}
 
-	return result
+	return result, nil
 }
 
 func expandNetworkInterfaceNames(input []string) *[]sapvirtualinstances.NetworkInterfaceResourceNames {
@@ -1129,32 +962,20 @@ func expandThreeTierConfiguration(input []ThreeTierConfiguration) *sapvirtualins
 	threeTierConfiguration := &input[0]
 
 	result := sapvirtualinstances.ThreeTierConfiguration{
-		AppResourceGroup: threeTierConfiguration.AppResourceGroupName,
+		ApplicationServer: expandApplicationServer(threeTierConfiguration.ApplicationServerConfiguration),
+		AppResourceGroup:  threeTierConfiguration.AppResourceGroupName,
+		CentralServer:     expandCentralServer(threeTierConfiguration.CentralServerConfiguration),
+		DatabaseServer:    expandDatabaseServer(threeTierConfiguration.DatabaseServerConfiguration),
 		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
 			IsSecondaryIPEnabled: utils.Bool(threeTierConfiguration.IsSecondaryIpEnabled), //maybe need to use GetRawConfig
 		},
+		StorageConfiguration: expandStorageConfiguration(threeTierConfiguration.StorageConfiguration),
 	}
 
 	if v := threeTierConfiguration.HighAvailabilityType; v != "" {
 		result.HighAvailabilityConfig = &sapvirtualinstances.HighAvailabilityConfiguration{
 			HighAvailabilityType: sapvirtualinstances.SAPHighAvailabilityType(v),
 		}
-	}
-
-	if v := threeTierConfiguration.ApplicationServerConfiguration; v != nil {
-		result.ApplicationServer = expandApplicationServer(v)
-	}
-
-	if v := threeTierConfiguration.CentralServerConfiguration; v != nil {
-		result.CentralServer = expandCentralServer(v)
-	}
-
-	if v := threeTierConfiguration.DatabaseServerConfiguration; v != nil {
-		result.DatabaseServer = expandDatabaseServer(v)
-	}
-
-	if v := threeTierConfiguration.StorageConfiguration; v != nil {
-		result.StorageConfiguration = expandStorageConfiguration(v)
 	}
 
 	if v := threeTierConfiguration.FullResourceNames; v != nil {
@@ -1172,11 +993,8 @@ func expandApplicationServer(input []ApplicationServerConfiguration) sapvirtuali
 	applicationServer := &input[0]
 
 	result := sapvirtualinstances.ApplicationServerConfiguration{
-		InstanceCount: applicationServer.InstanceCount, // Maybe it needs Getrawconfig
-	}
-
-	if v := applicationServer.SubnetId; v != "" {
-		result.SubnetId = v
+		InstanceCount: applicationServer.InstanceCount,
+		SubnetId:      applicationServer.SubnetId,
 	}
 
 	if v := applicationServer.VirtualMachineConfiguration; v != nil {
@@ -1194,11 +1012,8 @@ func expandCentralServer(input []CentralServerConfiguration) sapvirtualinstances
 	centralServer := &input[0]
 
 	result := sapvirtualinstances.CentralServerConfiguration{
-		InstanceCount: centralServer.InstanceCount, // Maybe it needs Getrawconfig
-	}
-
-	if v := centralServer.SubnetId; v != "" {
-		result.SubnetId = v
+		InstanceCount: centralServer.InstanceCount,
+		SubnetId:      centralServer.SubnetId,
 	}
 
 	if v := centralServer.VirtualMachineConfiguration; v != nil {
@@ -1216,11 +1031,9 @@ func expandDatabaseServer(input []DatabaseServerConfiguration) sapvirtualinstanc
 	databaseServer := &input[0]
 
 	result := sapvirtualinstances.DatabaseConfiguration{
-		InstanceCount: databaseServer.InstanceCount, // Maybe it needs Getrawconfig
-	}
-
-	if v := databaseServer.SubnetId; v != "" {
-		result.SubnetId = v
+		InstanceCount:               databaseServer.InstanceCount,
+		SubnetId:                    databaseServer.SubnetId,
+		VirtualMachineConfiguration: expandVirtualMachineConfiguration(databaseServer.VirtualMachineConfiguration),
 	}
 
 	if v := databaseServer.DatabaseType; v != "" {
@@ -1232,16 +1045,14 @@ func expandDatabaseServer(input []DatabaseServerConfiguration) sapvirtualinstanc
 		result.DiskConfiguration = expandDiskVolumeConfigurations(v)
 	}
 
-	if v := databaseServer.VirtualMachineConfiguration; v != nil {
-		result.VirtualMachineConfiguration = expandVirtualMachineConfiguration(v)
-	}
-
 	return result
 }
 
 func expandStorageConfiguration(input []StorageConfiguration) *sapvirtualinstances.StorageConfiguration {
 	if len(input) == 0 {
-		return nil
+		return &sapvirtualinstances.StorageConfiguration{
+			sapvirtualinstances.SkipFileShareConfiguration{},
+		}
 	}
 
 	storageConfiguration := &input[0]
@@ -1286,14 +1097,9 @@ func expandTransportMount(input []TransportMount) sapvirtualinstances.MountFileS
 
 	transportMount := &input[0]
 
-	result := sapvirtualinstances.MountFileShareConfiguration{}
-
-	if v := transportMount.FileShareId; v != "" {
-		result.Id = v
-	}
-
-	if v := transportMount.PrivateEndpointId; v != "" {
-		result.PrivateEndpointId = v
+	result := sapvirtualinstances.MountFileShareConfiguration{
+		Id:                transportMount.FileShareId,
+		PrivateEndpointId: transportMount.PrivateEndpointId,
 	}
 
 	return result
@@ -1495,6 +1301,10 @@ func flattenStorageConfiguration(input *sapvirtualinstances.StorageConfiguration
 	result := StorageConfiguration{}
 
 	if transportFileShareConfiguration := input.TransportFileShareConfiguration; transportFileShareConfiguration != nil {
+		if _, ok := transportFileShareConfiguration.(sapvirtualinstances.SkipFileShareConfiguration); ok {
+			return nil
+		}
+
 		if createAndMountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.CreateAndMountFileShareConfiguration); ok {
 			transportCreateAndMount := TransportCreateAndMount{}
 
@@ -1512,14 +1322,9 @@ func flattenStorageConfiguration(input *sapvirtualinstances.StorageConfiguration
 		}
 
 		if mountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.MountFileShareConfiguration); ok {
-			transportMount := TransportMount{}
-
-			if v := mountFileShareConfiguration.Id; v != "" {
-				transportMount.FileShareId = v
-			}
-
-			if v := mountFileShareConfiguration.PrivateEndpointId; v != "" {
-				transportMount.PrivateEndpointId = v
+			transportMount := TransportMount{
+				FileShareId:       mountFileShareConfiguration.Id,
+				PrivateEndpointId: mountFileShareConfiguration.PrivateEndpointId,
 			}
 
 			result.TransportMount = []TransportMount{
@@ -1536,11 +1341,8 @@ func flattenStorageConfiguration(input *sapvirtualinstances.StorageConfiguration
 func flattenApplicationServer(input sapvirtualinstances.ApplicationServerConfiguration) []ApplicationServerConfiguration {
 	result := ApplicationServerConfiguration{
 		InstanceCount:               input.InstanceCount,
+		SubnetId:                    input.SubnetId,
 		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration),
-	}
-
-	if v := input.SubnetId; v != "" {
-		result.SubnetId = v
 	}
 
 	return []ApplicationServerConfiguration{
@@ -1551,11 +1353,8 @@ func flattenApplicationServer(input sapvirtualinstances.ApplicationServerConfigu
 func flattenCentralServer(input sapvirtualinstances.CentralServerConfiguration) []CentralServerConfiguration {
 	result := CentralServerConfiguration{
 		InstanceCount:               input.InstanceCount,
+		SubnetId:                    input.SubnetId,
 		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration),
-	}
-
-	if v := input.SubnetId; v != "" {
-		result.SubnetId = v
 	}
 
 	return []CentralServerConfiguration{
@@ -1566,6 +1365,7 @@ func flattenCentralServer(input sapvirtualinstances.CentralServerConfiguration) 
 func flattenDatabaseServer(input sapvirtualinstances.DatabaseConfiguration) []DatabaseServerConfiguration {
 	result := DatabaseServerConfiguration{
 		InstanceCount:               input.InstanceCount,
+		SubnetId:                    input.SubnetId,
 		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration),
 	}
 
@@ -1575,10 +1375,6 @@ func flattenDatabaseServer(input sapvirtualinstances.DatabaseConfiguration) []Da
 
 	if v := input.DiskConfiguration; v != nil && v.DiskVolumeConfigurations != nil {
 		result.DiskVolumeConfigurations = flattenDiskVolumeConfigurations(v.DiskVolumeConfigurations)
-	}
-
-	if v := input.SubnetId; v != "" {
-		result.SubnetId = v
 	}
 
 	return []DatabaseServerConfiguration{

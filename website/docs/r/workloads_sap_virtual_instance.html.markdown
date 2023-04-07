@@ -193,15 +193,15 @@ A `three_tier_configuration` block supports the following:
 
 * `app_resource_group_name` - (Required) The name of the application Resource Group where SAP system resources will be deployed. Changing this forces a new resource to be created.
 
-* `application_server_configuration` - (Optional) An `application_server_configuration` block as defined below. Changing this forces a new resource to be created.
+* `application_server_configuration` - (Required) An `application_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
-* `central_server_configuration` - (Optional) A `central_server_configuration` block as defined below. Changing this forces a new resource to be created.
+* `central_server_configuration` - (Required) A `central_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
-* `database_server_configuration` - (Optional) A `database_server_configuration` block as defined below. Changing this forces a new resource to be created.
+* `database_server_configuration` - (Required) A `database_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `full_resource_names` - (Optional) A `full_resource_names` block as defined below. Changing this forces a new resource to be created.
 
-* `high_availability_type` - (Optional) The high availability type for the three tier configuration. Changing this forces a new resource to be created.
+* `high_availability_type` - (Optional) The high availability type for the three tier configuration. Possible values are `AvailabilitySet` and `AvailabilityZone`. Changing this forces a new resource to be created.
 
 * `is_secondary_ip_enabled` - (Optional) Is a secondary IP Address that should be added to the Network Interface on all VMs of the SAP system being deployed enabled? Changing this forces a new resource to be created.
 
@@ -215,6 +215,8 @@ A `storage_configuration` block supports the following:
 
 * `transport_mount` - (Optional) A `transport_mount` block as defined below. Changing this forces a new resource to be created.
 
+~> **Note:** The `Skip` configuration type is enabled when `storage_configuration` isn't set.
+
 ---
 
 A `transport_create_and_mount` block supports the following:
@@ -227,17 +229,17 @@ A `transport_create_and_mount` block supports the following:
 
 A `transport_mount` block supports the following:
 
-* `file_share_id` - (Optional) The resource ID of the File Share resource. Changing this forces a new resource to be created.
+* `file_share_id` - (Required) The resource ID of the File Share resource. Changing this forces a new resource to be created.
 
-* `private_endpoint_id` - (Optional) The resource ID of the Private Endpoint. Changing this forces a new resource to be created.
+* `private_endpoint_id` - (Required) The resource ID of the Private Endpoint. Changing this forces a new resource to be created.
 
 ---
 
 An `application_server_configuration` block supports the following:
 
-* `instance_count` - (Optional) The number of instances for the Application Server. Changing this forces a new resource to be created.
+* `instance_count` - (Required) The number of instances for the Application Server. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Optional) The resource ID of the Subnet for the Application Server. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The resource ID of the Subnet for the Application Server. Changing this forces a new resource to be created.
 
 * `virtual_machine_configuration` - (Optional) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
 
@@ -255,15 +257,15 @@ A `central_server_configuration` block supports the following:
 
 A `database_server_configuration` block supports the following:
 
-* `instance_count` - (Optional) The number of instances for the Database Server. Changing this forces a new resource to be created.
+* `instance_count` - (Required) The number of instances for the Database Server. Changing this forces a new resource to be created.
 
-* `database_type` - (Optional) The database type for the Database Server. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The resource ID of the Subnet for the Database Server. Changing this forces a new resource to be created.
+
+* `virtual_machine_configuration` - (Required) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
+
+* `database_type` - (Optional) The database type for the Database Server. Possible values are `DB2` and `HANA`. Changing this forces a new resource to be created.
 
 * `disk_volume_configuration` - (Optional) One or more `disk_volume_configuration` blocks as defined below. Changing this forces a new resource to be created.
-
-* `subnet_id` - (Optional) The resource ID of the Subnet for the Database Server. Changing this forces a new resource to be created.
-
-* `virtual_machine_configuration` - (Optional) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
