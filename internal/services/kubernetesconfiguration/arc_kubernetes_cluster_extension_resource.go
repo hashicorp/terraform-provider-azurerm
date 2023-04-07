@@ -14,7 +14,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ArcKubernetesClusterExtensionModel KubernetesClusterExtensionModel
+type ArcKubernetesClusterExtensionModel struct {
+	Name                           string            `tfschema:"name"`
+	ResourceGroupName              string            `tfschema:"resource_group_name"`
+	ClusterName                    string            `tfschema:"cluster_name"`
+	ConfigurationProtectedSettings map[string]string `tfschema:"configuration_protected_settings"`
+	ConfigurationSettings          map[string]string `tfschema:"configuration_settings"`
+	ExtensionType                  string            `tfschema:"extension_type"`
+	ReleaseNamespace               string            `tfschema:"release_namespace"`
+	ReleaseTrain                   string            `tfschema:"release_train"`
+	TargetNamespace                string            `tfschema:"target_namespace"`
+	Version                        string            `tfschema:"version"`
+	CurrentVersion                 string            `tfschema:"current_version"`
+}
 
 type ArcKubernetesClusterExtensionResource struct{}
 
@@ -75,7 +87,6 @@ func (r ArcKubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			properties := &extensions.Extension{
-				Plan: expandPlanModel(model.Plan),
 				Properties: &extensions.ExtensionProperties{
 					AutoUpgradeMinorVersion:        &autoUpgradeMinorVersion,
 					ConfigurationProtectedSettings: &model.ConfigurationProtectedSettings,
@@ -200,7 +211,6 @@ func (r ArcKubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 				Name:              id.ExtensionName,
 				ResourceGroupName: id.ResourceGroupName,
 				ClusterName:       id.ClusterName,
-				Plan:              flattenPlanModel(model.Plan),
 			}
 
 			if properties := model.Properties; properties != nil {

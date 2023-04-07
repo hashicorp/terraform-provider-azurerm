@@ -10,6 +10,10 @@ description: |-
 
 Manages an Arc Kubernetes Cluster Extension.
 
+-> **Note:** Installing and configuring the Azure Arc Agent on your Kubernetes Cluster to establish connectivity is outside the scope of this document. For more details refer to [Deploy agents to your cluster](https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/conceptual-agent-overview#deploy-agents-to-your-cluster) and [Connect an existing Kubernetes Cluster](https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/quickstart-connect-cluster?tabs=azure-cli#connect-an-existing-kubernetes-cluster). If you encounter issues connecting your Kubernetes Cluster to Azure Arc, we'd recommend opening a ticket with Microsoft Support.
+
+-> **Note:** An extensive example on connecting the `azurerm_arc_kubernetes_cluster` to an external kubernetes cluster can be found in [the `./examples/arckubernetes` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/arckubernetes).
+
 ## Example Usage
 
 ```hcl
@@ -18,29 +22,26 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_kubernetes_cluster" "example" {
-  name                = "example-aks"
-  location            = "West Europe"
-  resource_group_name = azurerm_resource_group.example.name
-  dns_prefix          = "example-aks"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
-  }
+resource "azurerm_arc_kubernetes_cluster" "example" {
+  name                         = "example-akcc"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = "West Europe"
+  agent_public_key_certificate = filebase64("testdata/public.cer")
 
   identity {
     type = "SystemAssigned"
   }
+
+  tags = {
+    ENV = "Test"
+  }
 }
 
-resource "azurerm_kubernetes_cluster_extension" "example" {
-  name                  = "example-ext"
-  resource_group_name   = azurerm_resource_group.example.name
-  cluster_name          = azurerm_kubernetes_cluster.example.name
-  cluster_resource_name = "managedClusters"
-  extension_type        = "microsoft.flux"
+resource "azurerm_arc_kubernetes_cluster_extension" "example" {
+  name                = "example-ext"
+  resource_group_name = azurerm_resource_group.example.name
+  cluster_name        = azurerm_arc_kubernetes_cluster.example.name
+  extension_type      = "microsoft.flux"
 }
 ```
 
@@ -62,8 +63,6 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
 
-* `plan` - (Optional) A `plan` block as defined below.
-
 * `release_train` - (Optional) The release train which is used by this extension. Possible values include but not limited to `Stable`, `Preview`. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
 
 * `release_namespace` - (Optional) Namespace where the extension Release must be placed, for a Cluster scoped extension.  If this namespace does not exist, it will be created. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
@@ -77,20 +76,6 @@ The following arguments are supported:
 An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity. The only possible value is `SystemAssigned`.
-
----
-
-A `plan` block supports the following:
-
-* `name` - (Required) A user defined name of the 3rd Party Artifact that is being procured. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
-
-* `product` - (Required) Specifies the 3rd Party artifact that is being procured. It maps to the OfferID of Data Market. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
-
-* `publisher` - (Required) Specifies the publisher of the 3rd Party Artifact that is being bought. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
-
-* `promotion_code` - (Optional) A publisher provided promotion code as provisioned in Data Market for the said product/artifact. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
-
-* `version` - (Optional) Specifies the version of the desired product/artifact. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
 
 ## Attributes Reference
 

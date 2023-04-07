@@ -147,10 +147,10 @@ func (r KubernetesClusterExtensionResource) basic(data acceptance.TestData) stri
 				%s
 
 resource "azurerm_kubernetes_cluster_extension" "test" {
-  name                  = "acctest-kce-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  cluster_name          = azurerm_kubernetes_cluster.test.name
-  extension_type        = "microsoft.flux"
+  name                = "acctest-kce-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  cluster_name        = azurerm_kubernetes_cluster.test.name
+  extension_type      = "microsoft.flux"
 }
 `, template, data.RandomInteger)
 }
@@ -161,10 +161,10 @@ func (r KubernetesClusterExtensionResource) requiresImport(data acceptance.TestD
 			%s
 
 resource "azurerm_kubernetes_cluster_extension" "import" {
-  name                  = azurerm_kubernetes_cluster_extension.test.name
-  resource_group_name   = azurerm_kubernetes_cluster_extension.test.resource_group_name
-  cluster_name          = azurerm_kubernetes_cluster_extension.test.cluster_name
-  extension_type        = azurerm_kubernetes_cluster_extension.test.extension_type
+  name                = azurerm_kubernetes_cluster_extension.test.name
+  resource_group_name = azurerm_kubernetes_cluster_extension.test.resource_group_name
+  cluster_name        = azurerm_kubernetes_cluster_extension.test.cluster_name
+  extension_type      = azurerm_kubernetes_cluster_extension.test.extension_type
 }
 `, config)
 }
@@ -175,12 +175,12 @@ func (r KubernetesClusterExtensionResource) complete(data acceptance.TestData) s
 			%s
 
 resource "azurerm_kubernetes_cluster_extension" "test" {
-  name                  = "acctest-kce-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  cluster_name          = azurerm_kubernetes_cluster.test.name
-  extension_type        = "microsoft.flux"
-  version               = "1.6.3"
-  release_namespace     = "flux-system"
+  name                = "acctest-kce-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  cluster_name        = azurerm_kubernetes_cluster.test.name
+  extension_type      = "microsoft.flux"
+  version             = "1.6.3"
+  release_namespace   = "flux-system"
 
   configuration_protected_settings = {
     "omsagent.secret.key" = "secretKeyValue1"
@@ -199,12 +199,12 @@ func (r KubernetesClusterExtensionResource) update(data acceptance.TestData) str
 			%s
 
 resource "azurerm_kubernetes_cluster_extension" "test" {
-  name                  = "acctest-kce-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  cluster_name          = azurerm_kubernetes_cluster.test.name
-  extension_type        = "microsoft.flux"
-  version               = "1.6.3"
-  release_namespace     = "flux-system"
+  name                = "acctest-kce-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  cluster_name        = azurerm_kubernetes_cluster.test.name
+  extension_type      = "microsoft.flux"
+  version             = "1.6.3"
+  release_namespace   = "flux-system"
 
   configuration_protected_settings = {
     "omsagent.secret.key" = "secretKeyValue2"
@@ -223,19 +223,19 @@ func (r KubernetesClusterExtensionResource) plan(data acceptance.TestData) strin
 				%s
 
 resource "azurerm_kubernetes_cluster_extension" "test" {
-  name                  = "acctest-kce-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  cluster_name          = azurerm_kubernetes_cluster.test.name
-  extension_type        = "cognosys.nodejs-on-alpine"
+  name                = "acctest-kce-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  cluster_name        = azurerm_kubernetes_cluster.test.name
+  extension_type      = "cognosys.nodejs-on-alpine"
 
   configuration_settings = {
     "title" = "Title",
   }
 
   plan {
-    name           = "nodejs-18-alpine-container"
-    product        = "nodejs18-alpine-container"
-    publisher      = "cognosys"
+    name      = "nodejs-18-alpine-container"
+    product   = "nodejs18-alpine-container"
+    publisher = "cognosys"
   }
 }
 `, template, data.RandomInteger)

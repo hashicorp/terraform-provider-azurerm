@@ -1,10 +1,4 @@
 #!/bin/bash
-# install golang and kind
-sudo snap install go --classic
-sudo go install sigs.k8s.io/kind@latest
-
-#install Azure Cli
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
 # install docker
 sudo apt-get update
@@ -22,14 +16,23 @@ sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plug
 sudo groupadd docker || true
 sudo usermod -aG docker $USER
 newgrp docker << END
+
+#install golang and kind
+sudo snap install go --classic
+sudo go install sigs.k8s.io/kind@latest
+
 #create a new cluster
 export PATH="$HOME/go/bin:$PATH"
 export KUBECONFIG="${working_dir}/kind-config"
 kind create cluster --name arc-kind --config kind.yaml --kubeconfig kind-config
 
-#create arc kubernetes
-az login --identity --username ${user_id}
-az account set --subscription ${subscription_id}
-az config set extension.use_dynamic_install=yes_without_prompt
-az connectedk8s connect --name ${cluster_name} --resource-group ${resource_group_name} --yes
+#install agent
+python3 "${working_dir}/install_agent.py" \
+--subscriptionId "${subscription_id}" \
+--resourceGroupName "${resource_group_name}" \
+--clusterName "${cluster_name}" \
+--location "${location}" \
+--tenantId "${tenant_id}" \
+--privatePem "${working_dir}/private.pem"
+
 END

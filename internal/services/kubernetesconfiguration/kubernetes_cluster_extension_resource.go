@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type KubernetesClusterExtensionModel struct {
@@ -27,6 +28,14 @@ type KubernetesClusterExtensionModel struct {
 	TargetNamespace                string            `tfschema:"target_namespace"`
 	Version                        string            `tfschema:"version"`
 	CurrentVersion                 string            `tfschema:"current_version"`
+}
+
+type PlanModel struct {
+	Name          string `tfschema:"name"`
+	Product       string `tfschema:"product"`
+	PromotionCode string `tfschema:"promotion_code"`
+	Publisher     string `tfschema:"publisher"`
+	Version       string `tfschema:"version"`
 }
 
 type KubernetesClusterExtensionResource struct{}
@@ -46,7 +55,53 @@ func (r KubernetesClusterExtensionResource) IDValidationFunc() pluginsdk.SchemaV
 }
 
 func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Schema {
-	return commonArguments()
+	arguments := commonArguments()
+	arguments["plan"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"product": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"publisher": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"promotion_code": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"version": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+
+	return arguments
 }
 
 func (r KubernetesClusterExtensionResource) Attributes() map[string]*pluginsdk.Schema {
@@ -285,4 +340,46 @@ func flattenExtensionPropertiesAksAssignedIdentityModel(input *extensions.Extens
 	}
 
 	return &output
+}
+
+func expandPlanModel(inputList []PlanModel) *extensions.Plan {
+	if len(inputList) == 0 {
+		return nil
+	}
+	input := &inputList[0]
+	output := extensions.Plan{
+		Name:      input.Name,
+		Product:   input.Product,
+		Publisher: input.Publisher,
+	}
+	if input.PromotionCode != "" {
+		output.PromotionCode = &input.PromotionCode
+	}
+
+	if input.Version != "" {
+		output.Version = &input.Version
+	}
+
+	return &output
+}
+
+func flattenPlanModel(input *extensions.Plan) []PlanModel {
+	var outputList []PlanModel
+	if input == nil {
+		return outputList
+	}
+	output := PlanModel{
+		Name:      input.Name,
+		Product:   input.Product,
+		Publisher: input.Publisher,
+	}
+	if input.PromotionCode != nil {
+		output.PromotionCode = *input.PromotionCode
+	}
+
+	if input.Version != nil {
+		output.Version = *input.Version
+	}
+
+	return append(outputList, output)
 }

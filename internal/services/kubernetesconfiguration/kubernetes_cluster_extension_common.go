@@ -14,14 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type PlanModel struct {
-	Name          string `tfschema:"name"`
-	Product       string `tfschema:"product"`
-	PromotionCode string `tfschema:"promotion_code"`
-	Publisher     string `tfschema:"publisher"`
-	Version       string `tfschema:"version"`
-}
-
 func commonArguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -66,51 +58,6 @@ func commonArguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-		},
-
-		"plan": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"product": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"publisher": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"promotion_code": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"version": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
 			},
 		},
 
@@ -169,46 +116,4 @@ func deleteExtension() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func expandPlanModel(inputList []PlanModel) *extensions.Plan {
-	if len(inputList) == 0 {
-		return nil
-	}
-	input := &inputList[0]
-	output := extensions.Plan{
-		Name:      input.Name,
-		Product:   input.Product,
-		Publisher: input.Publisher,
-	}
-	if input.PromotionCode != "" {
-		output.PromotionCode = &input.PromotionCode
-	}
-
-	if input.Version != "" {
-		output.Version = &input.Version
-	}
-
-	return &output
-}
-
-func flattenPlanModel(input *extensions.Plan) []PlanModel {
-	var outputList []PlanModel
-	if input == nil {
-		return outputList
-	}
-	output := PlanModel{
-		Name:      input.Name,
-		Product:   input.Product,
-		Publisher: input.Publisher,
-	}
-	if input.PromotionCode != nil {
-		output.PromotionCode = *input.PromotionCode
-	}
-
-	if input.Version != nil {
-		output.Version = *input.Version
-	}
-
-	return append(outputList, output)
 }
