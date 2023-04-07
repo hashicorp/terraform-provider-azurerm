@@ -227,11 +227,7 @@ func resourceBackupProtectionPolicyFileShareDelete(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if _, err := resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, *id, d); err != nil {
-		return err
-	}
-
-	return nil
+	return resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, *id, d)
 }
 
 func expandBackupProtectionPolicyFileShareSchedule(d *pluginsdk.ResourceData, times []string) *protectionpolicies.SimpleSchedulePolicy {
@@ -370,7 +366,8 @@ func flattenBackupProtectionPolicyFileShareSchedule(schedule protectionpolicies.
 	block["frequency"] = string(pointer.From(schedule.ScheduleRunFrequency))
 
 	if times := schedule.ScheduleRunTimes; times != nil && len(*times) > 0 {
-		block["time"] = (*times)[0]
+		policyTime, _ := time.Parse(time.RFC3339, (*times)[0])
+		block["time"] = policyTime.Format("15:04")
 	}
 
 	return []interface{}{block}
@@ -491,7 +488,7 @@ func resourceBackupProtectionPolicyFileShareWaitForUpdate(ctx context.Context, c
 	return resp.(protectionpolicies.ProtectionPolicyResource), nil
 }
 
-func resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) (protectionpolicies.ProtectionPolicyResource, error) {
+func resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
@@ -501,12 +498,12 @@ func resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx context.Context,
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	resp, err := state.WaitForStateContext(ctx)
+	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(protectionpolicies.ProtectionPolicyResource), fmt.Errorf("waiting for delete to finish for %s: %+v", id, err)
+		return fmt.Errorf("waiting for delete to finish for %s: %+v", id, err)
 	}
 
-	return resp.(protectionpolicies.ProtectionPolicyResource), nil
+	return nil
 }
 
 func resourceBackupProtectionPolicyFileShareRefreshFunc(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId) pluginsdk.StateRefreshFunc {

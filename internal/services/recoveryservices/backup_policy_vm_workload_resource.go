@@ -747,7 +747,8 @@ func flattenBackupProtectionPolicyVMWorkloadSchedulePolicy(input protectionpolic
 		backupBlock.Frequency = string(pointer.From(simpleSchedulePolicy.ScheduleRunFrequency))
 
 		if times := simpleSchedulePolicy.ScheduleRunTimes; times != nil && len(*times) > 0 {
-			backupBlock.Time = (*times)[0]
+			policyTime, _ := time.Parse(time.RFC3339, (*times)[0])
+			backupBlock.Time = policyTime.Format("15:04")
 		}
 
 		if days := simpleSchedulePolicy.ScheduleRunDays; days != nil {

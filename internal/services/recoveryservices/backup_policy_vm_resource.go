@@ -172,8 +172,7 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	_, err = resourceBackupProtectionPolicyVMWaitForUpdate(ctx, client, id, d)
-	if err != nil {
+	if err = resourceBackupProtectionPolicyVMWaitForUpdate(ctx, client, id, d); err != nil {
 		return err
 	}
 
@@ -290,7 +289,7 @@ func resourceBackupProtectionPolicyVMDelete(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if _, err := resourceBackupProtectionPolicyVMWaitForDeletion(ctx, client, *id, d); err != nil {
+	if err = resourceBackupProtectionPolicyVMWaitForDeletion(ctx, client, *id, d); err != nil {
 		return err
 	}
 
@@ -544,7 +543,8 @@ func flattenBackupProtectionPolicyVMSchedule(schedule protectionpolicies.SimpleS
 	block["frequency"] = string(pointer.From(schedule.ScheduleRunFrequency))
 
 	if times := schedule.ScheduleRunTimes; times != nil && len(*times) > 0 {
-		block["time"] = (*times)[0]
+		policyTime, _ := time.Parse(time.RFC3339, (*times)[0])
+		block["time"] = policyTime.Format("15:04")
 	}
 
 	if days := schedule.ScheduleRunDays; days != nil {
@@ -581,7 +581,8 @@ func flattenBackupProtectionPolicyVMScheduleV2(schedule protectionpolicies.Simpl
 	case protectionpolicies.ScheduleRunTypeDaily:
 		schedule := schedule.DailySchedule
 		if times := schedule.ScheduleRunTimes; times != nil && len(*times) > 0 {
-			block["time"] = (*times)[0]
+			policyTime, _ := time.Parse(time.RFC3339, (*times)[0])
+			block["time"] = policyTime.Format("15:04")
 		}
 	case protectionpolicies.ScheduleRunTypeWeekly:
 		schedule := schedule.WeeklySchedule
@@ -594,7 +595,8 @@ func flattenBackupProtectionPolicyVMScheduleV2(schedule protectionpolicies.Simpl
 		}
 
 		if times := schedule.ScheduleRunTimes; times != nil && len(*times) > 0 {
-			block["time"] = (*times)[0]
+			policyTime, _ := time.Parse(time.RFC3339, (*times)[0])
+			block["time"] = policyTime.Format("15:04")
 		}
 	default:
 	}
@@ -694,7 +696,7 @@ func flattenBackupProtectionPolicyVMRetentionWeeklyFormat(retention *protectionp
 	return weekdays, weeks
 }
 
-func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) (protectionpolicies.ProtectionPolicyResource, error) {
+func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
@@ -709,15 +711,15 @@ func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *
 		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	resp, err := state.WaitForStateContext(ctx)
+	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(protectionpolicies.ProtectionPolicyResource), fmt.Errorf("waiting for %s to provision: %+v", id, err)
+		return fmt.Errorf("waiting for %s to provision: %+v", id, err)
 	}
 
-	return resp.(protectionpolicies.ProtectionPolicyResource), nil
+	return nil
 }
 
-func resourceBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) (protectionpolicies.ProtectionPolicyResource, error) {
+func resourceBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
@@ -727,12 +729,12 @@ func resourceBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, client
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	resp, err := state.WaitForStateContext(ctx)
+	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(protectionpolicies.ProtectionPolicyResource), fmt.Errorf("waiting for %s to provision: %+v", id, err)
+		return fmt.Errorf("waiting for %s to provision: %+v", id, err)
 	}
 
-	return resp.(protectionpolicies.ProtectionPolicyResource), nil
+	return nil
 }
 
 func resourceBackupProtectionPolicyVMRefreshFunc(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId) pluginsdk.StateRefreshFunc {
