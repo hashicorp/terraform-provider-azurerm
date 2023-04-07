@@ -52,6 +52,7 @@ func SchemaForSAPVirtualInstanceSingleServerConfiguration(deploymentType string)
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					ForceNew: true,
+					Default:  false,
 				},
 
 				"virtual_machine_full_resource_names": SchemaForSAPVirtualInstanceVirtualMachineFullResourceNames(),
@@ -424,6 +425,7 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					ForceNew: true,
+					Default:  false,
 				},
 
 				"storage_configuration": {
@@ -607,7 +609,7 @@ func expandSingleServerConfiguration(input []SingleServerConfiguration) (*sapvir
 	result := sapvirtualinstances.SingleServerConfiguration{
 		AppResourceGroup: singleServerConfiguration.AppResourceGroupName,
 		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
-			IsSecondaryIPEnabled: utils.Bool(singleServerConfiguration.IsSecondaryIpEnabled), //maybe need to use GetRawConfig
+			IsSecondaryIPEnabled: utils.Bool(singleServerConfiguration.IsSecondaryIpEnabled),
 		},
 		SubnetId:                    singleServerConfiguration.SubnetId,
 		VirtualMachineConfiguration: expandVirtualMachineConfiguration(singleServerConfiguration.VirtualMachineConfiguration),
@@ -967,7 +969,7 @@ func expandThreeTierConfiguration(input []ThreeTierConfiguration) *sapvirtualins
 		CentralServer:     expandCentralServer(threeTierConfiguration.CentralServerConfiguration),
 		DatabaseServer:    expandDatabaseServer(threeTierConfiguration.DatabaseServerConfiguration),
 		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
-			IsSecondaryIPEnabled: utils.Bool(threeTierConfiguration.IsSecondaryIpEnabled), //maybe need to use GetRawConfig
+			IsSecondaryIPEnabled: utils.Bool(threeTierConfiguration.IsSecondaryIpEnabled),
 		},
 		StorageConfiguration: expandStorageConfiguration(threeTierConfiguration.StorageConfiguration),
 	}
