@@ -376,12 +376,12 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 				},
 			},
 
-			"resource_id": {
+			"resource_manager_id": {
 				Computed: true,
 				Type:     pluginsdk.TypeString,
 			},
 
-			"resource_versionless_id": {
+			"resource_manager_versionless_id": {
 				Computed: true,
 				Type:     pluginsdk.TypeString,
 			},
@@ -692,8 +692,8 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("secret_id", cert.Sid)
 	d.Set("versionless_id", id.VersionlessID())
 
-	d.Set("resource_id", parse.NewCertificateID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name, id.Version).ID())
-	d.Set("resource_versionless_id", parse.NewCertificateVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
+	d.Set("resource_manager_id", parse.NewCertificateID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name, id.Version).ID())
+	d.Set("resource_manager_versionless_id", parse.NewCertificateVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
 
 	if cert.Sid != nil {
 		secretId, err := parse.ParseNestedItemID(*cert.Sid)
