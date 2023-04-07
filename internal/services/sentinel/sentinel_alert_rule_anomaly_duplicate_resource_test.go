@@ -183,11 +183,11 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basicWithMultiSelectObservation
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "(Preview) Anomalous scanning activity"
+  display_name               = "Anomalous scanning activity"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
-  display_name               = "acctest duplicate (Preview) Anomalous scanning activity"
+  display_name               = "acctest duplicate Anomalous scanning activity"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   built_in_rule_id           = data.azurerm_sentinel_alert_rule_anomaly.test.id
   enabled                    = true
