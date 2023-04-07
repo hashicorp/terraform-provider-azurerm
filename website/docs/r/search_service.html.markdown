@@ -48,6 +48,10 @@ The following arguments are supported:
 
 -> **NOTE:** When the Search Service is in `highDensity` mode the maximum number of partitions allowed is `3`, to enable `hosting_mode` you must use a `standard3` SKU.
 
+* `local_authentication_disabled` - (Optional) Should calls to the search service be allowed to utilize API keys for authentication? When `local_authentication_disabled` is set to `true`, calls to the search service *will not* be allowed to use API keys for authentication. Possible values include `true` or `false`. Defaults to `false`.
+
+**NOTE:** This cannot be set to `true` if `dataPlaneAuthOptions` are defined.
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this resource. Defaults to `true`.
 
 * `partition_count` - (Optional) The number of partitions which should be created. Possible values include `1`, `2`, `3`, `4`, `6`, or `12`. Defaults to `1`.

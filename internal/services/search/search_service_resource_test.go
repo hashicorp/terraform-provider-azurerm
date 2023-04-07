@@ -15,7 +15,8 @@ import (
 )
 
 type SearchServiceResource struct {
-	sku string
+	sku               string
+	localAuthDisabled bool
 }
 
 func TestAccSearchService_basicStandard(t *testing.T) {
@@ -247,6 +248,36 @@ func TestAccSearchService_replicaCountInvalid(t *testing.T) {
 	})
 }
 
+func TestAccSearchService_localAuthenticationDisabledUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{sku: "standard", localAuthDisabled: false}
+	u := SearchServiceResource{sku: "standard", localAuthDisabled: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.localAuthenticationDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: u.localAuthenticationDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localAuthenticationDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t SearchServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := services.ParseSearchServiceID(state.ID)
 	if err != nil {
@@ -328,6 +359,7 @@ resource "azurerm_search_service" "test" {
   partition_count     = 3
 
   public_network_access_enabled = false
+  local_authentication_disabled = false
 
   tags = {
     environment = "Production"
@@ -469,4 +501,28 @@ resource "azurerm_search_service" "test" {
   replica_count       = 2
 }
 `, template, data.RandomInteger, r.sku)
+}
+
+func (r SearchServiceResource) localAuthenticationDisabled(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%s"
+
+  local_authentication_disabled = %t
+
+  tags = {
+    environment = "staging"
+  }
+}
+`, template, data.RandomInteger, r.sku, r.localAuthDisabled)
 }

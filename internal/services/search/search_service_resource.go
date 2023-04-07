@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -82,6 +83,12 @@ func resourceSearchService() *pluginsdk.Resource {
 				Optional:     true,
 				Default:      1,
 				ValidateFunc: validateSearch.PartitionCount,
+			},
+
+			"local_authentication_disabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"hosting_mode": {
@@ -173,7 +180,9 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	skuName := services.SkuName(d.Get("sku").(string))
+	ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
 	hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
+	localAuthDisabled := d.Get("local_authentication_disabled").(bool)
 
 	// NOTE: hosting mode is only valid if the SKU is 'standard3'
 	if skuName != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
@@ -200,22 +209,27 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
 	searchService := services.SearchService{
 		Location: location,
-		Sku: &services.Sku{
-			Name: &skuName,
-		},
+		Sku: pointer.To(services.Sku{
+			Name: pointer.To(skuName),
+		}),
 		Properties: &services.SearchServiceProperties{
-			PublicNetworkAccess: &publicNetworkAccess,
-			NetworkRuleSet: &services.NetworkRuleSet{
+			PublicNetworkAccess: pointer.To(publicNetworkAccess),
+			NetworkRuleSet: pointer.To(services.NetworkRuleSet{
 				IPRules: expandSearchServiceIPRules(ipRulesRaw),
-			},
-			HostingMode:    &hostingMode,
-			PartitionCount: &partitionCount,
-			ReplicaCount:   &replicaCount,
+			}),
+			HostingMode:      pointer.To(hostingMode),
+			DisableLocalAuth: pointer.To(localAuthDisabled),
+			PartitionCount:   pointer.To(partitionCount),
+			ReplicaCount:     pointer.To(replicaCount),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	// AuthOptions must be null if DisableLocalAuth is true
+	if localAuthDisabled {
+		searchService.Properties.AuthOptions = nil
 	}
 
 	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
@@ -261,7 +275,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				publicNetworkAccess = services.PublicNetworkAccessDisabled
 			}
 
-			model.Properties.PublicNetworkAccess = &publicNetworkAccess
+			model.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 		}
 
 		if d.HasChange("identity") {
@@ -276,36 +290,46 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		if d.HasChange("hosting_mode") {
 			hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
-			if *model.Sku.Name != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
-				return fmt.Errorf("'hosting_mode' can only be set to 'highDensity' if the 'sku' is 'standard3', got %q", *model.Sku.Name)
+			if pointer.From(model.Sku.Name) != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
+				return fmt.Errorf("'hosting_mode' can only be set to 'highDensity' if the 'sku' is 'standard3', got %q", pointer.From(model.Sku.Name))
 			}
 
-			model.Properties.HostingMode = &hostingMode
+			model.Properties.HostingMode = pointer.To(hostingMode)
+		}
+
+		if d.HasChange("local_authentication_disabled") {
+			localAuthDisabled := d.Get("local_authentication_disabled").(bool)
+			model.Properties.DisableLocalAuth = pointer.To(localAuthDisabled)
+
+			// AuthOptions must be null if DisableLocalAuth is true
+			if localAuthDisabled {
+				model.Properties.AuthOptions = nil
+			}
 		}
 
 		if d.HasChange("replica_count") {
-			replicaCount, err := validateSearchServiceReplicaCount(int64(d.Get("replica_count").(int)), *model.Sku.Name)
+			replicaCount, err := validateSearchServiceReplicaCount(int64(d.Get("replica_count").(int)), pointer.From(model.Sku.Name))
 			if err != nil {
 				return err
 			}
 
-			model.Properties.ReplicaCount = utils.Int64(replicaCount)
+			model.Properties.ReplicaCount = pointer.To(replicaCount)
 		}
 
 		if d.HasChange("partition_count") {
 			partitionCount := int64(d.Get("partition_count").(int))
 			// NOTE: 'partition_count' values greater than 1 are not valid for 'free' or 'basic' SKUs...
-			if (*model.Sku.Name == services.SkuNameFree || *model.Sku.Name == services.SkuNameBasic) && partitionCount > 1 {
-				return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", *model.Sku.Name, partitionCount)
+			if (pointer.From(model.Sku.Name) == services.SkuNameFree || pointer.From(model.Sku.Name) == services.SkuNameBasic) && partitionCount > 1 {
+				return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", pointer.From(model.Sku.Name), partitionCount)
 			}
 
 			// NOTE: If SKU is 'standard3' and the 'hosting_mode' is set to 'highDensity' the maximum number of partitions allowed is 3
 			// where if 'hosting_mode' is set to 'default' the maximum number of partitions is 12...
-			if *model.Sku.Name == services.SkuNameStandardThree && partitionCount > 3 && *model.Properties.HostingMode == services.HostingModeHighDensity {
+			if pointer.From(model.Sku.Name) == services.SkuNameStandardThree && partitionCount > 3 && pointer.From(model.Properties.HostingMode) == services.HostingModeHighDensity {
 				return fmt.Errorf("'standard3' SKUs in 'highDensity' mode can have a maximum of 3 partitions, got %d", partitionCount)
 			}
 
-			model.Properties.PartitionCount = utils.Int64(partitionCount)
+			model.Properties.PartitionCount = pointer.To(partitionCount)
 		}
 
 		if d.HasChange("allowed_ips") {
@@ -317,7 +341,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 		}
 
-		err = client.CreateOrUpdateThenPoll(ctx, *id, *model, services.CreateOrUpdateOperationOptions{})
+		err = client.CreateOrUpdateThenPoll(ctx, pointer.From(id), pointer.From(model), services.CreateOrUpdateOperationOptions{})
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
@@ -366,34 +390,38 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			replicaCount := 1           // Default
 			publicNetworkAccess := true // publicNetworkAccess defaults to true...
 			hostingMode := services.HostingModeDefault
+			localAthDisabled := false
 
 			if count := props.PartitionCount; count != nil {
-				partitionCount = int(*count)
+				partitionCount = int(pointer.From(count))
 			}
 
 			if count := props.ReplicaCount; count != nil {
-				replicaCount = int(*count)
+				replicaCount = int(pointer.From(count))
 			}
 
 			// NOTE: There is a bug in the API where it returns the PublicNetworkAccess value
-			// as 'Disabled' instead of with the casing of their const 'disabled'
+			// as 'Disabled' instead of 'disabled'
 			if props.PublicNetworkAccess != nil {
-				publicNetworkAccess = strings.EqualFold(string(*props.PublicNetworkAccess), string(services.PublicNetworkAccessEnabled))
+				publicNetworkAccess = strings.EqualFold(string(pointer.From(props.PublicNetworkAccess)), string(services.PublicNetworkAccessEnabled))
 			}
 
 			if props.HostingMode != nil {
 				hostingMode = *props.HostingMode
 			}
 
+			if props.DisableLocalAuth != nil {
+				localAthDisabled = pointer.From(props.DisableLocalAuth)
+			}
+
 			d.Set("partition_count", partitionCount)
 			d.Set("replica_count", replicaCount)
 			d.Set("public_network_access_enabled", publicNetworkAccess)
 			d.Set("hosting_mode", hostingMode)
+			d.Set("local_authentication_disabled", localAthDisabled)
 			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 		}
 
-		// NOTE: if the identity has been removed(e.g. by passing type "None" during update),
-		// this will also remove it from the state...
 		if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %s", err)
 		}
