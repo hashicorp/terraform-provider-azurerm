@@ -37,7 +37,7 @@ func resourceHealthcareApisMedTechServiceFhirDestination() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.MedTechServiceFhirDestinationID(id)
+			_, err := iotconnectors.ParseFhirDestinationID(id)
 			return err
 		}),
 
@@ -94,11 +94,11 @@ func resourceHealthcareApisMedTechServiceFhirDestinationCreate(d *pluginsdk.Reso
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Healthcare Med Tech Service Fhir Destination creation.")
 
-	medTechService, err := parse.MedTechServiceID(d.Get("medtech_service_id").(string))
+	medTechService, err := iotconnectors.ParseIotConnectorID(d.Get("medtech_service_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Med Tech Service error: %+v", err)
 	}
-	id := iotconnectors.NewFhirDestinationID(medTechService.SubscriptionId, medTechService.ResourceGroup, medTechService.WorkspaceName, medTechService.IotConnectorName, d.Get("name").(string))
+	id := iotconnectors.NewFhirDestinationID(medTechService.SubscriptionId, medTechService.ResourceGroupName, medTechService.WorkspaceName, medTechService.IotConnectorName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.IotConnectorFhirDestinationGet(ctx, id)
@@ -112,7 +112,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationCreate(d *pluginsdk.Reso
 		}
 	}
 
-	fhirServiceId, err := parse.FhirServiceID(d.Get("destination_fhir_service_id").(string))
+	fhirServiceId, err := iotconnectors.ParseFhirDestinationID(d.Get("destination_fhir_service_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing fhir destination id err: %+v", err)
 	}
@@ -209,7 +209,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationUpdate(d *pluginsdk.Reso
 	}
 	id := iotconnectors.NewFhirDestinationID(medTechService.SubscriptionId, medTechService.ResourceGroupName, medTechService.WorkspaceName, medTechService.IotConnectorName, d.Get("name").(string))
 
-	fhirServiceId, err := parse.FhirServiceID(d.Get("destination_fhir_service_id").(string))
+	fhirServiceId, err := iotconnectors.ParseFhirDestinationID(d.Get("destination_fhir_service_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing fhir destination id err: %+v", err)
 	}

@@ -46,7 +46,7 @@ func resourceHealthcareApisMedTechService() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.MedTechServiceID(id)
+			_, err := iotconnectors.ParseIotConnectorID(id)
 			return err
 		}),
 
