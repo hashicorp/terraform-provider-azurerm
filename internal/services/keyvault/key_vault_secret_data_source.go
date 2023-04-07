@@ -48,7 +48,7 @@ func dataSourceKeyVaultSecret() *pluginsdk.Resource {
 
 			"version": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 
 			"versionless_id": {
@@ -78,6 +78,7 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	name := d.Get("name").(string)
+	version := d.Get("version").(string)
 	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
@@ -88,8 +89,7 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, *keyVaultId, err)
 	}
 
-	// we always want to get the latest version
-	resp, err := client.GetSecret(ctx, *keyVaultBaseUri, name, "")
+	resp, err := client.GetSecret(ctx, *keyVaultBaseUri, name, version)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("KeyVault Secret %q (KeyVault URI %q) does not exist", name, *keyVaultBaseUri)
