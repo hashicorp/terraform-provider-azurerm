@@ -169,23 +169,13 @@ A `virtual_machine_full_resource_names` block supports the following:
 
 * `data_disk_names` - (Optional) A mapping of Data Disk names to pass to the backend host. The keys are Volume names and the values are a comma separated string of full names for Data Disks belonging to the specific Volume. This is converted to a list before being passed to the API. Changing this forces a new resource to be created.
 
-~> **Note:** If `data_disk_names` are not provided, service uses the default name based on the Volume.
-
 * `host_name` - (Optional) The full name of the host of the Virtual Machine. Changing this forces a new resource to be created.
-
-~> **Note:** If `host_name` is not provided, the name of the VM will be used as host name.
 
 * `network_interface_names` - (Optional) A list of full names for the Network Interface of the Virtual Machine. Changing this forces a new resource to be created.
 
-~> **Note:** If `network_interface_names` is not provided, service uses the default name based on the deployment type.
-
 * `os_disk_name` - (Optional) The full name of the OS Disk attached to the VM. Changing this forces a new resource to be created.
 
-~> **Note:** If `os_disk_name` is not provided, it will be named by ARM as per its default naming standards (prefixed with VM name).
-
 * `vm_name` - (Optional) The full name of the Virtual Machine in a single server SAP system. Changing this forces a new resource to be created.
-
-~> **Note:** If `vm_name` is not provided, service uses a default name based on the deployment type.
 
 ---
 
@@ -293,23 +283,13 @@ A `virtual_machine` block supports the following:
 
 * `data_disk_names` - (Optional) A mapping of Data Disk names to pass to the backend host. The keys are Volume names and the values are a comma separated string of full names for Data Disks belonging to the specific Volume. This is converted to a list before being passed to the API. Changing this forces a new resource to be created.
 
-~> **Note:** If `data_disk_names` are not provided, service uses the default name based on the Volume.
-
 * `host_name` - (Optional) The full name of the host of the Virtual Machine. Changing this forces a new resource to be created.
-
-~> **Note:** If `host_name` is not provided, the name of the VM will be used as host name.
 
 * `network_interface_names` - (Optional) A list of full names for the Network Interface of the Virtual Machine. Changing this forces a new resource to be created.
 
-~> **Note:** If `network_interface_names` is not provided, service uses the default name based on the deployment type.
-
 * `os_disk_name` - (Optional) The full name of the OS Disk attached to the VM. Changing this forces a new resource to be created.
 
-~> **Note:** If `os_disk_name` is not provided, it will be named by ARM as per its default naming standards (prefixed with VM name).
-
 * `vm_name` - (Optional) The full name of the Virtual Machine in a single server SAP system. Changing this forces a new resource to be created.
-
-~> **Note:** If `vm_name` is not provided, service uses a default name based on the deployment type.
 
 ---
 
@@ -358,8 +338,6 @@ A `discovery_configuration` block supports the following:
 * `central_server_vm_id` - (Required) The resource ID of the Virtual Machine of the Central Server. Changing this forces a new resource to be created.
 
 * `managed_storage_account_name` - (Optional) The name of the custom Storage Account created by the service in the managed Resource Group. Changing this forces a new resource to be created.
-
-~> **Note:** If not provided, the service will create the Storage Account with a random name.
 
 ---
 
