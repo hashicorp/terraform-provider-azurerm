@@ -683,7 +683,6 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   description         = "This is just a test acceptance."
 
   scopes = [
-    azurerm_resource_group.test.id,
     azurerm_storage_account.test.id,
   ]
 
@@ -750,7 +749,6 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   description         = "This is just a test acceptance."
 
   scopes = [
-    azurerm_resource_group.test.id,
     azurerm_storage_account.test.id,
   ]
 
@@ -827,7 +825,6 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   description         = "This is just a test acceptance."
 
   scopes = [
-    azurerm_resource_group.test.id,
     azurerm_storage_account.test.id,
   ]
 
