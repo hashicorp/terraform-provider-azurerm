@@ -67,6 +67,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the file within the File Share.
 * `content_length` - The length in bytes of the file content
+* `resource_manager_id` - The Resource Manager ID of this Storage Share File.
 
 ## Timeouts
 

@@ -474,11 +474,11 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 								},
 								Elem: &pluginsdk.Resource{
 									Schema: map[string]*pluginsdk.Schema{
-										"file_share_id": {
+										"share_file_id": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
 											ForceNew:     true,
-											ValidateFunc: storageValidate.StorageShareResourceManagerID,
+											ValidateFunc: storageValidate.StorageShareFileResourceManagerID,
 										},
 
 										"private_endpoint_id": {
@@ -1100,7 +1100,7 @@ func expandTransportMount(input []TransportMount) sapvirtualinstances.MountFileS
 	transportMount := &input[0]
 
 	result := sapvirtualinstances.MountFileShareConfiguration{
-		Id:                transportMount.FileShareId,
+		Id:                transportMount.ShareFileId,
 		PrivateEndpointId: transportMount.PrivateEndpointId,
 	}
 
@@ -1325,7 +1325,7 @@ func flattenStorageConfiguration(input *sapvirtualinstances.StorageConfiguration
 
 		if mountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.MountFileShareConfiguration); ok {
 			transportMount := TransportMount{
-				FileShareId:       mountFileShareConfiguration.Id,
+				ShareFileId:       mountFileShareConfiguration.Id,
 				PrivateEndpointId: mountFileShareConfiguration.PrivateEndpointId,
 			}
 

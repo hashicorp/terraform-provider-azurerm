@@ -132,7 +132,7 @@ type TransportCreateAndMount struct {
 }
 
 type TransportMount struct {
-	FileShareId       string `tfschema:"file_share_id"`
+	ShareFileId       string `tfschema:"share_file_id"`
 	PrivateEndpointId string `tfschema:"private_endpoint_id"`
 }
 

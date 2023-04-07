@@ -219,7 +219,7 @@ A `transport_create_and_mount` block supports the following:
 
 A `transport_mount` block supports the following:
 
-* `file_share_id` - (Required) The resource ID of the File Share resource. Changing this forces a new resource to be created.
+* `share_file_id` - (Required) The resource ID of the Share File resource. Changing this forces a new resource to be created.
 
 * `private_endpoint_id` - (Required) The resource ID of the Private Endpoint. Changing this forces a new resource to be created.
 
