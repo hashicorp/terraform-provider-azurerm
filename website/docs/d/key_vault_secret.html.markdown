@@ -57,6 +57,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `versionless_id` - The Versionless ID of the Key Vault Secret. This can be used to always get latest secret value, and enable fetching automatically rotating secrets.
 
+* `not_before_date` - The earliest date at which the Key Vault Secret can be used.
+
+* `expiration_date` - The date and time at which the Key Vault Secret expires and is no longer valid.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
