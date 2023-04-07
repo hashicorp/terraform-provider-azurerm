@@ -2,7 +2,7 @@
 
 BREAKING CHANGES:
 
-* `azurerm_kubernetes_cluster` - `sku_tier` no longer accepts the value `Paid`, it must be updated to `Standard`
+* `azurerm_kubernetes_cluster` - the `sku_tier` property no longer accepts the value `Paid`, it must be updated to `Standard` [GH-21256]
 
 FEATURES:
 
@@ -20,21 +20,21 @@ ENHANCEMENTS:
 * dependencies: updating `containerservice/2022-09-02-preview` to `2023-02-02-preview` [GH-21256]
 * dependencies: updating `search/2020-03-13` to `search/2022-09-01` [GH-21250]
 * `batch`: updating to API Version `2022-01-01.15.0` (from `github.com/tombuildsstuff/kermit`) [GH-21234]
-* Data Source: `azurerm_monitor_data_collection_rule` - add support for the `data_collection_endpoint_id` property [GH-21159]
-* Data Source: `azurerm_monitor_data_collection_rule` - add support for the `identity` and `stream_declaration` blocks [GH-21159]
-* Data Source: `azurerm_monitor_data_collection_rule` - add support for additional `destinations`, `data_sources` and `data_flow` transformations [GH-21159]
-* `azurerm_app_configuration_feature` - add support for the `key` property [GH-21252]
-* `azurerm_container_app` - the `app_port property` is now optional [GH-20567]
-* `azurerm_healthcare_fhir_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
-* `azurerm_healthcare_service` - Add support for `PATCH` as an available value for `cors` [GH-21222]
-* `azurerm_kubernetes_cluster` - Add `KataMshvVmIsolation` as `workload_runtime` option [GH-21176]
-* `azurerm_kubernetes_cluster_node_pool` - Add `KataMshvVmIsolation` as `workload_runtime` option [GH-21176]
-* `azurerm_monitor_data_collection_rule` - add support for the `data_collection_endpoint_id` property [GH-21159]
-* `azurerm_monitor_data_collection_rule` - add support for the `identity` and `stream_declaration` blocks [GH-21159]
-* `azurerm_monitor_data_collection_rule` - add support for additional `destinations`, `data_sources` and `data_flow` transformations [GH-21159]
+* Data Source: `azurerm_monitor_data_collection_rule` - support for the `data_collection_endpoint_id` property [GH-21159]
+* Data Source: `azurerm_monitor_data_collection_rule` - support for the `identity` and `stream_declaration` blocks [GH-21159]
+* Data Source: `azurerm_monitor_data_collection_rule` - support for additional `destinations`, `data_sources` and `data_flow` transformations [GH-21159]
+* `azurerm_app_configuration_feature` - support for the `key` property [GH-21252]
+* `azurerm_container_app` - the `app_port` property is now optional [GH-20567]
+* `azurerm_healthcare_fhir_service` - support for `PATCH` as an available value for `cors` [GH-21222]
+* `azurerm_healthcare_service` - upport for `PATCH` as an available value for `cors` [GH-21222]
+* `azurerm_kubernetes_cluster` - support `KataMshvVmIsolation` as a option for the `workload_runtime` property [GH-21176]
+* `azurerm_kubernetes_cluster_node_pool` - support `KataMshvVmIsolation` as a option for the `workload_runtime` property [GH-21176]
+* `azurerm_monitor_data_collection_rule` - support for the `data_collection_endpoint_id` property [GH-21159]
+* `azurerm_monitor_data_collection_rule` - support for the `identity` and `stream_declaration` blocks [GH-21159]
+* `azurerm_monitor_data_collection_rule` - support for additional `destinations`, `data_sources` and `data_flow` transformations [GH-21159]
 * `azurerm_signalr_service` - support for the `http_request_logs_enabled` property [GH-21032]
-* `azurerm_snapshot` - add support for the `incremental_enabled` property [GH-21263]
-* `azurerm_web_pubsub_hub` - add support for the `event_listener` block [GH-21145]
+* `azurerm_snapshot` - support for the `incremental_enabled` property [GH-21263]
+* `azurerm_web_pubsub_hub` - support for the `event_listener` block [GH-21145]
 
 BUG FIXES:
 
@@ -46,16 +46,16 @@ BUG FIXES:
 * `azurerm_digital_twins_time_series_database_connection` - insensitively parse `kusto_cluster_uri` [GH-21243]
 * `azurerm_express_route_circuit` - can now set `authorization_key` during creation [GH-21132]
 * `azurerm_kusto_eventhub_data_connection` - insensitively parse `identity_id` if it applies to a Kusto Cluster [GH-21243]
-* `azurerm_linux_function_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
-* `azurerm_linux_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
-* `azurerm_linux_web_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
-* `azurerm_linux_web_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_linux_function_app`  - fix a crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_linux_function_app_slot`  - fix a crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_linux_web_app`  - fix a crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_linux_web_app_slot`  - fix a crash in `auth_v2` in `active_directory_v2` [GH-21219]
 * `azurerm_monitor_diagnostic_setting` - insensitively parse the resource's ID if it has been created for a Kusto Cluster [GH-21243]
-* `azurerm_mssql_database` - fix issue with `short_term_retention_policy` preventing creation [GH-21268]
-* `azurerm_windows_function_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
-* `azurerm_windows_function_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
-* `azurerm_windows_web_app`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
-* `azurerm_windows_web_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_mssql_database` - fix a issue with `short_term_retention_policy` preventing creation [GH-21268]
+* `azurerm_windows_function_app`  - fix a crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_windows_function_app_slot`  - fix a crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_windows_web_app`  - fix a crash in `auth_v2` in `active_directory_v2` [GH-21219]
+* `azurerm_windows_web_app_slot`  - fix a crash in `auth_v2` in `active_directory_v2` [GH-21219]
 
 ## 3.50.0 (March 30, 2023)
 
