@@ -576,7 +576,8 @@ func flattenBackupProtectionPolicyVMScheduleV2(schedule protectionpolicies.Simpl
 		}
 
 		if schedule.ScheduleWindowStartTime != nil {
-			block["time"] = schedule.ScheduleWindowStartTime
+			policyTime, _ := time.Parse(time.RFC3339, pointer.From(schedule.ScheduleWindowStartTime))
+			block["time"] = policyTime.Format("15:04")
 		}
 	case protectionpolicies.ScheduleRunTypeDaily:
 		schedule := schedule.DailySchedule

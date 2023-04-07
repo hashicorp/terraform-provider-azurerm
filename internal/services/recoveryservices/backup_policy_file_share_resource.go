@@ -126,8 +126,7 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	_, err = resourceBackupProtectionPolicyFileShareWaitForUpdate(ctx, client, id, d)
-	if err != nil {
+	if err = resourceBackupProtectionPolicyFileShareWaitForUpdate(ctx, client, id, d); err != nil {
 		return err
 	}
 
@@ -465,7 +464,7 @@ func flattenBackupProtectionPolicyFileShareRetentionWeeklyFormat(retention *prot
 	return weekdays, weeks
 }
 
-func resourceBackupProtectionPolicyFileShareWaitForUpdate(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) (protectionpolicies.ProtectionPolicyResource, error) {
+func resourceBackupProtectionPolicyFileShareWaitForUpdate(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
@@ -480,12 +479,12 @@ func resourceBackupProtectionPolicyFileShareWaitForUpdate(ctx context.Context, c
 		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	resp, err := state.WaitForStateContext(ctx)
+	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(protectionpolicies.ProtectionPolicyResource), fmt.Errorf("waiting for update %s: %+v", id, err)
+		return fmt.Errorf("waiting for update %s: %+v", id, err)
 	}
 
-	return resp.(protectionpolicies.ProtectionPolicyResource), nil
+	return nil
 }
 
 func resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) error {
