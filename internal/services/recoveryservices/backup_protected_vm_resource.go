@@ -113,8 +113,7 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
 
-	_, err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, id, d)
-	if err != nil {
+	if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, id, d); err != nil {
 		return err
 	}
 
@@ -205,14 +204,14 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	if _, err := resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, client, opResultClient, *id, parsedLocation.Path["backupOperationResults"], d); err != nil {
+	if err = resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, client, opResultClient, *id, parsedLocation.Path["backupOperationResults"], d); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx context.Context, client *protecteditems.ProtectedItemsClient, id protecteditems.ProtectedItemId, d *pluginsdk.ResourceData) (backup.ProtectedItemResource, error) {
+func resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx context.Context, client *protecteditems.ProtectedItemsClient, id protecteditems.ProtectedItemId, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
@@ -227,16 +226,15 @@ func resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx conte
 		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	resp, err := state.WaitForStateContext(ctx)
+	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		i, _ := resp.(backup.ProtectedItemResource)
-		return i, fmt.Errorf("waiting for %s to provision: %+v", id, err)
+		return fmt.Errorf("waiting for %s to provision: %+v", id, err)
 	}
 
-	return resp.(backup.ProtectedItemResource), nil
+	return nil
 }
 
-func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Context, client *protecteditems.ProtectedItemsClient, opResultClient *backup.OperationResultsClient, id protecteditems.ProtectedItemId, operationId string, d *pluginsdk.ResourceData) (backup.ProtectedItemResource, error) {
+func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Context, client *protecteditems.ProtectedItemsClient, opResultClient *backup.OperationResultsClient, id protecteditems.ProtectedItemId, operationId string, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
@@ -267,10 +265,9 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	resp, err := state.WaitForStateContext(ctx)
+	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		i, _ := resp.(backup.ProtectedItemResource)
-		return i, fmt.Errorf("waiting for %s: %+v", id, err)
+		return fmt.Errorf("waiting for %s: %+v", id, err)
 	}
 
 	// we should also wait for the operation to complete, or it will fail when creating a new backup vm with the same vm in different vault immediately.
@@ -292,10 +289,10 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 
 	_, err = opState.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(backup.ProtectedItemResource), fmt.Errorf("waiting for the Recovery Service Protected Item operation to be deleted for %s: %+v", id, err)
+		return fmt.Errorf("waiting for the Recovery Service Protected Item operation to be deleted for %s: %+v", id, err)
 	}
 
-	return resp.(backup.ProtectedItemResource), nil
+	return nil
 }
 
 func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, client *protecteditems.ProtectedItemsClient, id protecteditems.ProtectedItemId) pluginsdk.StateRefreshFunc {

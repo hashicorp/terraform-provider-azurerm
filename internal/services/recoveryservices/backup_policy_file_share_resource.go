@@ -294,11 +294,13 @@ func expandBackupProtectionPolicyFileShareRetentionMonthly(d *pluginsdk.Resource
 		block := rb[0].(map[string]interface{})
 
 		retention := protectionpolicies.MonthlyRetentionSchedule{
-			RetentionScheduleDaily:  nil, // and this is always nil..
-			RetentionScheduleWeekly: expandBackupProtectionPolicyFileShareRetentionWeeklyFormat(block),
-			RetentionTimes:          &times,
+			RetentionScheduleFormatType: pointer.To(protectionpolicies.RetentionScheduleFormatWeekly),
+			RetentionScheduleDaily:      nil, // and this is always nil..
+			RetentionScheduleWeekly:     expandBackupProtectionPolicyFileShareRetentionWeeklyFormat(block),
+			RetentionTimes:              &times,
 			RetentionDuration: &protectionpolicies.RetentionDuration{
-				Count: pointer.To(int64(block["count"].(int))),
+				Count:        pointer.To(int64(block["count"].(int))),
+				DurationType: pointer.To(protectionpolicies.RetentionDurationTypeMonths),
 			},
 		}
 
