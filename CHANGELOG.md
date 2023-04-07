@@ -7,8 +7,10 @@ BREAKING CHANGES:
 FEATURES:
 
 * **New Resource:** `azurerm_arc_kubernetes_cluster` [GH-15401]
+* **New Resource:** `azurerm_resource_group_cost_management_view` [GH-21112]
 * **New Resource:** `azurerm_signalr_service_custom_certificate` [GH-21112]
 * **New Resource:** `azurerm_storage_mover` [GH-21000]
+* **New Resource:** `azurerm_subscription_cost_management_view` [GH-21112]
 * **New Resource:** `azurerm_voice_services_communications_gateway_test_line` [GH-21111]
 
 ENHANCEMENTS:
