@@ -85,11 +85,34 @@ func resourceSearchService() *pluginsdk.Resource {
 				ValidateFunc: validateSearch.PartitionCount,
 			},
 
-			"local_authentication_disabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
+			// "api_access_control": {
+			// 	Type:     pluginsdk.TypeSet,
+			// 	Optional: true,
+			// 	MaxItems: 1,
+			// 	Elem: &pluginsdk.Resource{
+			// 		Schema: map[string]*pluginsdk.Schema{
+			// 			"type": {
+			// 				Type:     pluginsdk.TypeString,
+			// 				Optional: true,
+			// 				Default:  "api_keys",
+			// 				ValidateFunc: validation.StringInSlice([]string{
+			// 					"api_keys",
+			// 					"role_based_access_control",
+			// 					"role_based_access_control_and_api_keys",
+			// 				}, false),
+			// 			},
+
+			// 			"authentication_failure_mode": {
+			// 				Type:     pluginsdk.TypeString,
+			// 				Optional: true,
+			// 				ValidateFunc: validation.StringInSlice([]string{
+			// 					string(services.AadAuthFailureModeHTTPFourZeroOneWithBearerChallenge),
+			// 					string(services.AadAuthFailureModeHTTPFourZeroThree),
+			// 				}, false),
+			// 			},
+			// 		},
+			// 	},
+			// },
 
 			"hosting_mode": {
 				Type:     pluginsdk.TypeString,
@@ -100,6 +123,17 @@ func resourceSearchService() *pluginsdk.Resource {
 					string(services.HostingModeDefault),
 					string(services.HostingModeHighDensity),
 				}, false),
+			},
+
+			"cmk_enforcement_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"cmk_enforcement_compliance": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"primary_key": {
@@ -182,7 +216,21 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	skuName := services.SkuName(d.Get("sku").(string))
 	ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
 	hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
-	localAuthDisabled := d.Get("local_authentication_disabled").(bool)
+	cmkEnforcementEnabled := d.Get("cmk_enforcement_enabled").(bool)
+
+	// NOTE: Temporarily disable these fields...
+	// AuthenticationOptions := expandSearchServiceDataPlaneAadOrApiKeyAuthOption(d.Get("api_access_control").(*pluginsdk.Set).List())
+
+	// localAuthDisabled := false
+	// if AuthenticationOptions == nil {
+	// 	// This means that it is RBAC only
+	// 	localAuthDisabled = true
+	// }
+
+	cmkEnforcement := services.SearchEncryptionWithCmkDisabled
+	if cmkEnforcementEnabled {
+		cmkEnforcement = services.SearchEncryptionWithCmkEnabled
+	}
 
 	// NOTE: hosting mode is only valid if the SKU is 'standard3'
 	if skuName != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
@@ -219,18 +267,24 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			NetworkRuleSet: pointer.To(services.NetworkRuleSet{
 				IPRules: expandSearchServiceIPRules(ipRulesRaw),
 			}),
-			HostingMode:      pointer.To(hostingMode),
-			DisableLocalAuth: pointer.To(localAuthDisabled),
-			PartitionCount:   pointer.To(partitionCount),
-			ReplicaCount:     pointer.To(replicaCount),
+			EncryptionWithCmk: pointer.To(services.EncryptionWithCmk{
+				Enforcement: pointer.To(cmkEnforcement),
+			}),
+			HostingMode: pointer.To(hostingMode),
+			// NOTE: Temporarily disable these fields...
+			// AuthOptions:      AuthenticationOptions,
+			// DisableLocalAuth: pointer.To(localAuthDisabled),
+			PartitionCount: pointer.To(partitionCount),
+			ReplicaCount:   pointer.To(replicaCount),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	// NOTE: Temporarily disable these fields...
 	// AuthOptions must be null if DisableLocalAuth is true
-	if localAuthDisabled {
-		searchService.Properties.AuthOptions = nil
-	}
+	// if localAuthDisabled {
+	// 	searchService.Properties.AuthOptions = nil
+	// }
 
 	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -297,15 +351,27 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			model.Properties.HostingMode = pointer.To(hostingMode)
 		}
 
-		if d.HasChange("local_authentication_disabled") {
-			localAuthDisabled := d.Get("local_authentication_disabled").(bool)
-			model.Properties.DisableLocalAuth = pointer.To(localAuthDisabled)
-
-			// AuthOptions must be null if DisableLocalAuth is true
-			if localAuthDisabled {
-				model.Properties.AuthOptions = nil
+		if d.HasChange("cmk_enforcement_enabled") {
+			cmkEnforcement := services.SearchEncryptionWithCmkDisabled
+			if enabled := d.Get("cmk_enforcement_enabled").(bool); enabled {
+				cmkEnforcement = services.SearchEncryptionWithCmkEnabled
 			}
+
+			model.Properties.EncryptionWithCmk.Enforcement = pointer.To(cmkEnforcement)
 		}
+
+		// NOTE: Temporarily disable these fields...
+		// if d.HasChange("api_access_control") {
+		// 	authenticationOptions := expandSearchServiceDataPlaneAadOrApiKeyAuthOption(d.Get("api_access_control").(*pluginsdk.Set).List())
+
+		// 	model.Properties.DisableLocalAuth = pointer.To(false)
+		// 	if authenticationOptions == nil {
+		// 		// This means that it is RBAC only
+		// 		model.Properties.DisableLocalAuth = pointer.To(true)
+		// 	}
+
+		// 	model.Properties.AuthOptions = authenticationOptions
+		// }
 
 		if d.HasChange("replica_count") {
 			replicaCount, err := validateSearchServiceReplicaCount(int64(d.Get("replica_count").(int)), pointer.From(model.Sku.Name))
@@ -389,8 +455,9 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			partitionCount := 1         // Default
 			replicaCount := 1           // Default
 			publicNetworkAccess := true // publicNetworkAccess defaults to true...
+			cmkEnforcement := false     // cmkEnforcment defaults to false...
 			hostingMode := services.HostingModeDefault
-			localAthDisabled := false
+			// localAthDisabled := false
 
 			if count := props.PartitionCount; count != nil {
 				partitionCount = int(pointer.From(count))
@@ -410,15 +477,24 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				hostingMode = *props.HostingMode
 			}
 
-			if props.DisableLocalAuth != nil {
-				localAthDisabled = pointer.From(props.DisableLocalAuth)
+			var cmkCompliance string
+			if props.EncryptionWithCmk != nil {
+				cmkEnforcement = strings.EqualFold(string(pointer.From(props.EncryptionWithCmk.Enforcement)), string(services.SearchEncryptionWithCmkEnabled))
+				cmkCompliance = string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus))
 			}
+
+			// NOTE: Temporarily disable these fields...
+			// if props.DisableLocalAuth != nil {
+			// 	authenticationOptions := flattenSearchServiceDataPlaneAadOrApiKeyAuthOption(props.AuthOptions, props.DisableLocalAuth)
+			// 	d.Set("api_access_control", authenticationOptions)
+			// }
 
 			d.Set("partition_count", partitionCount)
 			d.Set("replica_count", replicaCount)
 			d.Set("public_network_access_enabled", publicNetworkAccess)
 			d.Set("hosting_mode", hostingMode)
-			d.Set("local_authentication_disabled", localAthDisabled)
+			d.Set("cmk_enforcement_enabled", cmkEnforcement)
+			d.Set("cmk_enforcement_compliance", cmkCompliance)
 			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 		}
 
@@ -516,6 +592,39 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 	return &output
 }
 
+// NOTE: Temporarily disable these fields...
+// func expandSearchServiceDataPlaneAadOrApiKeyAuthOption(input []interface{}) *services.DataPlaneAuthOptions {
+// 	var ApiKeyOnly interface{}
+
+// 	// the default(e.g. 'ApiKeyOnly'), only requires an empty DataPlaneAuthOptions.ApiKeyOnly interface...
+// 	defaultAuth := pointer.To(services.DataPlaneAuthOptions{
+// 		ApiKeyOnly: pointer.To(ApiKeyOnly),
+// 	})
+
+// 	if len(input) == 0 {
+// 		return defaultAuth
+// 	}
+
+// 	apiAccessControl := input[0].(map[string]interface{})
+// 	accessControlType := apiAccessControl["type"].(string)
+// 	authFailureMode := apiAccessControl["authentication_failure_mode"].(string)
+
+// 	switch accessControlType {
+// 	case "role_based_access_control":
+// 		return nil
+// 	case "api_keys":
+// 		return defaultAuth
+// 	case "role_based_access_control_and_api_keys":
+// 		return pointer.To(services.DataPlaneAuthOptions{
+// 			AadOrApiKey: pointer.To(services.DataPlaneAadOrApiKeyAuthOption{
+// 				AadAuthFailureMode: (*services.AadAuthFailureMode)(pointer.To(authFailureMode)),
+// 			}),
+// 		})
+// 	}
+
+// 	return defaultAuth
+// }
+
 func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
 	if input == nil || *input.IPRules == nil || len(*input.IPRules) == 0 {
 		return nil
@@ -526,6 +635,36 @@ func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
 	}
 	return result
 }
+
+// NOTE: Temporarily disable these fields...
+// func flattenSearchServiceDataPlaneAadOrApiKeyAuthOption(input *services.DataPlaneAuthOptions, localAuthenticationDisabled *bool) []interface{} {
+// 	// TODO: Validate what I should be checking here...
+// 	// For RBAC Only DataPlaneAuthOptions will be nil...
+// 	if localAuthenticationDisabled == nil {
+// 		return []interface{}{}
+// 	}
+
+// 	result := make(map[string]interface{})
+
+// 	// if localAuthenticationDisabled is disabled that means the this in RBAC Only mode...
+// 	if pointer.From(localAuthenticationDisabled) {
+// 		// Auth is RBAC Only...
+// 		// "localAuthenticationDisabled": true
+// 		result["type"] = "role_based_access_control"
+// 		result["authentication_failure_mode"] = ""
+// 	} else {
+// 		// Auth can be API Only or RBAC and API...
+// 		if input.AadOrApiKey != nil && input.AadOrApiKey.AadAuthFailureMode != nil {
+// 			result["type"] = "role_based_access_control_and_api_keys"
+// 			result["authentication_failure_mode"] = pointer.From(input.AadOrApiKey.AadAuthFailureMode)
+// 		} else {
+// 			result["type"] = "api_keys"
+// 			result["authentication_failure_mode"] = ""
+// 		}
+// 	}
+
+// 	return []interface{}{result}
+// }
 
 func validateSearchServiceReplicaCount(replicaCount int64, skuName services.SkuName) (int64, error) {
 	switch skuName {

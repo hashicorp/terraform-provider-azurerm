@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_search_service" "example" {
-  name                = "example-search-service"
+  name                = "example-resource"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku                 = "standard"
@@ -44,23 +44,27 @@ The following arguments are supported:
 
 ---
 
+* `cmk_enforcement_enabled` - (Optional) Should the Search Service enforce having one or more non customer encrypted resources? Possible values include `true` or `false`. Defaults to `false`.
+
 * `hosting_mode` - (Optional) Enable high density partitions that allow for up to a 1000 indexes. Possible values are `highDensity` or `default`. Defaults to `default`. Changing this forces a new Search Service to be created.
 
 -> **NOTE:** When the Search Service is in `highDensity` mode the maximum number of partitions allowed is `3`, to enable `hosting_mode` you must use a `standard3` SKU.
 
-* `local_authentication_disabled` - (Optional) Should calls to the search service be allowed to utilize API keys for authentication? When `local_authentication_disabled` is set to `true`, calls to the search service *will not* be allowed to use API keys for authentication. Possible values include `true` or `false`. Defaults to `false`.
+<!-- * `local_authentication_disabled` - (Optional) Should calls to the Search Service be allowed to utilize API keys for authentication? When `local_authentication_disabled` is set to `true`, calls to the Search Service *will not* be allowed to use API keys for authentication. Possible values include `true` or `false`. Defaults to `false`.
 
-**NOTE:** This cannot be set to `true` if `dataPlaneAuthOptions` are defined.
+**NOTE:** This cannot be set to `true` if `dataPlaneAuthOptions` are defined. -->
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this resource. Defaults to `true`.
 
 * `partition_count` - (Optional) The number of partitions which should be created. Possible values include `1`, `2`, `3`, `4`, `6`, or `12`. Defaults to `1`.
 
+-> **NOTE:** `partition_count` cannot be configured when using a `free` or `basic` SKU. For more information please to the [product documentation](https://learn.microsoft.com/azure/search/search-sku-tier).
+
 * `replica_count` - (Optional) The number of replica's which should be created.
 
--> **NOTE:** `replica_count` cannot be configured when using a `free` SKU, `partition_count` cannot be configured when using a `free` or `basic` SKU. For more information please to the [product documentation](https://learn.microsoft.com/azure/search/search-sku-tier).
+-> **NOTE:** `replica_count` cannot be configured when using a `free` SKU. For more information please to the [product documentation](https://learn.microsoft.com/azure/search/search-sku-tier).
 
-* `allowed_ips` - (Optional) A list of IPv4 addresses or CIDRs that are allowed access to the search service endpoint.
+* `allowed_ips` - (Optional) A list of IPv4 addresses or CIDRs that are allowed access to the Search Service endpoint.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -77,6 +81,8 @@ A `identity` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Search Service.
+
+* `cmk_enforcement_compliance` - Describes whether the Search Service is `compliant` or not with respect to having non customer encrypted resources. If a Search Service has more than one non customer encrypted resource and the `cmk_enforcement_enabled` field is set to `true` the Search Service will be marked as `nonCompliant`.
 
 * `primary_key` - The Primary Key used for Search Service Administration.
 

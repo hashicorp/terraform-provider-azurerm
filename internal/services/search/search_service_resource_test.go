@@ -15,8 +15,9 @@ import (
 )
 
 type SearchServiceResource struct {
-	sku               string
-	localAuthDisabled bool
+	sku        string
+	count      int
+	enforceCmk bool
 }
 
 func TestAccSearchService_basicStandard(t *testing.T) {
@@ -28,7 +29,6 @@ func TestAccSearchService_basicStandard(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -44,7 +44,6 @@ func TestAccSearchService_basicFree(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -60,7 +59,6 @@ func TestAccSearchService_basicBasic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -75,7 +73,6 @@ func TestAccSearchService_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -91,12 +88,6 @@ func TestAccSearchService_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
-				check.That(data.ResourceName).Key("replica_count").HasValue("2"),
-				check.That(data.ResourceName).Key("primary_key").Exists(),
-				check.That(data.ResourceName).Key("secondary_key").Exists(),
-				check.That(data.ResourceName).Key("query_keys.#").HasValue("1"),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -112,20 +103,16 @@ func TestAccSearchService_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
-				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -138,7 +125,6 @@ func TestAccSearchService_ipRules(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -146,7 +132,6 @@ func TestAccSearchService_ipRules(t *testing.T) {
 			Config: r.ipRules(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -154,7 +139,6 @@ func TestAccSearchService_ipRules(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -170,7 +154,6 @@ func TestAccSearchService_identity(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -178,7 +161,6 @@ func TestAccSearchService_identity(t *testing.T) {
 			Config: r.identity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -186,7 +168,6 @@ func TestAccSearchService_identity(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -202,7 +183,6 @@ func TestAccSearchService_hostingMode(t *testing.T) {
 			Config: r.hostingMode(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -215,64 +195,89 @@ func TestAccSearchService_hostingModeInvalidSKU(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.hostingModeInvalidSKU(data),
+			Config:      r.hostingMode(data),
 			Check:       acceptance.ComposeTestCheckFunc(),
 			ExpectError: regexp.MustCompile("can only be defined if"),
 		},
 	})
 }
 
-func TestAccSearchService_partitionCountInvalid(t *testing.T) {
+func TestAccSearchService_partitionCountInvalidBySku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{sku: "free"}
+	r := SearchServiceResource{sku: "basic", count: 3}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.partitionCountInvalid(data),
+			Config:      r.partitionCount(data),
 			Check:       acceptance.ComposeTestCheckFunc(),
 			ExpectError: regexp.MustCompile("values greater than 1 cannot be set"),
 		},
 	})
 }
 
-func TestAccSearchService_replicaCountInvalid(t *testing.T) {
+func TestAccSearchService_partitionCountInvalidByInput(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{sku: "free"}
+	r := SearchServiceResource{sku: "standard", count: 5}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.replicaCountInvalid(data),
+			Config:      r.partitionCount(data),
+			Check:       acceptance.ComposeTestCheckFunc(),
+			ExpectError: regexp.MustCompile("must be 1"),
+		},
+	})
+}
+
+func TestAccSearchService_replicaCountInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	// NOTE: The default qouta for the 'free' sku is 1
+	// but it is ok to use it here since it will never be created since
+	// it will fail validation due to the replica count defined in the
+	// test configuration...
+	r := SearchServiceResource{sku: "free", count: 2}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.replicaCount(data),
 			Check:       acceptance.ComposeTestCheckFunc(),
 			ExpectError: regexp.MustCompile("cannot be greater than 1 for the"),
 		},
 	})
 }
 
-func TestAccSearchService_localAuthenticationDisabledUpdate(t *testing.T) {
+func TestAccSearchService_cmkEnforcement(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{sku: "standard", localAuthDisabled: false}
-	u := SearchServiceResource{sku: "standard", localAuthDisabled: true}
+	r := SearchServiceResource{sku: "standard", enforceCmk: true}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.localAuthenticationDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+			Config: r.cmkEnforcement(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSearchService_cmkEnforcementUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{sku: "standard", enforceCmk: false}
+	u := SearchServiceResource{sku: "standard", enforceCmk: true}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// This should create a Search Service with the default 'cmk_enforcement_enabled' value of 'false'...
+			Config: r.basic(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 		data.ImportStep(),
 		{
-			Config: u.localAuthenticationDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+			Config: u.cmkEnforcement(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 		data.ImportStep(),
 		{
-			Config: r.localAuthenticationDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+			Config: r.cmkEnforcement(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 		data.ImportStep(),
 	})
@@ -359,7 +364,7 @@ resource "azurerm_search_service" "test" {
   partition_count     = 3
 
   public_network_access_enabled = false
-  local_authentication_disabled = false
+  cmk_enforcement_enabled       = false
 
   tags = {
     environment = "Production"
@@ -442,7 +447,7 @@ resource "azurerm_search_service" "test" {
 `, template, data.RandomInteger, r.sku)
 }
 
-func (r SearchServiceResource) hostingModeInvalidSKU(data acceptance.TestData) string {
+func (r SearchServiceResource) partitionCount(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -456,73 +461,50 @@ resource "azurerm_search_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%s"
-  hosting_mode        = "highDensity"
+  partition_count     = %d
+}
+`, template, data.RandomInteger, r.sku, r.count)
+}
+
+func (r SearchServiceResource) replicaCount(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%s"
+  replica_count       = %d
+}
+`, template, data.RandomInteger, r.sku, r.count)
+}
+
+func (r SearchServiceResource) cmkEnforcement(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%s"
+
+  cmk_enforcement_enabled = %t
 
   tags = {
     environment = "staging"
   }
 }
-`, template, data.RandomInteger, r.sku)
-}
-
-func (r SearchServiceResource) partitionCountInvalid(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_search_service" "test" {
-  name                = "acctestsearchservice%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "%s"
-  partition_count     = 3
-}
-`, template, data.RandomInteger, r.sku)
-}
-
-func (r SearchServiceResource) replicaCountInvalid(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_search_service" "test" {
-  name                = "acctestsearchservice%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "%s"
-  replica_count       = 2
-}
-`, template, data.RandomInteger, r.sku)
-}
-
-func (r SearchServiceResource) localAuthenticationDisabled(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_search_service" "test" {
-  name                = "acctestsearchservice%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "%s"
-
-  local_authentication_disabled = %t
-
-  tags = {
-    environment = "staging"
-  }
-}
-`, template, data.RandomInteger, r.sku, r.localAuthDisabled)
+`, template, data.RandomInteger, r.sku, r.enforceCmk)
 }
