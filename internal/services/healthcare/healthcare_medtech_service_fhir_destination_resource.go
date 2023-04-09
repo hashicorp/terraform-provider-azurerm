@@ -58,7 +58,7 @@ func resourceHealthcareApisMedTechServiceFhirDestination() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MedTechServiceID,
+				ValidateFunc: iotconnectors.ValidateIotConnectorID,
 			},
 
 			"location": commonschema.Location(),
@@ -66,7 +66,7 @@ func resourceHealthcareApisMedTechServiceFhirDestination() *pluginsdk.Resource {
 			"destination_fhir_service_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.FhirServiceID,
+				ValidateFunc: iotconnectors.ValidateFhirDestinationID,
 			},
 
 			"destination_identity_resolution_type": {
