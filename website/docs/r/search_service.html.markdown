@@ -64,7 +64,9 @@ The following arguments are supported:
 
 -> **NOTE:** `replica_count` cannot be configured when using a `free` SKU. For more information please to the [product documentation](https://learn.microsoft.com/azure/search/search-sku-tier).
 
-* `allowed_ips` - (Optional) A list of IPv4 addresses or CIDRs that are allowed access to the Search Service endpoint.
+* `allowed_ips` - (Optional) A list of inbound IPv4 or CIDRs that are allowed to access the Search Service. If the incoming IP request is from an IP address which is not included in the `allowed_ips` it will be blocked by the Search Services firewall.
+
+-> **NOTE:** The `allowed_ips` are only applied if the `public_network_access_enabled` field has been set to `true`, else all traffic over the public interface will be rejected, even if the `allowed_ips` field has been defined.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
