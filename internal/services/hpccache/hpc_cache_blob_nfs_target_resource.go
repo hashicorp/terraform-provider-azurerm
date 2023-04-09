@@ -170,7 +170,7 @@ func resourceHPCCacheBlobNFSTargetRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.CacheName)
+	d.Set("name", id.StorageTargetName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("cache_name", id.CacheName)
 

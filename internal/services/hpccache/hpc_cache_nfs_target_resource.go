@@ -177,7 +177,7 @@ func resourceHPCCacheNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving HPC Cache NFS Target %q: %+v", id, err)
 	}
 
-	d.Set("name", id.CacheName)
+	d.Set("name", id.StorageTargetName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("cache_name", id.CacheName)
 
