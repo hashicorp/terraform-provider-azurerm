@@ -118,12 +118,8 @@ type ThreeTierConfiguration struct {
 	FullResourceNames              []FullResourceNames              `tfschema:"full_resource_names"`
 	HighAvailabilityType           string                           `tfschema:"high_availability_type"`
 	IsSecondaryIpEnabled           bool                             `tfschema:"is_secondary_ip_enabled"`
-	StorageConfiguration           []StorageConfiguration           `tfschema:"storage_configuration"`
-}
-
-type StorageConfiguration struct {
-	TransportCreateAndMount []TransportCreateAndMount `tfschema:"transport_create_and_mount"`
-	TransportMount          []TransportMount          `tfschema:"transport_mount"`
+	TransportCreateAndMount        []TransportCreateAndMount        `tfschema:"transport_create_and_mount"`
+	TransportMount                 []TransportMount                 `tfschema:"transport_mount"`
 }
 
 type TransportCreateAndMount struct {
@@ -418,8 +414,24 @@ func (r WorkloadsSAPVirtualInstanceResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if err := client.CreateThenPoll(ctx, id, *parameters); err != nil {
+			if _, err := client.Create(ctx, id, *parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{
+					"Accepted",
+					"Creating",
+					"Preparing System Configuration",
+				},
+				Target:       []string{string(sapvirtualinstances.SapVirtualInstanceProvisioningStateSucceeded)},
+				Refresh:      sapVirtualInstanceStateRefreshFunc(ctx, client, id),
+				Timeout:      60 * time.Minute,
+				PollInterval: 10 * time.Second,
+			}
+
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -759,5 +771,25 @@ func flattenDeployerVMPackages(input *sapvirtualinstances.DeployerVMPackages) []
 
 	return []DeployerVmPackages{
 		result,
+	}
+}
+
+func sapVirtualInstanceStateRefreshFunc(ctx context.Context, client *sapvirtualinstances.SAPVirtualInstancesClient, id sapvirtualinstances.SapVirtualInstanceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
+		}
+
+		if model := res.Model; model != nil {
+			if model.Properties.ProvisioningState != nil {
+				if *model.Properties.ProvisioningState == sapvirtualinstances.SapVirtualInstanceProvisioningStateFailed {
+					return res, string(*model.Properties.ProvisioningState), fmt.Errorf("the provisioning state is in a failed state due to %s", *model.Properties.Errors.Properties.Message)
+				}
+
+				return res, string(*model.Properties.ProvisioningState), nil
+			}
+		}
+		return nil, "", fmt.Errorf("unable to read state")
 	}
 }

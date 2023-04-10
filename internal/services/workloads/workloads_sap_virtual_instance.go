@@ -152,25 +152,10 @@ func SchemaForSAPVirtualInstanceVirtualMachineConfiguration() *pluginsdk.Schema 
 				},
 
 				"vm_size": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"Standard_E32ds_v4",
-						"Standard_E48ds_v4",
-						"Standard_E64ds_v4",
-						"Standard_M128ms",
-						"Standard_M128s",
-						"Standard_M208ms_v2",
-						"Standard_M208s_v2",
-						"Standard_M32Is",
-						"Standard_M32ts",
-						"Standard_M416ms_v2",
-						"Standard_M416s_v2",
-						"Standard_M64Is",
-						"Standard_M64ms",
-						"Standard_M64s",
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},
@@ -428,67 +413,49 @@ func SchemaForSAPVirtualInstanceThreeTierConfiguration(deploymentType string) *p
 					Default:  false,
 				},
 
-				"storage_configuration": {
+				"transport_create_and_mount": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					ForceNew: true,
 					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							"transport_create_and_mount": {
-								Type:     pluginsdk.TypeList,
-								Optional: true,
-								ForceNew: true,
-								MaxItems: 1,
-								AtLeastOneOf: []string{
-									fmt.Sprintf("%s.0.three_tier_configuration.0.storage_configuration.0.transport_create_and_mount", deploymentType),
-									fmt.Sprintf("%s.0.three_tier_configuration.0.storage_configuration.0.transport_mount", deploymentType),
-								},
-								Elem: &pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
-										"resource_group_name": {
-											Type:         pluginsdk.TypeString,
-											Optional:     true,
-											ForceNew:     true,
-											ValidateFunc: resourcegroups.ValidateName,
-										},
-
-										"storage_account_name": {
-											Type:         pluginsdk.TypeString,
-											Optional:     true,
-											ForceNew:     true,
-											ValidateFunc: storageValidate.StorageAccountName,
-										},
-									},
-								},
+							"resource_group_name": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: resourcegroups.ValidateName,
 							},
 
-							"transport_mount": {
-								Type:     pluginsdk.TypeList,
-								Optional: true,
-								ForceNew: true,
-								MaxItems: 1,
-								AtLeastOneOf: []string{
-									fmt.Sprintf("%s.0.three_tier_configuration.0.storage_configuration.0.transport_create_and_mount", deploymentType),
-									fmt.Sprintf("%s.0.three_tier_configuration.0.storage_configuration.0.transport_mount", deploymentType),
-								},
-								Elem: &pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
-										"share_file_id": {
-											Type:         pluginsdk.TypeString,
-											Required:     true,
-											ForceNew:     true,
-											ValidateFunc: storageValidate.StorageShareFileResourceManagerID,
-										},
+							"storage_account_name": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: storageValidate.StorageAccountName,
+							},
+						},
+					},
+				},
 
-										"private_endpoint_id": {
-											Type:         pluginsdk.TypeString,
-											Required:     true,
-											ForceNew:     true,
-											ValidateFunc: networkValidate.PrivateEndpointID,
-										},
-									},
-								},
+				"transport_mount": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"share_file_id": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								ValidateFunc: storageValidate.StorageShareFileResourceManagerID,
+							},
+
+							"private_endpoint_id": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								ValidateFunc: networkValidate.PrivateEndpointID,
 							},
 						},
 					},
@@ -946,9 +913,14 @@ func flattenSshKeyPair(input *sapvirtualinstances.SshKeyPair) []SshKeyPair {
 		return nil
 	}
 
-	result := SshKeyPair{
-		PrivateKey: *input.PrivateKey,
-		PublicKey:  *input.PublicKey,
+	result := SshKeyPair{}
+
+	if v := input.PrivateKey; v != nil {
+		result.PrivateKey = *v
+	}
+
+	if v := input.PublicKey; v != nil {
+		result.PublicKey = *v
 	}
 
 	return []SshKeyPair{
@@ -971,7 +943,7 @@ func expandThreeTierConfiguration(input []ThreeTierConfiguration) *sapvirtualins
 		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
 			IsSecondaryIPEnabled: utils.Bool(threeTierConfiguration.IsSecondaryIpEnabled),
 		},
-		StorageConfiguration: expandStorageConfiguration(threeTierConfiguration.StorageConfiguration),
+		StorageConfiguration: expandStorageConfiguration(threeTierConfiguration),
 	}
 
 	if v := threeTierConfiguration.HighAvailabilityType; v != "" {
@@ -1050,23 +1022,21 @@ func expandDatabaseServer(input []DatabaseServerConfiguration) sapvirtualinstanc
 	return result
 }
 
-func expandStorageConfiguration(input []StorageConfiguration) *sapvirtualinstances.StorageConfiguration {
-	if len(input) == 0 {
+func expandStorageConfiguration(input *ThreeTierConfiguration) *sapvirtualinstances.StorageConfiguration {
+	if len(input.TransportCreateAndMount) == 0 && len(input.TransportMount) == 0 {
 		return &sapvirtualinstances.StorageConfiguration{
 			sapvirtualinstances.SkipFileShareConfiguration{},
 		}
 	}
 
-	storageConfiguration := &input[0]
-
 	result := sapvirtualinstances.StorageConfiguration{}
 
-	if v := storageConfiguration.TransportCreateAndMount; v != nil {
-		result.TransportFileShareConfiguration = expandTransportCreateAndMount(v)
+	if len(input.TransportCreateAndMount) != 0 {
+		result.TransportFileShareConfiguration = expandTransportCreateAndMount(input.TransportCreateAndMount)
 	}
 
-	if v := storageConfiguration.TransportMount; v != nil {
-		result.TransportFileShareConfiguration = expandTransportMount(v)
+	if len(input.TransportMount) != 0 {
+		result.TransportFileShareConfiguration = expandTransportMount(input.TransportMount)
 	}
 
 	return &result
@@ -1286,56 +1256,38 @@ func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfigurat
 		result.IsSecondaryIpEnabled = *networkConfiguration.IsSecondaryIPEnabled
 	}
 
-	if v := input.StorageConfiguration; v != nil {
-		result.StorageConfiguration = flattenStorageConfiguration(v)
+	if storageConfiguration := input.StorageConfiguration; storageConfiguration != nil {
+		if transportFileShareConfiguration := storageConfiguration.TransportFileShareConfiguration; transportFileShareConfiguration != nil {
+			if createAndMountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.CreateAndMountFileShareConfiguration); ok {
+				transportCreateAndMount := TransportCreateAndMount{}
+
+				if v := createAndMountFileShareConfiguration.ResourceGroup; v != nil {
+					transportCreateAndMount.ResourceGroupName = *v
+				}
+
+				if v := createAndMountFileShareConfiguration.StorageAccountName; v != nil {
+					transportCreateAndMount.StorageAccountName = *v
+				}
+
+				result.TransportCreateAndMount = []TransportCreateAndMount{
+					transportCreateAndMount,
+				}
+			}
+
+			if mountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.MountFileShareConfiguration); ok {
+				transportMount := TransportMount{
+					ShareFileId:       mountFileShareConfiguration.Id,
+					PrivateEndpointId: mountFileShareConfiguration.PrivateEndpointId,
+				}
+
+				result.TransportMount = []TransportMount{
+					transportMount,
+				}
+			}
+		}
 	}
 
 	return []ThreeTierConfiguration{
-		result,
-	}
-}
-
-func flattenStorageConfiguration(input *sapvirtualinstances.StorageConfiguration) []StorageConfiguration {
-	if input == nil {
-		return nil
-	}
-
-	result := StorageConfiguration{}
-
-	if transportFileShareConfiguration := input.TransportFileShareConfiguration; transportFileShareConfiguration != nil {
-		if _, ok := transportFileShareConfiguration.(sapvirtualinstances.SkipFileShareConfiguration); ok {
-			return nil
-		}
-
-		if createAndMountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.CreateAndMountFileShareConfiguration); ok {
-			transportCreateAndMount := TransportCreateAndMount{}
-
-			if v := createAndMountFileShareConfiguration.ResourceGroup; v != nil {
-				transportCreateAndMount.ResourceGroupName = *v
-			}
-
-			if v := createAndMountFileShareConfiguration.StorageAccountName; v != nil {
-				transportCreateAndMount.StorageAccountName = *v
-			}
-
-			result.TransportCreateAndMount = []TransportCreateAndMount{
-				transportCreateAndMount,
-			}
-		}
-
-		if mountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.MountFileShareConfiguration); ok {
-			transportMount := TransportMount{
-				ShareFileId:       mountFileShareConfiguration.Id,
-				PrivateEndpointId: mountFileShareConfiguration.PrivateEndpointId,
-			}
-
-			result.TransportMount = []TransportMount{
-				transportMount,
-			}
-		}
-	}
-
-	return []StorageConfiguration{
 		result,
 	}
 }

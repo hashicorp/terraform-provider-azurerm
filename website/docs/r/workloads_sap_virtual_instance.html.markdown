@@ -133,7 +133,7 @@ A `virtual_machine_configuration` block supports the following:
 
 * `os_profile` - (Required) An `os_profile` block as defined below. Changing this forces a new resource to be created.
 
-* `vm_size` - (Required) The size of the Virtual Machine. Possible values are `Standard_E32ds_v4`, `Standard_E48ds_v4`, `Standard_E64ds_v4`, `Standard_M128ms`,`Standard_M128s`, `Standard_M208ms_v2`, `Standard_M208s_v2`, `Standard_M32Is`, `Standard_M32ts`, `Standard_M416ms_v2`, `Standard_M416s_v2`, `Standard_M64Is`, `Standard_M64ms` and `Standard_M64s`. Changing this forces a new resource to be created.
+* `vm_size` - (Required) The size of the Virtual Machine. Changing this forces a new resource to be created.
 
 ---
 
@@ -195,17 +195,11 @@ A `three_tier_configuration` block supports the following:
 
 * `is_secondary_ip_enabled` - (Optional) Is a secondary IP Address that should be added to the Network Interface on all VMs of the SAP system being deployed enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
-* `storage_configuration` - (Optional) A `storage_configuration` block as defined below. Changing this forces a new resource to be created.
-
----
-
-A `storage_configuration` block supports the following:
-
 * `transport_create_and_mount` - (Optional) A `transport_create_and_mount` block as defined below. Changing this forces a new resource to be created.
 
 * `transport_mount` - (Optional) A `transport_mount` block as defined below. Changing this forces a new resource to be created.
 
-~> **Note:** The `Skip` configuration type is enabled when `storage_configuration` isn't set.
+~> **Note:** The `Skip` configuration type would be enabled when the `transport_create_and_mount` and the `transport_mount` aren't set.
 
 ---
 
