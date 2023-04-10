@@ -92,6 +92,32 @@ func TestAccRoute_disappears(t *testing.T) {
 	})
 }
 
+func TestAccRoute_disappearsWithTableUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_route", "test")
+	r := RouteResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disappearsWithTableUpdate(data),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+
+}
+
 func TestAccRoute_multipleRoutes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route", "test")
 	r := RouteResource{}
@@ -171,6 +197,29 @@ resource "azurerm_route" "test" {
   next_hop_type  = "VnetLocal"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (RouteResource) disappearsWithTableUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctestrt%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tags = {
+    env = "test"
+  }
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r RouteResource) requiresImport(data acceptance.TestData) string {

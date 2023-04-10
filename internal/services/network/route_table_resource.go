@@ -24,9 +24,9 @@ var routeTableResourceName = "azurerm_route_table"
 
 func resourceRouteTable() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRouteTableCreateUpdate,
+		Create: resourceRouteTableCreate,
 		Read:   resourceRouteTableRead,
-		Update: resourceRouteTableCreateUpdate,
+		Update: resourceRouteTableUpdate,
 		Delete: resourceRouteTableDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -111,10 +111,10 @@ func resourceRouteTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteTablesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Route Table creation.")
@@ -123,17 +123,15 @@ func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_route_table", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_route_table", id.ID())
 	}
 
 	routeSet := network.RouteTable{
@@ -148,7 +146,7 @@ func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, routeSet)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -156,6 +154,48 @@ func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+
+	return resourceRouteTableRead(d, meta)
+}
+
+func resourceRouteTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.RouteTablesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.RouteTableID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return fmt.Errorf("retrieving Route Table %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+	if existing.RouteTablePropertiesFormat == nil {
+		return fmt.Errorf("retrieving Route Table %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+	}
+
+	if d.HasChange("route") {
+		existing.RouteTablePropertiesFormat.Routes = expandRouteTableRoutes(d)
+	}
+
+	if d.HasChange("disable_bgp_route_propagation") {
+		existing.RouteTablePropertiesFormat.DisableBgpRoutePropagation = utils.Bool(d.Get("disable_bgp_route_propagation").(bool))
+	}
+
+	if d.HasChange("tags") {
+		existing.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
+	}
 
 	return resourceRouteTableRead(d, meta)
 }
