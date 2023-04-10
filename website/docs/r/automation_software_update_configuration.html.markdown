@@ -60,7 +60,7 @@ resource "azurerm_automation_software_update_configuration" "example" {
     included_packages       = ["vim"]
     reboot                  = "IfRequired"
   }
-  
+
   pre_task {
     source = azurerm_automation_runbook.example.name
     parameters = {
