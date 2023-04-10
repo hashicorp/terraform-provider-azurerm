@@ -119,6 +119,30 @@ func TestAccSubnet_disappears(t *testing.T) {
 		}),
 	})
 }
+func TestAccSubnet_disappearsWithVNetUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disappearsWithVNetUpdate(data),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 func TestAccSubnet_delegation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
@@ -677,6 +701,36 @@ resource "azurerm_subnet" "test2" {
   address_prefixes     = ["10.0.3.0/24"]
 }
 `, r.template(data))
+}
+
+func (r SubnetResource) disappearsWithVNetUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tags = {
+    env = "Test"
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "internal2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.3.0/24"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r SubnetResource) delegation(data acceptance.TestData) string {
