@@ -31,6 +31,24 @@ func TestAccSubscriptionCostManagementScheduledAction_basic(t *testing.T) {
 	})
 }
 
+func TestAccSubscriptionCostManagementScheduledAction_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_scheduled_action", "test")
+	r := SubscriptionCostManagementScheduledAction{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_subscription_cost_management_scheduled_action"),
+		},
+	})
+}
+
 func (t SubscriptionCostManagementScheduledAction) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := scheduledactions.ParseScopedScheduledActionID(state.ID)
 	if err != nil {
@@ -75,4 +93,31 @@ resource "azurerm_subscription_cost_management_scheduled_action" "test" {
   end_date       = "%s"
 }
 `, data.RandomString, data.RandomString, start, end)
+}
+
+func (SubscriptionCostManagementScheduledAction) requiresImport(data acceptance.TestData) string {
+	template := SubscriptionCostManagementScheduledAction{}.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subscription_cost_management_scheduled_action" "import" {
+  name            = azurerm_subscription_cost_management_scheduled_action.test.name
+  subscription_id = azurerm_subscription_cost_management_scheduled_action.test.subscription_id
+
+  view_name = azurerm_subscription_cost_management_scheduled_action.test.view_name
+
+  display_name         = azurerm_subscription_cost_management_scheduled_action.test.display_name
+  message              = azurerm_subscription_cost_management_scheduled_action.test.message
+  email_subject        = azurerm_subscription_cost_management_scheduled_action.test.email_subject
+  email_addresses      = azurerm_subscription_cost_management_scheduled_action.test.email_addresses
+  email_address_sender = azurerm_subscription_cost_management_scheduled_action.test.email_address_sender
+
+  days_of_week   = azurerm_subscription_cost_management_scheduled_action.test.days_of_week
+  weeks_of_month = azurerm_subscription_cost_management_scheduled_action.test.weeks_of_month
+  frequency      = azurerm_subscription_cost_management_scheduled_action.test.frequency
+  start_date     = azurerm_subscription_cost_management_scheduled_action.test.start_date
+  end_date       = azurerm_subscription_cost_management_scheduled_action.test.end_date
+
+}
+`, template)
 }
