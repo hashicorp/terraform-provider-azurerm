@@ -1,3 +1,9 @@
+## 3.52.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_service_plan` - add support for new Premium V3 and Memory Optimised SKUs [GH-21371]
+
 ## 3.51.0 (April 06, 2023)
 
 BREAKING CHANGES:
