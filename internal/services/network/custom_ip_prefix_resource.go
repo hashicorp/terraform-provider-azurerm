@@ -293,17 +293,11 @@ func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 			}
 
 			if props := existing.CustomIPPrefixPropertiesFormat; props != nil {
-				if props.Cidr != nil {
-					model.CIDR = *props.Cidr
-				}
+				model.CIDR = pointer.From(props.Cidr)
 
-				if props.NoInternetAdvertise != nil {
-					model.InternetAdvertisingDisabled = *props.NoInternetAdvertise
-				}
+				model.InternetAdvertisingDisabled = pointer.From(props.NoInternetAdvertise)
 
-				if props.SignedMessage != nil {
-					model.WANValidationSignedMessage = *props.SignedMessage
-				}
+				model.WANValidationSignedMessage = *props.SignedMessage
 
 				if props.AuthorizationMessage != nil {
 					authMessage := strings.Split(*props.AuthorizationMessage, "|")
