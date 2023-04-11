@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -1014,6 +1015,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"node_os_channel_upgrade": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(managedclusters.NodeOSUpgradeChannelNodeImage),
+					string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
+					string(managedclusters.NodeOSUpgradeChannelUnmanaged),
+				}, false),
+			},
+
 			"node_resource_group": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1426,6 +1437,24 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	autoUpgradeProfile := &managedclusters.ManagedClusterAutoUpgradeProfile{}
+	if v := d.Get("automatic_channel_upgrade").(string); v != "" {
+		autoUpgradeProfile.UpgradeChannel = utils.ToPtr(managedclusters.UpgradeChannel(v))
+	} else {
+		autoUpgradeProfile.UpgradeChannel = utils.ToPtr(managedclusters.UpgradeChannelNone)
+	}
+
+	if v := d.Get("node_os_channel_upgrade").(string); v != "" {
+		autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(v))
+	} else {
+		// Code="BadRequest" Message="Can't change Node OS Upgrade Channel to None, when Auto Upgrade Channel is set to 'node-image'."
+		if *autoUpgradeProfile.UpgradeChannel == managedclusters.UpgradeChannelNodeNegativeimage {
+			autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(managedclusters.NodeOSUpgradeChannelNodeImage))
+		} else {
+			autoUpgradeProfile.NodeOSUpgradeChannel = utils.ToPtr(managedclusters.NodeOSUpgradeChannelNone)
+		}
+	}
+
 	parameters := managedclusters.ManagedCluster{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location,
@@ -1454,18 +1483,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			SecurityProfile:           securityProfile,
 			StorageProfile:            storageProfile,
 			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
+			AutoUpgradeProfile:        autoUpgradeProfile,
 		},
 		Tags: tags.Expand(t),
-	}
-
-	if v := d.Get("automatic_channel_upgrade").(string); v != "" {
-		parameters.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{
-			UpgradeChannel: utils.ToPtr(managedclusters.UpgradeChannel(v)),
-		}
-	} else {
-		parameters.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{
-			UpgradeChannel: utils.ToPtr(managedclusters.UpgradeChannelNone),
-		}
 	}
 
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
@@ -1884,6 +1904,19 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AutoUpgradeProfile.UpgradeChannel = &channel
 	}
 
+	if d.HasChange("node_os_channel_upgrade") {
+		updateCluster = true
+		if existing.Model.Properties.AutoUpgradeProfile == nil {
+			existing.Model.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
+		}
+
+		channel := managedclusters.NodeOSUpgradeChannelNone
+		if v := d.Get("node_os_channel_upgrade").(string); v != "" {
+			channel = managedclusters.NodeOSUpgradeChannel(v)
+		}
+		existing.Model.Properties.AutoUpgradeProfile.NodeOSUpgradeChannel = &channel
+	}
+
 	if d.HasChange("http_proxy_config") {
 		updateCluster = true
 		httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
@@ -2191,6 +2224,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				upgradeChannel = string(*profile.UpgradeChannel)
 			}
 			d.Set("automatic_channel_upgrade", upgradeChannel)
+
+			nodeOSUpgradeChannel := ""
+			if profile := props.AutoUpgradeProfile; profile != nil && profile.NodeOSUpgradeChannel != nil && *profile.NodeOSUpgradeChannel != managedclusters.NodeOSUpgradeChannelNone {
+				nodeOSUpgradeChannel = string(*profile.NodeOSUpgradeChannel)
+			}
+			d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
 
 			enablePrivateCluster := false
 			enablePrivateClusterPublicFQDN := false
