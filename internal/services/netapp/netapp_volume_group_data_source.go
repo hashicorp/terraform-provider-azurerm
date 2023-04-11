@@ -186,7 +186,7 @@ func (r NetAppVolumeGroupDataSource) Attributes() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"tags": commonschema.Tags(),
+					"tags": commonschema.TagsDataSource(),
 
 					"snapshot_directory_visible": {
 						Type:     pluginsdk.TypeBool,
