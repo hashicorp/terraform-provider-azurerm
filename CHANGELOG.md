@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* `recoveryServices` - refactoring to use `hashicorp/go-azure-sdk` [GH-21344]
 * `azurerm_service_plan` - add support for new Premium V3 and Memory Optimised SKUs [GH-21371]
 
 ## 3.51.0 (April 06, 2023)
