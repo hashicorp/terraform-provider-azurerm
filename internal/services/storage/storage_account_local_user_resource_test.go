@@ -89,6 +89,13 @@ func TestAccLocalUser_passwordAndSSHKey(t *testing.T) {
 			),
 		},
 		data.ImportStep("ssh_authorized_key"),
+		{
+			Config: r.passwordOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
 	})
 }
 
