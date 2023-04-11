@@ -553,8 +553,8 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     recommendation_category = "OperationalExcellence"
     recommendation_impact   = "High"
     caller                  = "test email address"
-    level                   = "Critical"
-    status                  = "Succeeded"
+    levels                  = ["Critical", "Error"]
+    statuses                = ["Failed", "Succeeded"]
     sub_status              = "Succeeded"
   }
 

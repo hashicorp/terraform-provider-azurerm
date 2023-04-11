@@ -91,7 +91,15 @@ A `criteria` block supports the following:
 * `resource_id` - (Optional) The specific resource monitored by the activity log alert. It should be within one of the `scopes`.
 * `caller` - (Optional) The email address or Azure Active Directory identifier of the user who performed the operation.
 * `level` - (Optional) The severity level of the event. Possible values are `Verbose`, `Informational`, `Warning`, `Error`, and `Critical`.
+* `levels` - (Optional) A list of severity level of the event. Possible values are `Verbose`, `Informational`, `Warning`, `Error`, and `Critical`.
+
+~> **NOTE:** `level` and `levels` are mutually exclusive.
+
 * `status` - (Optional) The status of the event. For example, `Started`, `Failed`, or `Succeeded`.
+* `statuses` - (Optional) A list of status of the event. For example, `Started`, `Failed`, or `Succeeded`.
+
+~> **NOTE:** `status` and `statuses` are mutually exclusive.
+
 * `sub_status` - (Optional) The sub status of the event.
 * `recommendation_type` - (Optional) The recommendation type of the event. It is only allowed when `category` is `Recommendation`.
 * `recommendation_category` - (Optional) The recommendation category of the event. Possible values are `Cost`, `Reliability`, `OperationalExcellence` and `Performance`. It is only allowed when `category` is `Recommendation`.

@@ -85,12 +85,14 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 							}, false),
 						},
 						"operation_name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"caller": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"level": {
 							Type:     pluginsdk.TypeString,
@@ -102,18 +104,37 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 								"Error",
 								"Critical",
 							}, false),
+							ConflictsWith: []string{"criteria.0.levels"},
+						},
+						"levels": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"Verbose",
+									"Informational",
+									"Warning",
+									"Error",
+									"Critical",
+								}, false),
+							},
+							ConflictsWith: []string{"criteria.0.level"},
 						},
 						"resource_provider": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"resource_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"resource_group": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"resource_id": {
 							Type:         pluginsdk.TypeString,
@@ -121,12 +142,24 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"status": {
-							Type:     pluginsdk.TypeString,
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ValidateFunc:  validation.StringIsNotEmpty,
+							ConflictsWith: []string{"criteria.0.statuses"},
+						},
+						"statuses": {
+							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							ConflictsWith: []string{"criteria.0.status"},
 						},
 						"sub_status": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"recommendation_category": {
 							Type:     pluginsdk.TypeString,
@@ -156,6 +189,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						"recommendation_type": {
 							Type:          pluginsdk.TypeString,
 							Optional:      true,
+							ValidateFunc:  validation.StringIsNotEmpty,
 							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact"},
 						},
 						// lintignore:XS003
@@ -450,6 +484,19 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 			Equals: utils.String(level),
 		})
 	}
+	if levels := v["levels"].([]interface{}); len(levels) > 0 {
+		ruleLeafCondition := make([]activitylogalertsapis.AlertRuleLeafCondition, 0)
+		for _, rawValue := range levels {
+			level := rawValue.(string)
+			ruleLeafCondition = append(ruleLeafCondition, activitylogalertsapis.AlertRuleLeafCondition{
+				Field:  utils.String("level"),
+				Equals: utils.String(level),
+			})
+		}
+		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
+			AnyOf: &ruleLeafCondition,
+		})
+	}
 	if resourceProvider := v["resource_provider"].(string); resourceProvider != "" {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("resourceProvider"),
@@ -478,6 +525,19 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("status"),
 			Equals: utils.String(status),
+		})
+	}
+	if statuses := v["statuses"].([]interface{}); len(statuses) > 0 {
+		ruleLeafCondition := make([]activitylogalertsapis.AlertRuleLeafCondition, 0)
+		for _, rawValue := range statuses {
+			status := rawValue.(string)
+			ruleLeafCondition = append(ruleLeafCondition, activitylogalertsapis.AlertRuleLeafCondition{
+				Field:  utils.String("status"),
+				Equals: utils.String(status),
+			})
+		}
+		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
+			AnyOf: &ruleLeafCondition,
 		})
 	}
 	if subStatus := v["sub_status"].(string); subStatus != "" {
@@ -667,6 +727,19 @@ func flattenMonitorActivityLogAlertCriteria(input activitylogalertsapis.AlertRul
 			case "caller", "category", "level", "status":
 				result[*condition.Field] = *condition.Equals
 			}
+		} else if condition.AnyOf != nil && len(*condition.AnyOf) > 0 {
+			values := make([]string, 0)
+			for _, leafCondition := range *condition.AnyOf {
+				if leafCondition.Field != nil && leafCondition.Equals != nil {
+					values = append(values, *leafCondition.Equals)
+				}
+				switch strings.ToLower(*leafCondition.Field) {
+				case "level":
+					result["levels"] = values
+				case "status":
+					result["statuses"] = values
+				}
+			}
 		}
 	}
 
@@ -683,9 +756,10 @@ func flattenMonitorActivityLogAlertCriteria(input activitylogalertsapis.AlertRul
 
 func flattenMonitorActivityLogAlertResourceHealth(input activitylogalertsapis.AlertRuleAllOfCondition, result map[string]interface{}) {
 	rhResult := make(map[string]interface{})
+
 	for _, condition := range input.AllOf {
-		if condition.Field == nil && len(*condition.AnyOf) > 0 {
-			var values []string
+		if condition.Field == nil && condition.AnyOf != nil && len(*condition.AnyOf) > 0 {
+			values := []string{}
 			for _, cond := range *condition.AnyOf {
 				if cond.Field != nil && cond.Equals != nil {
 					values = append(values, *cond.Equals)
@@ -716,7 +790,7 @@ func flattenMonitorActivityLogAlertServiceHealth(input activitylogalertsapis.Ale
 				shResult["services"] = *condition.ContainsAny
 			}
 		}
-		if condition.Field == nil && len(*condition.AnyOf) > 0 {
+		if condition.Field == nil && condition.AnyOf != nil && len(*condition.AnyOf) > 0 {
 			events := []string{}
 			for _, evCond := range *condition.AnyOf {
 				if evCond.Field != nil && evCond.Equals != nil {
