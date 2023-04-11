@@ -115,6 +115,14 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"enable_node_public_ip": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				Default:      true,
+				ForceNew:     true,
+				RequiredWith: []string{"subnet_resource_id"},
+			},
+
 			"ssh": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -191,6 +199,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Subnet:                          subnet,
 			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
 			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
+			EnableNodePublicIP:              utils.Bool(d.Get("enable_node_public_ip").(bool)),
 		},
 		ComputeLocation:  utils.String(d.Get("location").(string)),
 		Description:      utils.String(d.Get("description").(string)),

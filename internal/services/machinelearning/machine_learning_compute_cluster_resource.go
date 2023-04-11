@@ -99,6 +99,14 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"enable_node_public_ip": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				Default:      true,
+				ForceNew:     true,
+				RequiredWith: []string{"subnet_resource_id"},
+			},
+
 			"ssh": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -180,6 +188,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		VMPriority:             &vmPriority,
 		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
 		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]interface{})),
+		EnableNodePublicIP:     utils.Bool(!d.Get("local_auth_enabled").(bool)),
 	}
 
 	computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = utils.ToPtr(machinelearningcomputes.RemoteLoginPortPublicAccessDisabled)
