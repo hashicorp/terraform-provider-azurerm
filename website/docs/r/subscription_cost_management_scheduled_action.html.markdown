@@ -25,6 +25,7 @@ resource "azurerm_subscription_cost_management_scheduled_action" "example" {
   email_addresses      = ["example@example.com"]
   message              = "Hi all, take a look at last 6 months spending!"
 
+  frequency  = "Daily"
   start_date = "2023-01-02T00:00:00Z"
   end_date   = "2023-02-02T00:00:00Z"
 }
@@ -44,6 +45,8 @@ The following arguments are supported:
 
 * `end_date` - (Required) The end date and time of the Scheduled Action (UTC).
 
+* `frequency` - (Required) Frequency of the schedule. Possible values are `Daily`, `Monthly` and `Weekly`. Value `Monthly` requires either `weeks_of_month` and `days_of_week` or `day_of_month` to be specified. Value `Weekly` requires `days_of_week` to be specified.
+
 * `name` - (Required) The name which should be used for this Azure Cost Management Scheduled Action for a Subscription. Changing this forces a new Azure Cost Management Scheduled Action for a Subscription to be created.
 
 * `start_date` - (Required) The start date and time of the Scheduled Action (UTC).
@@ -54,14 +57,16 @@ The following arguments are supported:
 
 ---
 
-* `days_of_week` - (Optional) Specifies a list of day names on which cost analysis data will be emailed. This property is applicable when frequency is Weekly or Monthly.
+* `day_of_month` - (Optional) UTC day on which cost analysis data will be emailed. Must be between `1` and `31`. This property is applicable when `frequency` is `Monthly`.
 
-* `frequency` - (Optional) Frequency of the schedule. Possible values are `Daily`, `Monthly` and `Weekly`.
+* `days_of_week` - (Optional) Specifies a list of day names on which cost analysis data will be emailed. This property is applicable when frequency is `Weekly` or `Monthly`.
+
+* `hour_of_day` - (Optional) UTC time at which cost analysis data will be emailed. Must be between `0` and `23`.
 
 * `message` - (Optional) Message to be added in the email. Length is limited to 250 characters.
 .
 
-* `weeks_of_month` - (Optional) Specifies a list of weeks in which cost analysis data will be emailed. This property is applicable when frequency is Monthly and used in combination with daysOfWeek.
+* `weeks_of_month` - (Optional) Specifies a list of weeks in which cost analysis data will be emailed. This property is applicable when `frequency` is `Monthly` and used in combination with `days_of_week`.
 
 ## Attributes Reference
 

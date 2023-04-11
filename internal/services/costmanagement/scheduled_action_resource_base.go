@@ -61,7 +61,7 @@ func (br costManagementScheduledActionBaseResource) arguments(fields map[string]
 
 		"frequency": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ValidateFunc: validation.StringInSlice(scheduledactions.PossibleValuesForScheduleFrequency(), false),
 		},
 
@@ -83,6 +83,18 @@ func (br costManagementScheduledActionBaseResource) arguments(fields map[string]
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(scheduledactions.PossibleValuesForWeeksOfMonth(), false),
 			},
+		},
+
+		"hour_of_day": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(0, 23),
+		},
+
+		"day_of_month": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(1, 31),
 		},
 
 		"start_date": {
@@ -151,6 +163,8 @@ func (br costManagementScheduledActionBaseResource) createFunc(resourceName, sco
 				Frequency:    scheduledactions.ScheduleFrequency(metadata.ResourceData.Get("frequency").(string)),
 				WeeksOfMonth: &weeksOfMonth,
 				DaysOfWeek:   &daysOfWeek,
+				HourOfDay:    utils.Int64(int64(metadata.ResourceData.Get("hour_of_day").(int))),
+				DayOfMonth:   utils.Int64(int64(metadata.ResourceData.Get("day_of_month").(int))),
 				StartDate:    metadata.ResourceData.Get("start_date").(string),
 				EndDate:      metadata.ResourceData.Get("end_date").(string),
 			}
@@ -226,6 +240,8 @@ func (br costManagementScheduledActionBaseResource) readFunc(scopeFieldName stri
 					metadata.ResourceData.Set("frequency", props.Schedule.Frequency)
 					metadata.ResourceData.Set("days_of_week", props.Schedule.DaysOfWeek)
 					metadata.ResourceData.Set("weeks_of_month", props.Schedule.WeeksOfMonth)
+					metadata.ResourceData.Set("hour_of_day", props.Schedule.HourOfDay)
+					metadata.ResourceData.Set("day_of_month", props.Schedule.DayOfMonth)
 					metadata.ResourceData.Set("start_date", props.Schedule.StartDate)
 					metadata.ResourceData.Set("end_date", props.Schedule.EndDate)
 				}
@@ -336,6 +352,14 @@ func (br costManagementScheduledActionBaseResource) updateFunc() sdk.ResourceFun
 
 			if metadata.ResourceData.HasChange("end_date") {
 				model.Properties.Schedule.EndDate = metadata.ResourceData.Get("end_date").(string)
+			}
+
+			if metadata.ResourceData.HasChange("hour_of_day") {
+				model.Properties.Schedule.HourOfDay = utils.Int64(int64(metadata.ResourceData.Get("hour_of_day").(int)))
+			}
+
+			if metadata.ResourceData.HasChange("day_of_month") {
+				model.Properties.Schedule.DayOfMonth = utils.Int64(int64(metadata.ResourceData.Get("day_of_month").(int)))
 			}
 
 			opts := scheduledactions.CreateOrUpdateByScopeOperationOptions{}
