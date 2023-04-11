@@ -180,8 +180,9 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"throughput_in_mibps": {
-						Type:     pluginsdk.TypeFloat,
-						Required: true,
+						Type:         pluginsdk.TypeFloat,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 
 					"export_policy_rule": {
@@ -298,14 +299,7 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r NetAppVolumeGroupResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		/*
-			TODO - This section is for `Computed: true` only items, i.e. useful values that are returned by the
-			datasource that can be used as outputs or passed programmatically to other resources or data sources.
-
-			NOTE: Not applicable for this resource type
-		*/
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
