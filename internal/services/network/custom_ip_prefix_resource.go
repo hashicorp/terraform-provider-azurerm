@@ -287,7 +287,7 @@ func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 			model := CustomIpPrefixModel{
 				Name:              id.CustomIpPrefixeName,
 				ResourceGroupName: id.ResourceGroup,
-				Location:          location.StateFunc(existing.Location),
+				Location:          location.NormalizeNilable(existing.Location),
 				Tags:              tags.ToTypedObject(existing.Tags),
 			}
 
