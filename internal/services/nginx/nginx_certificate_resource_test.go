@@ -163,6 +163,15 @@ resource "azurerm_key_vault" "test" {
       "Get",
     ]
 
+    certificate_permissions = [
+      "Get",
+      "Create",
+      "Delete",
+      "List",
+      "Purge",
+      "Recover",
+    ]
+
     secret_permissions = [
       "Get",
       "Delete",
