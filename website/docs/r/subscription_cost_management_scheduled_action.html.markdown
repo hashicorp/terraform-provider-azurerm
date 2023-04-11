@@ -1,0 +1,87 @@
+---
+subcategory: "Cost Management"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_subscription_cost_management_scheduled_action"
+description: |-
+  Manages an Azure Cost Management Scheduled Action for a Subscription.
+---
+
+# azurerm_subscription_cost_management_scheduled_action
+
+Manages an Azure Cost Management Scheduled Action for a Subscription.
+
+## Example Usage
+
+```hcl
+resource "azurerm_subscription_cost_management_scheduled_action" "example" {
+  name         = "examplescheduledaction"
+  display_name = "Report Last 6 Months"
+
+  subscription_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
+  view_name       = "OverviewLast6Months"
+
+  email_address_sender = "platformteam@test.com"
+  email_subject        = "Cost Management Report"
+  email_addresses      = ["example@example.com"]
+  message              = "Hi all, take a look at last 6 months spending!"
+
+  start_date = "2023-01-02T00:00:00Z"
+  end_date   = "2023-02-02T00:00:00Z"
+}
+```
+
+## Arguments Reference
+
+The following arguments are supported:
+
+* `display_name` - (Required) User visible input name of the Cost Management Scheduled Action.
+
+* `email_address_sender` - (Required) Email address of the point of contact that should get the unsubscribe requests of Scheduled Action notification emails.
+
+* `email_addresses` - (Required) Specifies a list of email addresses to receive the Scheduled Action.
+
+* `email_subject` - (Required) Subject of the email. Length is limited to 70 characters.
+
+* `end_date` - (Required) The end date and time of the Scheduled Action (UTC).
+
+* `name` - (Required) The name which should be used for this Azure Cost Management Scheduled Action for a Subscription. Changing this forces a new Azure Cost Management Scheduled Action for a Subscription to be created.
+
+* `start_date` - (Required) The start date and time of the Scheduled Action (UTC).
+
+* `subscription_id` - (Required) The ID of the Subscription this Scheduled Action is scoped to. Changing this forces a new Azure Cost Management Scheduled Action for a Subscription to be created.
+
+* `view_name` - (Required) The name which is used for the Cost Management View which is used for the Scheduled Action.
+
+---
+
+* `days_of_week` - (Optional) Specifies a list of day names on which cost analysis data will be emailed. This property is applicable when frequency is Weekly or Monthly.
+
+* `frequency` - (Optional) Frequency of the schedule. Possible values are `Daily`, `Monthly` and `Weekly`.
+
+* `message` - (Optional) Message to be added in the email. Length is limited to 250 characters.
+.
+
+* `weeks_of_month` - (Optional) Specifies a list of weeks in which cost analysis data will be emailed. This property is applicable when frequency is Monthly and used in combination with daysOfWeek.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported: 
+
+* `id` - The ID of the Azure Cost Management Scheduled Action for a Subscription.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Azure Cost Management Scheduled Action for a Subscription.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Azure Cost Management Scheduled Action for a Subscription.
+* `update` - (Defaults to 30 minutes) Used when updating the Azure Cost Management Scheduled Action for a Subscription.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Azure Cost Management Scheduled Action for a Subscription.
+
+## Import
+
+Azure Cost Management Scheduled Action for a Subscriptions can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_subscription_cost_management_scheduled_action.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.CostManagement/scheduledActions/scheduledaction1
+```
