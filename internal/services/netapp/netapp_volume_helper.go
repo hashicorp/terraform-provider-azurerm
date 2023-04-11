@@ -221,7 +221,6 @@ func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []DataProtectionS
 }
 
 func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegroups.VolumeGroupId) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
-
 	if len(input) == 0 || input == nil {
 		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupVolume slice")
 	}
