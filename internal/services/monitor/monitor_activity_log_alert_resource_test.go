@@ -138,6 +138,21 @@ func TestAccMonitorActivityLogAlert_criteria(t *testing.T) {
 	})
 }
 
+func TestAccMonitorActivityLogAlert_listCriteria(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.listCriteria(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 	r := MonitorActivityLogAlertResource{}
@@ -553,8 +568,8 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     recommendation_category = "OperationalExcellence"
     recommendation_impact   = "High"
     caller                  = "test email address"
-    levels                  = ["Critical", "Error"]
-    statuses                = ["Failed", "Succeeded"]
+    level                   = "Critical"
+    status                  = "Succeeded"
     sub_status              = "Succeeded"
   }
 
@@ -576,6 +591,68 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+}
+
+func (MonitorActivityLogAlertResource) listCriteria(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-%[1]d"
+  location = "%[2]s"
+}
+
+data "azurerm_subscription" "current" {
+}
+
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctestsec%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_activity_log_alert" "test" {
+  name                = "acctestActivityLogAlert-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  enabled             = true
+  description         = "This is just a test acceptance."
+
+  scopes = [
+    data.azurerm_subscription.current.id,
+  ]
+
+  criteria {
+    operation_name     = "Microsoft.Storage/storageAccounts/write"
+    category           = "Administrative"
+    resource_providers = ["Microsoft.Storage", "Microsoft.OperationInsights"]
+    resource_types     = ["Microsoft.Storage/storageAccounts", "Microsoft.OperationInsights/workspaces"]
+    resource_groups    = [azurerm_resource_group.test.name, azurerm_resource_group.test2.name]
+    resource_ids       = [azurerm_storage_account.test.id, azurerm_storage_account.test2.id]
+    caller             = "test email address"
+    levels             = ["Critical", "Informational"]
+    statuses           = ["Succeeded", "Failed"]
+    sub_statuses       = ["Succeeded"]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (MonitorActivityLogAlertResource) criteria(data acceptance.TestData) string {
