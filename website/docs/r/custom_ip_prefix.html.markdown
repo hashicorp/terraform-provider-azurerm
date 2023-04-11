@@ -52,7 +52,11 @@ The following arguments are supported:
 
 * `commissioning_enabled` - (Optional) Specifies that the custom IP prefix should be commissioned after provisioning in Azure. Defaults to `false`.
 
+!> **Warning** Changing the value of `commissioning_enabled` from `true` to `false` causes the IP prefix to stop being advertised by Azure and is functionally equivalent to deleting it when used in a production setting.
+
 * `internet_advertising_disabled` - (Optional) Specifies that the custom IP prefix should not be publicly advertised on the Internet when commissioned (regional commissioning feature). Defaults to `false`.
+
+!> **Warning** Changing the value of `internet_advertising_disabled` from `true` to `false` causes the IP prefix to stop being advertised by Azure and is functionally equivalent to deleting it when used in a production setting.
 
 * `tags` - (Optional) A mapping of tags to assign to the Custom IP Prefix.
 
