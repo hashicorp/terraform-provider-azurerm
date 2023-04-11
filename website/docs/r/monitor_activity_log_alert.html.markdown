@@ -83,8 +83,8 @@ An `action` block supports the following:
 
 A `criteria` block supports the following:
 
-* `caller` - (Optional) The email address or Azure Active Directory identifier of the user who performed the operation.
 * `category` - (Required) The category of the operation. Possible values are `Administrative`, `Autoscale`, `Policy`, `Recommendation`, `ResourceHealth`, `Security` and `ServiceHealth`.
+* `caller` - (Optional) The email address or Azure Active Directory identifier of the user who performed the operation.
 * `operation_name` - (Optional) The Resource Manager Role-Based Access Control operation name. Supported operation should be of the form: `<resourceProvider>/<resourceType>/<operation>`.
 * `resource_provider` - (Optional) The name of the resource provider monitored by the activity log alert.
 * `resource_providers` - (Optional) A list of names of resource providers monitored by the activity log alert.
