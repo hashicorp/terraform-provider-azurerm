@@ -187,7 +187,7 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []ExportPolicyRule) *vo
 }
 
 func expandNetAppVolumeGroupDataProtectionReplication(input []DataProtectionReplication) *volumegroups.VolumePropertiesDataProtection {
-	if len(input) == 0 || input == nil {
+	if len(input) == 0 {
 		return &volumegroups.VolumePropertiesDataProtection{}
 	}
 
