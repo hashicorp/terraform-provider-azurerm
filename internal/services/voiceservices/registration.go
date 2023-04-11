@@ -31,5 +31,6 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		CommunicationsGatewayResource{},
+		CommunicationsGatewayTestLineResource{},
 	}
 }

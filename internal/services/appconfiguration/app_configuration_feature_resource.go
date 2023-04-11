@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -37,6 +38,7 @@ type FeatureResourceModel struct {
 	ConfigurationStoreId string                       `tfschema:"configuration_store_id"`
 	Description          string                       `tfschema:"description"`
 	Enabled              bool                         `tfschema:"enabled"`
+	Key                  string                       `tfschema:"key"`
 	Name                 string                       `tfschema:"name"`
 	Label                string                       `tfschema:"label"`
 	Locked               bool                         `tfschema:"locked"`
@@ -61,6 +63,13 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+		},
+		"key": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AppConfigurationFeatureKey,
 		},
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -184,7 +193,12 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, model.Name)
+			// users can customize the key, but if they don't we use the name
+			rawKey := model.Name
+			if model.Key != "" {
+				rawKey = model.Key
+			}
+			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, rawKey)
 
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
 			// allow up to 15 min for role permission to be done propagated
@@ -291,6 +305,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				ConfigurationStoreId: configurationStoreId.ID(),
 				Description:          fv.Description,
 				Enabled:              fv.Enabled,
+				Key:                  strings.TrimPrefix(utils.NormalizeNilableString(kv.Key), fmt.Sprintf("%s/", FeatureKeyPrefix)),
 				Name:                 fv.ID,
 				Label:                utils.NormalizeNilableString(kv.Label),
 				Tags:                 tags.Flatten(kv.Tags),
@@ -406,7 +421,12 @@ func (k FeatureResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 }
 
 func createOrUpdateFeature(ctx context.Context, client *appconfiguration.BaseClient, model FeatureResourceModel) error {
-	featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, model.Name)
+	rawKey := model.Name
+	if model.Key != "" {
+		rawKey = model.Key
+	}
+	featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, rawKey)
+
 	entity := appconfiguration.KeyValue{
 		Key:         utils.String(featureKey),
 		Label:       utils.String(model.Label),

@@ -252,24 +252,16 @@ type ReplicationRole string
 const (
 	ReplicationRoleAsyncReplica    ReplicationRole = "AsyncReplica"
 	ReplicationRoleGeoAsyncReplica ReplicationRole = "GeoAsyncReplica"
-	ReplicationRoleGeoSyncReplica  ReplicationRole = "GeoSyncReplica"
 	ReplicationRoleNone            ReplicationRole = "None"
 	ReplicationRolePrimary         ReplicationRole = "Primary"
-	ReplicationRoleSecondary       ReplicationRole = "Secondary"
-	ReplicationRoleSyncReplica     ReplicationRole = "SyncReplica"
-	ReplicationRoleWalReplica      ReplicationRole = "WalReplica"
 )
 
 func PossibleValuesForReplicationRole() []string {
 	return []string{
 		string(ReplicationRoleAsyncReplica),
 		string(ReplicationRoleGeoAsyncReplica),
-		string(ReplicationRoleGeoSyncReplica),
 		string(ReplicationRoleNone),
 		string(ReplicationRolePrimary),
-		string(ReplicationRoleSecondary),
-		string(ReplicationRoleSyncReplica),
-		string(ReplicationRoleWalReplica),
 	}
 }
 
@@ -277,12 +269,8 @@ func parseReplicationRole(input string) (*ReplicationRole, error) {
 	vals := map[string]ReplicationRole{
 		"asyncreplica":    ReplicationRoleAsyncReplica,
 		"geoasyncreplica": ReplicationRoleGeoAsyncReplica,
-		"geosyncreplica":  ReplicationRoleGeoSyncReplica,
 		"none":            ReplicationRoleNone,
 		"primary":         ReplicationRolePrimary,
-		"secondary":       ReplicationRoleSecondary,
-		"syncreplica":     ReplicationRoleSyncReplica,
-		"walreplica":      ReplicationRoleWalReplica,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

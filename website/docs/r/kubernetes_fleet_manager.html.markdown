@@ -1,5 +1,5 @@
 ---
-subcategory: "Containers"
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_fleet_manager"
 description: |-

@@ -268,6 +268,18 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("for %s to be able to be queried: %+v", id, err)
 	}
 
+	//  authorization_key can only be set after Circuit is created
+	if erc.AuthorizationKey != nil && *erc.AuthorizationKey != "" {
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, erc)
+		if err != nil {
+			return fmt.Errorf(" Updating %s: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf(" Updating %s: %+v", id, err)
+		}
+	}
+
 	d.SetId(id.ID())
 
 	return resourceExpressRouteCircuitRead(d, meta)

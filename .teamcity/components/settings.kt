@@ -138,6 +138,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // SQL has quota available in certain locations
         "sql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
+        "storagemover" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus2", "westus3", false), useDevTestSubscription = true),
+
         // StreamAnalytics has quota available in certain locations
         "streamanalytics" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
@@ -147,8 +149,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Currently, we have insufficient quota to actually run these, but there are a few nodes in West Europe, so we'll pin it there for now
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false), useDevTestSubscription = true),
 
-        // In general, Azure Voice Service is available in several different regions, but each subscription will only be allowlisted for specific regions. The following regions are specified since those regions have been whitelisted by service team for testing purpose.
-        "voiceservices" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westcentralus", "centraluseuap", "eastus2euap", false), useDevTestSubscription = true),
+        // In general, Azure Voice Service is available in several different regions, but each subscription will only be allowlisted for specific regions(`westcentralus`, `westcentralus`, `westcentralus`).
+        // Only the regions (`westcentralus`) is specified since the devtest subscription does not support creating resource group for the other two regions.
+        "voiceservices" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westcentralus", "westcentralus", "westcentralus", false), useDevTestSubscription = true),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
         "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
