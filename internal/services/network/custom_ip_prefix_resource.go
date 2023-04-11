@@ -140,7 +140,11 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			r.client = metadata.Client.Network.CustomIPPrefixesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			timeout, _ := ctx.Deadline()
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: contexrt has no deadline")
+			}
 
 			var model CustomIpPrefixModel
 			if err := metadata.Decode(&model); err != nil {
@@ -197,8 +201,8 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				Pending:    []string{string(network.ProvisioningStateUpdating)},
 				Target:     []string{string(network.ProvisioningStateSucceeded)},
 				Refresh:    r.provisioningStateRefreshFunc(ctx, id),
-				MinTimeout: 1 * time.Minute,
-				Timeout:    time.Until(timeout),
+				MinTimeout: 2 * time.Minute,
+				Timeout:    time.Until(deadline),
 			}
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
@@ -506,11 +510,11 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 	timeout, _ := ctx.Deadline()
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    pendingStates,
-		Target:     targetStates,
-		Refresh:    r.commissionedStateRefreshFunc(ctx, id),
-		MinTimeout: 1 * time.Minute,
-		Timeout:    time.Until(timeout),
+		Pending:      pendingStates,
+		Target:       targetStates,
+		Refresh:      r.commissionedStateRefreshFunc(ctx, id),
+		PollInterval: 5 * time.Minute,
+		Timeout:      time.Until(timeout),
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
