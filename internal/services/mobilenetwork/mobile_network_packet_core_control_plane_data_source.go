@@ -128,7 +128,7 @@ func (r PacketCoreControlPlaneDataSource) Attributes() map[string]*pluginsdk.Sch
 
 		"identity": commonschema.UserAssignedIdentityComputed(),
 
-		"vendor_interop_json": {
+		"interoperability_settings_json": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},

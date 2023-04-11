@@ -342,7 +342,7 @@ resource "azurerm_mobile_network_packet_core_control_plane" "test" {
     edge_device_id = azurerm_databox_edge_device.test.id
   }
 
-  vendor_interop_json = jsonencode({
+  interoperability_settings_json = jsonencode({
     "mtu" = 1440
   })
 
