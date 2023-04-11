@@ -978,9 +978,14 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirector
 			}
 			result.Validation.DefaultAuthorizationPolicy = &web.DefaultAuthorizationPolicy{}
 			if len(aad.AllowedGroups) > 0 {
-				result.Validation.DefaultAuthorizationPolicy.AllowedPrincipals.Groups = pointer.To(aad.AllowedGroups)
+				result.Validation.DefaultAuthorizationPolicy.AllowedPrincipals = &web.AllowedPrincipals{
+					Groups: pointer.To(aad.AllowedGroups),
+				}
 			}
 			if len(aad.AllowedIdentities) > 0 {
+				if result.Validation.DefaultAuthorizationPolicy.AllowedPrincipals == nil {
+					result.Validation.DefaultAuthorizationPolicy.AllowedPrincipals = &web.AllowedPrincipals{}
+				}
 				result.Validation.DefaultAuthorizationPolicy.AllowedPrincipals.Identities = pointer.To(aad.AllowedIdentities)
 			}
 		}
