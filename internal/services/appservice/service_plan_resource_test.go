@@ -421,7 +421,7 @@ resource "azurerm_service_plan" "test" {
     Foo         = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r ServicePlanResource) aseV2(data acceptance.TestData) string {
