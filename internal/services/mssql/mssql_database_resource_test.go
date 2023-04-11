@@ -138,6 +138,32 @@ func TestAccMsSqlDatabase_GP(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_GPtoServerless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gp(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.gpServerless(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_pause_delay_in_minutes").HasValue("70"),
+				check.That(data.ResourceName).Key("min_capacity").HasValue("0.75"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_S_Gen5_2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlDatabase_GP_Serverless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
