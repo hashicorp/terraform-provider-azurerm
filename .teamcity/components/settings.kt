@@ -153,6 +153,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
         "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
+        // Workloads has quota available in certain locations
+        "workloads" to testConfiguration(parallelism = 1, locationOverride = LocationConfiguration("eastus", "westeurope", "francecentral", false)),
+
         // moved to alt subsription
         "appconfiguration" to testConfiguration(useDevTestSubscription = true),
         "dns" to testConfiguration(useDevTestSubscription = true),

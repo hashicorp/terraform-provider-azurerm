@@ -514,14 +514,11 @@ func (r WorkloadsSAPVirtualInstanceResource) Read() sdk.ResourceFunc {
 				Location:          location.Normalize(model.Location),
 			}
 
-			identity, err := identity.FlattenUserAssignedMap(model.Identity)
+			identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
-
-			if err := metadata.ResourceData.Set("identity", identity); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
-			}
+			state.Identity = *identity
 
 			properties := &model.Properties
 			state.Environment = string(properties.Environment)
@@ -529,11 +526,11 @@ func (r WorkloadsSAPVirtualInstanceResource) Read() sdk.ResourceFunc {
 
 			if properties.Configuration != nil {
 				if v, ok := properties.Configuration.(sapvirtualinstances.DeploymentConfiguration); ok {
-					state.DeploymentConfiguration = flattenDeploymentConfiguration(&v)
+					state.DeploymentConfiguration = flattenDeploymentConfiguration(&v, metadata.ResourceData)
 				}
 
 				if v, ok := properties.Configuration.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
-					state.DeploymentWithOSConfiguration = flattenDeploymentWithOSConfiguration(&v)
+					state.DeploymentWithOSConfiguration = flattenDeploymentWithOSConfiguration(&v, metadata.ResourceData)
 				}
 
 				if v, ok := properties.Configuration.(sapvirtualinstances.DiscoveryConfiguration); ok {
@@ -686,7 +683,7 @@ func expandDeployerVmPackages(input []DeployerVmPackages) *sapvirtualinstances.D
 	return &result
 }
 
-func flattenDeploymentConfiguration(input *sapvirtualinstances.DeploymentConfiguration) []DeploymentConfiguration {
+func flattenDeploymentConfiguration(input *sapvirtualinstances.DeploymentConfiguration, d *pluginsdk.ResourceData) []DeploymentConfiguration {
 	if input == nil {
 		return nil
 	}
@@ -699,11 +696,11 @@ func flattenDeploymentConfiguration(input *sapvirtualinstances.DeploymentConfigu
 
 	if configuration := input.InfrastructureConfiguration; configuration != nil {
 		if v, ok := configuration.(sapvirtualinstances.SingleServerConfiguration); ok {
-			result.SingleServerConfiguration = flattenSingleServerConfiguration(v)
+			result.SingleServerConfiguration = flattenSingleServerConfiguration(v, d, "deployment_configuration")
 		}
 
 		if v, ok := configuration.(sapvirtualinstances.ThreeTierConfiguration); ok {
-			result.ThreeTierConfiguration = flattenThreeTierConfiguration(v)
+			result.ThreeTierConfiguration = flattenThreeTierConfiguration(v, d, "deployment_configuration")
 		}
 	}
 
@@ -712,7 +709,7 @@ func flattenDeploymentConfiguration(input *sapvirtualinstances.DeploymentConfigu
 	}
 }
 
-func flattenDeploymentWithOSConfiguration(input *sapvirtualinstances.DeploymentWithOSConfiguration) []DeploymentWithOSConfiguration {
+func flattenDeploymentWithOSConfiguration(input *sapvirtualinstances.DeploymentWithOSConfiguration, d *pluginsdk.ResourceData) []DeploymentWithOSConfiguration {
 	if input == nil {
 		return nil
 	}
@@ -724,11 +721,11 @@ func flattenDeploymentWithOSConfiguration(input *sapvirtualinstances.DeploymentW
 
 	if configuration := input.InfrastructureConfiguration; configuration != nil {
 		if v, ok := configuration.(sapvirtualinstances.SingleServerConfiguration); ok {
-			result.SingleServerConfiguration = flattenSingleServerConfiguration(v)
+			result.SingleServerConfiguration = flattenSingleServerConfiguration(v, d, "deployment_with_os_configuration")
 		}
 
 		if v, ok := configuration.(sapvirtualinstances.ThreeTierConfiguration); ok {
-			result.ThreeTierConfiguration = flattenThreeTierConfiguration(v)
+			result.ThreeTierConfiguration = flattenThreeTierConfiguration(v, d, "deployment_with_os_configuration")
 		}
 	}
 

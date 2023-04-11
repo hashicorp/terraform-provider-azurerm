@@ -30,7 +30,7 @@ func TestAccWorkloadsSAPVirtualInstance_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("deployment_configuration.0.single_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_key_pair.0.private_key"),
 	})
 }
 
@@ -60,7 +60,11 @@ func TestAccWorkloadsSAPVirtualInstance_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep(
+			"deployment_with_os_configuration.0.three_tier_configuration.0.application_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_key_pair.0.private_key",
+			"deployment_with_os_configuration.0.three_tier_configuration.0.central_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_key_pair.0.private_key",
+			"deployment_with_os_configuration.0.three_tier_configuration.0.database_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_key_pair.0.private_key",
+		),
 	})
 }
 
@@ -75,14 +79,14 @@ func TestAccWorkloadsSAPVirtualInstance_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("deployment_configuration.0.single_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_key_pair.0.private_key"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("deployment_configuration.0.single_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_key_pair.0.private_key"),
 	})
 }
 
