@@ -392,17 +392,21 @@ func (r WorkloadsSAPVirtualInstanceResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			deploymentConfiguration, err := expandDeploymentConfiguration(model.DeploymentConfiguration)
-			if err != nil {
-				return err
+			if v := model.DeploymentConfiguration; v != nil {
+				deploymentConfiguration, err := expandDeploymentConfiguration(v)
+				if err != nil {
+					return err
+				}
+				parameters.Properties.Configuration = deploymentConfiguration
 			}
-			parameters.Properties.Configuration = deploymentConfiguration
 
-			deploymentWithOSConfiguration, err := expandDeploymentWithOSConfiguration(model.DeploymentWithOSConfiguration)
-			if err != nil {
-				return err
+			if v := model.DeploymentWithOSConfiguration; v != nil {
+				deploymentWithOSConfiguration, err := expandDeploymentWithOSConfiguration(v)
+				if err != nil {
+					return err
+				}
+				parameters.Properties.Configuration = deploymentWithOSConfiguration
 			}
-			parameters.Properties.Configuration = deploymentWithOSConfiguration
 
 			if v := model.DiscoveryConfiguration; v != nil {
 				parameters.Properties.Configuration = expandDiscoveryConfiguration(v)
@@ -571,10 +575,6 @@ func (r WorkloadsSAPVirtualInstanceResource) Delete() sdk.ResourceFunc {
 }
 
 func expandDiscoveryConfiguration(input []DiscoveryConfiguration) *sapvirtualinstances.DiscoveryConfiguration {
-	if len(input) == 0 {
-		return nil
-	}
-
 	configuration := &input[0]
 
 	result := sapvirtualinstances.DiscoveryConfiguration{
@@ -607,10 +607,6 @@ func flattenDiscoveryConfiguration(input *sapvirtualinstances.DiscoveryConfigura
 }
 
 func expandDeploymentConfiguration(input []DeploymentConfiguration) (*sapvirtualinstances.DeploymentConfiguration, error) {
-	if len(input) == 0 {
-		return nil, nil
-	}
-
 	configuration := &input[0]
 
 	result := sapvirtualinstances.DeploymentConfiguration{}
@@ -619,24 +615,22 @@ func expandDeploymentConfiguration(input []DeploymentConfiguration) (*sapvirtual
 		result.AppLocation = utils.String(v)
 	}
 
-	singleServerConfiguration, err := expandSingleServerConfiguration(configuration.SingleServerConfiguration)
-	if err != nil {
-		return nil, err
+	if len(configuration.SingleServerConfiguration) != 0 {
+		singleServerConfiguration, err := expandSingleServerConfiguration(configuration.SingleServerConfiguration)
+		if err != nil {
+			return nil, err
+		}
+		result.InfrastructureConfiguration = singleServerConfiguration
 	}
-	result.InfrastructureConfiguration = singleServerConfiguration
 
-	if v := configuration.ThreeTierConfiguration; v != nil {
-		result.InfrastructureConfiguration = expandThreeTierConfiguration(v)
+	if len(configuration.ThreeTierConfiguration) != 0 {
+		result.InfrastructureConfiguration = expandThreeTierConfiguration(configuration.ThreeTierConfiguration)
 	}
 
 	return &result, nil
 }
 
 func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) (*sapvirtualinstances.DeploymentWithOSConfiguration, error) {
-	if len(input) == 0 {
-		return nil, nil
-	}
-
 	configuration := &input[0]
 
 	result := sapvirtualinstances.DeploymentWithOSConfiguration{
@@ -644,14 +638,16 @@ func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) 
 		OsSapConfiguration: expandOsSapConfiguration(configuration.OsSapConfiguration),
 	}
 
-	singleServerConfiguration, err := expandSingleServerConfiguration(configuration.SingleServerConfiguration)
-	if err != nil {
-		return nil, err
+	if len(configuration.SingleServerConfiguration) != 0 {
+		singleServerConfiguration, err := expandSingleServerConfiguration(configuration.SingleServerConfiguration)
+		if err != nil {
+			return nil, err
+		}
+		result.InfrastructureConfiguration = singleServerConfiguration
 	}
-	result.InfrastructureConfiguration = singleServerConfiguration
 
-	if v := configuration.ThreeTierConfiguration; v != nil {
-		result.InfrastructureConfiguration = expandThreeTierConfiguration(v)
+	if len(configuration.ThreeTierConfiguration) != 0 {
+		result.InfrastructureConfiguration = expandThreeTierConfiguration(configuration.ThreeTierConfiguration)
 	}
 
 	return &result, nil

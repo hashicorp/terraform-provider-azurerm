@@ -567,10 +567,6 @@ func SchemaForSAPVirtualInstanceLoadBalancerFullResourceNames() *pluginsdk.Schem
 }
 
 func expandSingleServerConfiguration(input []SingleServerConfiguration) (*sapvirtualinstances.SingleServerConfiguration, error) {
-	if len(input) == 0 {
-		return nil, nil
-	}
-
 	singleServerConfiguration := &input[0]
 
 	result := sapvirtualinstances.SingleServerConfiguration{
@@ -929,10 +925,6 @@ func flattenSshKeyPair(input *sapvirtualinstances.SshKeyPair) []SshKeyPair {
 }
 
 func expandThreeTierConfiguration(input []ThreeTierConfiguration) *sapvirtualinstances.ThreeTierConfiguration {
-	if len(input) == 0 {
-		return nil
-	}
-
 	threeTierConfiguration := &input[0]
 
 	result := sapvirtualinstances.ThreeTierConfiguration{
