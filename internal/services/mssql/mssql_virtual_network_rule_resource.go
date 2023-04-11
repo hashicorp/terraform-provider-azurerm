@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -151,7 +151,7 @@ func resourceMsSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interfa
 
 		subnetId := ""
 		if sid := props.VirtualNetworkSubnetID; sid != nil {
-			id, err := networkParse.SubnetID(*props.VirtualNetworkSubnetID)
+			id, err := networkParse.SubnetIDInsensitively(*props.VirtualNetworkSubnetID)
 			if err != nil {
 				return fmt.Errorf("parsing subnet ID returned by API %q: %+v", *sid, err)
 			}

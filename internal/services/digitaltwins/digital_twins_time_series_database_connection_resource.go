@@ -141,7 +141,7 @@ func (m TimeSeriesDatabaseConnectionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID(digitalTwinsId.SubscriptionId, digitalTwinsId.ResourceGroupName, digitalTwinsId.ResourceName, model.Name)
+			id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID(digitalTwinsId.SubscriptionId, digitalTwinsId.ResourceGroupName, digitalTwinsId.DigitalTwinsInstanceName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -194,6 +194,9 @@ func (m TimeSeriesDatabaseConnectionResource) Read() sdk.ResourceFunc {
 			client := meta.Client.DigitalTwins.TimeSeriesDatabaseConnectionsClient
 			result, err := client.Get(ctx, *id)
 			if err != nil {
+				if response.WasNotFound(result.HttpResponse) {
+					return meta.MarkAsGone(id)
+				}
 				return err
 			}
 
@@ -203,13 +206,19 @@ func (m TimeSeriesDatabaseConnectionResource) Read() sdk.ResourceFunc {
 
 			var output TimeSeriesDatabaseConnectionModel
 			output.Name = id.TimeSeriesDatabaseConnectionName
-			output.DigitalTwinsId = timeseriesdatabaseconnections.NewDigitalTwinsInstanceID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName).ID()
+			output.DigitalTwinsId = timeseriesdatabaseconnections.NewDigitalTwinsInstanceID(id.SubscriptionId, id.ResourceGroupName, id.DigitalTwinsInstanceName).ID()
 
 			if properties, ok := result.Model.Properties.(timeseriesdatabaseconnections.AzureDataExplorerConnectionProperties); ok {
 				output.EventhubName = properties.EventHubEntityPath
 				output.EventhubNamespaceEndpointUri = properties.EventHubEndpointUri
 				output.EventhubNamespaceId = properties.EventHubNamespaceResourceId
-				output.KustoClusterId = properties.AdxResourceId
+
+				kustoClusterId, err := clusters.ParseClusterIDInsensitively(properties.AdxResourceId)
+				if err != nil {
+					return fmt.Errorf("parsing `kusto_cluster_uri`: %+v", err)
+				}
+				output.KustoClusterId = kustoClusterId.ID()
+
 				output.KustoClusterUri = properties.AdxEndpointUri
 				output.KustoDatabaseName = properties.AdxDatabaseName
 

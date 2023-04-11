@@ -126,7 +126,7 @@ The following arguments are supported:
 
 * `eventgrid_resource_id` - (Optional) The resource ID of the event grid that is subscribed to the storage account events.
 
-* `managed_identity_resource_id` - (Optional) Empty for non-managed identity based data connection. For system assigned identity, provide cluster resource Id.  For user assigned identity (UAI) provide the UAI resource Id.
+* `managed_identity_resource_id` - (Optional) Empty for non-managed identity based data connection. For system assigned identity, provide cluster resource Id. For user assigned identity (UAI) provide the UAI resource Id.
 
 * `mapping_rule_name` - (Optional) Specifies the mapping rule used for the message ingestion. Mapping rule must exist before resource is created.
 
@@ -136,7 +136,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kusto Event Grid Data Connection.
 

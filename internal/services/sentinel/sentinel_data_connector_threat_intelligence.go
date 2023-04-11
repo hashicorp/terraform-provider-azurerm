@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -55,12 +56,21 @@ func resourceSentinelDataConnectorThreatIntelligence() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
+
+			"lookback_date": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      "1970-01-01T00:00:00Z",
+				ValidateFunc: validation.IsRFC3339Time,
+			},
 		},
 	}
 }
 
 func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
+	client := azuresdkhacks.DataConnectorsClient{BaseClient: meta.(*clients.Client).Sentinel.DataConnectorsClient.BaseClient}
+
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -89,10 +99,15 @@ func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *pluginsdk.Re
 		tenantId = meta.(*clients.Client).Account.TenantId
 	}
 
-	param := securityinsight.TIDataConnector{
+	lookbackDate, _ := time.Parse(time.RFC3339, d.Get("lookback_date").(string))
+
+	param := azuresdkhacks.TIDataConnector{
 		Name: &name,
-		TIDataConnectorProperties: &securityinsight.TIDataConnectorProperties{
+		TIDataConnectorProperties: &azuresdkhacks.TIDataConnectorProperties{
 			TenantID: &tenantId,
+			TipLookbackPeriod: &azuresdkhacks.Time{
+				Time: lookbackDate,
+			},
 			DataTypes: &securityinsight.TIDataConnectorDataTypes{
 				Indicators: &securityinsight.TIDataConnectorDataTypesIndicators{
 					State: securityinsight.DataTypeStateEnabled,
@@ -112,7 +127,7 @@ func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *pluginsdk.Re
 }
 
 func resourceSentinelDataConnectorThreatIntelligenceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
+	client := azuresdkhacks.DataConnectorsClient{BaseClient: meta.(*clients.Client).Sentinel.DataConnectorsClient.BaseClient}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -133,7 +148,7 @@ func resourceSentinelDataConnectorThreatIntelligenceRead(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	dc, ok := resp.Value.(securityinsight.TIDataConnector)
+	dc, ok := resp.Value.(azuresdkhacks.TIDataConnector)
 	if !ok {
 		return fmt.Errorf("%s was not a Threat Intelligence Data Connector", id)
 	}
@@ -141,6 +156,7 @@ func resourceSentinelDataConnectorThreatIntelligenceRead(d *pluginsdk.ResourceDa
 	d.Set("name", id.Name)
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
 	d.Set("tenant_id", dc.TenantID)
+	d.Set("lookback_date", dc.TipLookbackPeriod.Format(time.RFC3339))
 
 	return nil
 }

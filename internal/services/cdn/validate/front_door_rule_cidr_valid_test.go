@@ -141,7 +141,6 @@ func TestFrontDoorRuleCidrIsValid(t *testing.T) {
 			} else {
 				t.Logf("[DEBUG] Testing Value %s", tc.Input)
 			}
-
 		}
 	}
 }

@@ -40,13 +40,13 @@ The following arguments are supported:
 
 * `automatic_placement_enabled` - (Optional) Would virtual machines or virtual machine scale sets be placed automatically on this Dedicated Host Group? Defaults to `false`. Changing this forces a new resource to be created.
 
-* `zones` - (Optional) Specifies the Availability Zones in which this Dedicated Host Group should be located. Changing this forces a new Dedicated Host Group to be created.
+* `zone` - (Optional) Specifies the Availability Zone in which this Dedicated Host Group should be located. Changing this forces a new Dedicated Host Group to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Dedicated Host Group.
 

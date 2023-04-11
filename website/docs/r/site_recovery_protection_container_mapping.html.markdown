@@ -95,6 +95,20 @@ The following arguments are supported:
 
 * `recovery_replication_policy_id` - (Required) Id of the policy to use for this mapping. Changing this forces a new resource to be created.
 
+* `automatic_update` - (Optional) a `automatic_update` block defined as below.
+
+---
+
+An `automatic_update` block supports the following:
+
+* `enabled` - (Optional) Should the Mobility service installed on Azure virtual machines be automatically updated. Defaults to `false`.
+
+~> **Note:** The setting applies to all Azure VMs protected in the same container. For more details see [this document](https://learn.microsoft.com/en-us/azure/site-recovery/azure-to-azure-autoupdate#enable-automatic-updates)
+
+* `automation_account_id` - (Optional) The automation account ID which holds the automatic update runbook and authenticates to Azure resources.
+
+~> **Note:** `automation_account_id` is required when `enabled` is sepcified.
+
 ## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
@@ -115,5 +129,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Site Recovery Protection Container Mappings can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_site_recovery_protection_container_mapping.mymapping /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name
+terraform import azurerm_site_recovery_protection_container_mapping.mymapping /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationFabrics/fabric1/replicationProtectionContainers/container1/replicationProtectionContainerMappings/mapping1
 ```

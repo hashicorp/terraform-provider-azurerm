@@ -161,7 +161,6 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *pluginsdk.Re
 	d.Set("workspace_name", id.WorkspaceName)
 
 	if model := resp.Model; model != nil {
-
 		if props := model.Properties; props != nil {
 			propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]interface{}))
 			if err != nil {

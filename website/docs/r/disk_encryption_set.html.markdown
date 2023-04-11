@@ -76,7 +76,7 @@ resource "azurerm_key_vault_access_policy" "example-disk" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
   ]
 }
 
@@ -95,7 +95,8 @@ resource "azurerm_key_vault_access_policy" "example-user" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
+    "GetRotationPolicy",
   ]
 }
 
@@ -124,7 +125,7 @@ The following arguments are supported:
 -> **NOTE** A KeyVault using [enable_rbac_authorization](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault#enable_rbac_authorization) requires to use `azurerm_role_assignment` to assigne the role `Key Vault Crypto Service Encryption User` to this Disk Encryption Set.
 In this case, `azurerm_key_vault_access_policy` is not needed.
 
-* `auto_key_rotation_enabled` - (Optional) Boolean flag to specify whether Azure Disk Encryption Set automatically rotates encryption Key to latest version. Defaults to `false`.
+* `auto_key_rotation_enabled` - (Optional) Boolean flag to specify whether Azure Disk Encryption Set automatically rotates encryption Key to latest version.
 
 * `encryption_type` - (Optional) The type of key used to encrypt the data of the disk. Possible values are `EncryptionAtRestWithCustomerKey`, `EncryptionAtRestWithPlatformAndCustomerKeys` and `ConfidentialVmEncryptedWithCustomerKey`. Defaults to `EncryptionAtRestWithCustomerKey`. Changing this forces a new resource to be created.
 
@@ -138,7 +139,7 @@ In this case, `azurerm_key_vault_access_policy` is not needed.
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Service Identity that is configured on this Disk Encryption Set.  Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both). 
+* `type` - (Required) The type of Managed Service Identity that is configured on this Disk Encryption Set. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both). 
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Disk Encryption Set.
 
@@ -146,7 +147,7 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Disk Encryption Set.
 

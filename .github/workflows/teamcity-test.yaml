@@ -8,10 +8,10 @@ on:
   pull_request:
     types: ['opened', 'synchronize']
     paths:
+      - '.github/workflows/teamcity-test.yaml'
       - '!.teamcity/components/generated/**'
       - '!.teamcity/target/**'
       - '.teamcity/**'
-      - '.github/workflows/**'
 
 concurrency:
   group: 'tctest-${{ github.head_ref }}'
@@ -22,11 +22,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-java@v1
+      - uses: actions/setup-java@v2
         with:
-          java-version: '11'
+          distribution: zulu
+          java-version: 11
           java-package: jdk
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}

@@ -560,7 +560,10 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 	for _, item := range *input {
 		var storageName string
 		if item.StorageID != nil {
-			if id, err := parse.SpringCloudStorageID(*item.StorageID); err == nil {
+			// The returned value has inconsistent casing
+			// TODO: Remove the normalization codes once the following issue is fixed.
+			// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22205
+			if id, err := parse.SpringCloudStorageIDInsensitively(*item.StorageID); err == nil {
 				storageName = id.StorageName
 			}
 		}
@@ -597,6 +600,25 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 func flattenSpringCloudAppAddon(configs map[string]map[string]interface{}) *string {
 	if len(configs) == 0 {
 		return nil
+	}
+	// The returned value has inconsistent casing
+	// TODO: Remove the normalization codes once the following issue is fixed.
+	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22481
+	if applicationConfigurationService, ok := configs["applicationConfigurationService"]; ok && len(applicationConfigurationService) != 0 {
+		if resourceId, ok := applicationConfigurationService["resourceId"]; ok && resourceId != nil {
+			applicationConfigurationServiceId, err := parse.SpringCloudConfigurationServiceIDInsensitively(resourceId.(string))
+			if err == nil {
+				configs["applicationConfigurationService"]["resourceId"] = applicationConfigurationServiceId.ID()
+			}
+		}
+	}
+	if serviceRegistry, ok := configs["serviceRegistry"]; ok && len(serviceRegistry) != 0 {
+		if resourceId, ok := serviceRegistry["resourceId"]; ok && resourceId != nil {
+			serviceRegistryId, err := parse.SpringCloudServiceRegistryIDInsensitively(resourceId.(string))
+			if err == nil {
+				configs["serviceRegistry"]["resourceId"] = serviceRegistryId.ID()
+			}
+		}
 	}
 	addonConfig, _ := json.Marshal(configs)
 	return utils.String(string(addonConfig))

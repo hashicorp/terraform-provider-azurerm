@@ -204,6 +204,26 @@ func TestAccPrivateEndpoint_privateDnsZoneUpdate(t *testing.T) {
 	})
 }
 
+func TestAccPrivateEndpoint_statiIpAddress(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.staticIpAddress(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				check.That(data.ResourceName).Key("network_interface.0.id").Exists(),
+				check.That(data.ResourceName).Key("network_interface.0.name").Exists(),
+				check.That(data.ResourceName).Key("private_service_connection.0.private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("private_service_connection.0.private_ip_address").HasValue("10.5.2.47"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPrivateEndpoint_privateDnsZoneRemove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
@@ -307,6 +327,21 @@ func TestAccPrivateEndpoint_multipleInstances(t *testing.T) {
 	})
 }
 
+func TestAccPrivateEndpoint_multipleIpConfigurations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.recoveryServiceVaultWithMultiIpConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (PrivateEndpointResource) template(data acceptance.TestData, seviceCfg string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -316,7 +351,7 @@ provider "azurerm" {
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "zjhe-acctestRG-privatelink-%d"
+  name     = "acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -501,7 +536,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "zjhe-acctestRG-privatelink-%d"
+  name     = "acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -581,7 +616,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "zjhe-acctestRG-privatelink-%d"
+  name     = "acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -656,7 +691,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "zjhe-acctestRG-privatelink-%d"
+  name     = "acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -734,6 +769,30 @@ resource "azurerm_private_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (r PrivateEndpointResource) staticIpAddress(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+
+  ip_configuration {
+    name               = "acctest-ip-privatelink-%[2]d"
+    private_ip_address = "10.5.2.47"
+  }
+}
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
+}
+
 func (PrivateEndpointResource) privateDnsZoneGroupRename(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -741,7 +800,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "zjhe-acctestRG-privatelink-%d"
+  name     = "acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -861,4 +920,58 @@ resource "azurerm_private_endpoint" "test" {
   }
 }
 `, r.template(data, r.serviceAutoApprove(data)), count, data.RandomInteger)
+}
+
+func (r PrivateEndpointResource) recoveryServiceVaultWithMultiIpConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+locals {
+  ip_configs = {
+    "SiteRecovery-prot2" = "10.5.2.24"
+    "SiteRecovery-srs1"  = "10.5.2.25"
+    "SiteRecovery-id1"   = "10.5.2.26"
+    "SiteRecovery-tel1"  = "10.5.2.27"
+    "SiteRecovery-rcm1"  = "10.5.2.28"
+  }
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-vault-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  soft_delete_enabled = false
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = "acctest-privatelink-%[2]d"
+    is_manual_connection           = false
+    subresource_names              = ["AzureSiteRecovery"]
+    private_connection_resource_id = azurerm_recovery_services_vault.test.id
+  }
+
+  dynamic "ip_configuration" {
+    for_each = local.ip_configs
+
+    content {
+      name               = ip_configuration.key
+      private_ip_address = ip_configuration.value
+      subresource_name   = "AzureSiteRecovery"
+      member_name        = ip_configuration.key
+    }
+  }
+}
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
 }

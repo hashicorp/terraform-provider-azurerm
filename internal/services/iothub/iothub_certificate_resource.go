@@ -19,9 +19,9 @@ import (
 
 func resourceIotHubCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceIotHubCertificateCreateUpdate,
+		Create: resourceIotHubCertificateCreate,
 		Read:   resourceIotHubCertificateRead,
-		Update: resourceIotHubCertificateCreateUpdate,
+		Update: resourceIotHubCertificateUpdate,
 		Delete: resourceIotHubCertificateDelete,
 
 		SchemaVersion: 1,
@@ -74,7 +74,7 @@ func resourceIotHubCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.IotHubCertificateClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -82,17 +82,15 @@ func resourceIotHubCertificateCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	id := parse.NewIotHubCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_iothub_certificate", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_iothub_certificate", id.ID())
 	}
 
 	certificate := devices.CertificateDescription{
@@ -103,7 +101,7 @@ func resourceIotHubCertificateCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName, certificate, ""); err != nil {
-		return fmt.Errorf("creating/updating  %s: %+v", id, err)
+		return fmt.Errorf("creating  %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -140,6 +138,39 @@ func resourceIotHubCertificateRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	return nil
+}
+
+func resourceIotHubCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).IoTHub.IotHubCertificateClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := parse.NewIotHubCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName)
+	if err != nil {
+		return fmt.Errorf("reading %s: %v", id, err)
+	}
+
+	etag := ""
+	if existing.Etag != nil {
+		etag = *existing.Etag
+	}
+
+	if d.HasChange("is_verified") {
+		existing.Properties.IsVerified = utils.Bool(d.Get("is_verified").(bool))
+	}
+
+	if d.HasChange("certificate_content") {
+		existing.Properties.Certificate = utils.String(d.Get("certificate_content").(string))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName, existing, etag); err != nil {
+		return fmt.Errorf("updating  %s: %+v", id, err)
+	}
+
+	return resourceIotHubCertificateRead(d, meta)
 }
 
 func resourceIotHubCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {

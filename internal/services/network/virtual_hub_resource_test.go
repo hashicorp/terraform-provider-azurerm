@@ -32,6 +32,24 @@ func TestAccVirtualHub_basic(t *testing.T) {
 	})
 }
 
+func TestAccVirtualHub_hubRoutingPreference(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
+	r := VirtualHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hubRoutingPreference(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_router_asn").Exists(),
+				check.That(data.ResourceName).Key("virtual_router_ips.#").Exists(),
+				check.That(data.ResourceName).Key("hub_routing_preference").HasValue("ASPath"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccVirtualHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
 	r := VirtualHubResource{}
@@ -202,4 +220,20 @@ resource "azurerm_virtual_wan" "test" {
   location            = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r VirtualHubResource) hubRoutingPreference(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctestVHUB-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
+
+  hub_routing_preference = "ASPath"
+}
+`, r.template(data), data.RandomInteger)
 }

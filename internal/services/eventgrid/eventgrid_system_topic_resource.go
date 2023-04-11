@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -59,6 +59,7 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
+			// TODO: remove `_arm` in 4.0. Can we be more descriptive about /what/ this is?
 			"source_arm_resource_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -73,6 +74,7 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// TODO: remove `_arm` in 4.0. Can we be more descriptive about /what/ this is?
 			"metric_arm_resource_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,

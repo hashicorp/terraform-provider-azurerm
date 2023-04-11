@@ -199,7 +199,6 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	authType := d.Get("authorization_type").(string)
 	if authType != "" {
 		computeInstance.Properties.ComputeInstanceAuthorizationType = utils.ToPtr(machinelearningcomputes.ComputeInstanceAuthorizationType(authType))
-
 	}
 
 	parameters := machinelearningcomputes.ComputeResource{

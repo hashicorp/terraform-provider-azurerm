@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -176,6 +176,7 @@ func TestAccCosmosDBAccount_updateDefaultIdentity(t *testing.T) {
 	})
 }
 
+//nolint:unparam
 func testAccCosmosDBAccount_basicWith(t *testing.T, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
@@ -466,6 +467,13 @@ func TestAccCosmosDBAccount_update_mongo(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.completeUpdatedMongoDB_RemoveDisableRateLimitingResponsesCapability(data, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 3),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basicWithResourcesMongoDB(data, documentdb.DefaultConsistencyLevelEventual),
 			Check:  acceptance.ComposeAggregateTestCheckFunc(
 			// checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
@@ -504,6 +512,13 @@ func testAccCosmosDBAccount_updateWith(t *testing.T, kind documentdb.DatabaseAcc
 		data.ImportStep(),
 		{
 			Config: r.completeUpdated(data, kind, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 3),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdated_RemoveDisableRateLimitingResponsesCapabilities(data, kind, documentdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 3),
 			),
@@ -620,7 +635,14 @@ func TestAccCosmosDBAccount_capabilitiesUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable", "EnableAggregationPipeline"}),
+			Config: r.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra", "DisableRateLimitingResponses", "AllowSelfServeUpgradeToMongo36", "EnableAggregationPipeline", "MongoDBv3.4", "mongoEnableDocLevelTTL"}),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.capabilities(data, documentdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra", "AllowSelfServeUpgradeToMongo36", "EnableAggregationPipeline", "MongoDBv3.4", "mongoEnableDocLevelTTL"}),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 			),
@@ -680,9 +702,17 @@ func TestAccCosmosDBAccount_analyticalStorage(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual),
+			Config: r.analyticalStorage(data, "MongoDB", documentdb.DefaultConsistencyLevelStrong, false),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
+				check.That(data.ResourceName).Key("analytical_storage_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.analyticalStorage(data, "MongoDB", documentdb.DefaultConsistencyLevelStrong, true),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelStrong, 1),
 				check.That(data.ResourceName).Key("analytical_storage_enabled").HasValue("true"),
 			),
 		},
@@ -1632,6 +1662,87 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "%[3]s"
 
+  capabilities {
+    name = "DisableRateLimitingResponses"
+  }
+
+  capabilities {
+    name = "AllowSelfServeUpgradeToMongo36"
+  }
+
+  capabilities {
+    name = "EnableAggregationPipeline"
+  }
+
+  capabilities {
+    name = "mongoEnableDocLevelTTL"
+  }
+
+  consistency_policy {
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 360
+    max_staleness_prefix    = 170000
+  }
+
+  is_virtual_network_filter_enabled = true
+
+  virtual_network_rule {
+    id = azurerm_subnet.subnet2.id
+  }
+
+  enable_multiple_write_locations = true
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 1
+  }
+
+  geo_location {
+    location          = "%[6]s"
+    failover_priority = 2
+  }
+
+  cors_rule {
+    allowed_origins    = ["http://www.example.com", "http://www.test.com"]
+    exposed_headers    = ["x-tempo-*", "x-method-*"]
+    allowed_headers    = ["*"]
+    allowed_methods    = ["GET"]
+    max_age_in_seconds = "2000000000"
+  }
+
+  access_key_metadata_writes_enabled = true
+}
+`, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+}
+
+func (r CosmosDBAccountResource) completeUpdated_RemoveDisableRateLimitingResponsesCapabilities(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%[3]s"
+
+  capabilities {
+    name = "AllowSelfServeUpgradeToMongo36"
+  }
+
+  capabilities {
+    name = "EnableAggregationPipeline"
+  }
+
+  capabilities {
+    name = "mongoEnableDocLevelTTL"
+  }
+
   consistency_policy {
     consistency_level       = "%[4]s"
     max_interval_in_seconds = 360
@@ -1689,6 +1800,98 @@ resource "azurerm_cosmosdb_account" "test" {
     name = "EnableMongo"
   }
 
+  capabilities {
+    name = "DisableRateLimitingResponses"
+  }
+
+  capabilities {
+    name = "AllowSelfServeUpgradeToMongo36"
+  }
+
+  capabilities {
+    name = "EnableAggregationPipeline"
+  }
+
+  capabilities {
+    name = "MongoDBv3.4"
+  }
+
+  capabilities {
+    name = "mongoEnableDocLevelTTL"
+  }
+
+  consistency_policy {
+    consistency_level       = "%[3]s"
+    max_interval_in_seconds = 360
+    max_staleness_prefix    = 170000
+  }
+
+  is_virtual_network_filter_enabled = true
+
+  virtual_network_rule {
+    id = azurerm_subnet.subnet2.id
+  }
+
+  enable_multiple_write_locations = true
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  geo_location {
+    location          = "%[4]s"
+    failover_priority = 1
+  }
+
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 2
+  }
+
+  cors_rule {
+    allowed_origins    = ["http://www.example.com", "http://www.test.com"]
+    exposed_headers    = ["x-tempo-*", "x-method-*"]
+    allowed_headers    = ["*"]
+    allowed_methods    = ["GET"]
+    max_age_in_seconds = "2000000000"
+  }
+  access_key_metadata_writes_enabled = true
+}
+`, r.completePreReqs(data), data.RandomInteger, string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+}
+
+func (r CosmosDBAccountResource) completeUpdatedMongoDB_RemoveDisableRateLimitingResponsesCapability(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "MongoDB"
+
+  capabilities {
+    name = "EnableMongo"
+  }
+
+  capabilities {
+    name = "AllowSelfServeUpgradeToMongo36"
+  }
+
+  capabilities {
+    name = "EnableAggregationPipeline"
+  }
+
+  capabilities {
+    name = "MongoDBv3.4"
+  }
+
+  capabilities {
+    name = "mongoEnableDocLevelTTL"
+  }
+
   consistency_policy {
     consistency_level       = "%[3]s"
     max_interval_in_seconds = 360
@@ -1741,6 +1944,18 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "%s"
 
+  capabilities {
+    name = "AllowSelfServeUpgradeToMongo36"
+  }
+
+  capabilities {
+    name = "EnableAggregationPipeline"
+  }
+
+  capabilities {
+    name = "mongoEnableDocLevelTTL"
+  }
+
   consistency_policy {
     consistency_level = "%s"
   }
@@ -1766,6 +1981,22 @@ resource "azurerm_cosmosdb_account" "test" {
 
   capabilities {
     name = "EnableMongo"
+  }
+
+  capabilities {
+    name = "AllowSelfServeUpgradeToMongo36"
+  }
+
+  capabilities {
+    name = "EnableAggregationPipeline"
+  }
+
+  capabilities {
+    name = "MongoDBv3.4"
+  }
+
+  capabilities {
+    name = "mongoEnableDocLevelTTL"
   }
 
   consistency_policy {
@@ -2067,7 +2298,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) analyticalStorage(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) analyticalStorage(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel, enableAnalyticalStorage bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2085,7 +2316,7 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "%s"
 
-  analytical_storage_enabled = true
+  analytical_storage_enabled = %t
 
   consistency_policy {
     consistency_level = "%s"
@@ -2096,7 +2327,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), enableAnalyticalStorage, string(consistency))
 }
 
 func (CosmosDBAccountResource) mongoAnalyticalStorage(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
@@ -2658,6 +2889,18 @@ resource "azurerm_cosmosdb_account" "test" {
 
   capabilities {
     name = "EnableMongo16MBDocumentSupport"
+  }
+
+  capabilities {
+    name = "EnableMongoRetryableWrites"
+  }
+
+  capabilities {
+    name = "EnableMongoRoleBasedAccessControl"
+  }
+
+  capabilities {
+    name = "EnableUniqueCompoundNestedDocs"
   }
 
   consistency_policy {

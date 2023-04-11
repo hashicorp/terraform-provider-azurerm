@@ -146,9 +146,11 @@ A `microsoft_peering_config` block contains:
 
 * `advertised_public_prefixes` - (Required) A list of Advertised Public Prefixes.
 
-* `customer_asn` - (Optional) The CustomerASN of the peering.
+* `customer_asn` - (Optional) The CustomerASN of the peering. Defaults to `0`.
 
-* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered.  For example:  `ARIN`, `RIPE`, `AFRINIC` etc.
+* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example: `ARIN`, `RIPE`, `AFRINIC` etc. Defaults to `NONE`.
+
+* `advertised_communities` - (Optional) The communities of Bgp Peering specified for microsoft peering.
 
 ---
 
@@ -160,7 +162,7 @@ A `ipv6` block contains:
 
 * `enabled` - (Optional) A boolean value indicating whether the IPv6 peering is enabled. Defaults to `true`.
 
-* `microsoft_peering` - (Optional) A `microsoft_peering` block as defined below.  
+* `microsoft_peering` - (Optional) A `microsoft_peering` block as defined below. 
 
 * `route_filter_id` - (Optional) The ID of the Route Filter. Only available when `peering_type` is set to `MicrosoftPeering`.
 
@@ -170,15 +172,17 @@ A `ipv6` block contains:
 
 A `microsoft_peering` block contains:
 
-* `advertised_public_prefixes` - (Required) A list of Advertised Public Prefixes.
+* `advertised_public_prefixes` - (Optional) A list of Advertised Public Prefixes.
 
-* `customer_asn` - (Optional) The CustomerASN of the peering.
+* `customer_asn` - (Optional) The CustomerASN of the peering. Defaults to `0`.
 
-* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example:  `ARIN`, `RIPE`, `AFRINIC` etc.
+* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example: `ARIN`, `RIPE`, `AFRINIC` etc. Defaults to `NONE`.
+
+* `advertised_communities` - (Optional) The communities of Bgp Peering specified for microsoft peering.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the ExpressRoute Circuit Peering.
 

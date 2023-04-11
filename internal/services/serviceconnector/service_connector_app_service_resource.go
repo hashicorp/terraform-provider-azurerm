@@ -21,12 +21,13 @@ import (
 type AppServiceConnectorResource struct{}
 
 type AppServiceConnectorResourceModel struct {
-	Name             string          `tfschema:"name"`
-	AppServiceId     string          `tfschema:"app_service_id"`
-	TargetResourceId string          `tfschema:"target_resource_id"`
-	ClientType       string          `tfschema:"client_type"`
-	AuthInfo         []AuthInfoModel `tfschema:"authentication"`
-	VnetSolution     string          `tfschema:"vnet_solution"`
+	Name             string             `tfschema:"name"`
+	AppServiceId     string             `tfschema:"app_service_id"`
+	TargetResourceId string             `tfschema:"target_resource_id"`
+	ClientType       string             `tfschema:"client_type"`
+	AuthInfo         []AuthInfoModel    `tfschema:"authentication"`
+	VnetSolution     string             `tfschema:"vnet_solution"`
+	SecretStore      []SecretStoreModel `tfschema:"secret_store"`
 }
 
 func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
@@ -69,6 +70,8 @@ func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
 				string(servicelinker.ClientTypeSpringBoot),
 			}, false),
 		},
+
+		"secret_store": secretStoreSchema(),
 
 		"vnet_solution": {
 			Type:     pluginsdk.TypeString,
@@ -134,6 +137,11 @@ func (r AppServiceConnectorResource) Create() sdk.ResourceFunc {
 				serviceConnectorProperties.TargetService = servicelinker.AzureResource{
 					Id: &model.TargetResourceId,
 				}
+			}
+
+			if model.SecretStore != nil {
+				secretStore := expandSecretStore(model.SecretStore)
+				serviceConnectorProperties.SecretStore = secretStore
 			}
 
 			if model.ClientType != "" {
@@ -206,6 +214,10 @@ func (r AppServiceConnectorResource) Read() sdk.ResourceFunc {
 					state.VnetSolution = string(*props.VNetSolution.Type)
 				}
 
+				if props.SecretStore != nil {
+					state.SecretStore = flattenSecretStore(*props.SecretStore)
+				}
+
 				return metadata.Encode(&state)
 			}
 			return nil
@@ -225,11 +237,10 @@ func (r AppServiceConnectorResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.LinkerDelete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if err := client.LinkerDeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}
@@ -266,6 +277,10 @@ func (r AppServiceConnectorResource) Update() sdk.ResourceFunc {
 				linkerProps.VNetSolution = &vnetSolution
 			}
 
+			if d.HasChange("secret_store") {
+				linkerProps.SecretStore = (*links.SecretStore)(expandSecretStore(state.SecretStore))
+			}
+
 			if d.HasChange("authentication") {
 				linkerProps.AuthInfo = state.AuthInfo
 			}
@@ -274,9 +289,10 @@ func (r AppServiceConnectorResource) Update() sdk.ResourceFunc {
 				Properties: &linkerProps,
 			}
 
-			if _, err := client.LinkerUpdate(ctx, *id, props); err != nil {
+			if err := client.LinkerUpdateThenPoll(ctx, *id, props); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}

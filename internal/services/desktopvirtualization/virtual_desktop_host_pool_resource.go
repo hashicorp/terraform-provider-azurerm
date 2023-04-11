@@ -71,7 +71,6 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			"load_balancer_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(hostpool.LoadBalancerTypeBreadthFirst),
 					string(hostpool.LoadBalancerTypeDepthFirst),
@@ -263,7 +262,7 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "maximum_sessions_allowed", "preferred_app_group_type", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
+	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
 		payload.Properties = &hostpool.HostPoolPatchProperties{}
 
 		if d.HasChange("custom_rdp_properties") {
@@ -276,6 +275,11 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 
 		if d.HasChange("friendly_name") {
 			payload.Properties.FriendlyName = utils.String(d.Get("friendly_name").(string))
+		}
+
+		if d.HasChange("load_balancer_type") {
+			loadBalancerType := hostpool.LoadBalancerType(d.Get("load_balancer_type").(string))
+			payload.Properties.LoadBalancerType = &loadBalancerType
 		}
 
 		if d.HasChange("maximum_sessions_allowed") {
@@ -298,7 +302,6 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		if d.HasChanges("scheduled_agent_updates") {
 			payload.Properties.AgentUpdate = expandAgentUpdatePatch(d.Get("scheduled_agent_updates").([]interface{}))
 		}
-
 	}
 
 	if _, err := client.Update(ctx, *id, payload); err != nil {
@@ -359,7 +362,6 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
 		d.Set("scheduled_agent_updates", flattenAgentUpdate(props.AgentUpdate))
-
 	}
 
 	return nil
@@ -463,11 +465,9 @@ func expandAgentUpdatePatch(input []interface{}) *hostpool.AgentUpdatePatchPrope
 	if raw["enabled"].(bool) {
 		props.Type = &updatesScheduled
 		props.MaintenanceWindows = expandAgentUpdateSchedulePatch(raw["schedule"].([]interface{}))
-
 	} else {
 		props.Type = &updatesDefault
 		props.MaintenanceWindows = &[]hostpool.MaintenanceWindowPatchProperties{}
-
 	}
 
 	return &props
@@ -527,7 +527,6 @@ func flattenAgentUpdate(input *hostpool.AgentUpdateProperties) []interface{} {
 	}
 	enabled := false
 	if input.Type != nil {
-
 		if *input.Type == hostpool.SessionHostComponentUpdateTypeScheduled {
 			enabled = true
 		}
@@ -541,5 +540,4 @@ func flattenAgentUpdate(input *hostpool.AgentUpdateProperties) []interface{} {
 			"schedule":                  flattenAgentUpdateSchedule(input.MaintenanceWindows),
 		},
 	}
-
 }

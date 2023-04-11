@@ -9,7 +9,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func dataSourceKeyVaultKey() *pluginsdk.Resource {
@@ -170,7 +170,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("curve", key.Crv)
 
 		if key := resp.Key; key != nil {
-			if key.Kty == keyvault.RSA || key.Kty == keyvault.RSAHSM {
+			if key.Kty == keyvault.JSONWebKeyTypeRSA || key.Kty == keyvault.JSONWebKeyTypeRSAHSM {
 				nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 				if err != nil {
 					return fmt.Errorf("failed to decode N: %+v", err)
@@ -187,7 +187,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				if err != nil {
 					return fmt.Errorf("failed to read public key: %+v", err)
 				}
-			} else if key.Kty == keyvault.EC || key.Kty == keyvault.ECHSM {
+			} else if key.Kty == keyvault.JSONWebKeyTypeEC || key.Kty == keyvault.JSONWebKeyTypeECHSM {
 				// do ec keys
 				xBytes, err := base64.RawURLEncoding.DecodeString(*key.X)
 				if err != nil {
@@ -202,11 +202,11 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 					Y: big.NewInt(0).SetBytes(yBytes),
 				}
 				switch key.Crv {
-				case keyvault.P256:
+				case keyvault.JSONWebKeyCurveNameP256:
 					publicKey.Curve = elliptic.P256()
-				case keyvault.P384:
+				case keyvault.JSONWebKeyCurveNameP384:
 					publicKey.Curve = elliptic.P384()
-				case keyvault.P521:
+				case keyvault.JSONWebKeyCurveNameP521:
 					publicKey.Curve = elliptic.P521()
 				}
 				if publicKey.Curve != nil {

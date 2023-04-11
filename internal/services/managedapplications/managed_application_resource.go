@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -227,7 +227,7 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("setting `plan`: %+v", err)
 	}
 	if props := resp.ApplicationProperties; props != nil {
-		id, err := resourcesParse.ResourceGroupID(*props.ManagedResourceGroupID)
+		id, err := resourcesParse.ResourceGroupIDInsensitively(*props.ManagedResourceGroupID)
 		if err != nil {
 			return err
 		}

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -15,7 +16,11 @@ import (
 
 type NetworkPacketCaptureResource struct{}
 
+// todo remove for 4.0
 func testAccNetworkPacketCapture_localDisk(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("this test requires 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
 
@@ -30,7 +35,11 @@ func testAccNetworkPacketCapture_localDisk(t *testing.T) {
 	})
 }
 
+// todo remove for 4.0
 func testAccNetworkPacketCapture_requiresImport(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("this test requires 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
 
@@ -48,7 +57,11 @@ func testAccNetworkPacketCapture_requiresImport(t *testing.T) {
 	})
 }
 
+// todo remove for 4.0
 func testAccNetworkPacketCapture_storageAccount(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("this test requires 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
 
@@ -63,7 +76,11 @@ func testAccNetworkPacketCapture_storageAccount(t *testing.T) {
 	})
 }
 
+// todo remove for 4.0
 func testAccNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("this test requires 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
 
@@ -78,7 +95,11 @@ func testAccNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	})
 }
 
+// todo remove for 4.0
 func testAccNetworkPacketCapture_withFilters(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("this test requires 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
 

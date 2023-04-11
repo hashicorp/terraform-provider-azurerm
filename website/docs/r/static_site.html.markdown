@@ -64,7 +64,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 An `identity` block exports the following:
 
-* `type` - The Type of Managed Identity assigned to this resource. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) The Type of Managed Identity assigned to this resource. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
 * `principal_id` - (Optional) The Principal ID associated with this Managed Service Identity.
 

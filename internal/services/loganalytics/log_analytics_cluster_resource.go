@@ -160,7 +160,6 @@ func resourceLogAnalyticsClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		if props := model.Properties; props != nil {
 			d.Set("cluster_id", props.ClusterId)
-
 		}
 		capacity := 0
 		if sku := model.Sku; sku != nil {

@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsresolvers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/inboundendpoints"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -133,10 +132,7 @@ func (r PrivateDNSResolverInboundEndpointResource) Create() sdk.ResourceFunc {
 				Tags:       &model.Tags,
 			}
 
-			iPConfigurationsValue, err := expandIPConfigurationModel(model.IPConfigurations)
-			if err != nil {
-				return err
-			}
+			iPConfigurationsValue := expandIPConfigurationModel(model.IPConfigurations)
 
 			if iPConfigurationsValue != nil {
 				properties.Properties.IPConfigurations = *iPConfigurationsValue
@@ -179,17 +175,12 @@ func (r PrivateDNSResolverInboundEndpointResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("ip_configurations") {
-				iPConfigurationsValue, err := expandIPConfigurationModel(model.IPConfigurations)
-				if err != nil {
-					return err
-				}
+				iPConfigurationsValue := expandIPConfigurationModel(model.IPConfigurations)
 
 				if iPConfigurationsValue != nil {
 					properties.Properties.IPConfigurations = *iPConfigurationsValue
 				}
 			}
-
-			properties.SystemData = nil
 
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
@@ -236,12 +227,8 @@ func (r PrivateDNSResolverInboundEndpointResource) Read() sdk.ResourceFunc {
 			}
 
 			properties := &model.Properties
-			iPConfigurationsValue, err := flattenIPConfigurationModel(&properties.IPConfigurations)
-			if err != nil {
-				return err
-			}
 
-			state.IPConfigurations = iPConfigurationsValue
+			state.IPConfigurations = flattenIPConfigurationModel(&properties.IPConfigurations)
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}
@@ -288,7 +275,7 @@ func (r PrivateDNSResolverInboundEndpointResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func dnsResolverInboundEndpointDeleteRefreshFunc(ctx context.Context, client *inboundendpoints.InboundEndpointsClient, id *inboundendpoints.InboundEndpointId) resource.StateRefreshFunc {
+func dnsResolverInboundEndpointDeleteRefreshFunc(ctx context.Context, client *inboundendpoints.InboundEndpointsClient, id *inboundendpoints.InboundEndpointId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		existing, err := client.Get(ctx, *id)
 		if err != nil {
@@ -301,7 +288,7 @@ func dnsResolverInboundEndpointDeleteRefreshFunc(ctx context.Context, client *in
 	}
 }
 
-func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundendpoints.IPConfiguration, error) {
+func expandIPConfigurationModel(inputList []IPConfigurationModel) *[]inboundendpoints.IPConfiguration {
 	var outputList []inboundendpoints.IPConfiguration
 	for _, v := range inputList {
 		input := v
@@ -322,13 +309,13 @@ func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundend
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
-func flattenIPConfigurationModel(inputList *[]inboundendpoints.IPConfiguration) ([]IPConfigurationModel, error) {
+func flattenIPConfigurationModel(inputList *[]inboundendpoints.IPConfiguration) []IPConfigurationModel {
 	var outputList []IPConfigurationModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -347,5 +334,5 @@ func flattenIPConfigurationModel(inputList *[]inboundendpoints.IPConfiguration) 
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }

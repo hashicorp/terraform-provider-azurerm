@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-03-08-preview/administrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/administrators"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -95,7 +95,6 @@ provider "azurerm" {
 
 provider "azuread" {}
 
-
 data "azurerm_client_config" "current" {}
 
 data "azuread_service_principal" "test" {
@@ -122,6 +121,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
     active_directory_auth_enabled = true
     tenant_id                     = data.azurerm_client_config.current.tenant_id
   }
+
 }
 
 resource "azurerm_postgresql_flexible_server_active_directory_administrator" "test" {

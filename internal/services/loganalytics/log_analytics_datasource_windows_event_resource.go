@@ -156,7 +156,6 @@ func resourceLogAnalyticsDataSourceWindowsEventRead(d *pluginsdk.ResourceData, m
 	d.Set("workspace_name", id.WorkspaceName)
 
 	if model := resp.Model; model != nil {
-
 		if props := resp.Model.Properties; props != nil {
 			propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]interface{}))
 			if err != nil {

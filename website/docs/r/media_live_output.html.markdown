@@ -70,6 +70,7 @@ resource "azurerm_media_live_event_output" "example" {
   manifest_name                = "testmanifest"
   output_snap_time_in_seconds  = 0
   hls_fragments_per_ts_segment = 5
+  rewind_window_duration       = "PT5M"
 }
 ```
 
@@ -93,7 +94,9 @@ The following arguments are supported:
 
 * `manifest_name` - (Optional) The manifest file name. If not provided, the service will generate one automatically. Changing this forces a new Live Output to be created.
 
-* `output_snap_timestamp_in_seconds` - (Optional) The initial timestamp that the live output will start at, any content before this value will not be archived. Changing this forces a new Live Output to be created.
+* `output_snap_time_in_seconds` - (Optional) The initial timestamp that the live output will start at, any content before this value will not be archived. Changing this forces a new Live Output to be created.
+
+* `rewind_windown_duration` - (Optional) `ISO 8601` time between 1 minute to the duration of `archive_window_duration` to control seek-able window length during Live. The service won't use this property once LiveOutput stops. The archived VOD will have full content with original ArchiveWindowLength. For example, use `PT1H30M` to indicate 1 hour and 30 minutes of rewind window length. Service will use implicit default value 30m only if Live Event enables LL. Changing this forces a new Live Output to be created.
 
 ## Attributes Reference
 
@@ -115,5 +118,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Live Outputs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_live_event_output.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaservices/account1/liveevents/event1/liveoutputs/output1
+terraform import azurerm_media_live_event_output.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Media/mediaServices/account1/liveEvents/event1/liveOutputs/output1
 ```

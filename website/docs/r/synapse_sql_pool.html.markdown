@@ -67,11 +67,13 @@ The following arguments are supported:
 
 * `collation` - (Optional) The name of the collation to use with this pool, only applicable when `create_mode` is set to `Default`. Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new resource to be created.
 
-* `data_encrypted` - (Optional) Is transparent data encryption enabled? Defaults to `false`.
+* `data_encrypted` - (Optional) Is transparent data encryption enabled? 
 
 * `recovery_database_id` - (Optional) The ID of the Synapse SQL Pool or SQL Database which is to back up, only applicable when `create_mode` is set to `Recovery`. Changing this forces a new Synapse SQL Pool to be created.
 
-* `restore` - (Optional)  A `restore` block as defined below. only applicable when `create_mode` is set to `PointInTimeRestore`.
+* `restore` - (Optional) A `restore` block as defined below. only applicable when `create_mode` is set to `PointInTimeRestore`. Changing this forces a new resource to be created.
+
+* `geo_backup_policy_enabled` - (Optional) Is geo-backup policy enabled? Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse SQL Pool.
 

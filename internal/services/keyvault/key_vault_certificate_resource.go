@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -24,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultCertificate() *pluginsdk.Resource {
@@ -125,10 +125,10 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Computed: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(keyvault.P256),
-											string(keyvault.P256K),
-											string(keyvault.P384),
-											string(keyvault.P521),
+											string(keyvault.JSONWebKeyCurveNameP256),
+											string(keyvault.JSONWebKeyCurveNameP256K),
+											string(keyvault.JSONWebKeyCurveNameP384),
+											string(keyvault.JSONWebKeyCurveNameP521),
 										}, false),
 									},
 									"exportable": {
@@ -155,11 +155,11 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Required: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(keyvault.EC),
-											string(keyvault.ECHSM),
-											string(keyvault.RSA),
-											string(keyvault.RSAHSM),
-											string(keyvault.Oct),
+											string(keyvault.JSONWebKeyTypeEC),
+											string(keyvault.JSONWebKeyTypeECHSM),
+											string(keyvault.JSONWebKeyTypeRSA),
+											string(keyvault.JSONWebKeyTypeRSAHSM),
+											string(keyvault.JSONWebKeyTypeOct),
 										}, false),
 									},
 									"reuse_key": {
@@ -186,8 +186,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 													Required: true,
 													ForceNew: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(keyvault.AutoRenew),
-														string(keyvault.EmailContacts),
+														string(keyvault.CertificatePolicyActionAutoRenew),
+														string(keyvault.CertificatePolicyActionEmailContacts),
 													}, false),
 												},
 											},
@@ -255,15 +255,15 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
-												string(keyvault.CRLSign),
-												string(keyvault.DataEncipherment),
-												string(keyvault.DecipherOnly),
-												string(keyvault.DigitalSignature),
-												string(keyvault.EncipherOnly),
-												string(keyvault.KeyAgreement),
-												string(keyvault.KeyCertSign),
-												string(keyvault.KeyEncipherment),
-												string(keyvault.NonRepudiation),
+												string(keyvault.KeyUsageTypeCRLSign),
+												string(keyvault.KeyUsageTypeDataEncipherment),
+												string(keyvault.KeyUsageTypeDecipherOnly),
+												string(keyvault.KeyUsageTypeDigitalSignature),
+												string(keyvault.KeyUsageTypeEncipherOnly),
+												string(keyvault.KeyUsageTypeKeyAgreement),
+												string(keyvault.KeyUsageTypeKeyCertSign),
+												string(keyvault.KeyUsageTypeKeyEncipherment),
+												string(keyvault.KeyUsageTypeNonRepudiation),
 											}, false),
 										},
 									},
@@ -558,6 +558,13 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
+	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	if err != nil {
+		return err
+	}
+
+	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseUrl)
+
 	if d.HasChange("certificate") {
 		if v, ok := d.GetOk("certificate"); ok {
 			// Import new version of certificate
@@ -812,22 +819,22 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 	keyType := props["key_type"].(string)
 	keySize := props["key_size"].(int)
 
-	if keyType == string(keyvault.EC) || keyType == string(keyvault.ECHSM) {
+	if keyType == string(keyvault.JSONWebKeyTypeEC) || keyType == string(keyvault.JSONWebKeyTypeECHSM) {
 		if curve == "" {
 			return nil, fmt.Errorf("`curve` is required when creating an EC key")
 		}
 		// determine key_size if not specified
 		if keySize == 0 {
 			switch curve {
-			case string(keyvault.P256), string(keyvault.P256K):
+			case string(keyvault.JSONWebKeyCurveNameP256), string(keyvault.JSONWebKeyCurveNameP256K):
 				keySize = 256
-			case string(keyvault.P384):
+			case string(keyvault.JSONWebKeyCurveNameP384):
 				keySize = 384
-			case string(keyvault.P521):
+			case string(keyvault.JSONWebKeyCurveNameP521):
 				keySize = 521
 			}
 		}
-	} else if keyType == string(keyvault.RSA) || keyType == string(keyvault.RSAHSM) {
+	} else if keyType == string(keyvault.JSONWebKeyTypeRSA) || keyType == string(keyvault.JSONWebKeyTypeRSAHSM) {
 		if keySize == 0 {
 			return nil, fmt.Errorf("`key_size` is required when creating an RSA key")
 		}
@@ -851,7 +858,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 			as := v.([]interface{})
 			a := as[0].(map[string]interface{})
 			lifetimeAction.Action = &keyvault.Action{
-				ActionType: keyvault.ActionType(a["action_type"].(string)),
+				ActionType: keyvault.CertificatePolicyAction(a["action_type"].(string)),
 			}
 		}
 

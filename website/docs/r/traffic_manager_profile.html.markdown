@@ -82,11 +82,15 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
 The `dns_config` block supports:
 
 * `relative_name` - (Required) The relative domain name, this is combined with the domain name used by Traffic Manager to form the FQDN which is exported as documented below. Changing this forces a new resource to be created.
 
 * `ttl` - (Required) The TTL value of the Profile used by Local DNS resolvers and clients.
+
+---
 
 The `monitor_config` block supports:
 
@@ -106,15 +110,17 @@ The `monitor_config` block supports:
 
 * `tolerated_number_of_failures` - (Optional) The number of failures a Traffic Manager probing agent tolerates before marking that endpoint as unhealthy. Valid values are between `0` and `9`. The default value is `3`
 
+---
+
 A `custom_header` block supports the following:
 
-* `name` - (Required) The name of the custom header. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the custom header.
 
 * `value` - (Required) The value of custom header. Applicable for HTTP and HTTPS protocol.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Traffic Manager Profile.
 

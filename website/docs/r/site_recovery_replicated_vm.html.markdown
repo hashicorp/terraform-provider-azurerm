@@ -228,7 +228,9 @@ The following arguments are supported:
 
 * `recovery_vault_name` - (Required) The name of the vault that should be updated. Changing this forces a new resource to be created.
 
-* `source_recovery_fabric_name` - (Required) Name of fabric that should contains this replication. Changing this forces a new resource to be created.
+* `recovery_replication_policy_id` - (Required) Id of the policy to use for this replicated vm. Changing this forces a new resource to be created.
+
+* `source_recovery_fabric_name` - (Required) Name of fabric that should contain this replication. Changing this forces a new resource to be created.
 
 * `source_vm_id` - (Required) Id of the VM to replicate Changing this forces a new resource to be created.
 
@@ -236,49 +238,83 @@ The following arguments are supported:
 
 * `target_resource_group_id` - (Required) Id of resource group where the VM should be created when a failover is done. Changing this forces a new resource to be created.
 
-* `target_recovery_fabric_id` - (Required)  Id of fabric where the VM replication should be handled when a failover is done. Changing this forces a new resource to be created.
+* `target_recovery_fabric_id` - (Required) Id of fabric where the VM replication should be handled when a failover is done. Changing this forces a new resource to be created.
 
-* `target_recovery_protection_container_id` - (Required)  Id of protection container where the VM replication should be created when a failover is done. Changing this forces a new resource to be created.
+* `target_recovery_protection_container_id` - (Required) Id of protection container where the VM replication should be created when a failover is done. Changing this forces a new resource to be created.
 
-* `target_availability_set_id` - (Optional)  Id of availability set that the new VM should belong to when a failover is done.
+* `target_availability_set_id` - (Optional) Id of availability set that the new VM should belong to when a failover is done.
 
 * `target_zone` - (Optional) Specifies the Availability Zone where the Failover VM should exist. Changing this forces a new resource to be created.
 
-* `managed_disk` - (Optional) One or more `managed_disk` block.
+* `managed_disk` - (Optional) One or more `managed_disk` block as defined below. Changing this forces a new resource to be created.
+
+* `unmanaged_disk` - (Optional) One or more `unmanaged_disk` block. Changing this forces a new resource to be created.
+ 
+* `target_edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
+
+* `target_proximity_placement_group_id` - (Optional) Id of Proximity Placement Group the new VM should belong to when a failover is done.
+
+* `target_boot_diagnostic_storage_account_id` - (Optional) Id of the storage account which the new VM should used for boot diagnostic when a failover is done.
+
+* `target_capacity_reservation_group_id` - (Optional) Id of the Capacity reservation group where the new VM should belong to when a failover is done.
+
+* `target_virtual_machine_scale_set_id` - (Optional) Id of the Virtual Machine Scale Set which the new Vm should belong to when a failover is done.
 
 * `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover).
 
-* `network_interface` - (Optional) One or more `network_interface` block.
+* `test_network_id` - (Optional) Network to use when a test failover is done.
+
+* `network_interface` - (Optional) One or more `network_interface` block as defined below.
+* 
+* `multi_vm_group_name` - (Optional) Name of group in which all machines will replicate together and have shared crash consistent and app-consistent recovery points when failed over.
 
 ---
 
 A `managed_disk` block supports the following:
 
-* `disk_id` - (Required) Id of disk that should be replicated.
+* `disk_id` - (Required) Id of disk that should be replicated. Changing this forces a new resource to be created.
 
-* `staging_storage_account_id` - (Required) Storage account that should be used for caching.
+* `staging_storage_account_id` - (Required) Storage account that should be used for caching. Changing this forces a new resource to be created.
 
-* `target_resource_group_id` - (Required) Resource group disk should belong to when a failover is done.
+* `target_resource_group_id` - (Required) Resource group disk should belong to when a failover is done. Changing this forces a new resource to be created.
 
-* `target_disk_type` - (Required) What type should the disk be when a failover is done. Possible values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` and `UltraSSD_LRS`.
+* `target_disk_type` - (Required) What type should the disk be when a failover is done. Possible values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` and `UltraSSD_LRS`. Changing this forces a new resource to be created.
 
-* `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data. Possible values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` and `UltraSSD_LRS`.
+* `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data. Possible values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` and `UltraSSD_LRS`. Changing this forces a new resource to be created.
 
-* `target_disk_encryption_set_id` - (Optional)  The Disk Encryption Set that the Managed Disk will be associated with.
+* `target_disk_encryption_set_id` - (Optional) The Disk Encryption Set that the Managed Disk will be associated with. Changing this forces a new resource to be created.
+
+-> **NOTE:** Creating replicated vm with `target_disk_encryption_set_id` wil take more time (up to 5 hours), please extend the `timeout` for `create`. 
 
 * `target_disk_encryption` - (Optional) A `target_disk_encryption` block as defined below.
 
 ---
 
+A `unmanaged_disk` block supports the following:
+
+* `disk_uri` - (Required) Id of disk that should be replicated.
+
+* `staging_storage_account_id` - (Required) Storage account that should be used for caching.
+
+* `target_storage_account_id` - (Required) Storage account disk should belong to when a failover is done.
+
+---
+
 A `network_interface` block supports the following:
 
-* `source_network_interface_id` - (Required if the network_interface block is specified) Id source network interface.
+* `source_network_interface_id` - (Optional) (Required if the network_interface block is specified) Id source network interface.
 
 * `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 
 * `target_subnet_name` - (Optional) Name of the subnet to to use when a failover is done.
 
 * `recovery_public_ip_address_id` - (Optional) Id of the public IP object to use when a failover is done.
+
+* `failover_test_static_ip` - (Optional) Static IP to assign when a test failover is done.
+
+* `failover_test_subnet_name` - (Optional) Name of the subnet to to use when a test failover is done.
+
+* `failover_test_public_ip_address_id` - (Optional) Id of the public IP object to use when a test failover is done.
 
 ---
 
@@ -314,7 +350,7 @@ In addition to the arguments above, the following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 120 minutes) Used when creating the Site Recovery Replicated VM.
+* `create` - (Defaults to 3 hours) Used when creating the Site Recovery Replicated VM.
 * `update` - (Defaults to 80 minutes) Used when updating the Site Recovery Replicated VM.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Replicated VM.
 * `delete` - (Defaults to 80 minutes) Used when deleting the Site Recovery Replicated VM.

@@ -39,6 +39,7 @@ output "query_rule_id" {
 * `enabled` - Whether this scheduled query rule is enabled.
 * `frequency` - Frequency at which rule condition should be evaluated.
 * `query` - Log search query.
+* `query_type` - The type of query results.
 * `time_window` - Time window for which data needs to be fetched for query.
 * `severity` - Severity of the alert.
 * `throttling` - Time for which alerts should be throttled or suppressed.

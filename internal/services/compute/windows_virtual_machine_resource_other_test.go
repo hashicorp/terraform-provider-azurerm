@@ -1277,6 +1277,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data))
 }
 
+//nolint:unused
 func (r WindowsVirtualMachineResource) otherPatchAssessmentModeAutomaticByPlatform(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -2355,6 +2356,7 @@ resource "azurerm_key_vault" "test" {
 
     key_permissions = [
       "Create",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [
@@ -2846,6 +2848,7 @@ resource "azurerm_key_vault" "test" {
       "Update",
       "Verify",
       "WrapKey",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [

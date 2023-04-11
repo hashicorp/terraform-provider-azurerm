@@ -139,5 +139,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Media Jobs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_job.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Media/mediaservices/account1/transforms/transform1/jobs/job1
+terraform import azurerm_media_job.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Media/mediaServices/account1/transforms/transform1/jobs/job1
 ```

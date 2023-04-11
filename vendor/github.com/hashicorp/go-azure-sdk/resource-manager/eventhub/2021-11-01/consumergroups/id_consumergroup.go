@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = ConsumerGroupId{}
 
 // ConsumerGroupId is a struct representing the Resource ID for a Consumer Group
@@ -14,17 +17,17 @@ type ConsumerGroupId struct {
 	SubscriptionId    string
 	ResourceGroupName string
 	NamespaceName     string
-	EventHubName      string
+	EventhubName      string
 	ConsumerGroupName string
 }
 
 // NewConsumerGroupID returns a new ConsumerGroupId struct
-func NewConsumerGroupID(subscriptionId string, resourceGroupName string, namespaceName string, eventHubName string, consumerGroupName string) ConsumerGroupId {
+func NewConsumerGroupID(subscriptionId string, resourceGroupName string, namespaceName string, eventhubName string, consumerGroupName string) ConsumerGroupId {
 	return ConsumerGroupId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
 		NamespaceName:     namespaceName,
-		EventHubName:      eventHubName,
+		EventhubName:      eventhubName,
 		ConsumerGroupName: consumerGroupName,
 	}
 }
@@ -52,8 +55,8 @@ func ParseConsumerGroupID(input string) (*ConsumerGroupId, error) {
 		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
 	}
 
-	if id.EventHubName, ok = parsed.Parsed["eventHubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'eventHubName' was not found in the resource id %q", input)
+	if id.EventhubName, ok = parsed.Parsed["eventhubName"]; !ok {
+		return nil, fmt.Errorf("the segment 'eventhubName' was not found in the resource id %q", input)
 	}
 
 	if id.ConsumerGroupName, ok = parsed.Parsed["consumerGroupName"]; !ok {
@@ -87,8 +90,8 @@ func ParseConsumerGroupIDInsensitively(input string) (*ConsumerGroupId, error) {
 		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
 	}
 
-	if id.EventHubName, ok = parsed.Parsed["eventHubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'eventHubName' was not found in the resource id %q", input)
+	if id.EventhubName, ok = parsed.Parsed["eventhubName"]; !ok {
+		return nil, fmt.Errorf("the segment 'eventhubName' was not found in the resource id %q", input)
 	}
 
 	if id.ConsumerGroupName, ok = parsed.Parsed["consumerGroupName"]; !ok {
@@ -116,7 +119,7 @@ func ValidateConsumerGroupID(input interface{}, key string) (warnings []string, 
 // ID returns the formatted Consumer Group ID
 func (id ConsumerGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventHub/namespaces/%s/eventhubs/%s/consumerGroups/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventHubName, id.ConsumerGroupName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventhubName, id.ConsumerGroupName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Consumer Group ID
@@ -131,7 +134,7 @@ func (id ConsumerGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
 		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
 		resourceids.StaticSegment("staticEventhubs", "eventhubs", "eventhubs"),
-		resourceids.UserSpecifiedSegment("eventHubName", "eventHubValue"),
+		resourceids.UserSpecifiedSegment("eventhubName", "eventhubValue"),
 		resourceids.StaticSegment("staticConsumerGroups", "consumerGroups", "consumerGroups"),
 		resourceids.UserSpecifiedSegment("consumerGroupName", "consumerGroupValue"),
 	}
@@ -143,7 +146,7 @@ func (id ConsumerGroupId) String() string {
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Namespace Name: %q", id.NamespaceName),
-		fmt.Sprintf("Event Hub Name: %q", id.EventHubName),
+		fmt.Sprintf("Eventhub Name: %q", id.EventhubName),
 		fmt.Sprintf("Consumer Group Name: %q", id.ConsumerGroupName),
 	}
 	return fmt.Sprintf("Consumer Group (%s)", strings.Join(components, "\n"))

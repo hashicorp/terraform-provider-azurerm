@@ -116,6 +116,11 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"order": {
+							Type:     pluginsdk.TypeInt,
+							Required: true,
+						},
+
 						"description": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -129,11 +134,6 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-						},
-
-						"order": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
 						},
 
 						"predicates": {
@@ -257,7 +257,16 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 	d.Set("name", id.RouteConfigName)
 	d.Set("spring_cloud_gateway_id", parse.NewSpringCloudGatewayID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.GatewayName).ID())
 	if props := resp.Properties; props != nil {
-		d.Set("spring_cloud_app_id", props.AppResourceID)
+		// The returned value has inconsistent casing
+		// TODO: Remove the normalization codes once the following issue is fixed.
+		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22845
+		if props.AppResourceID != nil {
+			appId, err := parse.SpringCloudAppIDInsensitively(*props.AppResourceID)
+			if err != nil {
+				return fmt.Errorf("parsing `spring_cloud_app_id`: %+v", err)
+			}
+			d.Set("spring_cloud_app_id", appId.ID())
+		}
 		d.Set("protocol", props.Protocol)
 		if err := d.Set("route", flattenGatewayRouteConfigGatewayAPIRouteArray(props.Routes)); err != nil {
 			return fmt.Errorf("setting `route`: %+v", err)

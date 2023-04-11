@@ -19,14 +19,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceArmLoadBalancer() *pluginsdk.Resource {
@@ -86,7 +86,6 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	id := parse.NewLoadBalancerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	log.Printf("elena: is new resource : %t", d.IsNewResource())
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
@@ -117,11 +116,7 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	properties := network.LoadBalancerPropertiesFormat{}
 
 	if _, ok := d.GetOk("frontend_ip_configuration"); ok {
-		frontendIPConfigurations, err := expandAzureRmLoadBalancerFrontendIpConfigurations(d)
-		if err != nil {
-			return err
-		}
-		properties.FrontendIPConfigurations = frontendIPConfigurations
+		properties.FrontendIPConfigurations = expandAzureRmLoadBalancerFrontendIpConfigurations(d)
 	}
 
 	loadBalancer := network.LoadBalancer{
@@ -226,7 +221,7 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData) (*[]network.FrontendIPConfiguration, error) {
+func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData) *[]network.FrontendIPConfiguration {
 	configs := d.Get("frontend_ip_configuration").([]interface{})
 	frontEndConfigs := make([]network.FrontendIPConfiguration, 0, len(configs))
 
@@ -283,7 +278,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		frontEndConfigs = append(frontEndConfigs, frontEndConfig)
 	}
 
-	return &frontEndConfigs, nil
+	return &frontEndConfigs
 }
 
 func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPConfiguration) []interface{} {
@@ -437,14 +432,14 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
-						ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						Computed:     true, // TODO: why is this computed?
+						ValidateFunc: networkValidate.SubnetID,
 					},
 
 					"private_ip_address": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
+						Computed: true, // TODO: remove computed in 4.0 and use ignore_changes
 						ValidateFunc: validation.Any(
 							validation.IsIPAddress,
 							validation.StringIsEmpty,
@@ -454,7 +449,7 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"private_ip_address_version": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
+						Computed: true, // TODO: why is this computed?
 						ValidateFunc: validation.StringInSlice([]string{
 							string(network.IPVersionIPv4),
 							string(network.IPVersionIPv6),
@@ -464,15 +459,15 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
-						ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						Computed:     true, // TODO: why is this computed?
+						ValidateFunc: networkValidate.PublicIpAddressID,
 					},
 
 					"public_ip_prefix_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
-						ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						ValidateFunc: networkValidate.PublicIpPrefixID,
 					},
 
 					"private_ip_address_allocation": {
@@ -483,7 +478,6 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 							string(network.IPAllocationMethodDynamic),
 							string(network.IPAllocationMethodStatic),
 						}, true),
-						StateFunc:        state.IgnoreCase,
 						DiffSuppressFunc: suppress.CaseDifference,
 					},
 

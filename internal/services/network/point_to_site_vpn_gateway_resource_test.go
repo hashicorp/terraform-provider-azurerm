@@ -100,6 +100,22 @@ func TestAccPointToSiteVPNGateway_tags(t *testing.T) {
 	})
 }
 
+func TestAccPointToSiteVPNGateway_routing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
+	r := PointToSiteVPNGatewayResource{}
+	nameSuffix := randString()
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.routing(data, nameSuffix),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (PointToSiteVPNGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PointToSiteVpnGatewayID(state.ID)
 	if err != nil {
@@ -299,4 +315,85 @@ EOF
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PointToSiteVPNGatewayResource) routing(data acceptance.TestData, nameSuffix string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_route_map" "test" {
+  name           = "acctestrm-%s"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+
+  rule {
+    name                 = "rule1"
+    next_step_if_matched = "Continue"
+
+    action {
+      type = "Add"
+
+      parameter {
+        as_path = ["22334"]
+      }
+    }
+
+    match_criterion {
+      match_condition = "Contains"
+      route_prefix    = ["10.0.0.0/8"]
+    }
+  }
+}
+
+resource "azurerm_route_map" "test2" {
+  name           = "acctestrmn-%s"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+
+  rule {
+    name                 = "rule1"
+    next_step_if_matched = "Continue"
+
+    action {
+      type = "Add"
+
+      parameter {
+        as_path = ["22334"]
+      }
+    }
+
+    match_criterion {
+      match_condition = "Contains"
+      route_prefix    = ["10.0.0.0/8"]
+    }
+  }
+}
+
+resource "azurerm_point_to_site_vpn_gateway" "test" {
+  name                                = "acctestp2sVPNG-%d"
+  location                            = azurerm_resource_group.test.location
+  resource_group_name                 = azurerm_resource_group.test.name
+  virtual_hub_id                      = azurerm_virtual_hub.test.id
+  vpn_server_configuration_id         = azurerm_vpn_server_configuration.test.id
+  scale_unit                          = 1
+  routing_preference_internet_enabled = true
+
+  connection_configuration {
+    name = "first"
+
+    vpn_client_address_pool {
+      address_prefixes = ["172.100.0.0/14"]
+    }
+
+    route {
+      associated_route_table_id = azurerm_virtual_hub.test.default_route_table_id
+      inbound_route_map_id      = azurerm_route_map.test.id
+      outbound_route_map_id     = azurerm_route_map.test2.id
+
+      propagated_route_table {
+        ids    = [azurerm_virtual_hub.test.default_route_table_id]
+        labels = ["label1"]
+      }
+    }
+  }
+}
+`, r.template(data), nameSuffix, nameSuffix, data.RandomInteger)
 }

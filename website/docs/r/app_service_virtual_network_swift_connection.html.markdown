@@ -156,24 +156,24 @@ resource "azurerm_app_service_virtual_network_swift_connection" "example" {
 
 The following arguments are supported:
 
-- `app_service_id` - (Required) The ID of the App Service or Function App to associate to the VNet. Changing this forces a new resource to be created.
+* `app_service_id` - (Required) The ID of the App Service or Function App to associate to the VNet. Changing this forces a new resource to be created.
 
-- `subnet_id` - (Required) The ID of the subnet the app service will be associated to (the subnet must have a `service_delegation` configured for `Microsoft.Web/serverFarms`).
+* `subnet_id` - (Required) The ID of the subnet the app service will be associated to (the subnet must have a `service_delegation` configured for `Microsoft.Web/serverFarms`).
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
-- `id` - The ID of the App Service Virtual Network Association
+* `id` - The ID of the App Service Virtual Network Association
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-- `create` - (Defaults to 30 minutes) Used when creating the App Service Virtual Network Association.
-- `update` - (Defaults to 30 minutes) Used when updating the App Service Virtual Network Association.
-- `read` - (Defaults to 5 minutes) Used when retrieving the App Service Virtual Network Association.
-- `delete` - (Defaults to 30 minutes) Used when deleting the App Service Virtual Network Association.
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Virtual Network Association.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Virtual Network Association.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Virtual Network Association.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Virtual Network Association.
 
 ## Import
 

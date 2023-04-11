@@ -82,7 +82,7 @@ JSON
 
 ---
 
-An `integration_runtime` supports the following:
+An `integration_runtime` block supports the following:
 
 * `name` - (Required) The integration runtime reference to associate with the Data Factory Linked Service.
 
@@ -90,7 +90,7 @@ An `integration_runtime` supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory Linked Service.
 

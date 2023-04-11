@@ -247,19 +247,13 @@ The following arguments are supported:
 
 ---
 
-A `sku` block supports the following:
-
-* `name` - (Required) SKU of the managed instance. Values can be `GP_Gen4`, `GP_Gen5`, `BC_Gen4`, or `BC_Gen5`.
-
----
-
  An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this SQL Managed Instance. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The SQL Managed Instance ID.
 
@@ -274,6 +268,15 @@ The following attributes are exported:
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Managed Instance.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Managed Instance.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Sql Managed Instance.
+* `create` - (Defaults to 24 hours) Used when creating the Sql Managed Instance.
+* `update` - (Defaults to 24 hours) Used when updating the Sql Managed Instance.
+* `delete` - (Defaults to 24 hours) Used when deleting the Sql Managed Instance.
 
 ## Import
 

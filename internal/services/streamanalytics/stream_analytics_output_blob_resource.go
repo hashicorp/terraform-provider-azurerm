@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
@@ -106,9 +106,9 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 				ValidateFunc: validate.BatchMaxWaitTime,
 			},
 			"batch_min_rows": {
-				Type:         pluginsdk.TypeFloat,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.FloatBetween(0, 10000),
+				ValidateFunc: validation.IntBetween(0, 10000),
 			},
 
 			"storage_account_key": {
@@ -181,7 +181,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if batchMinRows, ok := d.GetOk("batch_min_rows"); ok {
-		props.Properties.SizeWindow = utils.Float(batchMinRows.(float64))
+		props.Properties.SizeWindow = utils.Int64(int64(batchMinRows.(int)))
 	}
 
 	// timeWindow and sizeWindow must be set for Parquet serialization
@@ -227,7 +227,7 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	d.Set("name", id.OutputName)
-	d.Set("stream_analytics_job_name", id.JobName)
+	d.Set("stream_analytics_job_name", id.StreamingJobName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
-	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
+	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"                              // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -78,7 +78,6 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
@@ -225,6 +224,13 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		PublicNetworkAccessForIngestion: internetIngestionEnabled,
 		PublicNetworkAccessForQuery:     internetQueryEnabled,
 		ForceCustomerStorageForProfiler: utils.Bool(forceCustomerStorageForProfiler),
+	}
+
+	if !d.IsNewResource() {
+		oldWorkspaceId, newWorkspaceId := d.GetChange("workspace_id")
+		if oldWorkspaceId.(string) != "" && newWorkspaceId.(string) == "" {
+			return fmt.Errorf("`workspace_id` can not be removed after set")
+		}
 	}
 
 	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {

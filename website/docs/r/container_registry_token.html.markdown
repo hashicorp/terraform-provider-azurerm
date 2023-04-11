@@ -68,7 +68,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container Registry token.
 
@@ -86,5 +86,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Container Registries can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_container_registry_token.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1/tokens/token1
+terraform import azurerm_container_registry_token.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1/tokens/token1
 ```

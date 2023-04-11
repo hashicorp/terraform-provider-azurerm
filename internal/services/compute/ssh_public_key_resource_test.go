@@ -68,7 +68,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_ssh_public_key" "test" {
-  name                = "test-public-key-%d"
+  name                = "tf.test-public-key-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   public_key          = "%s"

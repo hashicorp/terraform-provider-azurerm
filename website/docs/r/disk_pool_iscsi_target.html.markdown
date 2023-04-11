@@ -120,10 +120,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the iSCSI Target.
+* `create` - (Defaults to 60 minutes) Used when creating the iSCSI Target.
 * `read` - (Defaults to 5 minutes) Used when retrieving the iSCSI Target.
 * `update` - (Defaults to 30 minutes) Used when updating the iSCSI Target.
-* `delete` - (Defaults to 30 minutes) Used when deleting the iSCSI Target.
+* `delete` - (Defaults to 60 minutes) Used when deleting the iSCSI Target.
 
 ## Import
 

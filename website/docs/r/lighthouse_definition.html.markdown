@@ -48,6 +48,8 @@ The following arguments are supported:
   
 * `description` - (Optional) A description of the Lighthouse Definition.
 
+* `eligible_authorization` - (Optional) An `eligible_authorization` block as defined below.
+
 * `plan` - (Optional) A `plan` block as defined below.
 
 ---
@@ -64,6 +66,38 @@ An `authorization` block supports the following:
 
 ---
 
+An `eligible_authorization` block supports the following:
+
+* `principal_id` - (Required) The Principal ID of the Azure Active Directory.
+
+* `role_definition_id` - (Required) The Principal ID of the Azure built-in role that defines the permissions that the Azure Active Directory will have on the projected scope.
+
+* `just_in_time_access_policy` - (Optional) A `just_in_time_access_policy` block as defined below.
+
+* `principal_display_name` - (Optional) The display name of the Azure Active Directory Principal.
+
+---
+
+A `just_in_time_access_policy` block supports the following:
+
+* `multi_factor_auth_provider` - (Optional) The multi-factor authorization provider to be used for just-in-time access requests. Possible value is `Azure`.
+
+~> **Note:** When this property isn't set, it would be set to `None`.
+
+* `maximum_activation_duration` - (Optional) The maximum access duration in ISO 8601 format for just-in-time access requests. Defaults to `PT8H`.
+
+* `approver` - (Optional) An `approver` block as defined below.
+
+---
+
+An `approver` block supports the following:
+
+* `principal_id` - (Required) The Principal ID of the Azure Active Directory principal for the approver.
+
+* `principal_display_name` - (Optional) The display name of the Azure Active Directory Principal for the approver.
+
+---
+
 A `plan` block supports the following:
 
 * `name` - (Required) The plan name of the marketplace offer.
@@ -76,7 +110,7 @@ A `plan` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - the fully qualified ID of the Lighthouse Definition.
 

@@ -182,12 +182,12 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("name", id.InputName)
-	d.Set("stream_analytics_job_name", id.JobName)
+	d.Set("stream_analytics_job_name", id.StreamingJobName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties)
+			input, ok := props.(inputs.InputProperties) // nolint: gosimple
 			if !ok {
 				return fmt.Errorf("converting %s to an Input", *id)
 			}
@@ -231,7 +231,6 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, met
 					return fmt.Errorf("setting `serialization`: %+v", err)
 				}
 			}
-
 		}
 	}
 

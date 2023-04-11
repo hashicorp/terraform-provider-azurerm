@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := nginxdeployment.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentValue")
+id := nginxdeployment.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentValue")
 
 payload := nginxdeployment.NginxDeployment{
 	// ...
@@ -41,7 +41,7 @@ if err := client.DeploymentsCreateOrUpdateThenPoll(ctx, id, payload); err != nil
 
 ```go
 ctx := context.TODO()
-id := nginxdeployment.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentValue")
+id := nginxdeployment.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentValue")
 
 if err := client.DeploymentsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeploymentsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := nginxdeployment.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentValue")
+id := nginxdeployment.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentValue")
 
 read, err := client.DeploymentsGet(ctx, id)
 if err != nil {
@@ -103,7 +103,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := nginxdeployment.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentValue")
+id := nginxdeployment.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentValue")
 
 payload := nginxdeployment.NginxDeploymentUpdateParameters{
 	// ...

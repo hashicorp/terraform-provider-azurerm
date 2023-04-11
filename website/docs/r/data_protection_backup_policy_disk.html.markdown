@@ -59,8 +59,6 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Backup Policy Disk. Changing this forces a new Backup Policy Disk to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Backup Policy Disk should exist. Changing this forces a new Backup Policy Disk to be created.
-
 * `vault_id` - (Required) The ID of the Backup Vault within which the Backup Policy Disk should exist. Changing this forces a new Backup Policy Disk to be created.
 
 * `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It should follow `ISO 8601` repeating time interval . Changing this forces a new Backup Policy Disk to be created.

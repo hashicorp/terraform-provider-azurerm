@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/hybridconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces"
@@ -220,7 +220,7 @@ func (r WebAppHybridConnectionResource) Read() sdk.ResourceFunc {
 
 			if appHybridConn.ServiceBusNamespace != "" && appHybridConn.SendKeyName != "" {
 				relayNamespaceClient := metadata.Client.Relay.NamespacesClient
-				relayId, err := hybridconnections.ParseHybridConnectionID(appHybridConn.RelayId)
+				relayId, err := hybridconnections.ParseHybridConnectionIDInsensitively(appHybridConn.RelayId)
 				if err != nil {
 					return err
 				}
@@ -231,7 +231,7 @@ func (r WebAppHybridConnectionResource) Read() sdk.ResourceFunc {
 				}
 
 				hybridConnectionsClient := metadata.Client.Relay.HybridConnectionsClient
-				hybridConnectionID, err := hybridconnections.ParseHybridConnectionID(appHybridConn.RelayId)
+				hybridConnectionID, err := hybridconnections.ParseHybridConnectionIDInsensitively(appHybridConn.RelayId)
 				if err != nil {
 					return err
 				}

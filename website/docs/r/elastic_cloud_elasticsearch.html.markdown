@@ -55,7 +55,7 @@ The `filtering_tag` block supports the following:
 
 * `action` - (Required) Specifies the type of action which should be taken when the Tag matches the `name` and `value`. Possible values are `Exclude` and `Include`.
 
-* `name` - (Required) Specifies the name (key) of the Tag which should be filtered. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name (key) of the Tag which should be filtered.
 
 * `value` - (Required) Specifies the value of the Tag which should be filtered.
 
@@ -93,10 +93,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Elasticsearch.
+* `create` - (Defaults to 60 minutes) Used when creating the Elasticsearch.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Elasticsearch.
-* `update` - (Defaults to 30 minutes) Used when updating the Elasticsearch.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Elasticsearch.
+* `update` - (Defaults to 60 minutes) Used when updating the Elasticsearch.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Elasticsearch.
 
 ## Import
 

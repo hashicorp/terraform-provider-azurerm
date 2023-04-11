@@ -64,7 +64,7 @@ resource "azurerm_iothub_endpoint_storage_container" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved:  `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved: `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group under which the Storage Container has been created. Changing this forces a new resource to be created.
 
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the IoTHub Storage Container Endpoint.
 

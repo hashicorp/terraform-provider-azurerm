@@ -175,7 +175,6 @@ resource "azurerm_api_management_custom_domain" "import" {
 }
 
 func (ApiManagementCustomDomainResource) template(data acceptance.TestData, systemAssignedIdentity bool) string {
-
 	identitySnippet := `
   identity {
     type = "SystemAssigned"

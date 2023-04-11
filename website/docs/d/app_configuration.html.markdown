@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `endpoint` - The Endpoint used to access this App Configuration.
 
-* `encrption` - An `encryption` block as defined below.
+* `encryption` - An `encryption` block as defined below.
 
 * `local_auth_enabled` - Whether local authentication methods is enabled.
 

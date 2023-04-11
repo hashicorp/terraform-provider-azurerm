@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Network Managers should exist. Changing this forces a new Network Managers to be created.
 
-* `location` - (Required) Specifies the Azure Region where the Network Managers should exist.
+* `location` - (Required) Specifies the Azure Region where the Network Managers should exist. Changing this forces a new resource to be created.
 
 * `scope` - (Required) A `scope` block as defined below.
 

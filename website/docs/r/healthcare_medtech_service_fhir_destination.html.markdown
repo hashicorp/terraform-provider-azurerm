@@ -54,11 +54,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Healthcare Med Tech Service Fhir Destination. Changing this forces a new Healthcare Med Tech Service Fhir Destination to be created.
 
-* `medtech_service_id`  - (Required) Specifies the name of the Healthcare Med Tech Service where the Healthcare Med Tech Service Fhir Destination should exist. Changing this forces a new Healthcare Med Tech Service Fhir Destination to be created.
+* `medtech_service_id` - (Required) Specifies the name of the Healthcare Med Tech Service where the Healthcare Med Tech Service Fhir Destination should exist. Changing this forces a new Healthcare Med Tech Service Fhir Destination to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Healthcare Med Tech Service Fhir Destination should be created. Changing this forces a new Healthcare Med Tech Service Fhir Destination to be created.
 
-* `destination_identity_resolution_type` - (Required) Specifies the destination identity resolution type where the Healthcare Med Tech Service Fhir Destination should be created. Possible values are `Create`, `Lookup`. Defaults to `Create`.
+* `destination_fhir_service_id` - (Required) Specifies the destination fhir service id of the Med Tech Service Fhir Destination.
+
+* `destination_identity_resolution_type` - (Required) Specifies the destination identity resolution type where the Healthcare Med Tech Service Fhir Destination should be created. Possible values are `Create`, `Lookup`.
 
 * `destination_fhir_mapping_json` - (Required) Specifies the destination Fhir mappings of the Med Tech Service Fhir Destination.
 
@@ -72,10 +74,11 @@ The following arguments are supported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Healthcare Med Tech Service Fhir Destination.
+* `create` - (Defaults to 90 minutes) Used when creating the Healthcare Med Tech Service Fhir Destination.
 * `update` - (Defaults to 30 minut es) Used when updating the Healthcare Med Tech Service Fhir Destination.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Med Tech Service Fhir Destination.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare Med Tech Service Fhir Destination.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Healthcare Med Tech Service Fhir Destination.
+* `update` - (Defaults to 90 minutes) Used when updating the Healthcare Medtech Service Fhir Destination.
 
 ## Import
 

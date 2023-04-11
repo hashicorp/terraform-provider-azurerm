@@ -71,9 +71,9 @@ The following supported arguments are common across all Azure Data Factory Datas
 
 The following supported arguments are specific to JSON Dataset:
 
-* `http_server_location` - (Required) A `http_server_location` block as defined below.
+* `http_server_location` - (Optional) A `http_server_location` block as defined below.
 
-* `azure_blob_storage_location` - (Required) A `azure_blob_storage_location` block as defined below.
+* `azure_blob_storage_location` - (Optional) A `azure_blob_storage_location` block as defined below.
 
 The following supported arguments are specific to Delimited Text Dataset:
 
@@ -121,7 +121,7 @@ A `azure_blob_storage_location` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory Dataset.
 

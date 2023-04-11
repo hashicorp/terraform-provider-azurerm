@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -343,7 +343,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 
 				if instancePairs := props.ManagedInstancePairs; instancePairs != nil && len(*instancePairs) == 1 {
 					if primaryId := (*instancePairs)[0].PrimaryManagedInstanceID; primaryId != nil {
-						id, err := parse.ManagedInstanceID(*primaryId)
+						id, err := parse.ManagedInstanceIDInsensitively(*primaryId)
 						if err != nil {
 							return fmt.Errorf("parsing `PrimaryManagedInstanceID` from response: %v", err)
 						}
@@ -352,7 +352,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 					}
 
 					if partnerId := (*instancePairs)[0].PartnerManagedInstanceID; partnerId != nil {
-						id, err := parse.ManagedInstanceID(*partnerId)
+						id, err := parse.ManagedInstanceIDInsensitively(*partnerId)
 						if err != nil {
 							return fmt.Errorf("parsing `PrimaryManagedInstanceID` from response: %v", err)
 						}
