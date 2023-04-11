@@ -35,7 +35,6 @@ type CustomIpPrefixModel struct {
 }
 
 var (
-	_ sdk.Resource           = CustomIpPrefixResource{}
 	_ sdk.ResourceWithUpdate = CustomIpPrefixResource{}
 )
 
