@@ -105,3 +105,15 @@ func flattenAzureRmScheduledQueryRulesLogDimension(input *[]scheduledqueryrules.
 	}
 	return result
 }
+
+func expandStringValues(input []interface{}) []string {
+	result := make([]string, 0)
+	for _, item := range input {
+		if item != nil {
+			result = append(result, item.(string))
+		} else {
+			result = append(result, "")
+		}
+	}
+	return result
+}

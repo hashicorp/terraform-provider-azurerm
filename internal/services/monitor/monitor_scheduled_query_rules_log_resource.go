@@ -290,7 +290,7 @@ func expandMonitorScheduledQueryRulesLogCriteria(input []interface{}) []schedule
 			dimensions = append(dimensions, scheduledqueryrules.Dimension{
 				Name:     dVal["name"].(string),
 				Operator: scheduledqueryrules.Operator(dVal["operator"].(string)),
-				Values:   expandDimensionValues(dVal["values"].([]interface{})),
+				Values:   expandStringValues(dVal["values"].([]interface{})),
 			})
 		}
 
@@ -311,16 +311,4 @@ func expandMonitorScheduledQueryRulesLogToMetricAction(d *pluginsdk.ResourceData
 	}
 
 	return &action
-}
-
-func expandDimensionValues(input []interface{}) []string {
-	result := make([]string, 0)
-	for _, item := range input {
-		if item != nil {
-			result = append(result, item.(string))
-		} else {
-			result = append(result, "")
-		}
-	}
-	return result
 }

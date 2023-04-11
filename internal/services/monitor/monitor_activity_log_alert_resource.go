@@ -336,7 +336,7 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 		Properties: &activitylogalertsapis.AlertRuleProperties{
 			Enabled:     utils.Bool(enabled),
 			Description: utils.String(description),
-			Scopes:      expandScopes(scopesRaw),
+			Scopes:      expandStringValues(scopesRaw),
 			Condition:   expandMonitorActivityLogAlertCriteria(criteriaRaw),
 			Actions:     expandMonitorActivityLogAlertAction(actionRaw),
 		},
@@ -749,18 +749,6 @@ func flattenMonitorActivityLogAlertAction(input activitylogalertsapis.ActionList
 		v["webhook_properties"] = props
 
 		result = append(result, v)
-	}
-	return result
-}
-
-func expandScopes(input []interface{}) []string {
-	result := make([]string, 0)
-	for _, item := range input {
-		if item != nil {
-			result = append(result, item.(string))
-		} else {
-			result = append(result, "")
-		}
 	}
 	return result
 }
