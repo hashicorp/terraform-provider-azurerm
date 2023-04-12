@@ -165,6 +165,10 @@ func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	id := parse.NewVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	locks.ByName(id.Name, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.Name, VirtualNetworkResourceName)
+
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -248,6 +252,9 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.Name, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.Name, VirtualNetworkResourceName)
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
@@ -428,6 +435,9 @@ func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
+	locks.ByName(id.Name, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.Name, VirtualNetworkResourceName)
+
 	nsgNames, err := expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d)
 	if err != nil {
 		return fmt.Errorf("parsing Network Security Group ID's: %+v", err)
@@ -486,7 +496,9 @@ func expandVirtualNetworkProperties(ctx context.Context, d *pluginsdk.ResourceDa
 	}
 
 	if v, ok := d.GetOk("bgp_community"); ok {
-		properties.BgpCommunities = &network.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: utils.String(v.(string))}
+		properties.BgpCommunities = &network.VirtualNetworkBgpCommunities{
+			VirtualNetworkCommunity: utils.String(v.(string)),
+		}
 	}
 
 	return properties, nil
