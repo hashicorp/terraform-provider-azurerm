@@ -210,6 +210,7 @@ Taking the Data Factory Linked Service resources as an example which could have 
 		...
     }, false),
 },
+```
 
 Would be better exposed as the following resources:
 	`azurerm_data_factory_linked_service_azure_blob_storage`
@@ -218,4 +219,3 @@ Would be better exposed as the following resources:
     `azurerm_data_factory_linked_service_azure_function`
     `azurerm_data_factory_linked_service_azure_search`
     ...
-```
