@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,7 +25,6 @@ type WorkloadsSAPVirtualInstanceModel struct {
 	Name                          string                          `tfschema:"name"`
 	ResourceGroupName             string                          `tfschema:"resource_group_name"`
 	Location                      string                          `tfschema:"location"`
-	DeploymentConfiguration       []DeploymentConfiguration       `tfschema:"deployment_configuration"`
 	DeploymentWithOSConfiguration []DeploymentWithOSConfiguration `tfschema:"deployment_with_os_configuration"`
 	DiscoveryConfiguration        []DiscoveryConfiguration        `tfschema:"discovery_configuration"`
 	Environment                   string                          `tfschema:"environment"`
@@ -32,12 +32,6 @@ type WorkloadsSAPVirtualInstanceModel struct {
 	ManagedResourceGroupName      string                          `tfschema:"managed_resource_group_name"`
 	SapProduct                    string                          `tfschema:"sap_product"`
 	Tags                          map[string]string               `tfschema:"tags"`
-}
-
-type DeploymentConfiguration struct {
-	AppLocation               string                      `tfschema:"app_location"`
-	SingleServerConfiguration []SingleServerConfiguration `tfschema:"single_server_configuration"`
-	ThreeTierConfiguration    []ThreeTierConfiguration    `tfschema:"three_tier_configuration"`
 }
 
 type DeploymentWithOSConfiguration struct {
@@ -240,29 +234,12 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 			}, false),
 		},
 
-		"deployment_configuration": {
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
-			ForceNew:     true,
-			MaxItems:     1,
-			AtLeastOneOf: []string{"deployment_configuration", "deployment_with_os_configuration", "discovery_configuration"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"app_location": commonschema.Location(),
-
-					"single_server_configuration": SchemaForSAPVirtualInstanceSingleServerConfiguration("deployment_configuration"),
-
-					"three_tier_configuration": SchemaForSAPVirtualInstanceThreeTierConfiguration("deployment_configuration"),
-				},
-			},
-		},
-
 		"deployment_with_os_configuration": {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			ForceNew:     true,
 			MaxItems:     1,
-			AtLeastOneOf: []string{"deployment_configuration", "deployment_with_os_configuration", "discovery_configuration"},
+			AtLeastOneOf: []string{"deployment_with_os_configuration", "discovery_configuration"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"app_location": commonschema.Location(),
@@ -308,9 +285,305 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 						},
 					},
 
-					"single_server_configuration": SchemaForSAPVirtualInstanceSingleServerConfiguration("deployment_with_os_configuration"),
+					"single_server_configuration": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						ForceNew: true,
+						MaxItems: 1,
+						AtLeastOneOf: []string{
+							"deployment_with_os_configuration.0.single_server_configuration",
+							"deployment_with_os_configuration.0.three_tier_configuration",
+						},
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"app_resource_group_name": commonschema.ResourceGroupName(),
 
-					"three_tier_configuration": SchemaForSAPVirtualInstanceThreeTierConfiguration("deployment_with_os_configuration"),
+								"subnet_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: networkValidate.SubnetID,
+								},
+
+								"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
+
+								"database_type": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForSAPDatabaseType(), false),
+								},
+
+								"disk_volume_configuration": SchemaForSAPVirtualInstanceDiskVolumeConfiguration(),
+
+								"is_secondary_ip_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									ForceNew: true,
+									Default:  false,
+								},
+
+								"virtual_machine_full_resource_names": SchemaForSAPVirtualInstanceVirtualMachineFullResourceNames(),
+							},
+						},
+					},
+
+					"three_tier_configuration": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						ForceNew: true,
+						MaxItems: 1,
+						AtLeastOneOf: []string{
+							"deployment_with_os_configuration.0.single_server_configuration",
+							"deployment_with_os_configuration.0.three_tier_configuration",
+						},
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"app_resource_group_name": commonschema.ResourceGroupName(),
+
+								"application_server_configuration": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									ForceNew: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"instance_count": {
+												Type:     pluginsdk.TypeInt,
+												Required: true,
+												ForceNew: true,
+											},
+
+											"subnet_id": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ForceNew:     true,
+												ValidateFunc: networkValidate.SubnetID,
+											},
+
+											"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
+										},
+									},
+								},
+
+								"central_server_configuration": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									ForceNew: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
+
+											"instance_count": {
+												Type:     pluginsdk.TypeInt,
+												Required: true,
+												ForceNew: true,
+											},
+
+											"subnet_id": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ForceNew:     true,
+												ValidateFunc: networkValidate.SubnetID,
+											},
+										},
+									},
+								},
+
+								"database_server_configuration": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									ForceNew: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"instance_count": {
+												Type:     pluginsdk.TypeInt,
+												Required: true,
+												ForceNew: true,
+											},
+
+											"subnet_id": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ForceNew:     true,
+												ValidateFunc: networkValidate.SubnetID,
+											},
+
+											"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
+
+											"database_type": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ForceNew:     true,
+												ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForSAPDatabaseType(), false),
+											},
+
+											"disk_volume_configuration": SchemaForSAPVirtualInstanceDiskVolumeConfiguration(),
+										},
+									},
+								},
+
+								"full_resource_names": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									ForceNew: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"application_server": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												ForceNew: true,
+												MaxItems: 1,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"availability_set_name": {
+															Type:         pluginsdk.TypeString,
+															Optional:     true,
+															ForceNew:     true,
+															ValidateFunc: validate.AvailabilitySetName,
+														},
+
+														"virtual_machine": SchemaForSAPVirtualInstanceVirtualMachineFullResourceNames(),
+													},
+												},
+											},
+
+											"central_server": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												ForceNew: true,
+												MaxItems: 1,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"availability_set_name": {
+															Type:         pluginsdk.TypeString,
+															Optional:     true,
+															ForceNew:     true,
+															ValidateFunc: validate.AvailabilitySetName,
+														},
+
+														"load_balancer": SchemaForSAPVirtualInstanceLoadBalancerFullResourceNames(),
+
+														"virtual_machine": SchemaForSAPVirtualInstanceVirtualMachineFullResourceNames(),
+													},
+												},
+											},
+
+											"database_server": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												ForceNew: true,
+												MaxItems: 1,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"availability_set_name": {
+															Type:         pluginsdk.TypeString,
+															Optional:     true,
+															ForceNew:     true,
+															ValidateFunc: validate.AvailabilitySetName,
+														},
+
+														"load_balancer": SchemaForSAPVirtualInstanceLoadBalancerFullResourceNames(),
+
+														"virtual_machine": SchemaForSAPVirtualInstanceVirtualMachineFullResourceNames(),
+													},
+												},
+											},
+
+											"shared_storage": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												ForceNew: true,
+												MaxItems: 1,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"account_name": {
+															Type:         pluginsdk.TypeString,
+															Optional:     true,
+															ForceNew:     true,
+															ValidateFunc: storageValidate.StorageAccountName,
+														},
+
+														"private_endpoint_name": {
+															Type:         pluginsdk.TypeString,
+															Optional:     true,
+															ForceNew:     true,
+															ValidateFunc: networkValidate.PrivateLinkName,
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+
+								"high_availability_type": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForSAPHighAvailabilityType(), false),
+								},
+
+								"is_secondary_ip_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									ForceNew: true,
+									Default:  false,
+								},
+
+								"transport_create_and_mount": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									ForceNew: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"resource_group_name": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ForceNew:     true,
+												ValidateFunc: resourcegroups.ValidateName,
+											},
+
+											"storage_account_name": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ForceNew:     true,
+												ValidateFunc: storageValidate.StorageAccountName,
+											},
+										},
+									},
+								},
+
+								"transport_mount": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									ForceNew: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"share_file_id": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ForceNew:     true,
+												ValidateFunc: storageValidate.StorageShareFileResourceManagerID,
+											},
+
+											"private_endpoint_id": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ForceNew:     true,
+												ValidateFunc: networkValidate.PrivateEndpointID,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -320,7 +593,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 			Optional:     true,
 			ForceNew:     true,
 			MaxItems:     1,
-			AtLeastOneOf: []string{"deployment_configuration", "deployment_with_os_configuration", "discovery_configuration"},
+			AtLeastOneOf: []string{"deployment_with_os_configuration", "discovery_configuration"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"central_server_vm_id": {
@@ -390,14 +663,6 @@ func (r WorkloadsSAPVirtualInstanceResource) Create() sdk.ResourceFunc {
 					SapProduct:  sapvirtualinstances.SAPProductType(model.SapProduct),
 				},
 				Tags: &model.Tags,
-			}
-
-			if v := model.DeploymentConfiguration; v != nil {
-				deploymentConfiguration, err := expandDeploymentConfiguration(v)
-				if err != nil {
-					return err
-				}
-				parameters.Properties.Configuration = deploymentConfiguration
 			}
 
 			if v := model.DeploymentWithOSConfiguration; v != nil {
@@ -525,10 +790,6 @@ func (r WorkloadsSAPVirtualInstanceResource) Read() sdk.ResourceFunc {
 			state.SapProduct = string(properties.SapProduct)
 
 			if properties.Configuration != nil {
-				if v, ok := properties.Configuration.(sapvirtualinstances.DeploymentConfiguration); ok {
-					state.DeploymentConfiguration = flattenDeploymentConfiguration(&v, metadata.ResourceData)
-				}
-
 				if v, ok := properties.Configuration.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
 					state.DeploymentWithOSConfiguration = flattenDeploymentWithOSConfiguration(&v, metadata.ResourceData)
 				}
@@ -603,30 +864,6 @@ func flattenDiscoveryConfiguration(input *sapvirtualinstances.DiscoveryConfigura
 	}
 }
 
-func expandDeploymentConfiguration(input []DeploymentConfiguration) (*sapvirtualinstances.DeploymentConfiguration, error) {
-	configuration := &input[0]
-
-	result := sapvirtualinstances.DeploymentConfiguration{}
-
-	if v := configuration.AppLocation; v != "" {
-		result.AppLocation = utils.String(v)
-	}
-
-	if len(configuration.SingleServerConfiguration) != 0 {
-		singleServerConfiguration, err := expandSingleServerConfiguration(configuration.SingleServerConfiguration)
-		if err != nil {
-			return nil, err
-		}
-		result.InfrastructureConfiguration = singleServerConfiguration
-	}
-
-	if len(configuration.ThreeTierConfiguration) != 0 {
-		result.InfrastructureConfiguration = expandThreeTierConfiguration(configuration.ThreeTierConfiguration)
-	}
-
-	return &result, nil
-}
-
 func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) (*sapvirtualinstances.DeploymentWithOSConfiguration, error) {
 	configuration := &input[0]
 
@@ -648,6 +885,63 @@ func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) 
 	}
 
 	return &result, nil
+}
+
+func expandSingleServerConfiguration(input []SingleServerConfiguration) (*sapvirtualinstances.SingleServerConfiguration, error) {
+	singleServerConfiguration := &input[0]
+
+	result := sapvirtualinstances.SingleServerConfiguration{
+		AppResourceGroup: singleServerConfiguration.AppResourceGroupName,
+		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
+			IsSecondaryIPEnabled: utils.Bool(singleServerConfiguration.IsSecondaryIpEnabled),
+		},
+		SubnetId:                    singleServerConfiguration.SubnetId,
+		VirtualMachineConfiguration: expandVirtualMachineConfiguration(singleServerConfiguration.VirtualMachineConfiguration),
+	}
+
+	if v := singleServerConfiguration.DatabaseType; v != "" {
+		dbType := sapvirtualinstances.SAPDatabaseType(v)
+		result.DatabaseType = &dbType
+	}
+
+	if v := singleServerConfiguration.DiskVolumeConfigurations; v != nil {
+		result.DbDiskConfiguration = expandDiskVolumeConfigurations(v)
+	}
+
+	virtualMachineFullResourceNames, err := expandVirtualMachineFullResourceNames(singleServerConfiguration.VirtualMachineFullResourceNames)
+	if err != nil {
+		return nil, err
+	}
+	result.CustomResourceNames = virtualMachineFullResourceNames
+
+	return &result, nil
+}
+
+func expandThreeTierConfiguration(input []ThreeTierConfiguration) *sapvirtualinstances.ThreeTierConfiguration {
+	threeTierConfiguration := &input[0]
+
+	result := sapvirtualinstances.ThreeTierConfiguration{
+		ApplicationServer: expandApplicationServer(threeTierConfiguration.ApplicationServerConfiguration),
+		AppResourceGroup:  threeTierConfiguration.AppResourceGroupName,
+		CentralServer:     expandCentralServer(threeTierConfiguration.CentralServerConfiguration),
+		DatabaseServer:    expandDatabaseServer(threeTierConfiguration.DatabaseServerConfiguration),
+		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
+			IsSecondaryIPEnabled: utils.Bool(threeTierConfiguration.IsSecondaryIpEnabled),
+		},
+		StorageConfiguration: expandStorageConfiguration(threeTierConfiguration),
+	}
+
+	if v := threeTierConfiguration.HighAvailabilityType; v != "" {
+		result.HighAvailabilityConfig = &sapvirtualinstances.HighAvailabilityConfiguration{
+			HighAvailabilityType: sapvirtualinstances.SAPHighAvailabilityType(v),
+		}
+	}
+
+	if v := threeTierConfiguration.FullResourceNames; v != nil {
+		result.CustomResourceNames = expandFullResourceNames(v)
+	}
+
+	return &result
 }
 
 func expandOsSapConfiguration(input []OsSapConfiguration) *sapvirtualinstances.OsSapConfiguration {
@@ -683,32 +977,6 @@ func expandDeployerVmPackages(input []DeployerVmPackages) *sapvirtualinstances.D
 	return &result
 }
 
-func flattenDeploymentConfiguration(input *sapvirtualinstances.DeploymentConfiguration, d *pluginsdk.ResourceData) []DeploymentConfiguration {
-	if input == nil {
-		return nil
-	}
-
-	result := DeploymentConfiguration{}
-
-	if v := input.AppLocation; v != nil {
-		result.AppLocation = *v
-	}
-
-	if configuration := input.InfrastructureConfiguration; configuration != nil {
-		if v, ok := configuration.(sapvirtualinstances.SingleServerConfiguration); ok {
-			result.SingleServerConfiguration = flattenSingleServerConfiguration(v, d, "deployment_configuration")
-		}
-
-		if v, ok := configuration.(sapvirtualinstances.ThreeTierConfiguration); ok {
-			result.ThreeTierConfiguration = flattenThreeTierConfiguration(v, d, "deployment_configuration")
-		}
-	}
-
-	return []DeploymentConfiguration{
-		result,
-	}
-}
-
 func flattenDeploymentWithOSConfiguration(input *sapvirtualinstances.DeploymentWithOSConfiguration, d *pluginsdk.ResourceData) []DeploymentWithOSConfiguration {
 	if input == nil {
 		return nil
@@ -730,6 +998,94 @@ func flattenDeploymentWithOSConfiguration(input *sapvirtualinstances.DeploymentW
 	}
 
 	return []DeploymentWithOSConfiguration{
+		result,
+	}
+}
+
+func flattenSingleServerConfiguration(input sapvirtualinstances.SingleServerConfiguration, d *pluginsdk.ResourceData, basePath string) []SingleServerConfiguration {
+	result := SingleServerConfiguration{
+		AppResourceGroupName:        input.AppResourceGroup,
+		SubnetId:                    input.SubnetId,
+		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d, fmt.Sprintf("%s.0.single_server_configuration", basePath)),
+	}
+
+	if v := input.DatabaseType; v != nil {
+		result.DatabaseType = string(*v)
+	}
+
+	if networkConfiguration := input.NetworkConfiguration; networkConfiguration != nil && networkConfiguration.IsSecondaryIPEnabled != nil {
+		result.IsSecondaryIpEnabled = *networkConfiguration.IsSecondaryIPEnabled
+	}
+
+	if v := input.DbDiskConfiguration; v != nil && v.DiskVolumeConfigurations != nil {
+		result.DiskVolumeConfigurations = flattenDiskVolumeConfigurations(v.DiskVolumeConfigurations)
+	}
+
+	if customResourceNames := input.CustomResourceNames; customResourceNames != nil {
+		if v, ok := customResourceNames.(sapvirtualinstances.SingleServerFullResourceNames); ok {
+			result.VirtualMachineFullResourceNames = flattenVirtualMachineFullResourceNames(v)
+		}
+	}
+
+	return []SingleServerConfiguration{
+		result,
+	}
+}
+
+func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfiguration, d *pluginsdk.ResourceData, basePath string) []ThreeTierConfiguration {
+	result := ThreeTierConfiguration{
+		AppResourceGroupName:           input.AppResourceGroup,
+		ApplicationServerConfiguration: flattenApplicationServer(input.ApplicationServer, d, fmt.Sprintf("%s.0.three_tier_configuration", basePath)),
+		CentralServerConfiguration:     flattenCentralServer(input.CentralServer, d, fmt.Sprintf("%s.0.three_tier_configuration", basePath)),
+		DatabaseServerConfiguration:    flattenDatabaseServer(input.DatabaseServer, d, fmt.Sprintf("%s.0.three_tier_configuration", basePath)),
+	}
+
+	if customResourceNames := input.CustomResourceNames; customResourceNames != nil {
+		if v, ok := customResourceNames.(sapvirtualinstances.ThreeTierFullResourceNames); ok {
+			result.FullResourceNames = flattenFullResourceNames(v)
+		}
+	}
+
+	if v := input.HighAvailabilityConfig; v != nil && v.HighAvailabilityType != "" {
+		result.HighAvailabilityType = string(v.HighAvailabilityType)
+	}
+
+	if networkConfiguration := input.NetworkConfiguration; networkConfiguration != nil && networkConfiguration.IsSecondaryIPEnabled != nil {
+		result.IsSecondaryIpEnabled = *networkConfiguration.IsSecondaryIPEnabled
+	}
+
+	if storageConfiguration := input.StorageConfiguration; storageConfiguration != nil {
+		if transportFileShareConfiguration := storageConfiguration.TransportFileShareConfiguration; transportFileShareConfiguration != nil {
+			if createAndMountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.CreateAndMountFileShareConfiguration); ok {
+				transportCreateAndMount := TransportCreateAndMount{}
+
+				if v := createAndMountFileShareConfiguration.ResourceGroup; v != nil {
+					transportCreateAndMount.ResourceGroupName = *v
+				}
+
+				if v := createAndMountFileShareConfiguration.StorageAccountName; v != nil {
+					transportCreateAndMount.StorageAccountName = *v
+				}
+
+				result.TransportCreateAndMount = []TransportCreateAndMount{
+					transportCreateAndMount,
+				}
+			}
+
+			if mountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.MountFileShareConfiguration); ok {
+				transportMount := TransportMount{
+					ShareFileId:       mountFileShareConfiguration.Id,
+					PrivateEndpointId: mountFileShareConfiguration.PrivateEndpointId,
+				}
+
+				result.TransportMount = []TransportMount{
+					transportMount,
+				}
+			}
+		}
+	}
+
+	return []ThreeTierConfiguration{
 		result,
 	}
 }

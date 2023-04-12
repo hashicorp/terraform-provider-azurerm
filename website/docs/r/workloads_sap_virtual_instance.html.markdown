@@ -47,8 +47,6 @@ The following arguments are supported:
 
 * `sap_product` - (Required) The SAP Product type for the SAP Virtual Instance. Possible values are `ECC`, `Other` and `S4HANA`. Changing this forces a new resource to be created.
 
-* `deployment_configuration` - (Optional) A `deployment_configuration` block as defined below. Changing this forces a new resource to be created.
-
 * `deployment_with_os_configuration` - (Optional) A `deployment_with_os_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `discovery_configuration` - (Optional) A `discovery_configuration` block as defined below. Changing this forces a new resource to be created.
@@ -56,16 +54,6 @@ The following arguments are supported:
 * `managed_resource_group_name` - (Optional) The name of the managed Resource Group for the SAP Virtual Instance. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the SAP Virtual Instance.
-
----
-
-A `deployment_configuration` block supports the following:
-
-* `app_location` - (Required) The Geo-Location where the SAP system is to be created. Changing this forces a new resource to be created.
-
-* `single_server_configuration` - (Optional) A `single_server_configuration` block as defined below. Changing this forces a new resource to be created.
-
-* `three_tier_configuration` - (Optional) A `three_tier_configuration` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
