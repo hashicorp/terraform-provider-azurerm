@@ -671,6 +671,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			MinCount:                  defaultCluster.MinCount,
 			EnableAutoScaling:         defaultCluster.EnableAutoScaling,
 			EnableCustomCATrust:       defaultCluster.EnableCustomCATrust,
+			EnableEncryptionAtHost:    defaultCluster.EnableEncryptionAtHost,
 			EnableFIPS:                defaultCluster.EnableFIPS,
 			OrchestratorVersion:       defaultCluster.OrchestratorVersion,
 			ProximityPlacementGroupID: defaultCluster.ProximityPlacementGroupID,
