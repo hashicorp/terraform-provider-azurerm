@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2020-08-20/communicationservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )

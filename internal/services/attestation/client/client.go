@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attestationproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )

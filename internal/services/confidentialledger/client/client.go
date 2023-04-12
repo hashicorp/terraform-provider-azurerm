@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
