@@ -126,10 +126,14 @@ func (r WorkloadsSAPVirtualInstanceResource) Exists(ctx context.Context, clients
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r WorkloadsSAPVirtualInstanceResource) template(data acceptance.TestData) string {
+func (r WorkloadsSAPVirtualInstanceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_subscription" "current" {}
@@ -150,35 +154,19 @@ resource "azurerm_role_assignment" "test" {
   role_definition_name = "Azure Center for SAP solutions service role"
   principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (r WorkloadsSAPVirtualInstanceResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_resource_group" "subnet" {
-  name     = "acctestRG-subnet-%d"
-  location = "%s"
-}
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.subnet.location
-  resource_group_name = azurerm_resource_group.subnet.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctest-subnet-%d"
-  resource_group_name  = azurerm_resource_group.subnet.name
+  resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_resource_group" "app" {
-  name     = "acctestRG-app-%d"
-  location = azurerm_resource_group.subnet.location
 }
 
 resource "azurerm_workloads_sap_virtual_instance" "test" {
@@ -190,14 +178,14 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
   managed_resource_group_name = "managedTestRG%d"
 
   deployment_with_os_configuration {
-    app_location = azurerm_resource_group.subnet.location
+    app_location = azurerm_resource_group.test.location
 
     os_sap_configuration {
         sap_fqdn = "sap.bpaas.com"
     }
 
     single_server_configuration {
-        app_resource_group_name = azurerm_resource_group.app.name
+        app_resource_group_name = azurerm_resource_group.test.name
         subnet_id               = azurerm_subnet.test.id
         database_type           = "HANA"
         is_secondary_ip_enabled = true
@@ -293,7 +281,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
     azurerm_role_assignment.test
   ]
 }
-`, r.template(data), data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, RandomInt(), data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, RandomInt(), data.RandomInteger)
 }
 
 func (r WorkloadsSAPVirtualInstanceResource) requiresImport(data acceptance.TestData) string {
@@ -309,14 +297,14 @@ resource "azurerm_workloads_sap_virtual_instance" "import" {
   managed_resource_group_name = azurerm_workloads_sap_virtual_instance.test.managed_resource_group_name
 
   deployment_with_os_configuration {
-    app_location = azurerm_resource_group.subnet.location
+    app_location = azurerm_resource_group.test.location
 
     os_sap_configuration {
         sap_fqdn = "sap.bpaas.com"
     }
 
     single_server_configuration {
-        app_resource_group_name = azurerm_resource_group.app.name
+        app_resource_group_name = azurerm_resource_group.test.name
         subnet_id               = azurerm_subnet.test.id
         database_type           = "HANA"
         is_secondary_ip_enabled = true
@@ -417,15 +405,15 @@ resource "azurerm_workloads_sap_virtual_instance" "import" {
 
 func (r WorkloadsSAPVirtualInstanceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestass%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
+
+data "azurerm_subscription" "current" {}
 
 resource "azurerm_resource_group" "subnet" {
   name     = "acctestRG-subnet-%d"
@@ -446,14 +434,51 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vis-%d"
+  location = "%s"
+
+  depends_on = [
+    azurerm_subnet.test
+  ]
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = "Azure Center for SAP solutions service role"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
 resource "azurerm_resource_group" "transport" {
   name     = "acctestRG-transport-%d"
   location = azurerm_resource_group.test.location
+
+  depends_on = [
+    azurerm_subnet.test
+  ]
 }
 
 resource "azurerm_resource_group" "app" {
   name     = "acctestRG-app-%d"
   location = azurerm_resource_group.subnet.location
+
+  depends_on = [
+    azurerm_subnet.test
+  ]
 }
 
 resource "azurerm_workloads_sap_virtual_instance" "test" {
@@ -690,35 +715,36 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
     azurerm_role_assignment.test
   ]
 }
-`, r.template(data), data.RandomString, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, RandomInt(), data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, RandomInt(), data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (r WorkloadsSAPVirtualInstanceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
 
-resource "azurerm_resource_group" "subnet" {
-  name     = "acctestRG-subnet-%d"
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-sapvis-%d"
   location = "%s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.subnet.location
-  resource_group_name = azurerm_resource_group.subnet.name
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_subnet" "test" {
-  name                 = "acctest-subnet-%d"
-  resource_group_name  = azurerm_resource_group.subnet.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_resource_group" "app" {
-  name     = "acctestRG-app-%d"
-  location = azurerm_resource_group.subnet.location
+resource "azurerm_role_assignment" "test" {
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = "Azure Center for SAP solutions service role"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
 resource "azurerm_user_assigned_identity" "test2" {
@@ -733,6 +759,20 @@ resource "azurerm_role_assignment" "test2" {
   principal_id         = azurerm_user_assigned_identity.test2.principal_id
 }
 
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-subnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
 resource "azurerm_workloads_sap_virtual_instance" "test" {
   name                        = "X%d"
   resource_group_name         = azurerm_resource_group.test.name
@@ -742,14 +782,14 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
   managed_resource_group_name = "managedTestRG%d"
 
   deployment_with_os_configuration {
-    app_location = azurerm_resource_group.subnet.location
+    app_location = azurerm_resource_group.test.location
 
     os_sap_configuration {
         sap_fqdn = "sap.bpaas.com"
     }
 
     single_server_configuration {
-        app_resource_group_name = azurerm_resource_group.app.name
+        app_resource_group_name = azurerm_resource_group.test.name
         subnet_id               = azurerm_subnet.test.id
         database_type           = "HANA"
         is_secondary_ip_enabled = true
@@ -833,24 +873,50 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
     type = "UserAssigned"
 
     identity_ids = [
-        azurerm_user_assigned_identity.test.id,
+        azurerm_user_assigned_identity.test2.id,
     ]
   }
 
   tags = {
-    Env = "Test"
+    Env = "Test2"
   }
 
   depends_on = [
-    azurerm_role_assignment.test
+    azurerm_role_assignment.test,
+    azurerm_role_assignment.test2
   ]
 }
-`, r.template(data), data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, RandomInt(), data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, RandomInt(), data.RandomInteger)
 }
 
 func (r WorkloadsSAPVirtualInstanceResource) discoveryConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-sapvis-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = "Azure Center for SAP solutions service role"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
 
 resource "azurerm_workloads_sap_virtual_instance" "test" {
   name                        = "X%d"
@@ -881,7 +947,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
     azurerm_role_assignment.test
   ]
 }
-`, r.template(data), RandomInt(), data.RandomInteger, os.Getenv("ARM_CENTRAL_SERVER_VM_ID"), data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, RandomInt(), data.RandomInteger, os.Getenv("ARM_CENTRAL_SERVER_VM_ID"), data.RandomString)
 }
 
 func RandomInt() int {
