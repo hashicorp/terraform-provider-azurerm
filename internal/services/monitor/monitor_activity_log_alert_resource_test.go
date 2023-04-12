@@ -651,6 +651,9 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_subscription" "current" {
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -683,8 +686,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   description         = "This is just a test acceptance."
 
   scopes = [
-    azurerm_resource_group.test.id,
-    azurerm_storage_account.test.id,
+    data.azurerm_subscription.current.id
   ]
 
   criteria {
@@ -718,6 +720,9 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_subscription" "current" {
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -750,8 +755,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   description         = "This is just a test acceptance."
 
   scopes = [
-    azurerm_resource_group.test.id,
-    azurerm_storage_account.test.id,
+    data.azurerm_subscription.current.id
   ]
 
   criteria {
@@ -795,6 +799,9 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_subscription" "current" {
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -827,8 +834,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   description         = "This is just a test acceptance."
 
   scopes = [
-    azurerm_resource_group.test.id,
-    azurerm_storage_account.test.id,
+    data.azurerm_subscription.current.id
   ]
 
   criteria {

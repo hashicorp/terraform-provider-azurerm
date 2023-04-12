@@ -49,7 +49,7 @@ func (c LiveOutputsClient) List(ctx context.Context, id LiveEventId) (result Lis
 	}
 
 	var values struct {
-		Values *[]LiveOutput `json:"values"`
+		Values *[]LiveOutput `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

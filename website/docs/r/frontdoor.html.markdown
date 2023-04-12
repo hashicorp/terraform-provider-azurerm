@@ -293,7 +293,7 @@ The `redirect_configuration` block supports the following:
 
 ---
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `cname` - The host that each frontendEndpoint must CNAME to.
 

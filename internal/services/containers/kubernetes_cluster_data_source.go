@@ -2,6 +2,7 @@ package containers
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -9,11 +10,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -692,22 +693,17 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	credentials, err := client.ListClusterUserCredentials(ctx, id, managedclusters.ListClusterUserCredentialsOperationOptions{})
-	if err != nil {
-		return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
+	userCredentialsResp, err := client.ListClusterUserCredentials(ctx, id, managedclusters.ListClusterUserCredentialsOperationOptions{})
+	// only raise the error if it's not a limited permissions error, since this is the Data Source
+	if err != nil && !response.WasStatusCode(userCredentialsResp.HttpResponse, http.StatusForbidden) {
+		return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
 	}
-	if credentials.Model == nil {
-		return fmt.Errorf("retrieving User Credentials for %s: payload is empty", id)
-	}
-	credentialsModel := credentials.Model
 
 	d.SetId(id.ID())
 	if model := resp.Model; model != nil {
-		d.Set("name", model.Name)
+		d.Set("name", id.ManagedClusterName)
 		d.Set("resource_group_name", id.ResourceGroupName)
-		if location := model.Location; location != "" {
-			d.Set("location", azure.NormalizeLocation(location))
-		}
+		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
 			d.Set("dns_prefix", props.DnsPrefix)
@@ -824,22 +820,20 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			// adminProfile is only available for RBAC enabled clusters with AAD and without local accounts disabled
+			adminKubeConfig := make([]interface{}, 0)
+			var adminKubeConfigRaw *string
 			if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-				adminCredentials, err := client.ListClusterAdminCredentials(ctx, id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
-				if err != nil {
+				adminCredentialsResp, err := client.ListClusterAdminCredentials(ctx, id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
+				// only raise the error if it's not a limited permissions error, since this is the Data Source
+				if err != nil && !response.WasStatusCode(adminCredentialsResp.HttpResponse, http.StatusForbidden) {
 					return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
 				}
 
-				if adminCredentialModel := adminCredentials.Model; adminCredentialModel != nil {
-					adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterCredentials(*adminCredentialModel, "clusterAdmin")
-					d.Set("kube_admin_config_raw", adminKubeConfigRaw)
-					if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
-						return fmt.Errorf("setting `kube_admin_config`: %+v", err)
-					}
-				}
-			} else {
-				d.Set("kube_admin_config_raw", "")
-				d.Set("kube_admin_config", []interface{}{})
+				adminKubeConfigRaw, adminKubeConfig = flattenKubernetesClusterCredentials(adminCredentialsResp.Model, "clusterAdmin")
+			}
+			d.Set("kube_admin_config_raw", adminKubeConfigRaw)
+			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
+				return fmt.Errorf("setting `kube_admin_config`: %+v", err)
 			}
 		}
 
@@ -852,7 +846,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentials(*credentialsModel, "clusterUser")
+		kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentials(userCredentialsResp.Model, "clusterUser")
 		d.Set("kube_config_raw", kubeConfigRaw)
 		if err := d.Set("kube_config", kubeConfig); err != nil {
 			return fmt.Errorf("setting `kube_config`: %+v", err)
@@ -928,8 +922,8 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 	return storageProfile
 }
 
-func flattenKubernetesClusterCredentials(model managedclusters.CredentialResults, configName string) (*string, []interface{}) {
-	if model.Kubeconfigs == nil || len(*model.Kubeconfigs) < 1 {
+func flattenKubernetesClusterCredentials(model *managedclusters.CredentialResults, configName string) (*string, []interface{}) {
+	if model == nil || model.Kubeconfigs == nil || len(*model.Kubeconfigs) < 1 {
 		return nil, []interface{}{}
 	}
 
