@@ -285,7 +285,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if len(apiAccessControl) > 0 {
-		authenticationOptions, err := expandSearchServiceDataPlaneAadOrApiKeyAuthOption(apiAccessControl)
+		authenticationOptions, err := expandSearchServiceAuthOptions(apiAccessControl)
 		if err != nil {
 			return err
 		}
@@ -365,7 +365,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		apiAccessControl := d.Get("api_access_control").(*pluginsdk.Set).List()
 
 		if d.HasChange("api_access_control") {
-			authenticationOptions, err := expandSearchServiceDataPlaneAadOrApiKeyAuthOption(apiAccessControl)
+			authenticationOptions, err := expandSearchServiceAuthOptions(apiAccessControl)
 			if err != nil {
 				return err
 			}
@@ -514,7 +514,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				oldValue := o.(*pluginsdk.Set).List()
 
 				if len(newValue) > 0 {
-					authenticationOptions = flattenSearchServiceDataPlaneAadOrApiKeyAuthOption(props.AuthOptions, props.DisableLocalAuth)
+					authenticationOptions = flattenSearchServiceDataPlaneAuthOptions(props.AuthOptions, props.DisableLocalAuth)
 				}
 
 				log.Println("************************************************************************")
@@ -644,13 +644,13 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 	return &output
 }
 
-func expandSearchServiceDataPlaneAadOrApiKeyAuthOption(input []interface{}) (*services.DataPlaneAuthOptions, error) {
+func expandSearchServiceAuthOptions(input []interface{}) (*services.DataPlaneAuthOptions, error) {
 	var foo interface{}
 	apiKeyOnlyDefault := make(map[string]interface{}, 0)
 	foo = apiKeyOnlyDefault
 
-	// the default(e.g. 'ApiKeyOnly'), only requires an empty 'DataPlaneAuthOptions.ApiKeyOnly' interface which must be an empty map...
-	// Azure RP 'ApiKeyOnly' value            : map[]
+	// the default(e.g. 'ApiKeyOnly'), only requires an empty 'DataPlaneAuthOptions.ApiKeyOnly'
+	// interface which must be an empty map...
 	defaultAuthOptions := pointer.To(services.DataPlaneAuthOptions{
 		ApiKeyOnly: pointer.To(foo),
 	})
@@ -698,7 +698,7 @@ func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
 	return result
 }
 
-func flattenSearchServiceDataPlaneAadOrApiKeyAuthOption(input *services.DataPlaneAuthOptions, localAuthenticationDisabled *bool) []interface{} {
+func flattenSearchServiceDataPlaneAuthOptions(input *services.DataPlaneAuthOptions, localAuthenticationDisabled *bool) []interface{} {
 	// TODO: Validate what I should be checking here...
 	// For RBAC Only DataPlaneAuthOptions will be nil...
 	if localAuthenticationDisabled == nil {
