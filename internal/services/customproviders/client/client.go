@@ -12,12 +12,13 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	CustomProviderClient, err := customresourceprovider.NewCustomResourceProviderClientWithBaseURI(o.Environment.ResourceManager)
+	customProviderClient, err := customresourceprovider.NewCustomResourceProviderClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ResourceProvider client: %+v", err)
 	}
+	o.Configure(customProviderClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		CustomProviderClient: CustomProviderClient,
+		CustomProviderClient: customProviderClient,
 	}, nil
 }

@@ -16,24 +16,27 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	ExportClient, err := exports.NewExportsClientWithBaseURI(o.Environment.ResourceManager)
+	exportClient, err := exports.NewExportsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Export client: %+v", err)
 	}
+	o.Configure(exportClient.Client, o.Authorizers.ResourceManager)
 
-	ScheduledActionsClient, err := scheduledactions.NewScheduledActionsClientWithBaseURI(o.Environment.ResourceManager)
+	scheduledActionsClient, err := scheduledactions.NewScheduledActionsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ScheduledActions client: %+v", err)
 	}
+	o.Configure(scheduledActionsClient.Client, o.Authorizers.ResourceManager)
 
-	ViewsClient, err := views.NewViewsClientWithBaseURI(o.Environment.ResourceManager)
+	viewsClient, err := views.NewViewsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Views client: %+v", err)
 	}
+	o.Configure(viewsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ExportClient:           ExportClient,
-		ScheduledActionsClient: ScheduledActionsClient,
-		ViewsClient:            ViewsClient,
+		ExportClient:           exportClient,
+		ScheduledActionsClient: scheduledActionsClient,
+		ViewsClient:            viewsClient,
 	}, nil
 }

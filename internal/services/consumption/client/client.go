@@ -16,6 +16,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building Budgets client: %+v", err)
 	}
+	o.Configure(budgetsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		BudgetsClient: budgetsClient,

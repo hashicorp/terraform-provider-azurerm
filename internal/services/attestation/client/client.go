@@ -16,6 +16,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building Providers client: %+v", err)
 	}
+	o.Configure(providerClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		ProviderClient: providerClient,

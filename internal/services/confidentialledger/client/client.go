@@ -18,6 +18,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building ConfidentialLedger client: %+v", err)
 	}
+	o.Configure(confidentialLedgerClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		ConfidentialLedgerClient: confidentialLedgerClient,
