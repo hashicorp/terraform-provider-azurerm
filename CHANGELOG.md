@@ -3,8 +3,17 @@
 ENHANCEMENTS:
 
 * `recoveryServices` - refactoring to use `hashicorp/go-azure-sdk` [GH-21344]
+* `azurerm_linux_function_app` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
+* `azurerm_linux_function_app_slot` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
+* `azurerm_linux_web_app` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
+* `azurerm_linux_web_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
 * `azurerm_service_plan` - add support for new Premium V3 and Memory Optimised SKUs [GH-21371]
 * `azurerm_storage_account_local_user` - property `ssh_authorized_key` can now be updated [GH-21362]
+* `azurerm_windows_function_app` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
+* `azurerm_windows_function_app_slot` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
+* `azurerm_windows_web_app` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
+* `azurerm_windows_web_app_slot` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
+
 
 ## 3.51.0 (April 06, 2023)
 
