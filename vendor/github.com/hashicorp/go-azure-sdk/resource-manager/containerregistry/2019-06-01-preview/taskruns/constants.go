@@ -1,6 +1,10 @@
 package taskruns
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -23,6 +27,19 @@ func PossibleValuesForArchitecture() []string {
 		string(ArchitectureThreeEightSix),
 		string(ArchitectureXEightSix),
 	}
+}
+
+func (s *Architecture) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseArchitecture(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseArchitecture(input string) (*Architecture, error) {
@@ -54,6 +71,19 @@ func PossibleValuesForOS() []string {
 		string(OSLinux),
 		string(OSWindows),
 	}
+}
+
+func (s *OS) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOS(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseOS(input string) (*OS, error) {
@@ -90,6 +120,19 @@ func PossibleValuesForProvisioningState() []string {
 		string(ProvisioningStateSucceeded),
 		string(ProvisioningStateUpdating),
 	}
+}
+
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {
@@ -136,6 +179,19 @@ func PossibleValuesForRunStatus() []string {
 	}
 }
 
+func (s *RunStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRunStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseRunStatus(input string) (*RunStatus, error) {
 	vals := map[string]RunStatus{
 		"canceled":  RunStatusCanceled,
@@ -174,6 +230,19 @@ func PossibleValuesForRunType() []string {
 	}
 }
 
+func (s *RunType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRunType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseRunType(input string) (*RunType, error) {
 	vals := map[string]RunType{
 		"autobuild":  RunTypeAutoBuild,
@@ -204,6 +273,19 @@ func PossibleValuesForSecretObjectType() []string {
 	}
 }
 
+func (s *SecretObjectType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSecretObjectType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSecretObjectType(input string) (*SecretObjectType, error) {
 	vals := map[string]SecretObjectType{
 		"opaque":      SecretObjectTypeOpaque,
@@ -230,6 +312,19 @@ func PossibleValuesForSourceRegistryLoginMode() []string {
 		string(SourceRegistryLoginModeDefault),
 		string(SourceRegistryLoginModeNone),
 	}
+}
+
+func (s *SourceRegistryLoginMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSourceRegistryLoginMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSourceRegistryLoginMode(input string) (*SourceRegistryLoginMode, error) {
@@ -260,6 +355,19 @@ func PossibleValuesForVariant() []string {
 		string(VariantVSeven),
 		string(VariantVSix),
 	}
+}
+
+func (s *Variant) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVariant(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseVariant(input string) (*Variant, error) {

@@ -1,6 +1,10 @@
 package connectedregistries
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForActivationStatus() []string {
 		string(ActivationStatusActive),
 		string(ActivationStatusInactive),
 	}
+}
+
+func (s *ActivationStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseActivationStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseActivationStatus(input string) (*ActivationStatus, error) {
@@ -47,6 +64,19 @@ func PossibleValuesForAuditLogStatus() []string {
 	}
 }
 
+func (s *AuditLogStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAuditLogStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseAuditLogStatus(input string) (*AuditLogStatus, error) {
 	vals := map[string]AuditLogStatus{
 		"disabled": AuditLogStatusDisabled,
@@ -71,6 +101,19 @@ func PossibleValuesForCertificateType() []string {
 	return []string{
 		string(CertificateTypeLocalDirectory),
 	}
+}
+
+func (s *CertificateType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCertificateType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCertificateType(input string) (*CertificateType, error) {
@@ -102,6 +145,19 @@ func PossibleValuesForConnectedRegistryMode() []string {
 		string(ConnectedRegistryModeReadWrite),
 		string(ConnectedRegistryModeRegistry),
 	}
+}
+
+func (s *ConnectedRegistryMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseConnectedRegistryMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseConnectedRegistryMode(input string) (*ConnectedRegistryMode, error) {
@@ -138,6 +194,19 @@ func PossibleValuesForConnectionState() []string {
 	}
 }
 
+func (s *ConnectionState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseConnectionState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseConnectionState(input string) (*ConnectionState, error) {
 	vals := map[string]ConnectionState{
 		"offline":   ConnectionStateOffline,
@@ -172,6 +241,19 @@ func PossibleValuesForLogLevel() []string {
 		string(LogLevelNone),
 		string(LogLevelWarning),
 	}
+}
+
+func (s *LogLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLogLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseLogLevel(input string) (*LogLevel, error) {
@@ -213,6 +295,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"canceled":  ProvisioningStateCanceled,
@@ -243,6 +338,19 @@ func PossibleValuesForTlsStatus() []string {
 		string(TlsStatusDisabled),
 		string(TlsStatusEnabled),
 	}
+}
+
+func (s *TlsStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTlsStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseTlsStatus(input string) (*TlsStatus, error) {
