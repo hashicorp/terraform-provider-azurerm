@@ -2,18 +2,27 @@
 
 ENHANCEMENTS:
 
+* `containerRegistry` - refactoring to use `hashicorp/go-azure-sdk` [GH-21344]
 * `recoveryServices` - refactoring to use `hashicorp/go-azure-sdk` [GH-21344]
+* Data Source: `azurerm_key_vault_certificate` - add support for `resource_manager_id` and `resource_manager_versionless_id` [GH-21314]
+* `azurerm_key_vault_certificate` - add support for `resource_manager_id` and `resource_manager_versionless_id` [GH-21314]
+
+BUG FIXES:
+
+* `azurerm_app_configuration_key` - extend Timeout for polling resource to allow propagation of read permission [GH-21337]
+* `azurerm_app_configuration_feature` - extend Timeout for polling resource to allow propagation of read permission [GH-21337]
+* `azurerm_kubernetes_cluster` - set `enable_host_encryption` properly when resizing the `default_node_pool` [GH-21379]
 * `azurerm_linux_function_app` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
 * `azurerm_linux_function_app_slot` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
 * `azurerm_linux_web_app` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
 * `azurerm_linux_web_app_slot`  - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
 * `azurerm_service_plan` - add support for new Premium V3 and Memory Optimised SKUs [GH-21371]
 * `azurerm_storage_account_local_user` - property `ssh_authorized_key` can now be updated [GH-21362]
+* `azurerm_storage_mover` - remove `Microsoft.StorageMover` from required list of Resource Providers [GH-21370]
 * `azurerm_windows_function_app` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
 * `azurerm_windows_function_app_slot` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
 * `azurerm_windows_web_app` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
 * `azurerm_windows_web_app_slot` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
-
 
 ## 3.51.0 (April 06, 2023)
 
