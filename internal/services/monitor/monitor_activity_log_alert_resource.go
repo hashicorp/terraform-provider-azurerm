@@ -814,7 +814,9 @@ func flattenMonitorActivityLogAlertCriteria(input activitylogalertsapis.AlertRul
 			case "caller", "category", "level", "status":
 				result[*condition.Field] = *condition.Equals
 			}
-		} else if condition.Field != nil && condition.ContainsAny != nil && len(*condition.ContainsAny) > 0 {
+		}
+
+		if condition.Field != nil && condition.ContainsAny != nil && len(*condition.ContainsAny) > 0 {
 			switch strings.ToLower(*condition.Field) {
 			case "resourceprovider":
 				result["resource_providers"] = *condition.ContainsAny
@@ -831,7 +833,9 @@ func flattenMonitorActivityLogAlertCriteria(input activitylogalertsapis.AlertRul
 			case "status":
 				result["statuses"] = *condition.ContainsAny
 			}
-		} else if condition.AnyOf != nil && len(*condition.AnyOf) > 0 {
+		}
+
+		if condition.AnyOf != nil && len(*condition.AnyOf) > 0 {
 			values := make([]string, 0)
 			for _, leafCondition := range *condition.AnyOf {
 				if leafCondition.Field != nil && leafCondition.Equals != nil {
