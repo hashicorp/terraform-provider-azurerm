@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -171,87 +172,50 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   name                           = "acctest-DS-%[1]d"
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
-  log {
+  enabled_log {
     category = "SignInLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
+  enabled_log {
     category = "AuditLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
+  enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
+  enabled_log {
     category = "ServicePrincipalSignInLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
+  enabled_log {
     category = "RiskyUsers"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
+  enabled_log {
     category = "UserRiskEvents"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
-    category = "ManagedIdentitySignInLogs"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "ProvisioningLogs"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "ADFSSignInLogs"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "NetworkAccessTrafficLogs"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "RiskyServicePrincipals"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "ServicePrincipalRiskEvents"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
+  enabled_log {
     category = "B2CRequestLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
@@ -291,87 +255,50 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   name                           = "acctest-DS-%[1]d"
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
-  log {
+  enabled_log {
     category = "SignInLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
+  enabled_log {
     category = "AuditLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
+  enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
+  enabled_log {
     category = "ServicePrincipalSignInLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
-    category = "ManagedIdentitySignInLogs"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "ProvisioningLogs"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "ADFSSignInLogs"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
+  enabled_log {
     category = "RiskyUsers"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
+  enabled_log {
     category = "UserRiskEvents"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
-    category = "NetworkAccessTrafficLogs"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "RiskyServicePrincipals"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "ServicePrincipalRiskEvents"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
+  enabled_log {
     category = "B2CRequestLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
@@ -390,24 +317,8 @@ resource "azurerm_monitor_aad_diagnostic_setting" "import" {
   eventhub_authorization_rule_id = azurerm_monitor_aad_diagnostic_setting.test.eventhub_authorization_rule_id
   eventhub_name                  = azurerm_monitor_aad_diagnostic_setting.test.eventhub_name
 
-  log {
+  enabled_log {
     category = "SignInLogs"
-    enabled  = true
-    retention_policy {}
-  }
-  log {
-    category = "NetworkAccessTrafficLogs"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "RiskyServicePrincipals"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "ServicePrincipalRiskEvents"
-    enabled  = false
     retention_policy {}
   }
 }
@@ -436,87 +347,50 @@ resource "azurerm_log_analytics_workspace" "test" {
 resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   name                       = "acctest-DS-%[1]d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  log {
+  enabled_log {
     category = "SignInLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
+  enabled_log {
     category = "AuditLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
+  enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
+  enabled_log {
     category = "ServicePrincipalSignInLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
-    category = "ManagedIdentitySignInLogs"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "ProvisioningLogs"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "ADFSSignInLogs"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
+  enabled_log {
     category = "RiskyUsers"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
+  enabled_log {
     category = "UserRiskEvents"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
     }
   }
-  log {
-    category = "NetworkAccessTrafficLogs"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "RiskyServicePrincipals"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
-    category = "ServicePrincipalRiskEvents"
-    enabled  = false
-    retention_policy {}
-  }
-  log {
+  enabled_log {
     category = "B2CRequestLogs"
-    enabled  = true
     retention_policy {
       enabled = true
       days    = 1
@@ -527,7 +401,8 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
 }
 
 func (MonitorAADDiagnosticSettingResource) storageAccount(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -630,6 +505,91 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   log {
     category = "B2CRequestLogs"
     enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "EnrichedOffice365AuditLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "MicrosoftGraphActivityLogs"
+    enabled  = false
+    retention_policy {}
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_kind             = "StorageV2"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_aad_diagnostic_setting" "test" {
+  name               = "acctest-DS-%[1]d"
+  storage_account_id = azurerm_storage_account.test.id
+  enabled_log {
+    category = "SignInLogs"
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  enabled_log {
+    category = "AuditLogs"
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  enabled_log {
+    category = "NonInteractiveUserSignInLogs"
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  enabled_log {
+    category = "ServicePrincipalSignInLogs"
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  enabled_log {
+    category = "RiskyUsers"
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  enabled_log {
+    category = "UserRiskEvents"
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  enabled_log {
+    category = "B2CRequestLogs"
     retention_policy {
       enabled = true
       days    = 1
