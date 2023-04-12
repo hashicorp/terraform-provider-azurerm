@@ -329,21 +329,35 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 			// at this point we can set information about this Resource Group into the State
 			metadata.ResourceData.Set("name", id.ResourceGroup)
 			
-			// the Location and Tags fields are a little different - and we have a couple of normalization
-			// functions for these.
-
-			// whilst this may seem like a weird thing to call out in an example, because these two fields
-			// are present on the majority of resources, we hope it explains why they're a little different
-
-			// in this case the Location can be returned in various different forms, for example
-			// "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
-			// lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
-			// for users
-			metadata.ResourceData.Set("location", location.NormalizeNilable(resp.Location))
-			
-			// (as above) Tags are a little different, so we have a dedicated helper function
-			// to flatten these consistently across the Provider
-			return tags.FlattenAndSet(metadata.ResourceData, resp.Tags)
+			// the SDK will return a Model as well as a nested Properties object for the resource
+			// for readability and consistency we assign the Model to a variable and nil check as shown below.
+			// since the SDK accounts for responses where the Model is nil we do not need to throw an error if
+			// the Model is nil since this will be caught earlier on. We still nil check to prevent the provider from
+			// crashing.
+			if model := resp.Model; model != nil {
+                // the Location and Tags fields are a little different - and we have a couple of normalization
+                // functions for these.
+                
+                // whilst this may seem like a weird thing to call out in an example, because these two fields
+                // are present on the majority of resources, we hope it explains why they're a little different
+                
+                // in this case the Location can be returned in various different forms, for example
+                // "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
+                // lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
+                // for users
+                metadata.ResourceData.Set("location", location.NormalizeNilable(model.Location))
+                
+                
+				
+				if props := model.Properties; props != nil {
+					// if there are properties to set into state do that here
+                }
+				
+                // (as above) Tags are a little different, so we have a dedicated helper function
+                // to flatten these consistently across the Provider
+                return tags.FlattenAndSet(metadata.ResourceData, model.Tags)
+            }       
+			return nil
 		},
 	}
 }

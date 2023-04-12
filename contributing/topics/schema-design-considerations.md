@@ -188,3 +188,34 @@ func (r resource) Read() sdk.ResourceFunc {
 	
 }
 ```
+
+## The `type` field
+
+The Azure API makes use of classes and inheritance through discriminator types defined in the REST API specifications. A strong indicator that a resource is actually a discriminated type is through the definition of a `type` property.
+
+We've found that splitting the possible types of a resource into their own individual resources improves the user experience through simplification of the schema and makes the resources more manageable by way of modularization and transparent logic.
+
+Taking the Data Factory Linked Service resources as an example which could have all of possible types defined below, each requiring a different set of inputs:
+
+```go
+"type": {
+    Type:     pluginsdk.TypeString,
+    Required: true,
+    ValidateFunc: validation.StringInSlice([]string{
+        string(datafactory.TypeBasicLinkedServiceTypeAzureBlobStorage),
+        string(datafactory.TypeBasicLinkedServiceTypeAzureDatabricks),
+        string(datafactory.TypeBasicLinkedServiceTypeAzureFileStorage),
+        string(datafactory.TypeBasicLinkedServiceTypeAzureFunction),
+        string(datafactory.TypeBasicLinkedServiceTypeAzureSearch),
+		...
+    }, false),
+},
+
+Would be better exposed as the following resources:
+	`azurerm_data_factory_linked_service_azure_blob_storage`
+    `azurerm_data_factory_linked_service_azure_databricks`
+    `azurerm_data_factory_linked_service_azure_file_storage`
+    `azurerm_data_factory_linked_service_azure_function`
+    `azurerm_data_factory_linked_service_azure_search`
+    ...
+```
