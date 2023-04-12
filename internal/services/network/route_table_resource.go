@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -121,7 +122,11 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	id := parse.NewRouteTableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+
+	// Locking this resource, so we don't make modifications to it at the same time if there is a
+	// standalone route trying to update it as well
+	locks.ByName(id.Name, routeTableResourceName)
+	defer locks.UnlockByName(id.Name, routeTableResourceName)
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
@@ -141,7 +146,7 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			Routes:                     expandRouteTableRoutes(d),
 			DisableBgpRoutePropagation: utils.Bool(d.Get("disable_bgp_route_propagation").(bool)),
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, routeSet)
@@ -167,6 +172,11 @@ func resourceRouteTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
+
+	// Locking this resource, so we don't make modifications to it at the same time if there is a
+	// standalone route trying to update it as well
+	locks.ByName(id.Name, routeTableResourceName)
+	defer locks.UnlockByName(id.Name, routeTableResourceName)
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
@@ -248,6 +258,11 @@ func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
+
+	// Locking this resource, so we don't make modifications to it at the same time if there is a
+	// standalone route trying to update it as well
+	locks.ByName(id.Name, routeTableResourceName)
+	defer locks.UnlockByName(id.Name, routeTableResourceName)
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
