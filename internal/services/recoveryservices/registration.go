@@ -30,6 +30,7 @@ func (r Registration) Resources() []sdk.Resource {
 		HyperVSiteResource{},
 		HyperVReplicationPolicyAssociationResource{},
 		VMWareReplicationPolicyResource{},
+		VMWareReplicationPolicyAssociationResource{},
 	}
 }
 
