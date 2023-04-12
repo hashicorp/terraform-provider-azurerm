@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetAppVolumeGroupResource struct{}
+type NetAppVolumeGroupSapHanaResource struct{}
 
-func TestAccNetAppVolumeGroup_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group", "test")
-	r := NetAppVolumeGroupResource{}
+func TestAccNetAppVolumeGroupSapHana_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_sap_hana", "test")
+	r := NetAppVolumeGroupSapHanaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,9 +31,9 @@ func TestAccNetAppVolumeGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolumeGroup_snapshotPolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group", "test")
-	r := NetAppVolumeGroupResource{}
+func TestAccNetAppVolumeGroupSapHana_snapshotPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_sap_hana", "test")
+	r := NetAppVolumeGroupSapHanaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,9 +46,9 @@ func TestAccNetAppVolumeGroup_snapshotPolicy(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolumeGroup_volumeUpdates(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group", "test")
-	r := NetAppVolumeGroupResource{}
+func TestAccNetAppVolumeGroupSapHana_volumeUpdates(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_sap_hana", "test")
+	r := NetAppVolumeGroupSapHanaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -74,9 +74,9 @@ func TestAccNetAppVolumeGroup_volumeUpdates(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolumeGroup_crossRegionReplication(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group", "test_secondary")
-	r := NetAppVolumeGroupResource{}
+func TestAccNetAppVolumeGroupSapHana_crossRegionReplication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_sap_hana", "test_secondary")
+	r := NetAppVolumeGroupSapHanaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,7 +89,7 @@ func TestAccNetAppVolumeGroup_crossRegionReplication(t *testing.T) {
 	})
 }
 
-func (t NetAppVolumeGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t NetAppVolumeGroupSapHanaResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := volumegroups.ParseVolumeGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -107,18 +107,17 @@ func (t NetAppVolumeGroupResource) Exists(ctx context.Context, clients *clients.
 	return utils.Bool(true), nil
 }
 
-func (NetAppVolumeGroupResource) basic(data acceptance.TestData) string {
-	template := NetAppVolumeGroupResource{}.templatePPG(data)
+func (NetAppVolumeGroupSapHanaResource) basic(data acceptance.TestData) string {
+	template := NetAppVolumeGroupSapHanaResource{}.templatePPG(data)
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_netapp_volume_group" "test" {
+resource "azurerm_netapp_volume_group_sap_hana" "test" {
   name                   = "acctest-NetAppVolumeGroup-%[2]d"
   location               = azurerm_resource_group.test.location
   resource_group_name    = azurerm_resource_group.test.name
   account_name           = azurerm_netapp_account.test.name
   group_description      = "Test volume group"
-  application_type       = "SAP-HANA"
   application_identifier = "TST"
   
   volume {
@@ -279,8 +278,8 @@ resource "azurerm_netapp_volume_group" "test" {
 `, template, data.RandomInteger)
 }
 
-func (NetAppVolumeGroupResource) avgSnapshotPolicy(data acceptance.TestData) string {
-	template := NetAppVolumeGroupResource{}.templatePPG(data)
+func (NetAppVolumeGroupSapHanaResource) avgSnapshotPolicy(data acceptance.TestData) string {
+	template := NetAppVolumeGroupSapHanaResource{}.templatePPG(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -304,13 +303,12 @@ resource "azurerm_netapp_snapshot_policy" "test" {
   }
 }
 
-resource "azurerm_netapp_volume_group" "test" {
+resource "azurerm_netapp_volume_group_sap_hana" "test" {
   name                   = "acctest-NetAppVolumeGroup-%[2]d"
   location               = azurerm_resource_group.test.location
   resource_group_name    = azurerm_resource_group.test.name
   account_name           = azurerm_netapp_account.test.name
   group_description      = "Test volume group"
-  application_type       = "SAP-HANA"
   application_identifier = "TST"
   
   volume {
@@ -491,18 +489,17 @@ resource "azurerm_netapp_volume_group" "test" {
 `, template, data.RandomInteger)
 }
 
-func (NetAppVolumeGroupResource) updateVolumes(data acceptance.TestData) string {
-	template := NetAppVolumeGroupResource{}.templatePPG(data)
+func (NetAppVolumeGroupSapHanaResource) updateVolumes(data acceptance.TestData) string {
+	template := NetAppVolumeGroupSapHanaResource{}.templatePPG(data)
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_netapp_volume_group" "test" {
+resource "azurerm_netapp_volume_group_sap_hana" "test" {
   name                   = "acctest-NetAppVolumeGroup-%[2]d"
   location               = azurerm_resource_group.test.location
   resource_group_name    = azurerm_resource_group.test.name
   account_name           = azurerm_netapp_account.test.name
   group_description      = "Test volume group"
-  application_type       = "SAP-HANA"
   application_identifier = "TST"
   
   volume {
@@ -663,18 +660,17 @@ resource "azurerm_netapp_volume_group" "test" {
 `, template, data.RandomInteger)
 }
 
-func (NetAppVolumeGroupResource) crossRegionReplication(data acceptance.TestData) string {
-	template := NetAppVolumeGroupResource{}.templateForAvgCrossRegionReplication(data)
+func (NetAppVolumeGroupSapHanaResource) crossRegionReplication(data acceptance.TestData) string {
+	template := NetAppVolumeGroupSapHanaResource{}.templateForAvgCrossRegionReplication(data)
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_netapp_volume_group" "test_primary" {
+resource "azurerm_netapp_volume_group_sap_hana" "test_primary" {
   name                   = "acctest-NetAppVolumeGroup-Primary-%[2]d"
   location               = azurerm_resource_group.test.location
   resource_group_name    = azurerm_resource_group.test.name
   account_name           = azurerm_netapp_account.test.name
   group_description      = "Test volume group"
-  application_type       = "SAP-HANA"
   application_identifier = "TST"
   
   volume {
@@ -833,13 +829,12 @@ resource "azurerm_netapp_volume_group" "test_primary" {
   ]
 }
 
-resource "azurerm_netapp_volume_group" "test_secondary" {
+resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
   name                   = "acctest-NetAppVolumeGroup-Secondary-%[2]d"
   location               = "%[3]s"
   resource_group_name    = azurerm_resource_group.test.name
   account_name           = azurerm_netapp_account.test_secondary.name
   group_description      = "Test volume group"
-  application_type       = "SAP-HANA"
   application_identifier = "TST"
   
   volume {
@@ -868,8 +863,8 @@ resource "azurerm_netapp_volume_group" "test_secondary" {
 
     data_protection_replication {
       endpoint_type             = "dst"
-      remote_volume_location    = azurerm_netapp_volume_group.test_primary.location
-      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume[0].id
+      remote_volume_location    = azurerm_netapp_volume_group_sap_hana.test_primary.location
+      remote_volume_resource_id = azurerm_netapp_volume_group_sap_hana.test_primary.volume[0].id
       replication_frequency     = "10minutes"
     }
 
@@ -935,8 +930,8 @@ resource "azurerm_netapp_volume_group" "test_secondary" {
   
     data_protection_replication {
       endpoint_type             = "dst"
-      remote_volume_location    = azurerm_netapp_volume_group.test_primary.location
-      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume[2].id
+      remote_volume_location    = azurerm_netapp_volume_group_sap_hana.test_primary.location
+      remote_volume_resource_id = azurerm_netapp_volume_group_sap_hana.test_primary.volume[2].id
       replication_frequency     = "10minutes"
     }
 
@@ -972,8 +967,8 @@ resource "azurerm_netapp_volume_group" "test_secondary" {
 
     data_protection_replication {
       endpoint_type             = "dst"
-      remote_volume_location    = azurerm_netapp_volume_group.test_primary.location
-      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume[3].id
+      remote_volume_location    = azurerm_netapp_volume_group_sap_hana.test_primary.location
+      remote_volume_resource_id = azurerm_netapp_volume_group_sap_hana.test_primary.volume[3].id
       replication_frequency     = "10minutes"
     }
   
@@ -1009,8 +1004,8 @@ resource "azurerm_netapp_volume_group" "test_secondary" {
 
     data_protection_replication {
       endpoint_type             = "dst"
-      remote_volume_location    = azurerm_netapp_volume_group.test_primary.location
-      remote_volume_resource_id = azurerm_netapp_volume_group.test_primary.volume[4].id
+      remote_volume_location    = azurerm_netapp_volume_group_sap_hana.test_primary.location
+      remote_volume_resource_id = azurerm_netapp_volume_group_sap_hana.test_primary.volume[4].id
       replication_frequency     = "10minutes"
     }
   
@@ -1030,8 +1025,8 @@ resource "azurerm_netapp_volume_group" "test_secondary" {
 `, template, data.RandomInteger, "eastus")
 }
 
-func (r NetAppVolumeGroupResource) templateForAvgCrossRegionReplication(data acceptance.TestData) string {
-	template := NetAppVolumeGroupResource{}.templatePPG(data)
+func (r NetAppVolumeGroupSapHanaResource) templateForAvgCrossRegionReplication(data acceptance.TestData) string {
+	template := NetAppVolumeGroupSapHanaResource{}.templatePPG(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1194,7 +1189,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
 `, template, data.RandomInteger, "eastus")
 }
 
-func (NetAppVolumeGroupResource) templatePPG(data acceptance.TestData) string {
+func (NetAppVolumeGroupSapHanaResource) templatePPG(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   alias = "all2"

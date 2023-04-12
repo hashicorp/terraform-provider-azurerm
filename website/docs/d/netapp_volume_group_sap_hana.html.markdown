@@ -1,26 +1,26 @@
 ---
 subcategory: "netapp"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_netapp_volume_group"
+page_title: "Azure Resource Manager: Data Source: azurerm_netapp_volume_group_sap_hana"
 description: |-
-  Gets information about an existing Application Volume Group.
+  Gets information about an existing Application Volume Group for SAP HANA application.
 ---
 
-# Data Source: azurerm_netapp_volume_group
+# Data Source: azurerm_netapp_volume_group_sap_hana
 
-Use this data source to access information about an existing Application Volume Group.
+Use this data source to access information about an existing Application Volume Group for SAP HANA application.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_netapp_volume_group" "example" {
+data "azurerm_netapp_volume_group_sap_hana" "example" {
   name                = "existing application volume group name"
   resource_group_name = "resource group name where the account and volume group belong to"
   account_name        = "existing account where the application volume group belong to"
 }
 
 output "id" {
-  value = data.azurerm_netapp_volume_group.example.id
+  value = data.azurerm_netapp_volume_group_sap_hana.example.id
 }
 ```
 
@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `account_name` - (Required) Name of the account where the application volume group belong to.
 
-* `name` - (Required) The name of this Application Volume Group.
+* `name` - (Required) The name of this Application Volume Group for SAP HANA application.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Application Volume Group exists.
 
@@ -41,8 +41,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Application Volume Group.
 
 * `application_identifier` - The application identifier.
-
-* `application_type` - The application type.
 
 * `group_description` - Volume group description.
 

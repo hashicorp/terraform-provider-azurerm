@@ -13,34 +13,33 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NetAppVolumeGroupDataSourceModel struct {
+type NetAppVolumeGroupSapHanaDataSourceModel struct {
 	Name                  string                    `tfschema:"name"`
 	ResourceGroupName     string                    `tfschema:"resource_group_name"`
 	Location              string                    `tfschema:"location"`
 	AccountName           string                    `tfschema:"account_name"`
 	GroupDescription      string                    `tfschema:"group_description"`
-	ApplicationType       string                    `tfschema:"application_type"`
 	ApplicationIdentifier string                    `tfschema:"application_identifier"`
 	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
 }
 
-var _ sdk.DataSource = NetAppVolumeGroupDataSource{}
+var _ sdk.DataSource = NetAppVolumeGroupSapHanaDataSource{}
 
-type NetAppVolumeGroupDataSource struct{}
+type NetAppVolumeGroupSapHanaDataSource struct{}
 
-func (r NetAppVolumeGroupDataSource) ResourceType() string {
-	return "azurerm_netapp_volume_group"
+func (r NetAppVolumeGroupSapHanaDataSource) ResourceType() string {
+	return "azurerm_netapp_volume_group_sap_hana"
 }
 
-func (r NetAppVolumeGroupDataSource) ModelObject() interface{} {
-	return &NetAppVolumeGroupDataSourceModel{}
+func (r NetAppVolumeGroupSapHanaDataSource) ModelObject() interface{} {
+	return &NetAppVolumeGroupSapHanaDataSourceModel{}
 }
 
-func (r NetAppVolumeGroupDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r NetAppVolumeGroupSapHanaDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return volumegroups.ValidateVolumeGroupID
 }
 
-func (r NetAppVolumeGroupDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r NetAppVolumeGroupSapHanaDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -56,16 +55,11 @@ func (r NetAppVolumeGroupDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r NetAppVolumeGroupDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r NetAppVolumeGroupSapHanaDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
 		"group_description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"application_type": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -244,14 +238,14 @@ func (r NetAppVolumeGroupDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r NetAppVolumeGroupDataSource) Read() sdk.ResourceFunc {
+func (r NetAppVolumeGroupSapHanaDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 
 			client := metadata.Client.NetApp.VolumeGroupClient
 
-			var state NetAppVolumeGroupDataSourceModel
+			var state NetAppVolumeGroupSapHanaDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -273,7 +267,6 @@ func (r NetAppVolumeGroupDataSource) Read() sdk.ResourceFunc {
 
 			state.Location = location.Normalize(*model.Location)
 			state.ApplicationIdentifier = *model.Properties.GroupMetaData.ApplicationIdentifier
-			state.ApplicationType = string(*model.Properties.GroupMetaData.ApplicationType)
 			state.GroupDescription = *model.Properties.GroupMetaData.GroupDescription
 
 			volumes, err := flattenNetAppVolumeGroupVolumes(ctx, model.Properties.Volumes, metadata)

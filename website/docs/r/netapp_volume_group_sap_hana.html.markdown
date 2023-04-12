@@ -1,14 +1,14 @@
 ---
 subcategory: "netapp"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_netapp_volume_group"
+page_title: "Azure Resource Manager: azurerm_netapp_volume_group_sap_hana"
 description: |-
-  Manages a Application Volume Group.
+  Manages a Application Volume Group for SAP HANA application.
 ---
 
-# azurerm_netapp_volume_group
+# azurerm_netapp_volume_group_sap_hana
 
-Manages a Application Volume Group.
+Manages a Application Volume Group for SAP HANA application.
 
 >Note: This feature is intended to be used for SAP-HANA workloads only, with several requirements, please refer to [Understand Azure NetApp Files application volume group for SAP HANA](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-introduction) document as the starting point to understand this feature before using it with Terraform.
 
@@ -142,13 +142,12 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Manual"
 }
 
-resource "azurerm_netapp_volume_group" "test" {
+resource "azurerm_netapp_volume_group_sap_hana" "test" {
   name                   = "${var.prefix}-netapp-volumegroup"
   location               = azurerm_resource_group.test.location
   resource_group_name    = azurerm_resource_group.test.name
   account_name           = azurerm_netapp_account.test.name
   group_description      = "Test volume group"
-  application_type       = "SAP-HANA"
   application_identifier = "TST"
 
   volume {
@@ -248,8 +247,6 @@ The following arguments are supported:
 * `account_name` - (Required) Name of the account where the application volume group belong to. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `application_identifier` - (Required) The SAP System ID, maximum 3 characters, e.g. `SH9`. Changing this forces a new Application Volume Group to be created and data will be lost.
-
-* `application_type` - (Required) The application type. The only possible value is `SAP-HANA`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `group_description` - (Required) Volume group description. Changing this forces a new Application Volume Group to be created and data will be lost.
 
@@ -357,5 +354,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Application Volume Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_netapp_volume_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mytest-rg/providers/Microsoft.NetApp/netAppAccounts/netapp-account-test/volumeGroups/netapp-volumegroup-test
+terraform import azurerm_netapp_volume_group_sap_hana.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mytest-rg/providers/Microsoft.NetApp/netAppAccounts/netapp-account-test/volumeGroups/netapp-volumegroup-test
 ```

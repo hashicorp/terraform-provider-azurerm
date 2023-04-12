@@ -59,30 +59,30 @@ type DataProtectionSnapshotPolicy struct {
 	DataProtectionSnapshotPolicy string `tfschema:"snapshot_policy_id"`
 }
 
-type VolumeSpecName string
+type VolumeSpecNameSapHana string
 
 const (
-	VolumeSpecNameData       VolumeSpecName = "data"
-	VolumeSpecNameLog        VolumeSpecName = "log"
-	VolumeSpecNameShared     VolumeSpecName = "shared"
-	VolumeSpecNameDataBackup VolumeSpecName = "data-backup"
-	VolumeSpecNameLogBackup  VolumeSpecName = "log-backup"
+	VolumeSpecNameSapHanaData       VolumeSpecNameSapHana = "data"
+	VolumeSpecNameSapHanaLog        VolumeSpecNameSapHana = "log"
+	VolumeSpecNameSapHanaShared     VolumeSpecNameSapHana = "shared"
+	VolumeSpecNameSapHanaDataBackup VolumeSpecNameSapHana = "data-backup"
+	VolumeSpecNameSapHanaLogBackup  VolumeSpecNameSapHana = "log-backup"
 )
 
-func PossibleValuesForVolumeSpecName() []string {
+func PossibleValuesForVolumeSpecNameSapHana() []string {
 	return []string{
-		string(VolumeSpecNameData),
-		string(VolumeSpecNameLog),
-		string(VolumeSpecNameShared),
-		string(VolumeSpecNameDataBackup),
-		string(VolumeSpecNameLogBackup),
+		string(VolumeSpecNameSapHanaData),
+		string(VolumeSpecNameSapHanaLog),
+		string(VolumeSpecNameSapHanaShared),
+		string(VolumeSpecNameSapHanaDataBackup),
+		string(VolumeSpecNameSapHanaLogBackup),
 	}
 }
 
 func RequiredVolumesForSAPHANA() []string {
 	return []string{
-		string(VolumeSpecNameData),
-		string(VolumeSpecNameLog),
+		string(VolumeSpecNameSapHanaData),
+		string(VolumeSpecNameSapHanaLog),
 	}
 }
 
@@ -102,7 +102,7 @@ func PossibleValuesForProtocolType() []string {
 	}
 }
 
-func PossibleValuesForProtocolTypeAvg() []string {
+func PossibleValuesForProtocolTypeVolumeGroupSapHana() []string {
 	return []string{
 		string(ProtocolTypeNfsV41),
 		string(ProtocolTypeNfsV3),
@@ -235,22 +235,7 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegr
 		capacityPoolID := item.CapacityPoolId
 		protocols := item.Protocols
 		snapshotDirectoryVisible := item.SnapshotDirectoryVisible
-
-		// Handling security style property
 		securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
-		if strings.EqualFold(string(securityStyle), string(SecurityStyleUnix)) &&
-			len(protocols) == 1 &&
-			strings.EqualFold(protocols[0], string(ProtocolTypeCifs)) {
-
-			return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("unix security style cannot be used in a CIFS enabled volume for %s", id)
-		}
-		if strings.EqualFold(string(securityStyle), string(SecurityStyleNtfs)) &&
-			len(protocols) == 1 &&
-			(strings.EqualFold(protocols[0], string(ProtocolTypeNfsV3)) || strings.EqualFold(protocols[0], string(ProtocolTypeNfsV41))) {
-
-			return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for %s", id)
-		}
-
 		storageQuotaInGB := item.StorageQuotaInGB * 1073741824
 		exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy)
 		dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication)
@@ -890,9 +875,9 @@ func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolu
 
 			// Can't be nfsv3 on data, log and share volumes
 			if strings.EqualFold((*volume.Properties.ProtocolTypes)[0], string(ProtocolTypeNfsV3)) &&
-				(strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameData)) ||
-					strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameShared)) ||
-					strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameLog))) {
+				(strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaData)) ||
+					strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaShared)) ||
+					strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaLog))) {
 
 				errors = append(errors, fmt.Errorf("'nfsv3 on data, log and shared volumes for %v is not supported on volume %v'", applicationType, *volume.Name))
 			}
@@ -905,12 +890,12 @@ func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolu
 			}
 
 			// Adding volume to required volumes list for checking if all required volumes are present, total of 2 for SAP HANA
-			if strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameData)) || strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameLog)) {
+			if strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaData)) || strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaLog)) {
 				requiredVolumes = append(requiredVolumes, *volume.Properties.VolumeSpecName)
 			}
 
 			// Checking CRR rule that log cannot be DataProtection type
-			if strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameLog)) &&
+			if strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaLog)) &&
 				volume.Properties.DataProtection != nil &&
 				volume.Properties.DataProtection.Replication != nil &&
 				strings.EqualFold(string(*volume.Properties.DataProtection.Replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
