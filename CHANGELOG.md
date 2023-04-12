@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * `recoveryServices` - refactoring to use `hashicorp/go-azure-sdk` [GH-21344]
 * `azurerm_service_plan` - add support for new Premium V3 and Memory Optimised SKUs [GH-21371]
+* `azurerm_storage_account_local_user` - property `ssh_authorized_key` can now be updated [GH-21362]
 
 ## 3.51.0 (April 06, 2023)
 
