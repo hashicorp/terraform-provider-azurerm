@@ -37,6 +37,7 @@ func TestAccSiteRecoveryVMWareReplicationPolicyAssociation_basic(t *testing.T) {
 	})
 }
 
+// association policy requires there to be a VMWare Server connected to the vault.
 func (SiteRecoveryVMWareReplicationPolicyAssociationResource) basic(data acceptance.TestData, vaultId string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
