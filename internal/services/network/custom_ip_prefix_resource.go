@@ -143,7 +143,7 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: contexrt has no deadline")
+				return fmt.Errorf("internal-error: context has no deadline")
 			}
 
 			var model CustomIpPrefixModel
@@ -180,7 +180,6 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 					SignedMessage:        &model.WANValidationSignedMessage,
 					AuthorizationMessage: &authorizationMessage,
 					CommissionedState:    network.CommissionedStateProvisioning,
-					NoInternetAdvertise:  &model.InternetAdvertisingDisabled,
 				},
 			}
 
@@ -451,6 +450,7 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 				}
 
 				for _, steppingState := range path {
+					// Determine whether to set the noInternetAdvertise flag, which can only be set at the point of transitioning to `Commissioning`
 					var noInternetAdvertise *bool
 					if steppingState == network.CommissionedStateCommissioning {
 						switch desiredState {

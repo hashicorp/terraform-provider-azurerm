@@ -222,7 +222,7 @@ func (r CustomIpPrefixResource) requiresImport(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_custom_ip_prefix" "test" {
+resource "azurerm_custom_ip_prefix" "import" {
   name                = azurerm_custom_ip_prefix.test.name
   location            = azurerm_custom_ip_prefix.test.location
   resource_group_name = azurerm_custom_ip_prefix.test.resource_group_name
