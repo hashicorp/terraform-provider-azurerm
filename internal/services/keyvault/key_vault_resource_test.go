@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -29,6 +30,38 @@ func TestAccKeyVault_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccKeyVault_CreateMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+	r := KeyVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCreateMode(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("standard"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withCreateMode(data, keyvault.CreateModeRecover),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("create_mode").HasValue(string(keyvault.CreateModeRecover)),
+			),
+		},
+		data.ImportStep("create_mode"),
+		{
+			Config: r.withCreateMode(data, keyvault.CreateModeDefault), // use Default mode in the last step to clean up the resource
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("create_mode").HasValue(string(keyvault.CreateModeDefault)),
+			),
+		},
+		data.ImportStep("create_mode"),
 	})
 }
 
@@ -482,6 +515,57 @@ resource "azurerm_key_vault" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KeyVaultResource) withCreateMode(data acceptance.TestData, mode keyvault.CreateMode) string {
+	var createMode string
+	if mode != "" {
+		createMode = fmt.Sprintf(`create_mode = "%s"`, mode)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = %[4]t
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "vault%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  %[3]s
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "ManageContacts",
+    ]
+
+    key_permissions = [
+      "Create",
+    ]
+
+    secret_permissions = [
+      "Set",
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, createMode, mode == keyvault.CreateModeDefault)
 }
 
 func (r KeyVaultResource) requiresImport(data acceptance.TestData) string {

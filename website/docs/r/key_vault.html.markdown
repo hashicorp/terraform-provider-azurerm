@@ -83,6 +83,8 @@ The following arguments are supported:
 
 ---
 
+* `create_mode` - (Optional) Specify the mode of key vault to create. Possible values are `default` and `recover`. if not provided or an empty string provided, it will be set to `recvoer` when a soft deleted key vault of the same `name` exists. Change this forces a new resource to be created.
+
 * `access_policy` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of up to 1024 objects describing access policies, as described below.
 
 -> **NOTE** Since `access_policy` can be configured both inline and via the separate `azurerm_key_vault_access_policy` resource, we have to explicitly set it to empty slice (`[]`) to remove it.

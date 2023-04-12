@@ -91,6 +91,17 @@ func resourceKeyVault() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
+			"create_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(keyvault.CreateModeDefault),
+					string(keyvault.CreateModeRecover),
+				}, false),
+			},
+
 			"access_policy": {
 				Type:       pluginsdk.TypeList,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -338,7 +349,9 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		parameters.Properties.SoftDeleteRetentionInDays = utils.Int32(int32(v.(int)))
 	}
 
-	if recoverSoftDeletedKeyVault {
+	if createMode := d.Get("create_mode").(string); createMode != "" {
+		parameters.Properties.CreateMode = keyvault.CreateMode(createMode)
+	} else if recoverSoftDeletedKeyVault {
 		parameters.Properties.CreateMode = keyvault.CreateModeRecover
 	}
 
@@ -374,6 +387,10 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	d.SetId(id.ID())
 	meta.(*clients.Client).KeyVault.AddToCache(id, *read.Properties.VaultURI)
+
+	if parameters.Properties.CreateMode != "" {
+		d.Set("create_mode", parameters.Properties.CreateMode) // `create_mode` field not returned by the GET API
+	}
 
 	if props := read.Properties; props != nil {
 		if vault := props.VaultURI; vault != nil {
@@ -658,6 +675,9 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	d.Set("tenant_id", props.TenantID.String())
+	if props.CreateMode != "" { // current API does not return this field
+		d.Set("create_mode", props.CreateMode)
+	}
 	d.Set("enabled_for_deployment", props.EnabledForDeployment)
 	d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 	d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
