@@ -151,12 +151,12 @@ An `application_stack` block supports the following:
 * `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`,`v3.0`, `v4.0`, `v5.0`, `v6.0` and `v7.0`.
 
 ~> **NOTE:** The Portal displayed values and the actual underlying API values differ for this setting, as follows:
-Portal Value | API value
-:--|--:
-ASP.NET V3.5 | v2.0
-ASP.NET V4.8 | v4.0
-.NET 6 (LTS) | v6.0
-.NET 7 (STS) | v7.0
+| Portal Value | API value |
+|:-------------|----------:|
+| ASP.NET V3.5 |      v2.0 |
+| ASP.NET V4.8 |      v4.0 |
+| .NET 6 (LTS) |      v6.0 |
+| .NET 7 (STS) |      v7.0 |
 
 * `dotnet_core_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnetcore`. Possible values include `v4.0`.
 
@@ -234,7 +234,7 @@ An `auth_settings_v2` block supports the following:
 
 * `unauthenticated_action` - (Optional) The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.
 
-* `default_provider` - (Optional) The Default Authentication Provider to use when more than one Authentication Provider is configured and the `unauthenticated_action` is set to `RedirectToLoginPage`.
+* `default_provider` - (Optional) The Default Authentication Provider to use when more than one Authentication Provider is configured and the `unauthenticated_action` is set to `RedirectToLoginPage`.  Possible values include the standard providers (`apple`, `azureactivedirectory`, `facebook`, `github`, `google`, `twitter`) and the `name` of your `custom_oidc_v2` provider.
 
 * `excluded_paths` - (Optional) The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.
 

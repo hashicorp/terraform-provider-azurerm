@@ -221,7 +221,7 @@ An `auth_settings_v2` block supports the following:
 
 * `unauthenticated_action` - (Optional) The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.
 
-* `default_provider` - (Optional) The Default Authentication Provider to use when more than one Authentication Provider is configured and the `unauthenticated_action` is set to `RedirectToLoginPage`.
+* `default_provider` - (Optional) The Default Authentication Provider to use when more than one Authentication Provider is configured and the `unauthenticated_action` is set to `RedirectToLoginPage`.  Possible values include the standard providers (`apple`, `azureactivedirectory`, `facebook`, `github`, `google`, `twitter`) and the `name` of your `custom_oidc_v2` provider.
 
 * `excluded_paths` - (Optional) The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.
 
