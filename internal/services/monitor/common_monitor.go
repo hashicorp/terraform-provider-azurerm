@@ -75,18 +75,14 @@ func flattenAzureRmScheduledQueryRulesAlertTrigger(input scheduledqueryrules.Tri
 
 func flattenAzureRmScheduledQueryRulesLogCriteria(input []scheduledqueryrules.Criteria) []interface{} {
 	result := make([]interface{}, 0)
+	for _, criteria := range input {
+		v := make(map[string]interface{})
 
-	if input != nil {
-		for _, criteria := range input {
-			v := make(map[string]interface{})
+		v["dimension"] = flattenAzureRmScheduledQueryRulesLogDimension(criteria.Dimensions)
+		v["metric_name"] = criteria.MetricName
 
-			v["dimension"] = flattenAzureRmScheduledQueryRulesLogDimension(criteria.Dimensions)
-			v["metric_name"] = criteria.MetricName
-
-			result = append(result, v)
-		}
+		result = append(result, v)
 	}
-
 	return result
 }
 

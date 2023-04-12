@@ -274,12 +274,9 @@ func expandAzureRmLogProfileRetentionPolicy(d *pluginsdk.ResourceData) logprofil
 
 func flattenAzureRmLogProfileLocations(input []string) []string {
 	result := make([]string, 0)
-	if input != nil {
-		for _, location := range input {
-			result = append(result, azure.NormalizeLocation(location))
-		}
+	for _, location := range input {
+		result = append(result, azure.NormalizeLocation(location))
 	}
-
 	return result
 }
 
