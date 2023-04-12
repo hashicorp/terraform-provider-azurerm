@@ -159,23 +159,23 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 	// Either "name" or "display_name" must have been specified, constrained by the pluginsdk.
 	var resp securityinsight.BasicAlertRuleTemplate
 	var nameToLog string
-	var realName *string
 	if name != "" {
 		nameToLog = name
-		realName = &name
 		resp, err = getAlertRuleTemplateByName(ctx, client, workspaceID, name)
+		if err != nil {
+			return fmt.Errorf("an Alert Rule Template named %q was not found", name)
+		}
 	} else {
 		nameToLog = displayName
+		var realName *string
 		resp, realName, err = getAlertRuleTemplateByDisplayName(ctx, client, workspaceID, displayName)
-	}
-	if err != nil {
-		return fmt.Errorf("retrieving Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q): %+v", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroupName, err)
-	}
-	if realName == nil {
-		return fmt.Errorf("retrieving Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q): `name` was nil", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroupName)
+		if err != nil {
+			return fmt.Errorf("an Alert Rule Template with the Display Name %q was not found", displayName)
+		}
+		name = *realName
 	}
 
-	id := parse.NewSentinelAlertRuleTemplateID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, *realName)
+	id := parse.NewSentinelAlertRuleTemplateID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	switch template := resp.(type) {
 	case securityinsight.MLBehaviorAnalyticsAlertRuleTemplate:
