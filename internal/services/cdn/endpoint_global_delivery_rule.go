@@ -1,6 +1,8 @@
 package cdn
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/deliveryruleactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -68,6 +70,10 @@ func expandArmCdnEndpointGlobalDeliveryRule(rule map[string]interface{}) (*cdn.D
 	actions, err := expandDeliveryRuleActions(rule)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(actions) == 0 {
+		return nil, fmt.Errorf("must have at least one action specified")
 	}
 	deliveryRule.Actions = &actions
 
