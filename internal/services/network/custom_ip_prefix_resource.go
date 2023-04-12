@@ -354,9 +354,9 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-type transitioningStates []network.CommissionedState
+type commissionedStates []network.CommissionedState
 
-func (t transitioningStates) contains(i network.CommissionedState) bool {
+func (t commissionedStates) contains(i network.CommissionedState) bool {
 	for _, s := range t {
 		if i == s {
 			return true
@@ -365,7 +365,7 @@ func (t transitioningStates) contains(i network.CommissionedState) bool {
 	return false
 }
 
-func (t transitioningStates) strings() (out []string) {
+func (t commissionedStates) strings() (out []string) {
 	for _, s := range t {
 		out = append(out, string(s))
 	}
@@ -380,6 +380,7 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 	if existing.CustomIPPrefixPropertiesFormat == nil {
 		return fmt.Errorf("retrieving existing %s: `properties` was nil", id)
 	}
+
 	currentState := existing.CustomIPPrefixPropertiesFormat.CommissionedState
 
 	// stateTree is a map of desired state, to a map of current state, to the list of transition states needed to get there
@@ -406,28 +407,28 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 		},
 	}
 
-	transitioningStatesFor := func(finalState network.CommissionedState) (out transitioningStates) {
+	transitioningStatesFor := func(finalState network.CommissionedState) (out commissionedStates) {
 		switch finalState {
 		case network.CommissionedStateProvisioned:
-			out = transitioningStates{network.CommissionedStateProvisioning, network.CommissionedStateDecommissioning}
+			out = commissionedStates{network.CommissionedStateProvisioning, network.CommissionedStateDecommissioning}
 		case network.CommissionedStateDeprovisioned:
-			out = transitioningStates{network.CommissionedStateDeprovisioning}
+			out = commissionedStates{network.CommissionedStateDeprovisioning}
 		case network.CommissionedStateCommissioned:
-			out = transitioningStates{network.CommissionedStateCommissioning}
+			out = commissionedStates{network.CommissionedStateCommissioning}
 		}
 		return
 	}
 
-	finalStateFor := func(transitioningState network.CommissionedState) (finalState network.CommissionedState) {
+	finalStatesFor := func(transitioningState network.CommissionedState) (out commissionedStates) {
 		switch transitioningState {
 		case network.CommissionedStateProvisioning:
-			finalState = network.CommissionedStateProvisioned
+			out = commissionedStates{network.CommissionedStateProvisioned}
 		case network.CommissionedStateDeprovisioning:
-			finalState = network.CommissionedStateDeprovisioned
+			out = commissionedStates{network.CommissionedStateDeprovisioned}
 		case network.CommissionedStateCommissioning:
-			finalState = network.CommissionedStateCommissioned
+			out = commissionedStates{network.CommissionedStateCommissioned, network.CommissionedStateCommissionedNoInternetAdvertise}
 		case network.CommissionedStateDecommissioning:
-			finalState = network.CommissionedStateProvisioned
+			out = commissionedStates{network.CommissionedStateProvisioned}
 		}
 		return
 	}
@@ -443,9 +444,9 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 			return nil
 		}
 
-		for state, path := range plan {
-			if currentState == state || transitioningStatesFor(state).contains(currentState) {
-				if err := r.waitForCommissionedState(ctx, id, transitioningStatesFor(state).strings(), []string{string(state)}); err != nil {
+		for startingState, path := range plan {
+			if currentState == startingState || transitioningStatesFor(startingState).contains(currentState) {
+				if err := r.waitForCommissionedState(ctx, id, transitioningStatesFor(startingState).strings(), []string{string(startingState)}); err != nil {
 					return err
 				}
 
@@ -465,7 +466,7 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 						return err
 					}
 
-					if err := r.waitForCommissionedState(ctx, id, []string{string(steppingState)}, []string{string(finalStateFor(steppingState))}); err != nil {
+					if err := r.waitForCommissionedState(ctx, id, []string{string(steppingState)}, finalStatesFor(steppingState).strings()); err != nil {
 						return err
 					}
 				}
