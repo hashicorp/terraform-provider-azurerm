@@ -278,13 +278,12 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	if d.HasChange("tags") {
 		tagsClient := meta.(*clients.Client).Resource.TagsClientForSubscription(subscriptionId.ID())
 		t := tags.Expand(d.Get("tags").(map[string]interface{}))
-		scope := fmt.Sprintf("subscriptions/%s", *resp.Model.Properties.SubscriptionId)
 		tagsResource := resources.TagsResource{
 			Properties: &resources.Tags{
 				Tags: t,
 			},
 		}
-		if _, err = tagsClient.CreateOrUpdateAtScope(ctx, scope, tagsResource); err != nil {
+		if _, err = tagsClient.CreateOrUpdateAtScope(ctx, subscriptionId.ID(), tagsResource); err != nil {
 			return fmt.Errorf("setting tags on %s: %+v", *id, err)
 		}
 	}
