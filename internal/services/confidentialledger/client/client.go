@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -11,12 +12,14 @@ type Client struct {
 	options *common.ClientOptions
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	confidentialLedgerClient := confidentialledger.NewConfidentialLedgerClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&confidentialLedgerClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	confidentialLedgerClient, err := confidentialledger.NewConfidentialLedgerClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ConfidentialLedger client: %+v", err)
+	}
 
 	return &Client{
-		ConfidentialLedgerClient: &confidentialLedgerClient,
+		ConfidentialLedgerClient: confidentialLedgerClient,
 		options:                  o,
-	}
+	}, nil
 }
