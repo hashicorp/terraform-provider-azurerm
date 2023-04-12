@@ -52,9 +52,10 @@ func (r NetAppVolumeGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFu
 func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: netAppValidate.VolumeGroupName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -69,9 +70,10 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"group_description": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"application_type": {
@@ -199,8 +201,9 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"allowed_clients": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"nfsv3_enabled": {
