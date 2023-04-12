@@ -36,6 +36,7 @@ func TestAccSearchService_basicStandard(t *testing.T) {
 }
 
 func TestAccSearchService_basicFree(t *testing.T) {
+	// Regression test case for issue #10151
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	r := SearchServiceResource{sku: "free"}
 

@@ -85,34 +85,34 @@ func resourceSearchService() *pluginsdk.Resource {
 				ValidateFunc: validateSearch.PartitionCount,
 			},
 
-			// "api_access_control": {
-			// 	Type:     pluginsdk.TypeSet,
-			// 	Optional: true,
-			// 	MaxItems: 1,
-			// 	Elem: &pluginsdk.Resource{
-			// 		Schema: map[string]*pluginsdk.Schema{
-			// 			"type": {
-			// 				Type:     pluginsdk.TypeString,
-			// 				Optional: true,
-			// 				Default:  "api_keys",
-			// 				ValidateFunc: validation.StringInSlice([]string{
-			// 					"api_keys",
-			// 					"role_based_access_control",
-			// 					"role_based_access_control_and_api_keys",
-			// 				}, false),
-			// 			},
+			"api_access_control": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "api_keys",
+							ValidateFunc: validation.StringInSlice([]string{
+								"api_keys",
+								"role_based_access_control",
+								"role_based_access_control_and_api_keys",
+							}, false),
+						},
 
-			// 			"authentication_failure_mode": {
-			// 				Type:     pluginsdk.TypeString,
-			// 				Optional: true,
-			// 				ValidateFunc: validation.StringInSlice([]string{
-			// 					string(services.AadAuthFailureModeHTTPFourZeroOneWithBearerChallenge),
-			// 					string(services.AadAuthFailureModeHTTPFourZeroThree),
-			// 				}, false),
-			// 			},
-			// 		},
-			// 	},
-			// },
+						"authentication_failure_mode": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(services.AadAuthFailureModeHTTPFourZeroOneWithBearerChallenge),
+								string(services.AadAuthFailureModeHTTPFourZeroThree),
+							}, false),
+						},
+					},
+				},
+			},
 
 			"hosting_mode": {
 				Type:     pluginsdk.TypeString,
@@ -217,15 +217,8 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
 	hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
 	cmkEnforcementEnabled := d.Get("cmk_enforcement_enabled").(bool)
-
-	// NOTE: Temporarily disable these fields...
-	// AuthenticationOptions := expandSearchServiceDataPlaneAadOrApiKeyAuthOption(d.Get("api_access_control").(*pluginsdk.Set).List())
-
-	// localAuthDisabled := false
-	// if AuthenticationOptions == nil {
-	// 	// This means that it is RBAC only
-	// 	localAuthDisabled = true
-	// }
+	apiAccessControl := d.Get("api_access_control").(*pluginsdk.Set).List()
+	localAuthDisabled := false
 
 	cmkEnforcement := services.SearchEncryptionWithCmkDisabled
 	if cmkEnforcementEnabled {
@@ -271,20 +264,13 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 				Enforcement: pointer.To(cmkEnforcement),
 			}),
 			HostingMode: pointer.To(hostingMode),
-			// NOTE: Temporarily disable these fields...
-			// AuthOptions:      AuthenticationOptions,
+			// AuthOptions:      authenticationOptions,
 			// DisableLocalAuth: pointer.To(localAuthDisabled),
 			PartitionCount: pointer.To(partitionCount),
 			ReplicaCount:   pointer.To(replicaCount),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-
-	// NOTE: Temporarily disable these fields...
-	// AuthOptions must be null if DisableLocalAuth is true
-	// if localAuthDisabled {
-	// 	searchService.Properties.AuthOptions = nil
-	// }
 
 	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -298,12 +284,28 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		searchService.Identity = expandedIdentity
 	}
 
+	if len(apiAccessControl) > 0 {
+		authenticationOptions, err := expandSearchServiceDataPlaneAadOrApiKeyAuthOption(apiAccessControl)
+		if err != nil {
+			return err
+		}
+
+		// This means that it is RBAC only
+		if authenticationOptions == nil {
+			localAuthDisabled = true
+		}
+
+		searchService.Properties.AuthOptions = authenticationOptions
+		searchService.Properties.DisableLocalAuth = pointer.To(localAuthDisabled)
+	}
+
 	err = client.CreateOrUpdateThenPoll(ctx, id, searchService, services.CreateOrUpdateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
 	return resourceSearchServiceRead(d, meta)
 }
 
@@ -360,18 +362,24 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			model.Properties.EncryptionWithCmk.Enforcement = pointer.To(cmkEnforcement)
 		}
 
-		// NOTE: Temporarily disable these fields...
-		// if d.HasChange("api_access_control") {
-		// 	authenticationOptions := expandSearchServiceDataPlaneAadOrApiKeyAuthOption(d.Get("api_access_control").(*pluginsdk.Set).List())
+		apiAccessControl := d.Get("api_access_control").(*pluginsdk.Set).List()
 
-		// 	model.Properties.DisableLocalAuth = pointer.To(false)
-		// 	if authenticationOptions == nil {
-		// 		// This means that it is RBAC only
-		// 		model.Properties.DisableLocalAuth = pointer.To(true)
-		// 	}
+		if d.HasChange("api_access_control") {
+			authenticationOptions, err := expandSearchServiceDataPlaneAadOrApiKeyAuthOption(apiAccessControl)
+			if err != nil {
+				return err
+			}
 
-		// 	model.Properties.AuthOptions = authenticationOptions
-		// }
+			model.Properties.DisableLocalAuth = pointer.To(false)
+
+			// it looks like from my debugging if this is removed it needs to be a pointer to a []interface{map[]}
+			if authenticationOptions == nil {
+				// This means that it is RBAC only
+				model.Properties.DisableLocalAuth = pointer.To(true)
+			}
+
+			model.Properties.AuthOptions = authenticationOptions
+		}
 
 		if d.HasChange("replica_count") {
 			replicaCount, err := validateSearchServiceReplicaCount(int64(d.Get("replica_count").(int)), pointer.From(model.Sku.Name))
@@ -410,6 +418,12 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		err = client.CreateOrUpdateThenPoll(ctx, pointer.From(id), pointer.From(model), services.CreateOrUpdateOperationOptions{})
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+
+		// If you remove this value from your config you need to set this back to the 'default' value in Azure(e.g. 'api_keys')
+		// in the expand func, but you also need to remove this code block from your state file else you will get a diff...
+		if len(apiAccessControl) == 0 {
+			d.Set("api_access_control", apiAccessControl)
 		}
 
 		return resourceSearchServiceRead(d, meta)
@@ -457,7 +471,6 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			publicNetworkAccess := true // publicNetworkAccess defaults to true...
 			cmkEnforcement := false     // cmkEnforcment defaults to false...
 			hostingMode := services.HostingModeDefault
-			// localAthDisabled := false
 
 			if count := props.PartitionCount; count != nil {
 				partitionCount = int(pointer.From(count))
@@ -483,12 +496,51 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				cmkCompliance = string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus))
 			}
 
-			// NOTE: Temporarily disable these fields...
+			// If the 'authenticationOptions' are not in the config file
+			// we need to remove them from the state file...
+			authenticationOptions := make([]interface{}, 0)
+
+			// **************************************************************************************************************************************
+			// I cannot trust props.DisableLocalAuth here, since the service will automatically set a value if it was omitted from the create call...
+			// **************************************************************************************************************************************
+
+			// I am using 'DisableLocalAuth' here because when you set your 'api_access_control'
+			// to 'RBAC only', the 'props.AuthOptions' will be 'nil'...
+
+			if props.DisableLocalAuth != nil {
+				// since I cannot trust the values coming back from Azure, due to their default values, I will have to pull the values from state...
+				o, n := d.GetChange("api_access_control")
+				newValue := n.(*pluginsdk.Set).List()
+				oldValue := o.(*pluginsdk.Set).List()
+
+				if len(newValue) > 0 {
+					authenticationOptions = flattenSearchServiceDataPlaneAadOrApiKeyAuthOption(props.AuthOptions, props.DisableLocalAuth)
+				}
+
+				log.Println("************************************************************************")
+				log.Println("resourceSearchServiceRead:")
+				log.Println("************************************************************************")
+				log.Printf("  'api_access_control' New Value         : %+v\n", newValue)
+				log.Printf("  'api_access_control' Old Value         : %+v\n", oldValue)
+				log.Printf("  Flattened 'authenticationOptions' value: %+v\n", authenticationOptions)
+				log.Printf("  Azure RP value                         : %+v\n", props.AuthOptions)
+				log.Printf("  Azure RP 'ApiKeyOnly' value            : %+v\n", pointer.From(props.AuthOptions.ApiKeyOnly))
+				log.Println("************************************************************************")
+			}
+
 			// if props.DisableLocalAuth != nil {
-			// 	authenticationOptions := flattenSearchServiceDataPlaneAadOrApiKeyAuthOption(props.AuthOptions, props.DisableLocalAuth)
-			// 	d.Set("api_access_control", authenticationOptions)
+			// 	o, _ := d.GetChange("api_access_control")
+			// 	oldValue := o.([]interface{})
+
+			// 	log.Printf("\n\n\n\n\n\n\n\n\n\n******************************\nOld Value: %+v\n******************************\n\n\n\n\n\n\n\n", oldValue)
+
+			// 	// Only call flatten if the value exists in state...
+			// 	if len(oldValue) > 0 {
+			// 		authenticationOptions = flattenSearchServiceDataPlaneAadOrApiKeyAuthOption(props.AuthOptions, props.DisableLocalAuth)
+			// 	}
 			// }
 
+			d.Set("api_access_control", authenticationOptions)
 			d.Set("partition_count", partitionCount)
 			d.Set("replica_count", replicaCount)
 			d.Set("public_network_access_enabled", publicNetworkAccess)
@@ -592,38 +644,48 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 	return &output
 }
 
-// NOTE: Temporarily disable these fields...
-// func expandSearchServiceDataPlaneAadOrApiKeyAuthOption(input []interface{}) *services.DataPlaneAuthOptions {
-// 	var ApiKeyOnly interface{}
+func expandSearchServiceDataPlaneAadOrApiKeyAuthOption(input []interface{}) (*services.DataPlaneAuthOptions, error) {
+	var foo interface{}
+	apiKeyOnlyDefault := make(map[string]interface{}, 0)
+	foo = apiKeyOnlyDefault
 
-// 	// the default(e.g. 'ApiKeyOnly'), only requires an empty DataPlaneAuthOptions.ApiKeyOnly interface...
-// 	defaultAuth := pointer.To(services.DataPlaneAuthOptions{
-// 		ApiKeyOnly: pointer.To(ApiKeyOnly),
-// 	})
+	// the default(e.g. 'ApiKeyOnly'), only requires an empty 'DataPlaneAuthOptions.ApiKeyOnly' interface which must be an empty map...
+	// Azure RP 'ApiKeyOnly' value            : map[]
+	defaultAuthOptions := pointer.To(services.DataPlaneAuthOptions{
+		ApiKeyOnly: pointer.To(foo),
+	})
 
-// 	if len(input) == 0 {
-// 		return defaultAuth
-// 	}
+	log.Println("************************************************************************")
+	log.Println("expandSearchServiceDataPlaneAadOrApiKeyAuthOption:")
+	log.Println("************************************************************************")
+	log.Printf("  'apiKeyOnlyDefault'  : %+v\n", apiKeyOnlyDefault)
+	log.Printf("  'apiKeyOnly'         : %+v\n", foo)
+	log.Printf("  'defaultAuthOptions' : %+v\n", defaultAuthOptions)
+	log.Println("************************************************************************")
 
-// 	apiAccessControl := input[0].(map[string]interface{})
-// 	accessControlType := apiAccessControl["type"].(string)
-// 	authFailureMode := apiAccessControl["authentication_failure_mode"].(string)
+	if len(input) == 0 {
+		return defaultAuthOptions, nil
+	}
 
-// 	switch accessControlType {
-// 	case "role_based_access_control":
-// 		return nil
-// 	case "api_keys":
-// 		return defaultAuth
-// 	case "role_based_access_control_and_api_keys":
-// 		return pointer.To(services.DataPlaneAuthOptions{
-// 			AadOrApiKey: pointer.To(services.DataPlaneAadOrApiKeyAuthOption{
-// 				AadAuthFailureMode: (*services.AadAuthFailureMode)(pointer.To(authFailureMode)),
-// 			}),
-// 		})
-// 	}
+	apiAccessControl := input[0].(map[string]interface{})
+	accessControlType := apiAccessControl["type"].(string)
+	authFailureMode := apiAccessControl["authentication_failure_mode"].(string)
 
-// 	return defaultAuth
-// }
+	switch accessControlType {
+	case "role_based_access_control":
+		return nil, nil
+	case "api_keys":
+		return defaultAuthOptions, nil
+	case "role_based_access_control_and_api_keys":
+		return pointer.To(services.DataPlaneAuthOptions{
+			AadOrApiKey: pointer.To(services.DataPlaneAadOrApiKeyAuthOption{
+				AadAuthFailureMode: (*services.AadAuthFailureMode)(pointer.To(authFailureMode)),
+			}),
+		}), nil
+	}
+
+	return defaultAuthOptions, nil
+}
 
 func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
 	if input == nil || *input.IPRules == nil || len(*input.IPRules) == 0 {
@@ -636,35 +698,34 @@ func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
 	return result
 }
 
-// NOTE: Temporarily disable these fields...
-// func flattenSearchServiceDataPlaneAadOrApiKeyAuthOption(input *services.DataPlaneAuthOptions, localAuthenticationDisabled *bool) []interface{} {
-// 	// TODO: Validate what I should be checking here...
-// 	// For RBAC Only DataPlaneAuthOptions will be nil...
-// 	if localAuthenticationDisabled == nil {
-// 		return []interface{}{}
-// 	}
+func flattenSearchServiceDataPlaneAadOrApiKeyAuthOption(input *services.DataPlaneAuthOptions, localAuthenticationDisabled *bool) []interface{} {
+	// TODO: Validate what I should be checking here...
+	// For RBAC Only DataPlaneAuthOptions will be nil...
+	if localAuthenticationDisabled == nil {
+		return []interface{}{}
+	}
 
-// 	result := make(map[string]interface{})
+	result := make(map[string]interface{})
 
-// 	// if localAuthenticationDisabled is disabled that means the this in RBAC Only mode...
-// 	if pointer.From(localAuthenticationDisabled) {
-// 		// Auth is RBAC Only...
-// 		// "localAuthenticationDisabled": true
-// 		result["type"] = "role_based_access_control"
-// 		result["authentication_failure_mode"] = ""
-// 	} else {
-// 		// Auth can be API Only or RBAC and API...
-// 		if input.AadOrApiKey != nil && input.AadOrApiKey.AadAuthFailureMode != nil {
-// 			result["type"] = "role_based_access_control_and_api_keys"
-// 			result["authentication_failure_mode"] = pointer.From(input.AadOrApiKey.AadAuthFailureMode)
-// 		} else {
-// 			result["type"] = "api_keys"
-// 			result["authentication_failure_mode"] = ""
-// 		}
-// 	}
+	// if 'localAuthenticationDisabled' is 'true' that means the this in RBAC Only mode...
+	if pointer.From(localAuthenticationDisabled) {
+		// Auth is RBAC Only...
+		// "localAuthenticationDisabled": true
+		result["type"] = "role_based_access_control"
+		result["authentication_failure_mode"] = ""
+	} else {
+		// Auth can be API Only or RBAC and API...
+		if input.AadOrApiKey != nil && input.AadOrApiKey.AadAuthFailureMode != nil {
+			result["type"] = "role_based_access_control_and_api_keys"
+			result["authentication_failure_mode"] = pointer.From(input.AadOrApiKey.AadAuthFailureMode)
+		} else {
+			result["type"] = "api_keys"
+			result["authentication_failure_mode"] = ""
+		}
+	}
 
-// 	return []interface{}{result}
-// }
+	return []interface{}{result}
+}
 
 func validateSearchServiceReplicaCount(replicaCount int64, skuName services.SkuName) (int64, error) {
 	switch skuName {
