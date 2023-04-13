@@ -44,15 +44,13 @@ The following arguments are supported:
 
 ---
 
-* `cmk_enforcement_enabled` - (Optional) Should the Search Service enforce having one or more non customer encrypted resources? Possible values include `true` or `false`. Defaults to `false`.
+* `api_access_control` - (Optional) An `api_access_control` block as defined below.
+
+* `cmk_enforcement_enabled` - (Optional) Should the Search Service enforce having non customer encrypted resources? Possible values include `true` or `false`. If `true` the Search Service will be marked as `non-compliant` if there are one or more non customer encrypted resources, if `false` no enforcement will be made and the Search Service can contain one or more non customer encrypted resources. Defaults to `false`.
 
 * `hosting_mode` - (Optional) Enable high density partitions that allow for up to a 1000 indexes. Possible values are `highDensity` or `default`. Defaults to `default`. Changing this forces a new Search Service to be created.
 
 -> **NOTE:** When the Search Service is in `highDensity` mode the maximum number of partitions allowed is `3`, to enable `hosting_mode` you must use a `standard3` SKU.
-
-<!-- * `local_authentication_disabled` - (Optional) Should calls to the Search Service be allowed to utilize API keys for authentication? When `local_authentication_disabled` is set to `true`, calls to the Search Service *will not* be allowed to use API keys for authentication. Possible values include `true` or `false`. Defaults to `false`.
-
-**NOTE:** This cannot be set to `true` if `dataPlaneAuthOptions` are defined. -->
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this resource. Defaults to `true`.
 
@@ -74,9 +72,23 @@ The following arguments are supported:
 
 ---
 
-A `identity` block supports the following:
+An `api_access_control` block supports the following:
+
+* `type` - (Optional) Describes what authentication mode should be used for the Search Service. Possible values inclued `api_keys`, `role_based_access_control`, or `role_based_access_control_and_api_keys`. Defaults to `api_keys`.
+
+-> **NOTE:** If the `api_access_control` block has not been defined in the configuration file the Search Service will still be defaulted to use the `api_keys` authentication mode.
+
+* `authentication_failure_mode` - (Optional) Describes what response the Search Service should return for requests that fail authentication. Possible values include `http401WithBearerChallenge` or `http403`. Defaults to an `empty` string.
+
+-> **NOTE:** `authentication_failure_mode` can only be defined if the `api_access_control` `type` is set to `role_based_access_control_and_api_keys`.
+
+---
+
+An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Search Service. The only possible value is `SystemAssigned`.
+
+---
 
 ## Attributes Reference
 

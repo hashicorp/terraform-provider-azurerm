@@ -15,9 +15,11 @@ import (
 )
 
 type SearchServiceResource struct {
-	sku        string
-	count      int
-	enforceCmk bool
+	sku                                       string
+	count                                     int
+	enforceCmk                                bool
+	apiAccessControlType                      string
+	apiAccessControlAuthenticationFailureMode string
 }
 
 func TestAccSearchService_basicStandard(t *testing.T) {
@@ -253,7 +255,9 @@ func TestAccSearchService_cmkEnforcement(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cmkEnforcement(data),
-			Check:  acceptance.ComposeTestCheckFunc(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -268,17 +272,103 @@ func TestAccSearchService_cmkEnforcementUpdate(t *testing.T) {
 		{
 			// This should create a Search Service with the default 'cmk_enforcement_enabled' value of 'false'...
 			Config: r.basic(data),
-			Check:  acceptance.ComposeTestCheckFunc(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: u.cmkEnforcement(data),
-			Check:  acceptance.ComposeTestCheckFunc(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.cmkEnforcement(data),
-			Check:  acceptance.ComposeTestCheckFunc(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSearchService_apiAccessControlFailureModeWrongTypeError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{sku: "standard", apiAccessControlType: "api_keys", apiAccessControlAuthenticationFailureMode: "http401WithBearerChallenge"}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.apiAccessControl(data),
+			Check:       acceptance.ComposeTestCheckFunc(),
+			ExpectError: regexp.MustCompile(`is not set to 'role_based_access_control_and_api_keys'`),
+		},
+	})
+}
+
+func TestAccSearchService_apiAccessControlRBACandAPIKeysNoFailureModeError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{sku: "standard", apiAccessControlType: "role_based_access_control_and_api_keys"}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.apiAccessControl(data),
+			Check:       acceptance.ComposeTestCheckFunc(),
+			ExpectError: regexp.MustCompile(`and not define the 'authentication_failure_mode'`),
+		},
+	})
+}
+
+func TestAccSearchService_apiAccessControlUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{sku: "standard"}
+	a := SearchServiceResource{sku: "standard", apiAccessControlType: "api_keys"}
+	rbac := SearchServiceResource{sku: "standard", apiAccessControlType: "role_based_access_control"}
+	rbacApiFourZeroOne := SearchServiceResource{sku: "standard", apiAccessControlType: "role_based_access_control_and_api_keys", apiAccessControlAuthenticationFailureMode: "http401WithBearerChallenge"}
+	rbacApiFourZeroThree := SearchServiceResource{sku: "standard", apiAccessControlType: "role_based_access_control_and_api_keys", apiAccessControlAuthenticationFailureMode: "http403"}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: a.apiAccessControl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: rbac.apiAccessControl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: rbacApiFourZeroOne.apiAccessControl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: rbacApiFourZeroThree.apiAccessControl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -508,4 +598,31 @@ resource "azurerm_search_service" "test" {
   }
 }
 `, template, data.RandomInteger, r.sku, r.enforceCmk)
+}
+
+func (r SearchServiceResource) apiAccessControl(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%s"
+
+  api_access_control {
+    type                        = "%s"
+    authentication_failure_mode = "%s"
+  }
+
+  tags = {
+    environment = "staging"
+  }
+}
+`, template, data.RandomInteger, r.sku, r.apiAccessControlType, r.apiAccessControlAuthenticationFailureMode)
 }
