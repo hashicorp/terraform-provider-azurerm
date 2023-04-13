@@ -182,6 +182,28 @@ func TestAccFlexibleServerConfiguration_restartServerForStaticParameters(t *test
 	})
 }
 
+func TestAccFlexibleServerConfiguration_staticParameters(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "test")
+	r := PostgresqlFlexibleServerConfigurationResource{}
+	name := "shared_preload_libraries"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, name, "pg_cron,wal2json,pg_stat_statements"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("value"),
+		{
+			Config: r.template(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(r.checkReset(name), "azurerm_postgresql_flexible_server.test"),
+			),
+		},
+	})
+}
+
 // Helper functions for verification
 func (r PostgresqlFlexibleServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := configurations.ParseConfigurationID(state.ID)
