@@ -27,7 +27,7 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
 		Create: resourceMonitorAADDiagnosticSettingCreate,
 		Read:   resourceMonitorAADDiagnosticSettingRead,
-		Update: resourceMonitorAADDiagnosticSettingCreate,
+		Update: resourceMonitorAADDiagnosticSettingUpdate,
 		Delete: resourceMonitorAADDiagnosticSettingDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.MonitorAADDiagnosticSettingID(id)
