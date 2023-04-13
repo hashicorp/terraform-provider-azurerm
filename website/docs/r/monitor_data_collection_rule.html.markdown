@@ -114,7 +114,7 @@ resource "azurerm_monitor_data_collection_rule" "example" {
 
   data_flow {
     streams       = ["Custom-MyTableRawData"]
-    destinations  = ["example-destination-log"]
+    destinations  = ["test-destination-log"]
     output_stream = "Microsoft-Syslog"
     transform_kql = "source | project TimeGenerated = Time, Computer, Message = AdditionalContext"
   }
@@ -129,14 +129,14 @@ resource "azurerm_monitor_data_collection_rule" "example" {
     iis_log {
       streams         = ["Microsoft-W3CIISLog"]
       name            = "test-datasource-iis"
-      log_directories = ["C:\\\\Logs\\\\W3SVC1"]
+      log_directories = ["C:\\Logs\\W3SVC1"]
     }
 
     log_file {
       name          = "test-datasource-logfile"
       format        = "text"
       streams       = ["Custom-MyTableRawData"]
-      file_patterns = ["C:\\\\JavaLogs\\\\*.log"]
+      file_patterns = ["C:\\JavaLogs\\*.log"]
       settings {
         text {
           record_start_timestamp_format = "ISO 8601"
@@ -168,7 +168,6 @@ resource "azurerm_monitor_data_collection_rule" "example" {
       name = "test-datasource-extension"
     }
   }
-
 
   stream_declaration {
     stream_name = "Custom-MyTableRawData"
