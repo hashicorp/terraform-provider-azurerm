@@ -8,9 +8,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/liveevents"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2020-05-01/liveoutputs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/liveevents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/liveoutputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -60,7 +61,7 @@ func resourceMediaLiveOutput() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.ISO8601DurationBetween("PT1M", "PT25H"),
 			},
 
 			"asset_name": {
@@ -101,12 +102,19 @@ func resourceMediaLiveOutput() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.IntAtLeast(0),
 			},
+
+			"rewind_window_duration": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ISO8601DurationBetween("PT1M", "PT25H"),
+			},
 		},
 	}
 }
 
 func resourceMediaLiveOutputCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.LiveOutputs
+	client := meta.(*clients.Client).Media.V20220801Client.LiveOutputs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -114,7 +122,7 @@ func resourceMediaLiveOutputCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	if err != nil {
 		return err
 	}
-	id := liveoutputs.NewLiveOutputID(eventId.SubscriptionId, eventId.ResourceGroupName, eventId.AccountName, eventId.LiveEventName, d.Get("name").(string))
+	id := liveoutputs.NewLiveOutputID(eventId.SubscriptionId, eventId.ResourceGroupName, eventId.MediaServiceName, eventId.LiveEventName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -158,6 +166,10 @@ func resourceMediaLiveOutputCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		parameters.Properties.OutputSnapTime = utils.Int64(int64(outputSnapTime.(int)))
 	}
 
+	if rewindWindowLength, ok := d.GetOk("rewind_window_duration"); ok {
+		parameters.Properties.RewindWindowLength = utils.String(rewindWindowLength.(string))
+	}
+
 	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -168,7 +180,7 @@ func resourceMediaLiveOutputCreate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceMediaLiveOutputRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.LiveOutputs
+	client := meta.(*clients.Client).Media.V20220801Client.LiveOutputs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -189,7 +201,7 @@ func resourceMediaLiveOutputRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", id.LiveOutputName)
-	d.Set("live_event_id", liveevents.NewLiveEventID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.LiveEventName).ID())
+	d.Set("live_event_id", liveevents.NewLiveEventID(id.SubscriptionId, id.ResourceGroupName, id.MediaServiceName, id.LiveEventName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -209,6 +221,7 @@ func resourceMediaLiveOutputRead(d *pluginsdk.ResourceData, meta interface{}) er
 				outputSnapTime = *props.OutputSnapTime
 			}
 			d.Set("output_snap_time_in_seconds", outputSnapTime)
+			d.Set("rewind_window_duration", props.RewindWindowLength)
 		}
 	}
 
@@ -216,7 +229,7 @@ func resourceMediaLiveOutputRead(d *pluginsdk.ResourceData, meta interface{}) er
 }
 
 func resourceMediaLiveOutputDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.V20200501Client.LiveOutputs
+	client := meta.(*clients.Client).Media.V20220801Client.LiveOutputs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

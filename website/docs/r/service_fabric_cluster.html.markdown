@@ -83,7 +83,7 @@ The following arguments are supported:
 
 -> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
 
-* `diagnostics_config` - (Optional) A `diagnostics_config` block as defined below. Changing this forces a new resource to be created.
+* `diagnostics_config` - (Optional) A `diagnostics_config` block as defined below.
 
 * `fabric_settings` - (Optional) One or more `fabric_settings` blocks as defined below.
 
@@ -129,7 +129,7 @@ A `certificate` block supports the following:
 
 * `thumbprint` - (Required) The Thumbprint of the Certificate.
 
-* `thumbprint_secondary` - (Required) The Secondary Thumbprint of the Certificate.
+* `thumbprint_secondary` - (Optional) The Secondary Thumbprint of the Certificate.
 
 * `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
 
@@ -139,7 +139,7 @@ A `reverse_proxy_certificate` block supports the following:
 
 * `thumbprint` - (Required) The Thumbprint of the Certificate.
 
-* `thumbprint_secondary` - (Required) The Secondary Thumbprint of the Certificate.
+* `thumbprint_secondary` - (Optional) The Secondary Thumbprint of the Certificate.
 
 * `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
 
@@ -165,7 +165,7 @@ A `client_certificate_common_name` block supports the following:
 
 * `common_name` - (Required) The common or subject name of the certificate.
 
-* `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
+* `issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
 
 -> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
@@ -197,7 +197,7 @@ A `fabric_settings` block supports the following:
 
 A `node_type` block supports the following:
 
-* `name` - (Required) The name of the Node Type. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Node Type. 
 
 * `placement_properties` - (Optional) The placement tags applied to nodes in the node type, which can be used to indicate where certain services (workload) should run.
 
@@ -205,23 +205,23 @@ A `node_type` block supports the following:
 
 * `instance_count` - (Required) The number of nodes for this Node Type.
 
-* `is_primary` - (Required) Is this the Primary Node Type? Changing this forces a new resource to be created.
+* `is_primary` - (Required) Is this the Primary Node Type? 
 
 * `is_stateless` - (Optional) Should this node type run only stateless services?
 
 * `multiple_availability_zones` - (Optional) Does this node type span availability zones?
 
-* `client_endpoint_port` - (Required) The Port used for the Client Endpoint for this Node Type. Changing this forces a new resource to be created.
+* `client_endpoint_port` - (Required) The Port used for the Client Endpoint for this Node Type. 
 
-* `http_endpoint_port` - (Required) The Port used for the HTTP Endpoint for this Node Type. Changing this forces a new resource to be created.
+* `http_endpoint_port` - (Required) The Port used for the HTTP Endpoint for this Node Type. 
 
-* `durability_level` - (Optional) The Durability Level for this Node Type. Possible values include `Bronze`, `Gold` and `Silver`. Defaults to `Bronze`. Changing this forces a new resource to be created.
+* `durability_level` - (Optional) The Durability Level for this Node Type. Possible values include `Bronze`, `Gold` and `Silver`. Defaults to `Bronze`. 
 
 * `application_ports` - (Optional) A `application_ports` block as defined below.
 
 * `ephemeral_ports` - (Optional) A `ephemeral_ports` block as defined below.
 
-* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint  for this Node Type. Changing this will upgrade the cluster.
+* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint for this Node Type. Changing this will upgrade the cluster.
 
 ---
 
@@ -243,7 +243,7 @@ A `ephemeral_ports` block supports the following:
 
 A `upgrade_policy` block supports the following:
 
-* `force_restart` - (Optional) Indicates whether to restart the Service Fabric node even if only dynamic configurations have changed.
+* `force_restart_enabled` - (Optional) Indicates whether to restart the Service Fabric node even if only dynamic configurations have changed.
 
 * `health_check_retry_timeout` - (Optional) Specifies the duration, in "hh:mm:ss" string format, after which Service Fabric retries the health check if the previous health check fails. Defaults to `00:45:00`.
 
@@ -281,7 +281,7 @@ A `delta_health_policy` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Service Fabric Cluster.
 

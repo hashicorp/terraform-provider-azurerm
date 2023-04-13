@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourcePrivateLinkService() *pluginsdk.Resource {
@@ -119,7 +119,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: networkValidate.SubnetID,
 						},
 						"primary": {
 							Type:     pluginsdk.TypeBool,

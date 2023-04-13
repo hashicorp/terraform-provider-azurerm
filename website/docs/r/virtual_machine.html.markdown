@@ -12,7 +12,7 @@ Manages a Virtual Machine.
 
 ## Disclaimers
 
--> **Note:** The `azurerm_virtual_machine` resource has been superseded by the [`azurerm_linux_virtual_machine`](linux_virtual_machine.html) and [`azurerm_windows_virtual_machine`](windows_virtual_machine.html) resources. The existing `azurerm_virtual_machine` resource will continue to be available throughout the 2.x releases however is in a feature-frozen state to maintain compatibility - new functionality will instead be added to the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources.
+-> **Note:** The `azurerm_virtual_machine` resource has been superseded by the [`azurerm_linux_virtual_machine`](linux_virtual_machine.html) and [`azurerm_windows_virtual_machine`](windows_virtual_machine.html) resources. The existing `azurerm_virtual_machine` resource will continue to be available throughout the 3.x releases however is in a feature-frozen state to maintain compatibility - new functionality will instead be added to the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources.
 
 ~> **Note:** Data Disks can be attached either directly on the `azurerm_virtual_machine` resource, or using the `azurerm_virtual_machine_data_disk_attachment` resource - but the two cannot be used together. If both are used against the same Virtual Machine, spurious changes will occur.
 
@@ -40,7 +40,7 @@ resource "azurerm_virtual_network" "main" {
 resource "azurerm_subnet" "internal" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
+  virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
@@ -107,9 +107,9 @@ The following arguments are supported:
 
 * `network_interface_ids` - (Required) A list of Network Interface IDs which should be associated with the Virtual Machine.
 
-* `os_profile_linux_config` - (Required, when a Linux machine) An `os_profile_linux_config` block as defined below.
+* `os_profile_linux_config` - (Optional) (Required, when a Linux machine) An `os_profile_linux_config` block as defined below.
 
-* `os_profile_windows_config` - (Required, when a Windows machine) An `os_profile_windows_config` block as defined below.
+* `os_profile_windows_config` - (Optional) (Required, when a Windows machine) An `os_profile_windows_config` block as defined below.
 
 * `vm_size` - (Required) Specifies the [size of the Virtual Machine](https://docs.microsoft.com/azure/virtual-machines/sizes-general). See also [Azure VM Naming Conventions](https://docs.microsoft.com/azure/virtual-machines/vm-naming-conventions).
 
@@ -135,7 +135,7 @@ The following arguments are supported:
 
 * `os_profile` - (Optional) An `os_profile` block as defined below. Required when `create_option` in the `storage_os_disk` block is set to `FromImage`.
 
-* `os_profile_secrets` - (Optional) One or more `os_profile_secrets` blocks.
+* `os_profile_secrets` - (Optional) One or more `os_profile_secrets` blocks as defined below.
 
 * `plan` - (Optional) A `plan` block as defined below.
 
@@ -143,17 +143,17 @@ The following arguments are supported:
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
-* `storage_data_disk` - (Optional) One or more `storage_data_disk` blocks.
+* `storage_data_disk` - (Optional) One or more `storage_data_disk` blocks as defined below.
 
 ~> **Please Note:** Data Disks can also be attached either using this block or [the `azurerm_virtual_machine_data_disk_attachment` resource](virtual_machine_data_disk_attachment.html) - but not both.
 
-* `storage_image_reference` - (Optional) A `storage_image_reference` block as defined below.
+* `storage_image_reference` - (Optional) A `storage_image_reference` block as defined below. Changing this forces a new resource to be created.
 
 * `storage_os_disk` - (Required) A `storage_os_disk` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Virtual Machine.
 
-* `zones` - (Optional) A list of a single item of the Availability Zone which the Virtual Machine should be allocated in.
+* `zones` - (Optional) A list of a single item of the Availability Zone which the Virtual Machine should be allocated in. Changing this forces a new resource to be created.
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
@@ -169,7 +169,7 @@ An `additional_unattend_config` block supports the following:
 
 * `setting_name` - (Required) Specifies the name of the setting to which the content applies. Possible values are: `FirstLogonCommands` and `AutoLogon`.
 
-* `content` - (Optional) Specifies the base-64 encoded XML formatted content that is added to the unattend.xml file for the specified path and component.
+* `content` - (Required) Specifies the base-64 encoded XML formatted content that is added to the unattend.xml file for the specified path and component.
 
 ---
 
@@ -185,7 +185,7 @@ A `boot_diagnostics` block supports the following:
 
 A `additional_capabilities` block supports the following:
 
-* `ultra_ssd_enabled` - (Required) Should Ultra SSD disk be enabled for this Virtual Machine?
+* `ultra_ssd_enabled` - (Required) Should Ultra SSD disk be enabled for this Virtual Machine? Changing this forces a new resource to be created.
 
 -> **Note:** Azure Ultra Disk Storage is only available in a region that support availability zones and can only enabled on the following VM series: `ESv3`, `DSv3`, `FSv3`, `LSv2`, `M` and `Mv2`. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/azure/virtual-machines/windows/disks-enable-ultra-ssd).
 
@@ -207,11 +207,11 @@ A `identity` block supports the following:
 
 A `os_profile` block supports the following:
 
-* `computer_name` - (Required) Specifies the name of the Virtual Machine.
+* `computer_name` - (Required) Specifies the name of the Virtual Machine. Changing this forces a new resource to be created.
 
 * `admin_username` - (Required) Specifies the name of the local administrator account.
 
-* `admin_password` - (Required for Windows, Optional for Linux) The password associated with the local administrator account.
+* `admin_password` - (Optional) (Optional for Windows, Optional for Linux) The password associated with the local administrator account.
 
 -> **NOTE:** If using Linux, it may be preferable to use SSH Key authentication (available in the `os_profile_linux_config` block) instead of password authentication.
 
@@ -222,7 +222,7 @@ A `os_profile` block supports the following:
 3. Contains a numeric digit
 4. Contains a special character
 
-* `custom_data` - (Optional) Specifies custom data to supply to the machine. On Linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes.
+* `custom_data` - (Optional) Specifies custom data to supply to the machine. On Linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes. Changing this forces a new resource to be created.
 
 ---
 
@@ -230,7 +230,7 @@ A `os_profile_linux_config` block supports the following:
 
 * `disable_password_authentication` - (Required) Specifies whether password authentication should be disabled. If set to `false`, an `admin_password` must be specified.
 
-* `ssh_keys` - (Optional) One or more `ssh_keys` blocks. This field is required if `disable_password_authentication` is set to `true`.
+* `ssh_keys` - (Optional) One or more `ssh_keys` blocks as defined below. This field is required if `disable_password_authentication` is set to `true`.
 
 ---
 
@@ -238,7 +238,7 @@ A `os_profile_secrets` block supports the following:
 
 * `source_vault_id` - (Required) Specifies the ID of the Key Vault to use.
 
-* `vault_certificates` - (Required) One or more `vault_certificates` blocks.
+* `vault_certificates` - (Optional) One or more `vault_certificates` blocks as defined below.
 
 ---
 
@@ -250,7 +250,7 @@ A `os_profile_windows_config` block supports the following:
 
 * `enable_automatic_upgrades` - (Optional) Are automatic updates enabled on this Virtual Machine? Defaults to `false.`
 
-* `timezone` - (Optional) Specifies the time zone of the virtual machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
+* `timezone` - (Optional) Specifies the time zone of the virtual machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Changing this forces a new resource to be created.
 
 * `winrm` - (Optional) One or more `winrm` blocks as defined below.
 
@@ -288,17 +288,17 @@ This block provisions the Virtual Machine from one of two sources: an Azure Plat
 
 To provision from an Azure Platform Image, the following fields are applicable:
 
-* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machine. Changing this forces a new resource to be created.
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machine. Changing this forces a new resource to be created.
 
-* `offer` - (Required) Specifies the offer of the image used to create the virtual machine. Changing this forces a new resource to be created.
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machine. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Specifies the SKU of the image used to create the virtual machine. Changing this forces a new resource to be created.
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machine. Changing this forces a new resource to be created.
 
 * `version` - (Optional) Specifies the version of the image used to create the virtual machine. Changing this forces a new resource to be created.
 
 To provision a Custom Image, the following fields are applicable:
 
-* `id` - (Required) Specifies the ID of the Custom Image which the Virtual Machine should be created from. Changing this forces a new resource to be created.
+* `id` - (Optional) Specifies the ID of the Custom Image which the Virtual Machine should be created from. Changing this forces a new resource to be created.
 
 -> **NOTE:** An example of how to use this is available within [the `./examples/virtual-machines/virtual_machine/managed-disks/from-custom-image` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/virtual_machine/managed-disks/from-custom-image)
 
@@ -332,7 +332,7 @@ The following properties apply when using Managed Disks:
 
 The following properties apply when using Unmanaged Disks:
 
-* `vhd_uri` - (Optional) Specifies the URI of the VHD file backing this Unmanaged Data Disk. Changing this forces a new resource to be created.
+* `vhd_uri` - (Optional) Specifies the URI of the VHD file backing this Unmanaged Data Disk. 
 
 ---
 
@@ -354,7 +354,7 @@ A `storage_os_disk` block supports the following:
 
 The following properties apply when using Managed Disks:
 
-* `managed_disk_id` - (Optional) Specifies the ID of an existing Managed Disk which should be attached as the OS Disk of this Virtual Machine. If this is set then the `create_option` must be set to `Attach`.
+* `managed_disk_id` - (Optional) Specifies the ID of an existing Managed Disk which should be attached as the OS Disk of this Virtual Machine. If this is set then the `create_option` must be set to `Attach`. Changing this forces a new resource to be created.
 
 * `managed_disk_type` - (Optional) Specifies the type of Managed Disk which should be created. Possible values are `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`.
 
@@ -378,7 +378,7 @@ A `vault_certificates` block supports the following:
 
 -> **NOTE:** If your certificate is stored in Azure Key Vault - this can be sourced from the `secret_id` property on the `azurerm_key_vault_certificate` resource.
 
-* `certificate_store` - (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to, such as `My`.
+* `certificate_store` - (Optional) (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to, such as `My`.
 
 ---
 
@@ -392,7 +392,7 @@ A `winrm` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Machine.
 
@@ -403,8 +403,6 @@ The following attributes are exported:
 An `identity` block exports the following:
 
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
-
-* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 -> You can access the Principal ID via `${azurerm_virtual_machine.example.identity.0.principal_id}`
 

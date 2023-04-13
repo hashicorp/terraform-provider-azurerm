@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -164,13 +164,10 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := parse.NewManagedInstanceID(subscriptionId, state.ResourceGroupName, state.Name)
-
-			metadata.Logger.Infof("Reading %s", id)
-
 			resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}

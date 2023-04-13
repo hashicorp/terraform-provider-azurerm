@@ -69,7 +69,7 @@ The following arguments are supported:
 
 A `filter` block supports the following:
 
-* `blob_types` - (Required)  A set of blob types. Possible values are `blockBlob`, `appendBlob`, and `pageBlob`. The storage account with `is_hns_enabled` is `true` doesn't support `pageBlob`.
+* `blob_types` - (Required) A set of blob types. Possible values are `blockBlob`, `appendBlob`, and `pageBlob`. The storage account with `is_hns_enabled` is `true` doesn't support `pageBlob`.
 
 ~> **NOTE**: The `rules.*.schema_fields` for this rule has to include `BlobType` so that you can specify the `blob_types`.
 
@@ -85,7 +85,9 @@ A `filter` block supports the following:
 
 ~> **NOTE**: The `rules.*.schema_fields` for this rule has to include `Snapshot` so that you can specify the `include_snapshots`.
 
-* `prefix_match` - (Optional) A set of strings for blob prefixes to be matched.
+* `prefix_match` - (Optional) A set of strings for blob prefixes to be matched. Maximum of 10 blob prefixes.
+
+* `exclude_prefixes` - (Optional) A set of strings for blob prefixes to be excluded. Maximum of 10 blob prefixes.
 
 ---
 
@@ -102,8 +104,6 @@ A `rules` block supports the following:
 * `scope` - (Required) The scope of the inventory for this rule. Possible values are `Blob` and `Container`.
 
 * `schema_fields` - (Required) A list of fields to be included in the inventory. See the [Azure API reference](https://docs.microsoft.com/rest/api/storagerp/blob-inventory-policies/create-or-update#blobinventorypolicydefinition) for all the supported fields.
-
----
 
 * `filter` - (Optional) A `filter` block as defined above. Can only be set when the `scope` is `Blob`.
 

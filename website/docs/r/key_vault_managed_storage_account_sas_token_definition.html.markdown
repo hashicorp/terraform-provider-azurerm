@@ -57,6 +57,8 @@ data "azurerm_storage_account_sas" "example" {
     create  = true
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 
@@ -123,7 +125,7 @@ The following arguments are supported:
 
 ---
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the SAS Definition.
+* `tags` - (Optional) A mapping of tags which should be assigned to the SAS Definition. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

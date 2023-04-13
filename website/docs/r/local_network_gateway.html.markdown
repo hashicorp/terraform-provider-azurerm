@@ -31,20 +31,15 @@ resource "azurerm_local_network_gateway" "home" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the local network gateway. Changing this
-    forces a new resource to be created.
+* `name` - (Required) The name of the local network gateway. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the local network gateway.
+* `resource_group_name` - (Required) The name of the resource group in which to create the local network gateway. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location/region where the local network gateway is
-    created. Changing this forces a new resource to be created.
+* `location` - (Required) The location/region where the local network gateway is created. Changing this forces a new resource to be created.
 
-* `address_space` - (Optional) The list of string CIDRs representing the
-    address spaces the gateway exposes.
+* `address_space` - (Optional) The list of string CIDRs representing the address spaces the gateway exposes.
 
-* `bgp_settings` - (Optional) A `bgp_settings` block as defined below containing the
-    Local Network Gateway's BGP speaker settings.
+* `bgp_settings` - (Optional) A `bgp_settings` block as defined below containing the Local Network Gateway's BGP speaker settings.
 
 * `gateway_address` - (Optional) The gateway IP address to connect with.
 
@@ -56,19 +51,17 @@ The following arguments are supported:
 
 ---
 
-`bgp_settings` supports the following:
+The `bgp_settings` block supports the following:
 
 * `asn` - (Required) The BGP speaker's ASN.
 
-* `bgp_peering_address` - (Required) The BGP peering address and BGP identifier
-    of this BGP speaker.
+* `bgp_peering_address` - (Required) The BGP peering address and BGP identifier of this BGP speaker.
 
-* `peer_weight` - (Optional) The weight added to routes learned from this
-    BGP speaker.
+* `peer_weight` - (Optional) The weight added to routes learned from this BGP speaker.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Local Network Gateway.
 

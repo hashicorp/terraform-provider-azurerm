@@ -1,5 +1,5 @@
 ---
-subcategory: "Web PubSub"
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub_private_link_resource"
 description: |-

@@ -28,7 +28,7 @@ The following arguments are supported:
 
 * `display_name` - (Required) The user-friendly display name of the Security Center Assessment.
 
-* `severity` - (Required) The severity level of the Security Center Assessment. Possible values are `Low`, `Medium` and `High`. Defaults to `Medium`.
+* `severity` - (Optional) The severity level of the Security Center Assessment. Possible values are `Low`, `Medium` and `High`. Defaults to `Medium`.
 
 ---
 

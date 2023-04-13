@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Spatial Anchors Account. Changing this forces a new resource to be created. Must be globally unique.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Spatial Anchors Account.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Spatial Anchors Account. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -39,7 +39,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Spatial Anchors Account.
 

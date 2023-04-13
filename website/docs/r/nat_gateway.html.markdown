@@ -52,23 +52,19 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the NAT Gateway should exist. Changing this forces a new resource to be created.
 
-* `location` - (Optional) Specifies the supported Azure location where the NAT Gateway should exist. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the NAT Gateway should exist. Changing this forces a new resource to be created.
 
 * `idle_timeout_in_minutes` - (Optional) The idle timeout which should be used in minutes. Defaults to `4`.
 
-* `public_ip_address_ids` - (Optional / **Deprecated in favour of `azurerm_nat_gateway_public_ip_association`**) A list of Public IP Address IDs which should be associated with the NAT Gateway resource.
-
-* `public_ip_prefix_ids` - (Optional) / **Deprecated in favour of `azurerm_nat_gateway_public_ip_prefix_association`**) A list of Public IP Prefix IDs which should be associated with the NAT Gateway resource.
-
 * `sku_name` - (Optional) The SKU which should be used. At this time the only supported value is `Standard`. Defaults to `Standard`.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource. 
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this NAT Gateway should be located. Changing this forces a new NAT Gateway to be created.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the NAT Gateway.
 

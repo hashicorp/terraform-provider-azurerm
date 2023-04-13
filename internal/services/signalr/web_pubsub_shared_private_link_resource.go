@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -85,7 +85,7 @@ func resourceWebPubsubSharedPrivateLinkServiceCreateUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("parsing ID of %q: %+v", webPubSubId, err)
 	}
 
-	id := webpubsub.NewSharedPrivateLinkResourceID(subscriptionId, webPubSubId.ResourceGroupName, webPubSubId.ResourceName, d.Get("name").(string))
+	id := webpubsub.NewSharedPrivateLinkResourceID(subscriptionId, webPubSubId.ResourceGroupName, webPubSubId.WebPubSubName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.SharedPrivateLinkResourcesGet(ctx, id)
@@ -140,7 +140,7 @@ func resourceWebPubsubSharedPrivateLinkServiceRead(d *pluginsdk.ResourceData, me
 	}
 
 	d.Set("name", id.SharedPrivateLinkResourceName)
-	d.Set("web_pubsub_id", webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName).ID())
+	d.Set("web_pubsub_id", webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

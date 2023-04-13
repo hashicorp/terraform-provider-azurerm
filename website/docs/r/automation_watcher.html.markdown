@@ -36,7 +36,7 @@ resource "azurerm_automation_watcher" "example" {
 
 The following arguments are supported:
 
-* `automation_account_id` (Required) The ID of Automation Account to manage this Watcher. Changing this forces a new Watcher to be created.
+* `automation_account_id` - (Required) The ID of Automation Account to manage this Watcher. Changing this forces a new Watcher to be created.
 
 * `name` - (Required) The name which should be used for this Automation Watcher. Changing this forces a new Automation Watcher to be created.
 

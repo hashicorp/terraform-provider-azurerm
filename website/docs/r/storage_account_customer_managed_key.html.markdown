@@ -47,7 +47,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
   secret_permissions = ["Get"]
 }
 
@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the Storage Account. Changing this forces a new resource to be created.
 
-* `key_vault_id` - (Required) The ID of the Key Vault. Changing this forces a new resource to be created.
+* `key_vault_id` - (Required) The ID of the Key Vault. 
 
 * `key_name` - (Required) The name of Key Vault Key.
 
@@ -101,7 +101,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Storage Account.
 

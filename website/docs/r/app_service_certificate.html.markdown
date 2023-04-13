@@ -58,9 +58,11 @@ data "azuread_service_principal" "MicrosoftWebApp" {
 }
 ```
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The App Service certificate ID.
 
@@ -78,7 +80,7 @@ The following attributes are exported:
 
 * `thumbprint` - The thumbprint for the certificate.
 
-* `hosting_environment_profile_id` - The ID of the the App Service Environment where the certificate is in use.
+* `hosting_environment_profile_id` - The ID of the App Service Environment where the certificate is in use.
 
 ## Timeouts
 

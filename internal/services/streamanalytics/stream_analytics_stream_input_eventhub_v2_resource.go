@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -17,7 +18,10 @@ import (
 
 type StreamInputEventHubV2Resource struct{}
 
-var _ sdk.ResourceWithCustomImporter = StreamInputEventHubV2Resource{}
+var (
+	_ sdk.ResourceWithCustomImporter = StreamInputEventHubV2Resource{}
+	_ sdk.ResourceWithStateMigration = StreamInputEventHubV2Resource{}
+)
 
 type StreamInputEventHubV2ResourceModel struct {
 	Name                      string `tfschema:"name"`
@@ -134,7 +138,7 @@ func (r StreamInputEventHubV2Resource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			id := inputs.NewInputID(subscriptionId, streamingJobStruct.ResourceGroupName, streamingJobStruct.JobName, model.Name)
+			id := inputs.NewInputID(subscriptionId, streamingJobStruct.ResourceGroupName, streamingJobStruct.StreamingJobName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -258,7 +262,7 @@ func (r StreamInputEventHubV2Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
+			streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.StreamingJobName)
 
 			state := StreamInputEventHubV2ResourceModel{
 				Name:                 id.InputName,
@@ -267,7 +271,7 @@ func (r StreamInputEventHubV2Resource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					input, ok := props.(inputs.InputProperties)
+					input, ok := props.(inputs.InputProperties) // nolint: gosimple
 					if !ok {
 						return fmt.Errorf("converting %s to an Input", *id)
 					}
@@ -374,7 +378,7 @@ func (r StreamInputEventHubV2Resource) CustomImporter() sdk.ResourceRunFunc {
 
 		props := resp.Model.Properties
 
-		input, ok := props.(inputs.InputProperties)
+		input, ok := props.(inputs.InputProperties) // nolint: gosimple
 		if !ok {
 			return fmt.Errorf("specified resource is not an Input: %+v", err)
 		}
@@ -389,5 +393,14 @@ func (r StreamInputEventHubV2Resource) CustomImporter() sdk.ResourceRunFunc {
 		}
 
 		return nil
+	}
+}
+
+func (r StreamInputEventHubV2Resource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsStreamInputEventHubV2V0ToV1{},
+		},
 	}
 }

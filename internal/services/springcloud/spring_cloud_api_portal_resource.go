@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,6 +23,11 @@ func resourceSpringCloudAPIPortal() *pluginsdk.Resource {
 		Read:   resourceSpringCloudAPIPortalRead,
 		Update: resourceSpringCloudAPIPortalCreateUpdate,
 		Delete: resourceSpringCloudAPIPortalDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudApiPortalV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -201,7 +207,7 @@ func resourceSpringCloudAPIPortalRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("instance_count", resp.Sku.Capacity)
 	}
 	if props := resp.Properties; props != nil {
-		d.Set("gateway_ids", utils.FlattenStringSlice(props.GatewayIds))
+		d.Set("gateway_ids", flattenSpringCloudAPIPortalGatewayIds(props.GatewayIds))
 		d.Set("https_only_enabled", props.HTTPSOnly)
 		d.Set("public_network_access_enabled", props.Public)
 		if err := d.Set("sso", flattenAPIPortalSsoProperties(props.SsoProperties, d.Get("sso").([]interface{}))); err != nil {
@@ -281,4 +287,18 @@ func flattenAPIPortalSsoProperties(input *appplatform.SsoProperties, old []inter
 			"scope":         utils.FlattenStringSlice(input.Scope),
 		},
 	}
+}
+
+func flattenSpringCloudAPIPortalGatewayIds(ids *[]string) []string {
+	if ids == nil || len(*ids) == 0 {
+		return nil
+	}
+	out := make([]string, 0)
+	for _, id := range *ids {
+		gatewayId, err := parse.SpringCloudGatewayIDInsensitively(id)
+		if err == nil {
+			out = append(out, gatewayId.ID())
+		}
+	}
+	return out
 }

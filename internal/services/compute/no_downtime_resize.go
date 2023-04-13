@@ -20,28 +20,28 @@ import (
 
 // @tombuildsstuff: this is intentionally split out into it's own file since this'll need to be reused
 
-func determineIfDataDiskSupportsNoDowntimeResize(disk *disks.Disk, oldSizeGb, newSizeGb int) (*bool, error) {
+func determineIfDataDiskSupportsNoDowntimeResize(disk *disks.Disk, oldSizeGb, newSizeGb int) *bool {
 	if disk == nil || disk.Properties == nil || disk.Sku == nil {
-		return pointer.To(false), nil
+		return pointer.To(false)
 	}
 
 	// Only supported for data disks.
 	isDataDisk := disk.Properties.OsType != nil && string(*disk.Properties.OsType) != ""
 	if isDataDisk {
-		return pointer.To(false), nil
+		return pointer.To(false)
 	}
 
 	// Not supported for shared disks.
 	isSharedDisk := disk.Properties.MaxShares != nil && *disk.Properties.MaxShares >= 0
 	if isSharedDisk {
 		log.Printf("[DEBUG] Disk is shared so does not support no-downtime-resize")
-		return pointer.To(false), nil
+		return pointer.To(false)
 	}
 
 	// If a disk is 4 TiB or less, you can't expand it beyond 4 TiB without deallocating the VM.
 	// If a disk is already greater than 4 TiB, you can expand it without deallocating the VM.
 	if oldSizeGb < 4096 && newSizeGb >= 4096 {
-		return pointer.To(false), nil
+		return pointer.To(false)
 	}
 
 	// Not supported for Ultra disks or Premium SSD v2 disks.
@@ -53,13 +53,12 @@ func determineIfDataDiskSupportsNoDowntimeResize(disk *disks.Disk, oldSizeGb, ne
 			disks.DiskStorageAccountTypesStandardSSDLRS,
 			disks.DiskStorageAccountTypesStandardSSDZRS,
 		} {
-
 			if strings.EqualFold(string(*disk.Sku.Name), string(supportedDiskType)) {
 				diskTypeIsSupported = true
 			}
 		}
 	}
-	return pointer.To(diskTypeIsSupported), nil
+	return pointer.To(diskTypeIsSupported)
 }
 
 func determineIfVirtualMachineSkuSupportsNoDowntimeResize(ctx context.Context, virtualMachineIdRaw *string, virtualMachinesClient *virtualmachines.VirtualMachinesClient, skusClient *skus.SkusClient) (*bool, error) {
@@ -80,8 +79,8 @@ func determineIfVirtualMachineSkuSupportsNoDowntimeResize(ctx context.Context, v
 	}
 
 	vmSku := ""
-	if model := virtualMachine.Model; model != nil && model.Properties != nil && model.Properties.HardwareProfile != nil && model.Properties.HardwareProfile.VmSize != nil {
-		vmSku = string(*model.Properties.HardwareProfile.VmSize)
+	if model := virtualMachine.Model; model != nil && model.Properties != nil && model.Properties.HardwareProfile != nil && model.Properties.HardwareProfile.VMSize != nil {
+		vmSku = string(*model.Properties.HardwareProfile.VMSize)
 	}
 	if vmSku == "" {
 		return pointer.To(false), nil

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,6 +23,11 @@ func resourceSpringCloudCustomDomain() *pluginsdk.Resource {
 		Read:   resourceSpringCloudCustomDomainRead,
 		Update: resourceSpringCloudCustomDomainCreateUpdate,
 		Delete: resourceSpringCloudCustomDomainDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudCustomDomainV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SpringCloudCustomDomainID(id)

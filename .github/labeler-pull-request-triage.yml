@@ -141,6 +141,9 @@ service/hpc-cache:
 service/hsm:
   - internal/services/hsm/**/*
 
+service/hybrid-compute:
+  - internal/services/hybridcompute/**/*
+
 service/iot-central:
   - internal/services/iotcentral/**/*
 
@@ -155,6 +158,9 @@ service/key-vault:
 
 service/kusto:
   - internal/services/kusto/**/*
+
+service/labservice:
+  - internal/services/labservice/**/*
 
 service/lighthouse:
   - internal/services/lighthouse/**/*
@@ -198,6 +204,9 @@ service/media:
 service/mixed-reality:
   - internal/services/mixedreality/**/*
 
+service/mobile-network:
+  - internal/services/mobilenetwork/**/*
+
 service/monitor:
   - internal/services/monitor/**/*
 
@@ -209,6 +218,9 @@ service/mysql:
 
 service/netapp:
   - internal/services/netapp/**/*
+
+service/network:
+  - internal/services/network/**/*
 
 service/nginx:
   - internal/services/nginx/**/*

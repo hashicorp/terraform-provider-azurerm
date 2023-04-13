@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -333,9 +333,13 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	storageDomainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
+	}
 
 	id := parse.NewStorageAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	resp, err := client.GetProperties(ctx, id.ResourceGroup, id.Name, "")
@@ -364,7 +368,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if e, ok := err.(azautorest.DetailedError); ok {
 			if status, ok := e.StatusCode.(int); ok {
 				hasWriteLock = status == http.StatusConflict
-				doesntHavePermissions = status == http.StatusUnauthorized
+				doesntHavePermissions = (status == http.StatusUnauthorized || status == http.StatusForbidden)
 			}
 		}
 
@@ -402,12 +406,12 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if accessKeys := keys.Keys; accessKeys != nil {
 			storageAccessKeys := *accessKeys
 			if len(storageAccessKeys) > 0 {
-				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccessKeys[0].Value, endpointSuffix)
+				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccessKeys[0].Value, *storageDomainSuffix)
 				d.Set("primary_connection_string", pcs)
 			}
 
 			if len(storageAccessKeys) > 1 {
-				scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccessKeys[1].Value, endpointSuffix)
+				scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccessKeys[1].Value, *storageDomainSuffix)
 				d.Set("secondary_connection_string", scs)
 			}
 		}

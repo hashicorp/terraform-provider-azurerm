@@ -202,11 +202,7 @@ func (r IotHubDeviceUpdateInstanceResource) Read() sdk.ResourceFunc {
 				state.IotHubId = (*iotHubs)[0].ResourceId
 			}
 
-			diagnosticStorageAccount, err := flattenDiagnosticStorageAccount(properties.DiagnosticStorageProperties, metadata)
-			if err != nil {
-				return err
-			}
-			state.DiagnosticStorageAccount = diagnosticStorageAccount
+			state.DiagnosticStorageAccount = flattenDiagnosticStorageAccount(properties.DiagnosticStorageProperties, metadata)
 
 			diagnosticEnabled := false
 			if properties.EnableDiagnostics != nil {
@@ -260,9 +256,6 @@ func (r IotHubDeviceUpdateInstanceResource) Update() sdk.ResourceFunc {
 				existing.Tags = &model.Tags
 			}
 
-			// todo remove this when https://github.com/hashicorp/pandora/issues/1096 is fixed
-			existing.SystemData = nil
-
 			if err := client.InstancesCreateThenPoll(ctx, *id, *existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -307,10 +300,10 @@ func expandDiagnosticStorageAccount(inputList []DiagnosticStorageAccountModel) *
 	return &output
 }
 
-func flattenDiagnosticStorageAccount(input *deviceupdates.DiagnosticStorageProperties, metadata sdk.ResourceMetaData) ([]DiagnosticStorageAccountModel, error) {
+func flattenDiagnosticStorageAccount(input *deviceupdates.DiagnosticStorageProperties, metadata sdk.ResourceMetaData) []DiagnosticStorageAccountModel {
 	var outputList []DiagnosticStorageAccountModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := DiagnosticStorageAccountModel{
@@ -322,5 +315,5 @@ func flattenDiagnosticStorageAccount(input *deviceupdates.DiagnosticStoragePrope
 		output.ConnectionString = connectionString.(string)
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }

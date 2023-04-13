@@ -128,15 +128,13 @@ SETTINGS
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the virtual machine extension peering. Changing
-    this forces a new resource to be created.
+* `name` - (Required) The name of the virtual machine extension peering. Changing this forces a new resource to be created.
 
 * `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resource to be created
 
 * `publisher` - (Required) The publisher of the extension, available publishers can be found by using the Azure CLI. Changing this forces a new resource to be created.
 
-* `type` - (Required) The type of extension, available types for a publisher can
-    be found using the Azure CLI.
+* `type` - (Required) The type of extension, available types for a publisher can be found using the Azure CLI.
 
 ~> **Note:** The `Publisher` and `Type` of Virtual Machine Extensions can be found using the Azure CLI, via:
 
@@ -144,15 +142,12 @@ The following arguments are supported:
 az vm extension image list --location westus -o table
 ```
 
-* `type_handler_version` - (Required) Specifies the version of the extension to
-    use, available versions can be found using the Azure CLI.
+* `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
 
-* `auto_upgrade_minor_version` - (Optional) Specifies if the platform deploys
-    the latest minor version update to the `type_handler_version` specified.
+* `auto_upgrade_minor_version` - (Optional) Specifies if the platform deploys the latest minor version update to the `type_handler_version` specified.
 
-* `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension? Defaults to `false`.
-* `settings` - (Optional) The settings passed to the extension, these are
-    specified as a JSON object in a string.
+* `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension? 
+* `settings` - (Optional) The settings passed to the extension, these are specified as a JSON object in a string.
 
 ~> **Please Note:** Certain VM Extensions require that the keys in the `settings` block are case sensitive. If you're seeing unhelpful errors, please ensure the keys are consistent with how Azure is expecting them (for instance, for the `JsonADDomainExtension` extension, the keys are expected to be in `TitleCase`.)
 
@@ -160,8 +155,7 @@ az vm extension image list --location westus -o table
 
 -> **NOTE:** Operational failures such as not connecting to the VM will not be suppressed regardless of the `failure_suppression_enabled` value.
 
-* `protected_settings` - (Optional) The protected_settings passed to the
-    extension, like settings, these are specified as a JSON object in a string.
+* `protected_settings` - (Optional) The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.
 
 ~> **Please Note:** Certain VM Extensions require that the keys in the `protected_settings` block are case sensitive. If you're seeing unhelpful errors, please ensure the keys are consistent with how Azure is expecting them (for instance, for the `JsonADDomainExtension` extension, the keys are expected to be in `TitleCase`.)
 
@@ -181,7 +175,7 @@ A `protected_settings_from_key_vault` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Machine Extension.
 

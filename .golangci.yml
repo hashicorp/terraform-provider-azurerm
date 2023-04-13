@@ -5,7 +5,7 @@ run:
   skip-dirs:
     - /sdk/ # Excluding sdk folders as these are externally generated
   skip-files:
-    - ".*\\*_gen.go$"
+    - "internal/services/.*/.*_gen.go$"
 
 issues:
   max-per-linter: 0
@@ -15,7 +15,7 @@ linters:
   disable-all: true
   enable:
     - asciicheck
-    - deadcode
+    - bidichk
     - errcheck
     - gocritic
     - gofmt
@@ -25,15 +25,17 @@ linters:
     - ineffassign
     - nakedret
     - misspell
+    #- nolintlint
+    #- nlreturn
+    - reassign
     - staticcheck
-    - structcheck
     - typecheck
     - unused
     - unconvert
     - unparam
-    - varcheck
     - vet
     - vetshadow
+    # - wastedassign # disabled because of generics
     # - whitespace # Disabled for performance reasons - Ignores cache and takes 12+ minutes to run on the repo for _any_ change
 
 linters-settings:

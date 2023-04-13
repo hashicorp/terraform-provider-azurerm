@@ -82,7 +82,11 @@ The following arguments are supported:
 
 * `api_metadata` - (Optional) A `api_metadata` block as defined below.
 
+* `application_performance_monitoring_types` - (Optional) Specifies a list of application performance monitoring types used in the Spring Cloud Gateway. The allowed values are `AppDynamics`, `ApplicationInsights`, `Dynatrace`, `ElasticAPM` and `NewRelic`.
+
 * `cors` - (Optional) A `cors` block as defined below.
+
+* `environment_variables` - (Optional) Specifies the environment variables of the Spring Cloud Gateway as a map of key-value pairs. Changing this forces a new resource to be created.
 
 * `https_only` - (Optional) is only https is allowed?
 
@@ -91,6 +95,8 @@ The following arguments are supported:
 * `public_network_access_enabled` - (Optional) Indicates whether the Spring Cloud Gateway exposes endpoint.
 
 * `quota` - (Optional) A `quota` block as defined below.
+
+* `sensitive_environment_variables` - (Optional) Specifies the sensitive environment variables of the Spring Cloud Gateway as a map of key-value pairs. Changing this forces a new resource to be created.
 
 * `sso` - (Optional) A `sso` block as defined below.
 
@@ -170,5 +176,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud Gateways can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_gateway.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/Spring/service1/gateways/gateway1
+terraform import azurerm_spring_cloud_gateway.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/spring/service1/gateways/gateway1
 ```

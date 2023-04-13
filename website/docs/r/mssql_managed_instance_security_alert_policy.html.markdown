@@ -225,7 +225,7 @@ The following arguments are supported:
 
 * `disabled_alerts` - (Optional) Specifies an array of alerts that are disabled. Possible values are `Sql_Injection`, `Sql_Injection_Vulnerability`, `Access_Anomaly`, `Data_Exfiltration`, `Unsafe_Action` and `Brute_Force`.
 
-* `enabled` - (Optional) Specifies the state of the Security Alert Policy, whether it is enabled or disabled. Possible values are `true`, `false`. Defaults to `false`.
+* `enabled` - (Optional) Specifies the state of the Security Alert Policy, whether it is enabled or disabled. Possible values are `true`, `false`.
 
 * `email_account_admins_enabled` - (Optional) Boolean flag which specifies if the alert is sent to the account administrators or not. Defaults to `false`.
 
@@ -241,7 +241,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the MS SQL Managed Instance Security Alert Policy.
 
@@ -259,5 +259,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 MS SQL Managed Instance Security Alert Policy can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_mssql_managed_instance_security_alert_policy.example  /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acceptanceTestResourceGroup1/providers/Microsoft.Sql/managedInstances/instance1/securityAlertPolicies/Default
+terraform import azurerm_mssql_managed_instance_security_alert_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acceptanceTestResourceGroup1/providers/Microsoft.Sql/managedInstances/instance1/securityAlertPolicies/Default
 ```

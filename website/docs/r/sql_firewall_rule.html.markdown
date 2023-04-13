@@ -42,12 +42,11 @@ resource "azurerm_sql_firewall_rule" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the firewall rule.
+* `name` - (Required) The name of the firewall rule. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the SQL Server.
+* `resource_group_name` - (Required) The name of the resource group in which to create the SQL Server. Changing this forces a new resource to be created.
 
-* `server_name` - (Required) The name of the SQL Server on which to create the Firewall Rule.
+* `server_name` - (Required) The name of the SQL Server on which to create the Firewall Rule. Changing this forces a new resource to be created.
 
 * `start_ip_address` - (Required) The starting IP address to allow through the firewall for this rule.
 
@@ -57,7 +56,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The SQL Firewall Rule ID.
 

@@ -187,7 +187,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	computeInstance := &machinelearningcomputes.ComputeInstance{
 		Properties: &machinelearningcomputes.ComputeInstanceProperties{
-			VmSize:                          utils.String(d.Get("virtual_machine_size").(string)),
+			VMSize:                          utils.String(d.Get("virtual_machine_size").(string)),
 			Subnet:                          subnet,
 			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
 			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
@@ -199,7 +199,6 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	authType := d.Get("authorization_type").(string)
 	if authType != "" {
 		computeInstance.Properties.ComputeInstanceAuthorizationType = utils.ToPtr(machinelearningcomputes.ComputeInstanceAuthorizationType(authType))
-
 	}
 
 	parameters := machinelearningcomputes.ComputeResource{
@@ -266,7 +265,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	d.Set("description", props.Description)
 	if props.Properties != nil {
-		d.Set("virtual_machine_size", props.Properties.VmSize)
+		d.Set("virtual_machine_size", props.Properties.VMSize)
 		if props.Properties.Subnet != nil {
 			d.Set("subnet_resource_id", props.Properties.Subnet.Id)
 		}

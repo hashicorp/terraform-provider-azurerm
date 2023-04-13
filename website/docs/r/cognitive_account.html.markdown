@@ -50,13 +50,15 @@ The following arguments are supported:
 
 -> **NOTE:** You must create your first Face, Text Analytics, or Computer Vision resources from the Azure portal to review and acknowledge the terms and conditions. In Azure Portal, the checkbox to accept terms and conditions is only displayed when a US region is selected. More information on [Prerequisites](https://docs.microsoft.com/azure/cognitive-services/cognitive-services-apis-create-account-cli?tabs=windows#prerequisites).
 
-* `sku_name` - (Required) Specifies the SKU Name for this Cognitive Service Account. Possible values are `F0`, `F1`, `S0`, `S`, `S1`, `S2`, `S3`, `S4`, `S5`, `S6`, `P0`, `P1`, `P2` and `E0`.
+* `sku_name` - (Required) Specifies the SKU Name for this Cognitive Service Account. Possible values are `F0`, `F1`, `S0`, `S`, `S1`, `S2`, `S3`, `S4`, `S5`, `S6`, `P0`, `P1`, `P2`, `E0` and `DC0`.
 
-* `custom_subdomain_name` - (Required) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
+-> **NOTE:** SKU `DC0` is the commitment tier for Cognitive Services containers running in disconnected environments. You must obtain approval from Microsoft by submitting the [request form](https://aka.ms/csdisconnectedcontainers) first, before you can use this SKU. More information on [Purchase a commitment plan to use containers in disconnected environments](https://learn.microsoft.com/en-us/azure/cognitive-services/containers/disconnected-containers?tabs=stt#purchase-a-commitment-plan-to-use-containers-in-disconnected-environments).
 
-* `dynamic_throttling_enabled` - (Optional) Whether to enable the dynamic throttling for this Cognitive Service Account. Defaults to `false`.
+* `custom_subdomain_name` - (Optional) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
 
-* `customer_managed_key` (Optional) A `customer_managed_key` block as documented below.
+* `dynamic_throttling_enabled` - (Optional) Whether to enable the dynamic throttling for this Cognitive Service Account.
+
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
 
 * `fqdns` - (Optional) List of FQDNs allowed for the Cognitive Account.
 
@@ -82,9 +84,9 @@ The following arguments are supported:
 
 * `qna_runtime_endpoint` - (Optional) A URL to link a QnAMaker cognitive account to a QnA runtime.
 
-* `custom_question_answering_search_service_id` - If `kind` is `TextAnalytics` this specifies the ID of the Search service.
+* `custom_question_answering_search_service_id` - (Optional) If `kind` is `TextAnalytics` this specifies the ID of the Search service.
 
-* `custom_question_answering_search_service_key` - If `kind` is `TextAnalytics` this specifies the key of the Search service.
+* `custom_question_answering_search_service_key` - (Optional) If `kind` is `TextAnalytics` this specifies the key of the Search service.
 
 -> **NOTE:** `custom_question_answering_search_service_id` and `custom_question_answering_search_service_key` are used for [Custom Question Answering, the renamed version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/custom-question-answering), while `qna_runtime_endpoint` is used for [the old version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/overview/overview)
 
@@ -101,6 +103,8 @@ A `network_acls` block supports the following:
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Cognitive Account.
 
 * `virtual_network_rules` - (Optional) A `virtual_network_rules` block as defined below.
+
+---
 
 A `virtual_network_rules` block supports the following:
 
@@ -136,7 +140,7 @@ A `storage` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Cognitive Service Account.
 

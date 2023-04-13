@@ -215,7 +215,7 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	trafficRoutingMethod := profiles.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
 	// No existing profile - start from a new struct.
 	profile := profiles.Profile{
-		Name:     utils.String(id.ProfileName),
+		Name:     utils.String(id.TrafficManagerProfileName),
 		Location: utils.String("global"), // must be provided in request
 		Properties: &profiles.ProfileProperties{
 			TrafficRoutingMethod: &trafficRoutingMethod,
@@ -276,7 +276,7 @@ func resourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.ProfileName)
+	d.Set("name", id.TrafficManagerProfileName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

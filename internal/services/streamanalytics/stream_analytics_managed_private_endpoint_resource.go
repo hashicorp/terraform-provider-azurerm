@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -24,6 +25,8 @@ type ManagedPrivateEndpointModel struct {
 	TargetResourceId       string `tfschema:"target_resource_id"`
 	SubResourceName        string `tfschema:"subresource_name"`
 }
+
+var _ sdk.ResourceWithStateMigration = ManagedPrivateEndpointResource{}
 
 func (r ManagedPrivateEndpointResource) ModelObject() interface{} {
 	return &ManagedPrivateEndpointModel{}
@@ -180,6 +183,15 @@ func (r ManagedPrivateEndpointResource) Delete() sdk.ResourceFunc {
 			}
 
 			return nil
+		},
+	}
+}
+
+func (r ManagedPrivateEndpointResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsManagedPrivateEndpointV0ToV1{},
 		},
 	}
 }

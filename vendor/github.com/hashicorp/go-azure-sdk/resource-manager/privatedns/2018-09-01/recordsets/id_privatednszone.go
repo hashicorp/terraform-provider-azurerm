@@ -7,21 +7,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = PrivateDnsZoneId{}
 
 // PrivateDnsZoneId is a struct representing the Resource ID for a Private Dns Zone
 type PrivateDnsZoneId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	PrivateZoneName   string
+	SubscriptionId     string
+	ResourceGroupName  string
+	PrivateDnsZoneName string
 }
 
 // NewPrivateDnsZoneID returns a new PrivateDnsZoneId struct
-func NewPrivateDnsZoneID(subscriptionId string, resourceGroupName string, privateZoneName string) PrivateDnsZoneId {
+func NewPrivateDnsZoneID(subscriptionId string, resourceGroupName string, privateDnsZoneName string) PrivateDnsZoneId {
 	return PrivateDnsZoneId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		PrivateZoneName:   privateZoneName,
+		SubscriptionId:     subscriptionId,
+		ResourceGroupName:  resourceGroupName,
+		PrivateDnsZoneName: privateDnsZoneName,
 	}
 }
 
@@ -44,8 +47,8 @@ func ParsePrivateDnsZoneID(input string) (*PrivateDnsZoneId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.PrivateZoneName, ok = parsed.Parsed["privateZoneName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateZoneName' was not found in the resource id %q", input)
+	if id.PrivateDnsZoneName, ok = parsed.Parsed["privateDnsZoneName"]; !ok {
+		return nil, fmt.Errorf("the segment 'privateDnsZoneName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +74,8 @@ func ParsePrivateDnsZoneIDInsensitively(input string) (*PrivateDnsZoneId, error)
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.PrivateZoneName, ok = parsed.Parsed["privateZoneName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateZoneName' was not found in the resource id %q", input)
+	if id.PrivateDnsZoneName, ok = parsed.Parsed["privateDnsZoneName"]; !ok {
+		return nil, fmt.Errorf("the segment 'privateDnsZoneName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +99,7 @@ func ValidatePrivateDnsZoneID(input interface{}, key string) (warnings []string,
 // ID returns the formatted Private Dns Zone ID
 func (id PrivateDnsZoneId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/privateDnsZones/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.PrivateZoneName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.PrivateDnsZoneName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Private Dns Zone ID
@@ -109,7 +112,7 @@ func (id PrivateDnsZoneId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticPrivateDnsZones", "privateDnsZones", "privateDnsZones"),
-		resourceids.UserSpecifiedSegment("privateZoneName", "privateZoneValue"),
+		resourceids.UserSpecifiedSegment("privateDnsZoneName", "privateDnsZoneValue"),
 	}
 }
 
@@ -118,7 +121,7 @@ func (id PrivateDnsZoneId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Private Zone Name: %q", id.PrivateZoneName),
+		fmt.Sprintf("Private Dns Zone Name: %q", id.PrivateDnsZoneName),
 	}
 	return fmt.Sprintf("Private Dns Zone (%s)", strings.Join(components, "\n"))
 }

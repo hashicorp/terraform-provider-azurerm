@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2021-12-01/protecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -118,6 +118,33 @@ func TestAccBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectedVm_updateVault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
+	r := BackupProtectedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.updateVaultFirstBackupVm(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateVaultSecondBackupVm(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		{
+			// vault cannot be deleted unless we unregister all backups
+			Config: r.additionalVault(data),
+		},
+	})
+}
+
 func TestAccBackupProtectedVm_updateDiskExclusion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 	r := BackupProtectedVmResource{}
@@ -175,17 +202,17 @@ func TestAccBackupProtectedVm_removeVM(t *testing.T) {
 }
 
 func (t BackupProtectedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ProtectedItemID(state.ID)
+	id, err := protecteditems.ParseProtectedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.RecoveryServices.ProtectedItemsClient.Get(ctx, id.VaultName, id.ResourceGroup, "Azure", id.ProtectionContainerName, id.Name, "")
+	resp, err := clients.RecoveryServices.ProtectedItemsClient.Get(ctx, *id, protecteditems.GetOperationOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("reading Recovery Service Protected VM (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (BackupProtectedVmResource) base(data acceptance.TestData) string {
@@ -633,4 +660,30 @@ resource "azurerm_backup_protected_vm" "test" {
   include_disk_luns = [0]
 }
 `, r.baseWithoutVM(data))
+}
+
+func (r BackupProtectedVmResource) updateVaultFirstBackupVm(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_protected_vm" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  backup_policy_id    = azurerm_backup_policy_vm.test.id
+  source_vm_id        = azurerm_virtual_machine.test.id
+}
+`, r.additionalVault(data))
+}
+
+func (r BackupProtectedVmResource) updateVaultSecondBackupVm(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_protected_vm" "test" {
+  resource_group_name = azurerm_resource_group.test2.name
+  recovery_vault_name = azurerm_recovery_services_vault.test2.name
+  backup_policy_id    = azurerm_backup_policy_vm.test2.id
+  source_vm_id        = azurerm_virtual_machine.test.id
+}
+`, r.additionalVault(data))
 }

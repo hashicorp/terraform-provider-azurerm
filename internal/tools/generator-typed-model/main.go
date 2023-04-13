@@ -117,7 +117,6 @@ func modelForSchemaMap(name string, sm map[string]*schema.Schema) []Statement {
 		default:
 			panic(fmt.Errorf("unhandled type: %s", sch.Type))
 		}
-
 	}
 	thisStmt = *Type().Id(name).Struct(fields...)
 

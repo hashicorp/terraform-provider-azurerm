@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
 
-* `operation_id` - (Required) The operation identifier within an API. Must be unique in the current API Management service instance.
+* `operation_id` - (Required) The operation identifier within an API. Must be unique in the current API Management service instance. Changing this forces a new resource to be created.
 
 * `xml_content` - (Optional) The XML Content for this Policy.
 
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to all arguments above, the following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the API Management API Operation Policy.
 

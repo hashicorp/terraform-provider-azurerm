@@ -19,6 +19,15 @@ Manages a Key Vault Secret.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_deleted_secrets_on_destroy = true
+      recover_soft_deleted_secrets          = true
+    }
+  }
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
@@ -70,7 +79,7 @@ The following arguments are supported:
 
 ~> **Note:** Key Vault strips newlines. To preserve newlines in multi-line secrets try replacing them with `\n` or by base 64 encoding them with `replace(file("my_secret_file"), "/\n/", "\n")` or `base64encode(file("my_secret_file"))`, respectively.
 
-* `key_vault_id` - (Required) The ID of the Key Vault where the Secret should be created.
+* `key_vault_id` - (Required) The ID of the Key Vault where the Secret should be created. Changing this forces a new resource to be created.
 
 * `content_type` - (Optional) Specifies the content type for the Key Vault Secret.
 
@@ -82,7 +91,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Key Vault Secret ID.
 * `resource_id` - The (Versioned) ID for this Key Vault Secret. This property points to a specific version of a Key Vault Secret, as such using this won't auto-rotate values if used in other Azure Services.

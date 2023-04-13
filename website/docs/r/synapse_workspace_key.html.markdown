@@ -54,7 +54,7 @@ resource "azurerm_key_vault_access_policy" "deployer" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "Create", "Get", "Delete", "Purge"
+    "Create", "Get", "Delete", "Purge", "GetRotationPolicy"
   ]
 }
 
@@ -118,7 +118,7 @@ The following arguments are supported:
 
 * `customer_managed_key_name` - (Required) Specifies the name of the workspace key. Should match the name of the key in the synapse workspace.
 
-* `customer_managed_key_versionless_id` - (Required) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption
+* `customer_managed_key_versionless_id` - (Optional) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption
 
 * `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the encryption key should be configured.
 

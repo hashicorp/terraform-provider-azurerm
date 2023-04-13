@@ -134,13 +134,13 @@ func TestObjectReplicationID(t *testing.T) {
 				Src: objectreplicationpolicies.ObjectReplicationPolicyId{
 					SubscriptionId:            "12345678-1234-9876-4563-123456789012",
 					ResourceGroupName:         "resGroup1",
-					AccountName:               "storageAccount1",
+					StorageAccountName:        "storageAccount1",
 					ObjectReplicationPolicyId: "objectReplicationPolicy1",
 				},
 				Dst: objectreplicationpolicies.ObjectReplicationPolicyId{
 					SubscriptionId:            "12345678-1234-9876-4563-123456789012",
 					ResourceGroupName:         "resGroup2",
-					AccountName:               "storageAccount2",
+					StorageAccountName:        "storageAccount2",
 					ObjectReplicationPolicyId: "objectReplicationPolicy2",
 				},
 			},
@@ -174,8 +174,8 @@ func TestObjectReplicationID(t *testing.T) {
 		if actual.Src.ResourceGroupName != v.Expected.Src.ResourceGroupName {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.Src.ResourceGroupName, actual.Src.ResourceGroupName)
 		}
-		if actual.Src.AccountName != v.Expected.Src.AccountName {
-			t.Fatalf("Expected %q but got %q for StorageAccountName", v.Expected.Src.AccountName, actual.Src.AccountName)
+		if actual.Src.StorageAccountName != v.Expected.Src.StorageAccountName {
+			t.Fatalf("Expected %q but got %q for StorageAccountName", v.Expected.Src.StorageAccountName, actual.Src.StorageAccountName)
 		}
 		if actual.Src.ObjectReplicationPolicyId != v.Expected.Src.ObjectReplicationPolicyId {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Src.ObjectReplicationPolicyId, actual.Src.ObjectReplicationPolicyId)
@@ -186,8 +186,8 @@ func TestObjectReplicationID(t *testing.T) {
 		if actual.Dst.ResourceGroupName != v.Expected.Dst.ResourceGroupName {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.Dst.ResourceGroupName, actual.Dst.ResourceGroupName)
 		}
-		if actual.Dst.AccountName != v.Expected.Dst.AccountName {
-			t.Fatalf("Expected %q but got %q for StorageAccountName", v.Expected.Dst.AccountName, actual.Dst.AccountName)
+		if actual.Dst.StorageAccountName != v.Expected.Dst.StorageAccountName {
+			t.Fatalf("Expected %q but got %q for StorageAccountName", v.Expected.Dst.StorageAccountName, actual.Dst.StorageAccountName)
 		}
 		if actual.Dst.ObjectReplicationPolicyId != v.Expected.Dst.ObjectReplicationPolicyId {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Dst.ObjectReplicationPolicyId, actual.Dst.ObjectReplicationPolicyId)

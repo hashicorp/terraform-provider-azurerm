@@ -1972,7 +1972,7 @@ func flattenContainerGroupDnsConfig(input *containerinstance.DnsConfiguration) [
 
 func expandContainerGroupDnsConfig(input interface{}) *containerinstance.DnsConfiguration {
 	dnsConfigRaw := input.([]interface{})
-	if len(dnsConfigRaw) > 0 {
+	if len(dnsConfigRaw) > 0 && dnsConfigRaw[0] != nil {
 		config := dnsConfigRaw[0].(map[string]interface{})
 
 		nameservers := []string{}
@@ -2009,7 +2009,7 @@ func flattenContainerGroupSubnets(input *[]containerinstance.ContainerGroupSubne
 			continue
 		}
 
-		id, err := networkParse.SubnetID(resourceRef.Id)
+		id, err := networkParse.SubnetIDInsensitively(resourceRef.Id)
 		if err != nil {
 			return nil, fmt.Errorf(`parsing subnet id %q: %v`, resourceRef.Id, err)
 		}

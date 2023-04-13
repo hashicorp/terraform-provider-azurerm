@@ -75,9 +75,9 @@ The following arguments are supported:
 
 * `host_name` - (Required) The host name of the custom domain. Changing this forces a new CDN Endpoint Custom Domain to be created.
 
-* `cdn_managed_https` (Optional) - A `cdn_managed_https` block as defined below.
+* `cdn_managed_https` - (Optional) A `cdn_managed_https` block as defined below.
 
-* `user_managed_https` (Optional) - A `user_managed_https` block as defined below.
+* `user_managed_https` - (Optional) A `user_managed_https` block as defined below.
 
 ~> **NOTE** Only one of `cdn_managed_https` and `user_managed_https` can be specified.
 

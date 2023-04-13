@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -163,11 +163,6 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"metric_column": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
 									"metric_trigger_type": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
@@ -191,6 +186,11 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeFloat,
 										Required:     true,
 										ValidateFunc: validate.ScheduledQueryRulesAlertThreshold,
+									},
+									"metric_column": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},

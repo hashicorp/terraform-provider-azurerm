@@ -6,6 +6,7 @@ Analysis Services
 App Configuration
 App Service (Web Apps)
 Application Insights
+ArcKubernetes
 Attestation
 Authorization
 Automanage
@@ -24,7 +25,7 @@ Confidential Ledger
 Connections
 Consumption
 Container
-Containers
+Container Apps
 CosmosDB (DocumentDB)
 Cost Management
 Custom Providers
@@ -48,9 +49,11 @@ Fluid Relay
 HDInsight
 Hardware Security Module
 Healthcare
+Hybrid Compute
 IoT Central
 IoT Hub
 Key Vault
+Lab Service
 Lighthouse
 Load Balancer
 Load Test
@@ -65,6 +68,7 @@ Maps
 Media
 Messaging
 Mixed Reality
+Mobile Network
 Monitor
 NetApp
 Network
@@ -86,10 +90,12 @@ Service Fabric
 Service Fabric Managed Clusters
 Spring Cloud
 Storage
+Storage Mover
 Stream Analytics
 Synapse
 Template
 Time Series Insights
 VMware (AVS)
 Video Analyzer
+Voice Services
 Web PubSub

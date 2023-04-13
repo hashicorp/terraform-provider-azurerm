@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `network_subnet_cidr` - (Required) The subnet which should be unique across virtual network in your subscription as well as on-premise. Changing this forces a new VMware Private Cloud to be created.
 
-* `sku_name` - (Required) The Name of the SKU used for this Private Cloud. Possible values are `av20`, `av36` and `av36t`. Changing this forces a new VMware Private Cloud to be created.
+* `sku_name` - (Required) The Name of the SKU used for this Private Cloud. Possible values are `av20`, `av36`, `av36t`, `av36p` and `av52`. Changing this forces a new VMware Private Cloud to be created.
 
 * `internet_connection_enabled` - (Optional) Is the Private Cluster connected to the internet? This field can not updated with `management_cluster.0.size` together.
 ~> **NOTE :** `internet_connection_enabled` and `management_cluster.0.size` cannot be updated at the same time.
@@ -114,7 +114,7 @@ A `circuit` block exports the following:
 
 A `management_cluster` block exports the following:
 
-* `id` - The ID of the  management cluster.
+* `id` - The ID of the management cluster.
 
 * `hosts` - A list of hosts in the management cluster.
 
@@ -132,5 +132,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 VMware Private Clouds can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_vmware_private_cloud.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AVS/PrivateClouds/privateCloud1
+terraform import azurerm_vmware_private_cloud.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AVS/privateClouds/privateCloud1
 ```

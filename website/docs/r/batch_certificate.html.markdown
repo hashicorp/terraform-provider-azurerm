@@ -64,11 +64,13 @@ The following arguments are supported:
 
 * `password` - (Optional) The password to access the certificate's private key. This can only be specified when `format` is `Pfx`.
 
-* `thumbprint` - (Required) The thumbprint of the certificate. At this time the only supported value is 'SHA1'.
+* `thumbprint` - (Required) The thumbprint of the certificate. Changing this forces a new resource to be created.
+
+* `thumbprint_algorithm` - (Required) The algorithm of the certificate thumbprint. At this time the only supported value is `SHA1`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Batch Certificate.
 

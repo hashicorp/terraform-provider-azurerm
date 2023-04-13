@@ -91,6 +91,50 @@ func TestAccLogicAppActionHttp_queries(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppActionHttp_dynamicFunction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+	r := LogicAppActionHttpResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withDynamicFunction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppActionHttp_bodyDiff(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+	r := LogicAppActionHttpResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withDynamicFunction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppActionHttp_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
 	r := LogicAppActionHttpResource{}
@@ -262,6 +306,22 @@ resource "azurerm_logic_app_action_http" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, condition, condition)
+}
+
+func (r LogicAppActionHttpResource) withDynamicFunction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_action_http" "test" {
+  name         = "action%d"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  method       = "POST"
+  uri          = "http://example.com/hello"
+  body         = <<BODY
+@concat('{\"summary\": \"Foo\", \"text\": \"',triggerBody()?['data']?['essentials']?['description'],'\"}')
+BODY
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (LogicAppActionHttpResource) template(data acceptance.TestData) string {

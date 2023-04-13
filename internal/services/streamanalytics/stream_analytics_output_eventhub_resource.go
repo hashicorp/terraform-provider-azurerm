@@ -7,9 +7,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -22,10 +23,16 @@ func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsOutputEventHubRead,
 		Update: resourceStreamAnalyticsOutputEventHubCreateUpdate,
 		Delete: resourceStreamAnalyticsOutputEventHubDelete,
+
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := outputs.ParseOutputID(id)
 			return err
 		}, importStreamAnalyticsOutput(outputs.EventHubOutputDataSource{})),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsOutputEventHubV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -201,7 +208,7 @@ func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	d.Set("name", id.OutputName)
-	d.Set("stream_analytics_job_name", id.JobName)
+	d.Set("stream_analytics_job_name", id.StreamingJobName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

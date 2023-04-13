@@ -73,11 +73,11 @@ The following arguments are supported:
 
 * `app_service_name` - (Required) Specifies the name of the App Service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the App Service.  Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the App Service. Changing this forces a new resource to be created.
 
 * `relay_id` - (Required) The ID of the Service Bus Relay. Changing this forces a new resource to be created.
 
-* `hostname` - (Optional) The hostname of the endpoint.
+* `hostname` - (Required) The hostname of the endpoint.
 
 * `port` - (Required) The port of the endpoint.
 
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the App Service.
 
@@ -96,6 +96,15 @@ The following attributes are exported:
 * `service_bus_namespace` - The name of the Service Bus namespace.
 
 * `service_bus_suffix` - The suffix for the service bus endpoint.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Hybrid Connection.
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Hybrid Connection.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Hybrid Connection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Hybrid Connection.
 
 ## Import
 

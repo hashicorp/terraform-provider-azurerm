@@ -13,7 +13,7 @@ type OutputProperties struct {
 	Diagnostics   *Diagnostics     `json:"diagnostics,omitempty"`
 	Etag          *string          `json:"etag,omitempty"`
 	Serialization Serialization    `json:"serialization"`
-	SizeWindow    *float64         `json:"sizeWindow,omitempty"`
+	SizeWindow    *int64           `json:"sizeWindow,omitempty"`
 	TimeWindow    *string          `json:"timeWindow,omitempty"`
 }
 

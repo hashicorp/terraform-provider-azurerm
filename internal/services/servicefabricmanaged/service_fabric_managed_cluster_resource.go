@@ -154,17 +154,15 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				validation.StringMatch(regexp.MustCompile("^[^\\\\/\"\\[\\]:|<>+=;,?*$]{1,14}$"), "User names cannot contain special characters \\/\"\"[]:|<>+=;,$?*@")),
 		},
 		"password": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:      pluginsdk.TypeString,
+			Optional:  true,
+			Sensitive: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(8, 123),
-				validation.StringIsNotWhiteSpace),
+				validation.StringIsNotWhiteSpace,
+			),
 		},
-		"resource_group_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotWhiteSpace,
-		},
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"node_type":      nodeTypeSchema(),
 		"authentication": authSchema(),
@@ -399,16 +397,16 @@ func (k ClusterResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(cluster.HttpResponse) {
 					return metadata.MarkAsGone(resourceId)
 				}
-				return fmt.Errorf("while reading data for cluster %q: %+v", resourceId.ClusterName, err)
+				return fmt.Errorf("while reading data for cluster %q: %+v", resourceId.ManagedClusterName, err)
 			}
 
 			nts, err := nodeTypeClient.ListByManagedClustersComplete(ctx, nodetype.ManagedClusterId{
-				SubscriptionId:    resourceId.SubscriptionId,
-				ResourceGroupName: resourceId.ResourceGroupName,
-				ClusterName:       resourceId.ClusterName,
+				SubscriptionId:     resourceId.SubscriptionId,
+				ResourceGroupName:  resourceId.ResourceGroupName,
+				ManagedClusterName: resourceId.ManagedClusterName,
 			})
 			if err != nil {
-				return fmt.Errorf("while listing NodeTypes for cluster %q: +%v", resourceId.ClusterName, err)
+				return fmt.Errorf("while listing NodeTypes for cluster %q: +%v", resourceId.ManagedClusterName, err)
 			}
 
 			model := flattenClusterProperties(cluster.Model)
@@ -764,15 +762,21 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 		DataDiskSize:     nt.Properties.DataDiskSizeGB,
 		Name:             utils.NormalizeNilableString(nt.Name),
 		Primary:          props.IsPrimary,
-		VmImageOffer:     utils.NormalizeNilableString(props.VmImageOffer),
-		VmImagePublisher: utils.NormalizeNilableString(props.VmImagePublisher),
-		VmImageSku:       utils.NormalizeNilableString(props.VmImageSku),
-		VmImageVersion:   utils.NormalizeNilableString(props.VmImageVersion),
-		VmInstanceCount:  props.VmInstanceCount,
-		VmSize:           utils.NormalizeNilableString(props.VmSize),
-		ApplicationPorts: fmt.Sprintf("%d-%d", props.ApplicationPorts.StartPort, props.ApplicationPorts.EndPort),
-		EphemeralPorts:   fmt.Sprintf("%d-%d", props.EphemeralPorts.StartPort, props.EphemeralPorts.EndPort),
+		VmImageOffer:     utils.NormalizeNilableString(props.VMImageOffer),
+		VmImagePublisher: utils.NormalizeNilableString(props.VMImagePublisher),
+		VmImageSku:       utils.NormalizeNilableString(props.VMImageSku),
+		VmImageVersion:   utils.NormalizeNilableString(props.VMImageVersion),
+		VmInstanceCount:  props.VMInstanceCount,
+		VmSize:           utils.NormalizeNilableString(props.VMSize),
 		Id:               utils.NormalizeNilableString(nt.Id),
+	}
+
+	if appPorts := props.ApplicationPorts; appPorts != nil {
+		out.ApplicationPorts = fmt.Sprintf("%d-%d", appPorts.StartPort, appPorts.EndPort)
+	}
+
+	if ephemeralPorts := props.EphemeralPorts; ephemeralPorts != nil {
+		out.EphemeralPorts = fmt.Sprintf("%d-%d", ephemeralPorts.StartPort, ephemeralPorts.EndPort)
 	}
 
 	if mpg := props.MultiplePlacementGroups; mpg != nil {
@@ -803,7 +807,7 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 		out.PlacementProperties = placements
 	}
 
-	if secrets := props.VmSecrets; secrets != nil {
+	if secrets := props.VMSecrets; secrets != nil {
 		secs := make([]VmSecrets, len(*secrets))
 		for idx, sec := range *secrets {
 			certs := make([]VaultCertificates, len(sec.VaultCertificates))
@@ -973,13 +977,13 @@ func expandNodeTypeProperties(nt *NodeType) (*nodetype.NodeTypeProperties, error
 		IsStateless:             &nt.Stateless,
 		MultiplePlacementGroups: &nt.MultiplePlacementGroupsEnabled,
 		PlacementProperties:     &nt.PlacementProperties,
-		VmImageOffer:            &nt.VmImageOffer,
-		VmImagePublisher:        &nt.VmImagePublisher,
-		VmImageSku:              &nt.VmImageSku,
-		VmImageVersion:          &nt.VmImageVersion,
-		VmInstanceCount:         nt.VmInstanceCount,
-		VmSecrets:               &vmSecrets,
-		VmSize:                  &nt.VmSize,
+		VMImageOffer:            &nt.VmImageOffer,
+		VMImagePublisher:        &nt.VmImagePublisher,
+		VMImageSku:              &nt.VmImageSku,
+		VMImageVersion:          &nt.VmImageVersion,
+		VMInstanceCount:         nt.VmInstanceCount,
+		VMSecrets:               &vmSecrets,
+		VMSize:                  &nt.VmSize,
 	}
 
 	return nodeTypeProperties, nil

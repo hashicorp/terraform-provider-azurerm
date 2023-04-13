@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,6 +28,11 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 		Read:   resourceSpringCloudAppRead,
 		Update: resourceSpringCloudAppUpdate,
 		Delete: resourceSpringCloudAppDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudAppV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SpringCloudAppID(id)
@@ -554,7 +560,10 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 	for _, item := range *input {
 		var storageName string
 		if item.StorageID != nil {
-			if id, err := parse.SpringCloudStorageID(*item.StorageID); err == nil {
+			// The returned value has inconsistent casing
+			// TODO: Remove the normalization codes once the following issue is fixed.
+			// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22205
+			if id, err := parse.SpringCloudStorageIDInsensitively(*item.StorageID); err == nil {
 				storageName = id.StorageName
 			}
 		}
@@ -591,6 +600,25 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 func flattenSpringCloudAppAddon(configs map[string]map[string]interface{}) *string {
 	if len(configs) == 0 {
 		return nil
+	}
+	// The returned value has inconsistent casing
+	// TODO: Remove the normalization codes once the following issue is fixed.
+	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22481
+	if applicationConfigurationService, ok := configs["applicationConfigurationService"]; ok && len(applicationConfigurationService) != 0 {
+		if resourceId, ok := applicationConfigurationService["resourceId"]; ok && resourceId != nil {
+			applicationConfigurationServiceId, err := parse.SpringCloudConfigurationServiceIDInsensitively(resourceId.(string))
+			if err == nil {
+				configs["applicationConfigurationService"]["resourceId"] = applicationConfigurationServiceId.ID()
+			}
+		}
+	}
+	if serviceRegistry, ok := configs["serviceRegistry"]; ok && len(serviceRegistry) != 0 {
+		if resourceId, ok := serviceRegistry["resourceId"]; ok && resourceId != nil {
+			serviceRegistryId, err := parse.SpringCloudServiceRegistryIDInsensitively(resourceId.(string))
+			if err == nil {
+				configs["serviceRegistry"]["resourceId"] = serviceRegistryId.ID()
+			}
+		}
 	}
 	addonConfig, _ := json.Marshal(configs)
 	return utils.String(string(addonConfig))

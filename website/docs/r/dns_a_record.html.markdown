@@ -68,11 +68,13 @@ resource "azurerm_dns_a_record" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS A Record.
+* `name` - (Required) The name of the DNS A Record. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
+
+~> **Note:** The `zone_name` should be the name of resource `azurerm_dns_zone` instead of `azurerm_private_dns_zone`.
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
@@ -86,7 +88,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The DNS A Record ID.
 

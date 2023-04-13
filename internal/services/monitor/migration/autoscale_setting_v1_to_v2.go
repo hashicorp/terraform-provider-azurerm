@@ -4,9 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -19,9 +18,17 @@ func (s AutoscaleSettingUpgradeV1ToV2) Schema() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"resource_group_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
-		"location": commonschema.Location(),
+		"location": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
 		"target_resource_id": {
 			Type:     pluginsdk.TypeString,
@@ -289,7 +296,13 @@ func (s AutoscaleSettingUpgradeV1ToV2) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"tags": tags.Schema(),
+		"tags": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
 	}
 }
 

@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `sql_license_type` - (Optional) The SQL Server license type. Possible values are `AHUB` (Azure Hybrid Benefit), `DR` (Disaster Recovery), and `PAYG` (Pay-As-You-Go). Changing this forces a new resource to be created.
 
-* `auto_backup` (Optional) An `auto_backup` block as defined below. This block can be added to an existing resource, but removing this block forces a new resource to be created.
+* `auto_backup` - (Optional) An `auto_backup` block as defined below. This block can be added to an existing resource, but removing this block forces a new resource to be created.
 
 * `auto_patching` - (Optional) An `auto_patching` block as defined below.
 
@@ -85,7 +85,7 @@ The `auto_backup` block supports the following:
 
 * `storage_account_access_key` - (Required) Access key for the storage account where backups will be kept.
 
-* `system_databases_backup_enabled` - (Optional) Include or exclude system databases from auto backup. Defaults to `false`.
+* `system_databases_backup_enabled` - (Optional) Include or exclude system databases from auto backup.
 
 ---
 
@@ -98,6 +98,10 @@ The `manual_schedule` block supports the following:
 * `full_backup_window_in_hours` - (Required) Duration of the time window of a given day during which full backups can take place, in hours. Valid values are between `1` and `23`.
 
 * `log_backup_frequency_in_minutes` - (Required) Frequency of log backups, in minutes. Valid values are from `5` to `60`.
+
+* `days_of_week` - (Optional) A list of days on which backup can take place. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`
+
+~> **NOTE:** `days_of_week` can only be specified when `manual_schedule` is set to `Weekly`
 
 ---
 
@@ -149,9 +153,9 @@ The `storage_configuration` block supports the following:
 
 * `storage_workload_type` - (Required) The type of storage workload. Valid values include `GENERAL`, `OLTP`, or `DW`.
 
-* `data_settings` - (Optional) An `storage_settings` as defined below.
+* `data_settings` - (Optional) A `storage_settings` block as defined below.
 
-* `log_settings` - (Optional) An `storage_settings` as defined below.
+* `log_settings` - (Optional) A `storage_settings` block as defined below.
 
 * `system_db_on_data_disk_enabled` - (Optional) Specifies whether to set system databases (except tempDb) location to newly created data storage. Possible values are `true` and `false`. Defaults to `false`.
 
@@ -203,13 +207,13 @@ The `schedule` block supports the following:
 
 ~> **NOTE:** Either one of `weekly_interval` or `monthly_occurrence` must be specified.
 
-* `day_of_week` - (Optional) What day of the week the assessment will be run. Default value is `Monday`. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
+* `day_of_week` - (Required) What day of the week the assessment will be run. Default value is `Monday`. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
-* `start_time` - (Optional) What time the assessment will be run. Must be in the format `HH:mm`.
+* `start_time` - (Required) What time the assessment will be run. Must be in the format `HH:mm`.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the SQL Virtual Machine.
 

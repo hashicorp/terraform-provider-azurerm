@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -22,9 +23,15 @@ func resourceStreamAnalyticsStreamInputBlob() *pluginsdk.Resource {
 		Read:   resourceStreamAnalyticsStreamInputBlobRead,
 		Update: resourceStreamAnalyticsStreamInputBlobCreateUpdate,
 		Delete: resourceStreamAnalyticsStreamInputBlobDelete,
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := inputs.ParseInputID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsStreamInputBlobV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -130,9 +137,9 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	props := inputs.Input{
 		Name: utils.String(id.InputName),
 		Properties: &inputs.StreamInputProperties{
-			//Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
+			// Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
 			Datasource: &inputs.BlobStreamInputDataSource{
-				//Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob,
+				// Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob,
 				Properties: &inputs.BlobStreamInputDataSourceProperties{
 					Container:   utils.String(containerName),
 					DateFormat:  utils.String(dateFormat),
@@ -187,12 +194,12 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.Set("name", id.InputName)
-	d.Set("stream_analytics_job_name", id.JobName)
+	d.Set("stream_analytics_job_name", id.StreamingJobName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties)
+			input, ok := props.(inputs.InputProperties) // nolint: gosimple
 			if !ok {
 				return fmt.Errorf("converting %s to an Input", *id)
 			}

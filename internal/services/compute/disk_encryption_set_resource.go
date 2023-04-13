@@ -76,7 +76,7 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
 					string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys),
-					string(diskencryptionsets.DiskEncryptionSetTypeConfidentialVmEncryptedWithCustomerKey),
+					string(diskencryptionsets.DiskEncryptionSetTypeConfidentialVMEncryptedWithCustomerKey),
 				}, false),
 			},
 
@@ -122,9 +122,6 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	if keyVaultDetails != nil {
 		if !keyVaultDetails.softDeleteEnabled {
 			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
-		}
-		if !keyVaultDetails.purgeProtectionEnabled {
-			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 		}
 	}
 

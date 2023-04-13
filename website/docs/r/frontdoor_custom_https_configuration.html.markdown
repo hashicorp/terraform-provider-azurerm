@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_frontdoor_custom_https_configuration
 
-!> **IMPORTANT** This resource deploys an Azure Front Door (classic) resource which is being deprecated in v4.0 of the AzureRM Provider. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_custom_domain). The service team has [announced](https://azure.microsoft.com/blog/zero-downtime-migration-for-azure-front-door-now-in-preview/) the release of their `Front Door Classic` to `Front Door Standard/Premium` [migration tool](https://learn.microsoft.com/azure/frontdoor/tier-migration) to allow you to migrate your existing `Front Door Classic` instances to the new `Front Door Standard/Premium` product tiers.
+!> **IMPORTANT** This deploys an Azure Front Door (classic) resource which has been deprecated and will receive security updates only. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_custom_domain). For your convenience, the service team has exposed a `Front Door Classic` to `Front Door Standard/Premium` [migration tool](https://learn.microsoft.com/azure/frontdoor/tier-migration) to allow you to migrate your existing `Front Door Classic` instances to the new `Front Door Standard/Premium` product tiers.
 
 Manages the Custom HTTPS Configuration for an Azure Front Door (classic) Frontend Endpoint.
 
@@ -97,9 +97,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1"
 
 ## Argument Reference
 
-The `custom_https_configuration` block is also valid inside an `azurerm_frontdoor_custom_https_configuration`, which supports the following arguments:
-
-* `frontend_endpoint_id` - (Required) The ID of the Front Door Frontend Endpoint which this configuration refers to.
+* `frontend_endpoint_id` - (Required) The ID of the Front Door Frontend Endpoint which this configuration refers to. Changing this forces a new resource to be created.
 
 * `custom_https_provisioning_enabled` - (Required) Should the HTTPS protocol be enabled for this custom domain associated with the Front Door?
 
@@ -113,11 +111,11 @@ The `custom_https_configuration` block supports the following:
 
 The following attributes are only valid if `certificate_source` is set to `AzureKeyVault`:
 
-* `azure_key_vault_certificate_vault_id` - (Required) The ID of the Key Vault containing the SSL certificate.
+* `azure_key_vault_certificate_vault_id` - (Optional) The ID of the Key Vault containing the SSL certificate.
 
-* `azure_key_vault_certificate_secret_name` - (Required) The name of the Key Vault secret representing the full certificate PFX.
+* `azure_key_vault_certificate_secret_name` - (Optional) The name of the Key Vault secret representing the full certificate PFX.
 
-* `azure_key_vault_certificate_secret_version` - (Optional) The version of the Key Vault secret representing the full certificate PFX. Defaults to `Latest`.
+* `azure_key_vault_certificate_secret_version` - (Optional) The version of the Key Vault secret representing the full certificate PFX.
 
 ~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instructions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
 
@@ -125,7 +123,9 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 * `id` - The ID of the Azure Front Door Custom HTTPS Configuration.
 
-* `custom_https_configuration` - A `custom_https_configuration` block as defined below.
+* `custom_https_configuration` - (Optional) A `custom_https_configuration` block as defined below.
+
+---
 
 The `custom_https_configuration` block exports the following:
 

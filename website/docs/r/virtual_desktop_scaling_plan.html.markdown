@@ -109,11 +109,11 @@ resource "azurerm_virtual_desktop_scaling_plan" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Virtual Desktop Scaling Plan  should exist. Changing this forces a new Virtual Desktop Scaling Plan to be created.
+* `location` - (Required) The Azure Region where the Virtual Desktop Scaling Plan should exist. Changing this forces a new Virtual Desktop Scaling Plan to be created.
 
 * `name` - (Required) The name which should be used for this Virtual Desktop Scaling Plan . Changing this forces a new Virtual Desktop Scaling Plan to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Virtual Desktop Scaling Plan should exist. Changing this forces a new Virtual Desktop Scaling Plan  to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Virtual Desktop Scaling Plan should exist. Changing this forces a new Virtual Desktop Scaling Plan to be created.
 
 * `schedule` - (Required) One or more `schedule` blocks as defined below.
 

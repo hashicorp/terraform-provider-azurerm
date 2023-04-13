@@ -24,10 +24,11 @@ func importStreamAnalyticsReferenceInput(expectType string) pluginsdk.ImporterFu
 
 		if model := resp.Model; model != nil {
 			if props := model.Properties; props != nil {
-				input, ok := props.(inputs.InputProperties)
+				input, ok := props.(inputs.InputProperties) // nolint: gosimple
 				if !ok {
 					return nil, fmt.Errorf("failed to convert to Input")
 				}
+
 				reference, ok := input.(inputs.ReferenceInputProperties)
 				if !ok {
 					return nil, fmt.Errorf("failed to convert to Reference Input")
@@ -45,7 +46,6 @@ func importStreamAnalyticsReferenceInput(expectType string) pluginsdk.ImporterFu
 				if actualType != expectType {
 					return nil, fmt.Errorf("stream analytics reference input has mismatched type, expected: %q, got %q", expectType, actualType)
 				}
-
 			}
 		}
 		return []*pluginsdk.ResourceData{d}, nil

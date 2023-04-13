@@ -28,7 +28,7 @@ resource "azurerm_private_dns_zone" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Private DNS Zone. Must be a valid domain name.
+* `name` - (Required) The name of the Private DNS Zone. Must be a valid domain name. Changing this forces a new resource to be created.
 
 -> **NOTE:** If you are going to be using the Private DNS Zone with a Private Endpoint the name of the Private DNS Zone must follow the **Private DNS Zone name** schema in the [product documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-dns#virtual-network-and-on-premises-workloads-using-a-dns-forwarder) in order for the two resources to be connected successfully.
 
@@ -58,7 +58,7 @@ The `soa_record` block supports:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Private DNS Zone ID.
 * `soa_record` - A `soa_record` block as defined below.

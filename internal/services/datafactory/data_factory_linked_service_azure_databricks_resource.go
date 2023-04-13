@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -135,12 +135,12 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      "1",
-							ValidateFunc: validation.IntBetween(1, 10),
+							ValidateFunc: validation.IntBetween(1, 25000),
 						},
 						"max_number_of_workers": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 10),
+							ValidateFunc: validation.IntBetween(1, 25000),
 						},
 						"cluster_version": {
 							Type:         pluginsdk.TypeString,
@@ -196,12 +196,12 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      1,
-							ValidateFunc: validation.IntBetween(1, 10),
+							ValidateFunc: validation.IntBetween(1, 25000),
 						},
 						"max_number_of_workers": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 10),
+							ValidateFunc: validation.IntBetween(1, 25000),
 						},
 						"instance_pool_id": {
 							Type:         pluginsdk.TypeString,

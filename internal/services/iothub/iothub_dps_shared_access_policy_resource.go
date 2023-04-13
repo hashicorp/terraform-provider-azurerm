@@ -225,7 +225,7 @@ func resourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta int
 		d.Set("primary_key", model.PrimaryKey)
 		d.Set("secondary_key", model.SecondaryKey)
 
-		if iothubDpsModel := iothubDps.Model; model != nil {
+		if iothubDpsModel := iothubDps.Model; iothubDpsModel != nil {
 			primaryConnectionString := ""
 			secondaryConnectionString := ""
 			properties := iothubDpsModel.Properties

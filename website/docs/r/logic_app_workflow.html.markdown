@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `integration_service_environment_id` - (Optional) The ID of the Integration Service Environment to which this Logic App Workflow belongs.  Changing this forces a new Logic App Workflow to be created.
+* `integration_service_environment_id` - (Optional) The ID of the Integration Service Environment to which this Logic App Workflow belongs. Changing this forces a new Logic App Workflow to be created.
 
 * `logic_app_integration_account_id` - (Optional) The ID of the integration account linked by this Logic App Workflow.
 
@@ -123,7 +123,7 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Logic App Workflow ID.
 

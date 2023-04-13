@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -44,6 +44,31 @@ func dataSourceDatabricksWorkspace() *pluginsdk.Resource {
 			"workspace_url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"managed_disk_identity": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"principal_id": {
+							Type:      pluginsdk.TypeString,
+							Sensitive: true,
+							Computed:  true,
+						},
+
+						"tenant_id": {
+							Type:      pluginsdk.TypeString,
+							Sensitive: true,
+							Computed:  true,
+						},
+
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"storage_account_identity": {
@@ -102,8 +127,11 @@ func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("sku", sku.Name)
 		}
 		d.Set("workspace_id", model.Properties.WorkspaceId)
-		if err := d.Set("storage_account_identity", flattenWorkspaceStorageAccountIdentity(model.Properties.StorageAccountIdentity)); err != nil {
+		if err := d.Set("storage_account_identity", flattenWorkspaceManagedIdentity(model.Properties.StorageAccountIdentity)); err != nil {
 			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
+		}
+		if err := d.Set("managed_disk_identity", flattenWorkspaceManagedIdentity(model.Properties.StorageAccountIdentity)); err != nil {
+			return fmt.Errorf("setting `managed_disk_identity`: %+v", err)
 		}
 		d.Set("workspace_url", model.Properties.WorkspaceUrl)
 		d.Set("location", model.Location)

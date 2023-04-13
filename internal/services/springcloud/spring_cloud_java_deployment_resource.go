@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,6 +24,11 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 		Read:   resourceSpringCloudJavaDeploymentRead,
 		Update: resourceSpringCloudJavaDeploymentUpdate,
 		Delete: resourceSpringCloudJavaDeploymentDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudJavaDeploymentV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SpringCloudDeploymentID(id)

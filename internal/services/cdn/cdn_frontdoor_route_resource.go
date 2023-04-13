@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -254,7 +254,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 			return err
 		}
 
-		if err := validateRoutesCustomDomainProfile(normalizedCustomDomains, id.RouteName, id.ProfileName); err != nil {
+		if err := validateRoutesCustomDomainProfile(normalizedCustomDomains, id.ProfileName); err != nil {
 			return err
 		}
 	}
@@ -447,7 +447,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return err
 		}
 
-		if err := validateRoutesCustomDomainProfile(customDomains, id.RouteName, id.ProfileName); err != nil {
+		if err := validateRoutesCustomDomainProfile(customDomains, id.ProfileName); err != nil {
 			return err
 		}
 	}

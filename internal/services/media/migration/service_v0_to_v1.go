@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-05-01/accounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/accounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -117,7 +117,7 @@ func (ServiceV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (ServiceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldIdRaw := rawState["id"].(string)
-		oldId, err := accounts.ParseMediaServiceID(oldIdRaw)
+		oldId, err := accounts.ParseMediaServiceIDInsensitively(oldIdRaw)
 		if err != nil {
 			return nil, err
 		}

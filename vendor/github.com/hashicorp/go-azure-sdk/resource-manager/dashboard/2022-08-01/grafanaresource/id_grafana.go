@@ -7,21 +7,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = GrafanaId{}
 
 // GrafanaId is a struct representing the Resource ID for a Grafana
 type GrafanaId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	WorkspaceName     string
+	GrafanaName       string
 }
 
 // NewGrafanaID returns a new GrafanaId struct
-func NewGrafanaID(subscriptionId string, resourceGroupName string, workspaceName string) GrafanaId {
+func NewGrafanaID(subscriptionId string, resourceGroupName string, grafanaName string) GrafanaId {
 	return GrafanaId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		WorkspaceName:     workspaceName,
+		GrafanaName:       grafanaName,
 	}
 }
 
@@ -44,8 +47,8 @@ func ParseGrafanaID(input string) (*GrafanaId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'workspaceName' was not found in the resource id %q", input)
+	if id.GrafanaName, ok = parsed.Parsed["grafanaName"]; !ok {
+		return nil, fmt.Errorf("the segment 'grafanaName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +74,8 @@ func ParseGrafanaIDInsensitively(input string) (*GrafanaId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'workspaceName' was not found in the resource id %q", input)
+	if id.GrafanaName, ok = parsed.Parsed["grafanaName"]; !ok {
+		return nil, fmt.Errorf("the segment 'grafanaName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +99,7 @@ func ValidateGrafanaID(input interface{}, key string) (warnings []string, errors
 // ID returns the formatted Grafana ID
 func (id GrafanaId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Dashboard/grafana/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.GrafanaName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Grafana ID
@@ -109,7 +112,7 @@ func (id GrafanaId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDashboard", "Microsoft.Dashboard", "Microsoft.Dashboard"),
 		resourceids.StaticSegment("staticGrafana", "grafana", "grafana"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("grafanaName", "grafanaValue"),
 	}
 }
 
@@ -118,7 +121,7 @@ func (id GrafanaId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Workspace Name: %q", id.WorkspaceName),
+		fmt.Sprintf("Grafana Name: %q", id.GrafanaName),
 	}
 	return fmt.Sprintf("Grafana (%s)", strings.Join(components, "\n"))
 }

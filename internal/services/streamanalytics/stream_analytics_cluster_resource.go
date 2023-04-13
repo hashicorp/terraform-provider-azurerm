@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -25,7 +26,10 @@ type ClusterModel struct {
 	Tags              map[string]interface{} `tfschema:"tags"`
 }
 
-var _ sdk.ResourceWithUpdate = ClusterResource{}
+var (
+	_ sdk.ResourceWithUpdate         = ClusterResource{}
+	_ sdk.ResourceWithStateMigration = ClusterResource{}
+)
 
 func (r ClusterResource) ModelObject() interface{} {
 	return &ClusterModel{}
@@ -165,11 +169,10 @@ func (r ClusterResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}
@@ -205,6 +208,15 @@ func (r ClusterResource) Update() sdk.ResourceFunc {
 				}
 			}
 			return nil
+		},
+	}
+}
+
+func (r ClusterResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsClusterV0ToV1{},
 		},
 	}
 }

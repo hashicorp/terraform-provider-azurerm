@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -301,7 +302,7 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 				"network_security_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					ValidateFunc: networkValidate.NetworkSecurityGroupID,
 				},
 
 				"primary": {
@@ -339,7 +340,7 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: networkValidate.ApplicationSecurityGroupID,
 					},
 					Set:      pluginsdk.HashString,
 					MaxItems: 20,
@@ -363,7 +364,7 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 				"subnet_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: networkValidate.SubnetID,
 				},
 
 				"version": {
@@ -432,7 +433,7 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					ValidateFunc: networkValidate.PublicIpPrefixID,
 				},
 
 				"sku_name": {
@@ -686,6 +687,30 @@ func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsd
 					Optional:     true,
 					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
+				},
+			},
+		},
+	}
+}
+
+func OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"base_regular_count": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 1000),
+					Default:      0,
+				},
+				"regular_percentage_above_base": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+					Default:      0,
 				},
 			},
 		},
@@ -1261,7 +1286,11 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []interface{}, ultra
 		if iops > 0 && !ultraSSDEnabled {
 			return nil, fmt.Errorf("disk_iops_read_write and ultra_ssd_disk_iops_read_write are only available for UltraSSD disks")
 		}
-		disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if iops > 0 {
+			disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
+		}
 
 		var mbps int
 		if diskMbps, ok := raw["disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
@@ -1272,7 +1301,11 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []interface{}, ultra
 		if mbps > 0 && !ultraSSDEnabled {
 			return nil, fmt.Errorf("disk_mbps_read_write and ultra_ssd_disk_mbps_read_write are only available for UltraSSD disks")
 		}
-		disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
+
+		// Do not set value unless value is greater than 0 - issue 15516
+		if mbps > 0 {
+			disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
+		}
 
 		disks = append(disks, disk)
 	}
@@ -1418,6 +1451,19 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 	extensionProfile.Extensions = &extensions
 
 	return extensionProfile, hasHealthExtension, nil
+}
+
+func ExpandOrchestratedVirtualMachineScaleSetPriorityMixPolicy(input []interface{}) *compute.PriorityMixPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	return &compute.PriorityMixPolicy{
+		BaseRegularPriorityCount:           utils.Int32(int32(raw["base_regular_count"].(int))),
+		RegularPriorityPercentageAboveBase: utils.Int32(int32(raw["regular_percentage_above_base"].(int))),
+	}
 }
 
 func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *pluginsdk.ResourceData) ([]map[string]interface{}, error) {
@@ -1935,6 +1981,26 @@ func FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input *comp
 		map[string]interface{}{
 			"enabled": enabled,
 			"timeout": timeout,
+		},
+	}
+}
+
+func FlattenOrchestratedVirtualMachineScaleSetPriorityMixPolicy(input *compute.PriorityMixPolicy) []interface{} {
+
+	baseRegularPriorityCount := int32(0)
+	if input != nil && input.BaseRegularPriorityCount != nil {
+		baseRegularPriorityCount = *input.BaseRegularPriorityCount
+	}
+
+	regularPriorityPercentageAboveBase := int32(0)
+	if input != nil && input.RegularPriorityPercentageAboveBase != nil {
+		regularPriorityPercentageAboveBase = *input.RegularPriorityPercentageAboveBase
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"base_regular_count":            baseRegularPriorityCount,
+			"regular_percentage_above_base": regularPriorityPercentageAboveBase,
 		},
 	}
 }

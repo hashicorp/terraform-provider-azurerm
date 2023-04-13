@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
 	pandoraAPIMGlobalSchema "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -20,6 +20,7 @@ type Client struct {
 	BackendClient                      *apimanagement.BackendClient
 	CacheClient                        *apimanagement.CacheClient
 	CertificatesClient                 *apimanagement.CertificateClient
+	DelegationSettingsClient           *apimanagement.DelegationSettingsClient
 	DeletedServicesClient              *apimanagement.DeletedServicesClient
 	DiagnosticClient                   *apimanagement.DiagnosticClient
 	EmailTemplateClient                *apimanagement.EmailTemplateClient
@@ -92,6 +93,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	diagnosticClient := apimanagement.NewDiagnosticClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&diagnosticClient.Client, o.ResourceManagerAuthorizer)
+
+	delegationSettingsClient := apimanagement.NewDelegationSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&delegationSettingsClient.Client, o.ResourceManagerAuthorizer)
 
 	deletedServicesClient := apimanagement.NewDeletedServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&deletedServicesClient.Client, o.ResourceManagerAuthorizer)
@@ -188,6 +192,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		BackendClient:                      &backendClient,
 		CacheClient:                        &cacheClient,
 		CertificatesClient:                 &certificatesClient,
+		DelegationSettingsClient:           &delegationSettingsClient,
 		DeletedServicesClient:              &deletedServicesClient,
 		DiagnosticClient:                   &diagnosticClient,
 		EmailTemplateClient:                &emailTemplateClient,

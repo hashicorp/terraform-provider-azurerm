@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Log Analytics Linked Service is created. Changing this forces a new resource to be created.
 
-* `workspace_id` - (Required) The ID of the Log Analytics Workspace that will contain the Log Analytics Linked Service resource. Changing this forces a new resource to be created.
+* `workspace_id` - (Required) The ID of the Log Analytics Workspace that will contain the Log Analytics Linked Service resource. 
 
 * `read_access_id` - (Optional) The ID of the readable Resource that will be linked to the workspace. This should be used for linking to an Automation Account resource.
 
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Log Analytics Linked Service ID.
 

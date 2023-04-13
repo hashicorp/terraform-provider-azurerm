@@ -27,7 +27,6 @@ type Output struct {
 }
 
 func resourceManagedDiskSasToken() *pluginsdk.Resource {
-
 	return &pluginsdk.Resource{
 		Create: resourceManagedDiskSasTokenCreate,
 		Read:   resourceManagedDiskSasTokenRead,
@@ -77,7 +76,6 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 			},
 		},
 	}
-
 }
 
 func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -127,7 +125,7 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 			}
 
 			var result Result
-			err = json.Unmarshal([]byte(buf.String()), &result)
+			err = json.Unmarshal(buf.Bytes(), &result)
 			if err != nil {
 				return fmt.Errorf("retrieving SAS Token for Disk Access %s: %+v", *diskId, err)
 			}
@@ -142,7 +140,6 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return resourceManagedDiskSasTokenRead(d, meta)
-
 }
 
 func resourceManagedDiskSasTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {

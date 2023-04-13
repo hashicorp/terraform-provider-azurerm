@@ -96,9 +96,9 @@ An `ingress_settings` block supports the following:
 
 * `backend_protocol` - (Optional) Specifies how ingress should communicate with this app backend service. Allowed values are `GRPC` and `Default`. Defaults to `Default`.
 
-* `read_timeout_in_seconds` - (Optional) Specifies the ingress read time out in seconds. Defaults to 300.
+* `read_timeout_in_seconds` - (Optional) Specifies the ingress read time out in seconds. Defaults to `300`.
 
-* `send_timeout_in_seconds` - (Optional) Specifies the ingress send time out in seconds. Defaults to 60.
+* `send_timeout_in_seconds` - (Optional) Specifies the ingress send time out in seconds. Defaults to `60`.
 
 * `session_affinity` - (Optional) Specifies the type of the affinity, set this to `Cookie` to enable session affinity. Allowed values are `Cookie` and `None`. Defaults to `None`.
 
@@ -114,7 +114,7 @@ An `persistent_disk` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Spring Cloud Application.
 
@@ -144,5 +144,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud Application can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_app.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.AppPlatform/Spring/myservice/apps/myapp
+terraform import azurerm_spring_cloud_app.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.AppPlatform/spring/myservice/apps/myapp
 ```

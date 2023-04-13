@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -27,6 +28,11 @@ func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
 			_, err := inputs.ParseInputID(id)
 			return err
 		}, importStreamAnalyticsReferenceInput("Microsoft.Storage/Blob")),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsReferenceInputBlobV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -66,7 +72,7 @@ func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
 
 			"storage_account_key": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -143,7 +149,7 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, 
 					StorageAccounts: &[]inputs.StorageAccount{
 						{
 							AccountName: utils.String(d.Get("storage_account_name").(string)),
-							AccountKey:  utils.String(d.Get("storage_account_key").(string)),
+							AccountKey:  normalizeAccountKey(d.Get("storage_account_key").(string)),
 						},
 					},
 					AuthenticationMode: utils.ToPtr(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
@@ -192,7 +198,7 @@ func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, 
 					StorageAccounts: &[]inputs.StorageAccount{
 						{
 							AccountName: utils.String(d.Get("storage_account_name").(string)),
-							AccountKey:  utils.String(d.Get("storage_account_key").(string)),
+							AccountKey:  normalizeAccountKey(d.Get("storage_account_key").(string)),
 						},
 					},
 					AuthenticationMode: utils.ToPtr(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
@@ -232,12 +238,12 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 	}
 
 	d.Set("name", id.InputName)
-	d.Set("stream_analytics_job_name", id.JobName)
+	d.Set("stream_analytics_job_name", id.StreamingJobName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties)
+			input, ok := props.(inputs.InputProperties) // nolint: gosimple
 			if !ok {
 				return fmt.Errorf("converting %s to an Input", *id)
 			}
@@ -311,6 +317,14 @@ func resourceStreamAnalyticsReferenceInputBlobDelete(d *pluginsdk.ResourceData, 
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
+	}
+
+	return nil
+}
+
+func normalizeAccountKey(accountKey string) *string {
+	if accountKey != "" {
+		return utils.String(accountKey)
 	}
 
 	return nil

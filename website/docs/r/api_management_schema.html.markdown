@@ -46,11 +46,9 @@ The following arguments are supported:
 
 * `schema_id` - (Required) A unique identifier for this Schema. Changing this forces a new resource to be created.
 
-* `api_management_name` - (Required) The Name of the API Management Service where the API exists. Changing this forces a
-  new resource to be created.
+* `api_management_name` - (Required) The Name of the API Management Service where the API exists. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists. Changing
-  this forces a new resource to be created.
+* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
 
 * `type` - (Required) The content type of the Schema. Possible values are `xml` and `json`.
 
@@ -60,7 +58,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to all arguments above, the following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the API Management API Schema.
 

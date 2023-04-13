@@ -72,8 +72,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Virtual Desktop Application. Changing the name forces a new resource to be created.
 
-* `application_group_id` - (Required) Resource ID for a Virtual Desktop Application Group to associate with the
-    Virtual Desktop Application. Changing the ID forces a new resource to be created.
+* `application_group_id` - (Required) Resource ID for a Virtual Desktop Application Group to associate with the Virtual Desktop Application. Changing this forces a new resource to be created.
 
 * `friendly_name` - (Optional) Option to set a friendly name for the Virtual Desktop Application.
 
@@ -93,7 +92,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Desktop Application.
 

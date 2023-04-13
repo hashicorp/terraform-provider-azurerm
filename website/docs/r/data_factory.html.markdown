@@ -31,13 +31,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Data Factory. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `github_configuration` - (Optional) A `github_configuration` block as defined below.
 
-* `global_parameter` - (Optional)  A list of `global_parameter` blocks as defined above.
+* `global_parameter` - (Optional) A list of `global_parameter` blocks as defined above.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -47,9 +47,11 @@ The following arguments are supported:
 
 * `public_network_enabled` - (Optional) Is the Data Factory visible to the public network? Defaults to `true`.
 
-* `customer_managed_key_id` -  (Optional) Specifies the Azure Key Vault Key ID to be used as the Customer Managed Key (CMK) for double encryption. Required with user assigned identity.
+* `customer_managed_key_id` - (Optional) Specifies the Azure Key Vault Key ID to be used as the Customer Managed Key (CMK) for double encryption. Required with user assigned identity.
 
 * `customer_managed_key_identity_id` - (Optional) Specifies the ID of the user assigned identity associated with the Customer Managed Key. Must be supplied if `customer_managed_key_id` is set.
+
+* `purview_id` - (Optional) Specifies the ID of the purview account resource associated with the Data Factory.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -109,7 +111,7 @@ A `vsts_configuration` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory.
 

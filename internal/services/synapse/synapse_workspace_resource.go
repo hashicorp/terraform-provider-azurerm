@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -608,7 +608,6 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if err := waitSynapseWorkspaceCMKState(ctx, client, id); err != nil {
 			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 		}
-
 	}
 
 	if d.HasChange("aad_admin") {

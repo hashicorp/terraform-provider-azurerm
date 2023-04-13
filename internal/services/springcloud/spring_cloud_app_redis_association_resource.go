@@ -6,9 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	redisValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,6 +27,11 @@ func resourceSpringCloudAppRedisAssociation() *pluginsdk.Resource {
 		Read:   resourceSpringCloudAppRedisAssociationRead,
 		Update: resourceSpringCloudAppRedisAssociationCreateUpdate,
 		Delete: resourceSpringCloudAppRedisAssociationDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudAppRedisAssociationV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.SpringCloudAppAssociationID(id)
@@ -58,7 +64,7 @@ func resourceSpringCloudAppRedisAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: redisValidate.CacheID,
+				ValidateFunc: redis.ValidateRediID,
 			},
 
 			"redis_access_key": {

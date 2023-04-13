@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -31,7 +31,7 @@ func testAccSecurityCenterSetting_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_setting", "test")
 	r := SecurityCenterSettingResource{}
 
-	//lintignore:AT001
+	// lintignore:AT001
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cfg("MCAS", true),

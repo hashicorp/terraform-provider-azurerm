@@ -140,7 +140,7 @@ resource "azurerm_key_vault" "example" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "Get", "List", "Create", "Delete", "Update", "Recover", "Purge",
+      "Get", "List", "Create", "Delete", "Update", "Recover", "Purge", "GetRotationPolicy",
     ]
   }
   access_policy {
@@ -181,7 +181,7 @@ resource "azurerm_mssql_managed_instance_transparent_data_encryption" "example" 
 
 The following arguments are supported:
 
-* `managed_instance_id` - (Required) Specifies the name of the MS SQL Managed Instance.
+* `managed_instance_id` - (Required) Specifies the name of the MS SQL Managed Instance. Changing this forces a new resource to be created.
 
 ---
 

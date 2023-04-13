@@ -46,9 +46,9 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the CDN Endpoint. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the CDN Endpoint.
+* `resource_group_name` - (Required) The name of the resource group in which to create the CDN Endpoint. Changing this forces a new resource to be created.
 
-* `profile_name` - (Required) The CDN Profile to which to attach the CDN Endpoint.
+* `profile_name` - (Required) The CDN Profile to which to attach the CDN Endpoint. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `optimization_type` - (Optional) What types of optimization should this CDN Endpoint optimize for? Possible values include `DynamicSiteAcceleration`, `GeneralMediaStreaming`, `GeneralWebDelivery`, `LargeFileDownload` and `VideoOnDemandMediaStreaming`.
 
-* `origin` - (Required) The set of origins of the CDN endpoint. When multiple origins exist, the first origin will be used as primary and rest will be used as failover options. Each `origin` block supports fields documented below.
+* `origin` - (Required) The set of origins of the CDN endpoint. When multiple origins exist, the first origin will be used as primary and rest will be used as failover options. Each `origin` block supports fields documented below. Changing this forces a new resource to be created.
 
 * `origin_host_header` - (Optional) The host header CDN provider will send along with content requests to origins.
 
@@ -82,6 +82,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
 The `origin` block supports:
 
 * `name` - (Required) The name of the origin. This is an arbitrary value. However, this value needs to be unique under the endpoint. Changing this forces a new resource to be created.
@@ -91,6 +93,8 @@ The `origin` block supports:
 * `http_port` - (Optional) The HTTP port of the origin. Defaults to `80`. Changing this forces a new resource to be created.
 
 * `https_port` - (Optional) The HTTPS port of the origin. Defaults to `443`. Changing this forces a new resource to be created.
+
+---
 
 The `geo_filter` block supports:
 
@@ -394,7 +398,7 @@ A `url_path_condition` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the CDN Endpoint.
 

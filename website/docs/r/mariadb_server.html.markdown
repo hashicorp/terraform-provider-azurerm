@@ -34,11 +34,12 @@ resource "azurerm_mariadb_server" "example" {
   storage_mb = 5120
   version    = "10.2"
 
-  auto_grow_enabled             = true
-  backup_retention_days         = 7
-  geo_redundant_backup_enabled  = false
-  public_network_access_enabled = false
-  ssl_enforcement_enabled       = true
+  auto_grow_enabled                = true
+  backup_retention_days            = 7
+  geo_redundant_backup_enabled     = false
+  public_network_access_enabled    = false
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "TLS1_2"
 }
 ```
 
@@ -56,9 +57,9 @@ The following arguments are supported:
 
 * `version` - (Required) Specifies the version of MariaDB to use. Possible values are `10.2` and `10.3`. Changing this forces a new resource to be created.
 
-* `administrator_login` - (Required) The Administrator login for the MariaDB Server. Changing this forces a new resource to be created.
+* `administrator_login` - (Optional) The Administrator login for the MariaDB Server. Changing this forces a new resource to be created.
 
-* `administrator_login_password` - (Required) The Password associated with the `administrator_login` for the MariaDB Server.
+* `administrator_login_password` - (Optional) The Password associated with the `administrator_login` for the MariaDB Server.
 
 * `auto_grow_enabled` - (Optional) Enable/Disable auto-growing of the storage. Storage auto-grow prevents your server from running out of storage and becoming read-only. If storage auto grow is enabled, the storage automatically grows without impacting the workload. The default value if not explicitly specified is `true`.
 
@@ -76,13 +77,17 @@ The following arguments are supported:
 
 * `ssl_enforcement_enabled` - (Required) Specifies if SSL should be enforced on connections. Possible values are `true` and `false`.
 
-* `storage_mb` - (Required) Max storage allowed for a server. Possible values are between `5120` MB (5GB) and `1024000`MB (1TB) for the Basic SKU and between `5120` MB (5GB) and `4096000` MB (4TB) for General Purpose/Memory Optimized SKUs. For more information see the [product documentation](https://docs.microsoft.com/rest/api/mariadb/servers/create#storageprofile).
+-> **NOTE:** `ssl_minimal_tls_version_enforced` must be set to `TLSEnforcementDisabled` when `ssl_enforcement_enabled` is set to `false`.
+
+* `ssl_minimal_tls_version_enforced` - (Optional) The minimum TLS version to support on the sever. Possible values are `TLSEnforcementDisabled`, `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLS1_2`.
+
+* `storage_mb` - (Optional) Max storage allowed for a server. Possible values are between `5120` MB (5GB) and `1024000`MB (1TB) for the Basic SKU and between `5120` MB (5GB) and `4096000` MB (4TB) for General Purpose/Memory Optimized SKUs. For more information see the [product documentation](https://docs.microsoft.com/rest/api/mariadb/servers/create#storageprofile).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the MariaDB Server.
 
@@ -92,7 +97,7 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the MariaDB Server.
+* `create` - (Defaults to 90 minutes) Used when creating the MariaDB Server.
 * `update` - (Defaults to 60 minutes) Used when updating the MariaDB Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MariaDB Server.
 * `delete` - (Defaults to 60 minutes) Used when deleting the MariaDB Server.

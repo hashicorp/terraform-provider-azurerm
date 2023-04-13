@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `location` - (Required) The location where the Network Interface should exist. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name of the Network Interface. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Network Interface. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Network Interface. Changing this forces a new resource to be created.
 
@@ -106,11 +106,11 @@ When `private_ip_address_allocation` is set to `Static` the following fields can
 
 When `private_ip_address_version` is set to `IPv4` the following fields can be configured:
 
-* `subnet_id` - (Required) The ID of the Subnet where this Network Interface should be located in.
+* `subnet_id` - (Optional) The ID of the Subnet where this Network Interface should be located in.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `applied_dns_servers` - If the Virtual Machine using this Network Interface is part of an Availability Set, then this list will have the union of all DNS servers from all Network Interfaces that are part of the Availability Set.
 

@@ -330,6 +330,21 @@ func TestAccCdnFrontDoorRule_honorOrigin(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorRule_allowEmptyQueryString(t *testing.T) {
+	// NOTE: Regression test case for issue #19682
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.allowEmptyQueryString(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CdnFrontDoorRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontDoorRuleID(state.ID)
 	if err != nil {
@@ -1114,6 +1129,44 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
       match_values     = [".html", ".htm"]
       negate_condition = false
       operator         = "EndsWith"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) allowEmptyQueryString(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+  %s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    request_uri_condition {
+      match_values     = ["contoso"]
+      negate_condition = false
+      operator         = "Contains"
+    }
+  }
+
+  actions {
+    url_redirect_action {
+      redirect_type        = "PermanentRedirect"
+      redirect_protocol    = "MatchRequest"
+      query_string         = ""
+      destination_hostname = "contoso.com"
+      destination_path     = "/test/page"
     }
   }
 }

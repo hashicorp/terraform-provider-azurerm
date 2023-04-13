@@ -17,10 +17,6 @@ import (
 type LogAnalyticsClusterCustomerManagedKeyResource struct{}
 
 func TestAccLogAnalyticsClusterCustomerManagedKey_basic(t *testing.T) {
-	if true {
-		t.Skip("Skipping due to crash in go-autorest https://github.com/Azure/go-autorest/pull/605")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster_customer_managed_key", "test")
 	r := LogAnalyticsClusterCustomerManagedKeyResource{}
 
@@ -32,6 +28,33 @@ func TestAccLogAnalyticsClusterCustomerManagedKey_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsClusterCustomerManagedKey_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster_customer_managed_key", "test")
+	r := LogAnalyticsClusterCustomerManagedKeyResource{}
+
+	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
+		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
+		return
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -96,7 +119,7 @@ resource "azurerm_key_vault" "test" {
   sku_name = "standard"
 
   soft_delete_retention_days = 7
-  purge_protection_enabled   = true
+  purge_protection_enabled   = false
 }
 
 
@@ -168,4 +191,36 @@ resource "azurerm_log_analytics_cluster_customer_managed_key" "test" {
   depends_on = [azurerm_key_vault_access_policy.test]
 }
 `, r.template(data))
+}
+
+func (r LogAnalyticsClusterCustomerManagedKeyResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_key" "test2" {
+  name         = "key2-%[2]s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault_access_policy.terraform]
+}
+
+resource "azurerm_log_analytics_cluster_customer_managed_key" "test" {
+  log_analytics_cluster_id = azurerm_log_analytics_cluster.test.id
+  key_vault_key_id         = azurerm_key_vault_key.test2.id
+
+  depends_on = [azurerm_key_vault_access_policy.test]
+}
+
+`, r.template(data), data.RandomString)
 }

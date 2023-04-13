@@ -7,21 +7,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = StreamingJobId{}
 
 // StreamingJobId is a struct representing the Resource ID for a Streaming Job
 type StreamingJobId struct {
 	SubscriptionId    string
 	ResourceGroupName string
-	JobName           string
+	StreamingJobName  string
 }
 
 // NewStreamingJobID returns a new StreamingJobId struct
-func NewStreamingJobID(subscriptionId string, resourceGroupName string, jobName string) StreamingJobId {
+func NewStreamingJobID(subscriptionId string, resourceGroupName string, streamingJobName string) StreamingJobId {
 	return StreamingJobId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
-		JobName:           jobName,
+		StreamingJobName:  streamingJobName,
 	}
 }
 
@@ -44,8 +47,8 @@ func ParseStreamingJobID(input string) (*StreamingJobId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.JobName, ok = parsed.Parsed["jobName"]; !ok {
-		return nil, fmt.Errorf("the segment 'jobName' was not found in the resource id %q", input)
+	if id.StreamingJobName, ok = parsed.Parsed["streamingJobName"]; !ok {
+		return nil, fmt.Errorf("the segment 'streamingJobName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +74,8 @@ func ParseStreamingJobIDInsensitively(input string) (*StreamingJobId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.JobName, ok = parsed.Parsed["jobName"]; !ok {
-		return nil, fmt.Errorf("the segment 'jobName' was not found in the resource id %q", input)
+	if id.StreamingJobName, ok = parsed.Parsed["streamingJobName"]; !ok {
+		return nil, fmt.Errorf("the segment 'streamingJobName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +99,7 @@ func ValidateStreamingJobID(input interface{}, key string) (warnings []string, e
 // ID returns the formatted Streaming Job ID
 func (id StreamingJobId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StreamAnalytics/streamingJobs/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.JobName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.StreamingJobName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Streaming Job ID
@@ -109,7 +112,7 @@ func (id StreamingJobId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStreamAnalytics", "Microsoft.StreamAnalytics", "Microsoft.StreamAnalytics"),
 		resourceids.StaticSegment("staticStreamingJobs", "streamingJobs", "streamingJobs"),
-		resourceids.UserSpecifiedSegment("jobName", "jobValue"),
+		resourceids.UserSpecifiedSegment("streamingJobName", "streamingJobValue"),
 	}
 }
 
@@ -118,7 +121,7 @@ func (id StreamingJobId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Job Name: %q", id.JobName),
+		fmt.Sprintf("Streaming Job Name: %q", id.StreamingJobName),
 	}
 	return fmt.Sprintf("Streaming Job (%s)", strings.Join(components, "\n"))
 }

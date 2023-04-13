@@ -4,6 +4,6 @@ package virtualmachines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type HardwareProfile struct {
-	VmSize           *VirtualMachineSizeTypes `json:"vmSize,omitempty"`
-	VmSizeProperties *VMSizeProperties        `json:"vmSizeProperties,omitempty"`
+	VMSize           *VirtualMachineSizeTypes `json:"vmSize,omitempty"`
+	VMSizeProperties *VMSizeProperties        `json:"vmSizeProperties,omitempty"`
 }

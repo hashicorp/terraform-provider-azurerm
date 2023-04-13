@@ -193,7 +193,7 @@ func dataSourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("nsxt_certificate_thumbprint", props.NsxtCertificateThumbprint)
 		d.Set("provisioning_subnet_cidr", props.ProvisioningNetwork)
 		d.Set("vcenter_certificate_thumbprint", props.VcenterCertificateThumbprint)
-		d.Set("vmotion_subnet_cidr", props.VmotionNetwork)
+		d.Set("vmotion_subnet_cidr", props.VMotionNetwork)
 
 		d.Set("sku_name", model.Sku.Name)
 

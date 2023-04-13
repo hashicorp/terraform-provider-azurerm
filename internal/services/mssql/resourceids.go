@@ -16,7 +16,6 @@ package mssql
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ManagedInstanceEncryptionProtector -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/managedInstances/instance1/encryptionProtector/current
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ManagedInstanceVulnerabilityAssessment -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/managedInstances/instance1/vulnerabilityAssessments/assessment1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=OutboundFirewallRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/outboundFirewallRules/fqdn1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=RecoverableDatabase -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/recoverabledatabases/database1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Server -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ServerDNSAlias -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/dnsAliases/default
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ServerExtendedAuditingPolicy -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/extendedAuditingSettings/default
@@ -26,3 +25,6 @@ package mssql
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SqlVirtualMachine -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/virtualMachine1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualNetworkRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/server1/virtualNetworkRules/virtualNetworkRule1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ManagedInstancesSecurityAlertPolicy -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/managedInstances/instance1/securityAlertPolicies/Default
+
+// @tombuildsstuff: this resource id going to need a state migration prior to migrating to `hashicorp/go-azure-sdk`
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=RecoverableDatabase -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/recoverabledatabases/database1

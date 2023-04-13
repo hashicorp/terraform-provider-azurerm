@@ -105,6 +105,14 @@ In addition to the arguments listed above - the following attributes are exporte
 
 * `thumbprint` - The certificate thumbprint.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Certificate Binding.
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Certificate Binding.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Certificate Binding.
+
 ## Import
 
 App Service Certificate Bindings can be imported using the `hostname_binding_id` and the `app_service_certificate_id` , e.g.

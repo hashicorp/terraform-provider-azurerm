@@ -67,11 +67,11 @@ The following supported arguments are common across all Azure Data Factory Datas
 
 The following supported arguments are specific to HTTP Dataset:
 
-* `relative_url` - (Required) The relative URL based on the URL in the HTTP Linked Service.
+* `relative_url` - (Optional) The relative URL based on the URL in the HTTP Linked Service.
 
-* `request_body` - (Required) The body for the HTTP request.
+* `request_body` - (Optional) The body for the HTTP request.
 
-* `request_method` - (Required) The HTTP method for the HTTP request. (e.g. GET, POST)
+* `request_method` - (Optional) The HTTP method for the HTTP request. (e.g. GET, POST)
 
 ---
 
@@ -85,7 +85,7 @@ A `schema_column` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory Dataset.
 

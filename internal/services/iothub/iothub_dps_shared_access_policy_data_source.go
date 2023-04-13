@@ -95,12 +95,11 @@ func dataSourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta i
 	d.Set("resource_group_name", keyId.ResourceGroupName)
 
 	d.SetId(id.ID())
-
 	if model := accessPolicy.Model; model != nil {
 		d.Set("primary_key", model.PrimaryKey)
 		d.Set("secondary_key", model.SecondaryKey)
 
-		if dpsModel := iothubDps.Model; model != nil {
+		if dpsModel := iothubDps.Model; dpsModel != nil {
 			properties := dpsModel.Properties
 			primaryConnectionString := ""
 			secondaryConnectionString := ""

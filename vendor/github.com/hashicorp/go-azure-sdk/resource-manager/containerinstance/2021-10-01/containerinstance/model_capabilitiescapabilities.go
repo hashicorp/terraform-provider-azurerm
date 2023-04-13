@@ -4,7 +4,7 @@ package containerinstance
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CapabilitiesCapabilities struct {
-	MaxCpu        *float64 `json:"maxCpu,omitempty"`
+	MaxCPU        *float64 `json:"maxCpu,omitempty"`
 	MaxGpuCount   *float64 `json:"maxGpuCount,omitempty"`
 	MaxMemoryInGB *float64 `json:"maxMemoryInGB,omitempty"`
 }

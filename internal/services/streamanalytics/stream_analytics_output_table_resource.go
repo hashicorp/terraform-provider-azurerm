@@ -7,8 +7,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -16,7 +17,10 @@ import (
 
 type OutputTableResource struct{}
 
-var _ sdk.ResourceWithCustomImporter = OutputTableResource{}
+var (
+	_ sdk.ResourceWithCustomImporter = OutputTableResource{}
+	_ sdk.ResourceWithStateMigration = OutputTableResource{}
+)
 
 type OutputTableResourceModel struct {
 	Name               string   `tfschema:"name"`
@@ -145,7 +149,7 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 				BatchSize:    utils.Int64(model.BatchSize),
 			}
 
-			if v := model.ColumnsToRemove; v != nil && len(v) > 0 {
+			if v := model.ColumnsToRemove; len(v) > 0 {
 				tableOutputProps.ColumnsToRemove = &v
 			}
 
@@ -203,7 +207,7 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 						state := OutputTableResourceModel{
 							Name:               id.OutputName,
 							ResourceGroup:      id.ResourceGroupName,
-							StreamAnalyticsJob: id.JobName,
+							StreamAnalyticsJob: id.StreamingJobName,
 							StorageAccountKey:  metadata.ResourceData.Get("storage_account_key").(string),
 						}
 
@@ -338,5 +342,14 @@ func (r OutputTableResource) CustomImporter() sdk.ResourceRunFunc {
 			return fmt.Errorf("specified output is not of type")
 		}
 		return nil
+	}
+}
+
+func (r OutputTableResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsOutputTableV0ToV1{},
+		},
 	}
 }

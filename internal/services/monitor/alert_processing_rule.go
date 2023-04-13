@@ -420,7 +420,6 @@ func expandAlertProcessingRuleSingleConditions(input []AlertProcessingRuleSingle
 			Values:   &values,
 		})
 	}
-	return
 }
 
 func expandAlertProcessingRuleSchedule(input []AlertProcessingRuleScheduleModel) *alertprocessingrules.Schedule {
@@ -569,7 +568,6 @@ func flattenAlertProcessingRuleConditions(input *[]alertprocessingrules.Conditio
 			case alertprocessingrules.FieldTargetResourceType:
 				condition.TargetResourceType = []AlertProcessingRuleSingleConditionModel{{string(*item.Operator), *item.Values}}
 			}
-
 		}
 	}
 

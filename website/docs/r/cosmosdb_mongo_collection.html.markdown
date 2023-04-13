@@ -47,8 +47,9 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Cosmos DB Mongo Collection. Changing this forces a new resource to be created.
 * `resource_group_name` - (Required) The name of the resource group in which the Cosmos DB Mongo Collection is created. Changing this forces a new resource to be created.
+* `account_name` - (Required) The name of the Cosmos DB Account in which the Cosmos DB Mongo Collection is created. Changing this forces a new resource to be created.
 * `database_name` - (Required) The name of the Cosmos DB Mongo Database in which the Cosmos DB Mongo Collection is created. Changing this forces a new resource to be created.
-* `shard_key` - (Optional) The name of the key to partition on for sharding. There must not be any other unique index keys.
+* `shard_key` - (Optional) The name of the key to partition on for sharding. There must not be any other unique index keys. Changing this forces a new resource to be created.
 * `analytical_storage_ttl` - (Optional) The default time to live of Analytical Storage for this Mongo Collection. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 * `default_ttl_seconds` - (Optional) The default Time To Live in seconds. If the value is `-1`, items are not automatically expired.
 * `index` - (Optional) One or more `index` blocks as defined below.
@@ -75,7 +76,7 @@ The `index` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Cosmos DB Mongo Collection.
 

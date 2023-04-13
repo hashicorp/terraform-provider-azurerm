@@ -158,7 +158,7 @@ The following arguments are supported:
 
 * `regeneration_period` - (Optional) How often Storage Account access key should be regenerated. Value needs to be in [ISO 8601 duration format](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Key Vault Managed Storage Account.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Key Vault Managed Storage Account. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

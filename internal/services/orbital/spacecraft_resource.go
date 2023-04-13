@@ -125,7 +125,7 @@ func (r SpacecraftResource) Create() sdk.ResourceFunc {
 				Properties: &spacecraftProperties,
 				Tags:       &model.Tags,
 			}
-			if _, err = client.CreateOrUpdate(ctx, id, spacecraft); err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, id, spacecraft); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)
@@ -191,11 +191,10 @@ func (r SpacecraftResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}
@@ -237,7 +236,8 @@ func (r SpacecraftResource) Update() sdk.ResourceFunc {
 					},
 					Tags: &state.Tags,
 				}
-				if _, err := client.CreateOrUpdate(ctx, *id, spacecraft); err != nil {
+
+				if err := client.CreateOrUpdateThenPoll(ctx, *id, spacecraft); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}

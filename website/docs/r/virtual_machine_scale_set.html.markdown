@@ -263,7 +263,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the virtual machine scale set resource. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the virtual machine scale set resource. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the virtual machine scale set. Changing this forces a new resource to be created.
 
@@ -273,9 +273,9 @@ The following arguments are supported:
 
 * `os_profile` - (Required) A Virtual Machine OS Profile block as documented below.
 
-* `os_profile_windows_config` - (Required, when a windows machine) A Windows config block as documented below.
+* `os_profile_windows_config` - (Optional) A Windows config block as documented below.
 
-* `os_profile_linux_config` - (Required, when a Linux machine) A Linux config block as documented below.
+* `os_profile_linux_config` - (Optional) A Linux config block as documented below.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
@@ -285,6 +285,8 @@ The following arguments are supported:
 
 * `upgrade_policy_mode` - (Required) Specifies the mode of an upgrade to virtual machines in the scale set. Possible values, `Rolling`, `Manual`, or `Automatic`. When choosing `Rolling`, you will need to set a health probe.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 ---
 
 * `automatic_os_upgrade` - (Optional) Automatic OS patches can be applied by Azure to your scaleset. This is particularly useful when `upgrade_policy_mode` is set to `Rolling`. Defaults to `false`.
@@ -293,13 +295,13 @@ The following arguments are supported:
 
 * `extension` - (Optional) Can be specified multiple times to add extension profiles to the scale set. Each `extension` block supports the fields documented below.
 
-* `eviction_policy` - (Optional) Specifies the eviction policy for Virtual Machines in this Scale Set. Possible values are `Deallocate` and `Delete`.
+* `eviction_policy` - (Optional) Specifies the eviction policy for Virtual Machines in this Scale Set. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
 -> **NOTE:** `eviction_policy` can only be set when `priority` is set to `Low`.
 
 * `health_probe_id` - (Optional) Specifies the identifier for the load balancer health probe. Required when using `Rolling` as your `upgrade_policy_mode`.
 
-* `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
+* `license_type` - (Optional) (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
 
 * `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
 
@@ -307,7 +309,7 @@ The following arguments are supported:
 
 * `plan` - (Optional) A plan block as documented below.
 
-* `priority` - (Optional) Specifies the priority for the Virtual Machines in the Scale Set. Defaults to `Regular`. Possible values are `Low` and `Regular`.
+* `priority` - (Optional) Specifies the priority for the Virtual Machines in the Scale Set. Possible values are `Low` and `Regular`. Changing this forces a new resource to be created.
 
 * `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is only applicable when the `upgrade_policy_mode` is `Rolling`.
 
@@ -319,28 +321,32 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `zones` - (Optional) A collection of availability zones to spread the Virtual Machines over.
+* `zones` - (Optional) A collection of availability zones to spread the Virtual Machines over. Changing this forces a new resource to be created.
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
 ---
 
-`sku` supports the following:
+The `sku` block supports the following:
 
 * `name` - (Required) Specifies the size of virtual machines in a scale set.
 * `tier` - (Optional) Specifies the tier of virtual machines in a scale set. Possible values, `standard` or `basic`.
 * `capacity` - (Required) Specifies the number of virtual machines in the scale set.
 
-`rolling_upgrade_policy` supports the following:
+---
+
+The `rolling_upgrade_policy` block supports the following:
 
 * `max_batch_instance_percent` - (Optional) The maximum percent of total virtual machine instances that will be upgraded simultaneously by the rolling upgrade in one batch. As this is a maximum, unhealthy instances in previous or future batches can cause the percentage of instances in a batch to decrease to ensure higher reliability. Defaults to `20`.
 * `max_unhealthy_instance_percent` - (Optional) The maximum percentage of the total virtual machine instances in the scale set that can be simultaneously unhealthy, either as a result of being upgraded, or by being found in an unhealthy state by the virtual machine health checks before the rolling upgrade aborts. This constraint will be checked prior to starting any batch. Defaults to `20`.
 * `max_unhealthy_upgraded_instance_percent` - (Optional) The maximum percentage of upgraded virtual machine instances that can be found to be in an unhealthy state. This check will happen after each batch is upgraded. If this percentage is ever exceeded, the rolling update aborts. Defaults to `20`.
 * `pause_time_between_batches` - (Optional) The wait time between completing the update for all virtual machines in one batch and starting the next batch. The time duration should be specified in ISO 8601 format for duration (<https://en.wikipedia.org/wiki/ISO_8601#Durations>). Defaults to `0` seconds represented as `PT0S`.
 
-`identity` supports the following:
+---
 
-* `type` - (Required) Specifies the identity type to be assigned to the scale set. Allowable values are `SystemAssigned` and `UserAssigned`. For the `SystemAssigned` identity the scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for more information.
+The `identity` block supports the following:
+
+* `type` - (Required) Specifies the identity type to be assigned to the scale set. Allowable values are `SystemAssigned` and `UserAssigned`. For the `SystemAssigned` identity the scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for more information. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned to the VMSS. Required if `type` is `UserAssigned`.
 
@@ -375,64 +381,87 @@ output "principal_id" {
 }
 ```
 
-`os_profile` supports the following:
+---
+
+The `os_profile` block supports the following:
 
 * `computer_name_prefix` - (Required) Specifies the computer name prefix for all of the virtual machines in the scale set. Computer name prefixes must be 1 to 9 characters long for windows images and 1 - 58 for Linux. Changing this forces a new resource to be created.
 * `admin_username` - (Required) Specifies the administrator account name to use for all the instances of virtual machines in the scale set.
-* `admin_password` - (Required) Specifies the administrator password to use for all the instances of virtual machines in a scale set.
+* `admin_password` - (Optional) Specifies the administrator password to use for all the instances of virtual machines in a scale set.
 * `custom_data` - (Optional) Specifies custom data to supply to the machine. On Linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes.
 
-`os_profile_secrets` supports the following:
+---
+
+The `os_profile_secrets` block supports the following:
 
 * `source_vault_id` - (Required) Specifies the key vault to use.
-* `vault_certificates` - (Required, on windows machines) A collection of Vault Certificates as documented below
+* `vault_certificates` - (Optional) (Required, on Windows machines) One or more `vault_certificates` blocks as defined below.
 
-`vault_certificates` support the following:
+---
+
+A `vault_certificates` block support the following:
 
 * `certificate_url` - (Required) It is the Base64 encoding of a JSON Object that which is encoded in UTF-8 of which the contents need to be `data`, `dataType` and `password`.
-* `certificate_store` - (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to.
+* `certificate_store` - (Optional) (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to.
 
-`os_profile_windows_config` supports the following:
+---
+
+The `os_profile_windows_config` block supports the following:
 
 * `provision_vm_agent` - (Optional) Indicates whether virtual machine agent should be provisioned on the virtual machines in the scale set.
 * `enable_automatic_upgrades` - (Optional) Indicates whether virtual machines in the scale set are enabled for automatic updates.
 * `winrm` - (Optional) A collection of WinRM configuration blocks as documented below.
 * `additional_unattend_config` - (Optional) An Additional Unattended Config block as documented below.
 
-`winrm` supports the following:
+---
+
+The `winrm` block supports the following:
 
 * `protocol` - (Required) Specifies the protocol of listener
 * `certificate_url` - (Optional) Specifies URL of the certificate with which new Virtual Machines is provisioned.
 
-`additional_unattend_config` supports the following:
+---
+
+The `additional_unattend_config` block supports the following:
 
 * `pass` - (Required) Specifies the name of the pass that the content applies to. The only allowable value is `oobeSystem`.
 * `component` - (Required) Specifies the name of the component to configure with the added content. The only allowable value is `Microsoft-Windows-Shell-Setup`.
 * `setting_name` - (Required) Specifies the name of the setting to which the content applies. Possible values are: `FirstLogonCommands` and `AutoLogon`.
-* `content` - (Optional) Specifies the base-64 encoded XML formatted content that is added to the unattend.xml file for the specified path and component.
+* `content` - (Required) Specifies the base-64 encoded XML formatted content that is added to the unattend.xml file for the specified path and component.
 
-`os_profile_linux_config` supports the following:
+---
+
+The `os_profile_linux_config` block supports the following:
 
 * `disable_password_authentication` - (Optional) Specifies whether password authentication should be disabled. Defaults to `false`. Changing this forces a new resource to be created.
-* `ssh_keys` - (Optional) Specifies a collection of `path` and `key_data` to be placed on the virtual machine.
 
-~> _**Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure_
+* `ssh_keys` - (Optional) One or more `ssh_keys` blocks as defined below.
 
-`network_profile` supports the following:
+~> **Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure.
+
+~> **NOTE:** At least one `ssh_keys` block is required if `disable_password_authentication` is set to `true`.
+
+---
+
+The `network_profile` block supports the following:
 
 * `name` - (Required) Specifies the name of the network interface configuration.
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 * `ip_configuration` - (Required) An ip_configuration block as documented below.
-* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to `false`.
+* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not.
 * `dns_settings` - (Optional) A dns_settings block as documented below.
 * `ip_forwarding` - (Optional) Whether IP forwarding is enabled on this NIC. Defaults to `false`.
 * `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
 
-`dns_settings` supports the following:
+---
+
+The `dns_settings` block supports the following:
 
 * `dns_servers` - (Required) Specifies an array of DNS servers.
 
-`ip_configuration` supports the following:
+---
+
+The `ip_configuration` block supports the following:
 
 * `name` - (Required) Specifies name of the IP configuration.
 * `subnet_id` - (Required) Specifies the identifier of the subnet.
@@ -449,13 +478,31 @@ output "principal_id" {
 * `application_security_group_ids` - (Optional) Specifies up to `20` application security group IDs.
 * `public_ip_address_configuration` - (Optional) Describes a virtual machines scale set IP Configuration's PublicIPAddress configuration. The public_ip_address_configuration is documented below.
 
-`public_ip_address_configuration` supports the following:
+---
+
+The `public_ip_address_configuration` block supports the following:
 
 * `name` - (Required) The name of the public IP address configuration
 * `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 30.
 * `domain_name_label` - (Required) The domain name label for the DNS settings.
 
-`storage_profile_os_disk` supports the following:
+---
+
+A `ssh_keys` block supports the following:
+
+* `key_data` - (Optional) The Public SSH Key which should be written to the `path` defined above.
+
+~> **Note:** Azure only supports RSA SSH2 key signatures of at least 2048 bits in length
+
+-> **NOTE:** Rather than defining this in-line you can source this from a local file using [the `file` function](https://www.terraform.io/docs/configuration/functions/file.html) - for example `key_data = file("~/.ssh/id_rsa.pub")`.
+
+* `path` - (Required) The path of the destination file on the virtual machine
+
+-> **NOTE:** Due to a limitation in the Azure VM Agent the only allowed `path` is `/home/{username}/.ssh/authorized_keys`.
+
+---
+
+The `storage_profile_os_disk` block supports the following:
 
 * `name` - (Optional) Specifies the disk name. Must be specified when using unmanaged disk ('managed_disk_type' property not set).
 * `vhd_containers` - (Optional) Specifies the VHD URI. Cannot be used when `image` or `managed_disk_type` is specified.
@@ -467,29 +514,37 @@ output "principal_id" {
                        When setting this field `os_type` needs to be specified. Cannot be used when `vhd_containers`, `managed_disk_type` or `storage_profile_image_reference` are specified.
 * `os_type` - (Optional) Specifies the operating system Type, valid values are windows, Linux.
 
-`storage_profile_data_disk` supports the following:
+---
+
+The `storage_profile_data_disk` block supports the following:
 
 * `lun` - (Required) Specifies the Logical Unit Number of the disk in each virtual machine in the scale set.
-* `create_option` - (Optional) Specifies how the data disk should be created. The only possible options are `FromImage` and `Empty`.
+* `create_option` - (Required) Specifies how the data disk should be created. The only possible options are `FromImage` and `Empty`.
 * `caching` - (Optional) Specifies the caching requirements. Possible values include: `None` (default), `ReadOnly`, `ReadWrite`.
 * `disk_size_gb` - (Optional) Specifies the size of the disk in GB. This element is required when creating an empty disk.
 * `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value must be either `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`.
 
-`storage_profile_image_reference` supports the following:
+---
 
-* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual
-machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
+The `storage_profile_image_reference` block supports the following:
+
+* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
 * `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
 * `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
 * `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
 * `version` - (Optional) Specifies the version of the image used to create the virtual machines.
 
-`boot_diagnostics` supports the following:
+---
 
-* `enabled`: (Required) Whether to enable boot diagnostics for the virtual machine.
-* `storage_uri`: (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
+The `boot_diagnostics` block supports the following:
 
-`extension` supports the following:
+* `enabled` - (Optional) Whether to enable boot diagnostics for the virtual machine. Defaults to `true`.
+
+* `storage_uri` - (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
+
+---
+
+The `extension` block supports the following:
 
 * `name` - (Required) Specifies the name of the extension.
 * `publisher` - (Required) The publisher of the extension, available publishers can be found by using the Azure CLI.
@@ -497,10 +552,12 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 * `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
 * `auto_upgrade_minor_version` - (Optional) Specifies whether or not to use the latest minor version available.
 * `provision_after_extensions` - (Optional) Specifies a dependency array of extensions required to be executed before, the array stores the name of each extension.
-* `settings` - (Required) The settings passed to the extension, these are specified as a JSON object in a string.
+* `settings` - (Optional) The settings passed to the extension, these are specified as a JSON object in a string.
 * `protected_settings` - (Optional) The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.
 
-`plan` supports the following:
+---
+
+The `plan` block supports the following:
 
 * `name` - (Required) Specifies the name of the image from the marketplace.
 * `publisher` - (Required) Specifies the publisher of the image.
@@ -528,7 +585,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The virtual machine scale set ID.
 

@@ -45,7 +45,6 @@ func TestAccServerVulnerabilityAssessment(t *testing.T) {
 			Config: SecurityCenterSubscriptionPricingResource{}.tier("Free", "VirtualMachines"),
 		},
 	})
-
 }
 
 func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
@@ -67,6 +66,23 @@ func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tier").HasValue("Free"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSecurityCenterSubscriptionPricing_cosmosDbs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
+	r := SecurityCenterSubscriptionPricingResource{}
+
+	// lintignore:AT001
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+		{
+			Config: r.tier("Standard", "CosmosDbs"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 			),
 		},
 		data.ImportStep(),
@@ -119,7 +135,7 @@ resource "azurerm_security_center_subscription_pricing" "test" {
 }
 
 func (SecurityCenterSubscriptionPricingResource) storageAccountSubplan() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -129,5 +145,5 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   resource_type = "StorageAccounts"
   subplan       = "PerStorageAccount"
 }
-`)
+`
 }

@@ -141,11 +141,7 @@ func (r PrivateDNSResolverForwardingRuleResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			targetDnsServersValue, err := expandTargetDnsServerModel(model.TargetDnsServers)
-			if err != nil {
-				return err
-			}
-
+			targetDnsServersValue := expandTargetDnsServerModel(model.TargetDnsServers)
 			if targetDnsServersValue != nil {
 				properties.Properties.TargetDnsServers = *targetDnsServersValue
 			}
@@ -203,17 +199,12 @@ func (r PrivateDNSResolverForwardingRuleResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("target_dns_servers") {
-				targetDnsServersValue, err := expandTargetDnsServerModel(model.TargetDnsServers)
-				if err != nil {
-					return err
-				}
+				targetDnsServersValue := expandTargetDnsServerModel(model.TargetDnsServers)
 
 				if targetDnsServersValue != nil {
 					properties.Properties.TargetDnsServers = *targetDnsServersValue
 				}
 			}
-
-			properties.SystemData = nil
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *properties, forwardingrules.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -266,12 +257,7 @@ func (r PrivateDNSResolverForwardingRuleResource) Read() sdk.ResourceFunc {
 				state.Metadata = *properties.Metadata
 			}
 
-			targetDnsServersValue, err := flattenTargetDnsServerModel(&properties.TargetDnsServers)
-			if err != nil {
-				return err
-			}
-
-			state.TargetDnsServers = targetDnsServersValue
+			state.TargetDnsServers = flattenTargetDnsServerModel(&properties.TargetDnsServers)
 
 			return metadata.Encode(&state)
 		},
@@ -298,7 +284,7 @@ func (r PrivateDNSResolverForwardingRuleResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandTargetDnsServerModel(inputList []TargetDnsServerModel) (*[]forwardingrules.TargetDnsServer, error) {
+func expandTargetDnsServerModel(inputList []TargetDnsServerModel) *[]forwardingrules.TargetDnsServer {
 	var outputList []forwardingrules.TargetDnsServer
 	for _, v := range inputList {
 		input := v
@@ -310,13 +296,13 @@ func expandTargetDnsServerModel(inputList []TargetDnsServerModel) (*[]forwarding
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
-func flattenTargetDnsServerModel(inputList *[]forwardingrules.TargetDnsServer) ([]TargetDnsServerModel, error) {
+func flattenTargetDnsServerModel(inputList *[]forwardingrules.TargetDnsServer) []TargetDnsServerModel {
 	var outputList []TargetDnsServerModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -331,5 +317,5 @@ func flattenTargetDnsServerModel(inputList *[]forwardingrules.TargetDnsServer) (
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }

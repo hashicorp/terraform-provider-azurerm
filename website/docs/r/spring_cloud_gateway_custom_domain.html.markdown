@@ -74,5 +74,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud Gateway Custom Domains can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_gateway_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/Spring/service1/gateways/gateway1/domains/domain1
+terraform import azurerm_spring_cloud_gateway_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/spring/service1/gateways/gateway1/domains/domain1
 ```

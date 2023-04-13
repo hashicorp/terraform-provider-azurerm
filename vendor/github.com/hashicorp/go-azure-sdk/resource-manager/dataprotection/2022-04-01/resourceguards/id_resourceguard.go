@@ -7,21 +7,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = ResourceGuardId{}
 
 // ResourceGuardId is a struct representing the Resource ID for a Resource Guard
 type ResourceGuardId struct {
-	SubscriptionId     string
-	ResourceGroupName  string
-	ResourceGuardsName string
+	SubscriptionId    string
+	ResourceGroupName string
+	ResourceGuardName string
 }
 
 // NewResourceGuardID returns a new ResourceGuardId struct
-func NewResourceGuardID(subscriptionId string, resourceGroupName string, resourceGuardsName string) ResourceGuardId {
+func NewResourceGuardID(subscriptionId string, resourceGroupName string, resourceGuardName string) ResourceGuardId {
 	return ResourceGuardId{
-		SubscriptionId:     subscriptionId,
-		ResourceGroupName:  resourceGroupName,
-		ResourceGuardsName: resourceGuardsName,
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: resourceGroupName,
+		ResourceGuardName: resourceGuardName,
 	}
 }
 
@@ -44,8 +47,8 @@ func ParseResourceGuardID(input string) (*ResourceGuardId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGuardsName, ok = parsed.Parsed["resourceGuardsName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardsName' was not found in the resource id %q", input)
+	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +74,8 @@ func ParseResourceGuardIDInsensitively(input string) (*ResourceGuardId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGuardsName, ok = parsed.Parsed["resourceGuardsName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardsName' was not found in the resource id %q", input)
+	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +99,7 @@ func ValidateResourceGuardID(input interface{}, key string) (warnings []string, 
 // ID returns the formatted Resource Guard ID
 func (id ResourceGuardId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataProtection/resourceGuards/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceGuardsName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceGuardName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Resource Guard ID
@@ -109,7 +112,7 @@ func (id ResourceGuardId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticResourceGuards", "resourceGuards", "resourceGuards"),
-		resourceids.UserSpecifiedSegment("resourceGuardsName", "resourceGuardsValue"),
+		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardValue"),
 	}
 }
 
@@ -118,7 +121,7 @@ func (id ResourceGuardId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Guards Name: %q", id.ResourceGuardsName),
+		fmt.Sprintf("Resource Guard Name: %q", id.ResourceGuardName),
 	}
 	return fmt.Sprintf("Resource Guard (%s)", strings.Join(components, "\n"))
 }

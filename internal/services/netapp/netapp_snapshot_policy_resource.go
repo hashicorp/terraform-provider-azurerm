@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshotpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshotpolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -295,7 +295,7 @@ func resourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta interface{
 
 	d.Set("name", id.SnapshotPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("account_name", id.AccountName)
+	d.Set("account_name", id.NetAppAccountName)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
@@ -552,6 +552,10 @@ func netappSnapshotPolicyStateRefreshFunc(ctx context.Context, client *snapshotp
 			}
 		}
 
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
 	}
 }

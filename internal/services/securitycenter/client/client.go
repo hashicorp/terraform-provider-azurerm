@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	pricings_v2022_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-03-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )

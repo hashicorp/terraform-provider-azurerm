@@ -120,8 +120,8 @@ resource "azurerm_monitor_action_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Action Group. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the Action Group instance.
+* `name` - (Required) The name of the Action Group. Changing this forces a new resource to be created. 
+* `resource_group_name` - (Required) The name of the resource group in which to create the Action Group instance. Changing this forces a new resource to be created.
 * `short_name` - (Required) The short name of the action group. This will be used in SMS messages.
 * `enabled` - (Optional) Whether this action group is enabled. If an action group is not enabled, then none of its receivers will receive communications. Defaults to `true`.
 * `arm_role_receiver` - (Optional) One or more `arm_role_receiver` blocks as defined below.
@@ -131,6 +131,7 @@ The following arguments are supported:
 * `email_receiver` - (Optional) One or more `email_receiver` blocks as defined below.
 * `event_hub_receiver` - (Optional) One or more `event_hub_receiver` blocks as defined below.
 * `itsm_receiver` - (Optional) One or more `itsm_receiver` blocks as defined below.
+* `location` - (Optional) The Azure Region where the Action Group should exist. Changing this forces a new Action Group to be created. Defaults to `global`.
 * `logic_app_receiver` - (Optional) One or more `logic_app_receiver` blocks as defined below.
 * `sms_receiver` - (Optional) One or more `sms_receiver` blocks as defined below.
 * `voice_receiver` - (Optional) One or more `voice_receiver` blocks as defined below.
@@ -139,7 +140,7 @@ The following arguments are supported:
 
 ---
 
-`arm_role_receiver` supports the following:
+The `arm_role_receiver` block supports the following:
 
 * `name` - (Required) The name of the ARM role receiver.
 * `role_id` - (Required) The arm role id.
@@ -147,7 +148,7 @@ The following arguments are supported:
 
 ---
 
-`automation_runbook_receiver` supports the following:
+The `automation_runbook_receiver` block supports the following:
 
 * `name` - (Required) The name of the automation runbook receiver.
 * `automation_account_id` - (Required) The automation account ID which holds this runbook and authenticates to Azure resources.
@@ -159,14 +160,14 @@ The following arguments are supported:
 
 ---
 
-`azure_app_push_receiver` supports the following:
+The `azure_app_push_receiver` block supports the following:
 
 * `name` - (Required) The name of the Azure app push receiver.
 * `email_address` - (Required) The email address of the user signed into the mobile app who will receive push notifications from this receiver.
 
 ---
 
-`azure_function_receiver` supports the following:
+The `azure_function_receiver` block supports the following:
 
 * `name` - (Required) The name of the Azure Function receiver.
 * `function_app_resource_id` - (Required) The Azure resource ID of the function app.
@@ -176,7 +177,7 @@ The following arguments are supported:
 
 ---
 
-`email_receiver` supports the following:
+The `email_receiver` block supports the following:
 
 * `name` - (Required) The name of the email receiver. Names must be unique (case-insensitive) across all receivers within an action group.
 * `email_address` - (Required) The email address of this receiver.
@@ -184,7 +185,7 @@ The following arguments are supported:
 
 ---
 
-`event_hub_receiver` supports the following:
+The `event_hub_receiver` block supports the following:
 
 * `name` - (Required) The name of the EventHub Receiver, must be unique within action group.
 * `event_hub_id` - (Optional) The resource ID of the respective Event Hub.
@@ -199,7 +200,7 @@ The following arguments are supported:
 
 ---
 
-`itsm_receiver` supports the following:
+The `itsm_receiver` block supports the following:
 
 * `name` - (Required) The name of the ITSM receiver.
 * `workspace_id` - (Required) The Azure Log Analytics workspace ID where this connection is defined. Format is `<subscription id>|<workspace id>`, for example `00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000`.
@@ -211,7 +212,7 @@ The following arguments are supported:
 
 ---
 
-`logic_app_receiver` supports the following:
+The `logic_app_receiver` block supports the following:
 
 * `name` - (Required) The name of the logic app receiver.
 * `resource_id` - (Required) The Azure resource ID of the logic app.
@@ -220,7 +221,7 @@ The following arguments are supported:
 
 ---
 
-`sms_receiver` supports the following:
+The `sms_receiver` block supports the following:
 
 * `name` - (Required) The name of the SMS receiver. Names must be unique (case-insensitive) across all receivers within an action group.
 * `country_code` - (Required) The country code of the SMS receiver.
@@ -228,7 +229,7 @@ The following arguments are supported:
 
 ---
 
-`voice_receiver` supports the following:
+The `voice_receiver` block supports the following:
 
 * `name` - (Required) The name of the voice receiver.
 * `country_code` - (Required) The country code of the voice receiver.
@@ -236,7 +237,7 @@ The following arguments are supported:
 
 ---
 
-`webhook_receiver` supports the following:
+The `webhook_receiver` block supports the following:
 
 * `name` - (Required) The name of the webhook receiver. Names must be unique (case-insensitive) across all receivers within an action group.
 * `service_uri` - (Required) The URI where webhooks should be sent.
@@ -245,7 +246,9 @@ The following arguments are supported:
 
 ~> **NOTE:** Before adding a secure webhook receiver by setting `aad_auth`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/azure/azure-monitor/platform/action-groups#secure-webhook).
 
-`aad_auth` supports the following:.
+---
+
+The `aad_auth` block supports the following:.
 
 * `object_id` - (Required) The webhook application object Id for AAD auth.
 * `identifier_uri` - (Optional) The identifier URI for AAD auth.
@@ -253,7 +256,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Action Group.
 

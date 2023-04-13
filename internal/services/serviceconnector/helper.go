@@ -21,6 +21,27 @@ type AuthInfoModel struct {
 	Certificate    string `tfschema:"certificate"`
 }
 
+type SecretStoreModel struct {
+	KeyVaultId string `tfschema:"key_vault_id"`
+}
+
+func secretStoreSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*schema.Schema{
+				"key_vault_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
 func authInfoSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -83,6 +104,18 @@ func authInfoSchema() *pluginsdk.Schema {
 	}
 }
 
+func expandSecretStore(input []SecretStoreModel) *servicelinker.SecretStore {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0]
+
+	keyVaultId := v.KeyVaultId
+	return &servicelinker.SecretStore{
+		KeyVaultId: utils.String(keyVaultId),
+	}
+}
+
 func expandServiceConnectorAuthInfo(input []AuthInfoModel) (servicelinker.AuthInfoBase, error) {
 	if len(input) == 0 {
 		return nil, fmt.Errorf("authentication should be defined")
@@ -118,8 +151,10 @@ func expandServiceConnectorAuthInfo(input []AuthInfoModel) (servicelinker.AuthIn
 			return nil, fmt.Errorf("`secret` cannot be set when `name` is empty")
 		}
 		return servicelinker.SecretAuthInfo{
-			Name:       utils.String(name),
-			SecretInfo: secret,
+			Name: utils.String(name),
+			SecretInfo: servicelinker.ValueSecretInfo{
+				Value: utils.String(secret),
+			},
 		}, nil
 
 	case servicelinker.AuthTypeSystemAssignedIdentity:
@@ -206,7 +241,7 @@ func expandServiceConnectorAuthInfo(input []AuthInfoModel) (servicelinker.AuthIn
 	return nil, fmt.Errorf("unsupported authentication type %q", authType)
 }
 
-func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase) []AuthInfoModel {
+func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase, pwd string) []AuthInfoModel {
 	var authType string
 	var name string
 	var secret string
@@ -220,7 +255,7 @@ func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase) []AuthInf
 		if value.Name != nil {
 			name = *value.Name
 		}
-		secret = value.SecretInfo.(string)
+		secret = pwd
 	}
 
 	if _, ok := input.(servicelinker.SystemAssignedIdentityAuthInfo); ok {
@@ -283,4 +318,17 @@ func flattenTargetService(input servicelinker.TargetServiceBase) string {
 	}
 
 	return targetServiceId
+}
+
+func flattenSecretStore(input servicelinker.SecretStore) []SecretStoreModel {
+	var keyVaultId string
+	if input.KeyVaultId != nil {
+		keyVaultId = *input.KeyVaultId
+	}
+
+	return []SecretStoreModel{
+		{
+			KeyVaultId: keyVaultId,
+		},
+	}
 }

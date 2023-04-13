@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis"
+	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -38,6 +39,11 @@ func resourceHealthcareApisMedTechService() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.HealthCareIoTConnectorV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.MedTechServiceID(id)
@@ -106,7 +112,7 @@ func resourceHealthcareApisMedTechServiceCreate(d *pluginsdk.ResourceData, meta 
 	medTechServiceId := parse.NewMedTechServiceID(workspace.SubscriptionId, workspace.ResourceGroup, workspace.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, medTechServiceId.ResourceGroup, medTechServiceId.WorkspaceName, medTechServiceId.IotconnectorName)
+		existing, err := client.Get(ctx, medTechServiceId.ResourceGroup, medTechServiceId.WorkspaceName, medTechServiceId.IotConnectorName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", medTechServiceId, err)
@@ -143,7 +149,7 @@ func resourceHealthcareApisMedTechServiceCreate(d *pluginsdk.ResourceData, meta 
 	}
 	parameters.IotConnectorProperties.DeviceMapping = &deviceContentMap
 
-	future, err := client.CreateOrUpdate(ctx, medTechServiceId.ResourceGroup, medTechServiceId.WorkspaceName, medTechServiceId.IotconnectorName, parameters)
+	future, err := client.CreateOrUpdate(ctx, medTechServiceId.ResourceGroup, medTechServiceId.WorkspaceName, medTechServiceId.IotConnectorName, parameters)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", medTechServiceId, err)
 	}
@@ -172,6 +178,10 @@ func resourceHealthcareApisMedTechServiceCreate(d *pluginsdk.ResourceData, meta 
 
 func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceMedTechServiceClient
+	domainSuffix, ok := meta.(*clients.Client).Account.Environment.ServiceBus.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("unable to retrieve the Domain Suffix for ServiceBus, this is not configured for this Cloud Environment")
+	}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -180,7 +190,7 @@ func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotConnectorName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[WARN] Healthcare Apis MedTech Service %s was not found", id)
@@ -190,27 +200,37 @@ func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.IotconnectorName)
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
-	d.Set("workspace_id", workspaceId.ID())
+	d.Set("name", id.IotConnectorName)
+	d.Set("workspace_id", parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if resp.Location != nil {
-		d.Set("location", location.NormalizeNilable(resp.Location))
-	}
-
-	if resp.Identity != nil {
-		d.Set("identity", flattenMedTechServiceIdentity(resp.Identity))
+	if err := d.Set("identity", flattenMedTechServiceIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if props := resp.IotConnectorProperties; props != nil {
-		if props.IngestionEndpointConfiguration.EventHubName != nil {
-			d.Set("eventhub_name", props.IngestionEndpointConfiguration.EventHubName)
-		}
+		eventHubConsumerGroupName := ""
+		eventHubName := ""
+		eventHubNamespaceName := ""
+		if config := props.IngestionEndpointConfiguration; config != nil {
+			if config.ConsumerGroup != nil {
+				eventHubConsumerGroupName = *config.ConsumerGroup
+			}
 
-		if props.IngestionEndpointConfiguration.ConsumerGroup != nil {
-			d.Set("eventhub_consumer_group_name", props.IngestionEndpointConfiguration.ConsumerGroup)
-		}
+			if config.EventHubName != nil {
+				eventHubName = *config.EventHubName
+			}
 
+			if props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace != nil {
+				suffixToTrim := "." + *domainSuffix
+				eventHubNamespaceName = strings.TrimSuffix(*props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace, suffixToTrim)
+			}
+		}
+		d.Set("eventhub_consumer_group_name", eventHubConsumerGroupName)
+		d.Set("eventhub_name", eventHubName)
+		d.Set("eventhub_namespace_name", eventHubNamespaceName)
+
+		mapContent := ""
 		if props.DeviceMapping != nil {
 			deviceMapData, err := json.Marshal(props.DeviceMapping)
 			if err != nil {
@@ -221,7 +241,6 @@ func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta in
 			if err = json.Unmarshal(deviceMapData, &m); err != nil {
 				return err
 			}
-			mapContent := ""
 			if v, ok := m["content"]; ok {
 				contents, err := json.Marshal(v)
 				if err != nil {
@@ -229,12 +248,8 @@ func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta in
 				}
 				mapContent = string(contents)
 			}
-			d.Set("device_mapping_json", mapContent)
 		}
-
-		if props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace != nil {
-			d.Set("eventhub_namespace_name", strings.TrimSuffix(*props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace, ".servicebus.windows.net"))
-		}
+		d.Set("device_mapping_json", mapContent)
 	}
 
 	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
@@ -280,7 +295,7 @@ func resourceHealthcareApisMedTechServiceUpdate(d *pluginsdk.ResourceData, meta 
 	}
 	parameters.IotConnectorProperties.DeviceMapping = &deviceContentMap
 
-	future, err := client.CreateOrUpdate(ctx, medTechServiceId.ResourceGroup, medTechServiceId.WorkspaceName, medTechServiceId.IotconnectorName, parameters)
+	future, err := client.CreateOrUpdate(ctx, medTechServiceId.ResourceGroup, medTechServiceId.WorkspaceName, medTechServiceId.IotConnectorName, parameters)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", medTechServiceId, err)
 	}
@@ -317,7 +332,7 @@ func resourceHealthcareApisMedTechServiceDelete(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.IotconnectorName, id.WorkspaceName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.IotConnectorName, id.WorkspaceName)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
@@ -325,6 +340,7 @@ func resourceHealthcareApisMedTechServiceDelete(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
+	// NOTE: this can be removed when using `hashicorp/go-azure-sdk`'s base layer
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Pending"},
 		Target:                    []string{"Deleted"},
@@ -342,7 +358,7 @@ func resourceHealthcareApisMedTechServiceDelete(d *pluginsdk.ResourceData, meta 
 
 func medTechServiceStateStatusCodeRefreshFunc(ctx context.Context, client *healthcareapis.IotConnectorsClient, id parse.MedTechServiceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName)
+		res, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotConnectorName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(res.Response) {
@@ -392,7 +408,7 @@ func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceDat
 
 func medTechServiceCreateStateRefreshFunc(ctx context.Context, client *healthcareapis.IotConnectorsClient, medTechServiceId parse.MedTechServiceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, medTechServiceId.ResourceGroup, medTechServiceId.WorkspaceName, medTechServiceId.IotconnectorName)
+		resp, err := client.Get(ctx, medTechServiceId.ResourceGroup, medTechServiceId.WorkspaceName, medTechServiceId.IotConnectorName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil, "", fmt.Errorf("unable to retrieve MedTech Service %q: %+v", medTechServiceId, err)

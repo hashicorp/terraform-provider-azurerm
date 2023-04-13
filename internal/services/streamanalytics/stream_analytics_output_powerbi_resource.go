@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -17,7 +18,10 @@ import (
 
 type OutputPowerBIResource struct{}
 
-var _ sdk.ResourceWithCustomImporter = OutputPowerBIResource{}
+var (
+	_ sdk.ResourceWithCustomImporter = OutputPowerBIResource{}
+	_ sdk.ResourceWithStateMigration = OutputPowerBIResource{}
+)
 
 type OutputPowerBIResourceModel struct {
 	Name                   string `tfschema:"name"`
@@ -112,7 +116,7 @@ func (r OutputPowerBIResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			id := outputs.NewOutputID(subscriptionId, streamingJobId.ResourceGroupName, streamingJobId.JobName, model.Name)
+			id := outputs.NewOutputID(subscriptionId, streamingJobId.ResourceGroupName, streamingJobId.StreamingJobName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -259,7 +263,7 @@ func (r OutputPowerBIResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("converting %s to a PowerBI Output", *id)
 					}
 
-					streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.JobName)
+					streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.StreamingJobName)
 
 					state := OutputPowerBIResourceModel{
 						Name:               id.OutputName,
@@ -345,5 +349,14 @@ func (r OutputPowerBIResource) CustomImporter() sdk.ResourceRunFunc {
 			return fmt.Errorf("specified output is not of type")
 		}
 		return nil
+	}
+}
+
+func (r OutputPowerBIResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.StreamAnalyticsOutputPowerBiV0ToV1{},
+		},
 	}
 }

@@ -67,7 +67,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Spring Cloud Custom Domain.
 
@@ -85,5 +85,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud Custom Domain can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/apps/app1/domains/domain.com
+terraform import azurerm_spring_cloud_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/apps/app1/domains/domain.com
 ```

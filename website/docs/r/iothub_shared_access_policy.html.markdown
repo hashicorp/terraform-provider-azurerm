@@ -63,7 +63,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the IoTHub Shared Access Policy.
 
@@ -89,5 +89,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 IoTHub Shared Access Policies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iothub_shared_access_policy.shared_access_policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1/IotHubKeys/shared_access_policy1
+terraform import azurerm_iothub_shared_access_policy.shared_access_policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/iotHubs/hub1/iotHubKeys/shared_access_policy1
 ```

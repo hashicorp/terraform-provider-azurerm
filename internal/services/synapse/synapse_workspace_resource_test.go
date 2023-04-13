@@ -433,43 +433,6 @@ resource "azurerm_synapse_workspace" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func (r SynapseWorkspaceResource) withAadAdminsOnly(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_identity_control_enabled         = true
-  aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
-
-  sql_aad_admin {
-    login     = "AzureAD Admin"
-    object_id = data.azurerm_client_config.current.object_id
-    tenant_id = data.azurerm_client_config.current.tenant_id
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  tags = {
-    ENV = "Test2"
-  }
-}
-`, template, data.RandomInteger)
-}
-
 func (r SynapseWorkspaceResource) azureDevOps(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`

@@ -15,7 +15,7 @@ type PrivateCloudProperties struct {
 	NsxtPassword                 *string                        `json:"nsxtPassword,omitempty"`
 	ProvisioningNetwork          *string                        `json:"provisioningNetwork,omitempty"`
 	ProvisioningState            *PrivateCloudProvisioningState `json:"provisioningState,omitempty"`
+	VMotionNetwork               *string                        `json:"vmotionNetwork,omitempty"`
 	VcenterCertificateThumbprint *string                        `json:"vcenterCertificateThumbprint,omitempty"`
 	VcenterPassword              *string                        `json:"vcenterPassword,omitempty"`
-	VmotionNetwork               *string                        `json:"vmotionNetwork,omitempty"`
 }

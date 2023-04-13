@@ -106,5 +106,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud Build Deployments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_build_deployment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/apps/app1/deployments/deploy1
+terraform import azurerm_spring_cloud_build_deployment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/apps/app1/deployments/deploy1
 ```

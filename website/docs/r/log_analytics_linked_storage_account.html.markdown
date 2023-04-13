@@ -75,5 +75,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Log Analytics Linked Storage Accounts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_log_analytics_linked_storage_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedStorageAccounts/{dataSourceType}
+terraform import azurerm_log_analytics_linked_storage_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedStorageAccounts/{dataSourceType}
 ```

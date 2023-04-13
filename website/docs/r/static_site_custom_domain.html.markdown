@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `static_site_id` - (Required) The ID of the Static Site. Changing this forces a new Static Site Custom Domain to be created.
 
-* `validation_type` - (Required) One of `cname-delegation` or `dns-txt-token`. Changing this forces a new Static Site Custom Domain to be created.
+* `validation_type` - (Optional) One of `cname-delegation` or `dns-txt-token`. Changing this forces a new Static Site Custom Domain to be created.
 
 ## Attributes Reference
 

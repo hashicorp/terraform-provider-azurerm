@@ -45,11 +45,11 @@ The following arguments are supported:
 
 * `virtual_network_id` - (Required) The ID of the Virtual Network that should be linked to the DNS Zone. Changing this forces a new resource to be created.
 
-* `dns_servers` - (Required) List of IP addresses of DNS servers
+* `dns_servers` - (Optional) List of IP addresses of DNS servers
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The virtual network DNS server ID.
 

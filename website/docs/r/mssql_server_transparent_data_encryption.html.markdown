@@ -105,7 +105,7 @@ resource "azurerm_key_vault" "example" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "Get", "List", "Create", "Delete", "Update", "Recover", "Purge",
+      "Get", "List", "Create", "Delete", "Update", "Recover", "Purge", "GetRotationPolicy",
     ]
   }
   access_policy {
@@ -146,7 +146,7 @@ resource "azurerm_mssql_server_transparent_data_encryption" "example" {
 
 The following arguments are supported:
 
-* `server_id` - (Required) Specifies the name of the MS SQL Server.
+* `server_id` - (Required) Specifies the name of the MS SQL Server. Changing this forces a new resource to be created.
 
 ---
 

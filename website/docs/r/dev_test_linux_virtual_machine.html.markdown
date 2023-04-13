@@ -123,13 +123,13 @@ A `gallery_image_reference` block supports the following:
 
 A `inbound_nat_rule` block supports the following:
 
-* `protocol` - (Required) The Protocol used for this NAT Rule. Possible values are `Tcp` and `Udp`. Changing this forces a new resource to be created.
+* `protocol` - (Required) The Protocol used for this NAT Rule. Possible values are `Tcp` and `Udp`. 
 
 * `backend_port` - (Required) The Backend Port associated with this NAT Rule. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Machine.
 
@@ -159,5 +159,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Dev Test Linux Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dev_test_linux_virtual_machine.machine1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualmachines/machine1
+terraform import azurerm_dev_test_linux_virtual_machine.machine1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualMachines/machine1
 ```

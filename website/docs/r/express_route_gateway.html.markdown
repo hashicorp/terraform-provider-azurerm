@@ -55,15 +55,17 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `virtual_hub_id` - (Required) The ID of a Virtual HUB within which the ExpressRoute gateway should be created.
+* `virtual_hub_id` - (Required) The ID of a Virtual HUB within which the ExpressRoute gateway should be created. Changing this forces a new resource to be created.
 
 * `scale_units` - (Required) The number of scale units with which to provision the ExpressRoute gateway. Each scale unit is equal to 2Gbps, with support for up to 10 scale units (20Gbps).
+
+* `allow_non_virtual_wan_traffic` - (Optional) Specified whether this gateway accept traffic from non-Virtual WAN networks. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the ExpressRoute gateway.
 
@@ -71,13 +73,13 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the ExpressRoute Gateway.
+* `create` - (Defaults to 90 minutes) Used when creating the ExpressRoute Gateway.
 
-* `update` - (Defaults to 60 minutes) Used when updating the ExpressRoute Gateway.
+* `update` - (Defaults to 90 minutes) Used when updating the ExpressRoute Gateway.
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute Gateway.
 
-* `delete` - (Defaults to 60 minutes) Used when deleting the ExpressRoute Gateway.
+* `delete` - (Defaults to 90 minutes) Used when deleting the ExpressRoute Gateway.
 
 ## Import
 

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/scripts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type KustoScriptResource struct{}
@@ -116,19 +116,24 @@ func TestAccKustoScript_scriptContent(t *testing.T) {
 	})
 }
 
-func (r KustoScriptResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.ScriptID(state.ID)
+func (r KustoScriptResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := scripts.ParseScriptID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Kusto.ScriptsClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
+
+	resp, err := client.Kusto.ScriptsClient.Get(ctx, *id)
+	exists := true
+
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.HttpResponse) {
+			exists = false
+		} else {
+			return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 		}
-		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+
+	return &exists, nil
 }
 
 func (r KustoScriptResource) template(data acceptance.TestData) string {

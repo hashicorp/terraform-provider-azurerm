@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -786,11 +788,12 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+				// TODO: this should become `storage_account_id` in 4.0
 				"storage_resource_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: storageValidate.StorageAccountID,
 				},
 				"is_default": {
 					Type:     pluginsdk.TypeBool,
@@ -810,11 +813,12 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				// TODO: this should become `storage_account_id` in 4.0
 				"storage_resource_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: storageValidate.StorageAccountID,
 				},
 				"filesystem_id": {
 					Type:         pluginsdk.TypeString,
@@ -822,6 +826,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+				// TODO: this should become `user_assigned_identity_id` in 4.0
 				"managed_identity_resource_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
@@ -1055,14 +1060,14 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			ValidateFunc: networkValidate.SubnetID,
 		},
 
 		"virtual_network_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			ValidateFunc: networkValidate.VirtualNetworkID,
 		},
 
 		"script_actions": SchemaHDInsightsScriptActions(),

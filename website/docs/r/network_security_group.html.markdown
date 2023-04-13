@@ -50,7 +50,7 @@ resource "azurerm_network_security_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the network security group. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the network security group. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the network security group. Changing this forces a new resource to be created.
 
@@ -62,7 +62,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-Elements of `security_rule` support:
+---
+
+A `security_rule` block support:
 
 * `name` - (Required) The name of the security rule.
 
@@ -98,7 +100,7 @@ Elements of `security_rule` support:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Network Security Group.
 

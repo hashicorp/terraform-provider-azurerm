@@ -85,5 +85,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Data Explorer Cluster Principal Assignments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kusto_cluster_principal_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/PrincipalAssignments/assignment1
+terraform import azurerm_kusto_cluster_principal_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1/principalAssignments/assignment1
 ```

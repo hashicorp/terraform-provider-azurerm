@@ -34,8 +34,8 @@ type VirtualMachineProperties struct {
 	StorageProfile          *StorageProfile                    `json:"storageProfile,omitempty"`
 	TimeCreated             *string                            `json:"timeCreated,omitempty"`
 	UserData                *string                            `json:"userData,omitempty"`
+	VMId                    *string                            `json:"vmId,omitempty"`
 	VirtualMachineScaleSet  *SubResource                       `json:"virtualMachineScaleSet,omitempty"`
-	VmId                    *string                            `json:"vmId,omitempty"`
 }
 
 func (o *VirtualMachineProperties) GetTimeCreatedAsTime() (*time.Time, error) {

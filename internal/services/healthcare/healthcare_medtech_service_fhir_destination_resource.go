@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis"
+	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -39,6 +40,11 @@ func resourceHealthcareApisMedTechServiceFhirDestination() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.MedTechServiceFhirDestinationID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.HealthCareMedTechServiceFhirDestinationV0ToV1{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -93,10 +99,10 @@ func resourceHealthcareApisMedTechServiceFhirDestinationCreate(d *pluginsdk.Reso
 	if err != nil {
 		return fmt.Errorf("parsing Med Tech Service error: %+v", err)
 	}
-	id := parse.NewMedTechServiceFhirDestinationID(medTechService.SubscriptionId, medTechService.ResourceGroup, medTechService.WorkspaceName, medTechService.IotconnectorName, d.Get("name").(string))
+	id := parse.NewMedTechServiceFhirDestinationID(medTechService.SubscriptionId, medTechService.ResourceGroup, medTechService.WorkspaceName, medTechService.IotConnectorName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName, id.FhirdestinationName)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotConnectorName, id.FhirDestinationName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -127,7 +133,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationCreate(d *pluginsdk.Reso
 	}
 	iotFhirServiceParameters.IotFhirDestinationProperties.FhirMapping = &fhirMap
 
-	medTechServiceDesFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName, id.FhirdestinationName, iotFhirServiceParameters)
+	medTechServiceDesFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.IotConnectorName, id.FhirDestinationName, iotFhirServiceParameters)
 	if err != nil {
 		return fmt.Errorf("updating fhir service %s for the Med Tech Service err: %+v", id, err)
 	}
@@ -150,10 +156,10 @@ func resourceHealthcareApisMedTechServiceFhirDestinationRead(d *pluginsdk.Resour
 		return err
 	}
 
-	medTechServiceId := parse.NewMedTechServiceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName)
+	medTechServiceId := parse.NewMedTechServiceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.IotConnectorName)
 	d.Set("medtech_service_id", medTechServiceId.ID())
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName, id.FhirdestinationName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotConnectorName, id.FhirDestinationName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[WARN] Healthcare Apis Med Tech Service Fhir Destination %s was not found", id)
@@ -163,7 +169,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationRead(d *pluginsdk.Resour
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.FhirdestinationName)
+	d.Set("name", id.FhirDestinationName)
 
 	if resp.Location != nil {
 		d.Set("location", location.NormalizeNilable(resp.Location))
@@ -208,7 +214,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationUpdate(d *pluginsdk.Reso
 	if err != nil {
 		return fmt.Errorf("parsing Med Tech Service error: %+v", err)
 	}
-	id := parse.NewMedTechServiceFhirDestinationID(medTechService.SubscriptionId, medTechService.ResourceGroup, medTechService.WorkspaceName, medTechService.IotconnectorName, d.Get("name").(string))
+	id := parse.NewMedTechServiceFhirDestinationID(medTechService.SubscriptionId, medTechService.ResourceGroup, medTechService.WorkspaceName, medTechService.IotConnectorName, d.Get("name").(string))
 
 	fhirServiceId, err := parse.FhirServiceID(d.Get("destination_fhir_service_id").(string))
 	if err != nil {
@@ -230,7 +236,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationUpdate(d *pluginsdk.Reso
 	}
 	medTechFhirServiceParameters.IotFhirDestinationProperties.FhirMapping = &fhirMap
 
-	medTechServiceDesFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName, id.FhirdestinationName, medTechFhirServiceParameters)
+	medTechServiceDesFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.IotConnectorName, id.FhirDestinationName, medTechFhirServiceParameters)
 	if err != nil {
 		return fmt.Errorf("updating fhir service %s for the Med Tech Service err: %+v", id, err)
 	}
@@ -253,7 +259,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationDelete(d *pluginsdk.Reso
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName, id.FhirdestinationName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.IotConnectorName, id.FhirDestinationName)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
@@ -278,7 +284,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationDelete(d *pluginsdk.Reso
 
 func healthcareApiMedTechServiceFhirDestinationStateCodeRefreshFunc(ctx context.Context, client *healthcareapis.IotConnectorFhirDestinationClient, id parse.MedTechServiceFhirDestinationId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName, id.FhirdestinationName)
+		res, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotConnectorName, id.FhirDestinationName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(res.Response) {

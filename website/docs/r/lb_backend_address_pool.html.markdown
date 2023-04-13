@@ -48,11 +48,13 @@ resource "azurerm_lb_backend_address_pool" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Backend Address Pool.
+* `name` - (Required) Specifies the name of the Backend Address Pool. Changing this forces a new resource to be created.
   
-* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Backend Address Pool.
+* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Backend Address Pool. Changing this forces a new resource to be created.
 
 * `tunnel_interface` - (Optional) One or more `tunnel_interface` blocks as defined below.
+
+* `virtual_network_id` - (Optional) The ID of the Virtual Network within which the Backend Address Pool should exist.
 
 ---
 
@@ -68,7 +70,7 @@ The `tunnel_interface` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Backend Address Pool.
   

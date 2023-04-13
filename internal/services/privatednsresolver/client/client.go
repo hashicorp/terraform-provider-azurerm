@@ -20,7 +20,6 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-
 	dnsForwardingRulesetsClient := dnsforwardingrulesets.NewDnsForwardingRulesetsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&dnsForwardingRulesetsClient.Client, o.ResourceManagerAuthorizer)
 

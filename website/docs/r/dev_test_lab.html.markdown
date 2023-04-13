@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Dev Test Lab should exist. Changing this forces a new resource to be created.
 
-* `storage_type` - (Optional) The type of storage used by the Dev Test Lab. Possible values are `Standard` and `Premium`. Defaults to `Premium`. Changing this forces a new resource to be created.
+* `storage_type` - (Optional) The type of storage used by the Dev Test Lab. Possible values are `Standard` and `Premium`. Defaults to `Premium`. 
 
 -> **Note:** `storage_type` has been deprecated as the API no longer supports it and will be removed in Version 4.0 of the provider.
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Dev Test Lab.
 

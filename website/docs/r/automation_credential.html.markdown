@@ -49,11 +49,11 @@ The following arguments are supported:
 
 * `password` - (Required) The password associated with this Automation Credential.
 
-* `description` -  (Optional) The description associated with this Automation Credential.
+* `description` - (Optional) The description associated with this Automation Credential.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Automation Credential.
 

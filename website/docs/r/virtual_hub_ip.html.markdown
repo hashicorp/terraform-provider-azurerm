@@ -73,11 +73,11 @@ The following arguments are supported:
 
 * `private_ip_allocation_method` - (Optional) The private IP address allocation method. Possible values are `Static` and `Dynamic` is allowed. Defaults to `Dynamic`.
 
-* `public_ip_address_id` - (Optional) The ID of the Public IP Address. This option is required since September 1st 2021. Changing this forces a new resource to be created.
+* `public_ip_address_id` - (Required) The ID of the Public IP Address. This option is required since September 1st 2021. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Hub IP.
 
