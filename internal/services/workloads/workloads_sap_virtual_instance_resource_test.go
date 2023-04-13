@@ -91,8 +91,8 @@ func TestAccWorkloadsSAPVirtualInstance_update(t *testing.T) {
 }
 
 func TestAccWorkloadsSAPVirtualInstance_discoveryConfiguration(t *testing.T) {
-	if ok := os.Getenv("ARM_CENTRAL_SERVER_VM_ID"); ok == "" {
-		t.Skip("Skipping as `ARM_CENTRAL_SERVER_VM_ID` is not specified")
+	if os.Getenv("ARM_SAP_VIRTUAL_INSTANCE_NAME") == "" || os.Getenv("ARM_CENTRAL_SERVER_VM_ID") == "" {
+		t.Skip("Skipping as `ARM_SAP_VIRTUAL_INSTANCE_NAME` and `ARM_CENTRAL_SERVER_VM_ID` are not specified")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_virtual_instance", "test")
@@ -919,7 +919,7 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_workloads_sap_virtual_instance" "test" {
-  name                        = "X%d"
+  name                        = "%s"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   environment                 = "NonProd"
@@ -947,7 +947,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
     azurerm_role_assignment.test
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, RandomInt(), data.RandomInteger, os.Getenv("ARM_CENTRAL_SERVER_VM_ID"), data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, os.Getenv("ARM_SAP_VIRTUAL_INSTANCE_NAME"), data.RandomInteger, os.Getenv("ARM_CENTRAL_SERVER_VM_ID"), data.RandomString)
 }
 
 func RandomInt() int {
