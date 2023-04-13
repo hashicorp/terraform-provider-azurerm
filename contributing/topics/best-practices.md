@@ -114,8 +114,8 @@ func (r SomeResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func:    func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// create logic is defined here
-        },
+			// create logic is defined here 
+		},
 	}
 }
 
@@ -152,4 +152,4 @@ func (r SomeResource) Delete() sdk.ResourceFunc {
 
 Due to certain behaviours in the Azure API it had become commonplace to set properties whose values could change in the background or for new properties that returned a default value not set by users as `Computed` to prevent the provider from flagging a diff after applying a plan.
 
-Differing behaviour in the new protocol version (v6) used in `terraform-core` mean that any changes that occur to a properties value after applying will throw an error instead of a warning. Thus any uses of `Optional` + `Computed` should be avoided and existing ones will need to be phased out and replaced with logic that allows users to add the property to `ignore_changes`.
+Differing behaviour in the new protocol version (v6) used in `terraform-core` mean that any changes that occur to a property's value after applying will throw an error instead of a warning. Thus any uses of `Optional` + `Computed` should be avoided and existing ones will need to be phased out and replaced with logic that allows users to add the property to `ignore_changes`.
