@@ -44,13 +44,19 @@ The following arguments are supported:
 
 ---
 
-* `api_access_control` - (Optional) An `api_access_control` block as defined below.
+* `authentication_failure_mode` - (Optional) Describes what response the Search Service should return for requests that fail authentication. Possible values include `http401WithBearerChallenge` or `http403`.
 
-* `cmk_enforcement_enabled` - (Optional) Should the Search Service enforce having non customer encrypted resources? Possible values include `true` or `false`. If `true` the Search Service will be marked as `non-compliant` if there are one or more non customer encrypted resources, if `false` no enforcement will be made and the Search Service can contain one or more non customer encrypted resources. Defaults to `false`.
+-> **NOTE:** `authentication_failure_mode` cannot be defined if the `local_authentication_disabled` is set to `true`.
+
+* `customer_managed_key_enforcement_enabled` - (Optional) Should the Search Service enforce having non customer encrypted resources? Possible values include `true` or `false`. If `true` the Search Service will be marked as `non-compliant` if there are one or more non customer encrypted resources, if `false` no enforcement will be made and the Search Service can contain one or more non customer encrypted resources. Defaults to `false`.
 
 * `hosting_mode` - (Optional) Enable high density partitions that allow for up to a 1000 indexes. Possible values are `highDensity` or `default`. Defaults to `default`. Changing this forces a new Search Service to be created.
 
 -> **NOTE:** When the Search Service is in `highDensity` mode the maximum number of partitions allowed is `3`, to enable `hosting_mode` you must use a `standard3` SKU.
+
+* `local_authentication_disabled` - (Optional) Should tha Search Service *not* be allowed to use API keys for authentication? Possible values include `true` or `false`. Defaults to `false`.
+
+-> **NOTE:** If the `local_authentication_disabled` field is `false` and the `authentication_failure_mode` has not been defined the Search Service will be in `API Keys Only` mode. If the `local_authentication_disabled` field is `false` and the `authentication_failure_mode` has also been set to `http401WithBearerChallenge` or `http403` the Search Service will be in `Role-based access contol and API Keys` mode (e.g. `Both`). If the `local_authentication_disabled` field is `true` the Search Service will be in `Role-based access contol Only` mode. When the `local_authentication_disabled` field is `true` the `authentication_failure_mode` cannot be defined.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this resource. Defaults to `true`.
 
@@ -72,18 +78,6 @@ The following arguments are supported:
 
 ---
 
-An `api_access_control` block supports the following:
-
-* `type` - (Optional) Describes what authentication mode should be used for the Search Service. Possible values inclued `api_keys`, `role_based_access_control`, or `role_based_access_control_and_api_keys`. Defaults to `api_keys`.
-
--> **NOTE:** If the `api_access_control` block has not been defined in the configuration file the Search Service will still be defaulted to use the `api_keys` authentication mode.
-
-* `authentication_failure_mode` - (Optional) Describes what response the Search Service should return for requests that fail authentication. Possible values include `http401WithBearerChallenge` or `http403`. Defaults to an `empty` string.
-
--> **NOTE:** `authentication_failure_mode` can only be defined if the `api_access_control` `type` is set to `role_based_access_control_and_api_keys`.
-
----
-
 An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Search Service. The only possible value is `SystemAssigned`.
@@ -96,7 +90,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Search Service.
 
-* `cmk_enforcement_compliance` - Describes whether the Search Service is `compliant` or not with respect to having non customer encrypted resources. If a Search Service has more than one non customer encrypted resource and the `cmk_enforcement_enabled` field is set to `true` the Search Service will be marked as `nonCompliant`.
+* `customer_managed_key_enforcement_compliance` - Describes whether the Search Service is `compliant` or not with respect to having non customer encrypted resources. If a Search Service has more than one non customer encrypted resource and the `customer_managed_key_enforcement_enabled` field is set to `true` the Search Service will be marked as `nonCompliant`.
 
 * `primary_key` - The Primary Key used for Search Service Administration.
 
