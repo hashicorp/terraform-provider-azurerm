@@ -5,9 +5,10 @@ ENHANCEMENTS:
 * `containerRegistry` - refactoring to use `hashicorp/go-azure-sdk` [GH-21344]
 * `monitor` - refactoring to use `hashicorp/go-azure-sdk` [GH-21392]
 * `recoveryServices` - refactoring to use `hashicorp/go-azure-sdk` [GH-21344]
-* `azurerm_dashboard_grafana`: add support for `UserAssigned` identity [GH-21394]
 * Data Source: `azurerm_key_vault_certificate` - add support for `resource_manager_id` and `resource_manager_versionless_id` [GH-21314]
-* Data Source: `azurerm_key_vault_secret` add support for `not_before_date` and `expiration_date` [GH-21359]
+* Data Source: `azurerm_key_vault_secret` - support for `not_before_date` and `expiration_date` [GH-21359]
+* Data Source: `azurerm_key_vault_secret` - support specifying the keyvault secret version [GH-21336]
+* `azurerm_dashboard_grafana`- support for `UserAssigned` identity [GH-21394]
 * `azurerm_key_vault_certificate` - add support for `resource_manager_id` and `resource_manager_versionless_id` [GH-21314]
 * `azurerm_linux_function_app` - mark `site_credential` block as `Sensitive` [GH-21393]
 * `azurerm_linux_function_app_slot` - mark `site_credential` block as `Sensitive` [GH-21393]
@@ -17,8 +18,6 @@ ENHANCEMENTS:
 * `azurerm_windows_function_app_slot` - mark `site_credential` block as `Sensitive` [GH-21393]
 * `azurerm_windows_web_app` - mark `site_credential` block as `Sensitive` [GH-21393]
 * `azurerm_windows_web_app_slot` - mark `site_credential` block as `Sensitive` [GH-21393]
-
-
 
 BUG FIXES:
 
