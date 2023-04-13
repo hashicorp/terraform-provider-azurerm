@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -55,11 +57,623 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 
 		"location": commonschema.Location(),
 
-		"configuration_json": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ValidateFunc:     validation.StringIsJSON,
-			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+		//"Alerts/AutomanageStatusChanges/Enable": boolean,
+		"status_change_alert_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		//"Antimalware/Enable": boolean,
+		//"Antimalware/EnableRealTimeProtection": boolean,
+		//"Antimalware/RunScheduledScan": boolean,
+		//"Antimalware/ScanType": string ("Quick", "Full"),
+		//"Antimalware/ScanDay": int (0-8) Ex: 0 - daily, 1 - Sunday, 2 - Monday, .... 7 - Saturday, 8 - Disabled,
+		//"Antimalware/ScanTimeInMinutes": int (0 - 1440),
+		//"Antimalware/Exclusions/Extensions": string (extensions separated by semicolon. Ex: ".ext1;.ext2"),
+		//"Antimalware/Exclusions/Paths": string (Paths separated by semicolon. Ex: "c:\excluded-path-1;c:\excluded-path-2"),
+		//"Antimalware/Exclusions/Processes": string (Processes separated by semicolon. Ex: "proc1.exe;proc2.exe"),
+		"antimalware": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"real_time_protection_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"scheduled_scan_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"scan_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "Quick",
+						ValidateFunc: validation.StringInSlice([]string{
+							"Quick",
+							"Full",
+						}, false),
+					},
+					"scan_day": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Default:  0,
+						ValidateFunc: validation.IntInSlice([]int{
+							0, 1, 2, 3, 4, 5, 6, 7, 8,
+						}),
+					},
+					"scan_time_in_minutes": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntBetween(0, 1440),
+					},
+					"exclusions": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"extensions": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+								},
+								"paths": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+								},
+								"processes": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		//"AutomationAccount/Enable": boolean,
+		"automation_account_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		//"AzureSecurityBaseline/Enable": boolean,
+		//"AzureSecurityBaseline/AssignmentType": string ("ApplyAndAutoCorrect", "ApplyAndMonitor", "Audit", "DeployAndAutoCorrect"),
+		"azure_security_baseline": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"assignment_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "ApplyAndAutoCorrect",
+						ValidateFunc: validation.StringInSlice([]string{
+							"ApplyAndAutoCorrect",
+							"ApplyAndMonitor",
+							"Audit",
+							"DeployAndAutoCorrect",
+						}, false),
+					},
+				},
+			},
+		},
+
+		//"Backup/Enable": boolean,
+		//"Backup/PolicyName": string (length 3 - 150, begin with alphanumeric char, only contain alphanumeric chars and hyphens),
+		//"Backup/TimeZone": timezone,
+		//"Backup/InstantRpRetentionRangeInDays": int (1 - 5 if ScheduleRunFrequency is Daily, 5 if ScheduleRunFrequency is Weekly),
+		//"Backup/SchedulePolicy/ScheduleRunFrequency": string ("Daily", "Weekly"),
+		//"Backup/SchedulePolicy/ScheduleRunTimes": list of DateTime,
+		//"Backup/SchedulePolicy/ScheduleRunDays": list of strings (["Sunday", "Monday", "Wednesday", "Thursday", "Friday", "Saturday"]),
+		//"Backup/SchedulePolicy/SchedulePolicyType": string ("SimpleSchedulePolicy"),
+		//"Backup/RetentionPolicy/RetentionPolicyType": string ("LongTermRetentionPolicy"),
+		//"Backup/RetentionPolicy/DailySchedule/RetentionTimes": list of DateTime,
+		//"Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count": int (7 - 9999),
+		//"Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType": string ("Days"),
+		//"Backup/RetentionPolicy/WeeklySchedule/RetentionTimes":, list of DateTime
+		//"Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count":, int (1 - 5163)
+		//"Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType": string ("Weeks"),
+		"backup": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"policy_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,149}$`), "Policy name must be 3 - 150 characters long, begin with an alphanumeric character, and only contain alphanumeric characters and hyphens."),
+					},
+					"time_zone": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "UTC",
+					},
+					"instant_rp_retention_range_in_days": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      5,
+						ValidateFunc: validation.IntBetween(1, 5),
+					},
+					"schedule_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"schedule_run_frequency": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "Daily",
+									ValidateFunc: validation.StringInSlice([]string{
+										"Daily",
+										"Weekly",
+									}, false),
+								},
+								"schedule_run_times": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.IsRFC3339Time,
+									},
+								},
+								"schedule_run_days": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Sunday",
+											"Monday",
+											"Tuesday",
+											"Wednesday",
+											"Thursday",
+											"Friday",
+											"Saturday",
+										}, false),
+									},
+								},
+								"schedule_policy_type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "SimpleSchedulePolicy",
+									ValidateFunc: validation.StringInSlice([]string{
+										"SimpleSchedulePolicy",
+									}, false),
+								},
+							},
+						},
+					},
+					"retention_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"retention_policy_type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "LongTermRetentionPolicy",
+									ValidateFunc: validation.StringInSlice([]string{
+										"LongTermRetentionPolicy",
+									}, false),
+								},
+								"daily_schedule": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"retention_times": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.IsRFC3339Time,
+												},
+											},
+											"retention_duration": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												MaxItems: 1,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"count": {
+															Type:         pluginsdk.TypeInt,
+															Optional:     true,
+															Default:      7,
+															ValidateFunc: validation.IntBetween(7, 9999),
+														},
+														"duration_type": {
+															Type:     pluginsdk.TypeString,
+															Optional: true,
+															Default:  "Days",
+															ValidateFunc: validation.StringInSlice([]string{
+																"Days",
+															}, false),
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+								"weekly_schedule": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"retention_times": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.IsRFC3339Time,
+												},
+											},
+											"retention_duration": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												MaxItems: 1,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"count": {
+															Type:         pluginsdk.TypeInt,
+															Optional:     true,
+															Default:      4,
+															ValidateFunc: validation.IntBetween(4, 9999),
+														},
+														"duration_type": {
+															Type:     pluginsdk.TypeString,
+															Optional: true,
+															Default:  "Weeks",
+															ValidateFunc: validation.StringInSlice([]string{
+																"Weeks",
+															}, false),
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		//"BootDiagnostics/Enable": boolean,
+		"boot_diagnostics_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		//"ChangeTrackingAndInventory/Enable": boolean,
+		"change_tracking_and_inventory_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		// "DefenderForCloud/Enable": boolean,
+		"defender_for_cloud_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+		//"GuestConfiguration/Enable": boolean,
+		"guest_configuration_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		//"LogAnalytics/Enable": boolean,
+		//"LogAnalytics/Reprovision": boolean,
+		//"LogAnalytics/Workspace": resource ID (Log analytics workspace ID),
+		"log_analytics": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"reprovision": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"workspace_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+				},
+			},
+		},
+
+		//"TrustedLaunchVM/Backup/Enable": boolean,
+		//"TrustedLaunchVM/Backup/PolicyName": string (length 3 - 150, begin with alphanumeric char, only contain alphanumeric chars and hyphens),
+		//"TrustedLaunchVM/Backup/TimeZone": timezone,
+		//"TrustedLaunchVM/Backup/InstantRpRetentionRangeInDays": int (1 - 30),
+		//"TrustedLaunchVM/Backup/SchedulePolicy/ScheduleRunFrequency": string ("Hourly", "Daily", "Weekly"),
+		//"TrustedLaunchVM/Backup/SchedulePolicy/SchedulePolicyType": string ("SimpleSchedulePolicyV2"),
+		//"TrustedLaunchVM/Backup/RetentionPolicy/RetentionPolicyType":, string ("LongTermRetentionPolicy")
+		//"TrustedLaunchVM/Backup/SchedulePolicy/HourlySchedule/Interval": int (4, 6, 8, 12),
+		//"TrustedLaunchVM/Backup/SchedulePolicy/HourlySchedule/ScheduleWindowStartTime": DateTime,
+		//"TrustedLaunchVM/Backup/SchedulePolicy/HourlySchedule/ScheduleWindowDuration": int (4, 8, 12, 16, 20, 24),
+		//"TrustedLaunchVM/Backup/RetentionPolicy/DailySchedule/RetentionTimes": list of DateTime,
+		//"TrustedLaunchVM/Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count": int (7 - 9999),
+		//"TrustedLaunchVM/Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType": string ("Hours", "Days"),
+		//"TrustedLaunchVM/Backup/SchedulePolicy/DailySchedule/ScheduleWindowStartTime": DateTime,
+		//"TrustedLaunchVM/Backup/SchedulePolicy/WeeklySchedule/ScheduleRunDays": list of strings (["Sunday", "Monday", "Wednesday", "Thursday", "Friday", "Saturday"]),
+		//"TrustedLaunchVM/Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count": int (1 - 1563),
+		//"TrustedLaunchVM/Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType": string ("Weeks"),
+		"trusted_launch_vm_backup": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"policy_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,149}$`), "policy name must be 3 - 150 characters long, begin with an alphanumeric character, and only contain alphanumeric characters and hyphens"),
+					},
+					"time_zone": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "UTC",
+					},
+					"instant_rp_retention_range_in_days": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      30,
+						ValidateFunc: validation.IntBetween(1, 30),
+					},
+					"schedule_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"schedule_run_frequency": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "Daily",
+									ValidateFunc: validation.StringInSlice([]string{
+										"Hourly",
+										"Daily",
+										"Weekly",
+									}, false),
+								},
+								"schedule_policy_type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "SimpleSchedulePolicyV2",
+									ValidateFunc: validation.StringInSlice([]string{
+										"SimpleSchedulePolicyV2",
+									}, false),
+								},
+								"hourly_schedule": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"interval": {
+												Type:         pluginsdk.TypeInt,
+												Optional:     true,
+												Default:      4,
+												ValidateFunc: validation.IntInSlice([]int{4, 6, 8, 12}),
+											},
+											"schedule_window_start_time": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.IsRFC3339Time,
+											},
+											"schedule_window_duration": {
+												Type:         pluginsdk.TypeInt,
+												Optional:     true,
+												Default:      4,
+												ValidateFunc: validation.IntInSlice([]int{4, 8, 12, 16, 20, 24}),
+											},
+										},
+									},
+								},
+								"daily_schedule": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"schedule_window_start_time": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.IsRFC3339Time,
+											},
+										},
+									},
+								},
+								"weekly_schedule": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"schedule_run_days": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice([]string{
+														"Sunday",
+														"Monday",
+														"Tuesday",
+														"Wednesday",
+														"Thursday",
+														"Friday",
+														"Saturday",
+													}, false),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					"retention_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"retention_policy_type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "LongTermRetentionPolicy",
+									ValidateFunc: validation.StringInSlice([]string{
+										"LongTermRetentionPolicy",
+									}, false),
+								},
+								"daily_schedule": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"retention_times": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.IsRFC3339Time,
+												},
+											},
+											"retention_duration": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												MaxItems: 1,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"count": {
+															Type:         pluginsdk.TypeInt,
+															Optional:     true,
+															Default:      7,
+															ValidateFunc: validation.IntBetween(7, 9999),
+														},
+														"duration_type": {
+															Type:     pluginsdk.TypeString,
+															Optional: true,
+															Default:  "Days",
+															ValidateFunc: validation.StringInSlice([]string{
+																"Days",
+															}, false),
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+								"weekly_schedule": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"retention_duration": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												MaxItems: 1,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"count": {
+															Type:         pluginsdk.TypeInt,
+															Optional:     true,
+															Default:      4,
+															ValidateFunc: validation.IntBetween(4, 9999),
+														},
+														"duration_type": {
+															Type:     pluginsdk.TypeString,
+															Optional: true,
+															Default:  "Weeks",
+															ValidateFunc: validation.StringInSlice([]string{
+																"Weeks",
+															}, false),
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		//"UpdateManagement/Enable": boolean,
+		"update_management_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		//"VMInsights/Enable": boolean,
+		"vm_insights_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		//"WindowsAdminCenter/Enable": boolean,
+		"windows_admin_center_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"tags": commonschema.Tags(),
@@ -221,6 +835,29 @@ func (r AutoManageConfigurationResource) Delete() sdk.ResourceFunc {
 			}
 
 			return nil
+		},
+	}
+}
+
+func backupResourceSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"backup_retention_days": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(7, 9999),
+				},
+
+				"storage_account_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+			},
 		},
 	}
 }
