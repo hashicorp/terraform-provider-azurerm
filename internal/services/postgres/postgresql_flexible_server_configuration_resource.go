@@ -136,10 +136,7 @@ func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta int
 
 	d.Set("name", id.ConfigurationName)
 	d.Set("server_id", configurations.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.FlexibleServerName).ID())
-
-	if resp.Model != nil && resp.Model.Properties != nil {
-		d.Set("value", resp.Model.Properties.Value)
-	}
+	d.Set("value", d.Get("value").(string))
 
 	return nil
 }

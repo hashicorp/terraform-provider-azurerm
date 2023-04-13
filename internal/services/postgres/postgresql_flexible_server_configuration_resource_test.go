@@ -29,7 +29,7 @@ func TestAccFlexibleServerConfiguration_backslashQuote(t *testing.T) {
 				check.That(data.ResourceName).Key("value").HasValue("on"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("value"),
 		{
 			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -52,7 +52,7 @@ func TestAccFlexibleServerConfiguration_azureExtensions(t *testing.T) {
 				check.That(data.ResourceName).Key("value").HasValue("CUBE,CITEXT,BTREE_GIST"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("value"),
 		{
 			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -75,7 +75,7 @@ func TestAccFlexibleServerConfiguration_pgbouncerEnabled(t *testing.T) {
 				check.That(data.ResourceName).Key("value").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("value"),
 		{
 			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -98,7 +98,7 @@ func TestAccFlexibleServerConfiguration_updateApplicationName(t *testing.T) {
 				check.That(data.ResourceName).Key("value").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("value"),
 		{
 			Config: r.basic(data, name, "false"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -155,7 +155,7 @@ func TestAccFlexibleServerConfiguration_multiplePostgresqlFlexibleServerConfigur
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("value"),
 	})
 }
 
@@ -172,7 +172,7 @@ func TestAccFlexibleServerConfiguration_restartServerForStaticParameters(t *test
 				check.That(data.ResourceName).Key("value").HasValue("5"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("value"),
 		{
 			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
