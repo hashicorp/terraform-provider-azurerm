@@ -24,6 +24,7 @@ BUG FIXES:
 
 * `azurerm_app_configuration_key` - extend Timeout for polling resource to allow propagation of read permission [GH-21337]
 * `azurerm_app_configuration_feature` - extend Timeout for polling resource to allow propagation of read permission [GH-21337]
+* `azurerm_cdn_endpoint` - `global_delivery_rule` must have at least one action must be specified [GH-21403]
 * `azurerm_kubernetes_cluster` - set `enable_host_encryption` properly when resizing the `default_node_pool` [GH-21379]
 * `azurerm_linux_function_app` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
 * `azurerm_linux_function_app_slot` - fix crash in `auth_v2` in `active_directory_v2` [GH-21381]
