@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `containerRegistry` - refactoring to use `hashicorp/go-azure-sdk` [GH-21344]
+* `monitor` - refactoring to use `hashicorp/go-azure-sdk` [GH-21392]
 * `recoveryServices` - refactoring to use `hashicorp/go-azure-sdk` [GH-21344]
 * `azurerm_dashboard_grafana`: add support for `UserAssigned` identity [GH-21394]
 * Data Source: `azurerm_key_vault_certificate` - add support for `resource_manager_id` and `resource_manager_versionless_id` [GH-21314]
