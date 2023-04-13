@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * `containerRegistry` - refactoring to use `hashicorp/go-azure-sdk` [GH-21344]
 * `recoveryServices` - refactoring to use `hashicorp/go-azure-sdk` [GH-21344]
 * Data Source: `azurerm_key_vault_certificate` - add support for `resource_manager_id` and `resource_manager_versionless_id` [GH-21314]
+* Data Source: `azurerm_key_vault_secret` add support for `not_before_date` and `expiration_date` [GH-21359]
 * `azurerm_key_vault_certificate` - add support for `resource_manager_id` and `resource_manager_versionless_id` [GH-21314]
 
 BUG FIXES:
