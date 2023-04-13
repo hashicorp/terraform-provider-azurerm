@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-03-01-preview/appplatform"
 )
 
 func resourceSpringCloudService() *pluginsdk.Resource {
@@ -322,6 +322,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
 	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
+	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -413,6 +414,17 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if size := d.Get("build_agent_pool_size").(string); len(size) > 0 {
+		buildResource := appplatform.BuildService{
+			Properties: &appplatform.BuildServiceProperties{},
+		}
+		buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default", buildResource)
+		if err != nil {
+			return fmt.Errorf("creating build service %s: %+v", id, err)
+		}
+		if err := buildServiceCreateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation build service of %s: %+v", id, err)
+		}
+
 		agentPoolResource := appplatform.BuildServiceAgentPoolResource{
 			Properties: &appplatform.BuildServiceAgentPoolProperties{
 				PoolSize: &appplatform.BuildServiceAgentPoolSizeProperties{
@@ -439,6 +451,7 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
 	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
+	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -521,6 +534,22 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if size := d.Get("build_agent_pool_size").(string); len(size) > 0 {
+		resp, err := buildServiceClient.GetBuildService(ctx, id.ResourceGroup, id.SpringName, "default")
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				buildResource := appplatform.BuildService{
+					Properties: &appplatform.BuildServiceProperties{},
+				}
+				buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default", buildResource)
+				if err != nil {
+					return fmt.Errorf("creating build service of %s: %+v", id, err)
+				}
+				if err := buildServiceCreateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting for creation build service of %s: %+v", id, err)
+				}
+			}
+			return fmt.Errorf("retrieving build service of %s: %+v", id, err)
+		}
 		agentPoolResource := appplatform.BuildServiceAgentPoolResource{
 			Properties: &appplatform.BuildServiceAgentPoolProperties{
 				PoolSize: &appplatform.BuildServiceAgentPoolSizeProperties{
