@@ -1,8 +1,8 @@
 package appservice
 
 import (
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web" // nolint: staticcheck
 )
 
 func expandIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
