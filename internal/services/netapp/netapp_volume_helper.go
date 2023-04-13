@@ -852,8 +852,8 @@ func translateSDKSchedule(scheduleName string) string {
 
 func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolumeProperties, applicationType volumegroups.ApplicationType) []error {
 	errors := make([]error, 0)
-	requiredVolumes := make([]string, 0)
 	volumeSpecRepeatCount := make(map[string]int)
+
 	if applicationType == volumegroups.ApplicationTypeSAPNegativeHANA {
 
 		// Validating maximum number of volumes
@@ -925,18 +925,15 @@ func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolu
 				errors = append(errors, fmt.Errorf("'%v volume spec type must have PPG defined for %v on volume %v'", *volume.Properties.VolumeSpecName, applicationType, *volume.Name))
 			}
 
-			// Adding volume to required volumes list for checking if all required volumes are present after the loop, total of 2 for SAP HANA
-			if strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaData)) || strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaLog)) {
-				requiredVolumes = append(requiredVolumes, *volume.Properties.VolumeSpecName)
-			}
-
 			// Adding volume spec name to hashmap for post volume loop check
 			volumeSpecRepeatCount[*volume.Properties.VolumeSpecName] += 1
 		}
 
-		// Validating required volumes
-		if len(requiredVolumes) != 2 {
-			errors = append(errors, fmt.Errorf("'required volume spec types are not present for %v, missing ones: %v'", applicationType, diffSliceString(requiredVolumes, RequiredVolumesForSAPHANA())))
+		// Validating required volume spec types
+		for _, requiredVolumeSpec := range RequiredVolumesForSAPHANA() {
+			if _, ok := volumeSpecRepeatCount[requiredVolumeSpec]; !ok {
+				errors = append(errors, fmt.Errorf("'required volume spec type %v is not present for %v'", requiredVolumeSpec, applicationType))
+			}
 		}
 
 		// Validating that volume spec does not repeat
