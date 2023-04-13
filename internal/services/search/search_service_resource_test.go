@@ -255,13 +255,13 @@ func TestAccSearchService_replicaCountInvalid(t *testing.T) {
 	})
 }
 
-func TestAccSearchService_cmkEnforcement(t *testing.T) {
+func TestAccSearchService_customerManagedKeyEnforcement(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	r := SearchServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cmkEnforcement(data, true),
+			Config: r.customerManagedKeyEnforcement(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -270,13 +270,13 @@ func TestAccSearchService_cmkEnforcement(t *testing.T) {
 	})
 }
 
-func TestAccSearchService_cmkEnforcementUpdate(t *testing.T) {
+func TestAccSearchService_customerManagedKeyEnforcementUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	r := SearchServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// This should create a Search Service with the default 'cmk_enforcement_enabled' value of 'false'...
+			// This should create a Search Service with the default 'customer_managed_key_enforcement_enabled' value of 'false'...
 			Config: r.basic(data, "standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -284,14 +284,14 @@ func TestAccSearchService_cmkEnforcementUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.cmkEnforcement(data, false),
+			Config: r.customerManagedKeyEnforcement(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.cmkEnforcement(data, true),
+			Config: r.customerManagedKeyEnforcement(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -443,8 +443,8 @@ resource "azurerm_search_service" "test" {
   replica_count       = 2
   partition_count     = 3
 
-  public_network_access_enabled = false
-  cmk_enforcement_enabled       = false
+  public_network_access_enabled            = false
+  customer_managed_key_enforcement_enabled = false
 
   tags = {
     environment = "Production"
@@ -565,7 +565,7 @@ resource "azurerm_search_service" "test" {
 `, template, data.RandomInteger, sku, count)
 }
 
-func (r SearchServiceResource) cmkEnforcement(data acceptance.TestData, enforceCmk bool) string {
+func (r SearchServiceResource) customerManagedKeyEnforcement(data acceptance.TestData, enforceCustomerManagedKey bool) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -580,13 +580,13 @@ resource "azurerm_search_service" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
 
-  cmk_enforcement_enabled = %t
+  customer_managed_key_enforcement_enabled = %t
 
   tags = {
     environment = "staging"
   }
 }
-`, template, data.RandomInteger, enforceCmk)
+`, template, data.RandomInteger, enforceCustomerManagedKey)
 }
 
 func (r SearchServiceResource) apiAccessControlApiKeysOrRBAC(data acceptance.TestData, localAuthenticationDisabled bool) string {
@@ -629,7 +629,7 @@ resource "azurerm_search_service" "test" {
   sku                 = "standard"
 
   local_authentication_disabled = %t
-  authentication_failure_mode   = %s
+  authentication_failure_mode   = "%s"
 
   tags = {
     environment = "staging"
