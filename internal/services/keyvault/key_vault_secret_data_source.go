@@ -46,6 +46,16 @@ func dataSourceKeyVaultSecret() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"not_before_date": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"expiration_date": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -110,6 +120,14 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("value", resp.Value)
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
+	if attributes := resp.Attributes; attributes != nil {
+		if notBefore := attributes.NotBefore; notBefore != nil {
+			d.Set("not_before_date", time.Time(*notBefore).Format(time.RFC3339))
+		}
+		if expires := attributes.Expires; expires != nil {
+			d.Set("expiration_date", time.Time(*expires).Format(time.RFC3339))
+		}
+	}
 	d.Set("versionless_id", respID.VersionlessID())
 
 	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, respID.Name, respID.Version).ID())

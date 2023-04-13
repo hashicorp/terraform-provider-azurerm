@@ -40,6 +40,8 @@ func TestAccDataSourceKeyVaultSecret_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
 				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkv-%s.vault.azure.net/secrets/secret-%s", data.RandomString, data.RandomString)),
+				check.That(data.ResourceName).Key("not_before_date").HasValue("2019-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("expiration_date").HasValue("2020-01-01T01:02:03Z"),
 			),
 		},
 	})
