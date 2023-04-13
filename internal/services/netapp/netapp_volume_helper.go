@@ -428,7 +428,7 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 		// Getting volume resource directly from standalone volume
 		// since VolumeGroup Volumes don't return DataProtection information
 		volumeClient := metadata.Client.NetApp.VolumeClient
-		id, err := volumes.ParseVolumeID(*item.Id)
+		id, err := volumes.ParseVolumeID(pointer.From(item.Id))
 		if err != nil {
 			return []NetAppVolumeGroupVolume{}, err
 		}
