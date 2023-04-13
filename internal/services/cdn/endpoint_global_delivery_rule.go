@@ -1,8 +1,6 @@
 package cdn
 
 import (
-	"fmt"
-
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/deliveryruleactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -18,43 +16,49 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"cache_expiration_action": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem:     deliveryruleactions.CacheExpiration(),
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					MaxItems:     1,
+					Elem:         deliveryruleactions.CacheExpiration(),
+					AtLeastOneOf: []string{"global_delivery_rule.0.cache_expiration_action", "global_delivery_rule.0.cache_key_query_string_action", "global_delivery_rule.0.modify_request_header_action", "global_delivery_rule.0.modify_response_header_action", "global_delivery_rule.0.url_redirect_action", "global_delivery_rule.0.url_rewrite_action"},
 				},
 
 				"cache_key_query_string_action": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem:     deliveryruleactions.CacheKeyQueryString(),
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					MaxItems:     1,
+					Elem:         deliveryruleactions.CacheKeyQueryString(),
+					AtLeastOneOf: []string{"global_delivery_rule.0.cache_expiration_action", "global_delivery_rule.0.cache_key_query_string_action", "global_delivery_rule.0.modify_request_header_action", "global_delivery_rule.0.modify_response_header_action", "global_delivery_rule.0.url_redirect_action", "global_delivery_rule.0.url_rewrite_action"},
 				},
 
 				"modify_request_header_action": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem:     deliveryruleactions.ModifyRequestHeader(),
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					Elem:         deliveryruleactions.ModifyRequestHeader(),
+					AtLeastOneOf: []string{"global_delivery_rule.0.cache_expiration_action", "global_delivery_rule.0.cache_key_query_string_action", "global_delivery_rule.0.modify_request_header_action", "global_delivery_rule.0.modify_response_header_action", "global_delivery_rule.0.url_redirect_action", "global_delivery_rule.0.url_rewrite_action"},
 				},
 
 				"modify_response_header_action": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem:     deliveryruleactions.ModifyResponseHeader(),
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					Elem:         deliveryruleactions.ModifyResponseHeader(),
+					AtLeastOneOf: []string{"global_delivery_rule.0.cache_expiration_action", "global_delivery_rule.0.cache_key_query_string_action", "global_delivery_rule.0.modify_request_header_action", "global_delivery_rule.0.modify_response_header_action", "global_delivery_rule.0.url_redirect_action", "global_delivery_rule.0.url_rewrite_action"},
 				},
 
 				"url_redirect_action": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem:     deliveryruleactions.URLRedirect(),
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					MaxItems:     1,
+					Elem:         deliveryruleactions.URLRedirect(),
+					AtLeastOneOf: []string{"global_delivery_rule.0.cache_expiration_action", "global_delivery_rule.0.cache_key_query_string_action", "global_delivery_rule.0.modify_request_header_action", "global_delivery_rule.0.modify_response_header_action", "global_delivery_rule.0.url_redirect_action", "global_delivery_rule.0.url_rewrite_action"},
 				},
 
 				"url_rewrite_action": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem:     deliveryruleactions.URLRewrite(),
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					MaxItems:     1,
+					Elem:         deliveryruleactions.URLRewrite(),
+					AtLeastOneOf: []string{"global_delivery_rule.0.cache_expiration_action", "global_delivery_rule.0.cache_key_query_string_action", "global_delivery_rule.0.modify_request_header_action", "global_delivery_rule.0.modify_response_header_action", "global_delivery_rule.0.url_redirect_action", "global_delivery_rule.0.url_rewrite_action"},
 				},
 			},
 		},
@@ -70,10 +74,6 @@ func expandArmCdnEndpointGlobalDeliveryRule(rule map[string]interface{}) (*cdn.D
 	actions, err := expandDeliveryRuleActions(rule)
 	if err != nil {
 		return nil, err
-	}
-
-	if len(actions) == 0 {
-		return nil, fmt.Errorf("must have at least one action specified")
 	}
 	deliveryRule.Actions = &actions
 
