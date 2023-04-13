@@ -13,23 +13,32 @@ import (
 // however we need to determine the correct value to normalize too
 
 func certificatePermissions() []string {
+	return append(certificatePermissionsManagement(), certificatePermissionsPrivileged()...)
+}
+
+func certificatePermissionsManagement() []string {
 	return []string{
-		"Backup",
-		"Create",
-		"Delete",
-		"DeleteIssuers",
 		"Get",
-		"GetIssuers",
-		"Import",
 		"List",
-		"ListIssuers",
+		"Update",
+		"Create",
+		"Import",
+		"Delete",
+		"Recover",
+		"Backup",
+		"Restore",
 		"ManageContacts",
 		"ManageIssuers",
-		"Purge",
-		"Recover",
-		"Restore",
+		"GetIssuers",
+		"ListIssuers",
 		"SetIssuers",
-		"Update",
+		"DeleteIssuers",
+	}
+}
+
+func certificatePermissionsPrivileged() []string {
+	return []string{
+		"Purge",
 	}
 }
 
@@ -44,24 +53,47 @@ func flattenCertificatePermission(input string) string {
 }
 
 func keyPermissions() []string {
+	permissions := keyPermissionsManagement()
+	permissions = append(permissions, keyPermissionsCryptographic()...)
+	permissions = append(permissions, keyPermissionsPrivileged()...)
+	permissions = append(permissions, keyPermissionsRotationPolicy()...)
+	return permissions
+}
+
+func keyPermissionsManagement() []string {
 	return []string{
-		"Backup",
-		"Create",
-		"Decrypt",
-		"Delete",
-		"Encrypt",
 		"Get",
-		"Import",
 		"List",
-		"Purge",
-		"Recover",
-		"Restore",
-		"Sign",
-		"UnwrapKey",
 		"Update",
-		"Verify",
+		"Create",
+		"Import",
+		"Delete",
+		"Recover",
+		"Backup",
+		"Restore",
+	}
+}
+
+func keyPermissionsCryptographic() []string {
+	return []string{
+		"Decrypt",
+		"Encrypt",
+		"UnwrapKey",
 		"WrapKey",
+		"Verify",
+		"Sign",
+	}
+}
+
+func keyPermissionsPrivileged() []string {
+	return []string{
+		"Purge",
 		"Release",
+	}
+}
+
+func keyPermissionsRotationPolicy() []string {
+	return []string{
 		"Rotate",
 		"GetRotationPolicy",
 		"SetRotationPolicy",
@@ -79,15 +111,24 @@ func flattenKeyPermission(input string) string {
 }
 
 func secretPermissions() []string {
+	return append(secretPermissionsManagement(), secretPermissionsPrivileged()...)
+}
+
+func secretPermissionsManagement() []string {
 	return []string{
-		"Backup",
-		"Delete",
 		"Get",
 		"List",
-		"Purge",
-		"Recover",
-		"Restore",
 		"Set",
+		"Delete",
+		"Recover",
+		"Backup",
+		"Restore",
+	}
+}
+
+func secretPermissionsPrivileged() []string {
+	return []string{
+		"Purge",
 	}
 }
 
