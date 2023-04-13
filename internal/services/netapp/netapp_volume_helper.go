@@ -446,7 +446,7 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 			volumeGroupVolume.DataProtectionSnapshotPolicy = flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(standaloneVol.Model.Properties.DataProtection.Snapshot)
 		}
 
-		volumeGroupVolume.Id = *standaloneVol.Model.Id
+		volumeGroupVolume.Id = pointer.From(standaloneVol.Model.Id)
 
 		results = append(results, volumeGroupVolume)
 	}
