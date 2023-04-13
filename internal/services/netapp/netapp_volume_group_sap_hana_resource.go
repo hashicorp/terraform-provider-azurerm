@@ -323,7 +323,7 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 
 			applicationType := volumegroups.ApplicationTypeSAPNegativeHANA
 
-			volumeList, err := expandNetAppVolumeGroupVolumes(model.Volumes, id)
+			volumeList, err := expandNetAppVolumeGroupVolumes(model.Volumes)
 			if err != nil {
 				return err
 			}

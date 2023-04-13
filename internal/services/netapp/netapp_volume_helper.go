@@ -220,7 +220,7 @@ func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []DataProtectionS
 	}
 }
 
-func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegroups.VolumeGroupId) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
+func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
 	if len(input) == 0 || input == nil {
 		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupVolume slice")
 	}
@@ -966,16 +966,6 @@ func validateNetAppVolumeGroupExportPolicyRule(rule volumegroups.ExportPolicyRul
 	}
 
 	return errors
-}
-
-func diffSliceString(slice1, slice2 []string) []string {
-	var diff []string
-	for _, v := range slice2 {
-		if !FindStringInSlice(slice1, v) {
-			diff = append(diff, v)
-		}
-	}
-	return diff
 }
 
 func FindStringInSlice(slice []string, val string) bool {
