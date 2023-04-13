@@ -408,7 +408,7 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 		volumeGroupVolume.SecurityStyle = string(*props.SecurityStyle)
 		volumeGroupVolume.SnapshotDirectoryVisible = *props.SnapshotDirectoryVisible
 		volumeGroupVolume.ThroughputInMibps = pointer.From(props.ThroughputMibps)
-		volumeGroupVolume.Tags = *item.Tags
+		volumeGroupVolume.Tags = pointer.From(item.Tags)
 		volumeGroupVolume.ProximityPlacementGroupId = utils.NormalizeNilableString(props.ProximityPlacementGroup)
 		volumeGroupVolume.VolumeSpecName = *props.VolumeSpecName
 
