@@ -194,14 +194,14 @@ func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta i
 	// If there is no `enabled` log entry, the PUT will succeed while the next GET will return a 404.
 	// Therefore, ensure users has at least one enabled log entry.
 	valid := false
-	logs := []aad.LogSettings{}
+	var logs []aad.LogSettings
 
 	if !features.FourPointOhBeta() {
 		if logsRaw, ok := d.GetOk("log"); ok && len(logsRaw.(*pluginsdk.Set).List()) > 0 {
 			logs = expandMonitorAADDiagnosticsSettingsLogs(d.Get("log").(*pluginsdk.Set).List())
 
-			for _, log := range logs {
-				if log.Enabled != nil && *log.Enabled {
+			for _, v := range logs {
+				if v.Enabled != nil && *v.Enabled {
 					valid = true
 					break
 				}
@@ -266,7 +266,7 @@ func resourceMonitorAADDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	logs := []aad.LogSettings{}
+	var logs []aad.LogSettings
 	logsChanged := false
 	valid := false
 
@@ -274,8 +274,8 @@ func resourceMonitorAADDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta i
 		if d.HasChange("log") {
 			logsChanged = true
 			logs = expandMonitorAADDiagnosticsSettingsLogs(d.Get("log").(*pluginsdk.Set).List())
-			for _, log := range logs {
-				if log.Enabled != nil && *log.Enabled {
+			for _, v := range logs {
+				if v.Enabled != nil && *v.Enabled {
 					valid = true
 					break
 				}
@@ -291,8 +291,8 @@ func resourceMonitorAADDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta i
 
 	if !logsChanged && existing.Logs != nil {
 		logs = *existing.Logs
-		for _, log := range logs {
-			if log.Enabled != nil && *log.Enabled {
+		for _, v := range logs {
+			if v.Enabled != nil && *v.Enabled {
 				valid = true
 				break
 			}
