@@ -105,7 +105,7 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"identity": commonschema.SystemOrUserAssignedIdentityRequiredForceNew(),
+		"identity": commonschema.SystemOrUserAssignedIdentityOptionalForceNew(),
 
 		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
