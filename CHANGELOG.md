@@ -7,6 +7,15 @@ ENHANCEMENTS:
 * Data Source: `azurerm_key_vault_certificate` - add support for `resource_manager_id` and `resource_manager_versionless_id` [GH-21314]
 * Data Source: `azurerm_key_vault_secret` add support for `not_before_date` and `expiration_date` [GH-21359]
 * `azurerm_key_vault_certificate` - add support for `resource_manager_id` and `resource_manager_versionless_id` [GH-21314]
+* `azurerm_linux_function_app` - mark `site_credential` block as `Sensitive` [GH-21393]
+* `azurerm_linux_function_app_slot` - mark `site_credential` block as `Sensitive` [GH-21393]
+* `azurerm_linux_web_app` - mark `site_credential` block as `Sensitive` [GH-21393]
+* `azurerm_linux_web_app_slot`  - mark `site_credential` block as `Sensitive` [GH-21393]
+* `azurerm_windows_function_app` - mark `site_credential` block as `Sensitive` [GH-21393]
+* `azurerm_windows_function_app_slot` - mark `site_credential` block as `Sensitive` [GH-21393]
+* `azurerm_windows_web_app` - mark `site_credential` block as `Sensitive` [GH-21393]
+* `azurerm_windows_web_app_slot` - mark `site_credential` block as `Sensitive` [GH-21393]
+
 
 BUG FIXES:
 
