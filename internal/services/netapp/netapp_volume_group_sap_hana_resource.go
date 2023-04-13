@@ -110,7 +110,7 @@ func (r NetAppVolumeGroupSapHanaResource) Arguments() map[string]*pluginsdk.Sche
 
 					"proximity_placement_group_id": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: azure.ValidateResourceID,
 					},

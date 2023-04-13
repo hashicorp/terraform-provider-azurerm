@@ -216,7 +216,6 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     service_level                = "Standard"
     capacity_pool_id             = azurerm_netapp_pool.test.id
     subnet_id                    = azurerm_subnet.test.id
-    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
     volume_spec_name             = "data-backup"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
@@ -246,7 +245,6 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     service_level                = "Standard"
     capacity_pool_id             = azurerm_netapp_pool.test.id
     subnet_id                    = azurerm_subnet.test.id
-    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
     volume_spec_name             = "log-backup"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
@@ -419,7 +417,6 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     service_level                = "Standard"
     capacity_pool_id             = azurerm_netapp_pool.test.id
     subnet_id                    = azurerm_subnet.test.id
-    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
     volume_spec_name             = "data-backup"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
@@ -453,7 +450,6 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     service_level                = "Standard"
     capacity_pool_id             = azurerm_netapp_pool.test.id
     subnet_id                    = azurerm_subnet.test.id
-    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
     volume_spec_name             = "log-backup"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
@@ -598,7 +594,6 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     service_level                = "Standard"
     capacity_pool_id             = azurerm_netapp_pool.test.id
     subnet_id                    = azurerm_subnet.test.id
-    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
     volume_spec_name             = "data-backup"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
@@ -628,7 +623,6 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     service_level                = "Standard"
     capacity_pool_id             = azurerm_netapp_pool.test.id
     subnet_id                    = azurerm_subnet.test.id
-    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
     volume_spec_name             = "log-backup"
     storage_quota_in_gb          = 1200
     throughput_in_mibps          = 24
@@ -947,7 +941,6 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
     service_level                = "Standard"
     capacity_pool_id             = azurerm_netapp_pool.test_secondary.id
     subnet_id                    = azurerm_subnet.test_secondary.id
-    proximity_placement_group_id = azurerm_proximity_placement_group.test_secondary.id
     volume_spec_name             = "data-backup"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
@@ -984,7 +977,6 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
     service_level                = "Standard"
     capacity_pool_id             = azurerm_netapp_pool.test_secondary.id
     subnet_id                    = azurerm_subnet.test_secondary.id
-    proximity_placement_group_id = azurerm_proximity_placement_group.test_secondary.id
     volume_spec_name             = "log-backup"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24

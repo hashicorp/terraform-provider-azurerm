@@ -187,7 +187,7 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []ExportPolicyRule) *vo
 }
 
 func expandNetAppVolumeGroupDataProtectionReplication(input []DataProtectionReplication) *volumegroups.VolumePropertiesDataProtection {
-	if len(input) == 0 {
+	if len(input) == 0 || input == nil {
 		return &volumegroups.VolumePropertiesDataProtection{}
 	}
 
@@ -221,7 +221,7 @@ func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []DataProtectionS
 }
 
 func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegroups.VolumeGroupId) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
-	if len(input) == 0 {
+	if len(input) == 0 || input == nil {
 		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupVolume slice")
 	}
 
@@ -237,6 +237,7 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegr
 		snapshotDirectoryVisible := item.SnapshotDirectoryVisible
 		securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
 		storageQuotaInGB := item.StorageQuotaInGB * 1073741824
+		proximityPlacementGroupId := utils.NormalizeNilableString(&item.ProximityPlacementGroupId)
 		exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy)
 		dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication)
 		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
@@ -254,7 +255,7 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegr
 				ExportPolicy:             exportPolicyRule,
 				SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
-				ProximityPlacementGroup:  utils.String(item.ProximityPlacementGroupId),
+				ProximityPlacementGroup:  &proximityPlacementGroupId,
 				VolumeSpecName:           utils.String(item.VolumeSpecName),
 				DataProtection: &volumegroups.VolumePropertiesDataProtection{
 					Replication: dataProtectionReplication.Replication,
@@ -852,6 +853,7 @@ func translateSDKSchedule(scheduleName string) string {
 func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolumeProperties, applicationType volumegroups.ApplicationType) []error {
 	errors := make([]error, 0)
 	requiredVolumes := make([]string, 0)
+	volumeSpecRepeatCount := make(map[string]int)
 	if applicationType == volumegroups.ApplicationTypeSAPNegativeHANA {
 
 		// Validating maximum number of volumes
@@ -889,11 +891,6 @@ func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolu
 				}
 			}
 
-			// Adding volume to required volumes list for checking if all required volumes are present, total of 2 for SAP HANA
-			if strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaData)) || strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaLog)) {
-				requiredVolumes = append(requiredVolumes, *volume.Properties.VolumeSpecName)
-			}
-
 			// Checking CRR rule that log cannot be DataProtection type
 			if strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaLog)) &&
 				volume.Properties.DataProtection != nil &&
@@ -910,10 +907,43 @@ func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolu
 
 				errors = append(errors, fmt.Errorf("'snapshot policy cannot be enabled on a data protection volume for %v on volume %v'", applicationType, *volume.Name))
 			}
+
+			// Validating that data-backup and log-backup don't have PPG defined
+			if (strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaDataBackup)) ||
+				strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaLogBackup))) &&
+				utils.NormalizeNilableString(volume.Properties.ProximityPlacementGroup) != "" {
+
+				errors = append(errors, fmt.Errorf("'%v volume spec type cannot have PPG defined for %v on volume %v'", *volume.Properties.VolumeSpecName, applicationType, *volume.Name))
+			}
+
+			// Validating that data, log and shared have PPG defined.
+			if (strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaData)) ||
+				strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaLog)) ||
+				strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaShared))) &&
+				utils.NormalizeNilableString(volume.Properties.ProximityPlacementGroup) == "" {
+
+				errors = append(errors, fmt.Errorf("'%v volume spec type must have PPG defined for %v on volume %v'", *volume.Properties.VolumeSpecName, applicationType, *volume.Name))
+			}
+
+			// Adding volume to required volumes list for checking if all required volumes are present after the loop, total of 2 for SAP HANA
+			if strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaData)) || strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaLog)) {
+				requiredVolumes = append(requiredVolumes, *volume.Properties.VolumeSpecName)
+			}
+
+			// Adding volume spec name to hashmap for post volume loop check
+			volumeSpecRepeatCount[*volume.Properties.VolumeSpecName] += 1
 		}
 
+		// Validating required volumes
 		if len(requiredVolumes) != 2 {
 			errors = append(errors, fmt.Errorf("'required volume spec types are not present for %v, missing ones: %v'", applicationType, diffSliceString(requiredVolumes, RequiredVolumesForSAPHANA())))
+		}
+
+		// Validating that volume spec does not repeat
+		for volumeSpecName, count := range volumeSpecRepeatCount {
+			if count > 1 {
+				errors = append(errors, fmt.Errorf("'volume spec type %v cannot be repeated for %v'", volumeSpecName, applicationType))
+			}
 		}
 	}
 
