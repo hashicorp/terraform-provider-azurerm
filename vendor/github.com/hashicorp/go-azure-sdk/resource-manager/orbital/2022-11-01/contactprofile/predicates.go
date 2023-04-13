@@ -1,21 +1,16 @@
-package spacecraft
+package contactprofile
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type SpacecraftOperationPredicate struct {
-	Etag     *string
+type ContactProfileOperationPredicate struct {
 	Id       *string
 	Location *string
 	Name     *string
 	Type     *string
 }
 
-func (p SpacecraftOperationPredicate) Matches(input Spacecraft) bool {
-
-	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
-		return false
-	}
+func (p ContactProfileOperationPredicate) Matches(input ContactProfile) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false

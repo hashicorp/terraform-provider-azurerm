@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/contactprofile` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile` Documentation
 
-The `contactprofile` SDK allows for interaction with the Azure Resource Manager Service `orbital` (API Version `2022-03-01`).
+The `contactprofile` SDK allows for interaction with the Azure Resource Manager Service `orbital` (API Version `2022-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/contactprofile"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile"
 ```
 
 

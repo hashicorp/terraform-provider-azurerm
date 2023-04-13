@@ -17,17 +17,12 @@ func (p AvailableContactsOperationPredicate) Matches(input AvailableContacts) bo
 }
 
 type ContactOperationPredicate struct {
-	Etag *string
 	Id   *string
 	Name *string
 	Type *string
 }
 
 func (p ContactOperationPredicate) Matches(input Contact) bool {
-
-	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
-		return false
-	}
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false

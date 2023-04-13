@@ -45,12 +45,12 @@ func parseContactsStatus(input string) (*ContactsStatus, error) {
 type ProvisioningState string
 
 const (
-	ProvisioningStateCanceled  ProvisioningState = "Canceled"
-	ProvisioningStateCreating  ProvisioningState = "Creating"
-	ProvisioningStateDeleting  ProvisioningState = "Deleting"
-	ProvisioningStateFailed    ProvisioningState = "Failed"
-	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
-	ProvisioningStateUpdating  ProvisioningState = "Updating"
+	ProvisioningStateCanceled  ProvisioningState = "canceled"
+	ProvisioningStateCreating  ProvisioningState = "creating"
+	ProvisioningStateDeleting  ProvisioningState = "deleting"
+	ProvisioningStateFailed    ProvisioningState = "failed"
+	ProvisioningStateSucceeded ProvisioningState = "succeeded"
+	ProvisioningStateUpdating  ProvisioningState = "updating"
 )
 
 func PossibleValuesForProvisioningState() []string {
