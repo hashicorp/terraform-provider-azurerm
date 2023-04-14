@@ -101,7 +101,6 @@ import (
 	policy "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
 	portal "github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/client"
 	postgres "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/client"
-	postgresqlhsc "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgresqlhsc/client"
 	powerBI "github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi/client"
 	privatedns "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/client"
 	dnsresolver "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/client"
@@ -227,7 +226,6 @@ type Client struct {
 	Policy                *policy.Client
 	Portal                *portal.Client
 	Postgres              *postgres.Client
-	PostgreSQLHSC         *postgresqlhsc.Client
 	PowerBI               *powerBI.Client
 	PrivateDns            *privatedns.Client
 	PrivateDnsResolver    *dnsresolver.Client
@@ -385,7 +383,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Policy = policy.NewClient(o)
 	client.Portal = portal.NewClient(o)
 	client.Postgres = postgres.NewClient(o)
-	client.PostgreSQLHSC = postgresqlhsc.NewClient(o)
 	client.PowerBI = powerBI.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
 	client.PrivateDnsResolver = dnsresolver.NewClient(o)

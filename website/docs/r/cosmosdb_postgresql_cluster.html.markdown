@@ -1,5 +1,5 @@
 ---
-subcategory: "Azure Cosmos DB for PostgreSQL"
+subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_postgresql_cluster"
 description: |-

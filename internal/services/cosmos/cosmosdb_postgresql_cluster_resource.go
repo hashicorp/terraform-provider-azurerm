@@ -1,4 +1,4 @@
-package postgresqlhsc
+package cosmos
 
 import (
 	"context"
@@ -10,13 +10,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgresqlhsc/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosDBPostgreSQLClusterModel struct {
+type CosmosDbPostgreSQLClusterModel struct {
 	Name                             string              `tfschema:"name"`
 	ResourceGroupName                string              `tfschema:"resource_group_name"`
 	Location                         string              `tfschema:"location"`
@@ -49,23 +49,23 @@ type MaintenanceWindow struct {
 	StartMinute int64 `tfschema:"start_minute"`
 }
 
-type CosmosDBPostgreSQLClusterResource struct{}
+type CosmosDbPostgreSQLClusterResource struct{}
 
-var _ sdk.ResourceWithUpdate = CosmosDBPostgreSQLClusterResource{}
+var _ sdk.ResourceWithUpdate = CosmosDbPostgreSQLClusterResource{}
 
-func (r CosmosDBPostgreSQLClusterResource) ResourceType() string {
+func (r CosmosDbPostgreSQLClusterResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_cluster"
 }
 
-func (r CosmosDBPostgreSQLClusterResource) ModelObject() interface{} {
-	return &CosmosDBPostgreSQLClusterModel{}
+func (r CosmosDbPostgreSQLClusterResource) ModelObject() interface{} {
+	return &CosmosDbPostgreSQLClusterModel{}
 }
 
-func (r CosmosDBPostgreSQLClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r CosmosDbPostgreSQLClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return clusters.ValidateServerGroupsv2ID
 }
 
-func (r CosmosDBPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Schema {
+func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -290,7 +290,7 @@ func (r CosmosDBPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 	}
 }
 
-func (r CosmosDBPostgreSQLClusterResource) Attributes() map[string]*pluginsdk.Schema {
+func (r CosmosDbPostgreSQLClusterResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"earliest_restore_time": {
 			Type:     pluginsdk.TypeString,
@@ -299,16 +299,16 @@ func (r CosmosDBPostgreSQLClusterResource) Attributes() map[string]*pluginsdk.Sc
 	}
 }
 
-func (r CosmosDBPostgreSQLClusterResource) Create() sdk.ResourceFunc {
+func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model CosmosDBPostgreSQLClusterModel
+			var model CosmosDbPostgreSQLClusterModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.PostgreSQLHSC.ClustersClient
+			client := metadata.Client.Cosmos.ClustersClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := clusters.NewServerGroupsv2ID(subscriptionId, model.ResourceGroupName, model.Name)
 
@@ -393,18 +393,18 @@ func (r CosmosDBPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r CosmosDBPostgreSQLClusterResource) Update() sdk.ResourceFunc {
+func (r CosmosDbPostgreSQLClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PostgreSQLHSC.ClustersClient
+			client := metadata.Client.Cosmos.ClustersClient
 
 			id, err := clusters.ParseServerGroupsv2ID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var model CosmosDBPostgreSQLClusterModel
+			var model CosmosDbPostgreSQLClusterModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -490,11 +490,11 @@ func (r CosmosDBPostgreSQLClusterResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r CosmosDBPostgreSQLClusterResource) Read() sdk.ResourceFunc {
+func (r CosmosDbPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PostgreSQLHSC.ClustersClient
+			client := metadata.Client.Cosmos.ClustersClient
 
 			id, err := clusters.ParseServerGroupsv2ID(metadata.ResourceData.Id())
 			if err != nil {
@@ -515,7 +515,7 @@ func (r CosmosDBPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := CosmosDBPostgreSQLClusterModel{
+			state := CosmosDbPostgreSQLClusterModel{
 				Name:              id.ServerGroupsv2Name,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
@@ -568,11 +568,11 @@ func (r CosmosDBPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r CosmosDBPostgreSQLClusterResource) Delete() sdk.ResourceFunc {
+func (r CosmosDbPostgreSQLClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PostgreSQLHSC.ClustersClient
+			client := metadata.Client.Cosmos.ClustersClient
 
 			id, err := clusters.ParseServerGroupsv2ID(metadata.ResourceData.Id())
 			if err != nil {

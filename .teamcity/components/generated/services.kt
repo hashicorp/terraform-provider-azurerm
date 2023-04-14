@@ -12,7 +12,6 @@ var services = mapOf(
         "attestation" to "Attestation",
         "authorization" to "Authorization",
         "automation" to "Automation",
-        "postgresqlhsc" to "Azure Cosmos DB for PostgreSQL",
         "azurestackhci" to "Azure Stack HCI",
         "batch" to "Batch",
         "billing" to "Billing",
