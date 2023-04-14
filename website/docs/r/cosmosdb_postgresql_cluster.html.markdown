@@ -24,7 +24,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "example" {
   location                        = azurerm_resource_group.example.location
   administrator_login_password    = "H@Sh1CoR3!"
   coordinator_storage_quota_in_mb = 131072
-  coordinator_vcores              = 2
+  coordinator_vcore_count         = 2
   node_count                      = 0
 }
 ```
@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `coordinator_storage_quota_in_mb` - (Required) The coordinator storage allowed for the Azure Cosmos DB for PostgreSQL Cluster. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608` and `16777216`.
 
-* `coordinator_vcores` - (Required) The coordinator vCores count for the Azure Cosmos DB for PostgreSQL Cluster. Possible values are `1`, `2`, `4`, `8`, `16`, `32`, `64` and `96`.
+* `coordinator_vcore_count` - (Required) The coordinator vCore count for the Azure Cosmos DB for PostgreSQL Cluster. Possible values are `1`, `2`, `4`, `8`, `16`, `32`, `64` and `96`.
 
 * `node_count` - (Required) The worker node count of the Azure Cosmos DB for PostgreSQL Cluster. Possible value is between `0` and `20` except `1`.
 

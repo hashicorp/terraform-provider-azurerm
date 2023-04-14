@@ -147,7 +147,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   location                        = azurerm_resource_group.test.location
   administrator_login_password    = "H@Sh1CoR3!"
   coordinator_storage_quota_in_mb = 131072
-  coordinator_vcores              = 2
+  coordinator_vcore_count         = 2
   node_count                      = 0
 }
 `, r.template(data), data.RandomInteger)
@@ -163,7 +163,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "import" {
   location                        = azurerm_cosmosdb_postgresql_cluster.test.location
   administrator_login_password    = azurerm_cosmosdb_postgresql_cluster.test.administrator_login_password
   coordinator_storage_quota_in_mb = azurerm_cosmosdb_postgresql_cluster.test.coordinator_storage_quota_in_mb
-  coordinator_vcores              = azurerm_cosmosdb_postgresql_cluster.test.coordinator_vcores
+  coordinator_vcore_count         = azurerm_cosmosdb_postgresql_cluster.test.coordinator_vcore_count
   node_count                      = azurerm_cosmosdb_postgresql_cluster.test.node_count
 }
 `, r.basic(data))
@@ -180,7 +180,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
 
   administrator_login_password    = "H@Sh1CoR3!"
   coordinator_storage_quota_in_mb = 131072
-  coordinator_vcores              = 2
+  coordinator_vcore_count         = 2
   node_count                      = 0
 
   citus_version                        = "11.1"
@@ -220,7 +220,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
 
   administrator_login_password    = "H@Sh1CoR4!"
   coordinator_storage_quota_in_mb = 262144
-  coordinator_vcores              = 4
+  coordinator_vcore_count         = 4
   node_count                      = 2
 
   citus_version                        = "11.2"
@@ -263,7 +263,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test2" {
 
   administrator_login_password    = "H@Sh1CoR3!"
   coordinator_storage_quota_in_mb = 131072
-  coordinator_vcores              = 2
+  coordinator_vcore_count         = 2
   node_count                      = 0
 }
 `, r.basic(data), data.RandomInteger)

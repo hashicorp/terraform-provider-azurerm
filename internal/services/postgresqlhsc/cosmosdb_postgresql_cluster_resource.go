@@ -25,7 +25,7 @@ type CosmosDBPostgreSQLClusterModel struct {
 	CoordinatorPublicIPAccessEnabled bool                `tfschema:"coordinator_public_ip_access_enabled"`
 	CoordinatorServerEdition         string              `tfschema:"coordinator_server_edition"`
 	CoordinatorStorageQuotaInMb      int64               `tfschema:"coordinator_storage_quota_in_mb"`
-	CoordinatorVCores                int64               `tfschema:"coordinator_vcores"`
+	CoordinatorVCoreCount            int64               `tfschema:"coordinator_vcore_count"`
 	HaEnabled                        bool                `tfschema:"ha_enabled"`
 	ShardsOnCoordinatorEnabled       bool                `tfschema:"shards_on_coordinator_enabled"`
 	SourceLocation                   string              `tfschema:"source_location"`
@@ -94,7 +94,7 @@ func (r CosmosDBPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 			),
 		},
 
-		"coordinator_vcores": {
+		"coordinator_vcore_count": {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
 			ValidateFunc: validation.IntInSlice([]int{
@@ -328,7 +328,7 @@ func (r CosmosDBPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 					CoordinatorEnablePublicIPAccess: &model.CoordinatorPublicIPAccessEnabled,
 					CoordinatorServerEdition:        &model.CoordinatorServerEdition,
 					CoordinatorStorageQuotaInMb:     &model.CoordinatorStorageQuotaInMb,
-					CoordinatorVCores:               &model.CoordinatorVCores,
+					CoordinatorVCores:               &model.CoordinatorVCoreCount,
 					EnableHa:                        &model.HaEnabled,
 					NodeCount:                       &model.NodeCount,
 					NodeEnablePublicIPAccess:        &model.NodePublicIPAccessEnabled,
@@ -433,8 +433,8 @@ func (r CosmosDBPostgreSQLClusterResource) Update() sdk.ResourceFunc {
 				parameters.Properties.CoordinatorStorageQuotaInMb = &model.CoordinatorStorageQuotaInMb
 			}
 
-			if metadata.ResourceData.HasChange("coordinator_vcores") {
-				parameters.Properties.CoordinatorVCores = &model.CoordinatorVCores
+			if metadata.ResourceData.HasChange("coordinator_vcore_count") {
+				parameters.Properties.CoordinatorVCores = &model.CoordinatorVCoreCount
 			}
 
 			if metadata.ResourceData.HasChange("ha_enabled") {
@@ -529,7 +529,7 @@ func (r CosmosDBPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 				state.CoordinatorPublicIPAccessEnabled = *props.CoordinatorEnablePublicIPAccess
 				state.CoordinatorServerEdition = *props.CoordinatorServerEdition
 				state.CoordinatorStorageQuotaInMb = *props.CoordinatorStorageQuotaInMb
-				state.CoordinatorVCores = *props.CoordinatorVCores
+				state.CoordinatorVCoreCount = *props.CoordinatorVCores
 				state.HaEnabled = *props.EnableHa
 				state.NodeCount = *props.NodeCount
 				state.NodePublicIPAccessEnabled = *props.NodeEnablePublicIPAccess
