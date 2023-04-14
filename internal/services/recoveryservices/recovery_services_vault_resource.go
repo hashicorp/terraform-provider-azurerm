@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -614,7 +615,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if model.Properties != nil && model.Properties.SecuritySettings != nil && model.Properties.SecuritySettings.ImmutabilitySettings != nil {
-		d.Set("immutability", *model.Properties.SecuritySettings.ImmutabilitySettings.State)
+		d.Set("immutability", string(pointer.From(model.Properties.SecuritySettings.ImmutabilitySettings.State)))
 	}
 
 	if model.Properties != nil && model.Properties.PublicNetworkAccess != nil {
@@ -637,7 +638,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 
 	if storageCfg.Model != nil && storageCfg.Model.Properties != nil {
 		props := storageCfg.Model.Properties
-		d.Set("storage_mode_type", props.StorageModelType)
+		d.Set("storage_mode_type", string(pointer.From(props.StorageModelType)))
 		d.Set("cross_region_restore_enabled", props.CrossRegionRestoreFlag)
 	}
 
