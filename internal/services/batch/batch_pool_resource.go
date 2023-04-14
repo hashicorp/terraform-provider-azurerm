@@ -1196,11 +1196,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					}
 
 					d.Set("storage_image_reference", flattenBatchPoolImageReference(&config.ImageReference))
-
-					if config.LicenseType != nil {
-						d.Set("license_type", config.LicenseType)
-					}
-
+					d.Set("license_type", config.LicenseType)
 					d.Set("node_agent_sku_id", config.NodeAgentSkuId)
 
 					if config.NodePlacementConfiguration != nil {

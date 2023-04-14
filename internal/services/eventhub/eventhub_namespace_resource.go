@@ -571,10 +571,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 				publicNetworkAccess = false
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccess)
-
-			if props.MinimumTlsVersion != nil {
-				d.Set("minimum_tls_version", string(pointer.From(props.MinimumTlsVersion)))
-			}
+			d.Set("minimum_tls_version", string(pointer.From(props.MinimumTlsVersion)))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
