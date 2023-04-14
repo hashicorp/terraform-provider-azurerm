@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -38,9 +39,11 @@ func (s SpringCloudGatewayRouteConfigV0ToV1) Schema() map[string]*pluginsdk.Sche
 			},
 		},
 
+		// lintignore:S013
 		"protocol": {
 			Type:     pluginsdk.TypeString,
-			Required: false,
+			Optional: !features.FourPointOh(),
+			Required: features.FourPointOh(),
 		},
 
 		"spring_cloud_app_id": {
