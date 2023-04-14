@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2020-12-08/healthbots` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08/healthbots` Documentation
 
-The `healthbots` SDK allows for interaction with the Azure Resource Manager Service `healthbot` (API Version `2020-12-08`).
+The `healthbots` SDK allows for interaction with the Azure Resource Manager Service `healthbot` (API Version `2022-08-08`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2020-12-08/healthbots"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08/healthbots"
 ```
 
 
@@ -99,6 +99,38 @@ for _, item := range items {
 ```
 
 
+### Example Usage: `HealthbotsClient.BotsListSecrets`
+
+```go
+ctx := context.TODO()
+id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotValue")
+
+read, err := client.BotsListSecrets(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `HealthbotsClient.BotsRegenerateApiJwtSecret`
+
+```go
+ctx := context.TODO()
+id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotValue")
+
+read, err := client.BotsRegenerateApiJwtSecret(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
 ### Example Usage: `HealthbotsClient.BotsUpdate`
 
 ```go
@@ -110,11 +142,7 @@ payload := healthbots.HealthBotUpdateParameters{
 }
 
 
-read, err := client.BotsUpdate(ctx, id, payload)
-if err != nil {
+if err := client.BotsUpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
 }
 ```

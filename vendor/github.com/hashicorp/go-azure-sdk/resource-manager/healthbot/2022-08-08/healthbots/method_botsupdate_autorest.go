@@ -2,18 +2,20 @@ package healthbots
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/polling"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type BotsUpdateOperationResponse struct {
+	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
-	Model        *HealthBot
 }
 
 // BotsUpdate ...
@@ -24,19 +26,27 @@ func (c HealthbotsClient) BotsUpdate(ctx context.Context, id HealthBotId, input 
 		return
 	}
 
-	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
+	result, err = c.senderForBotsUpdate(ctx, req)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthbots.HealthbotsClient", "BotsUpdate", result.HttpResponse, "Failure sending request")
 		return
 	}
 
-	result, err = c.responderForBotsUpdate(result.HttpResponse)
+	return
+}
+
+// BotsUpdateThenPoll performs BotsUpdate then polls until it's completed
+func (c HealthbotsClient) BotsUpdateThenPoll(ctx context.Context, id HealthBotId, input HealthBotUpdateParameters) error {
+	result, err := c.BotsUpdate(ctx, id, input)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "healthbots.HealthbotsClient", "BotsUpdate", result.HttpResponse, "Failure responding to request")
-		return
+		return fmt.Errorf("performing BotsUpdate: %+v", err)
 	}
 
-	return
+	if err := result.Poller.PollUntilDone(); err != nil {
+		return fmt.Errorf("polling after BotsUpdate: %+v", err)
+	}
+
+	return nil
 }
 
 // preparerForBotsUpdate prepares the BotsUpdate request.
@@ -55,15 +65,15 @@ func (c HealthbotsClient) preparerForBotsUpdate(ctx context.Context, id HealthBo
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// responderForBotsUpdate handles the response to the BotsUpdate request. The method always
-// closes the http.Response Body.
-func (c HealthbotsClient) responderForBotsUpdate(resp *http.Response) (result BotsUpdateOperationResponse, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusCreated, http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result.Model),
-		autorest.ByClosing())
-	result.HttpResponse = resp
+// senderForBotsUpdate sends the BotsUpdate request. The method will close the
+// http.Response Body if it receives an error.
+func (c HealthbotsClient) senderForBotsUpdate(ctx context.Context, req *http.Request) (future BotsUpdateOperationResponse, err error) {
+	var resp *http.Response
+	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
+	if err != nil {
+		return
+	}
 
+	future.Poller, err = polling.NewPollerFromResponse(ctx, resp, c.Client, req.Method)
 	return
 }
