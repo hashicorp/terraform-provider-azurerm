@@ -1,23 +1,25 @@
-package kubernetesconfiguration
+package arckubernetes
 
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type ArcKubernetesClusterExtensionModel struct {
 	Name                           string            `tfschema:"name"`
-	ResourceGroupName              string            `tfschema:"resource_group_name"`
-	ClusterName                    string            `tfschema:"cluster_name"`
+	ClusterID                      string            `tfschema:"cluster_id"`
 	ConfigurationProtectedSettings map[string]string `tfschema:"configuration_protected_settings"`
 	ConfigurationSettings          map[string]string `tfschema:"configuration_settings"`
 	ExtensionType                  string            `tfschema:"extension_type"`
@@ -45,9 +47,87 @@ func (r ArcKubernetesClusterExtensionResource) IDValidationFunc() pluginsdk.Sche
 }
 
 func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := commonArguments()
-	arguments["identity"] = commonschema.SystemAssignedIdentityRequiredForceNew()
-	return arguments
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9-.]{0,252}$"),
+				"name must be between 1 and 253 characters in length and may contain only letters, numbers, periods (.), hyphens (-), and must begin with a letter or number.",
+			),
+		},
+
+		"cluster_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: arckubernetes.ValidateConnectedClusterID,
+		},
+
+		"extension_type": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
+
+		"configuration_protected_settings": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
+
+		"configuration_settings": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
+
+		"release_train": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"version"},
+			ValidateFunc:  validation.StringIsNotEmpty,
+		},
+
+		"release_namespace": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"target_namespace"},
+			ValidateFunc:  validation.StringIsNotEmpty,
+		},
+
+		"target_namespace": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"release_namespace"},
+			ValidateFunc:  validation.StringIsNotEmpty,
+		},
+
+		"version": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"release_train"},
+			ValidateFunc:  validation.StringIsNotEmpty,
+		},
+	}
 
 }
 
@@ -69,9 +149,15 @@ func (r ArcKubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.KubernetesConfiguration.ExtensionsClient
+			client := metadata.Client.ArcKubernetes.ExtensionsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := extensions.NewExtensionID(subscriptionId, model.ResourceGroupName, "Microsoft.Kubernetes", "connectedClusters", model.ClusterName, model.Name)
+			clusterID, err := arckubernetes.ParseConnectedClusterID(model.ClusterID)
+			if err != nil {
+				return err
+			}
+
+			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
+			id := extensions.NewExtensionID(subscriptionId, clusterID.ResourceGroupName, "Microsoft.Kubernetes", "connectedClusters", clusterID.ConnectedClusterName, model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -143,7 +229,7 @@ func (r ArcKubernetesClusterExtensionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.KubernetesConfiguration.ExtensionsClient
+			client := metadata.Client.ArcKubernetes.ExtensionsClient
 
 			id, err := extensions.ParseExtensionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -180,7 +266,7 @@ func (r ArcKubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.KubernetesConfiguration.ExtensionsClient
+			client := metadata.Client.ArcKubernetes.ExtensionsClient
 
 			id, err := extensions.ParseExtensionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -196,59 +282,53 @@ func (r ArcKubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
+			state := ArcKubernetesClusterExtensionModel{
+				Name:      id.ExtensionName,
+				ClusterID: arckubernetes.NewConnectedClusterID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.ClusterName).ID(),
 			}
 
-			if model.Identity != nil {
+			if model := resp.Model; model != nil {
 				if err = metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
 					return fmt.Errorf("setting `identity`: %+v", err)
 				}
-			}
 
-			state := ArcKubernetesClusterExtensionModel{
-				Name:              id.ExtensionName,
-				ResourceGroupName: id.ResourceGroupName,
-				ClusterName:       id.ClusterName,
-			}
-
-			if properties := model.Properties; properties != nil {
-				var originalModel ArcKubernetesClusterExtensionModel
-				if err := metadata.Decode(&originalModel); err != nil {
-					return fmt.Errorf("decoding: %+v", err)
-				}
-
-				state.ConfigurationProtectedSettings = originalModel.ConfigurationProtectedSettings
-
-				if properties.ConfigurationSettings != nil {
-					state.ConfigurationSettings = *properties.ConfigurationSettings
-				}
-
-				if properties.CurrentVersion != nil {
-					state.CurrentVersion = *properties.CurrentVersion
-				}
-
-				if properties.ExtensionType != nil {
-					state.ExtensionType = *properties.ExtensionType
-				}
-
-				if properties.ReleaseTrain != nil {
-					state.ReleaseTrain = *properties.ReleaseTrain
-				}
-
-				if properties.Scope != nil {
-					if properties.Scope.Cluster != nil && properties.Scope.Cluster.ReleaseNamespace != nil {
-						state.ReleaseNamespace = *properties.Scope.Cluster.ReleaseNamespace
+				if properties := model.Properties; properties != nil {
+					var originalModel ArcKubernetesClusterExtensionModel
+					if err := metadata.Decode(&originalModel); err != nil {
+						return fmt.Errorf("decoding: %+v", err)
 					}
 
-					if properties.Scope.Namespace != nil && properties.Scope.Namespace.TargetNamespace != nil {
-						state.TargetNamespace = *properties.Scope.Namespace.TargetNamespace
-					}
-				}
+					state.ConfigurationProtectedSettings = originalModel.ConfigurationProtectedSettings
 
-				if properties.Version != nil {
-					state.Version = *properties.Version
+					if properties.ConfigurationSettings != nil {
+						state.ConfigurationSettings = *properties.ConfigurationSettings
+					}
+
+					if properties.CurrentVersion != nil {
+						state.CurrentVersion = *properties.CurrentVersion
+					}
+
+					if properties.ExtensionType != nil {
+						state.ExtensionType = *properties.ExtensionType
+					}
+
+					if properties.ReleaseTrain != nil {
+						state.ReleaseTrain = *properties.ReleaseTrain
+					}
+
+					if properties.Scope != nil {
+						if properties.Scope.Cluster != nil && properties.Scope.Cluster.ReleaseNamespace != nil {
+							state.ReleaseNamespace = *properties.Scope.Cluster.ReleaseNamespace
+						}
+
+						if properties.Scope.Namespace != nil && properties.Scope.Namespace.TargetNamespace != nil {
+							state.TargetNamespace = *properties.Scope.Namespace.TargetNamespace
+						}
+					}
+
+					if properties.Version != nil {
+						state.Version = *properties.Version
+					}
 				}
 			}
 
@@ -258,5 +338,21 @@ func (r ArcKubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 }
 
 func (r ArcKubernetesClusterExtensionResource) Delete() sdk.ResourceFunc {
-	return deleteExtension()
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ArcKubernetes.ExtensionsClient
+
+			id, err := extensions.ParseExtensionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if err := client.DeleteThenPoll(ctx, *id, extensions.DeleteOperationOptions{}); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
 }

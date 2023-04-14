@@ -1,11 +1,16 @@
-package kubernetesconfiguration
+package containers
 
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -17,8 +22,7 @@ import (
 
 type KubernetesClusterExtensionModel struct {
 	Name                           string            `tfschema:"name"`
-	ResourceGroupName              string            `tfschema:"resource_group_name"`
-	ClusterName                    string            `tfschema:"cluster_name"`
+	ClusterID                      string            `tfschema:"cluster_id"`
 	ConfigurationProtectedSettings map[string]string `tfschema:"configuration_protected_settings"`
 	ConfigurationSettings          map[string]string `tfschema:"configuration_settings"`
 	ExtensionType                  string            `tfschema:"extension_type"`
@@ -55,58 +59,135 @@ func (r KubernetesClusterExtensionResource) IDValidationFunc() pluginsdk.SchemaV
 }
 
 func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := commonArguments()
-	arguments["plan"] = &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		ForceNew: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9-.]{0,252}$"),
+				"name must be between 1 and 253 characters in length and may contain only letters, numbers, periods (.), hyphens (-), and must begin with a letter or number.",
+			),
+		},
 
-				"product": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
+		"cluster_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: managedclusters.ValidateManagedClusterID,
+		},
 
-				"publisher": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
+		"extension_type": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
-				"promotion_code": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
+		"configuration_protected_settings": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
 
-				"version": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+		"configuration_settings": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
+
+		"plan": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"product": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"publisher": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"promotion_code": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"version": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 				},
 			},
 		},
-	}
 
-	return arguments
+		"release_train": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"version"},
+			ValidateFunc:  validation.StringIsNotEmpty,
+		},
+
+		"release_namespace": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"target_namespace"},
+			ValidateFunc:  validation.StringIsNotEmpty,
+		},
+
+		"target_namespace": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"release_namespace"},
+			ValidateFunc:  validation.StringIsNotEmpty,
+		},
+
+		"version": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"release_train"},
+			ValidateFunc:  validation.StringIsNotEmpty,
+		},
+	}
 }
 
 func (r KubernetesClusterExtensionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"identity": commonschema.SystemAssignedIdentityComputed(),
+		"aks_assigned_identity": commonschema.SystemAssignedIdentityComputed(),
 
 		"current_version": {
 			Type:     pluginsdk.TypeString,
@@ -124,9 +205,15 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.KubernetesConfiguration.ExtensionsClient
+			client := metadata.Client.Containers.KubernetesExtensionsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := extensions.NewExtensionID(subscriptionId, model.ResourceGroupName, "Microsoft.ContainerService", "managedClusters", model.ClusterName, model.Name)
+			clusterID, err := managedclusters.ParseManagedClusterID(model.ClusterID)
+			if err != nil {
+				return err
+			}
+
+			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
+			id := extensions.NewExtensionID(subscriptionId, clusterID.ResourceGroupName, "Microsoft.ContainerService", "managedClusters", clusterID.ManagedClusterName, model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -192,7 +279,7 @@ func (r KubernetesClusterExtensionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.KubernetesConfiguration.ExtensionsClient
+			client := metadata.Client.Containers.KubernetesExtensionsClient
 
 			id, err := extensions.ParseExtensionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -229,7 +316,7 @@ func (r KubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.KubernetesConfiguration.ExtensionsClient
+			client := metadata.Client.Containers.KubernetesExtensionsClient
 
 			id, err := extensions.ParseExtensionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -245,67 +332,55 @@ func (r KubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			if model.Identity != nil {
-				if err := metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
-					return fmt.Errorf("setting `identity`: %+v", err)
-				}
-			}
-
 			state := KubernetesClusterExtensionModel{
-				Name:              id.ExtensionName,
-				ResourceGroupName: id.ResourceGroupName,
-				ClusterName:       id.ClusterName,
-				Plan:              flattenPlanModel(model.Plan),
+				Name:      id.ExtensionName,
+				ClusterID: managedclusters.NewManagedClusterID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.ClusterName).ID(),
 			}
 
-			if properties := model.Properties; properties != nil {
-				var originalModel KubernetesClusterExtensionModel
-				if err := metadata.Decode(&originalModel); err != nil {
-					return fmt.Errorf("decoding: %+v", err)
-				}
-
-				identityValue := flattenExtensionPropertiesAksAssignedIdentityModel(properties.AksAssignedIdentity)
-				if identityValue != nil {
-					if err = metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(identityValue)); err != nil {
-						return fmt.Errorf("setting `identity`: %+v", err)
-					}
-				}
-
-				state.ConfigurationProtectedSettings = originalModel.ConfigurationProtectedSettings
-
-				if properties.ConfigurationSettings != nil {
-					state.ConfigurationSettings = *properties.ConfigurationSettings
-				}
-
-				if properties.CurrentVersion != nil {
-					state.CurrentVersion = *properties.CurrentVersion
-				}
-
-				if properties.ExtensionType != nil {
-					state.ExtensionType = *properties.ExtensionType
-				}
-
-				if properties.ReleaseTrain != nil {
-					state.ReleaseTrain = *properties.ReleaseTrain
-				}
-
-				if properties.Scope != nil {
-					if properties.Scope.Cluster != nil && properties.Scope.Cluster.ReleaseNamespace != nil {
-						state.ReleaseNamespace = *properties.Scope.Cluster.ReleaseNamespace
+			if model := resp.Model; model != nil {
+				if properties := model.Properties; properties != nil {
+					var originalModel KubernetesClusterExtensionModel
+					if err := metadata.Decode(&originalModel); err != nil {
+						return fmt.Errorf("decoding: %+v", err)
 					}
 
-					if properties.Scope.Namespace != nil && properties.Scope.Namespace.TargetNamespace != nil {
-						state.TargetNamespace = *properties.Scope.Namespace.TargetNamespace
+					if err = metadata.ResourceData.Set("aks_assigned_identity", flattenAksAssignedIdentity(properties.AksAssignedIdentity)); err != nil {
+						return fmt.Errorf("setting `aks_assigned_identity`: %+v", err)
 					}
-				}
 
-				if properties.Version != nil {
-					state.Version = *properties.Version
+					state.ConfigurationProtectedSettings = originalModel.ConfigurationProtectedSettings
+
+					if properties.ConfigurationSettings != nil {
+						state.ConfigurationSettings = *properties.ConfigurationSettings
+					}
+
+					if properties.CurrentVersion != nil {
+						state.CurrentVersion = *properties.CurrentVersion
+					}
+
+					if properties.ExtensionType != nil {
+						state.ExtensionType = *properties.ExtensionType
+					}
+
+					state.Plan = flattenPlanModel(model.Plan)
+
+					if properties.ReleaseTrain != nil {
+						state.ReleaseTrain = *properties.ReleaseTrain
+					}
+
+					if properties.Scope != nil {
+						if properties.Scope.Cluster != nil && properties.Scope.Cluster.ReleaseNamespace != nil {
+							state.ReleaseNamespace = *properties.Scope.Cluster.ReleaseNamespace
+						}
+
+						if properties.Scope.Namespace != nil && properties.Scope.Namespace.TargetNamespace != nil {
+							state.TargetNamespace = *properties.Scope.Namespace.TargetNamespace
+						}
+					}
+
+					if properties.Version != nil {
+						state.Version = *properties.Version
+					}
 				}
 			}
 
@@ -315,31 +390,23 @@ func (r KubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 }
 
 func (r KubernetesClusterExtensionResource) Delete() sdk.ResourceFunc {
-	return deleteExtension()
-}
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Containers.KubernetesExtensionsClient
 
-func flattenExtensionPropertiesAksAssignedIdentityModel(input *extensions.ExtensionPropertiesAksAssignedIdentity) *identity.SystemAssigned {
-	if input == nil {
-		return nil
+			id, err := extensions.ParseExtensionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if err := client.DeleteThenPoll(ctx, *id, extensions.DeleteOperationOptions{}); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			return nil
+		},
 	}
-
-	output := identity.SystemAssigned{
-		Type: identity.TypeNone,
-	}
-
-	if input.Type != nil && *input.Type == extensions.AKSIdentityTypeSystemAssigned {
-		output.Type = identity.TypeSystemAssigned
-	}
-
-	if input.PrincipalId != nil {
-		output.PrincipalId = *input.PrincipalId
-	}
-
-	if input.TenantId != nil {
-		output.TenantId = *input.TenantId
-	}
-
-	return &output
 }
 
 func expandPlanModel(inputList []PlanModel) *extensions.Plan {
@@ -382,4 +449,22 @@ func flattenPlanModel(input *extensions.Plan) []PlanModel {
 	}
 
 	return append(outputList, output)
+}
+
+func flattenAksAssignedIdentity(input *extensions.ExtensionPropertiesAksAssignedIdentity) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := identity.SystemAssigned{
+		Type:        identity.TypeSystemAssigned,
+		PrincipalId: pointer.From(input.PrincipalId),
+		TenantId:    pointer.From(input.TenantId),
+	}
+
+	if input.Type != nil && *input.Type == extensions.AKSIdentityTypeUserAssigned {
+		output.Type = identity.TypeUserAssigned
+	}
+
+	return identity.FlattenSystemAssigned(&output)
 }

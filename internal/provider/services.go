@@ -59,7 +59,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kubernetesconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy"
@@ -129,6 +128,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		appconfiguration.Registration{},
 		applicationinsights.Registration{},
 		appservice.Registration{},
+		arckubernetes.Registration{},
 		automation.Registration{},
 		batch.Registration{},
 		bot.Registration{},
@@ -150,7 +150,6 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		iothub.Registration{},
 		iotcentral.Registration{},
 		keyvault.Registration{},
-		kubernetesconfiguration.Registration{},
 		labservice.Registration{},
 		loadbalancer.Registration{},
 		loganalytics.Registration{},
