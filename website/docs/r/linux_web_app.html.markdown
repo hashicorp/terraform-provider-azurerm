@@ -81,6 +81,8 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Should the Linux Web App require HTTPS connections.
 
+* `public_network_access_enabled` - (Optional) Whether to enable public network access for the Linux Web App. Defaults to `true`.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity).
@@ -688,8 +690,6 @@ A `site_config` block supports the following:
 * `http2_enabled` - (Optional) Should the HTTP2 be enabled?
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
- 
-* `public_network_access_enabled` - (Optional) Whether to enable public network access for the Linux Web App. Defaults to `true`.
 
 * `load_balancing_mode` - (Optional) The Site load balancing. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
 

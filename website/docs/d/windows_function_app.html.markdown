@@ -69,6 +69,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `https_only` - Is the Function App only accessible via HTTPS?
 
+* `public_network_access_enabled` - Is public network access enabled?
+
 * `identity` - A `identity` block as defined below.
 
 * `kind` - The Kind value for this Windows Function App.
@@ -512,8 +514,6 @@ A `site_config` block exports the following:
 * `http2_enabled` - Is the HTTP2 protocol enabled?
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
-
-* `public_network_access_enabled` - Is public network access enabled?
 
 * `load_balancing_mode` - The Site load balancing mode.
 

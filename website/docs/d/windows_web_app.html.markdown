@@ -63,6 +63,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `https_only` - Does the Windows Web App require HTTPS connections.
 
+* `public_network_access_enabled` - Is public network access enabled?
+
 * `identity` - A `identity` block as defined below.
 
 * `kind` - The string representation of the Windows Web App Kind.
@@ -588,8 +590,6 @@ A `site_config` block exports the following:
 * `http2_enabled` - Is HTTP2.0 enabled.
 
 * `ip_restriction` - A `ip_restriction` block as defined above.
-
-* `public_network_access_enabled` - Is public network access enabled?
 
 * `load_balancing_mode` - The site Load Balancing Mode.
 
