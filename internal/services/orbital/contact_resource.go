@@ -161,29 +161,11 @@ func (r ContactResource) Read() sdk.ResourceFunc {
 					Name:       id.ContactName,
 					Spacecraft: spacecraftId.ID(),
 				}
-				if props.ReservationStartTime != "" {
-					state.ReservationStartTime = props.ReservationStartTime
-				} else {
-					return fmt.Errorf("contact profile reservation start time is missing %s", *id)
-				}
 
-				if props.ReservationEndTime != "" {
-					state.ReservationEndTime = props.ReservationEndTime
-				} else {
-					return fmt.Errorf("contact profile reservation end time is missing %s", *id)
-				}
-
-				if props.GroundStationName != "" {
-					state.GroundStationName = props.GroundStationName
-				} else {
-					return fmt.Errorf("contact profile ground station name is missing %s", *id)
-				}
-
-				if props.ContactProfile.Id != "" {
-					state.ContactProfileId = props.ContactProfile.Id
-				} else {
-					return fmt.Errorf("contact profile id is missing %s", *id)
-				}
+				state.ReservationStartTime = props.ReservationStartTime
+				state.ReservationEndTime = props.ReservationEndTime
+				state.GroundStationName = props.GroundStationName
+				state.ContactProfileId = props.ContactProfile.Id
 
 				return metadata.Encode(&state)
 			}
