@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -94,7 +95,7 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData
 
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.Enabled)
-			d.Set("namespace_type", props.NamespaceType)
+			d.Set("namespace_type", string(pointer.From(props.NamespaceType)))
 			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 		}
 

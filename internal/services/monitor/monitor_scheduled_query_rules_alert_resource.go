@@ -353,16 +353,10 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 			d.Set("time_window", schedule.TimeWindowInMinutes)
 		}
 
-		if props.Source.AuthorizedResources != nil {
-			d.Set("authorized_resource_ids", utils.FlattenStringSlice(props.Source.AuthorizedResources))
-		}
-
+		d.Set("authorized_resource_ids", utils.FlattenStringSlice(props.Source.AuthorizedResources))
 		d.Set("data_source_id", props.Source.DataSourceId)
-
-		if props.Source.Query != nil {
-			d.Set("query", props.Source.Query)
-		}
-		d.Set("query_type", props.Source.QueryType)
+		d.Set("query", props.Source.Query)
+		d.Set("query_type", string(pointer.From(props.Source.QueryType)))
 
 		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err

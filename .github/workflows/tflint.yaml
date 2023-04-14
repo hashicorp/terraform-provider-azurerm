@@ -19,7 +19,6 @@ concurrency:
 jobs:
   tflint:
     runs-on: ubuntu-latest
-    if: false # skip until https://github.com/bflad/tfproviderlint/issues/255 is fixed
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
