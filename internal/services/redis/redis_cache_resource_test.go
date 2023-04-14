@@ -1294,8 +1294,8 @@ resource "azurerm_redis_cache" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   capacity            = 2
-  family              = "C"
-  sku_name            = "Basic"
+  family              = "P"
+  sku_name            = "Premium"
   enable_non_ssl_port = false
   minimum_tls_version = "1.2"
 
