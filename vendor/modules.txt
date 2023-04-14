@@ -2,7 +2,6 @@
 ## explicit
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad
-github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor
 github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement
 github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
@@ -151,6 +150,7 @@ github.com/hashicorp/go-azure-helpers/storage
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants
+github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2020-01-01/getrecommendations
 github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/analysisservices
