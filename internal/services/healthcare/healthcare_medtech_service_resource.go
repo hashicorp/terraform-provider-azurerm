@@ -67,7 +67,7 @@ func resourceHealthcareApisMedTechService() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"eventhub_namespace_name": {
 				Type:         pluginsdk.TypeString,

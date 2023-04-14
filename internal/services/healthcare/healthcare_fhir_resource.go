@@ -112,7 +112,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			// can't use the registry ID due to the ID cannot be obtained when setting the property in state file
 			"container_registry_login_server_url": {
