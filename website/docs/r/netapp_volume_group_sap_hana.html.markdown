@@ -23,32 +23,32 @@ provider "azurerm" {
   }
 }
 
-resource "random_string" "test" {
+resource "random_string" "example" {
   length  = 12
   special = true
 }
 
 locals {
-  admin_username = "testadmin"
-  admin_password = random_string.test.result
+  admin_username = "exampleadmin"
+  admin_password = random_string.example.result
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
   location = var.location
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-vnet"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.6.0.0/16"]
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                 = "${var.prefix}-delegated-subnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.6.2.0/24"]
 
   delegation {
@@ -61,51 +61,51 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_subnet" "test1" {
+resource "azurerm_subnet" "example1" {
   name                 = "${var.prefix}-hosts-subnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.6.1.0/24"]
 }
 
-resource "azurerm_proximity_placement_group" "test" {
+resource "azurerm_proximity_placement_group" "example" {
   name                = "${var.prefix}-ppg"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_availability_set" "test" {
+resource "azurerm_availability_set" "example" {
   name                = "${var.prefix}-avset"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
-  proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+  proximity_placement_group_id = azurerm_proximity_placement_group.example.id
 }
 
-resource "azurerm_network_interface" "test" {
+resource "azurerm_network_interface" "example" {
   name                = "${var.prefix}-nic"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.test1.id
+    subnet_id                     = azurerm_subnet.example1.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
-resource "azurerm_linux_virtual_machine" "test" {
+resource "azurerm_linux_virtual_machine" "example" {
   name                            = "${var.prefix}-vm"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.example.name
+  location                        = azurerm_resource_group.example.location
   size                            = "Standard_M8ms"
   admin_username                  = local.admin_username
   admin_password                  = local.admin_password
   disable_password_authentication = false
-  proximity_placement_group_id    = azurerm_proximity_placement_group.test.id
-  availability_set_id             = azurerm_availability_set.test.id
+  proximity_placement_group_id    = azurerm_proximity_placement_group.example.id
+  availability_set_id             = azurerm_availability_set.example.id
   network_interface_ids = [
-    azurerm_network_interface.test.id
+    azurerm_network_interface.example.id
   ]
 
   source_image_reference {
@@ -121,32 +121,32 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 
-resource "azurerm_netapp_account" "test" {
+resource "azurerm_netapp_account" "example" {
   name                = "${var.prefix}-netapp-account"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   depends_on = [
-    azurerm_subnet.test,
-    azurerm_subnet.test1
+    azurerm_subnet.example,
+    azurerm_subnet.example1
   ]
 }
 
-resource "azurerm_netapp_pool" "test" {
+resource "azurerm_netapp_pool" "example" {
   name                = "${var.prefix}-netapp-pool"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_netapp_account.example.name
   service_level       = "Standard"
   size_in_tb          = 8
   qos_type            = "Manual"
 }
 
-resource "azurerm_netapp_volume_group_sap_hana" "test" {
+resource "azurerm_netapp_volume_group_sap_hana" "example" {
   name                   = "${var.prefix}-netapp-volumegroup"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  account_name           = azurerm_netapp_account.test.name
+  location               = azurerm_resource_group.example.location
+  resource_group_name    = azurerm_resource_group.example.name
+  account_name           = azurerm_netapp_account.example.name
   group_description      = "Test volume group"
   application_identifier = "TST"
 
@@ -154,9 +154,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     name                         = "${var.prefix}-netapp-volume-1"
     volume_path                  = "my-unique-file-path-1"
     service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    capacity_pool_id             = azurerm_netapp_pool.example.id
+    subnet_id                    = azurerm_subnet.example.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.example.id
     volume_spec_name             = "data"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
@@ -183,9 +183,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     name                         = "${var.prefix}-netapp-volume-2"
     volume_path                  = "my-unique-file-path-2"
     service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    capacity_pool_id             = azurerm_netapp_pool.example.id
+    subnet_id                    = azurerm_subnet.example.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.example.id
     volume_spec_name             = "log"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
@@ -212,9 +212,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     name                         = "${var.prefix}-netapp-volume-3"
     volume_path                  = "my-unique-file-path-3"
     service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    capacity_pool_id             = azurerm_netapp_pool.example.id
+    subnet_id                    = azurerm_subnet.example.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.example.id
     volume_spec_name             = "shared"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
@@ -234,8 +234,8 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
   }
 
   depends_on = [
-    azurerm_linux_virtual_machine.test,
-    azurerm_proximity_placement_group.test
+    azurerm_linux_virtual_machine.example,
+    azurerm_proximity_placement_group.example
   ]
 }
 ```
