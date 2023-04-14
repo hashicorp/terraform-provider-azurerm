@@ -115,8 +115,9 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 		filterList = append(filterList, resGroups)
 	}
 
-	opts := getrecommendations.RecommendationsListOperationOptions{
-		Filter: pointer.To(strings.Join(filterList, " and ")),
+	opts := getrecommendations.RecommendationsListOperationOptions{}
+	if len(filterList) > 0 {
+		opts.Filter = pointer.To(strings.Join(filterList, " and "))
 	}
 
 	recomendations, err := client.RecommendationsListComplete(ctx, id, opts)
