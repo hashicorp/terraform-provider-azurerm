@@ -79,6 +79,7 @@ var services = mapOf(
         "mobilenetwork" to "Mobile Network",
         "monitor" to "Monitor",
         "mysql" to "MySQL",
+        "netapp" to "NetApp"
         "network" to "Network",
         "nginx" to "Nginx",
         "notificationhub" to "Notification Hub",
@@ -115,6 +116,5 @@ var services = mapOf(
         "vmware" to "VMware",
         "videoanalyzer" to "Video Analyzer",
         "voiceservices" to "Voice Services",
-        "web" to "Web",
-        "netapp" to "netapp"
+        "web" to "Web"
 )
