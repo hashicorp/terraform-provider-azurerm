@@ -2,7 +2,8 @@
 
 ENHANCEMENTS:
 
-* `hpcache`: refactoring to use `hashicorp/go-azure-sdk` [GH-21303]
+* `advisor` - refactoring to use `hashicorp/go-azure-sdk` [GH-21307]
+* `hpccache` - refactoring to use `hashicorp/go-azure-sdk` [GH-21303]
 
 ## 3.52.0 (April 13, 2023)
 
