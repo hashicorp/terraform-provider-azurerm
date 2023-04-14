@@ -220,20 +220,7 @@ func TestAccSearchService_partitionCountInvalidByInput(t *testing.T) {
 		{
 			Config:      r.partitionCount(data, "standard", 5),
 			Check:       acceptance.ComposeTestCheckFunc(),
-			ExpectError: regexp.MustCompile("must be 1"),
-		},
-	})
-}
-
-func TestAccSearchService_replicaCount(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	r := SearchServiceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.replicaCount(data, "basic", 3),
-			Check:       acceptance.ComposeTestCheckFunc(),
-			ExpectError: regexp.MustCompile("cannot be greater than 1 for the"),
+			ExpectError: regexp.MustCompile(`expected partition_count`),
 		},
 	})
 }
@@ -252,6 +239,21 @@ func TestAccSearchService_replicaCountInvalid(t *testing.T) {
 			Check:       acceptance.ComposeTestCheckFunc(),
 			ExpectError: regexp.MustCompile("cannot be greater than 1 for the"),
 		},
+	})
+}
+
+func TestAccSearchService_replicaCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.replicaCount(data, "basic", 3),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -276,7 +278,8 @@ func TestAccSearchService_customerManagedKeyEnforcementUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// This should create a Search Service with the default 'customer_managed_key_enforcement_enabled' value of 'false'...
+			// This should create a Search Service with the default
+			// 'customer_managed_key_enforcement_enabled' value of 'false'...
 			Config: r.basic(data, "standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -284,14 +287,14 @@ func TestAccSearchService_customerManagedKeyEnforcementUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.customerManagedKeyEnforcement(data, false),
+			Config: r.customerManagedKeyEnforcement(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.customerManagedKeyEnforcement(data, true),
+			Config: r.customerManagedKeyEnforcement(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
