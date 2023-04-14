@@ -31,9 +31,9 @@ func (d NetAppVolumeGroupSapHanaDataSource) basic(data acceptance.TestData) stri
 %s
 
 data "azurerm_netapp_volume_group_sap_hana" "test" {
-  name                   = azurerm_netapp_volume_group_sap_hana.test.name
-  resource_group_name    = azurerm_netapp_volume_group_sap_hana.test.resource_group_name
-  account_name           = azurerm_netapp_volume_group_sap_hana.test.account_name
+  name                = azurerm_netapp_volume_group_sap_hana.test.name
+  resource_group_name = azurerm_netapp_volume_group_sap_hana.test.resource_group_name
+  account_name        = azurerm_netapp_volume_group_sap_hana.test.account_name
 }
 `, NetAppVolumeGroupSapHanaResource{}.basic(data))
 }
