@@ -178,7 +178,7 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
 }
 
 data "azurerm_sentinel_alert_rule_template" "test" {
-  display_name               = "(Preview) Microsoft Threat Intelligence Analytics"
+  display_name               = "(Preview) Microsoft Defender Threat Intelligence Analytics"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

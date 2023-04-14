@@ -115,7 +115,7 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basic(data acceptance.TestData)
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "(Preview) Potential data staging"
+  display_name               = "Potential data staging"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
@@ -134,7 +134,7 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basicWithThresholdObservation(d
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "(Preview) UEBA Anomalous Sign In"
+  display_name               = "UEBA Anomalous Sign In"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
@@ -159,11 +159,11 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basicWithSingleSelectObservatio
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "(Preview) Unusual web traffic detected with IP in URL path"
+  display_name               = "Unusual web traffic detected with IP in URL path"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
-  display_name               = "acctest duplicate (Preview) Unusual web traffic detected with IP in URL path"
+  display_name               = "acctest duplicate Unusual web traffic detected with IP in URL path"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   built_in_rule_id           = data.azurerm_sentinel_alert_rule_anomaly.test.id
   enabled                    = true
@@ -183,11 +183,11 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basicWithMultiSelectObservation
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "(Preview) Anomalous scanning activity"
+  display_name               = "Anomalous scanning activity"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
-  display_name               = "acctest duplicate (Preview) Anomalous scanning activity"
+  display_name               = "acctest duplicate Anomalous scanning activity"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   built_in_rule_id           = data.azurerm_sentinel_alert_rule_anomaly.test.id
   enabled                    = true
@@ -206,11 +206,11 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basicWithPrioritizeExcludeObser
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "(Preview) Anomalous web request activity"
+  display_name               = "Anomalous web request activity"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
-  display_name               = "acctest duplicate (Preview) Anomalous web request activity"
+  display_name               = "acctest duplicate Anomalous web request activity"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   built_in_rule_id           = data.azurerm_sentinel_alert_rule_anomaly.test.id
   enabled                    = true

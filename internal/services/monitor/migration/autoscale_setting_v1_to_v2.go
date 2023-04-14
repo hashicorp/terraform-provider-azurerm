@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/autoscalesettings"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -309,7 +309,7 @@ func (s AutoscaleSettingUpgradeV1ToV2) Schema() map[string]*pluginsdk.Schema {
 func (s AutoscaleSettingUpgradeV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := parse.AutoscaleSettingIDInsensitively(oldId)
+		newId, err := autoscalesettings.ParseAutoScaleSettingIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -116,18 +117,23 @@ func TestAccContainerRegistryTokenPassword_requiresImport(t *testing.T) {
 }
 
 func (r ContainerRegistryTokenPasswordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Containers.TokensClient
+	client := clients.Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
 
 	id, err := parse.ContainerRegistryTokenPasswordID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
+	tokenId := tokens.NewTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName)
+
+	resp, err := client.Get(ctx, tokenId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	props := resp.TokenProperties
+	if resp.Model == nil {
+		return nil, fmt.Errorf("checking for presence of existing %s: unexpected nil Model", id)
+	}
+	props := resp.Model.Properties
 	if props == nil {
 		return nil, fmt.Errorf("checking for presence of existing %s: unexpected nil tokenProperties", id)
 	}
@@ -222,6 +228,7 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
+  admin_enabled       = true
 }
 
 # use system wide scope map for tests
