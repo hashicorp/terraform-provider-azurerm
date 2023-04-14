@@ -68,7 +68,7 @@ This allows the source vm to be deleted without having to remove the backup.
 
 * `include_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers(LUN) to be included for VM Protection.
 
-* `protection_stopped` - (Optional) Specifies whether to stop the protection. Defaults to `false`.
+* `protection_state` - (Optional) Specifies Protection state of the backup. Possible values are `Invalid`, `IRPending`, `Protected`, `ProtectionStopped`, `ProtectionError` and `ProtectionPaused`.
 
 ## Attributes Reference
 

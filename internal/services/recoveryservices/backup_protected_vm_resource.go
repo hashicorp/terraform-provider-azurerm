@@ -112,8 +112,10 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		},
 	}
 
-	requireAdditionalUpdate := d.Get("protection_stopped").(bool)
-	skipNormalUpdate := d.Get("protection_stopped").(bool) && !d.IsNewResource()
+	protectionState, ok := d.GetOk("protection_state")
+	protectionStopped := strings.EqualFold(protectionState.(string), string(backup.ProtectionStateProtectionStopped))
+	requireAdditionalUpdate := ok && protectionStopped
+	skipNormalUpdate := protectionStopped && !d.IsNewResource()
 
 	if !skipNormalUpdate {
 		if _, err = client.CreateOrUpdate(ctx, id.VaultName, id.ResourceGroup, id.BackupFabricName, id.ProtectionContainerName, id.Name, item); err != nil {
@@ -193,7 +195,7 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 	if properties := resp.Properties; properties != nil {
 		if vm, ok := properties.AsAzureIaaSComputeVMProtectedItem(); ok {
 			d.Set("source_vm_id", vm.SourceResourceID)
-			d.Set("protection_stopped", vm.ProtectionState == backup.ProtectionStateProtectionStopped)
+			d.Set("protection_state", vm.ProtectionState)
 
 			if v := vm.PolicyID; v != nil {
 				d.Set("backup_policy_id", strings.Replace(*v, "Subscriptions", "subscriptions", 1))
@@ -421,7 +423,6 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.BackupPolicyID,
-			ExactlyOneOf: []string{"backup_policy_id", "protection_stopped"},
 		},
 
 		"exclude_disk_luns": {
@@ -444,11 +445,18 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 			},
 		},
 
-		"protection_stopped": {
-			Type:         pluginsdk.TypeBool,
-			Optional:     true,
-			Computed:     true,
-			ExactlyOneOf: []string{"backup_policy_id", "protection_stopped"},
+		"protection_state": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(backup.ProtectedItemStateIRPending),
+				string(backup.ProtectedItemStateProtected),
+				string(backup.ProtectedItemStateProtectionError),
+				string(backup.ProtectedItemStateProtectionStopped),
+				string(backup.ProtectedItemStateProtectionPaused),
+				string(backup.ProtectionStateInvalid),
+			}, false),
 		},
 	}
 }

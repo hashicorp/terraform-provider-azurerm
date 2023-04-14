@@ -215,7 +215,7 @@ func TestAccBackupProtectedVm_protectionStopped(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.protectionStopped(data),
+			Config: r.protectionState(data, "ProtectionStopped"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -361,7 +361,9 @@ resource "azurerm_virtual_machine" "test" {
     enabled     = true
     storage_uri = azurerm_storage_account.test.primary_blob_endpoint
   }
-
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_recovery_services_vault" "test" {
@@ -717,7 +719,7 @@ resource "azurerm_backup_protected_vm" "test" {
 `, r.additionalVault(data))
 }
 
-func (r BackupProtectedVmResource) protectionStopped(data acceptance.TestData) string {
+func (r BackupProtectedVmResource) protectionState(data acceptance.TestData, state string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -726,8 +728,8 @@ resource "azurerm_backup_protected_vm" "test" {
   recovery_vault_name = azurerm_recovery_services_vault.test.name
   source_vm_id        = azurerm_virtual_machine.test.id
 
-  include_disk_luns  = [0]
-  protection_stopped = true
+  include_disk_luns = [0]
+  protection_state  = "%s"
 }
-`, r.base(data))
+`, r.base(data), state)
 }
