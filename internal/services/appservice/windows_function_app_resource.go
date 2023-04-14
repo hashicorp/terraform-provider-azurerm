@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -24,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web" // nolint: staticcheck
 )
 
 type WindowsFunctionAppResource struct{}
@@ -54,6 +54,7 @@ type WindowsFunctionAppModel struct {
 	FunctionExtensionsVersion   string                                 `tfschema:"functions_extension_version"`
 	ForceDisableContentShare    bool                                   `tfschema:"content_share_force_disabled"`
 	HttpsOnly                   bool                                   `tfschema:"https_only"`
+	PublicNetworkAccessEnabled  bool                                   `tfschema:"public_network_access_enabled"`
 	KeyVaultReferenceIdentityID string                                 `tfschema:"key_vault_reference_identity_id"`
 	SiteConfig                  []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
 	StorageAccounts             []helpers.StorageAccount               `tfschema:"storage_account"`
@@ -240,6 +241,12 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Computed:    true,
 			Description: "Can the Function App only be accessed via HTTPS?",
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -486,6 +493,12 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			publicNetworkAccessEnabled := "Enabled"
+			if !functionApp.PublicNetworkAccessEnabled {
+				publicNetworkAccessEnabled = "Disabled"
+			}
+			siteEnvelope.SiteProperties.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
+
 			if functionApp.VirtualNetworkSubnetID != "" {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionApp.VirtualNetworkSubnetID)
 			}
@@ -680,6 +693,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
+				PublicNetworkAccessEnabled:  strings.EqualFold(pointer.From(props.PublicNetworkAccess), "Enabled"),
 			}
 
 			if v := props.OutboundIPAddresses; v != nil {
@@ -841,6 +855,14 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("https_only") {
 				existing.SiteProperties.HTTPSOnly = utils.Bool(state.HttpsOnly)
+			}
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				publicNetworkAccessEnabled := "Enabled"
+				if !state.PublicNetworkAccessEnabled {
+					publicNetworkAccessEnabled = "Disabled"
+				}
+				existing.SiteProperties.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {

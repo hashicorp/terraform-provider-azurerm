@@ -51,7 +51,6 @@ github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagec
 github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync
 github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web
-github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web
 github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest v14.2.0+incompatible
 ## explicit
@@ -769,7 +768,7 @@ github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/endpoints
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 github.com/tombuildsstuff/giovanni/version
-# github.com/tombuildsstuff/kermit v0.20230331.1120327
+# github.com/tombuildsstuff/kermit v0.20230412.1161912
 ## explicit; go 1.18
 github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform
 github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch
@@ -780,6 +779,7 @@ github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault
 github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network
 github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights
 github.com/tombuildsstuff/kermit/sdk/synapse/2021-06-01-preview/synapse
+github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web
 github.com/tombuildsstuff/kermit/version
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit

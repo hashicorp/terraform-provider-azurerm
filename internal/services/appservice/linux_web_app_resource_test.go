@@ -1442,8 +1442,9 @@ resource "azurerm_linux_web_app" "test" {
     type  = "PostgreSQL"
   }
 
-  enabled    = false
-  https_only = true
+  enabled                       = false
+  https_only                    = true
+  public_network_access_enabled = false
 
   identity {
     type         = "UserAssigned"
@@ -1453,8 +1454,7 @@ resource "azurerm_linux_web_app" "test" {
   site_config {
     always_on = true
     // api_management_config_id = // TODO
-    public_network_access_enabled = false
-    app_command_line              = "/sbin/myserver -b 0.0.0.0"
+    app_command_line = "/sbin/myserver -b 0.0.0.0"
     default_documents = [
       "first.html",
       "second.jsp",

@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -21,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web" // nolint: staticcheck
 )
 
 type WindowsWebAppResource struct{}
@@ -41,6 +41,7 @@ type WindowsWebAppModel struct {
 	ClientCertExclusionPaths      string                      `tfschema:"client_certificate_exclusion_paths"`
 	Enabled                       bool                        `tfschema:"enabled"`
 	HttpsOnly                     bool                        `tfschema:"https_only"`
+	PublicNetworkAccessEnabled    bool                        `tfschema:"public_network_access_enabled"`
 	KeyVaultReferenceIdentityID   string                      `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig        `tfschema:"logs"`
 	SiteConfig                    []helpers.SiteConfigWindows `tfschema:"site_config"`
@@ -137,6 +138,12 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -335,6 +342,12 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
 				},
 			}
+
+			publicNetworkAccessEnabled := "Enabled"
+			if !webApp.PublicNetworkAccessEnabled {
+				publicNetworkAccessEnabled = "Disabled"
+			}
+			siteEnvelope.SiteProperties.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
 
 			if webApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = pointer.To(webApp.KeyVaultReferenceIdentityID)
@@ -561,6 +574,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				DefaultHostname:             pointer.From(props.DefaultHostName),
 				Enabled:                     pointer.From(props.Enabled),
 				HttpsOnly:                   pointer.From(props.HTTPSOnly),
+				PublicNetworkAccessEnabled:  strings.EqualFold(pointer.From(props.PublicNetworkAccess), "Enabled"),
 				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
 				Kind:                        pointer.From(webApp.Kind),
 				LogsConfig:                  helpers.FlattenLogsConfig(logsConfig),
@@ -706,6 +720,15 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("https_only") {
 				existing.SiteProperties.HTTPSOnly = pointer.To(state.HttpsOnly)
 			}
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				publicNetworkAccessEnabled := "Enabled"
+				if !state.PublicNetworkAccessEnabled {
+					publicNetworkAccessEnabled = "Disabled"
+				}
+				existing.SiteProperties.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
+			}
+
 			if metadata.ResourceData.HasChange("client_affinity_enabled") {
 				existing.SiteProperties.ClientAffinityEnabled = pointer.To(state.ClientAffinityEnabled)
 			}

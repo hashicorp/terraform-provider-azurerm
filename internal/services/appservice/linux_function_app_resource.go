@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -24,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web" // nolint: staticcheck
 )
 
 type LinuxFunctionAppResource struct{}
@@ -54,6 +54,7 @@ type LinuxFunctionAppModel struct {
 	FunctionExtensionsVersion   string                               `tfschema:"functions_extension_version"`
 	ForceDisableContentShare    bool                                 `tfschema:"content_share_force_disabled"`
 	HttpsOnly                   bool                                 `tfschema:"https_only"`
+	PublicNetworkAccessEnabled  bool                                 `tfschema:"public_network_access_enabled"`
 	KeyVaultReferenceIdentityID string                               `tfschema:"key_vault_reference_identity_id"`
 	SiteConfig                  []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
 	StorageAccounts             []helpers.StorageAccount             `tfschema:"storage_account"`
@@ -240,6 +241,12 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Default:     false,
 			Description: "Can the Function App only be accessed via HTTPS?",
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -489,6 +496,12 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			publicNetworkAccessEnabled := "Enabled"
+			if !functionApp.PublicNetworkAccessEnabled {
+				publicNetworkAccessEnabled = "Disabled"
+			}
+			siteEnvelope.SiteProperties.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
+
 			if functionApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionApp.KeyVaultReferenceIdentityID)
 			}
@@ -682,6 +695,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
+				PublicNetworkAccessEnabled:  strings.EqualFold(pointer.From(props.PublicNetworkAccess), "Enabled"),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
 			}
 
@@ -838,6 +852,14 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("https_only") {
 				existing.SiteProperties.HTTPSOnly = utils.Bool(state.HttpsOnly)
+			}
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				publicNetworkAccessEnabled := "Enabled"
+				if !state.PublicNetworkAccessEnabled {
+					publicNetworkAccessEnabled = "Disabled"
+				}
+				existing.SiteProperties.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {

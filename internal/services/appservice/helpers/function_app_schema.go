@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web" // nolint: staticcheck
 )
 
 const (
@@ -35,7 +35,6 @@ type SiteConfigLinuxFunctionApp struct {
 	ElasticInstanceMinimum        int                                `tfschema:"elastic_instance_minimum"`
 	Http2Enabled                  bool                               `tfschema:"http2_enabled"`
 	IpRestriction                 []IpRestriction                    `tfschema:"ip_restriction"`
-	PublicNetworkAccessEnabled    bool                               `tfschema:"public_network_access_enabled"`
 	LoadBalancing                 string                             `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
 	ManagedPipelineMode           string                             `tfschema:"managed_pipeline_mode"`
 	PreWarmedInstanceCount        int                                `tfschema:"pre_warmed_instance_count"`
@@ -161,12 +160,6 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
-
-				"public_network_access_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				},
 
 				"scm_use_main_ip_restriction": {
 					Type:        pluginsdk.TypeBool,
@@ -413,11 +406,6 @@ func SiteConfigSchemaLinuxFunctionAppComputed() *pluginsdk.Schema {
 
 				"ip_restriction": IpRestrictionSchemaComputed(),
 
-				"public_network_access_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -534,7 +522,6 @@ type SiteConfigWindowsFunctionApp struct {
 	ElasticInstanceMinimum        int                                  `tfschema:"elastic_instance_minimum"`
 	Http2Enabled                  bool                                 `tfschema:"http2_enabled"`
 	IpRestriction                 []IpRestriction                      `tfschema:"ip_restriction"`
-	PublicNetworkAccessEnabled    bool                                 `tfschema:"public_network_access_enabled"`
 	LoadBalancing                 string                               `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
 	ManagedPipelineMode           string                               `tfschema:"managed_pipeline_mode"`
 	PreWarmedInstanceCount        int                                  `tfschema:"pre_warmed_instance_count"`
@@ -646,12 +633,6 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				},
 
 				"ip_restriction": IpRestrictionSchema(),
-
-				"public_network_access_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				},
 
 				"scm_use_main_ip_restriction": {
 					Type:        pluginsdk.TypeBool,
@@ -888,11 +869,6 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 				},
 
 				"ip_restriction": IpRestrictionSchemaComputed(),
-
-				"public_network_access_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
@@ -1657,12 +1633,6 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
-	publicNetworkAccessEnabled := "Enabled"
-	if !linuxSiteConfig.PublicNetworkAccessEnabled {
-		publicNetworkAccessEnabled = "Disabled"
-	}
-	expanded.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
-
 	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
 		expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(linuxSiteConfig.ScmUseMainIpRestriction)
 	}
@@ -1909,12 +1879,6 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	publicNetworkAccessEnabled := "Enabled"
-	if !windowsSiteConfig.PublicNetworkAccessEnabled {
-		publicNetworkAccessEnabled = "Disabled"
-	}
-	expanded.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
-
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
 		expanded.LoadBalancing = web.SiteLoadBalancing(windowsSiteConfig.LoadBalancing)
 	}
@@ -1988,35 +1952,33 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *web.SiteConfig) (*
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
 
-	// publicNetworkAccess is case-sensitive "Message": "PublicNetworkAccess is invalid.  Valid values are: Enabled, Disabled or an empty string"
 	result := &SiteConfigLinuxFunctionApp{
-		AlwaysOn:                   utils.NormaliseNilableBool(functionAppSiteConfig.AlwaysOn),
-		AppCommandLine:             utils.NormalizeNilableString(functionAppSiteConfig.AppCommandLine),
-		AppScaleLimit:              int(utils.NormaliseNilableInt32(functionAppSiteConfig.FunctionAppScaleLimit)),
-		ContainerRegistryMSI:       utils.NormalizeNilableString(functionAppSiteConfig.AcrUserManagedIdentityID),
-		Cors:                       FlattenCorsSettings(functionAppSiteConfig.Cors),
-		DetailedErrorLogging:       utils.NormaliseNilableBool(functionAppSiteConfig.DetailedErrorLoggingEnabled),
-		HealthCheckPath:            utils.NormalizeNilableString(functionAppSiteConfig.HealthCheckPath),
-		Http2Enabled:               utils.NormaliseNilableBool(functionAppSiteConfig.HTTP20Enabled),
-		LinuxFxVersion:             utils.NormalizeNilableString(functionAppSiteConfig.LinuxFxVersion),
-		PublicNetworkAccessEnabled: strings.EqualFold(pointer.From(functionAppSiteConfig.PublicNetworkAccess), "Enabled"),
-		LoadBalancing:              string(functionAppSiteConfig.LoadBalancing),
-		ManagedPipelineMode:        string(functionAppSiteConfig.ManagedPipelineMode),
-		WorkerCount:                int(utils.NormaliseNilableInt32(functionAppSiteConfig.NumberOfWorkers)),
-		ScmType:                    string(functionAppSiteConfig.ScmType),
-		FtpsState:                  string(functionAppSiteConfig.FtpsState),
-		RuntimeScaleMonitoring:     utils.NormaliseNilableBool(functionAppSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:              string(functionAppSiteConfig.MinTLSVersion),
-		ScmMinTlsVersion:           string(functionAppSiteConfig.ScmMinTLSVersion),
-		PreWarmedInstanceCount:     int(utils.NormaliseNilableInt32(functionAppSiteConfig.PreWarmedInstanceCount)),
-		ElasticInstanceMinimum:     int(utils.NormaliseNilableInt32(functionAppSiteConfig.MinimumElasticInstanceCount)),
-		Use32BitWorker:             utils.NormaliseNilableBool(functionAppSiteConfig.Use32BitWorkerProcess),
-		WebSockets:                 utils.NormaliseNilableBool(functionAppSiteConfig.WebSocketsEnabled),
-		ScmUseMainIpRestriction:    utils.NormaliseNilableBool(functionAppSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		UseManagedIdentityACR:      utils.NormaliseNilableBool(functionAppSiteConfig.AcrUseManagedIdentityCreds),
-		RemoteDebugging:            utils.NormaliseNilableBool(functionAppSiteConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:     strings.ToUpper(utils.NormalizeNilableString(functionAppSiteConfig.RemoteDebuggingVersion)),
-		VnetRouteAllEnabled:        utils.NormaliseNilableBool(functionAppSiteConfig.VnetRouteAllEnabled),
+		AlwaysOn:                utils.NormaliseNilableBool(functionAppSiteConfig.AlwaysOn),
+		AppCommandLine:          utils.NormalizeNilableString(functionAppSiteConfig.AppCommandLine),
+		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSiteConfig.FunctionAppScaleLimit)),
+		ContainerRegistryMSI:    utils.NormalizeNilableString(functionAppSiteConfig.AcrUserManagedIdentityID),
+		Cors:                    FlattenCorsSettings(functionAppSiteConfig.Cors),
+		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSiteConfig.DetailedErrorLoggingEnabled),
+		HealthCheckPath:         utils.NormalizeNilableString(functionAppSiteConfig.HealthCheckPath),
+		Http2Enabled:            utils.NormaliseNilableBool(functionAppSiteConfig.HTTP20Enabled),
+		LinuxFxVersion:          utils.NormalizeNilableString(functionAppSiteConfig.LinuxFxVersion),
+		LoadBalancing:           string(functionAppSiteConfig.LoadBalancing),
+		ManagedPipelineMode:     string(functionAppSiteConfig.ManagedPipelineMode),
+		WorkerCount:             int(utils.NormaliseNilableInt32(functionAppSiteConfig.NumberOfWorkers)),
+		ScmType:                 string(functionAppSiteConfig.ScmType),
+		FtpsState:               string(functionAppSiteConfig.FtpsState),
+		RuntimeScaleMonitoring:  utils.NormaliseNilableBool(functionAppSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
+		MinTlsVersion:           string(functionAppSiteConfig.MinTLSVersion),
+		ScmMinTlsVersion:        string(functionAppSiteConfig.ScmMinTLSVersion),
+		PreWarmedInstanceCount:  int(utils.NormaliseNilableInt32(functionAppSiteConfig.PreWarmedInstanceCount)),
+		ElasticInstanceMinimum:  int(utils.NormaliseNilableInt32(functionAppSiteConfig.MinimumElasticInstanceCount)),
+		Use32BitWorker:          utils.NormaliseNilableBool(functionAppSiteConfig.Use32BitWorkerProcess),
+		WebSockets:              utils.NormaliseNilableBool(functionAppSiteConfig.WebSocketsEnabled),
+		ScmUseMainIpRestriction: utils.NormaliseNilableBool(functionAppSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		UseManagedIdentityACR:   utils.NormaliseNilableBool(functionAppSiteConfig.AcrUseManagedIdentityCreds),
+		RemoteDebugging:         utils.NormaliseNilableBool(functionAppSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(functionAppSiteConfig.RemoteDebuggingVersion)),
+		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSiteConfig.VnetRouteAllEnabled),
 	}
 
 	if v := functionAppSiteConfig.APIDefinition; v != nil && v.URL != nil {
@@ -2058,31 +2020,30 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *web.SiteConfig) 
 	}
 
 	result := &SiteConfigWindowsFunctionApp{
-		AlwaysOn:                   utils.NormaliseNilableBool(functionAppSiteConfig.AlwaysOn),
-		AppCommandLine:             utils.NormalizeNilableString(functionAppSiteConfig.AppCommandLine),
-		AppScaleLimit:              int(utils.NormaliseNilableInt32(functionAppSiteConfig.FunctionAppScaleLimit)),
-		Cors:                       FlattenCorsSettings(functionAppSiteConfig.Cors),
-		DetailedErrorLogging:       utils.NormaliseNilableBool(functionAppSiteConfig.DetailedErrorLoggingEnabled),
-		HealthCheckPath:            utils.NormalizeNilableString(functionAppSiteConfig.HealthCheckPath),
-		Http2Enabled:               utils.NormaliseNilableBool(functionAppSiteConfig.HTTP20Enabled),
-		PublicNetworkAccessEnabled: strings.EqualFold(pointer.From(functionAppSiteConfig.PublicNetworkAccess), "Enabled"),
-		WindowsFxVersion:           utils.NormalizeNilableString(functionAppSiteConfig.WindowsFxVersion),
-		LoadBalancing:              string(functionAppSiteConfig.LoadBalancing),
-		ManagedPipelineMode:        string(functionAppSiteConfig.ManagedPipelineMode),
-		NumberOfWorkers:            int(utils.NormaliseNilableInt32(functionAppSiteConfig.NumberOfWorkers)),
-		ScmType:                    string(functionAppSiteConfig.ScmType),
-		FtpsState:                  string(functionAppSiteConfig.FtpsState),
-		RuntimeScaleMonitoring:     utils.NormaliseNilableBool(functionAppSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:              string(functionAppSiteConfig.MinTLSVersion),
-		ScmMinTlsVersion:           string(functionAppSiteConfig.ScmMinTLSVersion),
-		PreWarmedInstanceCount:     int(utils.NormaliseNilableInt32(functionAppSiteConfig.PreWarmedInstanceCount)),
-		ElasticInstanceMinimum:     int(utils.NormaliseNilableInt32(functionAppSiteConfig.MinimumElasticInstanceCount)),
-		Use32BitWorker:             utils.NormaliseNilableBool(functionAppSiteConfig.Use32BitWorkerProcess),
-		WebSockets:                 utils.NormaliseNilableBool(functionAppSiteConfig.WebSocketsEnabled),
-		ScmUseMainIpRestriction:    utils.NormaliseNilableBool(functionAppSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		RemoteDebugging:            utils.NormaliseNilableBool(functionAppSiteConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:     strings.ToUpper(utils.NormalizeNilableString(functionAppSiteConfig.RemoteDebuggingVersion)),
-		VnetRouteAllEnabled:        utils.NormaliseNilableBool(functionAppSiteConfig.VnetRouteAllEnabled),
+		AlwaysOn:                utils.NormaliseNilableBool(functionAppSiteConfig.AlwaysOn),
+		AppCommandLine:          utils.NormalizeNilableString(functionAppSiteConfig.AppCommandLine),
+		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSiteConfig.FunctionAppScaleLimit)),
+		Cors:                    FlattenCorsSettings(functionAppSiteConfig.Cors),
+		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSiteConfig.DetailedErrorLoggingEnabled),
+		HealthCheckPath:         utils.NormalizeNilableString(functionAppSiteConfig.HealthCheckPath),
+		Http2Enabled:            utils.NormaliseNilableBool(functionAppSiteConfig.HTTP20Enabled),
+		WindowsFxVersion:        utils.NormalizeNilableString(functionAppSiteConfig.WindowsFxVersion),
+		LoadBalancing:           string(functionAppSiteConfig.LoadBalancing),
+		ManagedPipelineMode:     string(functionAppSiteConfig.ManagedPipelineMode),
+		NumberOfWorkers:         int(utils.NormaliseNilableInt32(functionAppSiteConfig.NumberOfWorkers)),
+		ScmType:                 string(functionAppSiteConfig.ScmType),
+		FtpsState:               string(functionAppSiteConfig.FtpsState),
+		RuntimeScaleMonitoring:  utils.NormaliseNilableBool(functionAppSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
+		MinTlsVersion:           string(functionAppSiteConfig.MinTLSVersion),
+		ScmMinTlsVersion:        string(functionAppSiteConfig.ScmMinTLSVersion),
+		PreWarmedInstanceCount:  int(utils.NormaliseNilableInt32(functionAppSiteConfig.PreWarmedInstanceCount)),
+		ElasticInstanceMinimum:  int(utils.NormaliseNilableInt32(functionAppSiteConfig.MinimumElasticInstanceCount)),
+		Use32BitWorker:          utils.NormaliseNilableBool(functionAppSiteConfig.Use32BitWorkerProcess),
+		WebSockets:              utils.NormaliseNilableBool(functionAppSiteConfig.WebSocketsEnabled),
+		ScmUseMainIpRestriction: utils.NormaliseNilableBool(functionAppSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		RemoteDebugging:         utils.NormaliseNilableBool(functionAppSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(functionAppSiteConfig.RemoteDebuggingVersion)),
+		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSiteConfig.VnetRouteAllEnabled),
 	}
 
 	if v := functionAppSiteConfig.APIDefinition; v != nil && v.URL != nil {

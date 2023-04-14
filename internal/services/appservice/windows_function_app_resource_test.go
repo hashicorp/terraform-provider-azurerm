@@ -2103,9 +2103,10 @@ resource "azurerm_windows_function_app" "test" {
     type  = "PostgreSQL"
   }
 
-  enabled                     = false
-  functions_extension_version = "~3"
-  https_only                  = true
+  enabled                       = false
+  functions_extension_version   = "~3"
+  https_only                    = true
+  public_network_access_enabled = false
 
   identity {
     type         = "UserAssigned"
@@ -2131,8 +2132,7 @@ resource "azurerm_windows_function_app" "test" {
       "hostingstart.html",
     ]
 
-    http2_enabled                 = true
-    public_network_access_enabled = false
+    http2_enabled = true
 
     ip_restriction {
       ip_address = "10.10.10.10/32"
