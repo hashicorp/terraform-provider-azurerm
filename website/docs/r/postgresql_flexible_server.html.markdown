@@ -88,9 +88,13 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the PostgreSQL Flexible Server should exist. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `administrator_login` - (Optional) The Administrator login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `administrator_login` - (Optional) The Administrator login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`. 
 
-* `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`.
+-> **Note:** Once `administrator_login` is specified, changing this forces a new PostgreSQL Flexible Server to be created.
+
+-> **Note:** To create with `administrator_login` specified or update with it first specified , `authentication.password_auth_enabled` must be set to `true`.
+
+* `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
 
 * `authentication` - (Optional) An `authentication` block as defined below.
 
@@ -168,9 +172,9 @@ A `customer_managed_key` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Should be set to `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this PostgreSQL Flexible Server. Should be set to `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this API Management Service. Required if used together with `customer_managed_key` block.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this PostgreSQL Flexible Server. Required if used together with `customer_managed_key` block.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 

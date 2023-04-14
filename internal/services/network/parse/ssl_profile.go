@@ -73,3 +73,59 @@ func SslProfileID(input string) (*SslProfileId, error) {
 
 	return &resourceId, nil
 }
+
+// SslProfileIDInsensitively parses an SslProfile ID into an SslProfileId struct, insensitively
+// This should only be used to parse an ID for rewriting, the SslProfileID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func SslProfileIDInsensitively(input string) (*SslProfileId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := SslProfileId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'applicationGateways' segment
+	applicationGatewaysKey := "applicationGateways"
+	for key := range id.Path {
+		if strings.EqualFold(key, applicationGatewaysKey) {
+			applicationGatewaysKey = key
+			break
+		}
+	}
+	if resourceId.ApplicationGatewayName, err = id.PopSegment(applicationGatewaysKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'sslProfiles' segment
+	sslProfilesKey := "sslProfiles"
+	for key := range id.Path {
+		if strings.EqualFold(key, sslProfilesKey) {
+			sslProfilesKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(sslProfilesKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}

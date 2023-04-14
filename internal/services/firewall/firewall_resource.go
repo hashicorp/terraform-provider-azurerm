@@ -283,6 +283,14 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			*vnetToLock = append(*vnetToLock, (*mgmtVirtualNetworkName)[0])
 		}
 		if *mgmtIPConfig != nil {
+			if parameters.IPConfigurations != nil {
+				for k, v := range *parameters.IPConfigurations {
+					if v.Name != nil && (*mgmtIPConfig)[0].Name != nil && *v.Name == *(*mgmtIPConfig)[0].Name {
+						return fmt.Errorf("`management_ip_configuration.0.name` must not be the same as `ip_configuration.%d.name`", k)
+					}
+				}
+			}
+
 			parameters.ManagementIPConfiguration = &(*mgmtIPConfig)[0]
 		}
 	}

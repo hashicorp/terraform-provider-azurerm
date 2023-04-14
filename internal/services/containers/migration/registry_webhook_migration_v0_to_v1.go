@@ -4,10 +4,9 @@ import (
 	"context"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/webhooks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -50,7 +49,7 @@ func (s RegistryWebhookV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"status": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  containerregistry.WebhookStatusEnabled,
+			Default:  webhooks.WebhookStatusEnabled,
 		},
 
 		"scope": {
@@ -86,7 +85,7 @@ func (s RegistryWebhookV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (s RegistryWebhookV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := parse.WebhookIDInsensitively(oldId)
+		newId, err := webhooks.ParseWebHookIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}

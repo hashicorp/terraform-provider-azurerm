@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -137,7 +138,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: networkValidate.SubnetID,
 					},
 				},
 			},
@@ -189,7 +190,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 								"subnet_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: azure.ValidateResourceID,
+									ValidateFunc: networkValidate.SubnetID,
 								},
 							},
 						},
@@ -220,7 +221,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: networkValidate.PublicIpAddressID,
 					},
 
 					"private_ip_addresses": {
@@ -591,7 +592,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"public_ip_address_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: networkValidate.PublicIpAddressID,
 		},
 
 		"public_network_access_enabled": {
@@ -728,12 +729,10 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 				},
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params)
+			// We only handle the error here because no request body is returned https://github.com/Azure/azure-rest-api-specs/issues/23456
+			_, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params)
 			if err != nil {
 				return fmt.Errorf("recovering %s: %+v", id, err)
-			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for recovery of %q: %+v", id, err)
 			}
 
 			// Wait for the ProvisioningState to become "Succeeded" before attempting to update
@@ -784,7 +783,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	if _, ok := d.GetOk("additional_location"); ok {
 		var err error
-		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, sku)
+		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, *sku)
 		if err != nil {
 			return err
 		}
@@ -1451,7 +1450,7 @@ func expandAzureRmApiManagementCertificates(d *pluginsdk.ResourceData) *[]apiman
 	return &results
 }
 
-func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sku *apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
+func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sku apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
 	inputLocations := d.Get("additional_location").([]interface{})
 	parentVnetConfig := d.Get("virtual_network_configuration").([]interface{})
 
@@ -1467,7 +1466,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 
 		additionalLocation := apimanagement.AdditionalLocation{
 			Location:       utils.String(location),
-			Sku:            sku,
+			Sku:            &sku,
 			DisableGateway: utils.Bool(config["gateway_disabled"].(bool)),
 		}
 

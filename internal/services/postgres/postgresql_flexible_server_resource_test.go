@@ -245,13 +245,6 @@ func TestAccPostgresqlFlexibleServer_authConfig(t *testing.T) {
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.authConfig(data, true, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
 			Config: r.authConfig(data, false, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -259,7 +252,29 @@ func TestAccPostgresqlFlexibleServer_authConfig(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
+			Config: r.authConfig(data, true, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_disablePwdAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// starts from pwdEnabled set to `false` to test add `admininistrator_login`
 			Config: r.authConfig(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.authConfig(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -776,7 +791,7 @@ resource "azurerm_key_vault_access_policy" "server" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
-  key_permissions = ["Get", "List", "WrapKey", "UnwrapKey"]
+  key_permissions = ["Get", "List", "WrapKey", "UnwrapKey", "GetRotationPolicy", "SetRotationPolicy"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -784,7 +799,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy", "SetRotationPolicy"]
 }
 
 resource "azurerm_key_vault_key" "test" {

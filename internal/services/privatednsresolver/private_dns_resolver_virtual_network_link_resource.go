@@ -154,8 +154,6 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) Update() sdk.ResourceFunc 
 				}
 			}
 
-			properties.SystemData = nil
-
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties, virtualnetworklinks.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}

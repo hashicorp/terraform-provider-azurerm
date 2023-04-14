@@ -13,6 +13,7 @@ import (
 )
 
 // a workaround for that some child resources may still exist for seconds before it fully deleted.
+// tracked on https://github.com/Azure/azure-rest-api-specs/issues/22691
 // it will cause the error "Can not delete resource before nested resources are deleted."
 func resourceMobileNetworkChildWaitForDeletion(ctx context.Context, id string, getFunction func() (*http.Response, error)) error {
 	deadline, _ := ctx.Deadline()
@@ -44,6 +45,7 @@ func resourceMobileNetworkChildWaitForDeletion(ctx context.Context, id string, g
 	return nil
 }
 
+// tracked on https://github.com/Azure/azure-rest-api-specs/issues/22634
 // some resources defined both systemAssigned and userAssigned Identity type in Swagger but only support userAssigned Identity,
 // so add a workaround to convert type here.
 func expandMobileNetworkLegacyToUserAssignedIdentity(input []identity.ModelUserAssigned) (*identity.LegacySystemAndUserAssignedMap, error) {

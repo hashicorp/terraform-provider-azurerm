@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/galleries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/galleryapplications"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 type GalleryApplicationResource struct{}
@@ -52,19 +52,16 @@ func (r GalleryApplicationResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SharedImageGalleryID,
+			ValidateFunc: galleries.ValidateGalleryID,
 		},
 
 		"location": commonschema.Location(),
 
 		"supported_os_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(compute.OperatingSystemTypesWindows),
-				string(compute.OperatingSystemTypesLinux),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(galleryapplications.PossibleValuesForOperatingSystemTypes(), false),
 		},
 
 		"description": {
@@ -97,7 +94,7 @@ func (r GalleryApplicationResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -114,7 +111,7 @@ func (r GalleryApplicationResource) ModelObject() interface{} {
 }
 
 func (r GalleryApplicationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.GalleryApplicationID
+	return galleryapplications.ValidateApplicationID
 }
 
 func (r GalleryApplicationResource) Create() sdk.ResourceFunc {
@@ -128,59 +125,51 @@ func (r GalleryApplicationResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Compute.GalleryApplicationsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			galleryId, err := parse.SharedImageGalleryID(state.GalleryId)
+			galleryId, err := galleries.ParseGalleryID(state.GalleryId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewGalleryApplicationID(subscriptionId, galleryId.ResourceGroup, galleryId.GalleryName, state.Name)
-
-			existing, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ApplicationName)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			id := galleryapplications.NewApplicationID(subscriptionId, galleryId.ResourceGroupName, galleryId.GalleryName, state.Name)
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for the presence of existing %q: %+v", id, err)
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			input := compute.GalleryApplication{
-				Location: utils.String(location.Normalize(state.Location)),
-				GalleryApplicationProperties: &compute.GalleryApplicationProperties{
-					SupportedOSType: compute.OperatingSystemTypes(state.SupportedOSType),
+			payload := galleryapplications.GalleryApplication{
+				Location: location.Normalize(state.Location),
+				Properties: &galleryapplications.GalleryApplicationProperties{
+					SupportedOSType: galleryapplications.OperatingSystemTypes(state.SupportedOSType),
 				},
-				Tags: tags.FromTypedObject(state.Tags),
+				Tags: pointer.To(state.Tags),
 			}
 
 			if state.Description != "" {
-				input.GalleryApplicationProperties.Description = utils.String(state.Description)
+				payload.Properties.Description = utils.String(state.Description)
 			}
 
 			if state.EndOfLifeDate != "" {
 				endOfLifeDate, _ := time.Parse(time.RFC3339, state.EndOfLifeDate)
-				input.GalleryApplicationProperties.EndOfLifeDate = &date.Time{
-					Time: endOfLifeDate,
-				}
+				payload.Properties.SetEndOfLifeDateAsTime(endOfLifeDate)
 			}
 
 			if state.Eula != "" {
-				input.GalleryApplicationProperties.Eula = utils.String(state.Eula)
+				payload.Properties.Eula = utils.String(state.Eula)
 			}
 
 			if state.PrivacyStatementURI != "" {
-				input.GalleryApplicationProperties.PrivacyStatementURI = utils.String(state.PrivacyStatementURI)
+				payload.Properties.PrivacyStatementUri = utils.String(state.PrivacyStatementURI)
 			}
 
 			if state.ReleaseNoteURI != "" {
-				input.GalleryApplicationProperties.ReleaseNoteURI = utils.String(state.ReleaseNoteURI)
+				payload.Properties.ReleaseNoteUri = utils.String(state.ReleaseNoteURI)
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.GalleryName, id.ApplicationName, input)
-			if err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -194,14 +183,14 @@ func (r GalleryApplicationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Compute.GalleryApplicationsClient
-			id, err := parse.GalleryApplicationID(metadata.ResourceData.Id())
+			id, err := galleryapplications.ParseApplicationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ApplicationName)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					metadata.Logger.Infof("%q was not found - removing from state!", *id)
 					return metadata.MarkAsGone(id)
 				}
@@ -209,37 +198,46 @@ func (r GalleryApplicationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			galleryId := parse.NewSharedImageGalleryID(id.SubscriptionId, id.ResourceGroup, id.GalleryName)
-
 			state := &GalleryApplicationModel{
 				Name:      id.ApplicationName,
-				GalleryId: galleryId.ID(),
-				Location:  location.NormalizeNilable(resp.Location),
-				Tags:      tags.ToTypedObject(resp.Tags),
+				GalleryId: galleries.NewGalleryID(id.SubscriptionId, id.ResourceGroupName, id.GalleryName).ID(),
 			}
 
-			if props := resp.GalleryApplicationProperties; props != nil {
-				if v := props.Description; v != nil {
-					state.Description = *props.Description
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				if model.Tags != nil {
+					state.Tags = *model.Tags
 				}
 
-				if v := props.EndOfLifeDate; v != nil {
-					state.EndOfLifeDate = props.EndOfLifeDate.Format(time.RFC3339)
-				}
+				if props := model.Properties; props != nil {
+					if v := props.Description; v != nil {
+						state.Description = *props.Description
+					}
 
-				if v := props.Eula; v != nil {
-					state.Eula = *props.Eula
-				}
+					if v := props.EndOfLifeDate; v != nil {
+						d, err := props.GetEndOfLifeDateAsTime()
+						if err != nil {
+							return fmt.Errorf("parsing `end_of_life_date` from API Response: %+v", err)
+						}
+						if d != nil {
+							state.EndOfLifeDate = d.Format(time.RFC3339)
+						}
+					}
 
-				if v := props.PrivacyStatementURI; v != nil {
-					state.PrivacyStatementURI = *props.PrivacyStatementURI
-				}
+					if v := props.Eula; v != nil {
+						state.Eula = *props.Eula
+					}
 
-				if v := props.ReleaseNoteURI; v != nil {
-					state.ReleaseNoteURI = *props.ReleaseNoteURI
-				}
+					if v := props.PrivacyStatementUri; v != nil {
+						state.PrivacyStatementURI = *props.PrivacyStatementUri
+					}
 
-				state.SupportedOSType = string(props.SupportedOSType)
+					if v := props.ReleaseNoteUri; v != nil {
+						state.ReleaseNoteURI = *props.ReleaseNoteUri
+					}
+
+					state.SupportedOSType = string(props.SupportedOSType)
+				}
 			}
 
 			return metadata.Encode(state)
@@ -251,7 +249,9 @@ func (r GalleryApplicationResource) Read() sdk.ResourceFunc {
 func (r GalleryApplicationResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.GalleryApplicationID(metadata.ResourceData.Id())
+			client := metadata.Client.Compute.GalleryApplicationsClient
+
+			id, err := galleryapplications.ParseApplicationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -261,46 +261,48 @@ func (r GalleryApplicationResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Compute.GalleryApplicationsClient
-			existing, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ApplicationName)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-
-			if metadata.ResourceData.HasChange("description") {
-				existing.GalleryApplicationProperties.Description = utils.String(state.Description)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			if metadata.ResourceData.HasChange("end_of_life_date") {
-				endOfLifeDate, _ := time.Parse(time.RFC3339, state.EndOfLifeDate)
-				existing.GalleryApplicationProperties.EndOfLifeDate = &date.Time{
-					Time: endOfLifeDate,
+			payload := *existing.Model
+			if metadata.ResourceData.HasChanges("description", "end_of_life_date", "eula", "privacy_statement_uri", "release_note_uri") {
+				if payload.Properties == nil {
+					payload.Properties = &galleryapplications.GalleryApplicationProperties{}
+				}
+
+				if metadata.ResourceData.HasChange("description") {
+					payload.Properties.Description = utils.String(state.Description)
+				}
+
+				if metadata.ResourceData.HasChange("end_of_life_date") {
+					endOfLifeDate, _ := time.Parse(time.RFC3339, state.EndOfLifeDate)
+					payload.Properties.SetEndOfLifeDateAsTime(endOfLifeDate)
+				}
+
+				if metadata.ResourceData.HasChange("eula") {
+					payload.Properties.Eula = utils.String(state.Eula)
+				}
+
+				if metadata.ResourceData.HasChange("privacy_statement_uri") {
+					payload.Properties.PrivacyStatementUri = utils.String(state.PrivacyStatementURI)
+				}
+
+				if metadata.ResourceData.HasChange("release_note_uri") {
+					payload.Properties.ReleaseNoteUri = utils.String(state.ReleaseNoteURI)
 				}
 			}
 
-			if metadata.ResourceData.HasChange("eula") {
-				existing.GalleryApplicationProperties.Eula = utils.String(state.Eula)
-			}
-
-			if metadata.ResourceData.HasChange("privacy_statement_uri") {
-				existing.GalleryApplicationProperties.PrivacyStatementURI = utils.String(state.PrivacyStatementURI)
-			}
-
-			if metadata.ResourceData.HasChange("release_note_uri") {
-				existing.GalleryApplicationProperties.ReleaseNoteURI = utils.String(state.ReleaseNoteURI)
-			}
-
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Tags = tags.FromTypedObject(state.Tags)
+				payload.Tags = pointer.To(state.Tags)
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.GalleryName, id.ApplicationName, existing)
-			if err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of %s: %+v", id, err)
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
@@ -313,19 +315,15 @@ func (r GalleryApplicationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Compute.GalleryApplicationsClient
-			id, err := parse.GalleryApplicationID(metadata.ResourceData.Id())
+			id, err := galleryapplications.ParseApplicationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.GalleryName, id.ApplicationName)
-			if err != nil {
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
-			}
 			return nil
 		},
 		Timeout: 30 * time.Minute,
@@ -336,22 +334,20 @@ func (r GalleryApplicationResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			rd := metadata.ResourceDiff
-
-			if oldVal, newVal := rd.GetChange("end_of_life_date"); oldVal.(string) != "" && newVal.(string) == "" {
-				if err := rd.ForceNew("end_of_life_date"); err != nil {
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("end_of_life_date"); oldVal.(string) != "" && newVal.(string) == "" {
+				if err := metadata.ResourceDiff.ForceNew("end_of_life_date"); err != nil {
 					return err
 				}
 			}
 
-			if oldVal, newVal := rd.GetChange("privacy_statement_uri"); oldVal.(string) != "" && newVal.(string) == "" {
-				if err := rd.ForceNew("privacy_statement_uri"); err != nil {
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("privacy_statement_uri"); oldVal.(string) != "" && newVal.(string) == "" {
+				if err := metadata.ResourceDiff.ForceNew("privacy_statement_uri"); err != nil {
 					return err
 				}
 			}
 
-			if oldVal, newVal := rd.GetChange("release_note_uri"); oldVal.(string) != "" && newVal.(string) == "" {
-				if err := rd.ForceNew("release_note_uri"); err != nil {
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("release_note_uri"); oldVal.(string) != "" && newVal.(string) == "" {
+				if err := metadata.ResourceDiff.ForceNew("release_note_uri"); err != nil {
 					return err
 				}
 			}

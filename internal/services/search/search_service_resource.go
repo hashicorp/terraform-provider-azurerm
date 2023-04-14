@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/querykeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/adminkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/querykeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -168,7 +168,7 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	skuName := services.SkuName(d.Get("sku").(string))
 	properties := services.SearchService{
-		Location: utils.String(location),
+		Location: location,
 		Sku: &services.Sku{
 			Name: &skuName,
 		},
@@ -226,7 +226,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		skuName := ""
 		if sku := model.Sku; sku != nil && sku.Name != nil {

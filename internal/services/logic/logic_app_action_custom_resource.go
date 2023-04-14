@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -43,7 +42,7 @@ func resourceLogicAppActionCustom() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: workflows.ValidateWorkflowID,
 			},
 
 			"body": {

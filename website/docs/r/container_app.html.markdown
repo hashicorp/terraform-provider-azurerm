@@ -287,6 +287,16 @@ An `ingress` block supports the following:
 
 ---
 
+A `custom_domain` block supports the following:
+
+* `certificate_binding_type` - (Optional) The Binding type. Possible values include `Disabled` and `SniEnabled`. Defaults to `Disabled`.
+
+* `certificate_id` - (Required) The ID of the Container App Environment Certificate.
+
+* `name` - (Required) The hostname of the Certificate. Must be the CN or a named SAN in the certificate.
+
+---
+
 A `traffic_weight` block supports the following:
 
 ~> **Note:** This block only applies when `revision_mode` is set to `Multiple`.
@@ -307,7 +317,7 @@ A `dapr` block supports the following:
 
 * `app_id` - (Required) The Dapr Application Identifier.
 
-* `app_port` - (Required) The port which the application is listening on. This is the same as the `ingress` port.
+* `app_port` - (Optional) The port which the application is listening on. This is the same as the `ingress` port.
 
 * `app_protocol` - (Optional) The protocol for the app. Possible values include `http` and `grpc`. Defaults to `http`.
 

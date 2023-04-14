@@ -5,16 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -29,7 +29,7 @@ func resourceContainerRegistryAgentPool() *pluginsdk.Resource {
 		Delete: resourceContainerRegistryAgentPoolDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ContainerRegistryAgentPoolID(id)
+			_, err := agentpools.ParseAgentPoolID(id)
 			return err
 		}),
 
@@ -85,65 +85,52 @@ func resourceContainerRegistryAgentPool() *pluginsdk.Resource {
 				ValidateFunc: networkValidate.SubnetID,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryAgentPoolsClient
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Container Registry Agent Pool creation.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-	containerRegistryName := d.Get("container_registry_name").(string)
-
-	id := parse.NewContainerRegistryAgentPoolID(subscriptionId, resourceGroup, containerRegistryName, name)
+	id := agentpools.NewAgentPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("container_registry_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Container Registry Agent Pool %q (Resource Group %q): %s", name, resourceGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_container_registry_agent_pool", *existing.ID)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_container_registry_agent_pool", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	count := d.Get("instance_count").(int)
-	tier := d.Get("tier").(string)
-	t := d.Get("tags").(map[string]interface{})
-
-	parameters := containerregistry.AgentPool{
-		Location: &location,
-		AgentPoolProperties: &containerregistry.AgentPoolProperties{
+	parameters := agentpools.AgentPool{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: &agentpools.AgentPoolProperties{
 			// @favoretti: Only Linux is supported
-			Os:    containerregistry.OSLinux,
-			Count: utils.Int32(int32(count)),
-			Tier:  &tier,
+			Os:    pointer.To(agentpools.OSLinux),
+			Count: utils.Int64(int64(d.Get("instance_count").(int))),
+			Tier:  pointer.To(d.Get("tier").(string)),
 		},
 
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("virtual_network_subnet_id"); ok {
-		parameters.AgentPoolProperties.VirtualNetworkSubnetResourceID = utils.String(v.(string))
+		parameters.Properties.VirtualNetworkSubnetResourceId = pointer.To(v.(string))
 	}
 
-	future, err := client.Create(ctx, resourceGroup, containerRegistryName, name, parameters)
-	if err != nil {
-		return fmt.Errorf("creating Container Registry Agent Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
+	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Container Registry Agent Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(id.ID())
@@ -152,33 +139,24 @@ func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceContainerRegistryAgentPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryAgentPoolsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Container Registry Agent Pool creation.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-	containerRegistryName := d.Get("container_registry_name").(string)
+	id, err := agentpools.ParseAgentPoolID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	id := parse.NewContainerRegistryAgentPoolID(subscriptionId, resourceGroup, containerRegistryName, name)
-
-	count := d.Get("instance_count").(int)
-
-	parameters := containerregistry.AgentPoolUpdateParameters{
-		AgentPoolPropertiesUpdateParameters: &containerregistry.AgentPoolPropertiesUpdateParameters{
-			Count: utils.Int32(int32(count)),
+	parameters := agentpools.AgentPoolUpdateParameters{
+		Properties: &agentpools.AgentPoolPropertiesUpdateParameters{
+			Count: utils.Int64(int64(d.Get("instance_count").(int))),
 		},
 	}
 
-	future, err := client.Update(ctx, resourceGroup, containerRegistryName, name, parameters)
-	if err != nil {
-		return fmt.Errorf("updating Container Registry Agent Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Container Registry Agent Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())
@@ -187,76 +165,69 @@ func resourceContainerRegistryAgentPoolUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceContainerRegistryAgentPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryAgentPoolsClient
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ContainerRegistryAgentPoolID(d.Id())
+	id, err := agentpools.ParseAgentPoolID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	registryName := id.RegistryName
-	name := id.AgentPoolName
 
-	resp, err := client.Get(ctx, resourceGroup, registryName, name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Container Registry Agent Pool %q was not found in Container Registry %q", name, registryName)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Container Registry Agent Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("container_registry_name", registryName)
+	d.Set("name", id.AgentPoolName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("container_registry_name", id.RegistryName)
 
-	location := resp.Location
-	if location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
 
-	if props := resp.AgentPoolProperties; props != nil {
-		d.Set("instance_count", props.Count)
-		d.Set("tier", props.Tier)
+		if props := model.Properties; props != nil {
+			count := int64(0)
+			if v := props.Count; v != nil {
+				count = *v
+			}
+			d.Set("instance_count", count)
 
-		if resp.AgentPoolProperties.VirtualNetworkSubnetResourceID != nil {
-			d.Set("virtual_network_subnet_id", props.VirtualNetworkSubnetResourceID)
+			tier := ""
+			if v := props.Tier; v != nil {
+				tier = *v
+			}
+			d.Set("tier", tier)
+
+			virtualNetworkSubnetId := ""
+			if v := props.VirtualNetworkSubnetResourceId; v != nil {
+				virtualNetworkSubnetId = *v
+			}
+			d.Set("virtual_network_subnet_id", virtualNetworkSubnetId)
 		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceContainerRegistryAgentPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryAgentPoolsClient
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ContainerRegistryAgentPoolID(d.Id())
+	id, err := agentpools.ParseAgentPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := id.AgentPoolName
-	resourceGroup := id.ResourceGroup
-	registryName := id.RegistryName
-
-	future, err := client.Delete(ctx, resourceGroup, registryName, name)
-	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("issuing Azure ARM delete request of Container Registry Agent Pool '%s': %+v", name, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("issuing Azure ARM delete request of Container Registry Agent Pool '%s': %+v", name, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

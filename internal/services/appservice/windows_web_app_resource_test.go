@@ -2114,11 +2114,7 @@ resource "azurerm_windows_web_app" "test" {
     minimum_tls_version         = "1.2"
     scm_minimum_tls_version     = "1.2"
     cors {
-      allowed_origins = [
-        "http://www.contoso.com",
-        "www.contoso.com",
-        "contoso.com",
-      ]
+      allowed_origins = []
 
       support_credentials = true
     }

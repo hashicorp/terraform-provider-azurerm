@@ -3,6 +3,7 @@ package mssql
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -165,17 +166,12 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 			Default:  "SQL_Default",
-			ValidateFunc: validation.StringInSlice([]string{"SQL_Default", "SQL_EastUS_MI_1", "SQL_EastUS2_MI_1", "SQL_WestUS2_MI_1", "SQL_SoutheastAsia_MI_1", "SQL_AustraliaEast_MI_1", "SQL_NorthEurope_MI_1", "SQL_SouthCentralUS_MI_1",
-				"SQL_UKSouth_MI_1", "SQL_WestEurope_MI_1", "SQL_EastUS_MI_2", "SQL_EastUS2_MI_2", "SQL_WestUS2_MI_2", "SQL_SoutheastAsia_MI_2", "SQL_NorthEurope_MI_2", "SQL_SouthCentralUS_MI_2",
-				"SQL_UKSouth_MI_2", "SQL_WestEurope_MI_2", "SQL_AustraliaSoutheast_MI_1", "SQL_BrazilSouth_MI_1", "SQL_CanadaCentral_MI_1", "SQL_CanadaEast_MI_1", "SQL_CentralUS_MI_1", "SQL_EastAsia_MI_1",
-				"SQL_FranceCentral_MI_1", "SQL_GermanyWestCentral_MI_1", "SQL_CentralIndia_MI_1", "SQL_JapanEast_MI_1", "SQL_JapanWest_MI_1", "SQL_NorthCentralUS_MI_1", "SQL_UKWest_MI_1", "SQL_WestUS_MI_1",
-				"SQL_AustraliaSoutheast_MI_2", "SQL_BrazilSouth_MI_2", "SQL_CanadaCentral_MI_2", "SQL_CanadaEast_MI_2", "SQL_CentralUS_MI_2", "SQL_EastAsia_MI_2", "SQL_FranceCentral_MI_2", "SQL_GermanyWestCentral_MI_2",
-				"SQL_CentralIndia_MI_2", "SQL_JapanEast_MI_2", "SQL_JapanWest_MI_2", "SQL_NorthCentralUS_MI_2", "SQL_UKWest_MI_2", "SQL_WestUS_MI_2", "SQL_KoreaCentral_MI_1", "SQL_KoreaCentral_MI_2",
-				"SQL_WestCentralUS_MI_1", "SQL_WestCentralUS_MI_2", "SQL_UAENorth_MI_1", "SQL_SwitzerlandWest_MI_1", "SQL_SwitzerlandNorth_MI_1", "SQL_UAENorth_MI_2", "SQL_SwitzerlandWest_MI_2",
-				"SQL_SwitzerlandNorth_MI_2", "SQL_FranceSouth_MI_1", "SQL_FranceSouth_MI_2", "SQL_SouthAfricaNorth_MI_1", "SQL_KoreaSouth_MI_1", "SQL_UAECentral_MI_1", "SQL_SouthAfricaNorth_MI_2",
-				"SQL_KoreaSouth_MI_2", "SQL_UAECentral_MI_2", "SQL_SouthIndia_MI_1", "SQL_SouthIndia_MI_2", "SQL_AustraliaCentral_MI_1", "SQL_AustraliaCentral2_MI_1", "SQL_AustraliaCentral_MI_2",
-				"SQL_AustraliaCentral2_MI_2", "SQL_WestIndia_MI_1", "SQL_WestIndia_MI_2", "SQL_SouthAfricaWest_MI_1", "SQL_SouthAfricaWest_MI_2", "SQL_GermanyNorth_MI_1", "SQL_GermanyNorth_MI_2", "SQL_NorwayEast_MI_1",
-				"SQL_BrazilSoutheast_MI_1", "SQL_NorwayWest_MI_1", "SQL_WestUS3_MI_1", "SQL_NorwayEast_MI_2", "SQL_BrazilSoutheast_MI_2", "SQL_NorwayWest_MI_2", "SQL_WestUS3_MI_2"}, false),
+			ValidateFunc: validation.Any(
+				validation.StringInSlice([]string{
+					"SQL_Default",
+				}, false),
+				validation.StringMatch(regexp.MustCompile(`^SQL_[A-Za-z0-9]+_MI_\d+$`), "expected a name in the format `SQL_{Location}_MI_{Number}` or `SQL_Default`"),
+			),
 		},
 
 		"minimum_tls_version": {
