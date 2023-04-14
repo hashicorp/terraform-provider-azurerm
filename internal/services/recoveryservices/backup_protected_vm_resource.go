@@ -122,38 +122,40 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	skipNormalUpdate := protectionStopped && !d.IsNewResource()
 
 	if !skipNormalUpdate {
-		if _, err = client.CreateOrUpdate(ctx, id.VaultName, id.ResourceGroup, id.BackupFabricName, id.ProtectionContainerName, id.Name, item); err != nil {
+		if _, err = client.CreateOrUpdate(ctx, id, item); err != nil {
 			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 		}
 
-	if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, id, d); err != nil {
-		return err
-	}
-		_, err := resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, d)
+		if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, id, d); err != nil {
+			return err
+		}
+		err := resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, id, d)
 		if err != nil {
 			return err
 		}
 
-	d.SetId(id.ID())
+		d.SetId(id.ID())
 		d.SetId(id.ID())
 	}
 
 	if requireAdditionalUpdate {
-		updateInput := backup.ProtectedItemResource{
-			Properties: &backup.AzureIaaSComputeVMProtectedItem{
-				ProtectionState:  backup.ProtectionStateProtectionStopped,
-				SourceResourceID: utils.String(vmId),
+		p := protecteditems.ProtectionState(protectionState.(string))
+		updateInput := protecteditems.ProtectedItemResource{
+			Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
+				ProtectionState:  &p,
+				SourceResourceId: utils.String(vmId),
 			},
 		}
 
-		resp, err := client.CreateOrUpdate(ctx, id.VaultName, id.ResourceGroup, id.BackupFabricName, id.ProtectionContainerName, id.Name, updateInput)
+		resp, err := client.CreateOrUpdate(ctx, id, updateInput)
 		if err != nil {
-			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+			return fmt.Errorf("creating/updating %s: %+v", id, err)
 		}
 
-		locationURL, err := resp.Response.Location()
+		// tracked on https://github.com/Azure/azure-rest-api-specs/issues/22758
+		locationURL, err := resp.HttpResponse.Location()
 		if err != nil || locationURL == nil {
-			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): Location header missing or empty", protectedItemName, resourceGroup)
+			return fmt.Errorf("creating/updating %s: Location header missing or empty", id)
 		}
 
 		parsedLocation, err := azure.ParseAzureResourceID(handleAzureSdkForGoBug2824(locationURL.Path))
@@ -165,9 +167,26 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		if !ok {
 			return fmt.Errorf("internal-error: context had no deadline")
 		}
-		opState := resourceRecoveryServicesBackupProtectedVMOperationRefreshFunc(ctx, meta.(*clients.Client).RecoveryServices.BackupOperationResultsClient, deadline, vaultName, resourceGroup, parsedLocation.Path["operationResults"])
+
+		opResultClient := meta.(*clients.Client).RecoveryServices.BackupOperationResultsClient
+		operationId := parsedLocation.Path["operationResults"]
+		opState := &pluginsdk.StateChangeConf{
+			MinTimeout: 30 * time.Second,
+			Delay:      10 * time.Second,
+			Pending:    []string{"202"},
+			Target:     []string{"200", "204"},
+			Refresh: func() (interface{}, string, error) {
+				resp, err := opResultClient.Get(ctx, id.VaultName, id.ResourceGroupName, operationId)
+				if err != nil {
+					return nil, "Error", fmt.Errorf("making Read request on Recovery Service Protected Item operation %q for %s: %+v", operationId, id, err)
+				}
+				return resp, strconv.Itoa(resp.StatusCode), err
+			},
+			Timeout: time.Until(deadline),
+		}
+
 		if _, err := opState.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+			return fmt.Errorf("creating/updating %s: %+v", id, err)
 		}
 
 	}
