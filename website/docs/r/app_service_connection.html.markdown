@@ -90,6 +90,8 @@ The following arguments are supported:
 
 * `authentication` - (Required) The authentication info. An `authentication` block as defined below.
 
+-> **Note:** If a Managed Identity is used, this will need to be configured on the App Service.
+
 ---
 
 An `authentication` block supports the following:

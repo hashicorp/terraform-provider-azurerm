@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -570,10 +571,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 				publicNetworkAccess = false
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccess)
-
-			if props.MinimumTlsVersion != nil {
-				d.Set("minimum_tls_version", *props.MinimumTlsVersion)
-			}
+			d.Set("minimum_tls_version", string(pointer.From(props.MinimumTlsVersion)))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

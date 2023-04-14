@@ -772,6 +772,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 											datacollectionrules.PossibleValuesForKnownSyslogDataSourceLogLevels(), false),
 									},
 								},
+								// lintignore:S013
 								"streams": {
 									Type:     pluginsdk.TypeList,
 									Optional: !features.FourPointOhBeta(),

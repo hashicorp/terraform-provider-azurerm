@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2016-03-01/logprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -35,7 +35,7 @@ func (LogProfileUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return rawState, fmt.Errorf("log profile id should have 6 segments, got %d: %s", len(oldIdComponents)-1, oldId)
 		}
 
-		newId := parse.NewLogProfileID(oldIdComponents[2], oldIdComponents[6])
+		newId := logprofiles.NewLogProfileID(oldIdComponents[2], oldIdComponents[6])
 
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId.ID())
 

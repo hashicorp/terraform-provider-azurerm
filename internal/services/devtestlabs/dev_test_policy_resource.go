@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/policies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -187,7 +188,7 @@ func resourceArmDevTestPolicyRead(d *pluginsdk.ResourceData, meta interface{}) e
 		props := model.Properties
 		d.Set("description", props.Description)
 		d.Set("fact_data", props.FactData)
-		d.Set("evaluator_type", props.EvaluatorType)
+		d.Set("evaluator_type", string(pointer.From(props.EvaluatorType)))
 		d.Set("threshold", props.Threshold)
 
 		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {

@@ -58,7 +58,7 @@ func (SentinelAlertRuleAnomalyBuiltInResource) basic(data acceptance.TestData) s
 	return fmt.Sprintf(`
 %s
 resource "azurerm_sentinel_alert_rule_anomaly_built_in" "test" {
-  display_name               = "(Preview) Potential data staging"
+  display_name               = "Potential data staging"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   enabled                    = true
   mode                       = "Production"

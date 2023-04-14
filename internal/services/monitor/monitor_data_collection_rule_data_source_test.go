@@ -39,7 +39,7 @@ func TestAccMonitorDataCollectionRuleDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("data_sources.0.windows_event_log.0.x_path_queries.0").HasValue("System!*[System[EventID=4648]]"),
 				check.That(data.ResourceName).Key("data_sources.0.extension.0.extension_json").Exists(),
 				check.That(data.ResourceName).Key("immutable_id").Exists(),
-				check.That(data.ResourceName).Key("stream_declaration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("stream_declaration.#").HasValue("2"),
 				check.That(data.ResourceName).Key("stream_declaration.0.column.#").HasValue("3"),
 			),
 		},
