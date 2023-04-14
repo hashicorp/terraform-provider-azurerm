@@ -2,6 +2,7 @@ package healthcare
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -164,10 +165,7 @@ func dataSourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta int
 
 	if m := resp.Model; m != nil {
 		d.Set("location", location.NormalizeNilable(m.Location))
-
-		if err := d.Set("kind", m.Kind); err != nil {
-			return fmt.Errorf("setting `kind`: %+v", err)
-		}
+		d.Set("kind", string(pointer.From(m.Kind)))
 
 		if props := m.Properties; props != nil {
 			d.Set("access_policy_object_ids", flattenFhirAccessPolicy(props.AccessPolicies))

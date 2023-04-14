@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iotconnectors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -112,7 +113,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationCreate(d *pluginsdk.Reso
 		}
 	}
 
-	fhirServiceId, err := iotconnectors.ParseFhirDestinationID(d.Get("destination_fhir_service_id").(string))
+	fhirServiceId, err := fhirservices.ParseWorkspaceID(d.Get("destination_fhir_service_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing fhir destination id err: %+v", err)
 	}
@@ -152,7 +153,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationRead(d *pluginsdk.Resour
 		return err
 	}
 
-	d.Set("medtech_service_id", iotconnectors.NewIotConnectorID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName, id.IotConnectorName))
+	d.Set("medtech_service_id", iotconnectors.NewIotConnectorID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName, id.IotConnectorName).ID())
 
 	resp, err := client.IotConnectorFhirDestinationGet(ctx, *id)
 	if err != nil {
@@ -209,7 +210,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationUpdate(d *pluginsdk.Reso
 	}
 	id := iotconnectors.NewFhirDestinationID(medTechService.SubscriptionId, medTechService.ResourceGroupName, medTechService.WorkspaceName, medTechService.IotConnectorName, d.Get("name").(string))
 
-	fhirServiceId, err := iotconnectors.ParseFhirDestinationID(d.Get("destination_fhir_service_id").(string))
+	fhirServiceId, err := fhirservices.ParseFhirServiceID(d.Get("destination_fhir_service_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing fhir destination id err: %+v", err)
 	}

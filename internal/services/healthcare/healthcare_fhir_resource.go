@@ -348,7 +348,7 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 		if err := d.Set("identity", i); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
-		d.Set("kind", m.Kind)
+		d.Set("kind", string(pointer.From(m.Kind)))
 
 		if props := m.Properties; props != nil {
 			d.Set("access_policy_object_ids", flattenFhirAccessPolicy(props.AccessPolicies))
