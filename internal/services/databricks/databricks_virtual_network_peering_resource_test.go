@@ -167,7 +167,7 @@ resource "azurerm_databricks_workspace" "test" {
 func (r DatabricksVirtualNetworkPeeringResource) update(data acceptance.TestData) string {
 	features := "features {}"
 	if override := checkAzSecPackOverride(); override != "" {
-		features = fmt.Sprintf("features {%[3]s}", override)
+		features = fmt.Sprintf("features {%s}", override)
 	}
 
 	return fmt.Sprintf(`
@@ -216,7 +216,7 @@ resource "azurerm_databricks_virtual_network_peering" "import" {
 func (r DatabricksVirtualNetworkPeeringResource) basic(data acceptance.TestData) string {
 	features := "features {}"
 	if override := checkAzSecPackOverride(); override != "" {
-		features = fmt.Sprintf("features {%[3]s}", override)
+		features = fmt.Sprintf("features {%s}", override)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -246,7 +246,7 @@ resource "azurerm_virtual_network_peering" "remote" {
 func (r DatabricksVirtualNetworkPeeringResource) complete(data acceptance.TestData) string {
 	features := "features {}"
 	if override := checkAzSecPackOverride(); override != "" {
-		features = fmt.Sprintf("features {%[3]s}", override)
+		features = fmt.Sprintf("features {%s}", override)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -281,7 +281,7 @@ resource "azurerm_virtual_network_peering" "remote" {
 func (r DatabricksVirtualNetworkPeeringResource) completeUpdate(data acceptance.TestData) string {
 	features := "features {}"
 	if override := checkAzSecPackOverride(); override != "" {
-		features = fmt.Sprintf("features {%[3]s}", override)
+		features = fmt.Sprintf("features {%s}", override)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
