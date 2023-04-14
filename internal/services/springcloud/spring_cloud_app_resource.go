@@ -471,7 +471,6 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.Sp
 				MountPath:    utils.String(v["mount_path"].(string)),
 				ReadOnly:     utils.Bool(v["read_only_enabled"].(bool)),
 				MountOptions: utils.ExpandStringSlice(v["mount_options"].(*pluginsdk.Set).List()),
-				Type:         appplatform.TypeBasicCustomPersistentDiskPropertiesTypeAzureFileVolume,
 			},
 		})
 	}
