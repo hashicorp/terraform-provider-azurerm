@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
@@ -59,56 +60,6 @@ type DataProtectionSnapshotPolicy struct {
 	DataProtectionSnapshotPolicy string `tfschema:"snapshot_policy_id"`
 }
 
-type VolumeSpecNameSapHana string
-
-const (
-	VolumeSpecNameSapHanaData       VolumeSpecNameSapHana = "data"
-	VolumeSpecNameSapHanaLog        VolumeSpecNameSapHana = "log"
-	VolumeSpecNameSapHanaShared     VolumeSpecNameSapHana = "shared"
-	VolumeSpecNameSapHanaDataBackup VolumeSpecNameSapHana = "data-backup"
-	VolumeSpecNameSapHanaLogBackup  VolumeSpecNameSapHana = "log-backup"
-)
-
-func PossibleValuesForVolumeSpecNameSapHana() []string {
-	return []string{
-		string(VolumeSpecNameSapHanaData),
-		string(VolumeSpecNameSapHanaLog),
-		string(VolumeSpecNameSapHanaShared),
-		string(VolumeSpecNameSapHanaDataBackup),
-		string(VolumeSpecNameSapHanaLogBackup),
-	}
-}
-
-func RequiredVolumesForSAPHANA() []string {
-	return []string{
-		string(VolumeSpecNameSapHanaData),
-		string(VolumeSpecNameSapHanaLog),
-	}
-}
-
-type ProtocolType string
-
-const (
-	ProtocolTypeNfsV41 ProtocolType = "NFSv4.1"
-	ProtocolTypeNfsV3  ProtocolType = "NFSv3"
-	ProtocolTypeCifs   ProtocolType = "CIFS"
-)
-
-func PossibleValuesForProtocolType() []string {
-	return []string{
-		string(ProtocolTypeNfsV41),
-		string(ProtocolTypeNfsV3),
-		string(ProtocolTypeCifs),
-	}
-}
-
-func PossibleValuesForProtocolTypeVolumeGroupSapHana() []string {
-	return []string{
-		string(ProtocolTypeNfsV41),
-		string(ProtocolTypeNfsV3),
-	}
-}
-
 type ReplicationSchedule string
 
 const (
@@ -125,24 +76,9 @@ func PossibleValuesForReplicationSchedule() []string {
 	}
 }
 
-// Diverging from the SDK volumegroups.SecurityStyle since it is defined as lower case
-// but the backend changes it to Pascal case on GET. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
-type SecurityStyle string
-
-const (
-	SecurityStyleUnix SecurityStyle = "Unix"
-	SecurityStyleNtfs SecurityStyle = "Ntfs"
-)
-
-func PossibleValuesForSecurityStyle() []string {
-	return []string{
-		string(SecurityStyleUnix),
-	}
-}
-
 func expandNetAppVolumeGroupVolumeExportPolicyRule(input []ExportPolicyRule) *volumegroups.VolumePropertiesExportPolicy {
 
-	if len(input) == 0 || input == nil {
+	if len(input) == 0 {
 		return &volumegroups.VolumePropertiesExportPolicy{}
 	}
 
@@ -187,7 +123,7 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []ExportPolicyRule) *vo
 }
 
 func expandNetAppVolumeGroupDataProtectionReplication(input []DataProtectionReplication) *volumegroups.VolumePropertiesDataProtection {
-	if len(input) == 0 || input == nil {
+	if input == nil || len(input) == 0 {
 		return &volumegroups.VolumePropertiesDataProtection{}
 	}
 
@@ -208,7 +144,7 @@ func expandNetAppVolumeGroupDataProtectionReplication(input []DataProtectionRepl
 }
 
 func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []DataProtectionSnapshotPolicy) *volumegroups.VolumePropertiesDataProtection {
-	if len(input) == 0 || input == nil {
+	if input == nil || len(input) == 0 {
 		return &volumegroups.VolumePropertiesDataProtection{}
 	}
 
@@ -221,7 +157,7 @@ func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []DataProtectionS
 }
 
 func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
-	if len(input) == 0 || input == nil {
+	if input == nil || len(input) == 0 {
 		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupVolume slice")
 	}
 
@@ -272,6 +208,10 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume) (*[]volumeg
 }
 
 func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *volumes.VolumePatchPropertiesExportPolicy {
+	if input == nil || len(input) == 0 {
+		return &volumes.VolumePatchPropertiesExportPolicy{}
+	}
+
 	results := make([]volumes.ExportPolicyRule, 0)
 	for _, item := range input {
 		if item != nil {
@@ -323,7 +263,7 @@ func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *vo
 }
 
 func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.VolumePropertiesDataProtection {
-	if len(input) == 0 || input[0] == nil {
+	if input == nil || len(input) == 0 {
 		return &volumes.VolumePropertiesDataProtection{}
 	}
 
@@ -352,7 +292,7 @@ func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.V
 }
 
 func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
-	if len(input) == 0 || input[0] == nil {
+	if input == nil || len(input) == 0 {
 		return &volumes.VolumePropertiesDataProtection{}
 	}
 
@@ -370,7 +310,7 @@ func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volume
 }
 
 func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
-	if len(input) == 0 || input[0] == nil {
+	if input == nil || len(input) == 0 {
 		return &volumes.VolumePatchPropertiesDataProtection{}
 	}
 
@@ -390,7 +330,7 @@ func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *v
 func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.VolumeGroupVolumeProperties, metadata sdk.ResourceMetaData) ([]NetAppVolumeGroupVolume, error) {
 	results := make([]NetAppVolumeGroupVolume, 0)
 
-	if len(*input) == 0 || input == nil {
+	if input == nil || len(pointer.From(input)) == 0 {
 		return results, fmt.Errorf("received empty volumegroups.VolumeGroupVolumeProperties slice")
 	}
 
@@ -398,30 +338,29 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 		volumeGroupVolume := NetAppVolumeGroupVolume{}
 
 		props := item.Properties
-
-		volumeGroupVolume.Name = getResourceNameString(item.Name)
+		volumeGroupVolume.Name = getUserDefinedVolumeName(item.Name)
 		volumeGroupVolume.VolumePath = props.CreationToken
-		volumeGroupVolume.ServiceLevel = string(*props.ServiceLevel)
+		volumeGroupVolume.ServiceLevel = string(pointer.From(props.ServiceLevel))
 		volumeGroupVolume.SubnetId = props.SubnetId
 		volumeGroupVolume.CapacityPoolId = utils.NormalizeNilableString(props.CapacityPoolResourceId)
-		volumeGroupVolume.Protocols = *props.ProtocolTypes
-		volumeGroupVolume.SecurityStyle = string(*props.SecurityStyle)
-		volumeGroupVolume.SnapshotDirectoryVisible = *props.SnapshotDirectoryVisible
+		volumeGroupVolume.Protocols = pointer.From(props.ProtocolTypes)
+		volumeGroupVolume.SecurityStyle = string(pointer.From(props.SecurityStyle))
+		volumeGroupVolume.SnapshotDirectoryVisible = pointer.From(props.SnapshotDirectoryVisible)
 		volumeGroupVolume.ThroughputInMibps = pointer.From(props.ThroughputMibps)
 		volumeGroupVolume.Tags = pointer.From(item.Tags)
 		volumeGroupVolume.ProximityPlacementGroupId = utils.NormalizeNilableString(props.ProximityPlacementGroup)
-		volumeGroupVolume.VolumeSpecName = *props.VolumeSpecName
+		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
 
 		if props.UsageThreshold > 0 {
 			usageThreshold := props.UsageThreshold / 1073741824
 			volumeGroupVolume.StorageQuotaInGB = usageThreshold
 		}
 
-		if props.ExportPolicy != nil && len(*props.ExportPolicy.Rules) > 0 {
+		if props.ExportPolicy != nil && props.ExportPolicy.Rules != nil && len(pointer.From(props.ExportPolicy.Rules)) > 0 {
 			volumeGroupVolume.ExportPolicy = flattenNetAppVolumeGroupVolumesExportPolicies(props.ExportPolicy.Rules)
 		}
 
-		if props.MountTargets != nil && len(*props.MountTargets) > 0 {
+		if props.MountTargets != nil && len(pointer.From(props.MountTargets)) > 0 {
 			volumeGroupVolume.MountIpAddresses = flattenNetAppVolumeGroupVolumesMountIpAddresses(props.MountTargets)
 		}
 
@@ -433,7 +372,7 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 			return []NetAppVolumeGroupVolume{}, err
 		}
 
-		standaloneVol, err := volumeClient.Get(ctx, *id)
+		standaloneVol, err := volumeClient.Get(ctx, pointer.From(id))
 		if err != nil {
 			return []NetAppVolumeGroupVolume{}, fmt.Errorf("retrieving %s: %v", id, err)
 		}
@@ -457,20 +396,20 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 func flattenNetAppVolumeGroupVolumesExportPolicies(input *[]volumegroups.ExportPolicyRule) []ExportPolicyRule {
 	results := make([]ExportPolicyRule, 0)
 
-	if len(*input) == 0 || input == nil {
+	if input == nil || len(pointer.From(input)) == 0 {
 		return results
 	}
 
-	for _, item := range *input {
+	for _, item := range pointer.From(input) {
 		rule := ExportPolicyRule{}
 
-		rule.RuleIndex = int(*item.RuleIndex)
-		rule.AllowedClients = *item.AllowedClients
-		rule.Nfsv3Enabled = *item.Nfsv3
-		rule.Nfsv41Enabled = *item.Nfsv41
-		rule.UnixReadOnly = *item.UnixReadOnly
-		rule.UnixReadWrite = *item.UnixReadWrite
-		rule.RootAccessEnabled = *item.HasRootAccess
+		rule.RuleIndex = int(pointer.From(item.RuleIndex))
+		rule.AllowedClients = pointer.From(item.AllowedClients)
+		rule.Nfsv3Enabled = pointer.From(item.Nfsv3)
+		rule.Nfsv41Enabled = pointer.From(item.Nfsv41)
+		rule.UnixReadOnly = pointer.From(item.UnixReadOnly)
+		rule.UnixReadWrite = pointer.From(item.UnixReadWrite)
+		rule.RootAccessEnabled = pointer.From(item.HasRootAccess)
 
 		results = append(results, rule)
 	}
@@ -481,13 +420,13 @@ func flattenNetAppVolumeGroupVolumesExportPolicies(input *[]volumegroups.ExportP
 func flattenNetAppVolumeGroupVolumesMountIpAddresses(input *[]volumegroups.MountTargetProperties) []string {
 	results := make([]string, 0)
 
-	if len(*input) == 0 || input == nil {
+	if input == nil || len(pointer.From(input)) == 0 {
 		return results
 	}
 
-	for _, item := range *input {
+	for _, item := range pointer.From(input) {
 		if item.IPAddress != nil {
-			results = append(results, *item.IPAddress)
+			results = append(results, pointer.From(item.IPAddress))
 		}
 	}
 
@@ -498,19 +437,19 @@ func flattenNetAppVolumeGroupVolumesDPReplication(input *volumes.ReplicationObje
 	if input == nil {
 		return []DataProtectionReplication{}
 	}
-	if string(*input.EndpointType) == "" || !strings.EqualFold(string(*input.EndpointType), string(volumes.EndpointTypeDst)) {
+	if string(pointer.From(input.EndpointType)) == "" || !strings.EqualFold(string(pointer.From(input.EndpointType)), string(volumes.EndpointTypeDst)) {
 		return []DataProtectionReplication{}
 	}
 
 	replicationFrequency := ""
 	if input.ReplicationSchedule != nil {
-		replicationFrequency = translateSDKSchedule(strings.ToLower(string(*input.ReplicationSchedule)))
+		replicationFrequency = translateSDKSchedule(strings.ToLower(string(pointer.From(input.ReplicationSchedule))))
 	}
 
 	return []DataProtectionReplication{
 		{
-			EndpointType:           strings.ToLower(string(*input.EndpointType)),
-			RemoteVolumeLocation:   *input.RemoteVolumeRegion,
+			EndpointType:           strings.ToLower(string(pointer.From(input.EndpointType))),
+			RemoteVolumeLocation:   pointer.From(input.RemoteVolumeRegion),
 			RemoteVolumeResourceId: input.RemoteVolumeResourceId,
 			ReplicationFrequency:   replicationFrequency,
 		},
@@ -524,18 +463,21 @@ func flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(input *volumes.VolumeSnapsh
 
 	return []DataProtectionSnapshotPolicy{
 		{
-			DataProtectionSnapshotPolicy: *input.SnapshotPolicyId,
+			DataProtectionSnapshotPolicy: pointer.From(input.SnapshotPolicyId),
 		},
 	}
 }
 
-func getResourceNameString(input *string) string {
-	segments := len(strings.Split(*input, "/"))
-	if segments == 0 {
+func getUserDefinedVolumeName(input *string) string {
+	volumeName := pointer.From(input)
+
+	if volumeName == "" {
 		return ""
 	}
 
-	return strings.Split(*input, "/")[segments-1]
+	segments := len(strings.Split(volumeName, "/"))
+
+	return strings.Split(volumeName, "/")[segments-1]
 }
 
 func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId string) error {
@@ -546,7 +488,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 		return err
 	}
 
-	existing, err := client.Get(ctx, *id)
+	existing, err := client.Get(ctx, pointer.From(id))
 	if err != nil {
 		if existing.HttpResponse.StatusCode == http.StatusNotFound {
 			return metadata.MarkAsGone(id)
@@ -561,7 +503,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 		if err != nil {
 			return err
 		}
-		if dataProtectionReplication.Replication.EndpointType != nil && !strings.EqualFold(string(*dataProtectionReplication.Replication.EndpointType), string(volumes.EndpointTypeDst)) {
+		if dataProtectionReplication.Replication.EndpointType != nil && !strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumes.EndpointTypeDst)) {
 			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
 			replicaVolumeId, err = volumesreplication.ParseVolumeID(dataProtectionReplication.Replication.RemoteVolumeResourceId)
 			if err != nil {
@@ -571,49 +513,49 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 
 		replicationClient := metadata.Client.NetApp.VolumeReplicationClient
 		// Checking replication status before deletion, it need to be broken before proceeding with deletion
-		if res, err := replicationClient.VolumesReplicationStatus(ctx, *replicaVolumeId); err == nil {
+		if res, err := replicationClient.VolumesReplicationStatus(ctx, pointer.From(replicaVolumeId)); err == nil {
 			// Wait for replication state = "mirrored"
 			if model := res.Model; model != nil {
-				if model.MirrorState != nil && strings.ToLower(string(*model.MirrorState)) == "uninitialized" {
-					if err := waitForReplMirrorState(ctx, replicationClient, *replicaVolumeId, "mirrored"); err != nil {
-						return fmt.Errorf("waiting for replica %s to become 'mirrored': %+v", *replicaVolumeId, err)
+				if model.MirrorState != nil && strings.ToLower(string(pointer.From(model.MirrorState))) == "uninitialized" {
+					if err := waitForReplMirrorState(ctx, replicationClient, pointer.From(replicaVolumeId), "mirrored"); err != nil {
+						return fmt.Errorf("waiting for replica %s to become 'mirrored': %+v", pointer.From(replicaVolumeId), err)
 					}
 				}
 			}
 
 			// Breaking replication
-			if err = replicationClient.VolumesBreakReplicationThenPoll(ctx, *replicaVolumeId, volumesreplication.BreakReplicationRequest{
+			if err = replicationClient.VolumesBreakReplicationThenPoll(ctx, pointer.From(replicaVolumeId), volumesreplication.BreakReplicationRequest{
 				ForceBreakReplication: utils.Bool(true),
 			}); err != nil {
-				return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
+				return fmt.Errorf("breaking replication for %s: %+v", pointer.From(replicaVolumeId), err)
 			}
 
 			// Waiting for replication be in broken state
-			metadata.Logger.Infof("waiting for the replication of %s to be in broken state", *replicaVolumeId)
-			if err := waitForReplMirrorState(ctx, replicationClient, *replicaVolumeId, "broken"); err != nil {
-				return fmt.Errorf("waiting for the breaking of replication for %s: %+v", *replicaVolumeId, err)
+			metadata.Logger.Infof("waiting for the replication of %s to be in broken state", pointer.From(replicaVolumeId))
+			if err := waitForReplMirrorState(ctx, replicationClient, pointer.From(replicaVolumeId), "broken"); err != nil {
+				return fmt.Errorf("waiting for the breaking of replication for %s: %+v", pointer.From(replicaVolumeId), err)
 			}
 		}
 
 		// Deleting replication and waiting for it to fully complete the operation
-		if err = replicationClient.VolumesDeleteReplicationThenPoll(ctx, *replicaVolumeId); err != nil {
-			return fmt.Errorf("deleting replicate %s: %+v", *replicaVolumeId, err)
+		if err = replicationClient.VolumesDeleteReplicationThenPoll(ctx, pointer.From(replicaVolumeId)); err != nil {
+			return fmt.Errorf("deleting replicate %s: %+v", pointer.From(replicaVolumeId), err)
 		}
 
-		if err := waitForReplicationDeletion(ctx, replicationClient, *replicaVolumeId); err != nil {
-			return fmt.Errorf("waiting for the replica %s to be deleted: %+v", *replicaVolumeId, err)
+		if err := waitForReplicationDeletion(ctx, replicationClient, pointer.From(replicaVolumeId)); err != nil {
+			return fmt.Errorf("waiting for the replica %s to be deleted: %+v", pointer.From(replicaVolumeId), err)
 		}
 	}
 
 	// Deleting volume and waiting for it fo fully complete the operation
-	if err = client.DeleteThenPoll(ctx, *id, volumes.DeleteOperationOptions{
+	if err = client.DeleteThenPoll(ctx, pointer.From(id), volumes.DeleteOperationOptions{
 		ForceDelete: utils.Bool(true),
 	}); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+		return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 	}
 
-	if err = waitForVolumeDeletion(ctx, client, *id); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	if err = waitForVolumeDeletion(ctx, client, pointer.From(id)); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", pointer.From(id), err)
 	}
 
 	return nil
@@ -848,124 +790,6 @@ func translateSDKSchedule(scheduleName string) string {
 	}
 
 	return scheduleName
-}
-
-func validateNetAppVolumeGroupVolumes(volumeList *[]volumegroups.VolumeGroupVolumeProperties, applicationType volumegroups.ApplicationType) []error {
-	errors := make([]error, 0)
-	volumeSpecRepeatCount := make(map[string]int)
-
-	if applicationType == volumegroups.ApplicationTypeSAPNegativeHANA {
-
-		// Validating maximum number of volumes
-		if len(*volumeList) > 5 {
-			errors = append(errors, fmt.Errorf("'`volume` list cannot be greater than 5 for %v'", applicationType))
-		}
-
-		// Validating each volume
-		for _, volume := range *volumeList {
-			// Validating maximum number of protocols
-			if len(*volume.Properties.ProtocolTypes) > 1 {
-				errors = append(errors, fmt.Errorf("'`protocols` list cannot be greater than 1 for %v on volume %v'", applicationType, *volume.Name))
-			}
-
-			// Validating protocol, it supports only one and that is enforced by the schema
-
-			// Can't be CIFS at all times
-			if strings.EqualFold((*volume.Properties.ProtocolTypes)[0], string(ProtocolTypeCifs)) {
-				errors = append(errors, fmt.Errorf("'cifs is not supported for %v on volume %v'", applicationType, *volume.Name))
-			}
-
-			// Can't be nfsv3 on data, log and share volumes
-			if strings.EqualFold((*volume.Properties.ProtocolTypes)[0], string(ProtocolTypeNfsV3)) &&
-				(strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaData)) ||
-					strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaShared)) ||
-					strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaLog))) {
-
-				errors = append(errors, fmt.Errorf("'nfsv3 on data, log and shared volumes for %v is not supported on volume %v'", applicationType, *volume.Name))
-			}
-
-			// Validating export policies
-			if volume.Properties.ExportPolicy != nil {
-				for _, rule := range *volume.Properties.ExportPolicy.Rules {
-					errors = append(errors, validateNetAppVolumeGroupExportPolicyRule(rule, (*volume.Properties.ProtocolTypes)[0])...)
-				}
-			}
-
-			// Checking CRR rule that log cannot be DataProtection type
-			if strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaLog)) &&
-				volume.Properties.DataProtection != nil &&
-				volume.Properties.DataProtection.Replication != nil &&
-				strings.EqualFold(string(*volume.Properties.DataProtection.Replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
-
-				errors = append(errors, fmt.Errorf("'log volume spec type cannot be DataProtection type for %v on volume %v'", applicationType, *volume.Name))
-			}
-
-			// Validating that snapshot policies are not being created in a data protection volume
-			if volume.Properties.DataProtection != nil &&
-				volume.Properties.DataProtection.Snapshot != nil &&
-				(volume.Properties.DataProtection.Replication != nil && strings.EqualFold(string(*volume.Properties.DataProtection.Replication.EndpointType), string(volumegroups.EndpointTypeDst))) {
-
-				errors = append(errors, fmt.Errorf("'snapshot policy cannot be enabled on a data protection volume for %v on volume %v'", applicationType, *volume.Name))
-			}
-
-			// Validating that data-backup and log-backup don't have PPG defined
-			if (strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaDataBackup)) ||
-				strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaLogBackup))) &&
-				utils.NormalizeNilableString(volume.Properties.ProximityPlacementGroup) != "" {
-
-				errors = append(errors, fmt.Errorf("'%v volume spec type cannot have PPG defined for %v on volume %v'", *volume.Properties.VolumeSpecName, applicationType, *volume.Name))
-			}
-
-			// Validating that data, log and shared have PPG defined.
-			if (strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaData)) ||
-				strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaLog)) ||
-				strings.EqualFold(*volume.Properties.VolumeSpecName, string(VolumeSpecNameSapHanaShared))) &&
-				utils.NormalizeNilableString(volume.Properties.ProximityPlacementGroup) == "" {
-
-				errors = append(errors, fmt.Errorf("'%v volume spec type must have PPG defined for %v on volume %v'", *volume.Properties.VolumeSpecName, applicationType, *volume.Name))
-			}
-
-			// Adding volume spec name to hashmap for post volume loop check
-			volumeSpecRepeatCount[*volume.Properties.VolumeSpecName] += 1
-		}
-
-		// Validating required volume spec types
-		for _, requiredVolumeSpec := range RequiredVolumesForSAPHANA() {
-			if _, ok := volumeSpecRepeatCount[requiredVolumeSpec]; !ok {
-				errors = append(errors, fmt.Errorf("'required volume spec type %v is not present for %v'", requiredVolumeSpec, applicationType))
-			}
-		}
-
-		// Validating that volume spec does not repeat
-		for volumeSpecName, count := range volumeSpecRepeatCount {
-			if count > 1 {
-				errors = append(errors, fmt.Errorf("'volume spec type %v cannot be repeated for %v'", volumeSpecName, applicationType))
-			}
-		}
-	}
-
-	return errors
-}
-
-func validateNetAppVolumeGroupExportPolicyRule(rule volumegroups.ExportPolicyRule, protocolType string) []error {
-	errors := make([]error, 0)
-
-	// Validating that nfsv3 and nfsv4.1 are not enabled in the same rule
-	if *rule.Nfsv3 && *rule.Nfsv41 {
-		errors = append(errors, fmt.Errorf("'nfsv3 and nfsv4.1 cannot be enabled at the same time'"))
-	}
-
-	// Validating that nfsv4.1 export policy is not set on nfsv3 volume
-	if *rule.Nfsv41 && strings.EqualFold(protocolType, string(ProtocolTypeNfsV3)) {
-		errors = append(errors, fmt.Errorf("'nfsv4.1 export policy cannot be enabled on nfsv3 volume'"))
-	}
-
-	// Validating that nfsv3 export policy is not set on nfsv4.1 volume
-	if *rule.Nfsv3 && strings.EqualFold(protocolType, string(ProtocolTypeNfsV41)) {
-		errors = append(errors, fmt.Errorf("'nfsv3 export policy cannot be enabled on nfsv4.1 volume'"))
-	}
-
-	return errors
 }
 
 func FindStringInSlice(slice []string, val string) bool {

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups"
@@ -265,9 +266,9 @@ func (r NetAppVolumeGroupSapHanaDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state.Location = location.Normalize(*model.Location)
-			state.ApplicationIdentifier = *model.Properties.GroupMetaData.ApplicationIdentifier
-			state.GroupDescription = *model.Properties.GroupMetaData.GroupDescription
+			state.Location = location.Normalize(pointer.From(model.Location))
+			state.ApplicationIdentifier = pointer.From(model.Properties.GroupMetaData.ApplicationIdentifier)
+			state.GroupDescription = pointer.From(model.Properties.GroupMetaData.GroupDescription)
 
 			volumes, err := flattenNetAppVolumeGroupVolumes(ctx, model.Properties.Volumes, metadata)
 			if err != nil {

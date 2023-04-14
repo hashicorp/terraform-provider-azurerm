@@ -194,19 +194,16 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 						"unix_read_only": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Computed: true,
 						},
 
 						"unix_read_write": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Computed: true,
 						},
 
 						"root_access_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Computed: true,
 						},
 					},
 				},
@@ -792,6 +789,8 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 					for _, protocol := range protocolsEnabled {
 						if protocol != nil {
 							switch strings.ToLower(protocol.(string)) {
+							case "cifs":
+								cifsEnabled = true
 							case "nfsv3":
 								nfsv3Enabled = true
 							case "nfsv4.1":
