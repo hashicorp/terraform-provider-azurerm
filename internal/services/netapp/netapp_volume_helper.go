@@ -123,7 +123,7 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []ExportPolicyRule) *vo
 }
 
 func expandNetAppVolumeGroupDataProtectionReplication(input []DataProtectionReplication) *volumegroups.VolumePropertiesDataProtection {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &volumegroups.VolumePropertiesDataProtection{}
 	}
 
@@ -144,7 +144,7 @@ func expandNetAppVolumeGroupDataProtectionReplication(input []DataProtectionRepl
 }
 
 func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []DataProtectionSnapshotPolicy) *volumegroups.VolumePropertiesDataProtection {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &volumegroups.VolumePropertiesDataProtection{}
 	}
 
@@ -157,7 +157,7 @@ func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []DataProtectionS
 }
 
 func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupVolume slice")
 	}
 
@@ -208,7 +208,7 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume) (*[]volumeg
 }
 
 func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *volumes.VolumePatchPropertiesExportPolicy {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &volumes.VolumePatchPropertiesExportPolicy{}
 	}
 
@@ -263,7 +263,7 @@ func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *vo
 }
 
 func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.VolumePropertiesDataProtection {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &volumes.VolumePropertiesDataProtection{}
 	}
 
@@ -292,7 +292,7 @@ func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.V
 }
 
 func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &volumes.VolumePropertiesDataProtection{}
 	}
 
@@ -310,7 +310,7 @@ func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volume
 }
 
 func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &volumes.VolumePatchPropertiesDataProtection{}
 	}
 
