@@ -164,6 +164,8 @@ An `application_stack` block supports the following:
 
 * `php_version` - (Optional) The version of PHP to run. Possible values are `8.0`, `8.1` and `8.2`.
 
+~> **NOTE:** version `7.4` is deprecated and will be removed from the provider in a future version.
+
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9`, `3.10` and `3.11`.
 
 * `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.6` and `2.7`.
