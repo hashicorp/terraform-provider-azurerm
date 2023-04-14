@@ -58,7 +58,7 @@ func KeyId(input string) (*AppConfigurationKeyId, error) {
 
 // a workaround to support "/" in id
 func handleSlashInIdForKey(input string) string {
-	oldNames := regexp.MustCompile(`AppConfigurationKey\/(.+)\/Label`).FindStringSubmatch(input)
+	oldNames := regexp.MustCompile(`AppConfigurationKey\/(.+)\/Label\/`).FindStringSubmatch(input)
 	if len(oldNames) == 2 {
 		input = strings.Replace(input, oldNames[1], url.QueryEscape(oldNames[1]), 1)
 	}

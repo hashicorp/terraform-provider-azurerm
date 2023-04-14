@@ -69,7 +69,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
 				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
 				check.That(data.ResourceName).Key("maintenance_configuration_name").HasValue(maintenance_configuration_name),
-				check.That(data.ResourceName).Key("max_size_gb").HasValue("1"),
+				check.That(data.ResourceName).Key("max_size_gb").HasValue("10"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("storage_account_type").HasValue("Local"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
@@ -217,6 +217,47 @@ func TestAccMsSqlDatabase_HS(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("read_replica_count").HasValue("4"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("HS_Gen5_2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_HSWithRetentionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hsWithRetentionPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("read_replica_count").HasValue("2"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("HS_Gen5_2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.hsWithRetentionPolicyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("read_replica_count").HasValue("4"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("HS_Gen5_2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_S0(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.s0WithRetentionPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -819,7 +860,7 @@ resource "azurerm_mssql_database" "test" {
   server_id    = azurerm_mssql_server.test.id
   collation    = "SQL_AltDiction_CP850_CI_AI"
   license_type = "BasePrice"
-  max_size_gb  = 1
+  max_size_gb  = 10
   sample_name  = "AdventureWorksLT"
   sku_name     = "GP_Gen5_2"
 
@@ -982,6 +1023,79 @@ resource "azurerm_mssql_database" "test" {
   server_id          = azurerm_mssql_server.test.id
   read_replica_count = 4
   sku_name           = "HS_Gen5_2"
+
+
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) hsWithRetentionPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name               = "acctest-db-%[2]d"
+  server_id          = azurerm_mssql_server.test.id
+  read_replica_count = 2
+  sku_name           = "HS_Gen5_2"
+
+  long_term_retention_policy {
+    weekly_retention  = "P1W"
+    monthly_retention = "P1M"
+    yearly_retention  = "P1Y"
+    week_of_year      = 1
+  }
+
+  short_term_retention_policy {
+    retention_days = 10
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) s0WithRetentionPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+  sku_name  = "S0"
+
+  long_term_retention_policy {
+    weekly_retention  = "P1W"
+    monthly_retention = "P1M"
+    yearly_retention  = "P1Y"
+    week_of_year      = 1
+  }
+
+  short_term_retention_policy {
+    retention_days = 10
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) hsWithRetentionPolicyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name               = "acctest-db-%[2]d"
+  server_id          = azurerm_mssql_server.test.id
+  read_replica_count = 4
+  sku_name           = "HS_Gen5_2"
+
+  long_term_retention_policy {
+    weekly_retention  = "P1W"
+    monthly_retention = "P1M"
+    yearly_retention  = "P1Y"
+    week_of_year      = 2
+  }
+
+  short_term_retention_policy {
+    retention_days = 12
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

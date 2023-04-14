@@ -147,6 +147,13 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {}
+
+  lifecycle {
+    ignore_changes = [
+      app_settings["AZURE_STORAGEBLOB_RESOURCEENDPOINT"],
+      identity,
+    ]
+  }
 }
 
 resource "azurerm_app_service_connection" "test" {
@@ -474,6 +481,13 @@ resource "azurerm_linux_web_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
   site_config {}
+
+  lifecycle {
+    ignore_changes = [
+      app_settings,
+      identity,
+    ]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

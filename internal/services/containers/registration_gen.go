@@ -25,6 +25,6 @@ func (autoRegistration) Resources() []sdk.Resource {
 
 func (autoRegistration) WebsiteCategories() []string {
 	return []string{
-		"Containers",
+		"Container",
 	}
 }

@@ -36,15 +36,25 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Automation Account. Changing this forces a new resource to be created.
 
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
-
 * `resource_group_name` - (Required) The name of the resource group in which the Automation Account is created. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `sku_name` - (Required) The SKU of the account. Possible values are `Basic` and `Free`.
 
+---
+
 * `local_authentication_enabled` - (Optional) Whether requests using non-AAD authentication are blocked. Defaults to `true`.
+
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
+
+---
+
+An `encryption` block supports the following:
+
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Automation Account.
+
+* `user_assigned_identity_id` - (Optional) The User Assigned Managed Identity ID to be used for accessing the Customer Managed Key for encryption.
 
 ---
 
@@ -66,19 +76,9 @@ An `identity` block supports the following:
 
 ---
 
-An `encryption` block supports the following:
-
-* `user_assigned_identity_id` - (Optional) The User Assigned Managed Identity ID to be used for accessing the Customer Managed Key for encryption.
-
-* `key_source` - (Optional) The source of the encryption key. Possible values are `Microsoft.Automation` and `Microsoft.Keyvault`.
-
-* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Automation Account.
-
----
-
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Automation Account.
 

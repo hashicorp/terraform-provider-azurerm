@@ -67,7 +67,7 @@ resource "azurerm_nginx_certificate" "test" {
   nginx_deployment_id      = azurerm_nginx_deployment.test.id
   key_virtual_path         = "/src/cert/soservermekey.key"
   certificate_virtual_path = "/src/cert/server.cert"
-  key_vault_secret_id      = azurerm_key_vault_secret.test.id
+  key_vault_secret_id      = azurerm_key_vault_certificate.test.secret_id
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -163,6 +163,15 @@ resource "azurerm_key_vault" "test" {
       "Get",
     ]
 
+    certificate_permissions = [
+      "Get",
+      "Create",
+      "Delete",
+      "List",
+      "Purge",
+      "Recover",
+    ]
+
     secret_permissions = [
       "Get",
       "Delete",
@@ -174,10 +183,50 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_key_vault_secret" "test" {
-  name         = "secret-%[3]s"
-  value        = "rick-and-morty"
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%[3]s"
   key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pem-file"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyEncipherment",
+        "keyCertSign",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

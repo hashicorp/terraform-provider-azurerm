@@ -17,39 +17,41 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type ServiceModel struct {
-	Name                         string                      `tfschema:"name"`
-	MobileNetworkMobileNetworkId string                      `tfschema:"mobile_network_id"`
-	Location                     string                      `tfschema:"location"`
-	PccRules                     []PccRuleConfigurationModel `tfschema:"pcc_rule"`
-	ServicePrecedence            int64                       `tfschema:"service_precedence"`
-	ServiceQosPolicy             []QosPolicyModel            `tfschema:"service_qos_policy"`
-	Tags                         map[string]string           `tfschema:"tags"`
+type ServiceResource struct{}
+
+type ServiceResourceModel struct {
+	Name              string                                     `tfschema:"name"`
+	MobileNetworkId   string                                     `tfschema:"mobile_network_id"`
+	Location          string                                     `tfschema:"location"`
+	PccRules          []ServiceResourcePccRuleConfigurationModel `tfschema:"pcc_rule"`
+	ServicePrecedence int64                                      `tfschema:"service_precedence"`
+	ServiceQosPolicy  []ServiceResourceQosPolicyModel            `tfschema:"service_qos_policy"`
+	Tags              map[string]string                          `tfschema:"tags"`
 }
 
-type PccRuleConfigurationModel struct {
-	RuleName                 string                         `tfschema:"name"`
-	RulePrecedence           int64                          `tfschema:"precedence"`
-	RuleQosPolicy            []PccRuleQosPolicyModel        `tfschema:"qos_policy"`
-	ServiceDataFlowTemplates []ServiceDataFlowTemplateModel `tfschema:"service_data_flow_template"`
-	TrafficControlEnabled    bool                           `tfschema:"traffic_control_enabled"`
+type ServiceResourcePccRuleConfigurationModel struct {
+	RuleName                 string                                        `tfschema:"name"`
+	RulePrecedence           int64                                         `tfschema:"precedence"`
+	RuleQosPolicy            []ServiceResourcePccRuleQosPolicyModel        `tfschema:"qos_policy"`
+	ServiceDataFlowTemplates []ServiceResourceServiceDataFlowTemplateModel `tfschema:"service_data_flow_template"`
+	TrafficControlEnabled    bool                                          `tfschema:"traffic_control_enabled"`
 }
 
-type PccRuleQosPolicyModel struct {
-	AllocationAndRetentionPriorityLevel int64          `tfschema:"allocation_and_retention_priority_level"`
-	QosIdentifier                       int64          `tfschema:"qos_indicator"`
-	GuaranteedBitRate                   []BitRateModel `tfschema:"guaranteed_bit_rate"`
-	MaximumBitRate                      []BitRateModel `tfschema:"maximum_bit_rate"`
-	PreemptionCapability                string         `tfschema:"preemption_capability"`
-	PreemptionVulnerability             string         `tfschema:"preemption_vulnerability"`
+type ServiceResourcePccRuleQosPolicyModel struct {
+	AllocationAndRetentionPriorityLevel int64                         `tfschema:"allocation_and_retention_priority_level"`
+	QosIdentifier                       int64                         `tfschema:"qos_indicator"`
+	GuaranteedBitRate                   []ServiceResourceBitRateModel `tfschema:"guaranteed_bit_rate"`
+	MaximumBitRate                      []ServiceResourceBitRateModel `tfschema:"maximum_bit_rate"`
+	PreemptionCapability                string                        `tfschema:"preemption_capability"`
+	PreemptionVulnerability             string                        `tfschema:"preemption_vulnerability"`
 }
 
-type BitRateModel struct {
+type ServiceResourceBitRateModel struct {
 	Downlink string `tfschema:"downlink"`
 	Uplink   string `tfschema:"uplink"`
 }
 
-type ServiceDataFlowTemplateModel struct {
+type ServiceResourceServiceDataFlowTemplateModel struct {
 	Direction    string   `tfschema:"direction"`
 	Ports        []string `tfschema:"ports"`
 	Protocol     []string `tfschema:"protocol"`
@@ -57,31 +59,29 @@ type ServiceDataFlowTemplateModel struct {
 	TemplateName string   `tfschema:"name"`
 }
 
-type QosPolicyModel struct {
-	AllocationAndRetentionPriorityLevel int64          `tfschema:"allocation_and_retention_priority_level"`
-	QosIdentifier                       int64          `tfschema:"qos_indicator"`
-	MaximumBitRate                      []BitRateModel `tfschema:"maximum_bit_rate"`
-	PreemptionCapability                string         `tfschema:"preemption_capability"`
-	PreemptionVulnerability             string         `tfschema:"preemption_vulnerability"`
+type ServiceResourceQosPolicyModel struct {
+	AllocationAndRetentionPriorityLevel int64                         `tfschema:"allocation_and_retention_priority_level"`
+	QosIdentifier                       int64                         `tfschema:"qos_indicator"`
+	MaximumBitRate                      []ServiceResourceBitRateModel `tfschema:"maximum_bit_rate"`
+	PreemptionCapability                string                        `tfschema:"preemption_capability"`
+	PreemptionVulnerability             string                        `tfschema:"preemption_vulnerability"`
 }
 
-type MobileNetworkServiceResource struct{}
+var _ sdk.ResourceWithUpdate = ServiceResource{}
 
-var _ sdk.ResourceWithUpdate = MobileNetworkServiceResource{}
-
-func (r MobileNetworkServiceResource) ResourceType() string {
+func (r ServiceResource) ResourceType() string {
 	return "azurerm_mobile_network_service"
 }
 
-func (r MobileNetworkServiceResource) ModelObject() interface{} {
-	return &ServiceModel{}
+func (r ServiceResource) ModelObject() interface{} {
+	return &ServiceResourceModel{}
 }
 
-func (r MobileNetworkServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return service.ValidateServiceID
 }
 
-func (r MobileNetworkServiceResource) Arguments() map[string]*pluginsdk.Schema {
+func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -338,21 +338,21 @@ func (r MobileNetworkServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r MobileNetworkServiceResource) Attributes() map[string]*pluginsdk.Schema {
+func (r ServiceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r MobileNetworkServiceResource) Create() sdk.ResourceFunc {
+func (r ServiceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model ServiceModel
+			var model ServiceResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			client := metadata.Client.MobileNetwork.ServiceClient
-			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkMobileNetworkId)
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkId)
 			if err != nil {
 				return err
 			}
@@ -371,8 +371,8 @@ func (r MobileNetworkServiceResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Properties: service.ServicePropertiesFormat{
 					ServicePrecedence: model.ServicePrecedence,
-					PccRules:          expandPccRuleConfigurationModel(model.PccRules),
-					ServiceQosPolicy:  expandQosPolicyModel(model.ServiceQosPolicy),
+					PccRules:          expandPccRuleConfigurationResourceModel(model.PccRules),
+					ServiceQosPolicy:  expandQosPolicyResourceModel(model.ServiceQosPolicy),
 				},
 				Tags: &model.Tags,
 			}
@@ -387,7 +387,7 @@ func (r MobileNetworkServiceResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r MobileNetworkServiceResource) Update() sdk.ResourceFunc {
+func (r ServiceResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -398,7 +398,7 @@ func (r MobileNetworkServiceResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model ServiceModel
+			var model ServiceResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -415,7 +415,7 @@ func (r MobileNetworkServiceResource) Update() sdk.ResourceFunc {
 			properties := *resp.Model
 
 			if metadata.ResourceData.HasChange("pcc_rule") {
-				properties.Properties.PccRules = expandPccRuleConfigurationModel(model.PccRules)
+				properties.Properties.PccRules = expandPccRuleConfigurationResourceModel(model.PccRules)
 			}
 
 			if metadata.ResourceData.HasChange("service_precedence") {
@@ -423,7 +423,7 @@ func (r MobileNetworkServiceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("service_qos_policy") {
-				properties.Properties.ServiceQosPolicy = expandQosPolicyModel(model.ServiceQosPolicy)
+				properties.Properties.ServiceQosPolicy = expandQosPolicyResourceModel(model.ServiceQosPolicy)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -439,7 +439,7 @@ func (r MobileNetworkServiceResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r MobileNetworkServiceResource) Read() sdk.ResourceFunc {
+func (r ServiceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -465,10 +465,10 @@ func (r MobileNetworkServiceResource) Read() sdk.ResourceFunc {
 
 			model := *resp.Model
 
-			state := ServiceModel{
-				Name:                         id.ServiceName,
-				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
-				Location:                     location.Normalize(model.Location),
+			state := ServiceResourceModel{
+				Name:            id.ServiceName,
+				MobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
+				Location:        location.Normalize(model.Location),
 			}
 
 			properties := model.Properties
@@ -477,7 +477,7 @@ func (r MobileNetworkServiceResource) Read() sdk.ResourceFunc {
 
 			state.ServicePrecedence = properties.ServicePrecedence
 
-			state.ServiceQosPolicy = flattenQosPolicyModel(properties.ServiceQosPolicy)
+			state.ServiceQosPolicy = flattenQosPolicyResourceModel(properties.ServiceQosPolicy)
 
 			if model.Tags != nil {
 				state.Tags = *model.Tags
@@ -488,7 +488,7 @@ func (r MobileNetworkServiceResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r MobileNetworkServiceResource) Delete() sdk.ResourceFunc {
+func (r ServiceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -515,7 +515,7 @@ func (r MobileNetworkServiceResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandPccRuleConfigurationModel(inputList []PccRuleConfigurationModel) []service.PccRuleConfiguration {
+func expandPccRuleConfigurationResourceModel(inputList []ServiceResourcePccRuleConfigurationModel) []service.PccRuleConfiguration {
 	var outputList []service.PccRuleConfiguration
 	for _, v := range inputList {
 		input := v
@@ -530,9 +530,9 @@ func expandPccRuleConfigurationModel(inputList []PccRuleConfigurationModel) []se
 		}
 		output.TrafficControl = &trafficControlValue
 
-		output.RuleQosPolicy = expandPccRuleQosPolicyModel(input.RuleQosPolicy)
+		output.RuleQosPolicy = expandPccRuleQosPolicyResourceModel(input.RuleQosPolicy)
 
-		output.ServiceDataFlowTemplates = expandServiceDataFlowTemplateModel(input.ServiceDataFlowTemplates)
+		output.ServiceDataFlowTemplates = expandServiceDataFlowTemplateResourceModel(input.ServiceDataFlowTemplates)
 
 		outputList = append(outputList, output)
 	}
@@ -540,7 +540,7 @@ func expandPccRuleConfigurationModel(inputList []PccRuleConfigurationModel) []se
 	return outputList
 }
 
-func expandPccRuleQosPolicyModel(inputList []PccRuleQosPolicyModel) *service.PccRuleQosPolicy {
+func expandPccRuleQosPolicyResourceModel(inputList []ServiceResourcePccRuleQosPolicyModel) *service.PccRuleQosPolicy {
 	if len(inputList) == 0 {
 		return nil
 	}
@@ -555,16 +555,16 @@ func expandPccRuleQosPolicyModel(inputList []PccRuleQosPolicyModel) *service.Pcc
 		PreemptionVulnerability:             &vulnerability,
 	}
 
-	output.GuaranteedBitRate = expandBitRateModel(input.GuaranteedBitRate)
+	output.GuaranteedBitRate = expandBitRateResourceModel(input.GuaranteedBitRate)
 
-	if v := expandBitRateModel(input.MaximumBitRate); v != nil {
+	if v := expandBitRateResourceModel(input.MaximumBitRate); v != nil {
 		output.MaximumBitRate = *v
 	}
 
 	return &output
 }
 
-func expandServiceDataFlowTemplateModel(inputList []ServiceDataFlowTemplateModel) []service.ServiceDataFlowTemplate {
+func expandServiceDataFlowTemplateResourceModel(inputList []ServiceResourceServiceDataFlowTemplateModel) []service.ServiceDataFlowTemplate {
 	outputList := make([]service.ServiceDataFlowTemplate, 0)
 	for _, v := range inputList {
 		input := v
@@ -582,7 +582,7 @@ func expandServiceDataFlowTemplateModel(inputList []ServiceDataFlowTemplateModel
 	return outputList
 }
 
-func expandQosPolicyModel(inputList []QosPolicyModel) *service.QosPolicy {
+func expandQosPolicyResourceModel(inputList []ServiceResourceQosPolicyModel) *service.QosPolicy {
 	if len(inputList) == 0 {
 		return nil
 	}
@@ -597,25 +597,25 @@ func expandQosPolicyModel(inputList []QosPolicyModel) *service.QosPolicy {
 		PreemptionVulnerability:             &vulnerability,
 	}
 
-	if v := expandBitRateModel(input.MaximumBitRate); v != nil {
+	if v := expandBitRateResourceModel(input.MaximumBitRate); v != nil {
 		output.MaximumBitRate = *v
 	}
 
 	return &output
 }
 
-func flattenPccRuleConfigurationModel(inputList []service.PccRuleConfiguration) []PccRuleConfigurationModel {
-	var outputList []PccRuleConfigurationModel
+func flattenPccRuleConfigurationModel(inputList []service.PccRuleConfiguration) []ServiceResourcePccRuleConfigurationModel {
+	var outputList []ServiceResourcePccRuleConfigurationModel
 
 	for _, input := range inputList {
-		output := PccRuleConfigurationModel{
+		output := ServiceResourcePccRuleConfigurationModel{
 			RuleName:       input.RuleName,
 			RulePrecedence: input.RulePrecedence,
 		}
 
-		output.RuleQosPolicy = flattenPccRuleQosPolicyModel(input.RuleQosPolicy)
+		output.RuleQosPolicy = flattenPccRuleQosPolicyResourceModel(input.RuleQosPolicy)
 
-		output.ServiceDataFlowTemplates = flattenServiceDataFlowTemplateModel(&input.ServiceDataFlowTemplates)
+		output.ServiceDataFlowTemplates = flattenServiceDataFlowTemplateResourceModel(&input.ServiceDataFlowTemplates)
 
 		if input.TrafficControl != nil {
 			output.TrafficControlEnabled = *input.TrafficControl == service.TrafficControlPermissionEnabled
@@ -627,13 +627,12 @@ func flattenPccRuleConfigurationModel(inputList []service.PccRuleConfiguration) 
 	return outputList
 }
 
-func flattenPccRuleQosPolicyModel(input *service.PccRuleQosPolicy) []PccRuleQosPolicyModel {
-	var outputList []PccRuleQosPolicyModel
+func flattenPccRuleQosPolicyResourceModel(input *service.PccRuleQosPolicy) []ServiceResourcePccRuleQosPolicyModel {
 	if input == nil {
-		return outputList
+		return []ServiceResourcePccRuleQosPolicyModel{}
 	}
 
-	output := PccRuleQosPolicyModel{}
+	output := ServiceResourcePccRuleQosPolicyModel{}
 
 	if input.AllocationAndRetentionPriorityLevel != nil {
 		output.AllocationAndRetentionPriorityLevel = *input.AllocationAndRetentionPriorityLevel
@@ -643,9 +642,9 @@ func flattenPccRuleQosPolicyModel(input *service.PccRuleQosPolicy) []PccRuleQosP
 		output.QosIdentifier = *input.Fiveqi
 	}
 
-	output.GuaranteedBitRate = flattenBitRateModel(input.GuaranteedBitRate)
+	output.GuaranteedBitRate = flattenBitRateResourceModel(input.GuaranteedBitRate)
 
-	output.MaximumBitRate = flattenBitRateModel(&input.MaximumBitRate)
+	output.MaximumBitRate = flattenBitRateResourceModel(&input.MaximumBitRate)
 
 	if input.PreemptionCapability != nil {
 		output.PreemptionCapability = string(*input.PreemptionCapability)
@@ -655,17 +654,19 @@ func flattenPccRuleQosPolicyModel(input *service.PccRuleQosPolicy) []PccRuleQosP
 		output.PreemptionVulnerability = string(*input.PreemptionVulnerability)
 	}
 
-	return append(outputList, output)
+	return []ServiceResourcePccRuleQosPolicyModel{
+		output,
+	}
 }
 
-func flattenServiceDataFlowTemplateModel(inputList *[]service.ServiceDataFlowTemplate) []ServiceDataFlowTemplateModel {
-	var outputList []ServiceDataFlowTemplateModel
+func flattenServiceDataFlowTemplateResourceModel(inputList *[]service.ServiceDataFlowTemplate) []ServiceResourceServiceDataFlowTemplateModel {
+	var outputList []ServiceResourceServiceDataFlowTemplateModel
 	if inputList == nil {
 		return outputList
 	}
 
 	for _, input := range *inputList {
-		output := ServiceDataFlowTemplateModel{
+		output := ServiceResourceServiceDataFlowTemplateModel{
 			Direction:    string(input.Direction),
 			Protocol:     input.Protocol,
 			RemoteIPList: input.RemoteIPList,
@@ -682,13 +683,12 @@ func flattenServiceDataFlowTemplateModel(inputList *[]service.ServiceDataFlowTem
 	return outputList
 }
 
-func flattenQosPolicyModel(input *service.QosPolicy) []QosPolicyModel {
-	var outputList []QosPolicyModel
+func flattenQosPolicyResourceModel(input *service.QosPolicy) []ServiceResourceQosPolicyModel {
 	if input == nil {
-		return outputList
+		return []ServiceResourceQosPolicyModel{}
 	}
 
-	output := QosPolicyModel{}
+	output := ServiceResourceQosPolicyModel{}
 
 	if input.AllocationAndRetentionPriorityLevel != nil {
 		output.AllocationAndRetentionPriorityLevel = *input.AllocationAndRetentionPriorityLevel
@@ -698,7 +698,7 @@ func flattenQosPolicyModel(input *service.QosPolicy) []QosPolicyModel {
 		output.QosIdentifier = *input.Fiveqi
 	}
 
-	output.MaximumBitRate = flattenBitRateModel(&input.MaximumBitRate)
+	output.MaximumBitRate = flattenBitRateResourceModel(&input.MaximumBitRate)
 
 	if input.PreemptionCapability != nil {
 		output.PreemptionCapability = string(*input.PreemptionCapability)
@@ -708,11 +708,13 @@ func flattenQosPolicyModel(input *service.QosPolicy) []QosPolicyModel {
 		output.PreemptionVulnerability = string(*input.PreemptionVulnerability)
 	}
 
-	return append(outputList, output)
+	return []ServiceResourceQosPolicyModel{
+		output,
+	}
 }
 
 // make it return a pointer because some property accept nil value
-func expandBitRateModel(inputList []BitRateModel) *service.Ambr {
+func expandBitRateResourceModel(inputList []ServiceResourceBitRateModel) *service.Ambr {
 	if len(inputList) == 0 {
 		return nil
 	}
@@ -726,16 +728,15 @@ func expandBitRateModel(inputList []BitRateModel) *service.Ambr {
 	return &output
 }
 
-func flattenBitRateModel(input *service.Ambr) []BitRateModel {
-	var outputList []BitRateModel
+func flattenBitRateResourceModel(input *service.Ambr) []ServiceResourceBitRateModel {
 	if input == nil {
-		return outputList
+		return []ServiceResourceBitRateModel{}
 	}
 
-	output := BitRateModel{
-		Downlink: input.Downlink,
-		Uplink:   input.Uplink,
+	return []ServiceResourceBitRateModel{
+		{
+			Downlink: input.Downlink,
+			Uplink:   input.Uplink,
+		},
 	}
-
-	return append(outputList, output)
 }

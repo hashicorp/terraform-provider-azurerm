@@ -49,7 +49,7 @@ func (c StreamingEndpointsClient) List(ctx context.Context, id MediaServiceId) (
 	}
 
 	var values struct {
-		Values *[]StreamingEndpoint `json:"values"`
+		Values *[]StreamingEndpoint `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
