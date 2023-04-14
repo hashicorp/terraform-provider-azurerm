@@ -43,7 +43,6 @@ github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementg
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions
 github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage
-github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache
 github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync
 github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web
@@ -566,6 +565,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/skus
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/tableservice
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/tableserviceproperties
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2021-09-01/caches
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2021-09-01/storagetargets
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/storagemovers
 github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools
 github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets
