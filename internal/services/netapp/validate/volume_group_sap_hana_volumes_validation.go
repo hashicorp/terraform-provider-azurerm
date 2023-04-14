@@ -79,15 +79,16 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 	volumeSpecRepeatCount := make(map[string]int)
 	applicationType := string(volumegroups.ApplicationTypeSAPNegativeHANA)
 
-	// Validating maximum number of volumes
-	if len(pointer.From(volumeList)) > 5 {
-		errors = append(errors, fmt.Errorf("'`volume` list cannot be greater than 5 for %v'", applicationType))
-	}
-
 	// Validating each volume
 	for _, volume := range pointer.From(volumeList) {
+		protocolTypeList := pointer.From(volume.Properties.ProtocolTypes)
+		protocolType := ""
+		if len(protocolTypeList) > 0 {
+			protocolType = protocolTypeList[0]
+		}
+
 		// Can't be nfsv3 on data, log and share volumes
-		if strings.EqualFold((pointer.From(volume.Properties.ProtocolTypes))[0], string(ProtocolTypeNfsV3)) &&
+		if strings.EqualFold(protocolType, string(ProtocolTypeNfsV3)) &&
 			(strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaData)) ||
 				strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaShared)) ||
 				strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaLog))) {
@@ -98,7 +99,7 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 		// Validating export policies
 		if volume.Properties.ExportPolicy != nil {
 			for _, rule := range pointer.From(volume.Properties.ExportPolicy.Rules) {
-				errors = append(errors, ValidateNetAppVolumeGroupExportPolicyRule(rule, (pointer.From(volume.Properties.ProtocolTypes))[0])...)
+				errors = append(errors, ValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(rule, protocolType)...)
 			}
 		}
 
@@ -152,27 +153,6 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 		if count > 1 {
 			errors = append(errors, fmt.Errorf("'volume spec type %v cannot be repeated for %v'", volumeSpecName, applicationType))
 		}
-	}
-
-	return errors
-}
-
-func ValidateNetAppVolumeGroupExportPolicyRule(rule volumegroups.ExportPolicyRule, protocolType string) []error {
-	errors := make([]error, 0)
-
-	// Validating that nfsv3 and nfsv4.1 are not enabled in the same rule
-	if pointer.From(rule.Nfsv3) && pointer.From(rule.Nfsv41) {
-		errors = append(errors, fmt.Errorf("'nfsv3 and nfsv4.1 cannot be enabled at the same time'"))
-	}
-
-	// Validating that nfsv4.1 export policy is not set on nfsv3 volume
-	if pointer.From(rule.Nfsv41) && strings.EqualFold(protocolType, string(ProtocolTypeNfsV3)) {
-		errors = append(errors, fmt.Errorf("'nfsv4.1 export policy cannot be enabled on nfsv3 volume'"))
-	}
-
-	// Validating that nfsv3 export policy is not set on nfsv4.1 volume
-	if pointer.From(rule.Nfsv3) && strings.EqualFold(protocolType, string(ProtocolTypeNfsV41)) {
-		errors = append(errors, fmt.Errorf("'nfsv3 export policy cannot be enabled on nfsv4.1 volume'"))
 	}
 
 	return errors
