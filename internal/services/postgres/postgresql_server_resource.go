@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -728,7 +729,7 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if props := model.Properties; props != nil {
 			d.Set("administrator_login", props.AdministratorLogin)
-			d.Set("ssl_minimal_tls_version_enforced", props.MinimalTlsVersion)
+			d.Set("ssl_minimal_tls_version_enforced", string(pointer.From(props.MinimalTlsVersion)))
 
 			version := ""
 			if props.Version != nil {
