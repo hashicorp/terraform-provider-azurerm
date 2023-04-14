@@ -17,12 +17,12 @@ func (r Registration) AssociatedGitHubLabel() string {
 }
 
 func (r Registration) Name() string {
-	return "netapp"
+	return "NetApp"
 }
 
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"netapp",
+		"NetApp",
 	}
 }
 
