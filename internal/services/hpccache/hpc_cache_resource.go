@@ -282,7 +282,7 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if props := m.Properties; props != nil {
-			d.Set("location", m.Location)
+			d.Set("location", azure.NormalizeLocation(pointer.From(m.Location)))
 			d.Set("cache_size_in_gb", props.CacheSizeGB)
 			d.Set("subnet_id", props.Subnet)
 			d.Set("mount_addresses", utils.FlattenStringSlice(props.MountAddresses))
