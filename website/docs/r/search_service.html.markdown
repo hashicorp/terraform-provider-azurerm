@@ -90,7 +90,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Search Service.
 
-* `customer_managed_key_enforcement_compliance` - Describes whether the Search Service is `compliant` or not with respect to having non customer encrypted resources. If a Search Service has more than one non customer encrypted resource and the `customer_managed_key_enforcement_enabled` field is set to `true` the Search Service will be marked as `nonCompliant`.
+* `customer_managed_key_enforcement_compliance` - Describes whether the Search Service is `compliant` or not with respect to having non customer encrypted resources.
 
 * `primary_key` - The Primary Key used for Search Service Administration.
 
