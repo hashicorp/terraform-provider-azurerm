@@ -444,9 +444,9 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"7.4",
 						"8.0",
 						"8.1",
+						"8.2",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.docker_image",
