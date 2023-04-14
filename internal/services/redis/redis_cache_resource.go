@@ -818,6 +818,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	}
 
 	// RDB Backup
+	// nolint : staticcheck
 	v, valExists := d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
 	if valExists {
 		if v := raw["rdb_backup_enabled"].(bool); v {
@@ -845,6 +846,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	}
 
 	// AOF Backup
+	// nolint : staticcheck
 	v, valExists = d.GetOkExists("redis_configuration.0.aof_backup_enabled")
 	if valExists {
 		output.AofBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
