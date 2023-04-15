@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
@@ -18,6 +21,11 @@ import (
 type ArcKubernetesClusterExtensionResource struct{}
 
 func TestAccArcKubernetesClusterExtension_basic(t *testing.T) {
+	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
+	if os.Getenv(resource.EnvTfAcc) == "" {
+		t.Skip(fmt.Sprintf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc))
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster_extension", "test")
 	r := ArcKubernetesClusterExtensionResource{}
 	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
@@ -38,6 +46,11 @@ func TestAccArcKubernetesClusterExtension_basic(t *testing.T) {
 }
 
 func TestAccArcKubernetesClusterExtension_requiresImport(t *testing.T) {
+	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
+	if os.Getenv(resource.EnvTfAcc) == "" {
+		t.Skip(fmt.Sprintf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc))
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster_extension", "test")
 	r := ArcKubernetesClusterExtensionResource{}
 	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
@@ -61,6 +74,11 @@ func TestAccArcKubernetesClusterExtension_requiresImport(t *testing.T) {
 }
 
 func TestAccArcKubernetesClusterExtension_complete(t *testing.T) {
+	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
+	if os.Getenv(resource.EnvTfAcc) == "" {
+		t.Skip(fmt.Sprintf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc))
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster_extension", "test")
 	r := ArcKubernetesClusterExtensionResource{}
 	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
@@ -81,6 +99,11 @@ func TestAccArcKubernetesClusterExtension_complete(t *testing.T) {
 }
 
 func TestAccArcKubernetesClusterExtension_update(t *testing.T) {
+	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
+	if os.Getenv(resource.EnvTfAcc) == "" {
+		t.Skip(fmt.Sprintf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc))
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster_extension", "test")
 	r := ArcKubernetesClusterExtensionResource{}
 	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
