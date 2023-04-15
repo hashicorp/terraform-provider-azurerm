@@ -23,7 +23,7 @@ type ArcKubernetesClusterExtensionResource struct{}
 func TestAccArcKubernetesClusterExtension_basic(t *testing.T) {
 	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
 	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skip(fmt.Sprintf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc))
+		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster_extension", "test")
@@ -48,7 +48,7 @@ func TestAccArcKubernetesClusterExtension_basic(t *testing.T) {
 func TestAccArcKubernetesClusterExtension_requiresImport(t *testing.T) {
 	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
 	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skip(fmt.Sprintf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc))
+		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster_extension", "test")
@@ -76,7 +76,7 @@ func TestAccArcKubernetesClusterExtension_requiresImport(t *testing.T) {
 func TestAccArcKubernetesClusterExtension_complete(t *testing.T) {
 	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
 	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skip(fmt.Sprintf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc))
+		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster_extension", "test")
@@ -101,7 +101,7 @@ func TestAccArcKubernetesClusterExtension_complete(t *testing.T) {
 func TestAccArcKubernetesClusterExtension_update(t *testing.T) {
 	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
 	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skip(fmt.Sprintf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc))
+		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster_extension", "test")

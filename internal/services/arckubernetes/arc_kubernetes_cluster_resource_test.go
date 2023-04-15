@@ -28,7 +28,7 @@ type ArcKubernetesClusterResource struct{}
 func TestAccArcKubernetesCluster_basic(t *testing.T) {
 	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
 	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skip(fmt.Sprintf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc))
+		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
@@ -61,7 +61,7 @@ func TestAccArcKubernetesCluster_basic(t *testing.T) {
 func TestAccArcKubernetesCluster_requiresImport(t *testing.T) {
 	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
 	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skip(fmt.Sprintf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc))
+		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
@@ -88,7 +88,7 @@ func TestAccArcKubernetesCluster_requiresImport(t *testing.T) {
 func TestAccArcKubernetesCluster_complete(t *testing.T) {
 	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
 	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skip(fmt.Sprintf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc))
+		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
