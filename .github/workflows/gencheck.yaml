@@ -3,6 +3,7 @@ name: Generation Check
 
 permissions:
   contents: read
+  pull-requests: write
 
 on:
   pull_request:
@@ -25,3 +26,11 @@ jobs:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
       - run: make gencheck
+      - name: Add waiting-response on fail
+        if: failure()
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: waiting-response
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ github.event.number }}
+          repo: ${{ github.event.repository.full_name }}

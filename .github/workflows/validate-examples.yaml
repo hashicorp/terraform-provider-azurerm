@@ -3,7 +3,7 @@ name: Validate Examples
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
 
 on:
   pull_request:
@@ -27,3 +27,11 @@ jobs:
       - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: make validate-examples
+      - name: Add waiting-response on fail
+        if: failure()
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: waiting-response
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ github.event.number }}
+          repo: ${{ github.event.repository.full_name }}
