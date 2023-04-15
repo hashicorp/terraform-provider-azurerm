@@ -651,6 +651,12 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 			customNicName = *props.CustomNetworkInterfaceName
 		}
 		d.Set("custom_network_interface_name", customNicName)
+
+		resourceGuid := ""
+		if props.ResourceGuid != nil {
+			resourceGuid = *props.ResourceGuid
+		}
+		d.Set("resource_guid", resourceGuid)
 	}
 
 	privateDnsZoneConfigs := make([]interface{}, 0)

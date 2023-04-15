@@ -37660,6 +37660,8 @@ type PrivateEndpointProperties struct {
 	IPConfigurations *[]PrivateEndpointIPConfiguration `json:"ipConfigurations,omitempty"`
 	// CustomNetworkInterfaceName - The custom name of the network interface attached to the private endpoint.
 	CustomNetworkInterfaceName *string `json:"customNetworkInterfaceName,omitempty"`
+	// ResourceGUID - The Resource GUID of the private endpoint. Not the same as ID of the private endpoint.
+	ResourceGuid *string `json:"resourceGuid,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PrivateEndpointProperties.

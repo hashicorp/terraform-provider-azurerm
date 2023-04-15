@@ -198,6 +198,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Private Endpoint.
 
+* `resource_guid` - The resource GUID of the Private Endpoint.s
+
 * `network_interface` - A `network_interface` block as defined below.
 
 * `custom_dns_configs` - A `custom_dns_configs` block as defined below.
