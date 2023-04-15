@@ -122,9 +122,9 @@ The values of the `local_authentication_disabled` and `authentication_failure_mo
 
 | Field Name                                                       | Value                                                     | API Access Control Mode                  |
 |------------------------------------------------------------------|:---------------------------------------------------------:|------------------------------------------|
-| `local_authentication_disabled`<br>`authentication_failure_mode` | `false`<br>`<not defined>`                                  | `API key` (`Default`)                    |
+| `local_authentication_disabled`<br>`authentication_failure_mode` | `false`<br>`<not defined>`                                | `API key` (`Default`)                    |
 | `local_authentication_disabled`<br>`authentication_failure_mode` | `false`<br>`authentication_failure_mode` as defined above | `Role-based access control and API Key`  |
-| `local_authentication_disabled`<br>`authentication_failure_mode` | `true`<br>`<not defined>`                                   | `Role-based access control`              |
+| `local_authentication_disabled`<br>`authentication_failure_mode` | `true`<br>`<not defined>`                                 | `Role-based access control`              |
 
 -> **NOTE:** When the Search Service is in `Role-based access contol` (e.g. `local_authentication_disabled` is `true`) the `authentication_failure_mode` field *cannot* be defined.
 
