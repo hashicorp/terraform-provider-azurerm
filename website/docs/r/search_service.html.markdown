@@ -121,7 +121,7 @@ An `identity` block exports the following:
 The values of the `local_authentication_disabled` and `authentication_failure_mode` fields will determin which `API Access Control` mode the Search Service will operate under. To correctly configure your Search Service to your desired `API Access Control` mode please configure your Search Service based on the field values in the below table.
 
 | Field Name                                                       | Value                                                     | API Access Control Mode                  |
-|------------------------------------------------------------------|:---------------------------------------------------------:|------------------------------------------|
+|------------------------------------------------------------------|:---------------------------------------------------------:|:----------------------------------------:|
 | `local_authentication_disabled`<br>`authentication_failure_mode` | `false`<br>`<not defined>`                                | `API key` (`Default`)                    |
 | `local_authentication_disabled`<br>`authentication_failure_mode` | `false`<br>`authentication_failure_mode` as defined above | `Role-based access control and API Key`  |
 | `local_authentication_disabled`<br>`authentication_failure_mode` | `true`<br>`<not defined>`                                 | `Role-based access control`              |
