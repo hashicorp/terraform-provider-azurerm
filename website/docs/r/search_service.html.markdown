@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `authentication_failure_mode` - (Optional) Describes what response the Search Service should return for requests that fail authentication. Possible values include `http401WithBearerChallenge` or `http403`.
 
--> **NOTE:** `authentication_failure_mode` cannot be defined if the `local_authentication_disabled` is set to `true`.
+~> **NOTE:** The `authentication_failure_mode` field is only valid if the Search Service is in the `Role-based access control and API Key` mode. For more information on how to correctly configure the Search Services `API Access Control` settings, please see the `Setting API Access Control` section below.
 
 * `customer_managed_key_enforcement_enabled` - (Optional) Should the Search Service enforce having non customer encrypted resources? Possible values include `true` or `false`. If `true` the Search Service will be marked as `non-compliant` if there are one or more non customer encrypted resources, if `false` no enforcement will be made and the Search Service can contain one or more non customer encrypted resources. Defaults to `false`.
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `local_authentication_disabled` - (Optional) Should tha Search Service *not* be allowed to use API keys for authentication? Possible values include `true` or `false`. Defaults to `false`.
 
--> **NOTE:** If the `local_authentication_disabled` field is `false` and the `authentication_failure_mode` has not been defined the Search Service will be in `API Keys Only` mode. If the `local_authentication_disabled` field is `false` and the `authentication_failure_mode` has also been set to `http401WithBearerChallenge` or `http403` the Search Service will be in `Role-based access contol and API Keys` mode (e.g. `Both`). If the `local_authentication_disabled` field is `true` the Search Service will be in `Role-based access contol Only` mode. When the `local_authentication_disabled` field is `true` the `authentication_failure_mode` cannot be defined.
+-> **NOTE:** For more information on how to correctly configure the Search Services `API Access Control` settings, please see the `Setting API Access Control` section below.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this resource. Defaults to `true`.
 
@@ -113,6 +113,22 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+---
+
+## Setting API Access Control:
+
+The values of the `local_authentication_disabled` and `authentication_failure_mode` fields will determin which `API Access Control` mode the Search Service will operate under. To correctly configure your Search Service to your desired `API Access Control` mode please configure your Search Service based on the field values in the below table.
+
+| Field Name                                                       | Value                                                     | API Access Control Mode                  |
+|------------------------------------------------------------------|:---------------------------------------------------------:|------------------------------------------|
+| `local_authentication_disabled`<br>`authentication_failure_mode` | `false`<br>`<not defined>`                                  | `API key` (`Default`)                    |
+| `local_authentication_disabled`<br>`authentication_failure_mode` | `false`<br>`authentication_failure_mode` as defined above | `Role-based access control and API Key`  |
+| `local_authentication_disabled`<br>`authentication_failure_mode` | `true`<br>`<not defined>`                                   | `Role-based access control`              |
+
+-> **NOTE:** When the Search Service is in `Role-based access contol` (e.g. `local_authentication_disabled` is `true`) the `authentication_failure_mode` field *cannot* be defined.
+
+---
 
 ## Timeouts
 
