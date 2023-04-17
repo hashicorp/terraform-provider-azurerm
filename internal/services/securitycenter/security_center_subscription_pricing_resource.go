@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
@@ -94,6 +95,17 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		},
 	}
 
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
+	}
+
+	if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree {
+		return fmt.Errorf("the princing tier of this subscription is not Free \r %+v", tf.ImportAsExistsError("azurerm_security_center_subscription_pricing", id.ID()))
+	}
+
 	if v, ok := d.GetOk("subplan"); ok {
 		pricing.Properties.SubPlan = utils.String(v.(string))
 	}
@@ -143,14 +155,14 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := pricings_v2022_03_01.ParsePricingID(d.Id())
+	id, err := pricings_v2023_01_01.ParsePricingID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing %s: %+v", d.Id(), err)
 	}
 
-	pricing := pricings_v2022_03_01.Pricing{
-		Properties: &pricings_v2022_03_01.PricingProperties{
-			PricingTier: pricings_v2022_03_01.PricingTier(pricings_v2022_03_01.PricingTierFree),
+	pricing := pricings_v2023_01_01.Pricing{
+		Properties: &pricings_v2023_01_01.PricingProperties{
+			PricingTier: pricings_v2023_01_01.PricingTier(pricings_v2023_01_01.PricingTierFree),
 		},
 	}
 
