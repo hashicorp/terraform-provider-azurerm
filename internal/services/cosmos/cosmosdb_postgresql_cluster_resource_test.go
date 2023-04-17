@@ -174,9 +174,9 @@ func (r CosmosDbPostgreSQLClusterResource) complete(data acceptance.TestData) st
 %s
 
 resource "azurerm_cosmosdb_postgresql_cluster" "test" {
-  name                 = "acctestcluster%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
+  name                = "acctestcluster%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   administrator_login_password    = "H@Sh1CoR3!"
   coordinator_storage_quota_in_mb = 131072
@@ -214,9 +214,9 @@ func (r CosmosDbPostgreSQLClusterResource) update(data acceptance.TestData) stri
 %s
 
 resource "azurerm_cosmosdb_postgresql_cluster" "test" {
-  name                 = "acctestcluster%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
+  name                = "acctestcluster%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   administrator_login_password    = "H@Sh1CoR4!"
   coordinator_storage_quota_in_mb = 262144
