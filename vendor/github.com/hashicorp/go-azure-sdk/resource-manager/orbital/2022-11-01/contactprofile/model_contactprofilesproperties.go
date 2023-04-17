@@ -11,4 +11,5 @@ type ContactProfilesProperties struct {
 	MinimumViableContactDuration *string                                       `json:"minimumViableContactDuration,omitempty"`
 	NetworkConfiguration         ContactProfilesPropertiesNetworkConfiguration `json:"networkConfiguration"`
 	ProvisioningState            *ProvisioningState                            `json:"provisioningState,omitempty"`
+	ThirdPartyConfigurations     *[]ContactProfileThirdPartyConfiguration      `json:"thirdPartyConfigurations,omitempty"`
 }

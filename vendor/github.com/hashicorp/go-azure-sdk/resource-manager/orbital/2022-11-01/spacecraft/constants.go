@@ -1,46 +1,15 @@
-package contactprofile
+package spacecraft
 
 import "strings"
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type AutoTrackingConfiguration string
-
-const (
-	AutoTrackingConfigurationDisabled AutoTrackingConfiguration = "disabled"
-	AutoTrackingConfigurationSBand    AutoTrackingConfiguration = "sBand"
-	AutoTrackingConfigurationXBand    AutoTrackingConfiguration = "xBand"
-)
-
-func PossibleValuesForAutoTrackingConfiguration() []string {
-	return []string{
-		string(AutoTrackingConfigurationDisabled),
-		string(AutoTrackingConfigurationSBand),
-		string(AutoTrackingConfigurationXBand),
-	}
-}
-
-func parseAutoTrackingConfiguration(input string) (*AutoTrackingConfiguration, error) {
-	vals := map[string]AutoTrackingConfiguration{
-		"disabled": AutoTrackingConfigurationDisabled,
-		"sband":    AutoTrackingConfigurationSBand,
-		"xband":    AutoTrackingConfigurationXBand,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := AutoTrackingConfiguration(input)
-	return &out, nil
-}
-
 type Direction string
 
 const (
-	DirectionDownlink Direction = "downlink"
-	DirectionUplink   Direction = "uplink"
+	DirectionDownlink Direction = "Downlink"
+	DirectionUplink   Direction = "Uplink"
 )
 
 func PossibleValuesForDirection() []string {
@@ -98,43 +67,15 @@ func parsePolarization(input string) (*Polarization, error) {
 	return &out, nil
 }
 
-type Protocol string
-
-const (
-	ProtocolTCP Protocol = "TCP"
-	ProtocolUDP Protocol = "UDP"
-)
-
-func PossibleValuesForProtocol() []string {
-	return []string{
-		string(ProtocolTCP),
-		string(ProtocolUDP),
-	}
-}
-
-func parseProtocol(input string) (*Protocol, error) {
-	vals := map[string]Protocol{
-		"tcp": ProtocolTCP,
-		"udp": ProtocolUDP,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := Protocol(input)
-	return &out, nil
-}
-
 type ProvisioningState string
 
 const (
-	ProvisioningStateCanceled  ProvisioningState = "Canceled"
-	ProvisioningStateCreating  ProvisioningState = "Creating"
-	ProvisioningStateDeleting  ProvisioningState = "Deleting"
-	ProvisioningStateFailed    ProvisioningState = "Failed"
-	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
-	ProvisioningStateUpdating  ProvisioningState = "Updating"
+	ProvisioningStateCanceled  ProvisioningState = "canceled"
+	ProvisioningStateCreating  ProvisioningState = "creating"
+	ProvisioningStateDeleting  ProvisioningState = "deleting"
+	ProvisioningStateFailed    ProvisioningState = "failed"
+	ProvisioningStateSucceeded ProvisioningState = "succeeded"
+	ProvisioningStateUpdating  ProvisioningState = "updating"
 )
 
 func PossibleValuesForProvisioningState() []string {

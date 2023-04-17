@@ -4,5 +4,5 @@ package contact
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ResourceReference struct {
-	Id *string `json:"id,omitempty"`
+	Id string `json:"id"`
 }
