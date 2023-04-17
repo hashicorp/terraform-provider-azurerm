@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `subscription_id` - (Required) The ID of the Subscription this Scheduled Action is scoped to. Changing this forces a new Azure Cost Management Scheduled Action for a Subscription to be created.
 
-* `view_name` - (Required) The name which is used for the Cost Management View which is used for the Scheduled Action.
+* `view_name` - (Required) The name of the Cost Management View that is used by the Scheduled Action.
 
 ---
 
