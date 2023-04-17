@@ -138,8 +138,25 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceSecurityCenterSubscriptionPricingDelete(_ *pluginsdk.ResourceData, _ interface{}) error {
-	// TODO: reset this back to Free
+func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).SecurityCenter.PricingClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := pricings_v2022_03_01.ParsePricingID(d.Id())
+	if err != nil {
+		return fmt.Errorf("parsing %s: %+v", d.Id(), err)
+	}
+
+	pricing := pricings_v2022_03_01.Pricing{
+		Properties: &pricings_v2022_03_01.PricingProperties{
+			PricingTier: pricings_v2022_03_01.PricingTier(pricings_v2022_03_01.PricingTierFree),
+		},
+	}
+
+	if _, err := client.Update(ctx, *id, pricing); err != nil {
+		return fmt.Errorf("setting %s: %+v", id, err)
+	}
 
 	log.Printf("[DEBUG] Security Center Subscription deletion invocation")
 	return nil
