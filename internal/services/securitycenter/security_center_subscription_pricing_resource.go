@@ -86,8 +86,6 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// TODO: add a requires import check ensuring this is != Free (meaning we should likely remove Free as a SKU option?)
-
 	id := pricings_v2023_01_01.NewPricingID(subscriptionId, d.Get("resource_type").(string))
 	pricing := pricings_v2023_01_01.Pricing{
 		Properties: &pricings_v2023_01_01.PricingProperties{
