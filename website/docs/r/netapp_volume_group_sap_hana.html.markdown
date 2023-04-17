@@ -324,13 +324,13 @@ A `export_policy_rule` block supports the following:
 
 * `nfsv41_enabled` - (Required) Enables NFSv4.1. Please note that this cannot be enabled if volume has NFSv3 as its protocol.
 
-* `root_access_enabled` - (Required) Is root access permitted to this volume?
+* `root_access_enabled` - (Optional) Is root access permitted to this volume? Defaults to `true`.
 
 * `rule_index` - (Required) The index number of the rule, must start at 1 and maximum 5.
 
-* `unix_read_only` - (Required) Is the file system on unix read only?
+* `unix_read_only` - (Optional) Is the file system on unix read only? Defaults to `false.
 
-* `unix_read_write` - (Required) Is the file system on unix read and write?
+* `unix_read_write` - (Optional) Is the file system on unix read and write? Defaults to `true`.
 
 ---
 
