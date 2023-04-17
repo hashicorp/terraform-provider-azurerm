@@ -67,7 +67,7 @@ func resourceHealthcareApisMedTechServiceFhirDestination() *pluginsdk.Resource {
 			"destination_fhir_service_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: iotconnectors.ValidateFhirDestinationID,
+				ValidateFunc: fhirservices.ValidateFhirServiceID,
 			},
 
 			"destination_identity_resolution_type": {
@@ -113,15 +113,10 @@ func resourceHealthcareApisMedTechServiceFhirDestinationCreate(d *pluginsdk.Reso
 		}
 	}
 
-	fhirServiceId, err := fhirservices.ParseWorkspaceID(d.Get("destination_fhir_service_id").(string))
-	if err != nil {
-		return fmt.Errorf("parsing fhir destination id err: %+v", err)
-	}
-
 	iotFhirServiceParameters := iotconnectors.IotFhirDestination{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: iotconnectors.IotFhirDestinationProperties{
-			FhirServiceResourceId:          fhirServiceId.ID(),
+			FhirServiceResourceId:          d.Get("destination_fhir_service_id").(string),
 			ResourceIdentityResolutionType: iotconnectors.IotIdentityResolutionType(d.Get("destination_identity_resolution_type").(string)),
 		},
 	}
@@ -210,15 +205,10 @@ func resourceHealthcareApisMedTechServiceFhirDestinationUpdate(d *pluginsdk.Reso
 	}
 	id := iotconnectors.NewFhirDestinationID(medTechService.SubscriptionId, medTechService.ResourceGroupName, medTechService.WorkspaceName, medTechService.IotConnectorName, d.Get("name").(string))
 
-	fhirServiceId, err := fhirservices.ParseFhirServiceID(d.Get("destination_fhir_service_id").(string))
-	if err != nil {
-		return fmt.Errorf("parsing fhir destination id err: %+v", err)
-	}
-
 	medTechFhirServiceParameters := iotconnectors.IotFhirDestination{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: iotconnectors.IotFhirDestinationProperties{
-			FhirServiceResourceId:          fhirServiceId.ID(),
+			FhirServiceResourceId:          d.Get("destination_fhir_service_id").(string),
 			ResourceIdentityResolutionType: iotconnectors.IotIdentityResolutionType(d.Get("destination_identity_resolution_type").(string)),
 		},
 	}
