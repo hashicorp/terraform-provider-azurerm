@@ -74,7 +74,7 @@ The `ip_configuration` block supports:
     the associated subnet is named `GatewaySubnet`. Therefore, each virtual
     network can contain at most a single Virtual Network Gateway.
 
-* `private_ip_address_id` - The ID of the Private IP Address associated with the Virtual Network Gateway.
+* `private_ip_address` - The Private IP Address associated with the Virtual Network Gateway.
 
 * `public_ip_address_id` - The ID of the Public IP Address associated
     with the Virtual Network Gateway.
