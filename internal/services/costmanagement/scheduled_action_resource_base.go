@@ -284,82 +284,80 @@ func (br costManagementScheduledActionBaseResource) updateFunc() sdk.ResourceFun
 			if err != nil {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
-			model := existing.Model
-
-			if model != nil {
+			if model := existing.Model; model != nil {
 				if model.ETag == nil {
-					return fmt.Errorf("add %s: etag was nil", *id)
+					return fmt.Errorf("updating %s: eTag was nil", *id)
 				}
-			}
 
-			if model.Properties == nil {
-				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
-			}
+				if model.Properties == nil {
+					return fmt.Errorf("updating %s: properties was nil", *id)
+				}
 
-			if metadata.ResourceData.HasChange("display_name") {
-				model.Properties.DisplayName = metadata.ResourceData.Get("display_name").(string)
-			}
+				if metadata.ResourceData.HasChange("display_name") {
+					model.Properties.DisplayName = metadata.ResourceData.Get("display_name").(string)
+				}
 
-			if metadata.ResourceData.HasChange("view_name") {
-				model.Properties.ViewId = views.NewScopedViewID(id.Scope, metadata.ResourceData.Get("view_name").(string)).ID()
-			}
+				if metadata.ResourceData.HasChange("view_name") {
+					model.Properties.ViewId = views.NewScopedViewID(id.Scope, metadata.ResourceData.Get("view_name").(string)).ID()
+				}
 
-			if metadata.ResourceData.HasChange("email_subject") {
-				model.Properties.Notification.Subject = metadata.ResourceData.Get("email_subject").(string)
-			}
+				if metadata.ResourceData.HasChange("email_subject") {
+					model.Properties.Notification.Subject = metadata.ResourceData.Get("email_subject").(string)
+				}
 
-			if metadata.ResourceData.HasChange("email_addresses") {
-				model.Properties.Notification.To = *utils.ExpandStringSlice(metadata.ResourceData.Get("email_addresses").([]interface{}))
-			}
+				if metadata.ResourceData.HasChange("email_addresses") {
+					model.Properties.Notification.To = *utils.ExpandStringSlice(metadata.ResourceData.Get("email_addresses").([]interface{}))
+				}
 
-			if metadata.ResourceData.HasChange("message") {
-				model.Properties.Notification.Message = utils.String(metadata.ResourceData.Get("message").(string))
-			}
+				if metadata.ResourceData.HasChange("message") {
+					model.Properties.Notification.Message = utils.String(metadata.ResourceData.Get("message").(string))
+				}
 
-			if metadata.ResourceData.HasChange("frequency") {
-				model.Properties.Schedule.Frequency = scheduledactions.ScheduleFrequency(metadata.ResourceData.Get("frequency").(string))
-			}
+				if metadata.ResourceData.HasChange("frequency") {
+					model.Properties.Schedule.Frequency = scheduledactions.ScheduleFrequency(metadata.ResourceData.Get("frequency").(string))
+				}
 
-			if metadata.ResourceData.HasChange("days_of_week") {
-				var daysOfWeek []scheduledactions.DaysOfWeek
-				if len(metadata.ResourceData.Get("days_of_week").([]interface{})) > 0 {
-					daysOfWeek = make([]scheduledactions.DaysOfWeek, 0)
-					for _, value := range metadata.ResourceData.Get("days_of_week").([]interface{}) {
-						daysOfWeek = append(daysOfWeek, scheduledactions.DaysOfWeek(value.(string)))
+				if metadata.ResourceData.HasChange("days_of_week") {
+					var daysOfWeek []scheduledactions.DaysOfWeek
+					if len(metadata.ResourceData.Get("days_of_week").([]interface{})) > 0 {
+						daysOfWeek = make([]scheduledactions.DaysOfWeek, 0)
+						for _, value := range metadata.ResourceData.Get("days_of_week").([]interface{}) {
+							daysOfWeek = append(daysOfWeek, scheduledactions.DaysOfWeek(value.(string)))
+						}
 					}
+					model.Properties.Schedule.DaysOfWeek = &daysOfWeek
 				}
-				model.Properties.Schedule.DaysOfWeek = &daysOfWeek
-			}
 
-			if metadata.ResourceData.HasChange("weeks_of_month") {
-				var weeksOfMonth []scheduledactions.WeeksOfMonth
-				if len(metadata.ResourceData.Get("weeks_of_month").([]interface{})) > 0 {
-					weeksOfMonth = make([]scheduledactions.WeeksOfMonth, 0)
-					for _, value := range metadata.ResourceData.Get("weeks_of_month").([]interface{}) {
-						weeksOfMonth = append(weeksOfMonth, scheduledactions.WeeksOfMonth(value.(string)))
+				if metadata.ResourceData.HasChange("weeks_of_month") {
+					var weeksOfMonth []scheduledactions.WeeksOfMonth
+					if len(metadata.ResourceData.Get("weeks_of_month").([]interface{})) > 0 {
+						weeksOfMonth = make([]scheduledactions.WeeksOfMonth, 0)
+						for _, value := range metadata.ResourceData.Get("weeks_of_month").([]interface{}) {
+							weeksOfMonth = append(weeksOfMonth, scheduledactions.WeeksOfMonth(value.(string)))
+						}
 					}
+					model.Properties.Schedule.WeeksOfMonth = &weeksOfMonth
 				}
-				model.Properties.Schedule.WeeksOfMonth = &weeksOfMonth
-			}
 
-			if metadata.ResourceData.HasChange("start_date") {
-				model.Properties.Schedule.StartDate = metadata.ResourceData.Get("start_date").(string)
-			}
+				if metadata.ResourceData.HasChange("start_date") {
+					model.Properties.Schedule.StartDate = metadata.ResourceData.Get("start_date").(string)
+				}
 
-			if metadata.ResourceData.HasChange("end_date") {
-				model.Properties.Schedule.EndDate = metadata.ResourceData.Get("end_date").(string)
-			}
+				if metadata.ResourceData.HasChange("end_date") {
+					model.Properties.Schedule.EndDate = metadata.ResourceData.Get("end_date").(string)
+				}
 
-			if metadata.ResourceData.HasChange("hour_of_day") {
-				model.Properties.Schedule.HourOfDay = utils.Int64(int64(metadata.ResourceData.Get("hour_of_day").(int)))
-			}
+				if metadata.ResourceData.HasChange("hour_of_day") {
+					model.Properties.Schedule.HourOfDay = utils.Int64(int64(metadata.ResourceData.Get("hour_of_day").(int)))
+				}
 
-			if metadata.ResourceData.HasChange("day_of_month") {
-				model.Properties.Schedule.DayOfMonth = utils.Int64(int64(metadata.ResourceData.Get("day_of_month").(int)))
-			}
+				if metadata.ResourceData.HasChange("day_of_month") {
+					model.Properties.Schedule.DayOfMonth = utils.Int64(int64(metadata.ResourceData.Get("day_of_month").(int)))
+				}
 
-			if _, err = client.CreateOrUpdateByScope(ctx, *id, *model, scheduledactions.CreateOrUpdateByScopeOperationOptions{}); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
+				if _, err = client.CreateOrUpdateByScope(ctx, *id, *model, scheduledactions.CreateOrUpdateByScopeOperationOptions{}); err != nil {
+					return fmt.Errorf("updating %s: %+v", *id, err)
+				}
 			}
 
 			return nil
