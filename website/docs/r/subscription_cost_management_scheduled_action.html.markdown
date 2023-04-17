@@ -64,7 +64,6 @@ The following arguments are supported:
 * `hour_of_day` - (Optional) UTC time at which cost analysis data will be emailed. Must be between `0` and `23`.
 
 * `message` - (Optional) Message to be added in the email. Length is limited to 250 characters.
-.
 
 * `weeks_of_month` - (Optional) Specifies a list of weeks in which cost analysis data will be emailed. This property is applicable when `frequency` is `Monthly` and used in combination with `days_of_week`.
 
