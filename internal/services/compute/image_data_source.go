@@ -176,7 +176,7 @@ func dataSourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		model = results[0]
 		if model.Name == nil {
-			return fmt.Errorf("image name is null for the firts Image in %s: %+v", resourceGroupId, model)
+			return fmt.Errorf("image name is null for the first Image in %s: %+v", resourceGroupId, model)
 		}
 
 		id = images.NewImageID(resourceGroupId.SubscriptionId, resourceGroupId.ResourceGroupName, *model.Name)

@@ -155,10 +155,8 @@ func dataSourceImagesRead(d *pluginsdk.ResourceData, meta interface{}) error {
 func resourceIdForImagesDataSource(resourceGroupId commonids.ResourceGroupId, filterTags map[string]string) string {
 	tagsId := ""
 	tagKeys := make([]string, 0)
-	if filterTags != nil {
-		for key := range filterTags {
-			tagKeys = append(tagKeys, key)
-		}
+	for key := range filterTags {
+		tagKeys = append(tagKeys, key)
 	}
 	sort.Strings(tagKeys)
 	for _, key := range tagKeys {
