@@ -4,6 +4,8 @@ ENHANCEMENTS:
 
 * `advisor` - refactoring to use `hashicorp/go-azure-sdk` [GH-21307]
 * `hpccache` - refactoring to use `hashicorp/go-azure-sdk` [GH-21303]
+* `logz` - refactoring to use `hashicorp/go-azure-sdk` [GH-21321]
+* dependencies: updating `orbital/2022-03-01` to `2022-11-01` [GH-21405] 
 
 ## 3.52.0 (April 13, 2023)
 
