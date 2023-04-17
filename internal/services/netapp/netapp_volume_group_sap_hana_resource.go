@@ -383,7 +383,7 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 					volumeCrr.Properties.DataProtection.Replication != nil &&
 					strings.EqualFold(string(pointer.From(volumeCrr.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
 
-					capacityPoolId, err := capacitypools.ParseCapacityPoolID(metadata.ResourceData.Get(fmt.Sprintf("%v.capacity_pool_id", volumeCrr)).(string))
+					capacityPoolId, err := capacitypools.ParseCapacityPoolID(pointer.From(volumeCrr.Properties.CapacityPoolResourceId))
 					if err != nil {
 						return err
 					}
