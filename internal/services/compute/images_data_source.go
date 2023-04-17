@@ -145,9 +145,6 @@ func dataSourceImagesRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.SetId(resourceId)
 
 	d.Set("resource_group_name", resourceGroupId.ResourceGroupName)
-	if err := d.Set("images", virtualMachineImages); err != nil {
-		return fmt.Errorf("setting `images`: %+v", err)
-	}
 
 	return nil
 }
