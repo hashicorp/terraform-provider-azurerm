@@ -96,6 +96,11 @@ func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						"private_ip_address_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"public_ip_address_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -324,6 +329,10 @@ func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]network
 				if id := subnet.ID; id != nil {
 					v["subnet_id"] = *id
 				}
+			}
+
+			if privateIP := props.PrivateIPAddress; privateIP != nil {
+				v["private_ip_address_id"] = *privateIP
 			}
 
 			if pip := props.PublicIPAddress; pip != nil {
