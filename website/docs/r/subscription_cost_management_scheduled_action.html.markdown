@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `email_address_sender` - (Required) Email address of the point of contact that should get the unsubscribe requests of Scheduled Action notification emails.
 
-* `email_addresses` - (Required) Specifies a list of email addresses to receive the Scheduled Action.
+* `email_addresses` - (Required) Specifies a list of email addresses that will receive the Scheduled Action.
 
 * `email_subject` - (Required) Subject of the email. Length is limited to 70 characters.
 
