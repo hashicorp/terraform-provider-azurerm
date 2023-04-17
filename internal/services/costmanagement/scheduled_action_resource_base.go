@@ -188,9 +188,7 @@ func (br costManagementScheduledActionBaseResource) createFunc(resourceName, sco
 				},
 			}
 
-			opts := scheduledactions.CreateOrUpdateByScopeOperationOptions{}
-			_, err = client.CreateOrUpdateByScope(ctx, id, props, opts)
-			if err != nil {
+			if _, err = client.CreateOrUpdateByScope(ctx, id, props, scheduledactions.CreateOrUpdateByScopeOperationOptions{}); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
