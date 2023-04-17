@@ -38,9 +38,10 @@ func (br costManagementScheduledActionBaseResource) arguments(fields map[string]
 		},
 
 		"email_addresses": {
-			Type:     pluginsdk.TypeSet,
+			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
+			MaxItems: 20,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -66,7 +67,7 @@ func (br costManagementScheduledActionBaseResource) arguments(fields map[string]
 		},
 
 		"days_of_week": {
-			Type:     pluginsdk.TypeSet,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
@@ -76,7 +77,7 @@ func (br costManagementScheduledActionBaseResource) arguments(fields map[string]
 		},
 
 		"weeks_of_month": {
-			Type:     pluginsdk.TypeSet,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
@@ -139,23 +140,20 @@ func (br costManagementScheduledActionBaseResource) createFunc(resourceName, sco
 				return tf.ImportAsExistsError(resourceName, id.ID())
 			}
 
-			emailAddressesRaw := metadata.ResourceData.Get("email_addresses").(*pluginsdk.Set).List()
-			emailAddresses := utils.ExpandStringSlice(emailAddressesRaw)
-
 			viewId := views.NewScopedViewID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("view_name").(string))
 
 			var daysOfWeek []scheduledactions.DaysOfWeek
-			if metadata.ResourceData.Get("days_of_week").(*pluginsdk.Set).Len() > 0 {
+			if len(metadata.ResourceData.Get("days_of_week").([]interface{})) > 0 {
 				daysOfWeek = make([]scheduledactions.DaysOfWeek, 0)
-				for _, value := range metadata.ResourceData.Get("days_of_week").(*pluginsdk.Set).List() {
+				for _, value := range metadata.ResourceData.Get("days_of_week").([]interface{}) {
 					daysOfWeek = append(daysOfWeek, scheduledactions.DaysOfWeek(value.(string)))
 				}
 			}
 
 			var weeksOfMonth []scheduledactions.WeeksOfMonth
-			if metadata.ResourceData.Get("weeks_of_month").(*pluginsdk.Set).Len() > 0 {
+			if len(metadata.ResourceData.Get("weeks_of_month").([]interface{})) > 0 {
 				weeksOfMonth = make([]scheduledactions.WeeksOfMonth, 0)
-				for _, value := range metadata.ResourceData.Get("weeks_of_month").(*pluginsdk.Set).List() {
+				for _, value := range metadata.ResourceData.Get("weeks_of_month").([]interface{}) {
 					weeksOfMonth = append(weeksOfMonth, scheduledactions.WeeksOfMonth(value.(string)))
 				}
 			}
@@ -182,7 +180,7 @@ func (br costManagementScheduledActionBaseResource) createFunc(resourceName, sco
 					Notification: scheduledactions.NotificationProperties{
 						Subject: metadata.ResourceData.Get("email_subject").(string),
 						Message: utils.String(metadata.ResourceData.Get("message").(string)),
-						To:      *emailAddresses,
+						To:      *utils.ExpandStringSlice(metadata.ResourceData.Get("email_addresses").([]interface{})),
 					},
 					Schedule: schedule,
 				},
@@ -311,7 +309,7 @@ func (br costManagementScheduledActionBaseResource) updateFunc() sdk.ResourceFun
 			}
 
 			if metadata.ResourceData.HasChange("email_addresses") {
-				model.Properties.Notification.To = *utils.ExpandStringSlice(metadata.ResourceData.Get("email_addresses").(*pluginsdk.Set).List())
+				model.Properties.Notification.To = *utils.ExpandStringSlice(metadata.ResourceData.Get("email_addresses").([]interface{}))
 			}
 
 			if metadata.ResourceData.HasChange("message") {
@@ -324,9 +322,9 @@ func (br costManagementScheduledActionBaseResource) updateFunc() sdk.ResourceFun
 
 			if metadata.ResourceData.HasChange("days_of_week") {
 				var daysOfWeek []scheduledactions.DaysOfWeek
-				if metadata.ResourceData.Get("days_of_week").(*pluginsdk.Set).Len() > 0 {
+				if len(metadata.ResourceData.Get("days_of_week").([]interface{})) > 0 {
 					daysOfWeek = make([]scheduledactions.DaysOfWeek, 0)
-					for _, value := range metadata.ResourceData.Get("days_of_week").(*pluginsdk.Set).List() {
+					for _, value := range metadata.ResourceData.Get("days_of_week").([]interface{}) {
 						daysOfWeek = append(daysOfWeek, scheduledactions.DaysOfWeek(value.(string)))
 					}
 				}
@@ -335,9 +333,9 @@ func (br costManagementScheduledActionBaseResource) updateFunc() sdk.ResourceFun
 
 			if metadata.ResourceData.HasChange("weeks_of_month") {
 				var weeksOfMonth []scheduledactions.WeeksOfMonth
-				if metadata.ResourceData.Get("weeks_of_month").(*pluginsdk.Set).Len() > 0 {
+				if len(metadata.ResourceData.Get("weeks_of_month").([]interface{})) > 0 {
 					weeksOfMonth = make([]scheduledactions.WeeksOfMonth, 0)
-					for _, value := range metadata.ResourceData.Get("weeks_of_month").(*pluginsdk.Set).List() {
+					for _, value := range metadata.ResourceData.Get("weeks_of_month").([]interface{}) {
 						weeksOfMonth = append(weeksOfMonth, scheduledactions.WeeksOfMonth(value.(string)))
 					}
 				}
@@ -360,7 +358,7 @@ func (br costManagementScheduledActionBaseResource) updateFunc() sdk.ResourceFun
 				model.Properties.Schedule.DayOfMonth = utils.Int64(int64(metadata.ResourceData.Get("day_of_month").(int)))
 			}
 
-			if _, err = client.CreateOrUpdateByScope(ctx, *id, *model, cheduledactions.CreateOrUpdateByScopeOperationOptions{}); err != nil {
+			if _, err = client.CreateOrUpdateByScope(ctx, *id, *model, scheduledactions.CreateOrUpdateByScopeOperationOptions{}); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
