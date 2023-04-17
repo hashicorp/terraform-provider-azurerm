@@ -28,8 +28,8 @@ resource "azurerm_app_configuration" "appconf" {
 resource "azurerm_app_configuration_feature" "test" {
   configuration_store_id = azurerm_app_configuration.appconf.id
   description            = "test description"
-  name                   = "acctest-ackey-%d"
-  label                  = "acctest-ackeylabel-%d"
+  name                   = "test-ackey"
+  label                  = "test-ackeylabel"
   enabled                = true
 }
 ```
@@ -43,6 +43,8 @@ The following arguments are supported:
 * `description` - (Optional) The description of the App Configuration Feature. 
 
 * `enabled` - (Optional) The status of the App Configuration Feature. By default, this is set to false.
+
+* `key` - (Optional) The key of the App Configuration Feature. The value for `name` will be used if this is unspecified. Changing this forces a new resource to be created.
 
 * `label` - (Optional) The label of the App Configuration Feature. Changing this forces a new resource to be created.
 
@@ -88,7 +90,7 @@ A `timewindow_filter` block represents a feature filter of type `Microsoft.TimeW
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The App Configuration Feature ID.
 
@@ -106,11 +108,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 App Configuration Features can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/label1
+terraform import azurerm_app_configuration_feature.test https://appconfname1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label=labelName
 ```
 
-If you wish to import a key with an empty label then sustitute the label's name with `%00`, like this:
+If you wish to import with an empty label then simply leave the label's name blank:
 
 ```shell
-terraform import azurerm_app_configuration_feature.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/appConfFeature1/Label/%00
+terraform import azurerm_app_configuration_feature.test https://appconfname1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label=
 ```

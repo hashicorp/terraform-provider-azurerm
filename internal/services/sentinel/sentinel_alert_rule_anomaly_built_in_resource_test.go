@@ -58,11 +58,10 @@ func (SentinelAlertRuleAnomalyBuiltInResource) basic(data acceptance.TestData) s
 	return fmt.Sprintf(`
 %s
 resource "azurerm_sentinel_alert_rule_anomaly_built_in" "test" {
-  display_name               = "UEBA Anomalous Sign In"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  display_name               = "Potential data staging"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   enabled                    = true
   mode                       = "Production"
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }

@@ -14,6 +14,10 @@ type DataPlaneClient struct {
 	client *appconfiguration.BaseClient
 }
 
+// NOTE: this workaround is needed since the `nextLink` returned from the API doesn't include
+// the HTTP Endpoint in all cases, so we need to ensure this is present
+// TODO: confirm if this is still needed with the new base layer
+
 func NewDataPlaneClient(client appconfiguration.BaseClient) DataPlaneClient {
 	return DataPlaneClient{
 		client: &client,

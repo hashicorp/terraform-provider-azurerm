@@ -27,7 +27,7 @@ func TestAccVirtualNetworkPeering_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
-				acceptance.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+				check.That(secondResourceName).Key("allow_virtual_network_access").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -48,7 +48,7 @@ func TestAccVirtualNetworkPeering_withTriggers(t *testing.T) {
 				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
 				check.That(data.ResourceName).Key("triggers.remote_address_space").Exists(),
 				check.That(data.ResourceName).Key("triggers.remote_address_space").HasValue("10.0.2.0/24"),
-				acceptance.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+				check.That(secondResourceName).Key("allow_virtual_network_access").HasValue("true"),
 			),
 		},
 		// triggers is an arbitrary list(string) which
@@ -98,9 +98,9 @@ func TestAccVirtualNetworkPeering_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
-				acceptance.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+				check.That(secondResourceName).Key("allow_virtual_network_access").HasValue("true"),
 				check.That(data.ResourceName).Key("allow_forwarded_traffic").HasValue("false"),
-				acceptance.TestCheckResourceAttr(secondResourceName, "allow_forwarded_traffic", "false"),
+				check.That(secondResourceName).Key("allow_forwarded_traffic").HasValue("false"),
 			),
 		},
 
@@ -110,15 +110,15 @@ func TestAccVirtualNetworkPeering_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
-				acceptance.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+				check.That(secondResourceName).Key("allow_virtual_network_access").HasValue("true"),
 				check.That(data.ResourceName).Key("allow_forwarded_traffic").HasValue("true"),
-				acceptance.TestCheckResourceAttr(secondResourceName, "allow_forwarded_traffic", "true"),
+				check.That(secondResourceName).Key("allow_forwarded_traffic").HasValue("true"),
 			),
 		},
 	})
 }
 
-func (t VirtualNetworkPeeringResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r VirtualNetworkPeeringResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkPeeringID(state.ID)
 	if err != nil {
 		return nil, err
@@ -149,33 +149,17 @@ func (r VirtualNetworkPeeringResource) Destroy(ctx context.Context, client *clie
 	return utils.Bool(true), nil
 }
 
-func (VirtualNetworkPeeringResource) basic(data acceptance.TestData) string {
+func (r VirtualNetworkPeeringResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test1" {
-  name                = "acctestvirtnet-1-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.1.0/24"]
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_virtual_network" "test2" {
-  name                = "acctestvirtnet-2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.2.0/24"]
-  location            = azurerm_resource_group.test.location
-}
+%[1]s
 
 resource "azurerm_virtual_network_peering" "test1" {
-  name                         = "acctestpeer-1-%d"
+  name                         = "acctestpeer-1-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   virtual_network_name         = azurerm_virtual_network.test1.name
   remote_virtual_network_id    = azurerm_virtual_network.test2.id
@@ -183,42 +167,26 @@ resource "azurerm_virtual_network_peering" "test1" {
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
-  name                         = "acctestpeer-2-%d"
+  name                         = "acctestpeer-2-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   virtual_network_name         = azurerm_virtual_network.test2.name
   remote_virtual_network_id    = azurerm_virtual_network.test1.id
   allow_virtual_network_access = true
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
-func (VirtualNetworkPeeringResource) withTriggers(data acceptance.TestData) string {
+func (r VirtualNetworkPeeringResource) withTriggers(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test1" {
-  name                = "acctestvirtnet-1-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.1.0/24"]
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_virtual_network" "test2" {
-  name                = "acctestvirtnet-2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.2.0/24"]
-  location            = azurerm_resource_group.test.location
-}
+%[1]s
 
 resource "azurerm_virtual_network_peering" "test1" {
-  name                         = "acctestpeer-1-%d"
+  name                         = "acctestpeer-1-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   virtual_network_name         = azurerm_virtual_network.test1.name
   remote_virtual_network_id    = azurerm_virtual_network.test2.id
@@ -229,7 +197,7 @@ resource "azurerm_virtual_network_peering" "test1" {
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
-  name                         = "acctestpeer-2-%d"
+  name                         = "acctestpeer-2-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   virtual_network_name         = azurerm_virtual_network.test2.name
   remote_virtual_network_id    = azurerm_virtual_network.test1.id
@@ -238,7 +206,7 @@ resource "azurerm_virtual_network_peering" "test2" {
     remote_address_space = join(",", azurerm_virtual_network.test1.address_space)
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func (r VirtualNetworkPeeringResource) requiresImport(data acceptance.TestData) string {
@@ -255,33 +223,17 @@ resource "azurerm_virtual_network_peering" "import" {
 `, r.basic(data))
 }
 
-func (VirtualNetworkPeeringResource) basicUpdate(data acceptance.TestData) string {
+func (r VirtualNetworkPeeringResource) basicUpdate(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test1" {
-  name                = "acctestvirtnet-1-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.1.0/24"]
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_virtual_network" "test2" {
-  name                = "acctestvirtnet-2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.2.0/24"]
-  location            = azurerm_resource_group.test.location
-}
+%[1]s
 
 resource "azurerm_virtual_network_peering" "test1" {
-  name                         = "acctestpeer-1-%d"
+  name                         = "acctestpeer-1-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   virtual_network_name         = azurerm_virtual_network.test1.name
   remote_virtual_network_id    = azurerm_virtual_network.test2.id
@@ -290,12 +242,35 @@ resource "azurerm_virtual_network_peering" "test1" {
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
-  name                         = "acctestpeer-2-%d"
+  name                         = "acctestpeer-2-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   virtual_network_name         = azurerm_virtual_network.test2.name
   remote_virtual_network_id    = azurerm_virtual_network.test1.id
   allow_forwarded_traffic      = true
   allow_virtual_network_access = true
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger)
+}
+
+func (VirtualNetworkPeeringResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = %[2]q
+}
+
+resource "azurerm_virtual_network" "test1" {
+  name                = "acctestvirtnet-1-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.1.0/24"]
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_network" "test2" {
+  name                = "acctestvirtnet-2-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.2.0/24"]
+  location            = azurerm_resource_group.test.location
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

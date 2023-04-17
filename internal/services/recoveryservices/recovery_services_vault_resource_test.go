@@ -791,6 +791,7 @@ resource "azurerm_key_vault" "test" {
       "UnwrapKey",
       "WrapKey",
       "Verify",
+      "GetRotationPolicy"
     ]
     secret_permissions = [
       "Set",
@@ -888,6 +889,7 @@ resource "azurerm_key_vault" "test" {
       "UnwrapKey",
       "WrapKey",
       "Verify",
+      "GetRotationPolicy"
     ]
     secret_permissions = [
       "Set",
@@ -903,6 +905,7 @@ resource "azurerm_key_vault" "test" {
       "List",
       "WrapKey",
       "UnwrapKey",
+      "GetRotationPolicy"
     ]
   }
 }
@@ -1013,6 +1016,7 @@ resource "azurerm_key_vault" "test" {
       "UnwrapKey",
       "WrapKey",
       "Verify",
+      "GetRotationPolicy"
     ]
     secret_permissions = [
       "Set",
@@ -1246,6 +1250,7 @@ resource "azurerm_key_vault" "test" {
       "UnwrapKey",
       "WrapKey",
       "Verify",
+      "GetRotationPolicy"
     ]
     secret_permissions = [
       "Set",

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -95,6 +96,14 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 
 			if msgs := metadata.ResourceData.Get("non_compliance_message").([]interface{}); len(msgs) > 0 {
 				assignment.Properties.NonComplianceMessages = br.expandNonComplianceMessages(msgs)
+			}
+
+			if overrides := metadata.ResourceData.Get("overrides").([]interface{}); len(overrides) > 0 {
+				assignment.Properties.Overrides = br.expandOverrides(overrides)
+			}
+
+			if rs := metadata.ResourceData.Get("resource_selectors").([]interface{}); len(rs) > 0 {
+				assignment.Properties.ResourceSelectors = br.expandResourceSelectors(rs)
 			}
 
 			if _, err := client.Create(ctx, id, assignment); err != nil {
@@ -197,6 +206,12 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 					return fmt.Errorf("serializing JSON from `parameters`: %+v", err)
 				}
 				metadata.ResourceData.Set("parameters", flattenedParameters)
+
+				overrides := br.flattenOverrides(props.Overrides)
+				metadata.ResourceData.Set("overrides", overrides)
+
+				resourceSel := br.flattenResourceSelectors(props.ResourceSelectors)
+				metadata.ResourceData.Set("resource_selectors", resourceSel)
 			}
 
 			return nil
@@ -294,6 +309,14 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 				update.Properties.Parameters = &m
 			}
 
+			if metadata.ResourceData.HasChange("overrides") {
+				update.Properties.Overrides = br.expandOverrides(metadata.ResourceData.Get("overrides").([]interface{}))
+			}
+
+			if metadata.ResourceData.HasChange("resource_selectors") {
+				update.Properties.ResourceSelectors = br.expandResourceSelectors(metadata.ResourceData.Get("resource_selectors").([]interface{}))
+			}
+
 			// NOTE: there isn't an Update endpoint
 			if _, err := client.Create(ctx, *id, update); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -312,6 +335,8 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 }
 
 func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
+	// reuse the selector schema for Override and ResourceSelector block
+
 	output := map[string]*pluginsdk.Schema{
 		// NOTE: `name` isn't included since it varies depending on the resource, so it's expected to be passed in
 		"policy_definition_id": {
@@ -380,6 +405,103 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
+
+		"overrides": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"selectors": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"in": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+
+								// The supported selector kinds in a policy effect override are 'PolicyDefinitionReferenceId'.
+								// https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure#overrides-preview
+								// so make kind as computed for selector of override
+								"kind": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"not_in": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+							},
+						},
+					},
+
+					// more detail see https://learn.microsoft.com/en-us/azure/governance/policy/concepts/effects
+					"value": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
+		"resource_selectors": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"selectors": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"in": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+
+								"kind": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										// only 3 types supported for resourceSelector Kind
+										// https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure#resource-selectors-preview
+										string(policyassignments.SelectorKindResourceLocation),
+										string(policyassignments.SelectorKindResourceType),
+										string(policyassignments.SelectorKindResourceWithoutLocation),
+									}, false),
+								},
+
+								"not_in": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for k, v := range fields {
@@ -429,6 +551,139 @@ func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}
 
 	return &output
 }
+
+func (br assignmentBaseResource) expandOverrides(overrides []interface{}) *[]policyassignments.Override {
+	if len(overrides) == 0 {
+		return nil
+	}
+
+	var res []policyassignments.Override
+	for _, v := range overrides {
+		if m, ok := v.(map[string]interface{}); ok {
+			var item policyassignments.Override
+			item.Value = pointer.To(m["value"].(string))
+			item.Kind = pointer.To(policyassignments.OverrideKindPolicyEffect)
+			item.Selectors = br.expandSelectors(m["selectors"].([]interface{}), true)
+			res = append(res, item)
+		}
+	}
+
+	return &res
+}
+
+func (br assignmentBaseResource) expandStringSlice(in interface{}) (res []string) {
+	if in == nil {
+		return nil
+	}
+	if slice, ok := in.([]interface{}); ok {
+		for _, v := range slice {
+			if v != nil {
+				res = append(res, v.(string))
+			} else {
+				res = append(res, "")
+			}
+		}
+	}
+	return res
+}
+
+func (br assignmentBaseResource) expandSelectors(i []interface{}, isOverride bool) *[]policyassignments.Selector {
+	if len(i) == 0 {
+		return nil
+	}
+
+	var res []policyassignments.Selector
+	for _, v := range i {
+		if m, ok := v.(map[string]interface{}); ok {
+			var item policyassignments.Selector
+			if isOverride {
+				item.Kind = pointer.To(policyassignments.SelectorKindPolicyDefinitionReferenceId)
+			} else {
+				item.Kind = pointer.To(policyassignments.SelectorKind(m["kind"].(string)))
+			}
+			if in := br.expandStringSlice(m["in"]); len(in) > 0 {
+				item.In = pointer.To(in)
+			}
+			if notIn := br.expandStringSlice(m["not_in"]); len(notIn) > 0 {
+				item.NotIn = pointer.To(notIn)
+			}
+			res = append(res, item)
+		}
+	}
+
+	return &res
+}
+
+func (br assignmentBaseResource) expandResourceSelectors(rs []interface{}) *[]policyassignments.ResourceSelector {
+	if len(rs) == 0 {
+		return nil
+	}
+
+	var res []policyassignments.ResourceSelector
+	for _, v := range rs {
+		if m, ok := v.(map[string]interface{}); ok {
+			var item policyassignments.ResourceSelector
+			item.Name = pointer.To(m["name"].(string))
+			item.Selectors = br.expandSelectors(m["selectors"].([]interface{}), false)
+			res = append(res, item)
+		}
+	}
+
+	return &res
+}
+
+func (br assignmentBaseResource) flattenOverrides(overrides *[]policyassignments.Override) interface{} {
+	if overrides == nil || len(*overrides) == 0 {
+		return nil
+	}
+
+	var res []interface{}
+	for _, o := range *overrides {
+		item := map[string]interface{}{
+			"value":     pointer.From(o.Value),
+			"selectors": br.flattenSelectors(o.Selectors),
+		}
+		res = append(res, item)
+	}
+
+	return res
+}
+
+func (br assignmentBaseResource) flattenSelectors(selectors *[]policyassignments.Selector) interface{} {
+	if selectors == nil || len(*selectors) == 0 {
+		return nil
+	}
+
+	var res []interface{}
+	for _, s := range *selectors {
+		item := map[string]interface{}{
+			"in":     utils.FlattenStringSlice(s.In),
+			"not_in": utils.FlattenStringSlice(s.NotIn),
+			"kind":   string(pointer.From(s.Kind)),
+		}
+		res = append(res, item)
+	}
+
+	return res
+}
+
+func (br assignmentBaseResource) flattenResourceSelectors(selectors *[]policyassignments.ResourceSelector) interface{} {
+	if selectors == nil || *selectors == nil {
+		return nil
+	}
+
+	var res []interface{}
+	for _, v := range *selectors {
+		var item = map[string]interface{}{
+			"name":      pointer.From(v.Name),
+			"selectors": br.flattenSelectors(v.Selectors),
+		}
+		res = append(res, item)
+	}
+
+	return res
+}
+
 func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
 	notScopesRes := make([]string, 0)
 

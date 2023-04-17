@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -20,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -94,7 +96,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: networkValidate.SubnetID,
 			},
 
 			"create_from_snapshot_resource_id": {
@@ -610,11 +612,11 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 		props := model.Properties
 		d.Set("volume_path", props.CreationToken)
-		d.Set("service_level", props.ServiceLevel)
+		d.Set("service_level", string(pointer.From(props.ServiceLevel)))
 		d.Set("subnet_id", props.SubnetId)
-		d.Set("network_features", props.NetworkFeatures)
+		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
 		d.Set("protocols", props.ProtocolTypes)
-		d.Set("security_style", props.SecurityStyle)
+		d.Set("security_style", string(pointer.From(props.SecurityStyle)))
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
 		d.Set("throughput_in_mibps", props.ThroughputMibps)
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)

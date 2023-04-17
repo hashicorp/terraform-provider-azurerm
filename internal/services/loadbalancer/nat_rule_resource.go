@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -106,7 +105,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"backend_address_pool_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				ValidateFunc:  azure.ValidateResourceID,
+				ValidateFunc:  loadBalancerValidate.LoadBalancerBackendAddressPoolID,
 				ConflictsWith: []string{"frontend_port"},
 				RequiredWith:  []string{"frontend_port_start", "frontend_port_end"},
 			},
@@ -268,7 +267,7 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
 
 		if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
-			d.Set("backend_address_pool_id", *props.BackendAddressPool.ID)
+			d.Set("backend_address_pool_id", props.BackendAddressPool.ID)
 		}
 
 		frontendPort := 0

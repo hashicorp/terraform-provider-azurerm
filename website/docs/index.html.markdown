@@ -63,7 +63,7 @@ resource "azurerm_virtual_network" "example" {
 }
 ```
 
-## Features and Bug Requests
+## Bugs and Feature Requests
 
 The Azure provider's bugs and feature requests can be found in the [GitHub repo issues](https://github.com/hashicorp/terraform-provider-azurerm/issues).
 Please avoid "me too" or "+1" comments. Instead, use a thumbs up [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/)

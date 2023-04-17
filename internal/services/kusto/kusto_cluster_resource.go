@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -15,13 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/clusters"
 	newCluster "github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -150,24 +151,24 @@ func resourceKustoCluster() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: networkValidate.SubnetID,
 						},
 						"engine_public_ip_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
 						"data_management_public_ip_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
 					},
 				},
 			},
 
 			"language_extensions": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -377,7 +378,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	d.SetId(id.ID())
 
 	if v, ok := d.GetOk("language_extensions"); ok {
-		languageExtensions := expandKustoClusterLanguageExtensions(v.([]interface{}))
+		languageExtensions := expandKustoClusterLanguageExtensions(v.(*pluginsdk.Set).List())
 
 		currentLanguageExtensions, err := client.ListLanguageExtensions(ctx, id)
 		if err != nil {
@@ -480,8 +481,8 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("language_extensions", flattenKustoClusterLanguageExtensions(props.LanguageExtensions))
 			d.Set("uri", props.Uri)
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
-			d.Set("engine", props.EngineType)
-			d.Set("public_ip_type", props.PublicIPType)
+			d.Set("engine", string(pointer.From(props.EngineType)))
+			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))
 
 		}
 
