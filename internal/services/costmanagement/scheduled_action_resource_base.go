@@ -360,9 +360,7 @@ func (br costManagementScheduledActionBaseResource) updateFunc() sdk.ResourceFun
 				model.Properties.Schedule.DayOfMonth = utils.Int64(int64(metadata.ResourceData.Get("day_of_month").(int)))
 			}
 
-			opts := scheduledactions.CreateOrUpdateByScopeOperationOptions{}
-			_, err = client.CreateOrUpdateByScope(ctx, *id, *model, opts)
-			if err != nil {
+			if _, err = client.CreateOrUpdateByScope(ctx, *id, *model, cheduledactions.CreateOrUpdateByScopeOperationOptions{}); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
