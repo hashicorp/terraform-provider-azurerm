@@ -647,14 +647,8 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(in
 	for i, item := range input {
 		v := item.(map[string]interface{})
 		dimensions := expandMonitorMetricDimension(v["dimension"].([]interface{}))
-		var ignoreDataBefore *date.Time
-		if v := v["ignore_data_before"].(string); v != "" {
-			// Guaranteed in schema validation func.
-			t, _ := time.Parse(time.RFC3339, v)
-			ignoreDataBefore = &date.Time{Time: t}
-		}
 
-		criteria = append(criteria, metricalerts.DynamicMetricCriteria{
+		dynamicMetricCriteria := metricalerts.DynamicMetricCriteria{
 			Name:             fmt.Sprintf("Metric%d", i+1),
 			MetricNamespace:  utils.String(v["metric_namespace"].(string)),
 			MetricName:       v["metric_name"].(string),
@@ -666,9 +660,17 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(in
 				NumberOfEvaluationPeriods: float64(v["evaluation_total_count"].(int)),
 				MinFailingPeriodsToAlert:  float64(v["evaluation_failure_count"].(int)),
 			},
-			IgnoreDataBefore:     pointer.To(ignoreDataBefore.String()),
 			SkipMetricValidation: utils.Bool(v["skip_metric_validation"].(bool)),
-		})
+		}
+
+		if datetime := v["ignore_data_before"].(string); datetime != "" {
+			// Guaranteed in schema validation func.
+			t, _ := time.Parse(time.RFC3339, datetime)
+			ignoreDataBefore := &date.Time{Time: t}
+			dynamicMetricCriteria.IgnoreDataBefore = pointer.To(ignoreDataBefore.String())
+		}
+
+		criteria = append(criteria, dynamicMetricCriteria)
 	}
 	return &metricalerts.MetricAlertMultipleResourceMultipleMetricCriteria{
 		AllOf: &criteria,
