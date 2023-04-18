@@ -2,13 +2,12 @@ package automanage
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/validate"
@@ -19,127 +18,36 @@ import (
 	"github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage"
 )
 
-type AzureSecurityBaselineConfiguration struct {
-	Enabled        bool   `tfschema:"enabled"`
-	AssignmentType string `tfschema:"assignment_type"`
-}
+type ConfigurationModel struct {
+	Name              string `tfschema:"name"`
+	ResourceGroupName string `tfschema:"resource_group_name"`
 
-type SchedulePolicyConfiguration struct {
-	ScheduleRunFrequency string   `tfschema:"schedule_run_frequency"`
-	ScheduleRunTimes     []string `tfschema:"schedule_run_times"`
-	ScheduleRunDays      []string `tfschema:"schedule_run_days"`
-}
-
-type RetentionDurationConfiguration struct {
-	Count        int    `tfschema:"count"`
-	DurationType string `tfschema:"duration_type"`
-}
-
-type DailyScheduleConfiguration struct {
-	RetentionTimes    []string                        `tfschema:"retention_times"`
-	RetentionDuration *RetentionDurationConfiguration `tfschema:"retention_duration"`
-}
-
-type WeeklyScheduleConfiguration struct {
-	RetentionTimes    []string                        `tfschema:"retention_times"`
-	RetentionDuration *RetentionDurationConfiguration `tfschema:"retention_duration"`
-}
-
-type RetentionPolicyConfiguration struct {
-	RetentionPolicyType string                       `tfschema:"retention_policy_type"`
-	DailySchedule       *DailyScheduleConfiguration  `tfschema:"daily_schedule"`
-	WeeklySchedule      *WeeklyScheduleConfiguration `tfschema:"weekly_schedule"`
-}
-
-type BackupConfiguration struct {
-	Enabled                       bool                          `tfschema:"enabled"`
-	PolicyName                    string                        `tfschema:"policy_name"`
-	TimeZone                      string                        `tfschema:"time_zone"`
-	InstantRpRetentionRangeInDays int                           `tfschema:"instant_rp_retention_range_in_days"`
-	SchedulePolicy                *SchedulePolicyConfiguration  `tfschema:"schedule_policy"`
-	RetentionPolicy               *RetentionPolicyConfiguration `tfschema:"retention_policy"`
-}
-
-type LogAnalyticsConfiguration struct {
-	Enabled     bool   `tfschema:"enabled"`
-	Reprovision bool   `tfschema:"reprovision"`
-	WorkspaceId string `tfschema:"workspace_id"`
-}
-
-type HourlyScheduleConfigurationV2 struct {
-	Interval                int    `tfschema:"interval"`
-	ScheduleWindowStartTime string `tfschema:"schedule_window_start_time"`
-	ScheduleWindowDuration  int    `tfschema:"schedule_window_duration"`
-}
-
-type DailyScheduleConfigurationV2 struct {
-	ScheduleWindowStartTime string `tfschema:"schedule_window_start_time"`
-}
-
-type WeeklyScheduleConfigurationV2 struct {
-	ScheduleRunDays []string `tfschema:"schedule_run_days"`
-}
-
-type SchedulePolicyConfigurationV2 struct {
-	ScheduleRunFrequency string                         `tfschema:"schedule_run_frequency"`
-	ScheduleRunTimes     []string                       `tfschema:"schedule_run_times"`
-	HourlySchedule       *HourlyScheduleConfigurationV2 `tfschema:"hourly_schedule"`
-	DailySchedule        *DailyScheduleConfigurationV2  `tfschema:"daily_schedule"`
-	WeeklySchedule       *WeeklyScheduleConfigurationV2 `tfschema:"weekly_schedule"`
-}
-
-type WeeklyScheduleConfigurationV3 struct {
-	RetentionDuration *RetentionDurationConfiguration `tfschema:"retention_duration"`
-}
-
-type RetentionPolicyConfigurationV2 struct {
-	RetentionPolicyType string                         `tfschema:"retention_policy_type"`
-	DailySchedule       *DailyScheduleConfiguration    `tfschema:"daily_schedule"`
-	WeeklySchedule      *WeeklyScheduleConfigurationV3 `tfschema:"weekly_schedule"`
-}
-
-type TrustedLaunchVMBackUpConfiguration struct {
-	Enabled                       bool                            `tfschema:"enabled"`
-	PolicyName                    string                          `tfschema:"policy_name"`
-	TimeZone                      string                          `tfschema:"time_zone"`
-	InstantRpRetentionRangeInDays int                             `tfschema:"instant_rp_retention_range_in_days"`
-	SchedulePolicy                *SchedulePolicyConfigurationV2  `tfschema:"schedule_policy"`
-	RetentionPolicy               *RetentionPolicyConfigurationV2 `tfschema:"retention_policy"`
-}
-
-type AutoManageConfigurationModel struct {
-	Name                      string                              `tfschema:"name"`
-	ResourceGroupName         string                              `tfschema:"resource_group_name"`
-	StatusChangeAlertEnabled  bool                                `tfschema:"status_change_alert_enabled"`
-	Antimalware               *AntimalwareConfiguration           `tfschema:"antimalware"`
-	AutomationAccountEnabled  bool                                `tfschema:"automation_account_enabled"`
-	AzureSecurityBaseline     *AzureSecurityBaselineConfiguration `tfschema:"azure_security_baseline"`
-	Backup                    *BackupConfiguration                `tfschema:"backup"`
-	BootDiagnosticsEnabled    bool                                `tfschema:"boot_diagnostics_enabled"`
-	ChangeTrackingEnabled     bool                                `tfschema:"change_tracking_enabled"`
-	DefenderForCloudEnabled   bool                                `tfschema:"defender_for_cloud_enabled"`
-	GuestConfigurationEnabled bool                                `tfschema:"guest_configuration_enabled"`
-	LogAnalytics              *LogAnalyticsConfiguration          `tfschema:"log_analytics"`
-	TrustedLaunchVMBackUp     *TrustedLaunchVMBackUpConfiguration `tfschema:"trusted_launch_vm_backup"`
+	Antimalware               *AntimalwareConfiguration `tfschema:"antimalware"`
+	AutomationAccountEnabled  bool                      `tfschema:"automation_account_enabled"`
+	BootDiagnosticsEnabled    bool                      `tfschema:"boot_diagnostics_enabled"`
+	ChangeTrackingEnabled     bool                      `tfschema:"change_tracking_enabled"`
+	DefenderForCloudEnabled   bool                      `tfschema:"defender_for_cloud_enabled"`
+	GuestConfigurationEnabled bool                      `tfschema:"guest_configuration_enabled"`
+	StatusChangeAlertEnabled  bool                      `tfschema:"status_change_alert_enabled"`
 
 	Location string            `tfschema:"location"`
 	Tags     map[string]string `tfschema:"tags"`
 }
 
-type ExclusionConfiguration struct {
-	Extensions []string `tfschema:"extensions"`
-	Paths      []string `tfschema:"paths"`
-	Processes  []string `tfschema:"processes"`
+type AntimalwareConfiguration struct {
+	Enabled                   bool                   `tfschema:"enabled"`
+	Exclusions                *AntimalwareExclusions `tfschema:"exclusions"`
+	RealTimeProtectionEnabled bool                   `tfschema:"real_time_protection_enabled"`
+	ScheduledScanEnabled      bool                   `tfschema:"scheduled_scan_enabled"`
+	ScanType                  string                 `tfschema:"scheduled_scan_type"`
+	ScanDay                   int                    `tfschema:"scheduled_scan_day"`
+	ScanTimeInMinutes         int                    `tfschema:"scheduled_scan_time_in_minutes"`
 }
 
-type AntimalwareConfiguration struct {
-	Enabled                   bool                    `tfschema:"enabled"`
-	Exclusions                *ExclusionConfiguration `tfschema:"exclusions"`
-	RealTimeProtectionEnabled bool                    `tfschema:"real_time_protection_enabled"`
-	ScheduledScanEnabled      bool                    `tfschema:"scheduled_scan_enabled"`
-	ScanType                  string                  `tfschema:"scan_type"`
-	ScanDay                   int                     `tfschema:"scan_day"`
-	ScanTimeInMinutes         int                     `tfschema:"scan_time_in_minutes"`
+type AntimalwareExclusions struct {
+	Extensions string `tfschema:"extensions"`
+	Paths      string `tfschema:"paths"`
+	Processes  string `tfschema:"processes"`
 }
 
 type AutoManageConfigurationResource struct{}
@@ -151,7 +59,7 @@ func (r AutoManageConfigurationResource) ResourceType() string {
 }
 
 func (r AutoManageConfigurationResource) ModelObject() interface{} {
-	return &AutoManageConfigurationModel{}
+	return &ConfigurationModel{}
 }
 
 func (r AutoManageConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -170,13 +78,6 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
-
-		//"Alerts/AutomanageStatusChanges/Enable": boolean,
-		"status_change_alert_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
 
 		//"Antimalware/Enable": boolean,
 		//"Antimalware/EnableRealTimeProtection": boolean,
@@ -208,7 +109,7 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 						Optional: true,
 						Default:  false,
 					},
-					"scan_type": {
+					"scheduled_scan_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						Default:  "Quick",
@@ -217,7 +118,7 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 							"Full",
 						}, false),
 					},
-					"scan_day": {
+					"scheduled_scan_day": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						Default:  0,
@@ -225,7 +126,7 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 							0, 1, 2, 3, 4, 5, 6, 7, 8,
 						}),
 					},
-					"scan_time_in_minutes": {
+					"scheduled_scan_time_in_minutes": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      0,
@@ -263,228 +164,6 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 			Default:  false,
 		},
 
-		//"AzureSecurityBaseline/Enable": boolean,
-		//"AzureSecurityBaseline/AssignmentType": string ("ApplyAndAutoCorrect", "ApplyAndMonitor", "Audit", "DeployAndAutoCorrect"),
-		"azure_security_baseline": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-					"assignment_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "ApplyAndAutoCorrect",
-						ValidateFunc: validation.StringInSlice([]string{
-							"ApplyAndAutoCorrect",
-							"ApplyAndMonitor",
-							"Audit",
-							"DeployAndAutoCorrect",
-						}, false),
-					},
-				},
-			},
-		},
-
-		//"Backup/Enable": boolean,
-		//"Backup/PolicyName": string (length 3 - 150, begin with alphanumeric char, only contain alphanumeric chars and hyphens),
-		//"Backup/TimeZone": timezone,
-		//"Backup/InstantRpRetentionRangeInDays": int (1 - 5 if ScheduleRunFrequency is Daily, 5 if ScheduleRunFrequency is Weekly),
-		//"Backup/SchedulePolicy/ScheduleRunFrequency": string ("Daily", "Weekly"),
-		//"Backup/SchedulePolicy/ScheduleRunTimes": list of DateTime,
-		//"Backup/SchedulePolicy/ScheduleRunDays": list of strings (["Sunday", "Monday", "Wednesday", "Thursday", "Friday", "Saturday"]),
-		//"Backup/SchedulePolicy/SchedulePolicyType": string ("SimpleSchedulePolicy"),
-		//"Backup/RetentionPolicy/RetentionPolicyType": string ("LongTermRetentionPolicy"),
-		//"Backup/RetentionPolicy/DailySchedule/RetentionTimes": list of DateTime,
-		//"Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count": int (7 - 9999),
-		//"Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType": string ("Days"),
-		//"Backup/RetentionPolicy/WeeklySchedule/RetentionTimes":, list of DateTime
-		//"Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count":, int (1 - 5163)
-		//"Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType": string ("Weeks"),
-		"backup": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-					"policy_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,149}$`), "Policy name must be 3 - 150 characters long, begin with an alphanumeric character, and only contain alphanumeric characters and hyphens."),
-					},
-					"time_zone": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "UTC",
-					},
-					"instant_rp_retention_range_in_days": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Default:      5,
-						ValidateFunc: validation.IntBetween(1, 5),
-					},
-					"schedule_policy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"schedule_run_frequency": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "Daily",
-									ValidateFunc: validation.StringInSlice([]string{
-										"Daily",
-										"Weekly",
-									}, false),
-								},
-								"schedule_run_times": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validation.IsRFC3339Time,
-									},
-								},
-								"schedule_run_days": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice([]string{
-											"Sunday",
-											"Monday",
-											"Tuesday",
-											"Wednesday",
-											"Thursday",
-											"Friday",
-											"Saturday",
-										}, false),
-									},
-								},
-								"schedule_policy_type": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "SimpleSchedulePolicy",
-									ValidateFunc: validation.StringInSlice([]string{
-										"SimpleSchedulePolicy",
-									}, false),
-								},
-							},
-						},
-					},
-					"retention_policy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"retention_policy_type": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "LongTermRetentionPolicy",
-									ValidateFunc: validation.StringInSlice([]string{
-										"LongTermRetentionPolicy",
-									}, false),
-								},
-								"daily_schedule": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"retention_times": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												Elem: &pluginsdk.Schema{
-													Type:         pluginsdk.TypeString,
-													ValidateFunc: validation.IsRFC3339Time,
-												},
-											},
-											"retention_duration": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												MaxItems: 1,
-												Elem: &pluginsdk.Resource{
-													Schema: map[string]*pluginsdk.Schema{
-														"count": {
-															Type:         pluginsdk.TypeInt,
-															Optional:     true,
-															Default:      7,
-															ValidateFunc: validation.IntBetween(7, 9999),
-														},
-														"duration_type": {
-															Type:     pluginsdk.TypeString,
-															Optional: true,
-															Default:  "Days",
-															ValidateFunc: validation.StringInSlice([]string{
-																"Days",
-															}, false),
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-								"weekly_schedule": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"retention_times": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												Elem: &pluginsdk.Schema{
-													Type:         pluginsdk.TypeString,
-													ValidateFunc: validation.IsRFC3339Time,
-												},
-											},
-											"retention_duration": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												MaxItems: 1,
-												Elem: &pluginsdk.Resource{
-													Schema: map[string]*pluginsdk.Schema{
-														"count": {
-															Type:         pluginsdk.TypeInt,
-															Optional:     true,
-															Default:      4,
-															ValidateFunc: validation.IntBetween(4, 9999),
-														},
-														"duration_type": {
-															Type:     pluginsdk.TypeString,
-															Optional: true,
-															Default:  "Weeks",
-															ValidateFunc: validation.StringInSlice([]string{
-																"Weeks",
-															}, false),
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
 		//"BootDiagnostics/Enable": boolean,
 		"boot_diagnostics_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -512,279 +191,8 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 			Default:  false,
 		},
 
-		//"LogAnalytics/Enable": boolean,
-		//"LogAnalytics/Reprovision": boolean,
-		//"LogAnalytics/Workspace": resource ID (Log analytics workspace ID),
-		"log_analytics": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-					"reprovision": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-					"workspace_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-				},
-			},
-		},
-
-		//"TrustedLaunchVM/Backup/Enable": boolean,
-		//"TrustedLaunchVM/Backup/PolicyName": string (length 3 - 150, begin with alphanumeric char, only contain alphanumeric chars and hyphens),
-		//"TrustedLaunchVM/Backup/TimeZone": timezone,
-		//"TrustedLaunchVM/Backup/InstantRpRetentionRangeInDays": int (1 - 30),
-		//"TrustedLaunchVM/Backup/SchedulePolicy/ScheduleRunFrequency": string ("Hourly", "Daily", "Weekly"),
-		//"TrustedLaunchVM/Backup/SchedulePolicy/SchedulePolicyType": string ("SimpleSchedulePolicyV2"),
-		//"TrustedLaunchVM/Backup/RetentionPolicy/RetentionPolicyType":, string ("LongTermRetentionPolicy")
-		//"TrustedLaunchVM/Backup/SchedulePolicy/HourlySchedule/Interval": int (4, 6, 8, 12),
-		//"TrustedLaunchVM/Backup/SchedulePolicy/HourlySchedule/ScheduleWindowStartTime": DateTime,
-		//"TrustedLaunchVM/Backup/SchedulePolicy/HourlySchedule/ScheduleWindowDuration": int (4, 8, 12, 16, 20, 24),
-		//"TrustedLaunchVM/Backup/RetentionPolicy/DailySchedule/RetentionTimes": list of DateTime,
-		//"TrustedLaunchVM/Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count": int (7 - 9999),
-		//"TrustedLaunchVM/Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType": string ("Hours", "Days"),
-		//"TrustedLaunchVM/Backup/SchedulePolicy/DailySchedule/ScheduleWindowStartTime": DateTime,
-		//"TrustedLaunchVM/Backup/SchedulePolicy/WeeklySchedule/ScheduleRunDays": list of strings (["Sunday", "Monday", "Wednesday", "Thursday", "Friday", "Saturday"]),
-		//"TrustedLaunchVM/Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count": int (1 - 1563),
-		//"TrustedLaunchVM/Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType": string ("Weeks"),
-		"trusted_launch_vm_backup": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-					"policy_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,149}$`), "policy name must be 3 - 150 characters long, begin with an alphanumeric character, and only contain alphanumeric characters and hyphens"),
-					},
-					"time_zone": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  "UTC",
-					},
-					"instant_rp_retention_range_in_days": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Default:      30,
-						ValidateFunc: validation.IntBetween(1, 30),
-					},
-					"schedule_policy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"schedule_run_frequency": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "Daily",
-									ValidateFunc: validation.StringInSlice([]string{
-										"Hourly",
-										"Daily",
-										"Weekly",
-									}, false),
-								},
-								"schedule_policy_type": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "SimpleSchedulePolicyV2",
-									ValidateFunc: validation.StringInSlice([]string{
-										"SimpleSchedulePolicyV2",
-									}, false),
-								},
-								"hourly_schedule": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"interval": {
-												Type:         pluginsdk.TypeInt,
-												Optional:     true,
-												Default:      4,
-												ValidateFunc: validation.IntInSlice([]int{4, 6, 8, 12}),
-											},
-											"schedule_window_start_time": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.IsRFC3339Time,
-											},
-											"schedule_window_duration": {
-												Type:         pluginsdk.TypeInt,
-												Optional:     true,
-												Default:      4,
-												ValidateFunc: validation.IntInSlice([]int{4, 8, 12, 16, 20, 24}),
-											},
-										},
-									},
-								},
-								"daily_schedule": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"schedule_window_start_time": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.IsRFC3339Time,
-											},
-										},
-									},
-								},
-								"weekly_schedule": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"schedule_run_days": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												Elem: &pluginsdk.Schema{
-													Type: pluginsdk.TypeString,
-													ValidateFunc: validation.StringInSlice([]string{
-														"Sunday",
-														"Monday",
-														"Tuesday",
-														"Wednesday",
-														"Thursday",
-														"Friday",
-														"Saturday",
-													}, false),
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					"retention_policy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"retention_policy_type": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "LongTermRetentionPolicy",
-									ValidateFunc: validation.StringInSlice([]string{
-										"LongTermRetentionPolicy",
-									}, false),
-								},
-								"daily_schedule": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"retention_times": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												Elem: &pluginsdk.Schema{
-													Type:         pluginsdk.TypeString,
-													ValidateFunc: validation.IsRFC3339Time,
-												},
-											},
-											"retention_duration": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												MaxItems: 1,
-												Elem: &pluginsdk.Resource{
-													Schema: map[string]*pluginsdk.Schema{
-														"count": {
-															Type:         pluginsdk.TypeInt,
-															Optional:     true,
-															Default:      7,
-															ValidateFunc: validation.IntBetween(7, 9999),
-														},
-														"duration_type": {
-															Type:     pluginsdk.TypeString,
-															Optional: true,
-															Default:  "Days",
-															ValidateFunc: validation.StringInSlice([]string{
-																"Days",
-															}, false),
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-								"weekly_schedule": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"retention_duration": {
-												Type:     pluginsdk.TypeList,
-												Optional: true,
-												MaxItems: 1,
-												Elem: &pluginsdk.Resource{
-													Schema: map[string]*pluginsdk.Schema{
-														"count": {
-															Type:         pluginsdk.TypeInt,
-															Optional:     true,
-															Default:      4,
-															ValidateFunc: validation.IntBetween(4, 9999),
-														},
-														"duration_type": {
-															Type:     pluginsdk.TypeString,
-															Optional: true,
-															Default:  "Weeks",
-															ValidateFunc: validation.StringInSlice([]string{
-																"Weeks",
-															}, false),
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		//"UpdateManagement/Enable": boolean,
-		"update_management_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		//"VMInsights/Enable": boolean,
-		"vm_insights_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		//"WindowsAdminCenter/Enable": boolean,
-		"windows_admin_center_enabled": {
+		//"Alerts/AutomanageStatusChanges/Enable": boolean,
+		"status_change_alert_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -802,7 +210,7 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model AutoManageConfigurationModel
+			var model ConfigurationModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -828,34 +236,45 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 			// Convert all to a map[string]interface{} and convert to a json property
 			jsonConfig := make(map[string]interface{})
 
-			if model.AutomationAccountEnabled {
-				jsonConfig["AutomationAccount"] = map[string]interface{}{
-					"Enable": model.AutomationAccountEnabled,
+			if model.Antimalware != nil {
+				jsonConfig["Antimalware/Enable"] = model.Antimalware.Enabled
+				jsonConfig["Antimalware/RealTimeProtectionEnabled"] = model.Antimalware.RealTimeProtectionEnabled
+				jsonConfig["Antimalware/RunScheduledScan"] = model.Antimalware.ScheduledScanEnabled
+				jsonConfig["Antimalware/ScanType"] = model.Antimalware.ScanType
+				jsonConfig["Antimalware/ScanDay"] = model.Antimalware.ScanDay
+				jsonConfig["Antimalware/ScanTimeInMinutes"] = model.Antimalware.ScanTimeInMinutes
+				if model.Antimalware.Exclusions != nil {
+					jsonConfig["Antimalware/Exclusions/Extensions"] = model.Antimalware.Exclusions.Extensions
+					jsonConfig["Antimalware/Exclusions/Paths"] = model.Antimalware.Exclusions.Paths
+					jsonConfig["Antimalware/Exclusions/Processes"] = model.Antimalware.Exclusions.Processes
 				}
 			}
 
-			if model.Antimalware != nil {
-				jsonConfig["Antimalware"] = map[string]interface{}{
-					"Enable": model.Antimalware.Enabled,
-				}
-				if exclusions := model.Antimalware.Exclusions; exclusions != nil {
-
-				}
+			if model.AutomationAccountEnabled {
+				jsonConfig["AutomationAccount/Enable"] = model.AutomationAccountEnabled
 			}
 
 			if model.BootDiagnosticsEnabled {
-				jsonConfig["BootDiagnostics"] = map[string]interface{}{
-					"Enable": model.BootDiagnosticsEnabled,
-				}
+				jsonConfig["BootDiagnostics/Enable"] = model.BootDiagnosticsEnabled
+			}
+
+			if model.ChangeTrackingEnabled {
+				jsonConfig["ChangeTracking/Enable"] = model.ChangeTrackingEnabled
+			}
+
+			if model.DefenderForCloudEnabled {
+				jsonConfig["DefenderForCloud/Enable"] = model.DefenderForCloudEnabled
+			}
+
+			if model.GuestConfigurationEnabled {
+				jsonConfig["GuestConfiguration/Enable"] = model.GuestConfigurationEnabled
 			}
 
 			if model.StatusChangeAlertEnabled {
-				jsonConfig["Alert"] = map[string]interface{}{
-					"AutomanageStatusChanges": map[string]interface{}{
-						"Enable": model.StatusChangeAlertEnabled,
-					},
-				}
+				jsonConfig["Alerts/AutomanageStatusChanges/Enable"] = model.StatusChangeAlertEnabled
 			}
+
+			properties.Properties.Configuration = &jsonConfig
 
 			if _, err := client.CreateOrUpdate(ctx, id.ConfigurationProfileName, id.ResourceGroup, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -878,7 +297,7 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model AutoManageConfigurationModel
+			var model ConfigurationModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -888,11 +307,71 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			jsonConfig := make(map[string]interface{})
+
+			if resp.Properties != nil && resp.Properties.Configuration != nil {
+				err := json.Unmarshal([]byte(resp.Properties.Configuration.(string)), &jsonConfig)
+				if err != nil {
+					return fmt.Errorf("unmarshalling %s: %+v", *id, err)
+				}
+			}
+
+			if model.Antimalware != nil {
+				jsonConfig["Antimalware/Enable"] = model.Antimalware.Enabled
+				jsonConfig["Antimalware/RealTimeProtectionEnabled"] = model.Antimalware.RealTimeProtectionEnabled
+				jsonConfig["Antimalware/RunScheduledScan"] = model.Antimalware.ScheduledScanEnabled
+				jsonConfig["Antimalware/ScanType"] = model.Antimalware.ScanType
+				jsonConfig["Antimalware/ScanDay"] = model.Antimalware.ScanDay
+				jsonConfig["Antimalware/ScanTimeInMinutes"] = model.Antimalware.ScanTimeInMinutes
+				if model.Antimalware.Exclusions != nil {
+					jsonConfig["Antimalware/Exclusions/Extensions"] = model.Antimalware.Exclusions.Extensions
+					jsonConfig["Antimalware/Exclusions/Paths"] = model.Antimalware.Exclusions.Paths
+					jsonConfig["Antimalware/Exclusions/Processes"] = model.Antimalware.Exclusions.Processes
+				}
+			}
+
+			if metadata.ResourceData.HasChange("automation_account_enabled") {
+				jsonConfig["AutomationAccount/Enable"] = model.AutomationAccountEnabled
+			}
+
+			if metadata.ResourceData.HasChange("boot_diagnostics_enabled") {
+				jsonConfig["BootDiagnostics/Enable"] = model.BootDiagnosticsEnabled
+			}
+
+			if metadata.ResourceData.HasChange("change_tracking_enabled") {
+				jsonConfig["ChangeTracking/Enable"] = model.ChangeTrackingEnabled
+			}
+
+			if metadata.ResourceData.HasChange("defender_for_cloud_enabled") {
+				jsonConfig["DefenderForCloud/Enable"] = model.DefenderForCloudEnabled
+			}
+
+			if metadata.ResourceData.HasChange("guest_configuration_enabled") {
+				jsonConfig["GuestConfiguration/Enable"] = model.GuestConfigurationEnabled
+			}
+
+			if metadata.ResourceData.HasChange("status_change_alert_enabled") {
+				jsonConfig["Alerts/AutomanageStatusChanges/Enable"] = model.StatusChangeAlertEnabled
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				resp.Tags = tags.FromTypedObject(model.Tags)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id.ConfigurationProfileName, id.ResourceGroup, resp); err != nil {
+			configBytes, err := json.Marshal(jsonConfig)
+			if err != nil {
+				return fmt.Errorf("marshalling %s: %+v", *id, err)
+			}
+
+			properties := automanage.ConfigurationProfile{
+				Location: utils.String(metadata.ResourceData.Get("location").(string)),
+				Properties: &automanage.ConfigurationProfileProperties{
+					Configuration: configBytes,
+				},
+				Tags: resp.Tags,
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, id.ConfigurationProfileName, id.ResourceGroup, properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -921,10 +400,61 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := AutoManageConfigurationModel{
+			state := ConfigurationModel{
 				Name:              id.ConfigurationProfileName,
 				ResourceGroupName: id.ResourceGroup,
 				Location:          location.NormalizeNilable(resp.Location),
+			}
+
+			if resp.Properties != nil && resp.Properties.Configuration != nil {
+				configMap := make(map[string]interface{})
+				err := json.Unmarshal(resp.Properties.Configuration.([]byte), &configMap)
+				if err != nil {
+					return fmt.Errorf("unmarshalling %s: %+v", *id, err)
+				}
+
+				if configMap["Antimalware/Enable"] != nil {
+					state.Antimalware = &AntimalwareConfiguration{
+						Enabled:                   configMap["Antimalware/Enable"].(bool),
+						RealTimeProtectionEnabled: configMap["Antimalware/RealTimeProtectionEnabled"].(bool),
+						ScheduledScanEnabled:      configMap["Antimalware/RunScheduledScan"].(bool),
+						ScanType:                  configMap["Antimalware/ScanType"].(string),
+						ScanDay:                   configMap["Antimalware/ScanDay"].(int),
+						ScanTimeInMinutes:         configMap["Antimalware/ScanTimeInMinutes"].(int),
+					}
+
+					if configMap["Antimalware/Exclusions/Extensions"] != nil {
+						state.Antimalware.Exclusions = &AntimalwareExclusions{
+							Extensions: configMap["Antimalware/Exclusions/Extensions"].(string),
+							Paths:      configMap["Antimalware/Exclusions/Paths"].(string),
+							Processes:  configMap["Antimalware/Exclusions/Processes"].(string),
+						}
+					}
+				}
+
+				if configMap["AutomationAccount/Enable"] != nil {
+					state.AutomationAccountEnabled = configMap["AutomationAccount/Enable"].(bool)
+				}
+
+				if configMap["BootDiagnostics/Enable"] != nil {
+					state.BootDiagnosticsEnabled = configMap["BootDiagnostics/Enable"].(bool)
+				}
+
+				if configMap["ChangeTracking/Enable"] != nil {
+					state.ChangeTrackingEnabled = configMap["ChangeTracking/Enable"].(bool)
+				}
+
+				if configMap["DefenderForCloud/Enable"] != nil {
+					state.DefenderForCloudEnabled = configMap["DefenderForServers/Enable"].(bool)
+				}
+
+				if configMap["GuestConfiguration/Enable"] != nil {
+					state.GuestConfigurationEnabled = configMap["GuestConfiguration/Enable"].(bool)
+				}
+
+				if configMap["Alerts/AutomanageStatusChanges/Enable"] != nil {
+					state.StatusChangeAlertEnabled = configMap["Alerts/AutomanageStatusChanges/Enable"].(bool)
+				}
 			}
 
 			if resp.Tags != nil {
