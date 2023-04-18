@@ -2,14 +2,13 @@ package automanage
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/validate"
@@ -20,12 +19,127 @@ import (
 	"github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage"
 )
 
+type AzureSecurityBaselineConfiguration struct {
+	Enabled        bool   `tfschema:"enabled"`
+	AssignmentType string `tfschema:"assignment_type"`
+}
+
+type SchedulePolicyConfiguration struct {
+	ScheduleRunFrequency string   `tfschema:"schedule_run_frequency"`
+	ScheduleRunTimes     []string `tfschema:"schedule_run_times"`
+	ScheduleRunDays      []string `tfschema:"schedule_run_days"`
+}
+
+type RetentionDurationConfiguration struct {
+	Count        int    `tfschema:"count"`
+	DurationType string `tfschema:"duration_type"`
+}
+
+type DailyScheduleConfiguration struct {
+	RetentionTimes    []string                        `tfschema:"retention_times"`
+	RetentionDuration *RetentionDurationConfiguration `tfschema:"retention_duration"`
+}
+
+type WeeklyScheduleConfiguration struct {
+	RetentionTimes    []string                        `tfschema:"retention_times"`
+	RetentionDuration *RetentionDurationConfiguration `tfschema:"retention_duration"`
+}
+
+type RetentionPolicyConfiguration struct {
+	RetentionPolicyType string                       `tfschema:"retention_policy_type"`
+	DailySchedule       *DailyScheduleConfiguration  `tfschema:"daily_schedule"`
+	WeeklySchedule      *WeeklyScheduleConfiguration `tfschema:"weekly_schedule"`
+}
+
+type BackupConfiguration struct {
+	Enabled                       bool                          `tfschema:"enabled"`
+	PolicyName                    string                        `tfschema:"policy_name"`
+	TimeZone                      string                        `tfschema:"time_zone"`
+	InstantRpRetentionRangeInDays int                           `tfschema:"instant_rp_retention_range_in_days"`
+	SchedulePolicy                *SchedulePolicyConfiguration  `tfschema:"schedule_policy"`
+	RetentionPolicy               *RetentionPolicyConfiguration `tfschema:"retention_policy"`
+}
+
+type LogAnalyticsConfiguration struct {
+	Enabled     bool   `tfschema:"enabled"`
+	Reprovision bool   `tfschema:"reprovision"`
+	WorkspaceId string `tfschema:"workspace_id"`
+}
+
+type HourlyScheduleConfigurationV2 struct {
+	Interval                int    `tfschema:"interval"`
+	ScheduleWindowStartTime string `tfschema:"schedule_window_start_time"`
+	ScheduleWindowDuration  int    `tfschema:"schedule_window_duration"`
+}
+
+type DailyScheduleConfigurationV2 struct {
+	ScheduleWindowStartTime string `tfschema:"schedule_window_start_time"`
+}
+
+type WeeklyScheduleConfigurationV2 struct {
+	ScheduleRunDays []string `tfschema:"schedule_run_days"`
+}
+
+type SchedulePolicyConfigurationV2 struct {
+	ScheduleRunFrequency string                         `tfschema:"schedule_run_frequency"`
+	ScheduleRunTimes     []string                       `tfschema:"schedule_run_times"`
+	HourlySchedule       *HourlyScheduleConfigurationV2 `tfschema:"hourly_schedule"`
+	DailySchedule        *DailyScheduleConfigurationV2  `tfschema:"daily_schedule"`
+	WeeklySchedule       *WeeklyScheduleConfigurationV2 `tfschema:"weekly_schedule"`
+}
+
+type WeeklyScheduleConfigurationV3 struct {
+	RetentionDuration *RetentionDurationConfiguration `tfschema:"retention_duration"`
+}
+
+type RetentionPolicyConfigurationV2 struct {
+	RetentionPolicyType string                         `tfschema:"retention_policy_type"`
+	DailySchedule       *DailyScheduleConfiguration    `tfschema:"daily_schedule"`
+	WeeklySchedule      *WeeklyScheduleConfigurationV3 `tfschema:"weekly_schedule"`
+}
+
+type TrustedLaunchVMBackUpConfiguration struct {
+	Enabled                       bool                            `tfschema:"enabled"`
+	PolicyName                    string                          `tfschema:"policy_name"`
+	TimeZone                      string                          `tfschema:"time_zone"`
+	InstantRpRetentionRangeInDays int                             `tfschema:"instant_rp_retention_range_in_days"`
+	SchedulePolicy                *SchedulePolicyConfigurationV2  `tfschema:"schedule_policy"`
+	RetentionPolicy               *RetentionPolicyConfigurationV2 `tfschema:"retention_policy"`
+}
+
 type AutoManageConfigurationModel struct {
-	Name              string            `tfschema:"name"`
-	ResourceGroupName string            `tfschema:"resource_group_name"`
-	Configuration     string            `tfschema:"configuration_json"`
-	Location          string            `tfschema:"location"`
-	Tags              map[string]string `tfschema:"tags"`
+	Name                      string                              `tfschema:"name"`
+	ResourceGroupName         string                              `tfschema:"resource_group_name"`
+	StatusChangeAlertEnabled  bool                                `tfschema:"status_change_alert_enabled"`
+	Antimalware               *AntimalwareConfiguration           `tfschema:"antimalware"`
+	AutomationAccountEnabled  bool                                `tfschema:"automation_account_enabled"`
+	AzureSecurityBaseline     *AzureSecurityBaselineConfiguration `tfschema:"azure_security_baseline"`
+	Backup                    *BackupConfiguration                `tfschema:"backup"`
+	BootDiagnosticsEnabled    bool                                `tfschema:"boot_diagnostics_enabled"`
+	ChangeTrackingEnabled     bool                                `tfschema:"change_tracking_enabled"`
+	DefenderForCloudEnabled   bool                                `tfschema:"defender_for_cloud_enabled"`
+	GuestConfigurationEnabled bool                                `tfschema:"guest_configuration_enabled"`
+	LogAnalytics              *LogAnalyticsConfiguration          `tfschema:"log_analytics"`
+	TrustedLaunchVMBackUp     *TrustedLaunchVMBackUpConfiguration `tfschema:"trusted_launch_vm_backup"`
+
+	Location string            `tfschema:"location"`
+	Tags     map[string]string `tfschema:"tags"`
+}
+
+type ExclusionConfiguration struct {
+	Extensions []string `tfschema:"extensions"`
+	Paths      []string `tfschema:"paths"`
+	Processes  []string `tfschema:"processes"`
+}
+
+type AntimalwareConfiguration struct {
+	Enabled                   bool                    `tfschema:"enabled"`
+	Exclusions                *ExclusionConfiguration `tfschema:"exclusions"`
+	RealTimeProtectionEnabled bool                    `tfschema:"real_time_protection_enabled"`
+	ScheduledScanEnabled      bool                    `tfschema:"scheduled_scan_enabled"`
+	ScanType                  string                  `tfschema:"scan_type"`
+	ScanDay                   int                     `tfschema:"scan_day"`
+	ScanTimeInMinutes         int                     `tfschema:"scan_time_in_minutes"`
 }
 
 type AutoManageConfigurationResource struct{}
@@ -711,13 +825,36 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 				Tags:       tags.FromTypedObject(model.Tags),
 			}
 
-			if model.Configuration != "" {
-				var configurationValue interface{}
-				err = json.Unmarshal([]byte(model.Configuration), &configurationValue)
-				if err != nil {
-					return err
+			// Convert all to a map[string]interface{} and convert to a json property
+			jsonConfig := make(map[string]interface{})
+
+			if model.AutomationAccountEnabled {
+				jsonConfig["AutomationAccount"] = map[string]interface{}{
+					"Enable": model.AutomationAccountEnabled,
 				}
-				properties.Properties.Configuration = &configurationValue
+			}
+
+			if model.Antimalware != nil {
+				jsonConfig["Antimalware"] = map[string]interface{}{
+					"Enable": model.Antimalware.Enabled,
+				}
+				if exclusions := model.Antimalware.Exclusions; exclusions != nil {
+
+				}
+			}
+
+			if model.BootDiagnosticsEnabled {
+				jsonConfig["BootDiagnostics"] = map[string]interface{}{
+					"Enable": model.BootDiagnosticsEnabled,
+				}
+			}
+
+			if model.StatusChangeAlertEnabled {
+				jsonConfig["Alert"] = map[string]interface{}{
+					"AutomanageStatusChanges": map[string]interface{}{
+						"Enable": model.StatusChangeAlertEnabled,
+					},
+				}
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id.ConfigurationProfileName, id.ResourceGroup, properties); err != nil {
@@ -749,16 +886,6 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			if metadata.ResourceData.HasChange("configuration_json") {
-				var configurationValue interface{}
-				err := json.Unmarshal([]byte(model.Configuration), &configurationValue)
-				if err != nil {
-					return err
-				}
-
-				resp.Properties.Configuration = &configurationValue
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -800,16 +927,6 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 				Location:          location.NormalizeNilable(resp.Location),
 			}
 
-			if properties := resp.Properties; properties != nil {
-				if properties.Configuration != nil {
-					configurationValue, err := json.Marshal(properties.Configuration)
-					if err != nil {
-						return err
-					}
-
-					state.Configuration = string(configurationValue)
-				}
-			}
 			if resp.Tags != nil {
 				state.Tags = tags.ToTypedObject(resp.Tags)
 			}
