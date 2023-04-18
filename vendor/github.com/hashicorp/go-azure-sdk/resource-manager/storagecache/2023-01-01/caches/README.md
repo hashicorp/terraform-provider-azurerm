@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2021-09-01/caches` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/caches` Documentation
 
-The `caches` SDK allows for interaction with the Azure Resource Manager Service `storagecache` (API Version `2021-09-01`).
+The `caches` SDK allows for interaction with the Azure Resource Manager Service `storagecache` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2021-09-01/caches"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/caches"
 ```
 
 
@@ -123,6 +123,53 @@ for _, item := range items {
 ```
 
 
+### Example Usage: `CachesClient.PausePrimingJob`
+
+```go
+ctx := context.TODO()
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+
+payload := caches.PrimingJobIdParameter{
+	// ...
+}
+
+
+if err := client.PausePrimingJobThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `CachesClient.ResumePrimingJob`
+
+```go
+ctx := context.TODO()
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+
+payload := caches.PrimingJobIdParameter{
+	// ...
+}
+
+
+if err := client.ResumePrimingJobThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `CachesClient.SpaceAllocation`
+
+```go
+ctx := context.TODO()
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+var payload []StorageTargetSpaceAllocation
+
+if err := client.SpaceAllocationThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
 ### Example Usage: `CachesClient.Start`
 
 ```go
@@ -130,6 +177,23 @@ ctx := context.TODO()
 id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
 
 if err := client.StartThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `CachesClient.StartPrimingJob`
+
+```go
+ctx := context.TODO()
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+
+payload := caches.PrimingJob{
+	// ...
+}
+
+
+if err := client.StartPrimingJobThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -147,6 +211,23 @@ if err := client.StopThenPoll(ctx, id); err != nil {
 ```
 
 
+### Example Usage: `CachesClient.StopPrimingJob`
+
+```go
+ctx := context.TODO()
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+
+payload := caches.PrimingJobIdParameter{
+	// ...
+}
+
+
+if err := client.StopPrimingJobThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
 ### Example Usage: `CachesClient.Update`
 
 ```go
@@ -158,12 +239,8 @@ payload := caches.Cache{
 }
 
 
-read, err := client.Update(ctx, id, payload)
-if err != nil {
+if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
 }
 ```
 

@@ -71,11 +71,14 @@ const (
 	HealthStateTypeDown          HealthStateType = "Down"
 	HealthStateTypeFlushing      HealthStateType = "Flushing"
 	HealthStateTypeHealthy       HealthStateType = "Healthy"
+	HealthStateTypeStartFailed   HealthStateType = "StartFailed"
 	HealthStateTypeStopped       HealthStateType = "Stopped"
 	HealthStateTypeStopping      HealthStateType = "Stopping"
 	HealthStateTypeTransitioning HealthStateType = "Transitioning"
 	HealthStateTypeUnknown       HealthStateType = "Unknown"
+	HealthStateTypeUpgradeFailed HealthStateType = "UpgradeFailed"
 	HealthStateTypeUpgrading     HealthStateType = "Upgrading"
+	HealthStateTypeWaitingForKey HealthStateType = "WaitingForKey"
 )
 
 func PossibleValuesForHealthStateType() []string {
@@ -84,11 +87,14 @@ func PossibleValuesForHealthStateType() []string {
 		string(HealthStateTypeDown),
 		string(HealthStateTypeFlushing),
 		string(HealthStateTypeHealthy),
+		string(HealthStateTypeStartFailed),
 		string(HealthStateTypeStopped),
 		string(HealthStateTypeStopping),
 		string(HealthStateTypeTransitioning),
 		string(HealthStateTypeUnknown),
+		string(HealthStateTypeUpgradeFailed),
 		string(HealthStateTypeUpgrading),
+		string(HealthStateTypeWaitingForKey),
 	}
 }
 
@@ -98,11 +104,14 @@ func parseHealthStateType(input string) (*HealthStateType, error) {
 		"down":          HealthStateTypeDown,
 		"flushing":      HealthStateTypeFlushing,
 		"healthy":       HealthStateTypeHealthy,
+		"startfailed":   HealthStateTypeStartFailed,
 		"stopped":       HealthStateTypeStopped,
 		"stopping":      HealthStateTypeStopping,
 		"transitioning": HealthStateTypeTransitioning,
 		"unknown":       HealthStateTypeUnknown,
+		"upgradefailed": HealthStateTypeUpgradeFailed,
 		"upgrading":     HealthStateTypeUpgrading,
+		"waitingforkey": HealthStateTypeWaitingForKey,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -172,6 +181,40 @@ func parseNfsAccessRuleScope(input string) (*NfsAccessRuleScope, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := NfsAccessRuleScope(input)
+	return &out, nil
+}
+
+type PrimingJobState string
+
+const (
+	PrimingJobStateComplete PrimingJobState = "Complete"
+	PrimingJobStatePaused   PrimingJobState = "Paused"
+	PrimingJobStateQueued   PrimingJobState = "Queued"
+	PrimingJobStateRunning  PrimingJobState = "Running"
+)
+
+func PossibleValuesForPrimingJobState() []string {
+	return []string{
+		string(PrimingJobStateComplete),
+		string(PrimingJobStatePaused),
+		string(PrimingJobStateQueued),
+		string(PrimingJobStateRunning),
+	}
+}
+
+func parsePrimingJobState(input string) (*PrimingJobState, error) {
+	vals := map[string]PrimingJobState{
+		"complete": PrimingJobStateComplete,
+		"paused":   PrimingJobStatePaused,
+		"queued":   PrimingJobStateQueued,
+		"running":  PrimingJobStateRunning,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrimingJobState(input)
 	return &out, nil
 }
 
