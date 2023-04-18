@@ -506,9 +506,9 @@ resource "azurerm_key_vault_certificate" "test" {
 }
 
 resource "azurerm_mobile_network_packet_core_control_plane" "test" {
-  name                              = "acctest-mnpccp-%d"
+  name                              = "acctest-mnpccp-%[2]d"
   resource_group_name               = azurerm_resource_group.test.name
-  location                          = "%s"
+  location                          = "%[3]s"
   sku                               = "G0"
   user_equipment_mtu_in_bytes       = 1600
   site_ids                          = [azurerm_mobile_network_site.test.id]
