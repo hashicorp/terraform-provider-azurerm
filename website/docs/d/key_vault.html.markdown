@@ -61,7 +61,7 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags assigned to the Key Vault.
 
-A `access_policy` block supports the following:
+An `access_policy` block supports the following:
 
 * `tenant_id` - The Azure Active Directory Tenant ID used to authenticate requests for this Key Vault.
 
