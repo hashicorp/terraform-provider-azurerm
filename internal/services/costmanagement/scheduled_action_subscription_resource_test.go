@@ -111,8 +111,7 @@ provider "azurerm" {
 data "azurerm_subscription" "test" {}
 
 resource "azurerm_subscription_cost_management_scheduled_action" "test" {
-  name            = "testcostview%s"
-  subscription_id = data.azurerm_subscription.test.id
+  name = "testcostview%s"
 
   view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
 
@@ -140,8 +139,7 @@ provider "azurerm" {
 data "azurerm_subscription" "test" {}
 
 resource "azurerm_subscription_cost_management_scheduled_action" "test" {
-  name            = "testcostview%s"
-  subscription_id = data.azurerm_subscription.test.id
+  name = "testcostview%s"
 
   view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
 
@@ -172,8 +170,7 @@ provider "azurerm" {
 data "azurerm_subscription" "test" {}
 
 resource "azurerm_subscription_cost_management_scheduled_action" "test" {
-  name            = "testcostview%s"
-  subscription_id = data.azurerm_subscription.test.id
+  name = "testcostview%s"
 
   view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
 
@@ -204,8 +201,7 @@ provider "azurerm" {
 data "azurerm_subscription" "test" {}
 
 resource "azurerm_subscription_cost_management_scheduled_action" "test" {
-  name            = "testcostview%s"
-  subscription_id = data.azurerm_subscription.test.id
+  name = "testcostview%s"
 
   view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
 
@@ -230,8 +226,7 @@ func (SubscriptionCostManagementScheduledAction) requiresImport(data acceptance.
 %s
 
 resource "azurerm_subscription_cost_management_scheduled_action" "import" {
-  name            = azurerm_subscription_cost_management_scheduled_action.test.name
-  subscription_id = azurerm_subscription_cost_management_scheduled_action.test.subscription_id
+  name = azurerm_subscription_cost_management_scheduled_action.test.name
 
   view_id = azurerm_subscription_cost_management_scheduled_action.test.view_id
 

@@ -1,7 +1,6 @@
 package costmanagement
 
 import (
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,12 +20,6 @@ func (r SubscriptionCostManagementScheduledActionResource) Arguments() map[strin
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotWhiteSpace,
-		},
-		"subscription_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSubscriptionID,
 		},
 	}
 	return r.base.arguments(schema)
@@ -49,11 +42,11 @@ func (r SubscriptionCostManagementScheduledActionResource) IDValidationFunc() pl
 }
 
 func (r SubscriptionCostManagementScheduledActionResource) Create() sdk.ResourceFunc {
-	return r.base.createFunc(r.ResourceType(), "subscription_id")
+	return r.base.createFunc(r.ResourceType())
 }
 
 func (r SubscriptionCostManagementScheduledActionResource) Read() sdk.ResourceFunc {
-	return r.base.readFunc("subscription_id")
+	return r.base.readFunc()
 }
 
 func (r SubscriptionCostManagementScheduledActionResource) Delete() sdk.ResourceFunc {

@@ -28,6 +28,7 @@ func (br costManagementScheduledActionBaseResource) arguments(fields map[string]
 		"view_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -122,12 +123,17 @@ func (br costManagementScheduledActionBaseResource) attributes() map[string]*plu
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (br costManagementScheduledActionBaseResource) createFunc(resourceName, scopeFieldName string) sdk.ResourceFunc {
+func (br costManagementScheduledActionBaseResource) createFunc(resourceName string) sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.CostManagement.ScheduledActionsClient_v2022_10_01
-			id := scheduledactions.NewScopedScheduledActionID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
+
+			viewId, err := views.ParseScopedViewID(metadata.ResourceData.Get("view_id").(string))
+			if err != nil {
+				return err
+			}
+			id := scheduledactions.NewScopedScheduledActionID(viewId.Scope, metadata.ResourceData.Get("name").(string))
 
 			existing, err := client.GetByScope(ctx, id)
 			if err != nil {
@@ -138,11 +144,6 @@ func (br costManagementScheduledActionBaseResource) createFunc(resourceName, sco
 
 			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError(resourceName, id.ID())
-			}
-
-			viewId, err := views.ParseScopedViewID(metadata.ResourceData.Get("view_id").(string))
-			if err != nil {
-				return err
 			}
 
 			var daysOfWeek []scheduledactions.DaysOfWeek
@@ -199,7 +200,7 @@ func (br costManagementScheduledActionBaseResource) createFunc(resourceName, sco
 	}
 }
 
-func (br costManagementScheduledActionBaseResource) readFunc(scopeFieldName string) sdk.ResourceFunc {
+func (br costManagementScheduledActionBaseResource) readFunc() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -219,8 +220,6 @@ func (br costManagementScheduledActionBaseResource) readFunc(scopeFieldName stri
 			}
 
 			metadata.ResourceData.Set("name", id.ScheduledActionName)
-			//lintignore:R001
-			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
