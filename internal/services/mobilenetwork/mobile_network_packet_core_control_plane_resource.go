@@ -337,10 +337,7 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 
 			props.LocalDiagnosticsAccess = expandPacketCoreControlLocalDiagnosticsAccessConfiguration(model.LocalDiagnosticsAccess)
 
-			props.Platform, err = expandPlatformConfigurationModel(model.Platform)
-			if err != nil {
-				return err
-			}
+			props.Platform = expandPlatformConfigurationModel(model.Platform)
 
 			if model.Version != "" {
 				props.Version = &model.Version
@@ -431,10 +428,7 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("platform") {
-				model.Properties.Platform, err = expandPlatformConfigurationModel(plan.Platform)
-				if err != nil {
-					return err
-				}
+				model.Properties.Platform = expandPlatformConfigurationModel(plan.Platform)
 			}
 
 			if metadata.ResourceData.HasChange("sku") {
@@ -603,10 +597,10 @@ func flattenLocalPacketCoreControlLocalDiagnosticsAccessConfiguration(input pack
 	return outputs
 }
 
-func expandPlatformConfigurationModel(inputList []PlatformConfigurationModel) (packetcorecontrolplane.PlatformConfiguration, error) {
+func expandPlatformConfigurationModel(inputList []PlatformConfigurationModel) packetcorecontrolplane.PlatformConfiguration {
 	output := packetcorecontrolplane.PlatformConfiguration{}
 	if len(inputList) == 0 {
-		return output, nil
+		return output
 	}
 
 	input := inputList[0]
@@ -637,7 +631,7 @@ func expandPlatformConfigurationModel(inputList []PlatformConfigurationModel) (p
 		}
 	}
 
-	return output, nil
+	return output
 }
 
 func flattenPlatformConfigurationModel(input packetcorecontrolplane.PlatformConfiguration) []PlatformConfigurationModel {
