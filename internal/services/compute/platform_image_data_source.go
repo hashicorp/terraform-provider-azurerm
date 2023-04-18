@@ -76,8 +76,11 @@ func dataSourcePlatformImageRead(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("could not find image (location %q / publisher %q / offer %q / sku %q / version % q): %+v", location, publisher, offer, sku, version, err)
 		}
 	} else {
-		// get the latest image
-		// the last value is the latest, apparently.
+		// get the latest image (the last value is the latest, apparently)
+		// list can be empty if user hasn't licensed any matching images
+		if len(*result.Value) == 0 {
+			return fmt.Errorf("no images available to this user (location %q / publisher %q / offer %q / sku %q)", location, publisher, offer, sku)
+		}
 		image = &(*result.Value)[len(*result.Value)-1]
 	}
 
