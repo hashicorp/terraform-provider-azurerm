@@ -52,6 +52,24 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
 			Errors: 2,
 		},
 		{
+			Name:     "ValidateBothProtocolsNotDisabledAtSameTimeOnNFSv3Volume",
+			Protocol: string(ProtocolTypeNfsV3),
+			Rule: volumegroups.ExportPolicyRule{
+				Nfsv3:  pointer.To(false),
+				Nfsv41: utils.Bool(false),
+			},
+			Errors: 1,
+		},
+		{
+			Name:     "ValidateBothProtocolsNotDisabledAtSameTimeOnNFSv41Volume",
+			Protocol: string(ProtocolTypeNfsV41),
+			Rule: volumegroups.ExportPolicyRule{
+				Nfsv3:  pointer.To(false),
+				Nfsv41: utils.Bool(false),
+			},
+			Errors: 1,
+		},
+		{
 			Name:     "ValidateNFSv3NotEnabledOnNFSv41Volume",
 			Protocol: string(ProtocolTypeNfsV41),
 			Rule: volumegroups.ExportPolicyRule{

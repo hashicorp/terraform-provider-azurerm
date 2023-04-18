@@ -16,6 +16,11 @@ func ValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(rule volumegroups.ExportP
 		errors = append(errors, fmt.Errorf("'nfsv3 and nfsv4.1 cannot be enabled at the same time'"))
 	}
 
+	// Validating that nfsv3 and nfsv4.1 are not disabled in the same rule
+	if !pointer.From(rule.Nfsv3) && !pointer.From(rule.Nfsv41) {
+		errors = append(errors, fmt.Errorf("'nfsv3 and nfsv4.1 cannot be enabled at the same time'"))
+	}
+
 	// Validating that nfsv4.1 export policy is not set on nfsv3 volume
 	if pointer.From(rule.Nfsv41) && strings.EqualFold(protocolType, string(ProtocolTypeNfsV3)) {
 		errors = append(errors, fmt.Errorf("'nfsv4.1 export policy cannot be enabled on nfsv3 volume'"))

@@ -791,12 +791,3 @@ func translateSDKSchedule(scheduleName string) string {
 
 	return scheduleName
 }
-
-func FindStringInSlice(slice []string, val string) bool {
-	for _, item := range slice {
-		if strings.EqualFold(item, val) {
-			return true
-		}
-	}
-	return false
-}
