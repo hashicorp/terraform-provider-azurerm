@@ -118,17 +118,28 @@ resource "azurerm_automanage_configuration" "test" {
   name                = "acctest-amcp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  configuration_json = jsonencode({
-    "Antimalware/Enable" : false,
-    "AzureSecurityCenter/Enable" : true,
-    "Backup/Enable" : false,
-    "BootDiagnostics/Enable" : true,
-    "ChangeTrackingAndInventory/Enable" : true,
-    "GuestConfiguration/Enable" : true,
-    "LogAnalytics/Enable" : true,
-    "UpdateManagement/Enable" : true,
-    "VMInsights/Enable" : true
-  })
+  antimalware {
+	enabled = true
+	exclusions {
+      extensions = "exe;dll"
+	  paths = "C:\\Windows\\Temp;D:\\Temp"
+      processes = "svchost.exe;notepad.exe"
+	}
+    real_time_protection = true
+    scheduled_scan_enabled = true
+    scheduled_scan_type = "Quick"
+	scheduled_scan_day = 1
+	scheduled_scan_time_in_minutes = 1339
+  }
+  automation_account_enabled = true
+  boot_diagnostics_enabled = true
+  change_tracking_and_inventory_enabled = true
+  defender_for_cloud_enabled = true
+  guest_configuration_enabled = true
+  status_change_alert_enabled = true
+  tags = {
+	"env" = "test"
+  }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
@@ -166,21 +177,28 @@ resource "azurerm_automanage_configuration" "test" {
   name                = "acctest-amcp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  configuration_json = jsonencode({
-    "Antimalware/Enable" : false,
-    "AzureSecurityCenter/Enable" : true,
-    "Backup/Enable" : false,
-    "BootDiagnostics/Enable" : true,
-    "ChangeTrackingAndInventory/Enable" : true,
-    "GuestConfiguration/Enable" : true,
-    "LogAnalytics/Enable" : true,
-    "UpdateManagement/Enable" : true,
-    "VMInsights/Enable" : true
-  })
-  tags = {
-    key = "value"
+  antimalware {
+	enabled = true
+	exclusions {
+      extensions = "exe;dll"
+	  paths = "C:\\Windows\\Temp;D:\\Temp"
+      processes = "svchost.exe;notepad.exe"
+	}
+    real_time_protection_enabled = true
+    scheduled_scan_enabled = true
+    scheduled_scan_type = "Quick"
+	scheduled_scan_day = 1
+	scheduled_scan_time_in_minutes = 1339
   }
-
+  automation_account_enabled = true
+  boot_diagnostics_enabled = true
+  change_tracking_and_inventory_enabled = true
+  defender_for_cloud_enabled = true
+  guest_configuration_enabled = true
+  status_change_alert_enabled = true
+  tags = {
+	"env" = "test"
+  }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
