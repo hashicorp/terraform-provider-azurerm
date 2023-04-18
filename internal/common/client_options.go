@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -59,6 +60,30 @@ type ClientOptions struct {
 	SynapseAuthorizer         autorest.Authorizer
 }
 
+func (o ClientOptions) Clone() ClientOptions {
+	return ClientOptions{
+		Authorizers:                 o.Authorizers,
+		Environment:                 o.Environment,
+		Features:                    o.Features,
+		SubscriptionId:              o.SubscriptionId,
+		TenantId:                    o.TenantId,
+		PartnerId:                   o.PartnerId,
+		TerraformVersion:            o.TerraformVersion,
+		CustomCorrelationRequestID:  o.CustomCorrelationRequestID,
+		DisableCorrelationRequestID: o.DisableCorrelationRequestID,
+		DisableTerraformPartnerID:   o.DisableTerraformPartnerID,
+		SkipProviderReg:             o.SkipProviderReg,
+		StorageUseAzureAD:           o.StorageUseAzureAD,
+		AzureEnvironment:            o.AzureEnvironment,
+		ResourceManagerEndpoint:     o.ResourceManagerEndpoint,
+		BatchManagementAuthorizer:   o.BatchManagementAuthorizer,
+		KeyVaultAuthorizer:          o.KeyVaultAuthorizer,
+		ResourceManagerAuthorizer:   o.ResourceManagerAuthorizer,
+		StorageAuthorizer:           o.StorageAuthorizer,
+		SynapseAuthorizer:           o.SynapseAuthorizer,
+	}
+}
+
 // Configure set up a resourcemanager.Client using an auth.Authorizer from hashicorp/go-azure-sdk
 func (o ClientOptions) Configure(c *resourcemanager.Client, authorizer auth.Authorizer) {
 	c.Authorizer = authorizer
@@ -82,6 +107,12 @@ func (o ClientOptions) Configure(c *resourcemanager.Client, authorizer auth.Auth
 
 // ConfigureClient sets up an autorest.Client using an autorest.Authorizer
 func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.Authorizer) {
+	// The default retry duration is 30 second, combined with the default retry attempts (default to 3) and the backoff logic,
+	// makes the Read function always exceeds context deadline (since the provider uses 5min as the timeout value for read).
+	// This brings users useless error message.
+	// Changing it to 5 second will makes the total retries to be 75sec (= 5sec + 10sec + 20sec + 40sec), which is less than 5min,
+	// so that users can always get the real error message instead.
+	c.RetryDuration = 5 * time.Second
 	c.UserAgent = userAgent(c.UserAgent, o.TerraformVersion, o.PartnerId, o.DisableTerraformPartnerID)
 
 	c.Authorizer = authorizer

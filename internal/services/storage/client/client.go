@@ -41,10 +41,19 @@ type Client struct {
 	SyncGroupsClient            *storagesync.SyncGroupsClient
 	SubscriptionId              string
 
+	// Data plane clients using AAD auth
+	AccountsDataPlaneAADClient   *accounts.Client
+	BlobsDataPlaneAADClient      *blobs.Client
+	ContainersDataPlaneAADClient *containers.Client
+	QueuesDataPlaneAADClient     *queues.Client
+
 	ResourceManager *storage_v2022_05_01.Client
 
 	resourceManagerAuthorizer autorest.Authorizer
 	storageAdAuth             *autorest.Authorizer
+
+	// The client option is used to configure on-demand data plane clients
+	clientOpt *common.ClientOptions
 }
 
 func NewClient(options *common.ClientOptions) *Client {
@@ -89,6 +98,26 @@ func NewClient(options *common.ClientOptions) *Client {
 	syncGroupsClient := storagesync.NewSyncGroupsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&syncGroupsClient.Client, options.ResourceManagerAuthorizer)
 
+	accountsDataPlaneAADClient := accounts.NewWithEnvironment(options.AzureEnvironment)
+	options.ConfigureClient(&accountsDataPlaneAADClient.Client, options.ResourceManagerAuthorizer)
+
+	blobsDataPlaneAADClient := blobs.NewWithEnvironment(options.AzureEnvironment)
+	options.ConfigureClient(&blobsDataPlaneAADClient.Client, options.ResourceManagerAuthorizer)
+
+	containersDataPlaneAADClient := containers.NewWithEnvironment(options.AzureEnvironment)
+	options.ConfigureClient(&containersDataPlaneAADClient.Client, options.ResourceManagerAuthorizer)
+
+	queuesDataPlaneAADClient := queues.NewWithEnvironment(options.AzureEnvironment)
+	options.ConfigureClient(&queuesDataPlaneAADClient.Client, options.ResourceManagerAuthorizer)
+
+	opts := options.Clone()
+
+	// This is necessary since the data plane client that uses shared key will uses any header values that starts with "x-ms-"
+	// to build key signature: https://github.com/hashicorp/terraform-provider-azurerm/blob/8c7f98f1a1efc4c033a5d33e3b2006ef81faf5c6/vendor/github.com/Azure/go-autorest/autorest/authorization_storage.go#L265-L270
+	// The correlation request ID is added in the header after the authorization middleware (i.e. the shared key signature calc), see: https://github.com/hashicorp/terraform-provider-azurerm/blob/8c7f98f1a1efc4c033a5d33e3b2006ef81faf5c6/vendor/github.com/Azure/go-autorest/autorest/client.go#L242-L244
+	// Therefore, we can't send the request along with this header.
+	opts.DisableCorrelationRequestID = true
+
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
@@ -108,7 +137,13 @@ func NewClient(options *common.ClientOptions) *Client {
 		SyncServiceClient:           &syncServiceClient,
 		SyncGroupsClient:            &syncGroupsClient,
 
+		AccountsDataPlaneAADClient:   &accountsDataPlaneAADClient,
+		BlobsDataPlaneAADClient:      &blobsDataPlaneAADClient,
+		ContainersDataPlaneAADClient: &containersDataPlaneAADClient,
+		QueuesDataPlaneAADClient:     &queuesDataPlaneAADClient,
+
 		resourceManagerAuthorizer: options.ResourceManagerAuthorizer,
+		clientOpt:                 &opts,
 	}
 
 	if options.StorageUseAzureAD {
@@ -120,9 +155,7 @@ func NewClient(options *common.ClientOptions) *Client {
 
 func (client Client) AccountsDataPlaneClient(ctx context.Context, account accountDetails) (*accounts.Client, error) {
 	if client.storageAdAuth != nil {
-		accountsClient := accounts.NewWithEnvironment(client.Environment)
-		accountsClient.Client.Authorizer = *client.storageAdAuth
-		return &accountsClient, nil
+		return client.AccountsDataPlaneAADClient, nil
 	}
 
 	accountKey, err := account.AccountKey(ctx, client)
@@ -136,15 +169,13 @@ func (client Client) AccountsDataPlaneClient(ctx context.Context, account accoun
 	}
 
 	accountsClient := accounts.NewWithEnvironment(client.Environment)
-	accountsClient.Client.Authorizer = storageAuth
+	client.clientOpt.ConfigureClient(&accountsClient.Client, storageAuth)
 	return &accountsClient, nil
 }
 
 func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*blobs.Client, error) {
 	if client.storageAdAuth != nil {
-		blobsClient := blobs.NewWithEnvironment(client.Environment)
-		blobsClient.Client.Authorizer = *client.storageAdAuth
-		return &blobsClient, nil
+		return client.BlobsDataPlaneAADClient, nil
 	}
 
 	accountKey, err := account.AccountKey(ctx, client)
@@ -158,15 +189,13 @@ func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*
 	}
 
 	blobsClient := blobs.NewWithEnvironment(client.Environment)
-	blobsClient.Client.Authorizer = storageAuth
+	client.clientOpt.ConfigureClient(&blobsClient.Client, storageAuth)
 	return &blobsClient, nil
 }
 
 func (client Client) ContainersClient(ctx context.Context, account accountDetails) (shim.StorageContainerWrapper, error) {
 	if client.storageAdAuth != nil {
-		containersClient := containers.NewWithEnvironment(client.Environment)
-		containersClient.Client.Authorizer = *client.storageAdAuth
-		shim := shim.NewDataPlaneStorageContainerWrapper(&containersClient)
+		shim := shim.NewDataPlaneStorageContainerWrapper(client.ContainersDataPlaneAADClient)
 		return shim, nil
 	}
 
@@ -181,7 +210,7 @@ func (client Client) ContainersClient(ctx context.Context, account accountDetail
 	}
 
 	containersClient := containers.NewWithEnvironment(client.Environment)
-	containersClient.Client.Authorizer = storageAuth
+	client.clientOpt.ConfigureClient(&containersClient.Client, storageAuth)
 
 	shim := shim.NewDataPlaneStorageContainerWrapper(&containersClient)
 	return shim, nil
@@ -201,7 +230,7 @@ func (client Client) FileShareDirectoriesClient(ctx context.Context, account acc
 	}
 
 	directoriesClient := directories.NewWithEnvironment(client.Environment)
-	directoriesClient.Client.Authorizer = storageAuth
+	client.clientOpt.ConfigureClient(&directoriesClient.Client, storageAuth)
 	return &directoriesClient, nil
 }
 
@@ -219,7 +248,7 @@ func (client Client) FileShareFilesClient(ctx context.Context, account accountDe
 	}
 
 	filesClient := files.NewWithEnvironment(client.Environment)
-	filesClient.Client.Authorizer = storageAuth
+	client.clientOpt.ConfigureClient(&filesClient.Client, storageAuth)
 	return &filesClient, nil
 }
 
@@ -237,16 +266,14 @@ func (client Client) FileSharesClient(ctx context.Context, account accountDetail
 	}
 
 	sharesClient := shares.NewWithEnvironment(client.Environment)
-	sharesClient.Client.Authorizer = storageAuth
+	client.clientOpt.ConfigureClient(&sharesClient.Client, storageAuth)
 	shim := shim.NewDataPlaneStorageShareWrapper(&sharesClient)
 	return shim, nil
 }
 
 func (client Client) QueuesClient(ctx context.Context, account accountDetails) (shim.StorageQueuesWrapper, error) {
 	if client.storageAdAuth != nil {
-		queueClient := queues.NewWithEnvironment(client.Environment)
-		queueClient.Client.Authorizer = *client.storageAdAuth
-		return shim.NewDataPlaneStorageQueueWrapper(&queueClient), nil
+		return shim.NewDataPlaneStorageQueueWrapper(client.QueuesDataPlaneAADClient), nil
 	}
 
 	accountKey, err := account.AccountKey(ctx, client)
@@ -260,7 +287,7 @@ func (client Client) QueuesClient(ctx context.Context, account accountDetails) (
 	}
 
 	queuesClient := queues.NewWithEnvironment(client.Environment)
-	queuesClient.Client.Authorizer = storageAuth
+	client.clientOpt.ConfigureClient(&queuesClient.Client, storageAuth)
 	return shim.NewDataPlaneStorageQueueWrapper(&queuesClient), nil
 }
 
@@ -278,7 +305,7 @@ func (client Client) TableEntityClient(ctx context.Context, account accountDetai
 	}
 
 	entitiesClient := entities.NewWithEnvironment(client.Environment)
-	entitiesClient.Client.Authorizer = storageAuth
+	client.clientOpt.ConfigureClient(&entitiesClient.Client, storageAuth)
 	return &entitiesClient, nil
 }
 
@@ -296,7 +323,7 @@ func (client Client) TablesClient(ctx context.Context, account accountDetails) (
 	}
 
 	tablesClient := tables.NewWithEnvironment(client.Environment)
-	tablesClient.Client.Authorizer = storageAuth
+	client.clientOpt.ConfigureClient(&tablesClient.Client, storageAuth)
 	shim := shim.NewDataPlaneStorageTableWrapper(&tablesClient)
 	return shim, nil
 }
