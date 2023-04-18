@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -109,7 +109,7 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 		"control_plane_access_ipv4_gateway": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.IsIPv6Address,
+			ValidateFunc: validation.IsIPv4Address,
 		},
 
 		"site_ids": {
@@ -291,7 +291,7 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			properties := packetcorecontrolplane.PacketCoreControlPlane{
+			controlPlane := packetcorecontrolplane.PacketCoreControlPlane{
 				Name:     &model.Name,
 				Identity: identityValue,
 				Location: location.Normalize(model.Location),
@@ -305,8 +305,7 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.CoreNetworkTechnology != "" {
-				value := packetcorecontrolplane.CoreNetworkType(model.CoreNetworkTechnology)
-				props.CoreNetworkTechnology = &value
+				props.CoreNetworkTechnology = pointer.To(packetcorecontrolplane.CoreNetworkType(model.CoreNetworkTechnology))
 			}
 
 			props.ControlPlaneAccessInterface = packetcorecontrolplane.InterfaceProperties{}
@@ -347,9 +346,9 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 				props.Version = &model.Version
 			}
 
-			properties.Properties = props
+			controlPlane.Properties = props
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, controlPlane); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -410,8 +409,7 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("core_network_technology") {
-				value := packetcorecontrolplane.CoreNetworkType(plan.CoreNetworkTechnology)
-				model.Properties.CoreNetworkTechnology = &value
+				model.Properties.CoreNetworkTechnology = pointer.To(packetcorecontrolplane.CoreNetworkType(plan.CoreNetworkTechnology))
 			}
 
 			if metadata.ResourceData.HasChange("interoperability_settings_json") {
@@ -488,10 +486,6 @@ func (r PacketCoreControlPlaneResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 
-				if model.Properties.UeMtu != nil {
-					state.UeMtu = *model.Properties.UeMtu
-				}
-
 				state.Identity, err = flattenMobileNetworkUserAssignedToNetworkLegacyIdentity(model.Identity)
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
@@ -499,27 +493,21 @@ func (r PacketCoreControlPlaneResource) Read() sdk.ResourceFunc {
 
 				properties := model.Properties
 
-				if properties.ControlPlaneAccessInterface.IPv4Address != nil {
-					state.ControlPlaneAccessIPv4Address = *properties.ControlPlaneAccessInterface.IPv4Address
+				state.UeMtu = pointer.From(model.Properties.UeMtu)
+
+				state.ControlPlaneAccessIPv4Address = pointer.From(properties.ControlPlaneAccessInterface.IPv4Address)
+
+				state.ControlPlaneAccessIPv4Gateway = pointer.From(properties.ControlPlaneAccessInterface.IPv4Gateway)
+
+				state.ControlPlaneAccessIPv4Subnet = pointer.From(properties.ControlPlaneAccessInterface.IPv4Subnet)
+
+				state.ControlPlaneAccessName = pointer.From(properties.ControlPlaneAccessInterface.Name)
+
+				if properties.CoreNetworkTechnology != nil { // it still needs a nil check because it needs to do type conversion
+					state.CoreNetworkTechnology = string(pointer.From(properties.CoreNetworkTechnology))
 				}
 
-				if properties.ControlPlaneAccessInterface.IPv4Gateway != nil {
-					state.ControlPlaneAccessIPv4Gateway = *properties.ControlPlaneAccessInterface.IPv4Gateway
-				}
-
-				if properties.ControlPlaneAccessInterface.IPv4Subnet != nil {
-					state.ControlPlaneAccessIPv4Subnet = *properties.ControlPlaneAccessInterface.IPv4Subnet
-				}
-
-				if properties.ControlPlaneAccessInterface.Name != nil {
-					state.ControlPlaneAccessName = *properties.ControlPlaneAccessInterface.Name
-				}
-
-				if properties.CoreNetworkTechnology != nil {
-					state.CoreNetworkTechnology = string(*properties.CoreNetworkTechnology)
-				}
-
-				if properties.InteropSettings != nil && *properties.InteropSettings != nil {
+				if properties.InteropSettings != nil && *properties.InteropSettings != nil { // Marshal on a nil interface{} may get random result.
 					interopSettingsValue, err := json.Marshal(*properties.InteropSettings)
 					if err != nil {
 						return err
@@ -536,12 +524,8 @@ func (r PacketCoreControlPlaneResource) Read() sdk.ResourceFunc {
 
 				state.Sku = string(properties.Sku)
 
-				if properties.Version != nil {
-					state.Version = *properties.Version
-				}
-				if model.Tags != nil {
-					state.Tags = *model.Tags
-				}
+				state.Version = pointer.From(properties.Version)
+				state.Tags = pointer.From(model.Tags)
 			}
 
 			return metadata.Encode(&state)
@@ -588,8 +572,8 @@ func expandPacketCoreControlPlaneSites(input []string) []packetcorecontrolplane.
 
 func flattenPacketCoreControlPlaneSites(input []packetcorecontrolplane.SiteResourceId) []string {
 	outputs := make([]string, 0)
-	for _, site := range input {
-		outputs = append(outputs, site.Id)
+	for _, s := range input {
+		outputs = append(outputs, s.Id)
 	}
 	return outputs
 }
@@ -629,10 +613,6 @@ func expandPlatformConfigurationModel(inputList []PlatformConfigurationModel) (p
 
 	output.Type = packetcorecontrolplane.PlatformType(input.Type)
 
-	if pass, err := verifyPlatformConfigurationModel(input); !pass {
-		return output, err
-	}
-
 	if input.AzureStackEdgeDeviceId != "" {
 		output.AzureStackEdgeDevice = &packetcorecontrolplane.AzureStackEdgeDeviceResourceId{
 			Id: input.AzureStackEdgeDeviceId,
@@ -658,32 +638,6 @@ func expandPlatformConfigurationModel(inputList []PlatformConfigurationModel) (p
 	}
 
 	return output, nil
-}
-
-func verifyPlatformConfigurationModel(input PlatformConfigurationModel) (bool, error) {
-	idList := make([]string, 0)
-	if input.AzureStackEdgeDeviceId != "" {
-		idList = append(idList, input.AzureStackEdgeDeviceId)
-	}
-	if input.AzureStackHciClusterId != "" {
-		idList = append(idList, input.AzureStackHciClusterId)
-	}
-	if input.ConnectedClusterId != "" {
-		idList = append(idList, input.ConnectedClusterId)
-	}
-
-	if len(idList) == 0 {
-		return false, fmt.Errorf("at least one of `arc_kubernetes_cluster_id`, `stack_hci_cluster_id` and `custom_location_id` should be specified")
-	}
-
-	firstId := idList[0]
-	for _, id := range idList {
-		if !strings.EqualFold(firstId, id) {
-			return false, fmt.Errorf("if multiple of `arc_kubernetes_cluster_id`, `stack_hci_cluster_id` and `custom_location_id` are specified, they should be consistent with each other")
-		}
-	}
-
-	return true, nil
 }
 
 func flattenPlatformConfigurationModel(input packetcorecontrolplane.PlatformConfiguration) []PlatformConfigurationModel {

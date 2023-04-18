@@ -37,17 +37,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
-* `location` - The Azure Region where the Mobile Network Packet Core Control Plane should exist. 
+* `location` - The Azure Region where the Mobile Network Packet Core Control Plane exists. 
 
-* `site_ids` - A list of IDs of Mobile Network Sites in which this packet core control plane should be deployed.
+* `site_ids` - The list of Mobile Network Site IDs in which this packet core control plane deployed.
 
 * `sku` - The SKU defining the throughput and SIM allowances for this packet core control plane deployment. 
 
-* `local_diagnostics_access` - One or more `local_diagnostics_access` block as defined below. The kubernetes ingress configuration to control access to packet core diagnostics over local APIs.
+* `local_diagnostics_access` - One or more `local_diagnostics_access` blocks as defined below. The kubernetes ingress configuration that controls access to the packet core diagnostics through local APIs.
 
-* `control_plane_access_interface` - A `control_plane_access_interface` block as defined below. The control plane interface on the access network. For 5G networks, this is the N2 interface. For 4G networks, this is the S1-MME interface.
+* `control_plane_access_interface` - A `control_plane_access_interface` block as defined below. The control plane interface on the access network.
 
-* `user_equipment_mtu_in_bytes` - the MTU (in bytes) signaled to the UE. 
+* `user_equipment_mtu_in_bytes` - The MTU in bytes that can be sent to the user equipment.
 
 * `core_network_technology` - The core network technology generation.
 
@@ -55,7 +55,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
-* `interop_json` - Settings in JSON format to allow interoperability with third party components.
+* `interoperability_settings_json` - Settings in JSON format to allow interoperability with third party components e.g. RANs and UEs.
 
 * `tags` - A mapping of tags of Mobile Network Packet Core Control Plane.
 
@@ -79,7 +79,7 @@ A `local_diagnostics_access` block supports the following:
 
 * `authentication_type` - How to authenticate users who access local diagnostics APIs. 
 
-* `https_server_certificate_url` - A versionless certificate URL, which used to secure local access to packet core diagnostics over local APIs by the kubernetes ingress.
+* `https_server_certificate_url` - The versionless certificate URL used to secure local access to packet core diagnostics over local APIs by the Kubernetes ingress.
 
 ---
 
@@ -93,13 +93,13 @@ An `identity` block supports the following:
 
 A `platform` block supports the following:
 
-* `type` - The platform type where packet core is deployed.
+* `type` - The platform type where the packet core is deployed.
 
 * `edge_device_id` - The ID of Azure Stack Edge device where the packet core is deployed. 
 
 * `arc_kubernetes_cluster_id` - The ID of Azure Arc connected cluster where the packet core is deployed.
 
-* `stack_hci_cluster_id` - The ID of Azure Stack HCI clusterwhere the packet core is deployed.
+* `stack_hci_cluster_id` - The ID of Azure Stack HCI cluster where the packet core is deployed.
 
 * `custom_location_id` -  The ID of Azure Arc custom location where the packet core is deployed.
 

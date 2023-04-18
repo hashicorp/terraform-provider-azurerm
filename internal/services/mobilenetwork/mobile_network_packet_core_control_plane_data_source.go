@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcorecontrolplane"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -189,42 +189,28 @@ func (r PacketCoreControlPlaneDataSource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 
-				if model.Properties.UeMtu != nil {
-					state.UeMtu = *model.Properties.UeMtu
-				}
-
-				identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+				state.Identity, err = flattenMobileNetworkUserAssignedToNetworkLegacyIdentity(model.Identity)
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
 
-				if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
-					return fmt.Errorf("setting `identity`: %+v", err)
-				}
-
 				properties := model.Properties
 
-				if properties.ControlPlaneAccessInterface.IPv4Address != nil {
-					state.ControlPlaneAccessIPv4Address = *properties.ControlPlaneAccessInterface.IPv4Address
+				state.UeMtu = pointer.From(model.Properties.UeMtu)
+
+				state.ControlPlaneAccessIPv4Address = pointer.From(properties.ControlPlaneAccessInterface.IPv4Address)
+
+				state.ControlPlaneAccessIPv4Gateway = pointer.From(properties.ControlPlaneAccessInterface.IPv4Gateway)
+
+				state.ControlPlaneAccessIPv4Subnet = pointer.From(properties.ControlPlaneAccessInterface.IPv4Subnet)
+
+				state.ControlPlaneAccessName = pointer.From(properties.ControlPlaneAccessInterface.Name)
+
+				if properties.CoreNetworkTechnology != nil { // it still needs a nil check because it needs to do type conversion
+					state.CoreNetworkTechnology = string(pointer.From(properties.CoreNetworkTechnology))
 				}
 
-				if properties.ControlPlaneAccessInterface.IPv4Gateway != nil {
-					state.ControlPlaneAccessIPv4Gateway = *properties.ControlPlaneAccessInterface.IPv4Gateway
-				}
-
-				if properties.ControlPlaneAccessInterface.IPv4Subnet != nil {
-					state.ControlPlaneAccessIPv4Subnet = *properties.ControlPlaneAccessInterface.IPv4Subnet
-				}
-
-				if properties.ControlPlaneAccessInterface.Name != nil {
-					state.ControlPlaneAccessName = *properties.ControlPlaneAccessInterface.Name
-				}
-
-				if properties.CoreNetworkTechnology != nil {
-					state.CoreNetworkTechnology = string(*properties.CoreNetworkTechnology)
-				}
-
-				if properties.InteropSettings != nil && *properties.InteropSettings != nil {
+				if properties.InteropSettings != nil && *properties.InteropSettings != nil { // Marshal on a nil interface{} may get random result.
 					interopSettingsValue, err := json.Marshal(*properties.InteropSettings)
 					if err != nil {
 						return err
@@ -237,17 +223,12 @@ func (r PacketCoreControlPlaneDataSource) Read() sdk.ResourceFunc {
 
 				state.SiteIds = flattenPacketCoreControlPlaneSites(properties.Sites)
 
-				platformValue := flattenPlatformConfigurationModel(properties.Platform)
-				state.Platform = platformValue
+				state.Platform = flattenPlatformConfigurationModel(properties.Platform)
 
 				state.Sku = string(properties.Sku)
 
-				if properties.Version != nil {
-					state.Version = *properties.Version
-				}
-				if model.Tags != nil {
-					state.Tags = *model.Tags
-				}
+				state.Version = pointer.From(properties.Version)
+				state.Tags = pointer.From(model.Tags)
 			}
 
 			metadata.SetID(id)
