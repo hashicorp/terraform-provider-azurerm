@@ -27,6 +27,7 @@ func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
+
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
