@@ -12,36 +12,36 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ReplicationProtectedItemProperties struct {
-	ActiveLocation                          *string                             `json:"activeLocation,omitempty"`
-	AllowedOperations                       *[]string                           `json:"allowedOperations,omitempty"`
-	CurrentScenario                         *CurrentScenarioDetails             `json:"currentScenario,omitempty"`
-	EventCorrelationId                      *string                             `json:"eventCorrelationId,omitempty"`
-	FailoverHealth                          *string                             `json:"failoverHealth,omitempty"`
-	FailoverRecoveryPointId                 *string                             `json:"failoverRecoveryPointId,omitempty"`
-	FriendlyName                            *string                             `json:"friendlyName,omitempty"`
-	HealthErrors                            *[]HealthError                      `json:"healthErrors,omitempty"`
-	LastSuccessfulFailoverTime              *string                             `json:"lastSuccessfulFailoverTime,omitempty"`
-	LastSuccessfulTestFailoverTime          *string                             `json:"lastSuccessfulTestFailoverTime,omitempty"`
-	PolicyFriendlyName                      *string                             `json:"policyFriendlyName,omitempty"`
-	PolicyId                                *string                             `json:"policyId,omitempty"`
-	PrimaryFabricFriendlyName               *string                             `json:"primaryFabricFriendlyName,omitempty"`
-	PrimaryFabricProvider                   *string                             `json:"primaryFabricProvider,omitempty"`
-	PrimaryProtectionContainerFriendlyName  *string                             `json:"primaryProtectionContainerFriendlyName,omitempty"`
-	ProtectableItemId                       *string                             `json:"protectableItemId,omitempty"`
-	ProtectedItemType                       *string                             `json:"protectedItemType,omitempty"`
-	ProtectionState                         *string                             `json:"protectionState,omitempty"`
-	ProtectionStateDescription              *string                             `json:"protectionStateDescription,omitempty"`
-	ProviderSpecificDetails                 ReplicationProviderSpecificSettings `json:"providerSpecificDetails"`
-	RecoveryContainerId                     *string                             `json:"recoveryContainerId,omitempty"`
-	RecoveryFabricFriendlyName              *string                             `json:"recoveryFabricFriendlyName,omitempty"`
-	RecoveryFabricId                        *string                             `json:"recoveryFabricId,omitempty"`
-	RecoveryProtectionContainerFriendlyName *string                             `json:"recoveryProtectionContainerFriendlyName,omitempty"`
-	RecoveryServicesProviderId              *string                             `json:"recoveryServicesProviderId,omitempty"`
-	ReplicationHealth                       *string                             `json:"replicationHealth,omitempty"`
-	SwitchProviderState                     *string                             `json:"switchProviderState,omitempty"`
-	SwitchProviderStateDescription          *string                             `json:"switchProviderStateDescription,omitempty"`
-	TestFailoverState                       *string                             `json:"testFailoverState,omitempty"`
-	TestFailoverStateDescription            *string                             `json:"testFailoverStateDescription,omitempty"`
+	ActiveLocation                          *string                              `json:"activeLocation,omitempty"`
+	AllowedOperations                       *[]string                            `json:"allowedOperations,omitempty"`
+	CurrentScenario                         *CurrentScenarioDetails              `json:"currentScenario,omitempty"`
+	EventCorrelationId                      *string                              `json:"eventCorrelationId,omitempty"`
+	FailoverHealth                          *string                              `json:"failoverHealth,omitempty"`
+	FailoverRecoveryPointId                 *string                              `json:"failoverRecoveryPointId,omitempty"`
+	FriendlyName                            *string                              `json:"friendlyName,omitempty"`
+	HealthErrors                            *[]HealthError                       `json:"healthErrors,omitempty"`
+	LastSuccessfulFailoverTime              *string                              `json:"lastSuccessfulFailoverTime,omitempty"`
+	LastSuccessfulTestFailoverTime          *string                              `json:"lastSuccessfulTestFailoverTime,omitempty"`
+	PolicyFriendlyName                      *string                              `json:"policyFriendlyName,omitempty"`
+	PolicyId                                *string                              `json:"policyId,omitempty"`
+	PrimaryFabricFriendlyName               *string                              `json:"primaryFabricFriendlyName,omitempty"`
+	PrimaryFabricProvider                   *string                              `json:"primaryFabricProvider,omitempty"`
+	PrimaryProtectionContainerFriendlyName  *string                              `json:"primaryProtectionContainerFriendlyName,omitempty"`
+	ProtectableItemId                       *string                              `json:"protectableItemId,omitempty"`
+	ProtectedItemType                       *string                              `json:"protectedItemType,omitempty"`
+	ProtectionState                         *string                              `json:"protectionState,omitempty"`
+	ProtectionStateDescription              *string                              `json:"protectionStateDescription,omitempty"`
+	ProviderSpecificDetails                 *ReplicationProviderSpecificSettings `json:"providerSpecificDetails,omitempty"`
+	RecoveryContainerId                     *string                              `json:"recoveryContainerId,omitempty"`
+	RecoveryFabricFriendlyName              *string                              `json:"recoveryFabricFriendlyName,omitempty"`
+	RecoveryFabricId                        *string                              `json:"recoveryFabricId,omitempty"`
+	RecoveryProtectionContainerFriendlyName *string                              `json:"recoveryProtectionContainerFriendlyName,omitempty"`
+	RecoveryServicesProviderId              *string                              `json:"recoveryServicesProviderId,omitempty"`
+	ReplicationHealth                       *string                              `json:"replicationHealth,omitempty"`
+	SwitchProviderState                     *string                              `json:"switchProviderState,omitempty"`
+	SwitchProviderStateDescription          *string                              `json:"switchProviderStateDescription,omitempty"`
+	TestFailoverState                       *string                              `json:"testFailoverState,omitempty"`
+	TestFailoverStateDescription            *string                              `json:"testFailoverStateDescription,omitempty"`
 }
 
 func (o *ReplicationProtectedItemProperties) GetLastSuccessfulFailoverTimeAsTime() (*time.Time, error) {
@@ -117,7 +117,7 @@ func (s *ReplicationProtectedItemProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificDetails' for 'ReplicationProtectedItemProperties': %+v", err)
 		}
-		s.ProviderSpecificDetails = impl
+		s.ProviderSpecificDetails = &impl
 	}
 	return nil
 }

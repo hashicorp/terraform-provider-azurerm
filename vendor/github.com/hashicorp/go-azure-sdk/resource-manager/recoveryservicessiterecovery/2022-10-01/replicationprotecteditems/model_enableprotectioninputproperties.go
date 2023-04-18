@@ -9,9 +9,9 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EnableProtectionInputProperties struct {
-	PolicyId                *string                               `json:"policyId,omitempty"`
-	ProtectableItemId       *string                               `json:"protectableItemId,omitempty"`
-	ProviderSpecificDetails EnableProtectionProviderSpecificInput `json:"providerSpecificDetails"`
+	PolicyId                *string                                `json:"policyId,omitempty"`
+	ProtectableItemId       *string                                `json:"protectableItemId,omitempty"`
+	ProviderSpecificDetails *EnableProtectionProviderSpecificInput `json:"providerSpecificDetails,omitempty"`
 }
 
 var _ json.Unmarshaler = &EnableProtectionInputProperties{}
@@ -36,7 +36,7 @@ func (s *EnableProtectionInputProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificDetails' for 'EnableProtectionInputProperties': %+v", err)
 		}
-		s.ProviderSpecificDetails = impl
+		s.ProviderSpecificDetails = &impl
 	}
 	return nil
 }

@@ -9,7 +9,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type FunctionConfiguration struct {
-	Binding FunctionBinding  `json:"binding"`
+	Binding *FunctionBinding `json:"binding,omitempty"`
 	Inputs  *[]FunctionInput `json:"inputs,omitempty"`
 	Output  *FunctionOutput  `json:"output,omitempty"`
 }
@@ -36,7 +36,7 @@ func (s *FunctionConfiguration) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Binding' for 'FunctionConfiguration': %+v", err)
 		}
-		s.Binding = impl
+		s.Binding = &impl
 	}
 	return nil
 }

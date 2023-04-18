@@ -14,8 +14,8 @@ type AzureIaaSVMProtectionPolicy struct {
 	InstantRPDetails              *InstantRPAdditionalDetails `json:"instantRPDetails,omitempty"`
 	InstantRpRetentionRangeInDays *int64                      `json:"instantRpRetentionRangeInDays,omitempty"`
 	PolicyType                    *IAASVMPolicyType           `json:"policyType,omitempty"`
-	RetentionPolicy               RetentionPolicy             `json:"retentionPolicy"`
-	SchedulePolicy                SchedulePolicy              `json:"schedulePolicy"`
+	RetentionPolicy               *RetentionPolicy            `json:"retentionPolicy,omitempty"`
+	SchedulePolicy                *SchedulePolicy             `json:"schedulePolicy,omitempty"`
 	TieringPolicy                 *map[string]TieringPolicy   `json:"tieringPolicy,omitempty"`
 	TimeZone                      *string                     `json:"timeZone,omitempty"`
 
@@ -75,7 +75,7 @@ func (s *AzureIaaSVMProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RetentionPolicy' for 'AzureIaaSVMProtectionPolicy': %+v", err)
 		}
-		s.RetentionPolicy = impl
+		s.RetentionPolicy = &impl
 	}
 
 	if v, ok := temp["schedulePolicy"]; ok {
@@ -83,7 +83,7 @@ func (s *AzureIaaSVMProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'SchedulePolicy' for 'AzureIaaSVMProtectionPolicy': %+v", err)
 		}
-		s.SchedulePolicy = impl
+		s.SchedulePolicy = &impl
 	}
 	return nil
 }

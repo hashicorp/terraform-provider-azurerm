@@ -71,7 +71,7 @@ func (s *MetricAlertProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Criteria' for 'MetricAlertProperties': %+v", err)
 		}
-		s.Criteria = impl
+		s.Criteria = &impl
 	}
 	return nil
 }

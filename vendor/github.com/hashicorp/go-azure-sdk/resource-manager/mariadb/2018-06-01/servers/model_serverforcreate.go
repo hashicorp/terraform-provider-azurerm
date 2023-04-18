@@ -38,7 +38,7 @@ func (s *ServerForCreate) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Properties' for 'ServerForCreate': %+v", err)
 		}
-		s.Properties = impl
+		s.Properties = &impl
 	}
 	return nil
 }

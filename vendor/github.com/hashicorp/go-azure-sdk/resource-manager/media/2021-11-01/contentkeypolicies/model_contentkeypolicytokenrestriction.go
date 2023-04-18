@@ -88,7 +88,7 @@ func (s *ContentKeyPolicyTokenRestriction) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'PrimaryVerificationKey' for 'ContentKeyPolicyTokenRestriction': %+v", err)
 		}
-		s.PrimaryVerificationKey = impl
+		s.PrimaryVerificationKey = &impl
 	}
 	return nil
 }

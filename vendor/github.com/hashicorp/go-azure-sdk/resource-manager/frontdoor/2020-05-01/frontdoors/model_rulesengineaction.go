@@ -9,9 +9,9 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type RulesEngineAction struct {
-	RequestHeaderActions       *[]HeaderAction    `json:"requestHeaderActions,omitempty"`
-	ResponseHeaderActions      *[]HeaderAction    `json:"responseHeaderActions,omitempty"`
-	RouteConfigurationOverride RouteConfiguration `json:"routeConfigurationOverride"`
+	RequestHeaderActions       *[]HeaderAction     `json:"requestHeaderActions,omitempty"`
+	ResponseHeaderActions      *[]HeaderAction     `json:"responseHeaderActions,omitempty"`
+	RouteConfigurationOverride *RouteConfiguration `json:"routeConfigurationOverride,omitempty"`
 }
 
 var _ json.Unmarshaler = &RulesEngineAction{}
@@ -36,7 +36,7 @@ func (s *RulesEngineAction) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RouteConfigurationOverride' for 'RulesEngineAction': %+v", err)
 		}
-		s.RouteConfigurationOverride = impl
+		s.RouteConfigurationOverride = &impl
 	}
 	return nil
 }
