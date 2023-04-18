@@ -19,11 +19,11 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
-  name                     = "examplestr"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "examplestr"
+  resource_group_name             = azurerm_resource_group.example.name
+  location                        = azurerm_resource_group.example.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
   allow_nested_items_to_be_public = true
 }
 
@@ -40,11 +40,11 @@ resource "azurerm_storage_mover" "example" {
 }
 
 resource "azurerm_storage_mover_target_endpoint" "example" {
-  name                    = "example-se"
-  storage_mover_id        = azurerm_storage_mover.example.id
-  storage_account_id      = azurerm_storage_account.example.id
-  storage_container_name  = azurerm_storage_container.example.name
-  description             = "Example Storage Container Endpoint Description"
+  name                   = "example-se"
+  storage_mover_id       = azurerm_storage_mover.example.id
+  storage_account_id     = azurerm_storage_account.example.id
+  storage_container_name = azurerm_storage_container.example.name
+  description            = "Example Storage Container Endpoint Description"
 }
 
 ```
