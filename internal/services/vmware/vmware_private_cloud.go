@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func flattenPrivateCloudManagementCluster(input privateclouds.ManagementCluster) []interface{} {
+func flattenPrivateCloudManagementCluster(input privateclouds.CommonClusterProperties) []interface{} {
 	return []interface{}{
 		map[string]interface{}{
 			"size":  input.ClusterSize,
