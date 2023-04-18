@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/views"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -237,9 +238,7 @@ func (br costManagementViewBaseResource) readFunc(scopeFieldName string) sdk.Res
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					if chart := props.Chart; chart != nil {
-						metadata.ResourceData.Set("chart_type", chart)
-					}
+					metadata.ResourceData.Set("chart_type", string(pointer.From(props.Chart)))
 
 					accumulated := false
 					if props.Accumulated != nil {

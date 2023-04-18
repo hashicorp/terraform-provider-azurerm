@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -240,7 +241,11 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 	d.Set("kubernetes_cluster_id", aksId.ID())
-	d.Set("cluster_purpose", aksComputeProperties.Properties.ClusterPurpose)
+	clusterPurpose := ""
+	if aksComputeProperties.Properties != nil {
+		clusterPurpose = string(pointer.From(aksComputeProperties.Properties.ClusterPurpose))
+	}
+	d.Set("cluster_purpose", clusterPurpose)
 	d.Set("description", aksComputeProperties.Description)
 
 	// Retrieve location

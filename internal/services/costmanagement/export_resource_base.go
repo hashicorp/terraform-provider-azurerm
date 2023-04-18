@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/blobcontainers"
@@ -176,7 +177,7 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 						status := *schedule.Status == exports.StatusTypeActive
 
 						metadata.ResourceData.Set("active", status)
-						metadata.ResourceData.Set("recurrence_type", schedule.Recurrence)
+						metadata.ResourceData.Set("recurrence_type", string(pointer.From(schedule.Recurrence)))
 					}
 
 					exportDeliveryInfo, err := flattenExportDataStorageLocation(&props.DeliveryInfo)
