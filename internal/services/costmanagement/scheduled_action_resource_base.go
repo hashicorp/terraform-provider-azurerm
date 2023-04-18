@@ -25,7 +25,7 @@ func (br costManagementScheduledActionBaseResource) arguments(fields map[string]
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"view_name": {
+		"view_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -140,7 +140,10 @@ func (br costManagementScheduledActionBaseResource) createFunc(resourceName, sco
 				return tf.ImportAsExistsError(resourceName, id.ID())
 			}
 
-			viewId := views.NewScopedViewID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("view_name").(string))
+			viewId, err := views.ParseScopedViewID(metadata.ResourceData.Get("view_id").(string))
+			if err != nil {
+				return err
+			}
 
 			var daysOfWeek []scheduledactions.DaysOfWeek
 			if len(metadata.ResourceData.Get("days_of_week").([]interface{})) > 0 {
@@ -227,7 +230,7 @@ func (br costManagementScheduledActionBaseResource) readFunc(scopeFieldName stri
 					if err != nil {
 						return err
 					}
-					metadata.ResourceData.Set("view_name", viewId.ViewName)
+					metadata.ResourceData.Set("view_id", viewId.ID())
 
 					metadata.ResourceData.Set("email_subject", props.Notification.Subject)
 					metadata.ResourceData.Set("email_addresses", props.Notification.To)
@@ -297,8 +300,12 @@ func (br costManagementScheduledActionBaseResource) updateFunc() sdk.ResourceFun
 					model.Properties.DisplayName = metadata.ResourceData.Get("display_name").(string)
 				}
 
-				if metadata.ResourceData.HasChange("view_name") {
-					model.Properties.ViewId = views.NewScopedViewID(id.Scope, metadata.ResourceData.Get("view_name").(string)).ID()
+				if metadata.ResourceData.HasChange("view_id") {
+					id, err := views.ParseScopedViewID(metadata.ResourceData.Get("view_id").(string))
+					if err != nil {
+						return err
+					}
+					model.Properties.ViewId = id.ID()
 				}
 
 				if metadata.ResourceData.HasChange("email_subject") {

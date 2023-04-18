@@ -114,7 +114,7 @@ resource "azurerm_subscription_cost_management_scheduled_action" "test" {
   name            = "testcostview%s"
   subscription_id = data.azurerm_subscription.test.id
 
-  view_name = "ms:CostByService"
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
 
   display_name         = "CostByServiceView%s"
   email_subject        = substr("Cost Management Report for ${data.azurerm_subscription.test.display_name} Subscription", 0, 70)
@@ -143,7 +143,7 @@ resource "azurerm_subscription_cost_management_scheduled_action" "test" {
   name            = "testcostview%s"
   subscription_id = data.azurerm_subscription.test.id
 
-  view_name = "ms:CostByService"
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
 
   display_name         = "CostByServiceView%s"
   message              = "Hi"
@@ -175,7 +175,7 @@ resource "azurerm_subscription_cost_management_scheduled_action" "test" {
   name            = "testcostview%s"
   subscription_id = data.azurerm_subscription.test.id
 
-  view_name = "ms:CostByService"
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
 
   display_name         = "CostByServiceView%s"
   message              = "Hi"
@@ -207,7 +207,7 @@ resource "azurerm_subscription_cost_management_scheduled_action" "test" {
   name            = "testcostview%s"
   subscription_id = data.azurerm_subscription.test.id
 
-  view_name = "ms:CostByService"
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
 
   display_name         = "CostByServiceView%s"
   message              = "Hi"
@@ -233,7 +233,7 @@ resource "azurerm_subscription_cost_management_scheduled_action" "import" {
   name            = azurerm_subscription_cost_management_scheduled_action.test.name
   subscription_id = azurerm_subscription_cost_management_scheduled_action.test.subscription_id
 
-  view_name = azurerm_subscription_cost_management_scheduled_action.test.view_name
+  view_id = azurerm_subscription_cost_management_scheduled_action.test.view_id
 
   display_name         = azurerm_subscription_cost_management_scheduled_action.test.display_name
   email_subject        = azurerm_subscription_cost_management_scheduled_action.test.email_subject
