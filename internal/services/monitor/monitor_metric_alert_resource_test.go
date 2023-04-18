@@ -510,7 +510,9 @@ resource "azurerm_monitor_metric_alert" "test" {
     operator               = "GreaterOrLessThan"
     alert_sensitivity      = "Medium"
     skip_metric_validation = true
-
+    evaluation_failure_count = 4	
+    evaluation_total_count   = 5	
+    ignore_data_before       = "2022-03-02T15:04:05Z"
   }
   window_size              = "PT5M"
   frequency                = "PT5M"
