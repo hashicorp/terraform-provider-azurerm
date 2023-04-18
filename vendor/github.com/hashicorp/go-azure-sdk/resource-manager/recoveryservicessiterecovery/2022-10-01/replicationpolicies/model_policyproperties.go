@@ -9,8 +9,8 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PolicyProperties struct {
-	FriendlyName            *string                       `json:"friendlyName,omitempty"`
-	ProviderSpecificDetails PolicyProviderSpecificDetails `json:"providerSpecificDetails"`
+	FriendlyName            *string                        `json:"friendlyName,omitempty"`
+	ProviderSpecificDetails *PolicyProviderSpecificDetails `json:"providerSpecificDetails,omitempty"`
 }
 
 var _ json.Unmarshaler = &PolicyProperties{}
@@ -34,7 +34,7 @@ func (s *PolicyProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificDetails' for 'PolicyProperties': %+v", err)
 		}
-		s.ProviderSpecificDetails = impl
+		s.ProviderSpecificDetails = &impl
 	}
 	return nil
 }

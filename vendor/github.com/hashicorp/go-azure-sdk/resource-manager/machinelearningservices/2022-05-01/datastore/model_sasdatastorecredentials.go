@@ -54,7 +54,7 @@ func (s *SasDatastoreCredentials) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Secrets' for 'SasDatastoreCredentials': %+v", err)
 		}
-		s.Secrets = impl
+		s.Secrets = &impl
 	}
 	return nil
 }

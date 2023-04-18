@@ -34,7 +34,7 @@ func (s *UpdateApplianceForReplicationProtectedItemInputProperties) UnmarshalJSO
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificDetails' for 'UpdateApplianceForReplicationProtectedItemInputProperties': %+v", err)
 		}
-		s.ProviderSpecificDetails = impl
+		s.ProviderSpecificDetails = &impl
 	}
 	return nil
 }

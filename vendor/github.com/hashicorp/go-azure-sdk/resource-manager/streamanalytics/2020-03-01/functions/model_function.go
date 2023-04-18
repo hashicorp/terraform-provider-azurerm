@@ -9,10 +9,10 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Function struct {
-	Id         *string            `json:"id,omitempty"`
-	Name       *string            `json:"name,omitempty"`
-	Properties FunctionProperties `json:"properties"`
-	Type       *string            `json:"type,omitempty"`
+	Id         *string             `json:"id,omitempty"`
+	Name       *string             `json:"name,omitempty"`
+	Properties *FunctionProperties `json:"properties,omitempty"`
+	Type       *string             `json:"type,omitempty"`
 }
 
 var _ json.Unmarshaler = &Function{}
@@ -38,7 +38,7 @@ func (s *Function) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Properties' for 'Function': %+v", err)
 		}
-		s.Properties = impl
+		s.Properties = &impl
 	}
 	return nil
 }

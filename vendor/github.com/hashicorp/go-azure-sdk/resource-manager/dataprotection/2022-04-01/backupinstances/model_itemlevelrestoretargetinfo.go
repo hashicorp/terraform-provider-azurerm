@@ -11,7 +11,7 @@ import (
 var _ RestoreTargetInfoBase = ItemLevelRestoreTargetInfo{}
 
 type ItemLevelRestoreTargetInfo struct {
-	DatasourceAuthCredentials AuthCredentials            `json:"datasourceAuthCredentials"`
+	DatasourceAuthCredentials *AuthCredentials           `json:"datasourceAuthCredentials,omitempty"`
 	DatasourceInfo            Datasource                 `json:"datasourceInfo"`
 	DatasourceSetInfo         *DatasourceSet             `json:"datasourceSetInfo,omitempty"`
 	RestoreCriteria           []ItemLevelRestoreCriteria `json:"restoreCriteria"`
@@ -69,7 +69,7 @@ func (s *ItemLevelRestoreTargetInfo) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'DatasourceAuthCredentials' for 'ItemLevelRestoreTargetInfo': %+v", err)
 		}
-		s.DatasourceAuthCredentials = impl
+		s.DatasourceAuthCredentials = &impl
 	}
 
 	if v, ok := temp["restoreCriteria"]; ok {

@@ -11,7 +11,7 @@ import (
 var _ ProtectionPolicy = AzureSqlProtectionPolicy{}
 
 type AzureSqlProtectionPolicy struct {
-	RetentionPolicy RetentionPolicy `json:"retentionPolicy"`
+	RetentionPolicy *RetentionPolicy `json:"retentionPolicy,omitempty"`
 
 	// Fields inherited from ProtectionPolicy
 	ProtectedItemsCount            *int64    `json:"protectedItemsCount,omitempty"`
@@ -64,7 +64,7 @@ func (s *AzureSqlProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RetentionPolicy' for 'AzureSqlProtectionPolicy': %+v", err)
 		}
-		s.RetentionPolicy = impl
+		s.RetentionPolicy = &impl
 	}
 	return nil
 }

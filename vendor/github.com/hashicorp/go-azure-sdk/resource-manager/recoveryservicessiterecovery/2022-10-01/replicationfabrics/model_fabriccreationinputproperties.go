@@ -9,7 +9,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type FabricCreationInputProperties struct {
-	CustomDetails FabricSpecificCreationInput `json:"customDetails"`
+	CustomDetails *FabricSpecificCreationInput `json:"customDetails,omitempty"`
 }
 
 var _ json.Unmarshaler = &FabricCreationInputProperties{}
@@ -26,7 +26,7 @@ func (s *FabricCreationInputProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'CustomDetails' for 'FabricCreationInputProperties': %+v", err)
 		}
-		s.CustomDetails = impl
+		s.CustomDetails = &impl
 	}
 	return nil
 }

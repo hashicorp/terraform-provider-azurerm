@@ -11,7 +11,7 @@ import (
 type DatabaseAccountUpdateProperties struct {
 	AnalyticalStorageConfiguration     *AnalyticalStorageConfiguration `json:"analyticalStorageConfiguration,omitempty"`
 	ApiProperties                      *ApiProperties                  `json:"apiProperties,omitempty"`
-	BackupPolicy                       BackupPolicy                    `json:"backupPolicy"`
+	BackupPolicy                       *BackupPolicy                   `json:"backupPolicy,omitempty"`
 	Capabilities                       *[]Capability                   `json:"capabilities,omitempty"`
 	Capacity                           *Capacity                       `json:"capacity,omitempty"`
 	ConnectorOffer                     *ConnectorOffer                 `json:"connectorOffer,omitempty"`
@@ -78,7 +78,7 @@ func (s *DatabaseAccountUpdateProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'BackupPolicy' for 'DatabaseAccountUpdateProperties': %+v", err)
 		}
-		s.BackupPolicy = impl
+		s.BackupPolicy = &impl
 	}
 	return nil
 }

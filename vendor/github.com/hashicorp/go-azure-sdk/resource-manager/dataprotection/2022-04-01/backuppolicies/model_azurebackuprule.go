@@ -11,7 +11,7 @@ import (
 var _ BasePolicyRule = AzureBackupRule{}
 
 type AzureBackupRule struct {
-	BackupParameters BackupParameters  `json:"backupParameters"`
+	BackupParameters *BackupParameters `json:"backupParameters,omitempty"`
 	DataStore        DataStoreInfoBase `json:"dataStore"`
 	Trigger          TriggerContext    `json:"trigger"`
 
@@ -65,7 +65,7 @@ func (s *AzureBackupRule) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'BackupParameters' for 'AzureBackupRule': %+v", err)
 		}
-		s.BackupParameters = impl
+		s.BackupParameters = &impl
 	}
 
 	if v, ok := temp["trigger"]; ok {
@@ -73,7 +73,7 @@ func (s *AzureBackupRule) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Trigger' for 'AzureBackupRule': %+v", err)
 		}
-		s.Trigger = impl
+		s.Trigger = &impl
 	}
 	return nil
 }

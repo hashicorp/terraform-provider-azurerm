@@ -14,7 +14,7 @@ import (
 type MetricAlertPropertiesPatch struct {
 	Actions              *[]MetricAlertAction `json:"actions,omitempty"`
 	AutoMitigate         *bool                `json:"autoMitigate,omitempty"`
-	Criteria             MetricAlertCriteria  `json:"criteria"`
+	Criteria             *MetricAlertCriteria `json:"criteria,omitempty"`
 	Description          *string              `json:"description,omitempty"`
 	Enabled              *bool                `json:"enabled,omitempty"`
 	EvaluationFrequency  *string              `json:"evaluationFrequency,omitempty"`
@@ -71,7 +71,7 @@ func (s *MetricAlertPropertiesPatch) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Criteria' for 'MetricAlertPropertiesPatch': %+v", err)
 		}
-		s.Criteria = impl
+		s.Criteria = &impl
 	}
 	return nil
 }

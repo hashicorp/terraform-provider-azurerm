@@ -70,7 +70,7 @@ func (s *CertificateDatastoreCredentials) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Secrets' for 'CertificateDatastoreCredentials': %+v", err)
 		}
-		s.Secrets = impl
+		s.Secrets = &impl
 	}
 	return nil
 }

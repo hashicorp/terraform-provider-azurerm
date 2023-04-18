@@ -11,10 +11,10 @@ import (
 var _ ProtectionPolicy = AzureFileShareProtectionPolicy{}
 
 type AzureFileShareProtectionPolicy struct {
-	RetentionPolicy RetentionPolicy `json:"retentionPolicy"`
-	SchedulePolicy  SchedulePolicy  `json:"schedulePolicy"`
-	TimeZone        *string         `json:"timeZone,omitempty"`
-	WorkLoadType    *WorkloadType   `json:"workLoadType,omitempty"`
+	RetentionPolicy *RetentionPolicy `json:"retentionPolicy,omitempty"`
+	SchedulePolicy  *SchedulePolicy  `json:"schedulePolicy,omitempty"`
+	TimeZone        *string          `json:"timeZone,omitempty"`
+	WorkLoadType    *WorkloadType    `json:"workLoadType,omitempty"`
 
 	// Fields inherited from ProtectionPolicy
 	ProtectedItemsCount            *int64    `json:"protectedItemsCount,omitempty"`
@@ -69,7 +69,7 @@ func (s *AzureFileShareProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RetentionPolicy' for 'AzureFileShareProtectionPolicy': %+v", err)
 		}
-		s.RetentionPolicy = impl
+		s.RetentionPolicy = &impl
 	}
 
 	if v, ok := temp["schedulePolicy"]; ok {
@@ -77,7 +77,7 @@ func (s *AzureFileShareProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'SchedulePolicy' for 'AzureFileShareProtectionPolicy': %+v", err)
 		}
-		s.SchedulePolicy = impl
+		s.SchedulePolicy = &impl
 	}
 	return nil
 }

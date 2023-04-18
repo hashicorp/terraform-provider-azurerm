@@ -10,8 +10,8 @@ import (
 
 type SubProtectionPolicy struct {
 	PolicyType      *PolicyType               `json:"policyType,omitempty"`
-	RetentionPolicy RetentionPolicy           `json:"retentionPolicy"`
-	SchedulePolicy  SchedulePolicy            `json:"schedulePolicy"`
+	RetentionPolicy *RetentionPolicy          `json:"retentionPolicy,omitempty"`
+	SchedulePolicy  *SchedulePolicy           `json:"schedulePolicy,omitempty"`
 	TieringPolicy   *map[string]TieringPolicy `json:"tieringPolicy,omitempty"`
 }
 
@@ -37,7 +37,7 @@ func (s *SubProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RetentionPolicy' for 'SubProtectionPolicy': %+v", err)
 		}
-		s.RetentionPolicy = impl
+		s.RetentionPolicy = &impl
 	}
 
 	if v, ok := temp["schedulePolicy"]; ok {
@@ -45,7 +45,7 @@ func (s *SubProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'SchedulePolicy' for 'SubProtectionPolicy': %+v", err)
 		}
-		s.SchedulePolicy = impl
+		s.SchedulePolicy = &impl
 	}
 	return nil
 }

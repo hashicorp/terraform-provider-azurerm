@@ -20,7 +20,7 @@ type JobOutputAsset struct {
 	EndTime        *string   `json:"endTime,omitempty"`
 	Error          *JobError `json:"error,omitempty"`
 	Label          *string   `json:"label,omitempty"`
-	PresetOverride Preset    `json:"presetOverride"`
+	PresetOverride *Preset   `json:"presetOverride,omitempty"`
 	Progress       *int64    `json:"progress,omitempty"`
 	StartTime      *string   `json:"startTime,omitempty"`
 	State          *JobState `json:"state,omitempty"`
@@ -101,7 +101,7 @@ func (s *JobOutputAsset) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'PresetOverride' for 'JobOutputAsset': %+v", err)
 		}
-		s.PresetOverride = impl
+		s.PresetOverride = &impl
 	}
 	return nil
 }

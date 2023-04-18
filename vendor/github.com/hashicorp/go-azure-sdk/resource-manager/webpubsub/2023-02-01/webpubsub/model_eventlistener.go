@@ -27,7 +27,7 @@ func (s *EventListener) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Endpoint' for 'EventListener': %+v", err)
 		}
-		s.Endpoint = impl
+		s.Endpoint = &impl
 	}
 
 	if v, ok := temp["filter"]; ok {
@@ -35,7 +35,7 @@ func (s *EventListener) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Filter' for 'EventListener': %+v", err)
 		}
-		s.Filter = impl
+		s.Filter = &impl
 	}
 	return nil
 }

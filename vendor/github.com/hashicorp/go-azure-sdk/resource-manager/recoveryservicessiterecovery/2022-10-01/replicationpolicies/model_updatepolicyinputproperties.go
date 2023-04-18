@@ -9,7 +9,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UpdatePolicyInputProperties struct {
-	ReplicationProviderSettings PolicyProviderSpecificInput `json:"replicationProviderSettings"`
+	ReplicationProviderSettings *PolicyProviderSpecificInput `json:"replicationProviderSettings,omitempty"`
 }
 
 var _ json.Unmarshaler = &UpdatePolicyInputProperties{}
@@ -26,7 +26,7 @@ func (s *UpdatePolicyInputProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ReplicationProviderSettings' for 'UpdatePolicyInputProperties': %+v", err)
 		}
-		s.ReplicationProviderSettings = impl
+		s.ReplicationProviderSettings = &impl
 	}
 	return nil
 }
