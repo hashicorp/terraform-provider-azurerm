@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/clusters` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/clusters` Documentation
 
-The `clusters` SDK allows for interaction with the Azure Resource Manager Service `vmware` (API Version `2020-03-20`).
+The `clusters` SDK allows for interaction with the Azure Resource Manager Service `vmware` (API Version `2022-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/clusters"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/clusters"
 ```
 
 

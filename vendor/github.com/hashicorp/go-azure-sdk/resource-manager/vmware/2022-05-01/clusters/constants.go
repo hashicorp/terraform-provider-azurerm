@@ -8,6 +8,7 @@ import "strings"
 type ClusterProvisioningState string
 
 const (
+	ClusterProvisioningStateCanceled  ClusterProvisioningState = "Canceled"
 	ClusterProvisioningStateCancelled ClusterProvisioningState = "Cancelled"
 	ClusterProvisioningStateDeleting  ClusterProvisioningState = "Deleting"
 	ClusterProvisioningStateFailed    ClusterProvisioningState = "Failed"
@@ -17,6 +18,7 @@ const (
 
 func PossibleValuesForClusterProvisioningState() []string {
 	return []string{
+		string(ClusterProvisioningStateCanceled),
 		string(ClusterProvisioningStateCancelled),
 		string(ClusterProvisioningStateDeleting),
 		string(ClusterProvisioningStateFailed),
@@ -27,6 +29,7 @@ func PossibleValuesForClusterProvisioningState() []string {
 
 func parseClusterProvisioningState(input string) (*ClusterProvisioningState, error) {
 	vals := map[string]ClusterProvisioningState{
+		"canceled":  ClusterProvisioningStateCanceled,
 		"cancelled": ClusterProvisioningStateCancelled,
 		"deleting":  ClusterProvisioningStateDeleting,
 		"failed":    ClusterProvisioningStateFailed,

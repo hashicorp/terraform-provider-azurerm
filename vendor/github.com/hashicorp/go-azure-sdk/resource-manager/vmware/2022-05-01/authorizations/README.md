@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/authorizations` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/authorizations` Documentation
 
-The `authorizations` SDK allows for interaction with the Azure Resource Manager Service `vmware` (API Version `2020-03-20`).
+The `authorizations` SDK allows for interaction with the Azure Resource Manager Service `vmware` (API Version `2022-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/authorizations"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/authorizations"
 ```
 
 

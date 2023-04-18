@@ -8,6 +8,7 @@ import "strings"
 type DatastoreProvisioningState string
 
 const (
+	DatastoreProvisioningStateCanceled  DatastoreProvisioningState = "Canceled"
 	DatastoreProvisioningStateCancelled DatastoreProvisioningState = "Cancelled"
 	DatastoreProvisioningStateCreating  DatastoreProvisioningState = "Creating"
 	DatastoreProvisioningStateDeleting  DatastoreProvisioningState = "Deleting"
@@ -19,6 +20,7 @@ const (
 
 func PossibleValuesForDatastoreProvisioningState() []string {
 	return []string{
+		string(DatastoreProvisioningStateCanceled),
 		string(DatastoreProvisioningStateCancelled),
 		string(DatastoreProvisioningStateCreating),
 		string(DatastoreProvisioningStateDeleting),
@@ -31,6 +33,7 @@ func PossibleValuesForDatastoreProvisioningState() []string {
 
 func parseDatastoreProvisioningState(input string) (*DatastoreProvisioningState, error) {
 	vals := map[string]DatastoreProvisioningState{
+		"canceled":  DatastoreProvisioningStateCanceled,
 		"cancelled": DatastoreProvisioningStateCancelled,
 		"creating":  DatastoreProvisioningStateCreating,
 		"deleting":  DatastoreProvisioningStateDeleting,

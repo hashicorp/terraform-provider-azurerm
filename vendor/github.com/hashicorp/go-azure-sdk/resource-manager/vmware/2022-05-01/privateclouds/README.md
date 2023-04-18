@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/privateclouds` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds` Documentation
 
-The `privateclouds` SDK allows for interaction with the Azure Resource Manager Service `vmware` (API Version `2020-03-20`).
+The `privateclouds` SDK allows for interaction with the Azure Resource Manager Service `vmware` (API Version `2022-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/privateclouds"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds"
 ```
 
 
@@ -111,6 +111,30 @@ if err != nil {
 }
 for _, item := range items {
 	// do something
+}
+```
+
+
+### Example Usage: `PrivateCloudsClient.RotateNsxtPassword`
+
+```go
+ctx := context.TODO()
+id := privateclouds.NewPrivateCloudID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateCloudValue")
+
+if err := client.RotateNsxtPasswordThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `PrivateCloudsClient.RotateVcenterPassword`
+
+```go
+ctx := context.TODO()
+id := privateclouds.NewPrivateCloudID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateCloudValue")
+
+if err := client.RotateVcenterPasswordThenPoll(ctx, id); err != nil {
+	// handle the error
 }
 ```
 

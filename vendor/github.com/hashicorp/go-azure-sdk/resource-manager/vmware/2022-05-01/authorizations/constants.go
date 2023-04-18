@@ -8,6 +8,7 @@ import "strings"
 type ExpressRouteAuthorizationProvisioningState string
 
 const (
+	ExpressRouteAuthorizationProvisioningStateCanceled  ExpressRouteAuthorizationProvisioningState = "Canceled"
 	ExpressRouteAuthorizationProvisioningStateFailed    ExpressRouteAuthorizationProvisioningState = "Failed"
 	ExpressRouteAuthorizationProvisioningStateSucceeded ExpressRouteAuthorizationProvisioningState = "Succeeded"
 	ExpressRouteAuthorizationProvisioningStateUpdating  ExpressRouteAuthorizationProvisioningState = "Updating"
@@ -15,6 +16,7 @@ const (
 
 func PossibleValuesForExpressRouteAuthorizationProvisioningState() []string {
 	return []string{
+		string(ExpressRouteAuthorizationProvisioningStateCanceled),
 		string(ExpressRouteAuthorizationProvisioningStateFailed),
 		string(ExpressRouteAuthorizationProvisioningStateSucceeded),
 		string(ExpressRouteAuthorizationProvisioningStateUpdating),
@@ -23,6 +25,7 @@ func PossibleValuesForExpressRouteAuthorizationProvisioningState() []string {
 
 func parseExpressRouteAuthorizationProvisioningState(input string) (*ExpressRouteAuthorizationProvisioningState, error) {
 	vals := map[string]ExpressRouteAuthorizationProvisioningState{
+		"canceled":  ExpressRouteAuthorizationProvisioningStateCanceled,
 		"failed":    ExpressRouteAuthorizationProvisioningStateFailed,
 		"succeeded": ExpressRouteAuthorizationProvisioningStateSucceeded,
 		"updating":  ExpressRouteAuthorizationProvisioningStateUpdating,

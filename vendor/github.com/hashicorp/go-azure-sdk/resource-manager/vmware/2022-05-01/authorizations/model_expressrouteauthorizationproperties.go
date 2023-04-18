@@ -6,5 +6,6 @@ package authorizations
 type ExpressRouteAuthorizationProperties struct {
 	ExpressRouteAuthorizationId  *string                                     `json:"expressRouteAuthorizationId,omitempty"`
 	ExpressRouteAuthorizationKey *string                                     `json:"expressRouteAuthorizationKey,omitempty"`
+	ExpressRouteId               *string                                     `json:"expressRouteId,omitempty"`
 	ProvisioningState            *ExpressRouteAuthorizationProvisioningState `json:"provisioningState,omitempty"`
 }
