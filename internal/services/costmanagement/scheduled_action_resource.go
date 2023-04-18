@@ -15,10 +15,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type costManagementScheduledActionBaseResource struct{}
+type CostManagementScheduledActionResource struct{}
 
-func (br costManagementScheduledActionBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
-	output := map[string]*pluginsdk.Schema{
+var _ sdk.Resource = CostManagementScheduledActionResource{}
+
+func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotWhiteSpace,
+		},
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -111,19 +119,25 @@ func (br costManagementScheduledActionBaseResource) arguments(fields map[string]
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 	}
-
-	for k, v := range fields {
-		output[k] = v
-	}
-
-	return output
 }
 
-func (br costManagementScheduledActionBaseResource) attributes() map[string]*pluginsdk.Schema {
+func (r CostManagementScheduledActionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (br costManagementScheduledActionBaseResource) createFunc(resourceName string) sdk.ResourceFunc {
+func (r CostManagementScheduledActionResource) ModelObject() interface{} {
+	return nil
+}
+
+func (r CostManagementScheduledActionResource) ResourceType() string {
+	return "azurerm_cost_management_scheduled_action"
+}
+
+func (r CostManagementScheduledActionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return scheduledactions.ValidateScopedScheduledActionID
+}
+
+func (r CostManagementScheduledActionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -143,7 +157,7 @@ func (br costManagementScheduledActionBaseResource) createFunc(resourceName stri
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(resourceName, id.ID())
+				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 			}
 
 			var daysOfWeek []scheduledactions.DaysOfWeek
@@ -200,7 +214,7 @@ func (br costManagementScheduledActionBaseResource) createFunc(resourceName stri
 	}
 }
 
-func (br costManagementScheduledActionBaseResource) readFunc() sdk.ResourceFunc {
+func (r CostManagementScheduledActionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -250,7 +264,7 @@ func (br costManagementScheduledActionBaseResource) readFunc() sdk.ResourceFunc 
 	}
 }
 
-func (br costManagementScheduledActionBaseResource) deleteFunc() sdk.ResourceFunc {
+func (r CostManagementScheduledActionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -270,7 +284,7 @@ func (br costManagementScheduledActionBaseResource) deleteFunc() sdk.ResourceFun
 	}
 }
 
-func (br costManagementScheduledActionBaseResource) updateFunc() sdk.ResourceFunc {
+func (r CostManagementScheduledActionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

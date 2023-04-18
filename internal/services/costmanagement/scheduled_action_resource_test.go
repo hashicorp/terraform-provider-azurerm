@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SubscriptionCostManagementScheduledAction struct{}
+type CostManagementScheduledAction struct{}
 
-func TestAccSubscriptionCostManagementScheduledAction_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_scheduled_action", "test")
-	r := SubscriptionCostManagementScheduledAction{}
+func TestAccCostManagementScheduledAction_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
+	r := CostManagementScheduledAction{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,9 +31,9 @@ func TestAccSubscriptionCostManagementScheduledAction_basic(t *testing.T) {
 	})
 }
 
-func TestAccSubscriptionCostManagementScheduledAction_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_scheduled_action", "test")
-	r := SubscriptionCostManagementScheduledAction{}
+func TestAccCostManagementScheduledAction_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
+	r := CostManagementScheduledAction{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,9 +67,9 @@ func TestAccSubscriptionCostManagementScheduledAction_update(t *testing.T) {
 	})
 }
 
-func TestAccSubscriptionCostManagementScheduledAction_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_scheduled_action", "test")
-	r := SubscriptionCostManagementScheduledAction{}
+func TestAccCostManagementScheduledAction_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
+	r := CostManagementScheduledAction{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,12 +80,12 @@ func TestAccSubscriptionCostManagementScheduledAction_requiresImport(t *testing.
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_subscription_cost_management_scheduled_action"),
+			ExpectError: acceptance.RequiresImportError("azurerm_cost_management_scheduled_action"),
 		},
 	})
 }
 
-func (t SubscriptionCostManagementScheduledAction) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t CostManagementScheduledAction) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := scheduledactions.ParseScopedScheduledActionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (t SubscriptionCostManagementScheduledAction) Exists(ctx context.Context, c
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (SubscriptionCostManagementScheduledAction) daily(data acceptance.TestData) string {
+func (CostManagementScheduledAction) daily(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -110,7 +110,7 @@ provider "azurerm" {
 
 data "azurerm_subscription" "test" {}
 
-resource "azurerm_subscription_cost_management_scheduled_action" "test" {
+resource "azurerm_cost_management_scheduled_action" "test" {
   name = "testcostview%s"
 
   view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
@@ -127,7 +127,7 @@ resource "azurerm_subscription_cost_management_scheduled_action" "test" {
 `, data.RandomString, data.RandomString, start, end)
 }
 
-func (SubscriptionCostManagementScheduledAction) monthWeekDay(data acceptance.TestData) string {
+func (CostManagementScheduledAction) monthWeekDay(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -138,7 +138,7 @@ provider "azurerm" {
 
 data "azurerm_subscription" "test" {}
 
-resource "azurerm_subscription_cost_management_scheduled_action" "test" {
+resource "azurerm_cost_management_scheduled_action" "test" {
   name = "testcostview%s"
 
   view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
@@ -158,7 +158,7 @@ resource "azurerm_subscription_cost_management_scheduled_action" "test" {
 `, data.RandomString, data.RandomString, start, end)
 }
 
-func (SubscriptionCostManagementScheduledAction) monthDay(data acceptance.TestData) string {
+func (CostManagementScheduledAction) monthDay(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -169,7 +169,7 @@ provider "azurerm" {
 
 data "azurerm_subscription" "test" {}
 
-resource "azurerm_subscription_cost_management_scheduled_action" "test" {
+resource "azurerm_cost_management_scheduled_action" "test" {
   name = "testcostview%s"
 
   view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
@@ -189,7 +189,7 @@ resource "azurerm_subscription_cost_management_scheduled_action" "test" {
 `, data.RandomString, data.RandomString, start, end)
 }
 
-func (SubscriptionCostManagementScheduledAction) weekly(data acceptance.TestData) string {
+func (CostManagementScheduledAction) weekly(data acceptance.TestData) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
@@ -200,7 +200,7 @@ provider "azurerm" {
 
 data "azurerm_subscription" "test" {}
 
-resource "azurerm_subscription_cost_management_scheduled_action" "test" {
+resource "azurerm_cost_management_scheduled_action" "test" {
   name = "testcostview%s"
 
   view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
@@ -220,24 +220,24 @@ resource "azurerm_subscription_cost_management_scheduled_action" "test" {
 `, data.RandomString, data.RandomString, start, end)
 }
 
-func (SubscriptionCostManagementScheduledAction) requiresImport(data acceptance.TestData) string {
-	template := SubscriptionCostManagementScheduledAction{}.daily(data)
+func (CostManagementScheduledAction) requiresImport(data acceptance.TestData) string {
+	template := CostManagementScheduledAction{}.daily(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subscription_cost_management_scheduled_action" "import" {
-  name = azurerm_subscription_cost_management_scheduled_action.test.name
+resource "azurerm_cost_management_scheduled_action" "import" {
+  name = azurerm_cost_management_scheduled_action.test.name
 
-  view_id = azurerm_subscription_cost_management_scheduled_action.test.view_id
+  view_id = azurerm_cost_management_scheduled_action.test.view_id
 
-  display_name         = azurerm_subscription_cost_management_scheduled_action.test.display_name
-  email_subject        = azurerm_subscription_cost_management_scheduled_action.test.email_subject
-  email_addresses      = azurerm_subscription_cost_management_scheduled_action.test.email_addresses
-  email_address_sender = azurerm_subscription_cost_management_scheduled_action.test.email_address_sender
+  display_name         = azurerm_cost_management_scheduled_action.test.display_name
+  email_subject        = azurerm_cost_management_scheduled_action.test.email_subject
+  email_addresses      = azurerm_cost_management_scheduled_action.test.email_addresses
+  email_address_sender = azurerm_cost_management_scheduled_action.test.email_address_sender
 
-  frequency  = azurerm_subscription_cost_management_scheduled_action.test.frequency
-  start_date = azurerm_subscription_cost_management_scheduled_action.test.start_date
-  end_date   = azurerm_subscription_cost_management_scheduled_action.test.end_date
+  frequency  = azurerm_cost_management_scheduled_action.test.frequency
+  start_date = azurerm_cost_management_scheduled_action.test.start_date
+  end_date   = azurerm_cost_management_scheduled_action.test.end_date
 }
 `, template)
 }
