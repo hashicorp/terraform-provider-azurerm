@@ -955,26 +955,3 @@ func (r AutoManageConfigurationResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
-
-func backupResourceSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"backup_retention_days": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IntBetween(7, 9999),
-				},
-
-				"storage_account_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-			},
-		},
-	}
-}
