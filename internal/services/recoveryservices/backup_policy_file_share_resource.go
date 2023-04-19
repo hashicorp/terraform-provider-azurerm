@@ -106,20 +106,21 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 		}
 	}
 
-	AzureFileShareProtectionPolicyProperties := &protectionpolicies.AzureFileShareProtectionPolicy{
-		TimeZone:       pointer.To(d.Get("timezone").(string)),
-		WorkLoadType:   pointer.To(protectionpolicies.WorkloadTypeAzureFileShare),
-		SchedulePolicy: expandBackupProtectionPolicyFileShareSchedule(d, times),
-		RetentionPolicy: &protectionpolicies.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
-			DailySchedule:   expandBackupProtectionPolicyFileShareRetentionDaily(d, times),
-			WeeklySchedule:  expandBackupProtectionPolicyFileShareRetentionWeekly(d, times),
-			MonthlySchedule: expandBackupProtectionPolicyFileShareRetentionMonthly(d, times),
-			YearlySchedule:  expandBackupProtectionPolicyFileShareRetentionYearly(d, times),
-		},
+	var retentionPolicy protectionpolicies.RetentionPolicy = protectionpolicies.LongTermRetentionPolicy{
+		DailySchedule:   expandBackupProtectionPolicyFileShareRetentionDaily(d, times),
+		WeeklySchedule:  expandBackupProtectionPolicyFileShareRetentionWeekly(d, times),
+		MonthlySchedule: expandBackupProtectionPolicyFileShareRetentionMonthly(d, times),
+		YearlySchedule:  expandBackupProtectionPolicyFileShareRetentionYearly(d, times),
 	}
-
+	var scheduledPolicy protectionpolicies.SchedulePolicy = expandBackupProtectionPolicyFileShareSchedule(d, times)
+	var properties protectionpolicies.ProtectionPolicy = protectionpolicies.AzureFileShareProtectionPolicy{
+		TimeZone:        pointer.To(d.Get("timezone").(string)),
+		WorkLoadType:    pointer.To(protectionpolicies.WorkloadTypeAzureFileShare),
+		SchedulePolicy:  pointer.To(scheduledPolicy),
+		RetentionPolicy: pointer.To(retentionPolicy),
+	}
 	policy := protectionpolicies.ProtectionPolicyResource{
-		Properties: AzureFileShareProtectionPolicyProperties,
+		Properties: pointer.To(properties),
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id, policy); err != nil {
@@ -162,46 +163,25 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 	d.Set("recovery_vault_name", id.VaultName)
 
 	if model := resp.Model; model != nil {
-		if properties, ok := model.Properties.(protectionpolicies.AzureFileShareProtectionPolicy); ok {
-			d.Set("timezone", properties.TimeZone)
+		if props := model.Properties; props != nil {
+			if properties, ok := (*props).(protectionpolicies.AzureFileShareProtectionPolicy); ok {
+				d.Set("timezone", properties.TimeZone)
 
-			if schedule, ok := properties.SchedulePolicy.(protectionpolicies.SimpleSchedulePolicy); ok {
-				if err := d.Set("backup", flattenBackupProtectionPolicyFileShareSchedule(schedule)); err != nil {
+				if err := d.Set("backup", flattenBackupProtectionPolicyFileShareSchedule(properties.SchedulePolicy)); err != nil {
 					return fmt.Errorf("setting `backup`: %+v", err)
 				}
-			}
 
-			if retention, ok := properties.RetentionPolicy.(protectionpolicies.LongTermRetentionPolicy); ok {
-				if s := retention.DailySchedule; s != nil {
-					if err := d.Set("retention_daily", flattenBackupProtectionPolicyFileShareRetentionDaily(s)); err != nil {
-						return fmt.Errorf("setting `retention_daily`: %+v", err)
-					}
-				} else {
-					d.Set("retention_daily", nil)
+				if err := d.Set("retention_daily", flattenBackupProtectionPolicyFileShareRetentionDaily(properties.RetentionPolicy)); err != nil {
+					return fmt.Errorf("setting `retention_daily`: %+v", err)
 				}
-
-				if s := retention.WeeklySchedule; s != nil {
-					if err := d.Set("retention_weekly", flattenBackupProtectionPolicyFileShareRetentionWeekly(s)); err != nil {
-						return fmt.Errorf("setting `retention_weekly`: %+v", err)
-					}
-				} else {
-					d.Set("retention_weekly", nil)
+				if err := d.Set("retention_monthly", flattenBackupProtectionPolicyFileShareRetentionMonthly(properties.RetentionPolicy)); err != nil {
+					return fmt.Errorf("setting `retention_monthly`: %+v", err)
 				}
-
-				if s := retention.MonthlySchedule; s != nil {
-					if err := d.Set("retention_monthly", flattenBackupProtectionPolicyFileShareRetentionMonthly(s)); err != nil {
-						return fmt.Errorf("setting `retention_monthly`: %+v", err)
-					}
-				} else {
-					d.Set("retention_monthly", nil)
+				if err := d.Set("retention_weekly", flattenBackupProtectionPolicyFileShareRetentionWeekly(properties.RetentionPolicy)); err != nil {
+					return fmt.Errorf("setting `retention_weekly`: %+v", err)
 				}
-
-				if s := retention.YearlySchedule; s != nil {
-					if err := d.Set("retention_yearly", flattenBackupProtectionPolicyFileShareRetentionYearly(s)); err != nil {
-						return fmt.Errorf("setting `retention_yearly`: %+v", err)
-					}
-				} else {
-					d.Set("retention_yearly", nil)
+				if err := d.Set("retention_yearly", flattenBackupProtectionPolicyFileShareRetentionYearly(properties.RetentionPolicy)); err != nil {
+					return fmt.Errorf("setting `retention_yearly`: %+v", err)
 				}
 			}
 		}
@@ -361,109 +341,169 @@ func expandBackupProtectionPolicyFileShareRetentionWeeklyFormat(block map[string
 	return &weekly
 }
 
-func flattenBackupProtectionPolicyFileShareSchedule(schedule protectionpolicies.SimpleSchedulePolicy) []interface{} {
-	block := map[string]interface{}{}
+func flattenBackupProtectionPolicyFileShareSchedule(input *protectionpolicies.SchedulePolicy) []interface{} {
+	output := make([]interface{}, 0)
+	if input != nil {
+		if v, ok := (*input).(protectionpolicies.SimpleSchedulePolicy); ok {
+			frequency := ""
+			if v.ScheduleRunFrequency != nil {
+				frequency = string(pointer.From(v.ScheduleRunFrequency))
+			}
 
-	block["frequency"] = string(pointer.From(schedule.ScheduleRunFrequency))
+			timeValue := ""
+			if times := v.ScheduleRunTimes; times != nil && len(*times) > 0 {
+				policyTime, err := time.Parse(time.RFC3339, (*times)[0])
+				if err == nil {
+					timeValue = policyTime.Format("15:04")
+				}
+			}
 
-	if times := schedule.ScheduleRunTimes; times != nil && len(*times) > 0 {
-		policyTime, _ := time.Parse(time.RFC3339, (*times)[0])
-		block["time"] = policyTime.Format("15:04")
+			output = append(output, map[string]interface{}{
+				"frequency": frequency,
+				"time":      timeValue,
+			})
+		}
 	}
 
-	return []interface{}{block}
+	return output
 }
 
-func flattenBackupProtectionPolicyFileShareRetentionDaily(daily *protectionpolicies.DailyRetentionSchedule) []interface{} {
-	block := map[string]interface{}{}
+func flattenBackupProtectionPolicyFileShareRetentionDaily(input *protectionpolicies.RetentionPolicy) []interface{} {
+	output := make([]interface{}, 0)
 
-	if duration := daily.RetentionDuration; duration != nil {
-		if v := duration.Count; v != nil {
-			block["count"] = *v
+	if input != nil {
+		if retention, ok := (*input).(protectionpolicies.LongTermRetentionPolicy); ok {
+			if dailySchedule := retention.DailySchedule; dailySchedule != nil {
+				count := 0
+				if duration := dailySchedule.RetentionDuration; duration != nil {
+					if v := duration.Count; v != nil {
+						count = int(*v)
+					}
+				}
+				output = append(output, map[string]interface{}{
+					"count": count,
+				})
+			}
 		}
 	}
-
-	return []interface{}{block}
+	return output
 }
 
-func flattenBackupProtectionPolicyFileShareRetentionWeekly(weekly *protectionpolicies.WeeklyRetentionSchedule) []interface{} {
-	block := map[string]interface{}{}
+func flattenBackupProtectionPolicyFileShareRetentionWeekly(input *protectionpolicies.RetentionPolicy) []interface{} {
+	output := make([]interface{}, 0)
 
-	if duration := weekly.RetentionDuration; duration != nil {
-		if v := duration.Count; v != nil {
-			block["count"] = *v
+	if input != nil {
+		if retention, ok := (*input).(protectionpolicies.LongTermRetentionPolicy); ok {
+			if weeklySchedule := retention.WeeklySchedule; weeklySchedule != nil {
+				count := 0
+				if duration := weeklySchedule.RetentionDuration; duration != nil {
+					if duration.Count != nil {
+						count = int(*duration.Count)
+					}
+				}
+
+				weekdays := make([]interface{}, 0)
+				if weeklySchedule.DaysOfTheWeek != nil {
+					for _, d := range *weeklySchedule.DaysOfTheWeek {
+						weekdays = append(weekdays, string(d))
+					}
+				}
+				output = append(output, map[string]interface{}{
+					"count":    count,
+					"weekdays": pluginsdk.NewSet(pluginsdk.HashString, weekdays),
+				})
+			}
 		}
 	}
 
-	if days := weekly.DaysOfTheWeek; days != nil {
-		weekdays := make([]interface{}, 0)
-		for _, d := range *days {
-			weekdays = append(weekdays, string(d))
-		}
-		block["weekdays"] = pluginsdk.NewSet(pluginsdk.HashString, weekdays)
-	}
-
-	return []interface{}{block}
+	return output
 }
 
-func flattenBackupProtectionPolicyFileShareRetentionMonthly(monthly *protectionpolicies.MonthlyRetentionSchedule) []interface{} {
-	block := map[string]interface{}{}
+func flattenBackupProtectionPolicyFileShareRetentionMonthly(input *protectionpolicies.RetentionPolicy) []interface{} {
+	output := make([]interface{}, 0)
 
-	if duration := monthly.RetentionDuration; duration != nil {
-		if v := duration.Count; v != nil {
-			block["count"] = *v
+	if input != nil {
+		if retention, ok := (*input).(protectionpolicies.LongTermRetentionPolicy); ok {
+			if monthlySchedule := retention.MonthlySchedule; monthlySchedule != nil {
+				count := 0
+				if duration := monthlySchedule.RetentionDuration; duration != nil {
+					if duration.Count != nil {
+						count = int(*duration.Count)
+					}
+				}
+
+				weekdays := make([]interface{}, 0)
+				weeks := make([]interface{}, 0)
+				if weekly := monthlySchedule.RetentionScheduleWeekly; weekly != nil {
+					if dotw := weekly.DaysOfTheWeek; dotw != nil {
+						for _, d := range *dotw {
+							weekdays = append(weekdays, string(d))
+						}
+					}
+
+					if wotm := weekly.WeeksOfTheMonth; wotm != nil {
+						for _, d := range *wotm {
+							weeks = append(weeks, string(d))
+						}
+					}
+				}
+
+				output = append(output, map[string]interface{}{
+					"count":    count,
+					"weekdays": pluginsdk.NewSet(pluginsdk.HashString, weekdays),
+					"weeks":    pluginsdk.NewSet(pluginsdk.HashString, weeks),
+				})
+			}
 		}
 	}
 
-	if weekly := monthly.RetentionScheduleWeekly; weekly != nil {
-		block["weekdays"], block["weeks"] = flattenBackupProtectionPolicyFileShareRetentionWeeklyFormat(weekly)
-	}
-
-	return []interface{}{block}
+	return output
 }
 
-func flattenBackupProtectionPolicyFileShareRetentionYearly(yearly *protectionpolicies.YearlyRetentionSchedule) []interface{} {
-	block := map[string]interface{}{}
+func flattenBackupProtectionPolicyFileShareRetentionYearly(input *protectionpolicies.RetentionPolicy) []interface{} {
+	output := make([]interface{}, 0)
 
-	if duration := yearly.RetentionDuration; duration != nil {
-		if v := duration.Count; v != nil {
-			block["count"] = *v
+	if input != nil {
+		if retention, ok := (*input).(protectionpolicies.LongTermRetentionPolicy); ok {
+			if yearlySchedule := retention.YearlySchedule; yearlySchedule != nil {
+				count := 0
+				if yearlySchedule.RetentionDuration != nil && yearlySchedule.RetentionDuration.Count != nil {
+					count = int(*yearlySchedule.RetentionDuration.Count)
+				}
+
+				weekdays := make([]interface{}, 0)
+				weeks := make([]interface{}, 0)
+				months := make([]interface{}, 0)
+				if weekly := yearlySchedule.RetentionScheduleWeekly; weekly != nil {
+					if dotw := weekly.DaysOfTheWeek; dotw != nil {
+						for _, d := range *dotw {
+							weekdays = append(weekdays, string(d))
+						}
+					}
+
+					if wotm := weekly.WeeksOfTheMonth; wotm != nil {
+						for _, d := range *wotm {
+							weeks = append(weeks, string(d))
+						}
+					}
+
+					if moty := yearlySchedule.MonthsOfYear; moty != nil {
+						for _, d := range *moty {
+							months = append(months, string(d))
+						}
+					}
+				}
+				output = append(output, map[string]interface{}{
+					"count":    count,
+					"months":   pluginsdk.NewSet(pluginsdk.HashString, months),
+					"weekdays": pluginsdk.NewSet(pluginsdk.HashString, weekdays),
+					"weeks":    pluginsdk.NewSet(pluginsdk.HashString, weeks),
+				})
+			}
 		}
 	}
 
-	if weekly := yearly.RetentionScheduleWeekly; weekly != nil {
-		block["weekdays"], block["weeks"] = flattenBackupProtectionPolicyFileShareRetentionWeeklyFormat(weekly)
-	}
-
-	if months := yearly.MonthsOfYear; months != nil {
-		slice := make([]interface{}, 0)
-		for _, d := range *months {
-			slice = append(slice, string(d))
-		}
-		block["months"] = pluginsdk.NewSet(pluginsdk.HashString, slice)
-	}
-
-	return []interface{}{block}
-}
-
-func flattenBackupProtectionPolicyFileShareRetentionWeeklyFormat(retention *protectionpolicies.WeeklyRetentionFormat) (weekdays, weeks *pluginsdk.Set) {
-	if days := retention.DaysOfTheWeek; days != nil {
-		slice := make([]interface{}, 0)
-		for _, d := range *days {
-			slice = append(slice, string(d))
-		}
-		weekdays = pluginsdk.NewSet(pluginsdk.HashString, slice)
-	}
-
-	if days := retention.WeeksOfTheMonth; days != nil {
-		slice := make([]interface{}, 0)
-		for _, d := range *days {
-			slice = append(slice, string(d))
-		}
-		weeks = pluginsdk.NewSet(pluginsdk.HashString, slice)
-	}
-
-	return weekdays, weeks
+	return output
 }
 
 func resourceBackupProtectionPolicyFileShareWaitForUpdate(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) error {

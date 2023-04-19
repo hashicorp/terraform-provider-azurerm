@@ -23,42 +23,50 @@ func importStreamAnalyticsOutput(expectType outputs.OutputDataSource) pluginsdk.
 			return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
-		if props := resp.Model.Properties; props != nil {
-			var actualType outputs.OutputDataSource
+		var actualType outputs.OutputDataSource
+		if model := resp.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if ds := props.Datasource; ds != nil {
+					var datasource outputs.OutputDataSource
+					var ok bool
 
-			if datasource, ok := props.Datasource.(outputs.BlobOutputDataSource); ok {
-				actualType = datasource
-			} else if datasource, ok := props.Datasource.(outputs.AzureTableOutputDataSource); ok {
-				actualType = datasource
-			} else if datasource, ok := props.Datasource.(outputs.EventHubOutputDataSource); ok {
-				actualType = datasource
-			} else if datasource, ok := props.Datasource.(outputs.EventHubV2OutputDataSource); ok {
-				actualType = datasource
-			} else if datasource, ok := props.Datasource.(outputs.AzureSqlDatabaseOutputDataSource); ok {
-				actualType = datasource
-			} else if datasource, ok := props.Datasource.(outputs.AzureSynapseOutputDataSource); ok {
-				actualType = datasource
-			} else if datasource, ok := props.Datasource.(outputs.DocumentDbOutputDataSource); ok {
-				actualType = datasource
-			} else if datasource, ok := props.Datasource.(outputs.AzureFunctionOutputDataSource); ok {
-				actualType = datasource
-			} else if datasource, ok := props.Datasource.(outputs.ServiceBusQueueOutputDataSource); ok {
-				actualType = datasource
-			} else if datasource, ok := props.Datasource.(outputs.ServiceBusTopicOutputDataSource); ok {
-				actualType = datasource
-			} else if datasource, ok := props.Datasource.(outputs.PowerBIOutputDataSource); ok {
-				actualType = datasource
-			} else if datasource, ok := props.Datasource.(outputs.AzureDataLakeStoreOutputDataSource); ok {
-				actualType = datasource
-			} else {
-				return nil, fmt.Errorf("unable to convert output data source: %+v", props.Datasource)
-			}
+					if datasource, ok = (*ds).(outputs.BlobOutputDataSource); ok {
+						actualType = datasource
+					} else if datasource, ok = (*ds).(outputs.AzureTableOutputDataSource); ok {
+						actualType = datasource
+					} else if datasource, ok = (*ds).(outputs.EventHubOutputDataSource); ok {
+						actualType = datasource
+					} else if datasource, ok = (*ds).(outputs.EventHubV2OutputDataSource); ok {
+						actualType = datasource
+					} else if datasource, ok = (*ds).(outputs.AzureSqlDatabaseOutputDataSource); ok {
+						actualType = datasource
+					} else if datasource, ok = (*ds).(outputs.AzureSynapseOutputDataSource); ok {
+						actualType = datasource
+					} else if datasource, ok = (*ds).(outputs.DocumentDbOutputDataSource); ok {
+						actualType = datasource
+					} else if datasource, ok = (*ds).(outputs.AzureFunctionOutputDataSource); ok {
+						actualType = datasource
+					} else if datasource, ok = (*ds).(outputs.ServiceBusQueueOutputDataSource); ok {
+						actualType = datasource
+					} else if datasource, ok = (*ds).(outputs.ServiceBusTopicOutputDataSource); ok {
+						actualType = datasource
+					} else if datasource, ok = (*ds).(outputs.PowerBIOutputDataSource); ok {
+						actualType = datasource
+					} else if datasource, ok = (*ds).(outputs.AzureDataLakeStoreOutputDataSource); ok {
+						actualType = datasource
+					}
 
-			// TODO refactor to a switch
-			if reflect.TypeOf(actualType) != reflect.TypeOf(expectType) {
-				return nil, fmt.Errorf("stream analytics output has mismatched type, expected: %q, got %q", expectType, actualType)
+					if !ok {
+						return nil, fmt.Errorf("unable to convert output data source: %+v", props.Datasource)
+					}
+				}
 			}
 		}
+
+		if reflect.TypeOf(actualType) != reflect.TypeOf(expectType) {
+			return nil, fmt.Errorf("stream analytics output has mismatched type, expected: %q, got %q", expectType, actualType)
+		}
+
 		return []*pluginsdk.ResourceData{d}, nil
 	}
 }

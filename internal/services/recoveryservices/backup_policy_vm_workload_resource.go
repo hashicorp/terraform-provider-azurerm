@@ -441,12 +441,13 @@ func (r BackupProtectionPolicyVMWorkloadResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			var policy protectionpolicies.ProtectionPolicy = protectionpolicies.AzureVMWorkloadProtectionPolicy{
+				Settings:            expandBackupProtectionPolicyVMWorkloadSettings(model.Settings),
+				SubProtectionPolicy: protectionPolicy,
+				WorkLoadType:        pointer.To(protectionpolicies.WorkloadType(model.WorkloadType)),
+			}
 			properties := &protectionpolicies.ProtectionPolicyResource{
-				Properties: &protectionpolicies.AzureVMWorkloadProtectionPolicy{
-					Settings:            expandBackupProtectionPolicyVMWorkloadSettings(model.Settings),
-					SubProtectionPolicy: protectionPolicy,
-					WorkLoadType:        pointer.To(protectionpolicies.WorkloadType(model.WorkloadType)),
-				},
+				Properties: pointer.To(policy),
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, *properties); err != nil {
@@ -470,8 +471,8 @@ func (r BackupProtectionPolicyVMWorkloadResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model BackupProtectionPolicyVMWorkloadModel
-			if err := metadata.Decode(&model); err != nil {
+			var schema BackupProtectionPolicyVMWorkloadModel
+			if err := metadata.Decode(&schema); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
@@ -480,25 +481,31 @@ func (r BackupProtectionPolicyVMWorkloadResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if m := existing.Model; m != nil {
-				props, _ := m.Properties.(protectionpolicies.AzureVMWorkloadProtectionPolicy)
-
-				if metadata.ResourceData.HasChange("settings") {
-					props.Settings = expandBackupProtectionPolicyVMWorkloadSettings(model.Settings)
-				}
-
-				if metadata.ResourceData.HasChange("protection_policy") {
-					protectionPolicy, err := expandBackupProtectionPolicyVMWorkloadProtectionPolicies(model.ProtectionPolicies, model.WorkloadType)
-					if err != nil {
-						return err
+			if model := existing.Model; model != nil {
+				if props := model.Properties; props != nil {
+					policy, ok := (*props).(protectionpolicies.AzureVMWorkloadProtectionPolicy)
+					if !ok {
+						return fmt.Errorf("retrieving %s: expected a AzureVMWorkloadProtectionPolicy but didn't get one", *id)
 					}
 
-					props.SubProtectionPolicy = protectionPolicy
+					if metadata.ResourceData.HasChange("settings") {
+						policy.Settings = expandBackupProtectionPolicyVMWorkloadSettings(schema.Settings)
+					}
+
+					if metadata.ResourceData.HasChange("protection_policy") {
+						protectionPolicy, err := expandBackupProtectionPolicyVMWorkloadProtectionPolicies(schema.ProtectionPolicies, schema.WorkloadType)
+						if err != nil {
+							return err
+						}
+
+						policy.SubProtectionPolicy = protectionPolicy
+					}
+
+					var protectionPolicy protectionpolicies.ProtectionPolicy = policy
+					model.Properties = pointer.To(protectionPolicy)
 				}
 
-				m.Properties = props
-
-				if _, err := client.CreateOrUpdate(ctx, *id, *m); err != nil {
+				if _, err := client.CreateOrUpdate(ctx, *id, *model); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}
@@ -536,10 +543,11 @@ func (r BackupProtectionPolicyVMWorkloadResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					vmWorkload, _ := props.(protectionpolicies.AzureVMWorkloadProtectionPolicy)
-					state.WorkloadType = string(pointer.From(vmWorkload.WorkLoadType))
-					state.Settings = flattenBackupProtectionPolicyVMWorkloadSettings(vmWorkload.Settings)
-					state.ProtectionPolicies = flattenBackupProtectionPolicyVMWorkloadProtectionPolicies(vmWorkload.SubProtectionPolicy)
+					if vmWorkload, ok := (*props).(protectionpolicies.AzureVMWorkloadProtectionPolicy); ok {
+						state.WorkloadType = string(pointer.From(vmWorkload.WorkLoadType))
+						state.Settings = flattenBackupProtectionPolicyVMWorkloadSettings(vmWorkload.Settings)
+						state.ProtectionPolicies = flattenBackupProtectionPolicyVMWorkloadProtectionPolicies(vmWorkload.SubProtectionPolicy)
+					}
 				}
 			}
 
@@ -648,15 +656,16 @@ func expandBackupProtectionPolicyVMWorkloadProtectionPolicies(input []Protection
 			}
 		}
 
+		schedulePolicy := expandBackupProtectionPolicyVMWorkloadSchedulePolicy(item, times)
 		result := protectionpolicies.SubProtectionPolicy{
 			PolicyType:     pointer.To(protectionpolicies.PolicyType(item.PolicyType)),
-			SchedulePolicy: expandBackupProtectionPolicyVMWorkloadSchedulePolicy(item, times),
+			SchedulePolicy: pointer.To(schedulePolicy),
 		}
 
 		if v, err := expandBackupProtectionPolicyVMWorkloadRetentionPolicy(item, times); err != nil {
 			return nil, err
 		} else {
-			result.RetentionPolicy = v
+			result.RetentionPolicy = pointer.To(v)
 		}
 
 		results = append(results, result)
@@ -678,14 +687,15 @@ func flattenBackupProtectionPolicyVMWorkloadProtectionPolicies(input *[]protecti
 		}
 
 		if retentionPolicy := item.RetentionPolicy; retentionPolicy != nil {
-			if longTermRetentionPolicy, ok := retentionPolicy.(protectionpolicies.LongTermRetentionPolicy); ok {
+			if longTermRetentionPolicy, ok := (*retentionPolicy).(protectionpolicies.LongTermRetentionPolicy); ok {
 				result.RetentionDaily = flattenBackupProtectionPolicyVMWorkloadRetentionDaily(longTermRetentionPolicy.DailySchedule)
 				result.RetentionWeekly = flattenBackupProtectionPolicyVMWorkloadRetentionWeekly(longTermRetentionPolicy.WeeklySchedule)
 				result.RetentionMonthly = flattenBackupProtectionPolicyVMWorkloadRetentionMonthly(longTermRetentionPolicy.MonthlySchedule)
 				result.RetentionYearly = flattenBackupProtectionPolicyVMWorkloadRetentionYearly(longTermRetentionPolicy.YearlySchedule)
 			} else {
-				simpleRetentionPolicy, _ := retentionPolicy.(protectionpolicies.SimpleRetentionPolicy)
-				result.SimpleRetention = flattenBackupProtectionPolicyVMWorkloadSimpleRetention(simpleRetentionPolicy.RetentionDuration)
+				if simpleRetentionPolicy, ok := (*retentionPolicy).(protectionpolicies.SimpleRetentionPolicy); ok {
+					result.SimpleRetention = flattenBackupProtectionPolicyVMWorkloadSimpleRetention(simpleRetentionPolicy.RetentionDuration)
+				}
 			}
 		}
 

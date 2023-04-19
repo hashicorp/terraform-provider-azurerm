@@ -86,14 +86,16 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 		}
 	}
 
+	var container protectioncontainers.ProtectionContainer = protectioncontainers.AzureStorageContainer{
+		SourceResourceId:     &storageAccountID,
+		FriendlyName:         &parsedStorageAccountID.Name,
+		BackupManagementType: pointer.To(protectioncontainers.BackupManagementTypeAzureStorage),
+	}
 	parameters := protectioncontainers.ProtectionContainerResource{
-		Properties: &protectioncontainers.AzureStorageContainer{
-			SourceResourceId:     &storageAccountID,
-			FriendlyName:         &parsedStorageAccountID.Name,
-			BackupManagementType: pointer.To(protectioncontainers.BackupManagementTypeAzureStorage),
-		},
+		Properties: &container,
 	}
 
+	// TODO: this can become a regular LRO after https://github.com/Azure/azure-rest-api-specs/pull/23524 is merged
 	resp, err := client.Register(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("registering %s: %+v", id, err)
@@ -144,8 +146,10 @@ func resourceBackupProtectionContainerStorageAccountRead(d *pluginsdk.ResourceDa
 	d.Set("recovery_vault_name", id.VaultName)
 
 	if model := resp.Model; model != nil {
-		if properties, ok := model.Properties.(protectioncontainers.AzureStorageContainer); ok {
-			d.Set("storage_account_id", properties.SourceResourceId)
+		if props := model.Properties; props != nil {
+			if properties, ok := (*props).(protectioncontainers.AzureStorageContainer); ok {
+				d.Set("storage_account_id", properties.SourceResourceId)
+			}
 		}
 	}
 
@@ -163,6 +167,7 @@ func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.Resource
 		return err
 	}
 
+	// TODO: this can become a regular LRO after https://github.com/Azure/azure-rest-api-specs/pull/23524 is merged
 	resp, err := client.Unregister(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deregistering %s: %+v", id, err)

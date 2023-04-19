@@ -143,18 +143,20 @@ func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, m
 	inputs := expandStreamAnalyticsFunctionInputs(d.Get("input").([]interface{}))
 	output := expandStreamAnalyticsFunctionOutput(d.Get("output").([]interface{}))
 
-	function := functions.Function{
-		Properties: &functions.ScalarFunctionProperties{
-			Properties: &functions.FunctionConfiguration{
-				Binding: &functions.JavaScriptFunctionBinding{
-					Properties: &functions.JavaScriptFunctionBindingProperties{
-						Script: utils.String(d.Get("script").(string)),
-					},
-				},
-				Inputs: inputs,
-				Output: output,
-			},
+	var functionBinding functions.FunctionBinding = functions.JavaScriptFunctionBinding{
+		Properties: &functions.JavaScriptFunctionBindingProperties{
+			Script: utils.String(d.Get("script").(string)),
 		},
+	}
+	var functionProperties functions.FunctionProperties = functions.ScalarFunctionProperties{
+		Properties: &functions.FunctionConfiguration{
+			Binding: &functionBinding,
+			Inputs:  inputs,
+			Output:  output,
+		},
+	}
+	function := functions.Function{
+		Properties: &functionProperties,
 	}
 
 	var createOpts functions.CreateOrReplaceOperationOptions
@@ -199,31 +201,30 @@ func resourceStreamAnalyticsFunctionUDFRead(d *pluginsdk.ResourceData, meta inte
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			function, ok := props.(functions.ScalarFunctionProperties)
-			if !ok {
-				return fmt.Errorf("converting to Scalar Function")
-			}
+			if function, ok := (*props).(functions.ScalarFunctionProperties); ok {
+				script := ""
+				if functionProps := function.Properties; functionProps != nil {
+					if binding := functionProps.Binding; binding != nil {
+						if functionBinding, ok := (*binding).(functions.JavaScriptFunctionBinding); ok {
+							if functionBinding.Properties != nil && functionBinding.Properties.Script != nil {
+								script = *functionBinding.Properties.Script
+							}
+						}
+					}
+				}
+				d.Set("script", script)
 
-			binding, ok := function.Properties.Binding.(functions.JavaScriptFunctionBinding)
-			if !ok {
-				return fmt.Errorf("converting to Binding")
-			}
+				if err := d.Set("input", flattenStreamAnalyticsFunctionInputs(function.Properties.Inputs)); err != nil {
+					return fmt.Errorf("flattening `input`: %+v", err)
+				}
 
-			script := ""
-			if v := binding.Properties.Script; v != nil {
-				script = *v
-			}
-			d.Set("script", script)
-
-			if err := d.Set("input", flattenStreamAnalyticsFunctionInputs(function.Properties.Inputs)); err != nil {
-				return fmt.Errorf("flattening `input`: %+v", err)
-			}
-
-			if err := d.Set("output", flattenStreamAnalyticsFunctionOutput(function.Properties.Output)); err != nil {
-				return fmt.Errorf("flattening `output`: %+v", err)
+				if err := d.Set("output", flattenStreamAnalyticsFunctionOutput(function.Properties.Output)); err != nil {
+					return fmt.Errorf("flattening `output`: %+v", err)
+				}
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -237,10 +238,8 @@ func resourceStreamAnalyticsFunctionUDFDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, *id); err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting %s: %+v", id, err)
-		}
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

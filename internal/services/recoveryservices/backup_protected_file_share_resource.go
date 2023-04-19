@@ -174,7 +174,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 			if *protectableItem.Name == "" || protectableItem.Properties == nil {
 				continue
 			}
-			azureFileShareProtectableItem, check := protectableItem.Properties.(backupprotectableitems.AzureFileShareProtectableItem)
+			azureFileShareProtectableItem, check := (*protectableItem.Properties).(backupprotectableitems.AzureFileShareProtectableItem)
 
 			// check if protected item has the same fileshare name and is from the same storage account
 			if check && *azureFileShareProtectableItem.FriendlyName == fileShareName && *azureFileShareProtectableItem.ParentContainerFriendlyName == parsedStorageAccountID.Name {
@@ -197,7 +197,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 				if *protectedItem.Name == "" || protectedItem.Properties == nil {
 					continue
 				}
-				azureFileShareProtectedItem, check := protectedItem.Properties.(backupprotecteditems.AzureFileshareProtectedItem)
+				azureFileShareProtectedItem, check := (*protectedItem.Properties).(backupprotecteditems.AzureFileshareProtectedItem)
 
 				// check if protected item has the same fileshare name and is from the same storage account
 				if check && *azureFileShareProtectedItem.FriendlyName == fileShareName && strings.EqualFold(*azureFileShareProtectedItem.SourceResourceId, storageAccountID) {
@@ -226,13 +226,14 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 	}
 
+	var protectedItem protecteditems.ProtectedItem = protecteditems.AzureFileshareProtectedItem{
+		PolicyId:         &policyID,
+		WorkloadType:     pointer.To(protecteditems.DataSourceTypeAzureFileShare),
+		SourceResourceId: utils.String(storageAccountID),
+		FriendlyName:     utils.String(fileShareName),
+	}
 	item := protecteditems.ProtectedItemResource{
-		Properties: &protecteditems.AzureFileshareProtectedItem{
-			PolicyId:         &policyID,
-			WorkloadType:     pointer.To(protecteditems.DataSourceTypeAzureFileShare),
-			SourceResourceId: utils.String(storageAccountID),
-			FriendlyName:     utils.String(fileShareName),
-		},
+		Properties: &protectedItem,
 	}
 
 	resp, err := client.CreateOrUpdate(ctx, id, item)
@@ -289,14 +290,16 @@ func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interf
 
 	if model := resp.Model; model != nil {
 		if properties := model.Properties; properties != nil {
-			if item, ok := properties.(protecteditems.AzureFileshareProtectedItem); ok {
+			if item, ok := (*properties).(protecteditems.AzureFileshareProtectedItem); ok {
 				if item.SourceResourceId != nil {
+					// TODO: update to use an ID Parser
 					sourceResourceID := strings.Replace(*item.SourceResourceId, "Microsoft.storage", "Microsoft.Storage", 1) // The SDK is returning inconsistent capitalization
 					d.Set("source_storage_account_id", sourceResourceID)
 				}
 				d.Set("source_file_share_name", item.FriendlyName)
 
 				if v := item.PolicyId; v != nil {
+					// TODO: update to use an ID Parser
 					d.Set("backup_policy_id", strings.Replace(*v, "Subscriptions", "subscriptions", 1))
 				}
 			}

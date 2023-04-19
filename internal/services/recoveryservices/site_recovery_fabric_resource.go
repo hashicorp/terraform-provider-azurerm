@@ -2,6 +2,7 @@ package recoveryservices
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -82,11 +83,12 @@ func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
+	var creationInput replicationfabrics.FabricSpecificCreationInput = replicationfabrics.AzureFabricCreationInput{
+		Location: &location,
+	}
 	parameters := replicationfabrics.FabricCreationInput{
 		Properties: &replicationfabrics.FabricCreationInputProperties{
-			CustomDetails: replicationfabrics.AzureFabricCreationInput{
-				Location: &location,
-			},
+			CustomDetails: pointer.To(creationInput),
 		},
 	}
 
@@ -127,7 +129,7 @@ func resourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta interface{})
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			if details := props.CustomDetails; details != nil {
-				fabric, ok := details.(replicationfabrics.AzureFabricSpecificDetails)
+				fabric, ok := (*details).(replicationfabrics.AzureFabricSpecificDetails)
 				if !ok {
 					return fmt.Errorf("expected `details` to be an AzureFabricSpecificDetails but it wasn't: %+v", details)
 				}
