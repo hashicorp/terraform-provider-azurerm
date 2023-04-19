@@ -6,13 +6,16 @@ ENHANCEMENTS:
 * `healthcare`: refactoring to use `hashicorp/go-azure-sdk` [GH-21327]
 * `hpccache` - refactoring to use `hashicorp/go-azure-sdk` [GH-21303]
 * `logz` - refactoring to use `hashicorp/go-azure-sdk` [GH-21321]
-* dependencies: updating `orbital/2022-03-01` to `2022-11-01` [GH-21405] 
+* dependencies: updating `orbital/2022-03-01` to `2022-11-01` [GH-21405]
+* dependencies: updating `vmware/2020-03-20` to `2022-05-01` [GH-21458]
 * `azurerm_linux_web_app`Add PHP 8.2 `application_stack` support [GH-21420]
 * `azurerm_linux_web_app_slot`Add PHP 8.2 `application_stack` support [GH-21420]
 
 BUG FIXES: 
 
+* `azurerm_cognitive_account` - mark `custom_question_answering_search_service_key` as sensitive [GH-21469]
 * `azurerm_monitor_metric_alert` - fix crash when `dynamic_criteria.0.ignore_data_before` isn't set [GH-21446]
+* `azurerm_search_service` - mark `primary_key` and `secondary_key` as sensitive [GH-21469]
 
 ## 3.52.0 (April 13, 2023)
 
