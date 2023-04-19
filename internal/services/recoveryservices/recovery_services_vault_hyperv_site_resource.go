@@ -3,6 +3,7 @@ package recoveryservices
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -76,11 +77,12 @@ func (r HyperVSiteResource) Create() sdk.ResourceFunc {
 			}
 
 			// the instance type `HyperVSite` is not exposed in Swagger, tracked on https://github.com/Azure/azure-rest-api-specs/issues/22016
+			var instanceType replicationfabrics.FabricSpecificCreationInput = HyperVSiteInstanceType{
+				InstanceType: "HyperVSite",
+			}
 			parameters := replicationfabrics.FabricCreationInput{
 				Properties: &replicationfabrics.FabricCreationInputProperties{
-					CustomDetails: HyperVSiteInstanceType{
-						InstanceType: "HyperVSite",
-					},
+					CustomDetails: pointer.To(instanceType),
 				},
 			}
 

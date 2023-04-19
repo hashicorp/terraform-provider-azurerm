@@ -98,15 +98,16 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		}
 	}
 
+	var protectedItem protecteditems.ProtectedItem = protecteditems.AzureIaaSComputeVMProtectedItem{
+		PolicyId:           &policyId,
+		WorkloadType:       pointer.To(protecteditems.DataSourceTypeVM),
+		SourceResourceId:   pointer.To(vmId),
+		FriendlyName:       pointer.To(parsedVmId.Name),
+		ExtendedProperties: expandDiskExclusion(d),
+		VirtualMachineId:   pointer.To(vmId),
+	}
 	item := protecteditems.ProtectedItemResource{
-		Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
-			PolicyId:           &policyId,
-			WorkloadType:       pointer.To(protecteditems.DataSourceTypeVM),
-			SourceResourceId:   pointer.To(vmId),
-			FriendlyName:       pointer.To(parsedVmId.Name),
-			ExtendedProperties: expandDiskExclusion(d),
-			VirtualMachineId:   pointer.To(vmId),
-		},
+		Properties: &protectedItem,
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id, item); err != nil {
@@ -149,10 +150,11 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 
 	if model := resp.Model; model != nil {
 		if properties := model.Properties; properties != nil {
-			if vm, ok := properties.(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
+			if vm, ok := (*properties).(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
 				d.Set("source_vm_id", vm.SourceResourceId)
 
 				if v := vm.PolicyId; v != nil {
+					// TODO: update to use an ID Parser
 					d.Set("backup_policy_id", strings.Replace(*v, "Subscriptions", "subscriptions", 1))
 				}
 
@@ -252,7 +254,7 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					if vm, ok := properties.(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
+					if vm, ok := (*properties).(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
 						if vm.ProtectionState != nil && strings.EqualFold(string(*vm.ProtectionState), string(backup.ProtectionStateProtectionStopped)) {
 							return resp, "Stopped", nil
 						}
