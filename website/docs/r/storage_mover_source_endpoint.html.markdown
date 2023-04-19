@@ -41,9 +41,9 @@ The following arguments are supported:
 
 * `storage_mover_id` - (Required) Specifies the ID of the Storage Mover for this Storage Mover Source Endpoint. Changing this forces a new resource to be created.
 
-* `export` - (Required) Specifies the directory being exported from the server. Changing this forces a new resource to be created.
-
 * `host` - (Required) Specifies the host name or IP address of the server exporting the file system. Changing this forces a new resource to be created.
+
+* `export` - (Optional) Specifies the directory being exported from the server. Changing this forces a new resource to be created.
 
 * `nfs_version` - (Optional) Specifies the NFS protocol version. Possible values are `NFSauto`, `NFSv3` and `NFSv4`. Defaults to `NFSauto`. Changing this forces a new resource to be created.
 

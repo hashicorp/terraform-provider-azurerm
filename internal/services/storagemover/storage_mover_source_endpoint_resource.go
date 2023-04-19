@@ -60,16 +60,16 @@ func (r StorageMoverSourceEndpointResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: storagemovers.ValidateStorageMoverID,
 		},
 
-		"export": {
+		"host": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"host": {
+		"export": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},

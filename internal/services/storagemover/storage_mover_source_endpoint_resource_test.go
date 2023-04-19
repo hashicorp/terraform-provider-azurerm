@@ -114,15 +114,16 @@ resource "azurerm_storage_mover" "test" {
 func (r StorageMoverSourceEndpointTestResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+
 provider "azurerm" {
   features {}
 }
-				%s
+
+%s
 
 resource "azurerm_storage_mover_source_endpoint" "test" {
   name             = "acctest-smse-%d"
   storage_mover_id = azurerm_storage_mover.test.id
-  export           = "/"
   host             = "192.168.0.1"
 }
 `, template, data.RandomInteger)
@@ -131,12 +132,12 @@ resource "azurerm_storage_mover_source_endpoint" "test" {
 func (r StorageMoverSourceEndpointTestResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+
+%s
 
 resource "azurerm_storage_mover_source_endpoint" "import" {
   name             = azurerm_storage_mover_source_endpoint.test.name
   storage_mover_id = azurerm_storage_mover.test.id
-  export           = azurerm_storage_mover_source_endpoint.test.export
   host             = azurerm_storage_mover_source_endpoint.test.host
 }
 `, config)
@@ -148,7 +149,8 @@ func (r StorageMoverSourceEndpointTestResource) complete(data acceptance.TestDat
 provider "azurerm" {
   features {}
 }
-			%s
+
+%s
 
 resource "azurerm_storage_mover_source_endpoint" "test" {
   name             = "acctest-smse-%d"
@@ -167,7 +169,9 @@ func (r StorageMoverSourceEndpointTestResource) update(data acceptance.TestData)
 provider "azurerm" {
   features {}
 }
-			%s
+
+%s
+
 resource "azurerm_storage_mover_source_endpoint" "test" {
   name             = "acctest-smse-%d"
   storage_mover_id = azurerm_storage_mover.test.id
