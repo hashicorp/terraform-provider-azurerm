@@ -180,6 +180,19 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   network_security_group_id = azurerm_network_security_group.test.id
 }
 
+resource "azurerm_private_endpoint" "test" {
+  name                = "test-pe-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test.id
+
+  private_service_connection {
+    name                           = "test-mlworkspace-%d"
+    private_connection_resource_id = azurerm_machine_learning_workspace.test.id
+    is_manual_connection           = false
+  }
+}
+
 resource "azurerm_machine_learning_compute_instance" "test" {
   name                          = "acctest%d"
   location                      = azurerm_resource_group.test.location
@@ -196,10 +209,11 @@ resource "azurerm_machine_learning_compute_instance" "test" {
     Label1 = "Value1"
   }
   depends_on = [
-    azurerm_subnet_network_security_group_association.test
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_private_endpoint.test,
   ]
 }
-`, template, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
+`, template, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 
 func (r ComputeInstanceResource) requiresImport(data acceptance.TestData) string {
