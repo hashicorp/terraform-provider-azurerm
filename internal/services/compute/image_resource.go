@@ -224,7 +224,7 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	// either source VM or storage profile can be specified, but not both
 	if sourceVM.Id == nil {
 		// if both sourceVM and storageProfile are empty, return an error
-		if props.StorageProfile.OsDisk == nil && len(*props.StorageProfile.DataDisks) == 0 {
+		if storageProfile.OsDisk == nil && (storageProfile.DataDisks == nil || len(*storageProfile.DataDisks) == 0) {
 			return fmt.Errorf("[ERROR] Cannot create image when both source VM and storage profile are empty")
 		}
 
