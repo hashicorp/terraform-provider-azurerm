@@ -112,14 +112,15 @@ func (r VMWareReplicationPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
 			}
 
+			var providerSpecificInput replicationpolicies.PolicyProviderSpecificInput = replicationpolicies.InMageRcmPolicyCreationInput{
+				RecoveryPointHistoryInMinutes:     &recoveryPoint,
+				AppConsistentFrequencyInMinutes:   &appConsistency,
+				CrashConsistentFrequencyInMinutes: utils.Int64(10),
+				EnableMultiVMSync:                 utils.String(EnableMultiVMSyncEnabled),
+			}
 			parameters := replicationpolicies.CreatePolicyInput{
 				Properties: &replicationpolicies.CreatePolicyInputProperties{
-					ProviderSpecificInput: &replicationpolicies.InMageRcmPolicyCreationInput{
-						RecoveryPointHistoryInMinutes:     &recoveryPoint,
-						AppConsistentFrequencyInMinutes:   &appConsistency,
-						CrashConsistentFrequencyInMinutes: utils.Int64(10),
-						EnableMultiVMSync:                 utils.String(EnableMultiVMSyncEnabled),
-					},
+					ProviderSpecificInput: &providerSpecificInput,
 				},
 			}
 
@@ -162,8 +163,8 @@ func (r VMWareReplicationPolicyResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				if resp.Model.Properties != nil && resp.Model.Properties.ProviderSpecificDetails != nil {
-					if inMageRcm, ok := resp.Model.Properties.ProviderSpecificDetails.(replicationpolicies.InMageRcmPolicyDetails); ok {
+				if props := model.Properties; props != nil && props.ProviderSpecificDetails != nil {
+					if inMageRcm, ok := (*props.ProviderSpecificDetails).(replicationpolicies.InMageRcmPolicyDetails); ok {
 						if inMageRcm.RecoveryPointHistoryInMinutes != nil {
 							state.RecoveryPointRetentionInMinutes = *inMageRcm.RecoveryPointHistoryInMinutes
 						}
@@ -201,14 +202,15 @@ func (r VMWareReplicationPolicyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
 			}
 
+			var replicationProviderSettings replicationpolicies.PolicyProviderSpecificInput = replicationpolicies.InMageRcmPolicyCreationInput{
+				RecoveryPointHistoryInMinutes:     &recoveryPoint,
+				AppConsistentFrequencyInMinutes:   &appConsistency,
+				EnableMultiVMSync:                 utils.String(EnableMultiVMSyncEnabled),
+				CrashConsistentFrequencyInMinutes: utils.Int64(10),
+			}
 			parameters := replicationpolicies.UpdatePolicyInput{
 				Properties: &replicationpolicies.UpdatePolicyInputProperties{
-					ReplicationProviderSettings: &replicationpolicies.InMageRcmPolicyCreationInput{
-						RecoveryPointHistoryInMinutes:     &recoveryPoint,
-						AppConsistentFrequencyInMinutes:   &appConsistency,
-						EnableMultiVMSync:                 utils.String(EnableMultiVMSyncEnabled),
-						CrashConsistentFrequencyInMinutes: utils.Int64(10),
-					},
+					ReplicationProviderSettings: &replicationProviderSettings,
 				},
 			}
 			err = client.UpdateThenPoll(ctx, *id, parameters)

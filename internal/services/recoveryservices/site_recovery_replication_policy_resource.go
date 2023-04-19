@@ -98,13 +98,14 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta
 	if appConsistency > recoveryPoint {
 		return fmt.Errorf("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
 	}
+	var providerSpecificInput replicationpolicies.PolicyProviderSpecificInput = replicationpolicies.A2APolicyCreationInput{
+		RecoveryPointHistory:            &recoveryPoint,
+		AppConsistentFrequencyInMinutes: &appConsistency,
+		MultiVMSyncStatus:               replicationpolicies.SetMultiVMSyncStatusEnable,
+	}
 	parameters := replicationpolicies.CreatePolicyInput{
 		Properties: &replicationpolicies.CreatePolicyInputProperties{
-			ProviderSpecificInput: &replicationpolicies.A2APolicyCreationInput{
-				RecoveryPointHistory:            &recoveryPoint,
-				AppConsistentFrequencyInMinutes: &appConsistency,
-				MultiVMSyncStatus:               replicationpolicies.SetMultiVMSyncStatusEnable,
-			},
+			ProviderSpecificInput: &providerSpecificInput,
 		},
 	}
 	err := client.CreateThenPoll(ctx, id, parameters)
@@ -135,13 +136,14 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("the value of `application_consistent_snapshot_frequency_in_minutes` must be less than or equal to the value of `recovery_point_retention_in_minutes`")
 	}
 
+	var replicationProviderSettings replicationpolicies.PolicyProviderSpecificInput = replicationpolicies.A2APolicyCreationInput{
+		RecoveryPointHistory:            &recoveryPoint,
+		AppConsistentFrequencyInMinutes: &appConsistency,
+		MultiVMSyncStatus:               replicationpolicies.SetMultiVMSyncStatusEnable,
+	}
 	parameters := replicationpolicies.UpdatePolicyInput{
 		Properties: &replicationpolicies.UpdatePolicyInputProperties{
-			ReplicationProviderSettings: &replicationpolicies.A2APolicyCreationInput{
-				RecoveryPointHistory:            &recoveryPoint,
-				AppConsistentFrequencyInMinutes: &appConsistency,
-				MultiVMSyncStatus:               replicationpolicies.SetMultiVMSyncStatusEnable,
-			},
+			ReplicationProviderSettings: &replicationProviderSettings,
 		},
 	}
 	err := client.UpdateThenPoll(ctx, id, parameters)
@@ -153,14 +155,15 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta
 }
 
 func resourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := replicationpolicies.ParseReplicationPolicyID(d.Id())
-	if err != nil {
-		return err
-	}
 
 	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	id, err := replicationpolicies.ParseReplicationPolicyID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -185,17 +188,16 @@ func resourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceSiteRecoveryReplicationPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	id, err := replicationpolicies.ParseReplicationPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting site recovery replication policy %s : %+v", id.String(), err)
 	}
 
@@ -220,7 +222,7 @@ func expandA2APolicyDetail(input *replicationpolicies.Policy) (out *replicationp
 	if input.Properties.ProviderSpecificDetails == nil {
 		return nil, false
 	}
-	detail, isA2A := input.Properties.ProviderSpecificDetails.(replicationpolicies.A2APolicyDetails)
+	detail, isA2A := (*input.Properties.ProviderSpecificDetails).(replicationpolicies.A2APolicyDetails)
 	if isA2A {
 		out = &detail
 	}
