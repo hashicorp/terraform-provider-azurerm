@@ -450,9 +450,6 @@ PasswordGenLoop:
 		}
 
 		registryId := registries.NewRegistryID(id.SubscriptionId, id.ResourceGroupName, id.RegistryName)
-		if err := clients.ContainerRegistryClient_v2021_08_01_preview.Registries.GenerateCredentialsThenPoll(ctx, registryId, param); err != nil {
-			return nil, fmt.Errorf("generating password credential %s: %v", string(*password.Name), err)
-		}
 
 		result, err := clients.ContainerRegistryClient_v2021_08_01_preview.Registries.GenerateCredentials(ctx, registryId, param)
 		if err != nil {
