@@ -207,6 +207,7 @@ resource "azurerm_private_endpoint" "test" {
   private_service_connection {
     name                           = "test-mlworkspace-%d"
     private_connection_resource_id = azurerm_machine_learning_workspace.test.id
+    subresource_names              = ["amlworkspace"]
     is_manual_connection           = false
   }
 }
