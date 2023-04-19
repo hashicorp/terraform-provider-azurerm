@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2021-09-01/storagetargets` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/storagetargets` Documentation
 
-The `storagetargets` SDK allows for interaction with the Azure Resource Manager Service `storagecache` (API Version `2021-09-01`).
+The `storagetargets` SDK allows for interaction with the Azure Resource Manager Service `storagecache` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2021-09-01/storagetargets"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/storagetargets"
 ```
 
 
@@ -94,6 +94,18 @@ for _, item := range items {
 ```
 
 
+### Example Usage: `StorageTargetsClient.RestoreDefaults`
+
+```go
+ctx := context.TODO()
+id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue", "storageTargetValue")
+
+if err := client.RestoreDefaultsThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
 ### Example Usage: `StorageTargetsClient.StorageTargetFlush`
 
 ```go
@@ -101,6 +113,18 @@ ctx := context.TODO()
 id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue", "storageTargetValue")
 
 if err := client.StorageTargetFlushThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `StorageTargetsClient.StorageTargetInvalidate`
+
+```go
+ctx := context.TODO()
+id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue", "storageTargetValue")
+
+if err := client.StorageTargetInvalidateThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```

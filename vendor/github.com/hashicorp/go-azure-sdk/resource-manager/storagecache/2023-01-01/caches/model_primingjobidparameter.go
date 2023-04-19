@@ -1,9 +1,8 @@
-package storagetargets
+package caches
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type Nfs3Target struct {
-	Target     *string `json:"target,omitempty"`
-	UsageModel *string `json:"usageModel,omitempty"`
+type PrimingJobIdParameter struct {
+	PrimingJobId string `json:"primingJobId"`
 }
