@@ -168,6 +168,10 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking availability of `domain_name`: %v", err)
 			}
 
+			if availabilityResult.Model == nil {
+				return fmt.Errorf("checking availability of `domain_name`: the response from the API was nil")
+			}
+
 			if availabilityResult.Model.NameAvailable == nil || !*availabilityResult.Model.NameAvailable {
 				reason := "unknown reason"
 				if availabilityResult.Model.Reason != nil {

@@ -74,6 +74,10 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.Name, err)
 	}
 
+	if loadBalancer.LoadBalancerPropertiesFormat == nil {
+		return fmt.Errorf("retrieving Load Balancer %s: `properties` was nil", id)
+	}
+
 	newLbRule, err := expandAzureRmLoadBalancerRule(d, &loadBalancer)
 	if err != nil {
 		return fmt.Errorf("expanding Load Balancer Rule: %+v", err)
@@ -245,6 +249,10 @@ func resourceArmLoadBalancerRuleDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.Name, err)
 	}
 
+	if loadBalancer.LoadBalancerPropertiesFormat == nil {
+		return fmt.Errorf("retrieving Load Balancer %q (resource group %q) for Rule %q: `properties` was nil", id.LoadBalancerName, id.ResourceGroup, id.Name)
+	}
+
 	_, index, exists := FindLoadBalancerRuleByName(&loadBalancer, d.Get("name").(string))
 	if !exists {
 		return nil
@@ -297,7 +305,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *network.LoadBa
 	}
 
 	var isGateway bool
-	if lb.Sku != nil && lb.Sku.Name == network.LoadBalancerSkuNameGateway {
+	if lb != nil && lb.Sku != nil && lb.Sku.Name == network.LoadBalancerSkuNameGateway {
 		isGateway = true
 	}
 

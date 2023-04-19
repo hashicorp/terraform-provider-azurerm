@@ -680,7 +680,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		if err != nil {
 			return fmt.Errorf("retrieving Node Pool %s: %+v", *id, err)
 		}
-		if existingNodePool := existingNodePoolResp.Model; existingNodePool != nil {
+		if existingNodePool := existingNodePoolResp.Model; existingNodePool != nil && existingNodePool.Properties != nil {
 			orchestratorVersion := d.Get("orchestrator_version").(string)
 			currentOrchestratorVersion := ""
 			if v := existingNodePool.Properties.CurrentOrchestratorVersion; v != nil {
