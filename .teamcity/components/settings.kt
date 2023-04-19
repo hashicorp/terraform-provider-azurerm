@@ -29,7 +29,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), useDevTestSubscription = true),
 
         // App Service Plans for Linux are currently unavailable in WestUS2
-        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "northeurope", "eastus2", false)),
+        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "northeurope", "eastus2", false), useDevTestSubscription = true),
 
         // these tests all conflict with one another
         "authorization" to testConfiguration(parallelism = 1),
