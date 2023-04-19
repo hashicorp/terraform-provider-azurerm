@@ -2,7 +2,6 @@ package automanage
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -25,7 +24,6 @@ type ConfigurationModel struct {
 	Antimalware               []AntimalwareConfiguration `tfschema:"antimalware"`
 	AutomationAccountEnabled  bool                       `tfschema:"automation_account_enabled"`
 	BootDiagnosticsEnabled    bool                       `tfschema:"boot_diagnostics_enabled"`
-	ChangeTrackingEnabled     bool                       `tfschema:"change_tracking_enabled"`
 	DefenderForCloudEnabled   bool                       `tfschema:"defender_for_cloud_enabled"`
 	GuestConfigurationEnabled bool                       `tfschema:"guest_configuration_enabled"`
 	StatusChangeAlertEnabled  bool                       `tfschema:"status_change_alert_enabled"`
@@ -171,13 +169,6 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 			Default:  false,
 		},
 
-		//"ChangeTrackingAndInventory/Enable": boolean,
-		"change_tracking_and_inventory_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
 		// "DefenderForCloud/Enable": boolean,
 		"defender_for_cloud_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -239,7 +230,7 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 			if model.Antimalware != nil && len(model.Antimalware) > 0 {
 				antimalwareConfig := model.Antimalware[0]
 				jsonConfig["Antimalware/Enable"] = antimalwareConfig.Enabled
-				jsonConfig["Antimalware/RealTimeProtectionEnabled"] = antimalwareConfig.RealTimeProtectionEnabled
+				jsonConfig["Antimalware/EnableRealTimeProtection"] = antimalwareConfig.RealTimeProtectionEnabled
 				jsonConfig["Antimalware/RunScheduledScan"] = antimalwareConfig.ScheduledScanEnabled
 				jsonConfig["Antimalware/ScanType"] = antimalwareConfig.ScanType
 				jsonConfig["Antimalware/ScanDay"] = antimalwareConfig.ScanDay
@@ -257,10 +248,6 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 
 			if model.BootDiagnosticsEnabled {
 				jsonConfig["BootDiagnostics/Enable"] = model.BootDiagnosticsEnabled
-			}
-
-			if model.ChangeTrackingEnabled {
-				jsonConfig["ChangeTracking/Enable"] = model.ChangeTrackingEnabled
 			}
 
 			if model.DefenderForCloudEnabled {
@@ -311,16 +298,13 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 			jsonConfig := make(map[string]interface{})
 
 			if resp.Properties != nil && resp.Properties.Configuration != nil {
-				err := json.Unmarshal([]byte(resp.Properties.Configuration.(string)), &jsonConfig)
-				if err != nil {
-					return fmt.Errorf("unmarshalling %s: %+v", *id, err)
-				}
+				jsonConfig = resp.Properties.Configuration.(map[string]interface{})
 			}
 
 			if model.Antimalware != nil {
 				antimalwareConfig := model.Antimalware[0]
 				jsonConfig["Antimalware/Enable"] = antimalwareConfig.Enabled
-				jsonConfig["Antimalware/RealTimeProtectionEnabled"] = antimalwareConfig.RealTimeProtectionEnabled
+				jsonConfig["Antimalware/EnableRealTimeProtection"] = antimalwareConfig.RealTimeProtectionEnabled
 				jsonConfig["Antimalware/RunScheduledScan"] = antimalwareConfig.ScheduledScanEnabled
 				jsonConfig["Antimalware/ScanType"] = antimalwareConfig.ScanType
 				jsonConfig["Antimalware/ScanDay"] = antimalwareConfig.ScanDay
@@ -340,10 +324,6 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 				jsonConfig["BootDiagnostics/Enable"] = model.BootDiagnosticsEnabled
 			}
 
-			if metadata.ResourceData.HasChange("change_tracking_enabled") {
-				jsonConfig["ChangeTracking/Enable"] = model.ChangeTrackingEnabled
-			}
-
 			if metadata.ResourceData.HasChange("defender_for_cloud_enabled") {
 				jsonConfig["DefenderForCloud/Enable"] = model.DefenderForCloudEnabled
 			}
@@ -360,15 +340,10 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 				resp.Tags = tags.FromTypedObject(model.Tags)
 			}
 
-			configBytes, err := json.Marshal(jsonConfig)
-			if err != nil {
-				return fmt.Errorf("marshalling %s: %+v", *id, err)
-			}
-
 			properties := automanage.ConfigurationProfile{
 				Location: utils.String(metadata.ResourceData.Get("location").(string)),
 				Properties: &automanage.ConfigurationProfileProperties{
-					Configuration: configBytes,
+					Configuration: &jsonConfig,
 				},
 				Tags: resp.Tags,
 			}
@@ -409,55 +384,31 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			if resp.Properties != nil && resp.Properties.Configuration != nil {
-				configMap := make(map[string]interface{})
-				err := json.Unmarshal(resp.Properties.Configuration.([]byte), &configMap)
+				configMap := resp.Properties.Configuration.(map[string]interface{})
 				if err != nil {
 					return fmt.Errorf("unmarshalling %s: %+v", *id, err)
 				}
 
-				if configMap["Antimalware/Enable"] != nil {
-					state.Antimalware = make([]AntimalwareConfiguration, 1)
-					state.Antimalware[0] = AntimalwareConfiguration{
-						Enabled:                   configMap["Antimalware/Enable"].(bool),
-						RealTimeProtectionEnabled: configMap["Antimalware/RealTimeProtectionEnabled"].(bool),
-						ScheduledScanEnabled:      configMap["Antimalware/RunScheduledScan"].(bool),
-						ScanType:                  configMap["Antimalware/ScanType"].(string),
-						ScanDay:                   configMap["Antimalware/ScanDay"].(int),
-						ScanTimeInMinutes:         configMap["Antimalware/ScanTimeInMinutes"].(int),
-					}
+				state.Antimalware = flattenAntimarewareConfig(configMap)
 
-					if configMap["Antimalware/Exclusions/Extensions"] != nil {
-						state.Antimalware[0].Exclusions = make([]AntimalwareExclusions, 1)
-						state.Antimalware[0].Exclusions[0] = AntimalwareExclusions{
-							Extensions: configMap["Antimalware/Exclusions/Extensions"].(string),
-							Paths:      configMap["Antimalware/Exclusions/Paths"].(string),
-							Processes:  configMap["Antimalware/Exclusions/Processes"].(string),
-						}
-					}
+				if val, ok := configMap["AutomationAccount/Enable"]; ok {
+					state.AutomationAccountEnabled = val.(bool)
 				}
 
-				if configMap["AutomationAccount/Enable"] != nil {
-					state.AutomationAccountEnabled = configMap["AutomationAccount/Enable"].(bool)
+				if val, ok := configMap["BootDiagnostics/Enable"]; ok {
+					state.BootDiagnosticsEnabled = val.(bool)
 				}
 
-				if configMap["BootDiagnostics/Enable"] != nil {
-					state.BootDiagnosticsEnabled = configMap["BootDiagnostics/Enable"].(bool)
+				if val, ok := configMap["DefenderForCloud/Enable"]; ok {
+					state.DefenderForCloudEnabled = val.(bool)
 				}
 
-				if configMap["ChangeTracking/Enable"] != nil {
-					state.ChangeTrackingEnabled = configMap["ChangeTracking/Enable"].(bool)
+				if val, ok := configMap["GuestConfiguration/Enable"]; ok {
+					state.GuestConfigurationEnabled = val.(bool)
 				}
 
-				if configMap["DefenderForCloud/Enable"] != nil {
-					state.DefenderForCloudEnabled = configMap["DefenderForServers/Enable"].(bool)
-				}
-
-				if configMap["GuestConfiguration/Enable"] != nil {
-					state.GuestConfigurationEnabled = configMap["GuestConfiguration/Enable"].(bool)
-				}
-
-				if configMap["Alerts/AutomanageStatusChanges/Enable"] != nil {
-					state.StatusChangeAlertEnabled = configMap["Alerts/AutomanageStatusChanges/Enable"].(bool)
+				if val, ok := configMap["Alerts/AutomanageStatusChanges/Enable"]; ok {
+					state.StatusChangeAlertEnabled = val.(bool)
 				}
 			}
 
@@ -488,4 +439,48 @@ func (r AutoManageConfigurationResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func flattenAntimarewareConfig(configMap map[string]interface{}) []AntimalwareConfiguration {
+	antimalware := make([]AntimalwareConfiguration, 1)
+	antimalware[0] = AntimalwareConfiguration{}
+	antimalware[0].Exclusions = make([]AntimalwareExclusions, 1)
+
+	if val, ok := configMap["Antimalware/Enable"]; ok {
+		antimalware[0].Enabled = val.(bool)
+	}
+
+	if val, ok := configMap["Antimalware/EnableRealTimeProtection"]; ok {
+		antimalware[0].RealTimeProtectionEnabled = val.(bool)
+	}
+
+	if val, ok := configMap["Antimalware/RunScheduledScan"]; ok {
+		antimalware[0].ScheduledScanEnabled = val.(bool)
+	}
+
+	if val, ok := configMap["Antimalware/ScanType"]; ok {
+		antimalware[0].ScanType = val.(string)
+	}
+
+	if val, ok := configMap["Antimalware/ScanDay"]; ok {
+		antimalware[0].ScanDay = int(val.(float64))
+	}
+
+	if val, ok := configMap["Antimalware/ScanTimeInMinutes"]; ok {
+		antimalware[0].ScanTimeInMinutes = int(val.(float64))
+	}
+
+	if val, ok := configMap["Antimalware/Exclusions/Extensions"]; ok {
+		antimalware[0].Exclusions[0].Extensions = val.(string)
+	}
+
+	if val, ok := configMap["Antimalware/Exclusions/Paths"]; ok {
+		antimalware[0].Exclusions[0].Paths = val.(string)
+	}
+
+	if val, ok := configMap["Antimalware/Exclusions/Processes"]; ok {
+		antimalware[0].Exclusions[0].Processes = val.(string)
+	}
+
+	return antimalware
 }

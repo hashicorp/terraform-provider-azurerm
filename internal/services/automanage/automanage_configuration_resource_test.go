@@ -24,6 +24,12 @@ func TestAccAutoManageConfigurationProfile_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("antimalware.#").HasValue("1"),
+				check.That(data.ResourceName).Key("antimalware.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("antimalware.0.exclusions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("antimalware.0.exclusions.0.extensions").HasValue("exe;dll"),
+				check.That(data.ResourceName).Key("antimalware.0.real_time_protection_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("automation_account_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -52,6 +58,21 @@ func TestAccAutoManageConfigurationProfile_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("antimalware.#").HasValue("1"),
+				check.That(data.ResourceName).Key("antimalware.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("antimalware.0.exclusions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("antimalware.0.exclusions.0.extensions").HasValue("exe;dll"),
+				check.That(data.ResourceName).Key("antimalware.0.exclusions.0.processes").HasValue("svchost.exe;notepad.exe"),
+				check.That(data.ResourceName).Key("antimalware.0.real_time_protection_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("antimalware.0.scheduled_scan_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("antimalware.0.scheduled_scan_day").HasValue("1"),
+				check.That(data.ResourceName).Key("antimalware.0.scheduled_scan_type").HasValue("Quick"),
+				check.That(data.ResourceName).Key("antimalware.0.scheduled_scan_time_in_minutes").HasValue("1339"),
+				check.That(data.ResourceName).Key("automation_account_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("boot_diagnostics_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("defender_for_cloud_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("guest_configuration_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("status_change_alert_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -73,6 +94,21 @@ func TestAccAutoManageConfigurationProfile_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("antimalware.#").HasValue("1"),
+				check.That(data.ResourceName).Key("antimalware.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("antimalware.0.exclusions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("antimalware.0.exclusions.0.extensions").HasValue("exe"),
+				check.That(data.ResourceName).Key("antimalware.0.exclusions.0.processes").HasValue("svchost.exe"),
+				check.That(data.ResourceName).Key("antimalware.0.real_time_protection_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("antimalware.0.scheduled_scan_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("antimalware.0.scheduled_scan_day").HasValue("2"),
+				check.That(data.ResourceName).Key("antimalware.0.scheduled_scan_type").HasValue("Full"),
+				check.That(data.ResourceName).Key("antimalware.0.scheduled_scan_time_in_minutes").HasValue("1338"),
+				check.That(data.ResourceName).Key("automation_account_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("boot_diagnostics_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("defender_for_cloud_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("guest_configuration_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("status_change_alert_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -122,24 +158,10 @@ resource "azurerm_automanage_configuration" "test" {
 	enabled = true
 	exclusions {
       extensions = "exe;dll"
-	  paths = "C:\\Windows\\Temp;D:\\Temp"
-      processes = "svchost.exe;notepad.exe"
 	}
-    real_time_protection = true
-    scheduled_scan_enabled = true
-    scheduled_scan_type = "Quick"
-	scheduled_scan_day = 1
-	scheduled_scan_time_in_minutes = 1339
+    real_time_protection_enabled = true
   }
   automation_account_enabled = true
-  boot_diagnostics_enabled = true
-  change_tracking_and_inventory_enabled = true
-  defender_for_cloud_enabled = true
-  guest_configuration_enabled = true
-  status_change_alert_enabled = true
-  tags = {
-	"env" = "test"
-  }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
@@ -153,17 +175,14 @@ resource "azurerm_automanage_configuration" "import" {
   name                = azurerm_automanage_configuration.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  configuration_json = jsonencode({
-    "Antimalware/Enable" : false,
-    "AzureSecurityCenter/Enable" : true,
-    "Backup/Enable" : false,
-    "BootDiagnostics/Enable" : true,
-    "ChangeTrackingAndInventory/Enable" : true,
-    "GuestConfiguration/Enable" : true,
-    "LogAnalytics/Enable" : true,
-    "UpdateManagement/Enable" : true,
-    "VMInsights/Enable" : true
-  })
+  antimalware {
+	enabled = true
+	exclusions {
+      extensions = "exe;dll"
+	}
+    real_time_protection_enabled = true
+  }
+  automation_account_enabled = true
 }
 `, config, data.Locations.Primary)
 }
@@ -192,7 +211,6 @@ resource "azurerm_automanage_configuration" "test" {
   }
   automation_account_enabled = true
   boot_diagnostics_enabled = true
-  change_tracking_and_inventory_enabled = true
   defender_for_cloud_enabled = true
   guest_configuration_enabled = true
   status_change_alert_enabled = true
@@ -212,21 +230,21 @@ resource "azurerm_automanage_configuration" "test" {
   name                = "acctest-amcp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  configuration_json = jsonencode({
-    "Antimalware/Enable" : false,
-    "AzureSecurityCenter/Enable" : true,
-    "Backup/Enable" : true,
-    "BootDiagnostics/Enable" : true,
-    "ChangeTrackingAndInventory/Enable" : true,
-    "GuestConfiguration/Enable" : true,
-    "LogAnalytics/Enable" : true,
-    "UpdateManagement/Enable" : true,
-    "VMInsights/Enable" : true
-  })
-  tags = {
-    key2 = "value2"
+  antimalware {
+	enabled = true
+	exclusions {
+      extensions = "exe"
+      processes = "svchost.exe"
+	}
+    real_time_protection_enabled = false
+    scheduled_scan_enabled = true
+    scheduled_scan_type = "Full"
+	scheduled_scan_day = 2
+	scheduled_scan_time_in_minutes = 1338
   }
-
+  tags = {
+	"env2" = "test2"
+  }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
