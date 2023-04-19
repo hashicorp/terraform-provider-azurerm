@@ -82,14 +82,14 @@ func resourceSearchService() *pluginsdk.Resource {
 			},
 
 			"primary_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
 				Sensitive: true,
 			},
 
