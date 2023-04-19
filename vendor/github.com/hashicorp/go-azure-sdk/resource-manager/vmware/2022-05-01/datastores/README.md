@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2021-12-01/datastores` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/datastores` Documentation
 
-The `datastores` SDK allows for interaction with the Azure Resource Manager Service `vmware` (API Version `2021-12-01`).
+The `datastores` SDK allows for interaction with the Azure Resource Manager Service `vmware` (API Version `2022-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2021-12-01/datastores"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/datastores"
 ```
 
 
