@@ -3,7 +3,14 @@
 ENHANCEMENTS:
 
 * `advisor` - refactoring to use `hashicorp/go-azure-sdk` [GH-21307]
+* `healthcare`: refactoring to use `hashicorp/go-azure-sdk` [GH-21327]
 * `hpccache` - refactoring to use `hashicorp/go-azure-sdk` [GH-21303]
+* `logz` - refactoring to use `hashicorp/go-azure-sdk` [GH-21321]
+* dependencies: updating `orbital/2022-03-01` to `2022-11-01` [GH-21405] 
+
+BUG FIXES: 
+
+* `azurerm_monitor_metric_alert` - fix crash when `dynamic_criteria.0.ignore_data_before` isn't set [GH-21446]
 
 ## 3.52.0 (April 13, 2023)
 

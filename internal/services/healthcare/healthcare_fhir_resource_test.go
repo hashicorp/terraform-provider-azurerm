@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HealthcareApiFhirServiceResource struct{}
@@ -141,15 +141,15 @@ func TestAccHealthcareApiFhirService_requiresImport(t *testing.T) {
 }
 
 func (HealthcareApiFhirServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FhirServiceID(state.ID)
+	id, err := fhirservices.ParseFhirServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.HealthCare.HealthcareWorkspaceFhirServiceClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := clients.HealthCare.HealthcareWorkspaceFhirServiceClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Healthcare api fhir service %s: %+v", *id, err)
 	}
-	return utils.Bool(resp.FhirServiceProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r HealthcareApiFhirServiceResource) basic(data acceptance.TestData) string {
