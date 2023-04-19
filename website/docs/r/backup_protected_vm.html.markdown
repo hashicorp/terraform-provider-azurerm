@@ -34,10 +34,13 @@ resource "azurerm_backup_policy_vm" "example" {
     frequency = "Daily"
     time      = "23:00"
   }
+  retention_daily {
+    count = 10
+  }
 }
 
 data "azurerm_virtual_machine" "example" {
-  name                = "production"
+  name                = "example-vm"
   resource_group_name = azurerm_resource_group.example.name
 }
 
@@ -70,7 +73,7 @@ This allows the source vm to be deleted without having to remove the backup.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Backup Protected Virtual Machine.
 

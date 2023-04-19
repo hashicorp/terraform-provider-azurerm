@@ -3,6 +3,7 @@ name: GoLang Linting
 
 permissions:
   contents: read
+  pull-requests: write
 
 on:
   pull_request:
@@ -27,4 +28,12 @@ jobs:
       - uses: golangci/golangci-lint-action@v3
         with:
           version: 'v1.51.1'
-          args: -v
+          args: -v ./internal/...
+      - name: Add waiting-response on fail
+        if: failure()
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: waiting-response
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ github.event.number }}
+          repo: ${{ github.event.repository.full_name }}

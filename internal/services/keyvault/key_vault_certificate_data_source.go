@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
@@ -37,6 +37,16 @@ func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: keyVaultValidate.VaultID,
+			},
+
+			"resource_manager_id": {
+				Computed: true,
+				Type:     pluginsdk.TypeString,
+			},
+
+			"resource_manager_versionless_id": {
+				Computed: true,
+				Type:     pluginsdk.TypeString,
 			},
 
 			"version": {
@@ -297,6 +307,9 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("version", id.Version)
 	d.Set("secret_id", cert.Sid)
 	d.Set("versionless_id", id.VersionlessID())
+
+	d.Set("resource_manager_id", parse.NewCertificateID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name, id.Version).ID())
+	d.Set("resource_manager_versionless_id", parse.NewCertificateVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
 
 	if cert.Sid != nil {
 		secretId, err := parse.ParseNestedItemID(*cert.Sid)

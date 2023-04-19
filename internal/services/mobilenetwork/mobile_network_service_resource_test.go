@@ -143,13 +143,18 @@ func (r MobileNetworkServiceResource) Exists(ctx context.Context, clients *clien
 }
 
 func (r MobileNetworkServiceResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_mobile_network_service" "test" {
   name               = "acctest-mns-%d"
   mobile_network_id  = azurerm_mobile_network.test.id
-  location           = "%s"
+  location           = azurerm_mobile_network.test.location
   service_precedence = 0
 
   pcc_rule {
@@ -163,15 +168,19 @@ resource "azurerm_mobile_network_service" "test" {
       protocol       = ["ip"]
       remote_ip_list = ["10.3.4.0/24"]
     }
-
   }
 }
-`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func (r MobileNetworkServiceResource) withQosPolicy(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_mobile_network_service" "test" {
   name               = "acctest-mns-%d"
@@ -205,17 +214,22 @@ resource "azurerm_mobile_network_service" "test" {
     }
   }
 }
-`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MobileNetworkServiceResource) withServiceQosPolicy(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_mobile_network_service" "test" {
   name               = "acctest-mns-%d"
   mobile_network_id  = azurerm_mobile_network.test.id
-  location           = "%s"
+  location           = azurerm_mobile_network.test.location
   service_precedence = 0
 
   pcc_rule {
@@ -242,20 +256,19 @@ resource "azurerm_mobile_network_service" "test" {
       uplink   = "100 Mbps"
     }
   }
-
 }
-`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func (r MobileNetworkServiceResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_mobile_network_service" "import" {
   name               = azurerm_mobile_network_service.test.name
-  mobile_network_id  = azurerm_mobile_network.test.id
-  location           = "%s"
+  mobile_network_id  = azurerm_mobile_network_service.test.mobile_network_id
+  location           = azurerm_mobile_network_service.test.location
   service_precedence = 0
 
   pcc_rule {
@@ -272,17 +285,22 @@ resource "azurerm_mobile_network_service" "import" {
     }
   }
 }
-`, config, data.Locations.Primary)
+`, config)
 }
 
 func (r MobileNetworkServiceResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_mobile_network_service" "test" {
   name               = "acctest-mns-%d"
   mobile_network_id  = azurerm_mobile_network.test.id
-  location           = "%s"
+  location           = azurerm_mobile_network.test.location
   service_precedence = 0
   pcc_rule {
     name                    = "default-rule"
@@ -321,23 +339,29 @@ resource "azurerm_mobile_network_service" "test" {
       uplink   = "100 Mbps"
     }
   }
+
   tags = {
     key = "value"
   }
-
 }
-`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func (r MobileNetworkServiceResource) update(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_mobile_network_service" "test" {
   name               = "acctest-mns-%d"
   mobile_network_id  = azurerm_mobile_network.test.id
-  location           = "%s"
+  location           = azurerm_mobile_network.test.location
   service_precedence = 0
+
   pcc_rule {
     name                    = "default-rule-2"
     precedence              = 1
@@ -381,5 +405,22 @@ resource "azurerm_mobile_network_service" "test" {
   }
 
 }
-`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
+}
+
+func (r MobileNetworkServiceResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-mn-%[1]d"
+  location = %[2]q
+}
+
+resource "azurerm_mobile_network" "test" {
+  name                = "acctest-mn-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  mobile_country_code = "001"
+  mobile_network_code = "01"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

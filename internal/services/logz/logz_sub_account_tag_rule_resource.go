@@ -5,14 +5,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/subaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogzSubAccountTagRule() *pluginsdk.Resource {
@@ -30,7 +30,7 @@ func resourceLogzSubAccountTagRule() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.LogzSubAccountTagRuleID(id)
+			_, err := tagrules.ParseAccountTagRuleID(id)
 			return err
 		}),
 
@@ -39,10 +39,37 @@ func resourceLogzSubAccountTagRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LogzSubAccountID,
+				ValidateFunc: subaccount.ValidateAccountID,
 			},
 
-			"tag_filter": schemaTagFilter(),
+			"tag_filter": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 10,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"action": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(tagrules.TagActionInclude),
+								string(tagrules.TagActionExclude),
+							}, false),
+						},
+
+						"value": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
 
 			"send_aad_logs": {
 				Type:     pluginsdk.TypeBool,
@@ -65,36 +92,35 @@ func resourceLogzSubAccountTagRule() *pluginsdk.Resource {
 	}
 }
 func resourceLogzSubAccountTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logz.SubAccountTagRuleClient
+	client := meta.(*clients.Client).Logz.TagRuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	subAccountId, err := parse.LogzSubAccountID(d.Get("logz_sub_account_id").(string))
+	subAccountId, err := subaccount.ParseAccountID(d.Get("logz_sub_account_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewLogzSubAccountTagRuleID(subAccountId.SubscriptionId, subAccountId.ResourceGroup, subAccountId.MonitorName, subAccountId.AccountName, TagRuleName)
-
+	id := tagrules.NewAccountTagRuleID(subAccountId.SubscriptionId, subAccountId.ResourceGroupName, subAccountId.MonitorName, subAccountId.AccountName, "default")
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.AccountName, id.TagRuleName)
+		existing, err := client.SubAccountTagRulesGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_logz_sub_account_tag_rule", *existing.ID)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_logz_sub_account_tag_rule", id.ID())
 		}
 	}
 
-	props := logz.MonitoringTagRules{
-		Properties: &logz.MonitoringTagRulesProperties{
+	payload := tagrules.MonitoringTagRules{
+		Properties: &tagrules.MonitoringTagRulesProperties{
 			LogRules: expandTagRuleLogRules(d),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.AccountName, id.TagRuleName, &props); err != nil {
+	if _, err := client.SubAccountTagRulesCreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -103,33 +129,36 @@ func resourceLogzSubAccountTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceLogzSubAccountTagRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logz.SubAccountTagRuleClient
+	client := meta.(*clients.Client).Logz.TagRuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogzSubAccountTagRuleID(d.Id())
+	id, err := tagrules.ParseAccountTagRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.AccountName, id.TagRuleName)
+	resp, err := client.SubAccountTagRulesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] logz %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("logz_sub_account_id", parse.NewLogzSubAccountID(id.SubscriptionId, id.ResourceGroup, id.MonitorName, id.AccountName).ID())
-	if props := resp.Properties; props != nil && props.LogRules != nil {
-		d.Set("send_aad_logs", props.LogRules.SendAadLogs)
-		d.Set("send_activity_logs", props.LogRules.SendActivityLogs)
-		d.Set("send_subscription_logs", props.LogRules.SendSubscriptionLogs)
+	d.Set("logz_sub_account_id", subaccount.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName, id.AccountName).ID())
 
-		if err := d.Set("tag_filter", flattenTagRuleFilteringTagArray(props.LogRules.FilteringTags)); err != nil {
-			return fmt.Errorf("setting `tag_filter`: %+v", err)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil && props.LogRules != nil {
+			d.Set("send_aad_logs", props.LogRules.SendAadLogs)
+			d.Set("send_activity_logs", props.LogRules.SendActivityLogs)
+			d.Set("send_subscription_logs", props.LogRules.SendSubscriptionLogs)
+
+			if err := d.Set("tag_filter", flattenTagRuleFilteringTagArray(props.LogRules.FilteringTags)); err != nil {
+				return fmt.Errorf("setting `tag_filter`: %+v", err)
+			}
 		}
 	}
 
@@ -137,17 +166,17 @@ func resourceLogzSubAccountTagRuleRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceLogzSubAccountTagRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logz.SubAccountTagRuleClient
+	client := meta.(*clients.Client).Logz.TagRuleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogzSubAccountTagRuleID(d.Id())
+	id, err := tagrules.ParseAccountTagRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.MonitorName, id.AccountName, id.TagRuleName); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	if _, err := client.SubAccountTagRulesDelete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

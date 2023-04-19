@@ -923,7 +923,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 
 func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int, appSettings web.StringDictionary) []SiteConfigLinux {
 	if appSiteConfig == nil {
-		return nil
+		return []SiteConfigLinux{}
 	}
 
 	siteConfig := SiteConfigLinux{
@@ -953,6 +953,7 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 		UseManagedIdentityACR:   pointer.From(appSiteConfig.AcrUseManagedIdentityCreds),
 		WebSockets:              pointer.From(appSiteConfig.WebSocketsEnabled),
 		VnetRouteAllEnabled:     pointer.From(appSiteConfig.VnetRouteAllEnabled),
+		Cors:                    FlattenCorsSettings(appSiteConfig.Cors),
 	}
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
@@ -973,26 +974,6 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 		// Decode the string to docker values
 		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion, appSettings)
 		siteConfig.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
-	}
-
-	if appSiteConfig.Cors != nil {
-		corsEmpty := false
-		corsSettings := appSiteConfig.Cors
-		cors := CorsSetting{}
-		if corsSettings.SupportCredentials != nil {
-			cors.SupportCredentials = *corsSettings.SupportCredentials
-		}
-
-		if corsSettings.AllowedOrigins != nil {
-			if len(*corsSettings.AllowedOrigins) > 0 {
-				cors.AllowedOrigins = *corsSettings.AllowedOrigins
-			} else if !cors.SupportCredentials {
-				corsEmpty = true
-			}
-		}
-		if !corsEmpty {
-			siteConfig.Cors = []CorsSetting{cors}
-		}
 	}
 
 	return []SiteConfigLinux{siteConfig}
@@ -1070,7 +1051,7 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 
 func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSettingLinux {
 	if autoHealRules == nil {
-		return nil
+		return []AutoHealSettingLinux{}
 	}
 
 	result := AutoHealSettingLinux{}

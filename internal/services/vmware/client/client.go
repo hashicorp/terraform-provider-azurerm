@@ -1,10 +1,10 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/authorizations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/clusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/privateclouds"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2021-12-01/datastores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/authorizations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/datastores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

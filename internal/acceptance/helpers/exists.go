@@ -1,7 +1,9 @@
 package helpers
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
@@ -20,7 +22,9 @@ func ExistsInAzure(client *clients.Client, testResource types.TestResource, reso
 func existsFunc(shouldExist bool) func(*clients.Client, types.TestResource, string) pluginsdk.TestCheckFunc {
 	return func(client *clients.Client, testResource types.TestResource, resourceName string) pluginsdk.TestCheckFunc {
 		return func(s *terraform.State) error {
-			ctx := client.StopContext
+			// even with rate limiting - an exists function should never take more than 5m, so should be safe
+			ctx, cancel := context.WithDeadline(client.StopContext, time.Now().Add(5*time.Minute))
+			defer cancel()
 
 			rs, ok := s.RootModule().Resources[resourceName]
 			if !ok {

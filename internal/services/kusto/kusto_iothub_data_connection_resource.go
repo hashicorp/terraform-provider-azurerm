@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -12,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	iotHubParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -213,12 +215,16 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 		if dataConnection, ok := (*resp.Model).(dataconnections.IotHubDataConnection); ok {
 			d.Set("location", location.NormalizeNilable(dataConnection.Location))
 			if props := dataConnection.Properties; props != nil {
-				d.Set("iothub_id", props.IotHubResourceId)
+				iotHubId := ""
+				if parsedIoTHubId, err := iotHubParse.IotHubIDInsensitively(props.IotHubResourceId); err == nil {
+					iotHubId = parsedIoTHubId.ID()
+				}
+				d.Set("iothub_id", iotHubId)
 				d.Set("consumer_group", props.ConsumerGroup)
 				d.Set("table_name", props.TableName)
 				d.Set("mapping_rule_name", props.MappingRuleName)
-				d.Set("data_format", props.DataFormat)
-				d.Set("database_routing_type", props.DatabaseRouting)
+				d.Set("data_format", string(pointer.From(props.DataFormat)))
+				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
 				d.Set("shared_access_policy_name", props.SharedAccessPolicyName)
 				d.Set("event_system_properties", utils.FlattenStringSlice(props.EventSystemProperties))
 			}

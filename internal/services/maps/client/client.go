@@ -11,15 +11,21 @@ type Client struct {
 	CreatorsClient *creators.CreatorsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	accountsClient := accounts.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&accountsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	accountsClient, err := accounts.NewAccountsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, err
+	}
+	o.Configure(accountsClient.Client, o.Authorizers.ResourceManager)
 
-	creatorsClient := creators.NewCreatorsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&creatorsClient.Client, o.ResourceManagerAuthorizer)
+	creatorsClient, err := creators.NewCreatorsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, err
+	}
+	o.Configure(creatorsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AccountsClient: &accountsClient,
-		CreatorsClient: &creatorsClient,
-	}
+		AccountsClient: accountsClient,
+		CreatorsClient: creatorsClient,
+	}, nil
 }

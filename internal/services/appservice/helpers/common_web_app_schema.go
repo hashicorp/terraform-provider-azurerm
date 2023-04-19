@@ -1291,7 +1291,7 @@ func FlattenAppSettings(input web.StringDictionary, metadata sdk.ResourceMetaDat
 
 func flattenVirtualApplications(appVirtualApplications *[]web.VirtualApplication) []VirtualApplication {
 	if appVirtualApplications == nil || onlyDefaultVirtualApplication(*appVirtualApplications) {
-		return nil
+		return []VirtualApplication{}
 	}
 
 	var virtualApplications []VirtualApplication

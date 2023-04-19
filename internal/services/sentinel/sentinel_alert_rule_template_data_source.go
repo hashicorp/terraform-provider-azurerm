@@ -182,6 +182,8 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 		err = setForScheduledAlertRuleTemplate(d, id, &template)
 	case securityinsight.NrtAlertRuleTemplate:
 		err = setForNrtAlertRuleTemplate(d, id, &template)
+	case securityinsight.ThreatIntelligenceAlertRuleTemplate:
+		setForThreatIntelligenceAlertRuleTemplate(d, id, &template)
 	default:
 		return fmt.Errorf("unknown template type of Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q) ID", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroupName)
 	}
@@ -230,6 +232,10 @@ func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsi
 			if template.DisplayName != nil && *template.DisplayName == name {
 				results = append(results, templates.Value())
 			}
+		case securityinsight.ThreatIntelligenceAlertRuleTemplate:
+			if template.DisplayName != nil && *template.DisplayName == name {
+				results = append(results, templates.Value())
+			}
 		}
 
 		if err := templates.NextWithContext(ctx); err != nil {
@@ -274,6 +280,12 @@ func setForFusionAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelA
 }
 
 func setForMLBehaviorAnalyticsAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.MLBehaviorAnalyticsAlertRuleTemplate) {
+	d.SetId(id.ID())
+	d.Set("name", template.Name)
+	d.Set("display_name", template.DisplayName)
+}
+
+func setForThreatIntelligenceAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.ThreatIntelligenceAlertRuleTemplate) {
 	d.SetId(id.ID())
 	d.Set("name", template.Name)
 	d.Set("display_name", template.DisplayName)
