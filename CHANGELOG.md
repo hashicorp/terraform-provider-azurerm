@@ -7,6 +7,8 @@ ENHANCEMENTS:
 * `hpccache` - refactoring to use `hashicorp/go-azure-sdk` [GH-21303]
 * `logz` - refactoring to use `hashicorp/go-azure-sdk` [GH-21321]
 * dependencies: updating `orbital/2022-03-01` to `2022-11-01` [GH-21405] 
+* `azurerm_linux_web_app`Add PHP 8.2 `application_stack` support [GH-21420]
+* `azurerm_linux_web_app_slot`Add PHP 8.2 `application_stack` support [GH-21420]
 
 BUG FIXES: 
 
