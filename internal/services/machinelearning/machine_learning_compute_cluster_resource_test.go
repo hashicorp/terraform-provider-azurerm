@@ -205,7 +205,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   vm_size                       = "STANDARD_DS2_V2"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   subnet_resource_id            = azurerm_subnet.test.id
-  enable_node_public_ip         = false
+  node_public_ip_enabled        = false
   description                   = "Machine Learning"
   tags = {
     environment = "test"

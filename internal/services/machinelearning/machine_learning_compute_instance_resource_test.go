@@ -186,7 +186,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   authorization_type            = "personal"
-  enable_node_public_ip         = false
+  node_public_ip_enabled        = false
   ssh {
     public_key = var.ssh_key
   }
