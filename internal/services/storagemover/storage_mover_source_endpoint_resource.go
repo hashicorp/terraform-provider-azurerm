@@ -132,9 +132,11 @@ func (r StorageMoverSourceEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Description != "" {
-				nfsProperties := properties.Properties.(endpoints.NfsMountEndpointProperties)
-				nfsProperties.Description = utils.String(model.Description)
-				properties.Properties = nfsProperties
+				if v, ok := properties.Properties.(endpoints.NfsMountEndpointProperties); ok {
+					v.Description = utils.String(model.Description)
+					properties.Properties = v
+				}
+
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {

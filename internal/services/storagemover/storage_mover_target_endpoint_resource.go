@@ -119,9 +119,10 @@ func (r StorageMoverTargetEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Description != "" {
-				sbcProperties := properties.Properties.(endpoints.AzureStorageBlobContainerEndpointProperties)
-				sbcProperties.Description = utils.String(model.Description)
-				properties.Properties = sbcProperties
+				if v, ok := properties.Properties.(endpoints.AzureStorageBlobContainerEndpointProperties); ok {
+					v.Description = utils.String(model.Description)
+					properties.Properties = v
+				}
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
