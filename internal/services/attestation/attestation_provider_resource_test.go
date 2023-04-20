@@ -327,8 +327,8 @@ resource "azurerm_attestation_provider" "test" {
   location            = azurerm_resource_group.test.location
 
   policy {
-    type = "SgxEnclave"
-    data = "%s"
+    environment_type = "SgxEnclave"
+    data             = "%s"
   }
 }
 `, template, randStr, a.genJWT())

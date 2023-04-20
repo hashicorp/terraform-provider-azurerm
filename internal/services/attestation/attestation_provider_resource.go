@@ -302,11 +302,11 @@ func expandPolicies(input []interface{}) (res []policyDef, err error) {
 			continue
 		}
 		policy := ins.(map[string]interface{})
-		typ := attestation.Type(policy["type"].(string))
+		typ := attestation.Type(policy["environment_type"].(string))
 
 		for _, def := range res {
 			if def.Type == typ {
-				return nil, fmt.Errorf("repeated policy type: %s", typ)
+				return nil, fmt.Errorf("repeated policy environment_type: %s", typ)
 			}
 		}
 		res = append(res, policyDef{
