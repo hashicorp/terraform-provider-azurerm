@@ -29,6 +29,7 @@ ENHANCEMENTS:
 
 BUG FIXES: 
 
+* `azurerm_cdn_endpoint` - Remove the length limit of the `query_string` [GH-21474]
 * `azurerm_cognitive_account` - mark `custom_question_answering_search_service_key` as sensitive [GH-21469]
 * `azurerm_monitor_metric_alert` - fix crash when `dynamic_criteria.0.ignore_data_before` isn't set [GH-21446]
 * `azurerm_search_service` - mark `primary_key` and `secondary_key` as sensitive [GH-21469]
