@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -97,7 +98,7 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			keyVaultId, err := parse.VaultID(state.KeyVaultId)
+			keyVaultId, err := commonids.ParseKeyVaultID(state.KeyVaultId)
 			if err != nil {
 				return fmt.Errorf("parsing `key_vault_id`, %+v", err)
 			}
@@ -161,7 +162,7 @@ func (r KeyVaultCertificateContactsResource) Read() sdk.ResourceFunc {
 				metadata.Logger.Infof("Unable to determine the Resource ID for the Key Vault at URL %s - removing from state!", id.KeyVaultBaseUrl)
 				return metadata.MarkAsGone(id)
 			}
-			keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+			keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 			if err != nil {
 				return fmt.Errorf("parsing Key Vault ID: %+v", err)
 			}
