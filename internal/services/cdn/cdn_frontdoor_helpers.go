@@ -10,7 +10,6 @@ import (
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -372,53 +371,6 @@ func getRouteProperties(d *pluginsdk.ResourceData, meta interface{}, id *parse.F
 	return customDomains, props, nil
 }
 
-func getRouteRuleSetProperties(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRuleSetAssociationId) ([]interface{}, *cdn.RouteProperties, error) {
-	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	ctx, routeCancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer routeCancel()
-
-	routeId := parse.NewFrontDoorRouteID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName)
-
-	// Check to see if the route exists
-	resp, err := client.Get(ctx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
-	if err != nil {
-		return nil, nil, fmt.Errorf("retrieving %s: %+v", routeId, err)
-	}
-
-	props := resp.RouteProperties
-	if props == nil {
-		return nil, nil, fmt.Errorf("retrieving %s properties are 'nil': %+v", routeId, err)
-	}
-
-	ruleSets := flattenRuleSetResourceArray(props.RuleSets)
-
-	return ruleSets, props, nil
-}
-
-func ruleSetExists(d *pluginsdk.ResourceData, meta interface{}, id *[]parse.FrontDoorRuleSetId) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	notFound := make([]string, 0)
-
-	for _, v := range *id {
-		// Check to see if the rule set exists
-		existing, err := client.Get(ctx, v.ResourceGroup, v.ProfileName, v.RuleSetName)
-		if err != nil {
-			if utils.ResponseWasNotFound(existing.Response) {
-				notFound = append(notFound, v.RuleSetName)
-			}
-		}
-	}
-
-	if len(notFound) != 0 {
-		return fmt.Errorf("the following CDN FrontDoor Rule Sets do not exist: %s. Please remove the CDN FrontDoor Rule Sets from your configuration", strings.Join(notFound, ", "))
-	}
-
-	return nil
-}
-
 func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta interface{}, routes *[]parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
 	if len(*routes) != 0 && routes != nil {
 		for _, route := range *routes {
@@ -446,70 +398,27 @@ func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta int
 
 func updateRouteAssociations(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, customDomains []interface{}, props *cdn.RouteProperties, customDomainID *parse.FrontDoorCustomDomainId) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	workaroundsClient := azuresdkhacks.NewCdnFrontDoorRoutesWorkaroundClient(client)
-	ctx, routeCancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer routeCancel()
-
-	// NOTE: You need to always pass these these three on update else you will
-	// disable/disassociate your custom domains, cache configuration or rule sets...
-	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains:      expandCustomDomainActivatedResourceArray(customDomains),
-		CacheConfiguration: props.CacheConfiguration,
-		RuleSets:           props.RuleSets,
-	}
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
 	// NOTE: If there are no more custom domains associated with the route you must flip the
 	// 'link to default domain' field to 'true' else the route will be in an invalid state...
 	if len(customDomains) == 0 {
-		updateProps.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
+		props.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
 	}
 
-	updateParams := azuresdkhacks.RouteUpdateParameters{
-		RouteUpdatePropertiesParameters: &updateProps,
+	routeProps := cdn.Route{
+		RouteProperties: props,
 	}
 
-	future, err := workaroundsClient.Update(ctx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updateParams)
+	// NOTE: Calling Create intentionally to avoid having to use the azuresdkhacks for the Update (PATCH) call..
+	future, err := client.Create(ctx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, routeProps)
 	if err != nil {
 		return fmt.Errorf("%s: updating the association with %s: %+v", *customDomainID, *routeId, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("%s: waiting to update the association with %s: %+v", *customDomainID, *routeId, err)
-	}
-
-	return nil
-}
-
-func setRouteRuleSetAssociations(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRuleSetAssociationId, ruleSets []interface{}, props *cdn.RouteProperties, errorTxt string, futureErrorTxt string) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	ctx, routeCancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer routeCancel()
-
-	// NOTE: You need to always pass these these three on update else you will
-	// disable/disassociate your custom domains, cache configuration or rule sets...
-
-	// Since delete is the only function that passes nil as the ruleSet value
-	// we know it is a delete operation...
-	if ruleSets != nil || len(ruleSets) != 0 {
-		// associate only the rule sets contained within the association resource
-		props.RuleSets = expandRuleSetReferenceArray(ruleSets)
-	} else {
-		// Disassociate all rule sets from the route
-		props.RuleSets = nil
-	}
-
-	routeProperties := cdn.Route{
-		RouteProperties: props,
-	}
-
-	// NOTE: Calling Create intentionally to avoid having to use the azuresdkhacks for the Update (PATCH) call..
-	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName, routeProperties)
-	if err != nil {
-		return fmt.Errorf("%s %s: %+v", errorTxt, id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("%s %s: %+v", futureErrorTxt, id, err)
 	}
 
 	return nil
@@ -747,25 +656,4 @@ func expandCustomDomains(input []interface{}) ([]interface{}, error) {
 	}
 
 	return out, nil
-}
-
-func expandRuleSets(input []interface{}) (*[]parse.FrontDoorRuleSetId, []interface{}, error) {
-	if len(input) == 0 || input == nil {
-		return nil, nil, nil
-	}
-
-	out := make([]parse.FrontDoorRuleSetId, 0)
-	config := make([]interface{}, 0)
-
-	for _, v := range input {
-		id, err := parse.FrontDoorRuleSetID(v.(string))
-		if err != nil {
-			return nil, nil, err
-		}
-
-		out = append(out, *id)
-		config = append(config, id.ID())
-	}
-
-	return &out, config, nil
 }

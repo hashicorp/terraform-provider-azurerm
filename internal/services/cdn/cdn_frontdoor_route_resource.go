@@ -7,8 +7,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -18,7 +18,7 @@ import (
 )
 
 func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceCdnFrontDoorRouteCreate,
 		Read:   resourceCdnFrontDoorRouteRead,
 		Update: resourceCdnFrontDoorRouteUpdate,
@@ -172,15 +172,6 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 				},
 			},
 
-			"cdn_frontdoor_rule_set_ids": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
 			"supported_protocols": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -196,6 +187,24 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	// NOTE: This field has been removed from the documentation, it is only here
+	// to not break existing instances of the resource...
+	if !features.FourPointOhBeta() {
+		resource.Schema["cdn_frontdoor_rule_set_ids"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			Computed:   true,
+			Optional:   true,
+			Deprecated: "Please use the 'azurerm_cdn_frontdoor_rule_sets_association' resource to manage the routes rule set associations. This field will be removed in version 4.0 of the AzureRM Provider.",
+
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validate.FrontDoorRuleSetID,
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -227,7 +236,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
 	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
-	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
+	ruleSetIdsRaw := make([]interface{}, 0)
 	originsRaw := d.Get("cdn_frontdoor_origin_ids").([]interface{})
 	customDomainsRaw := d.Get("cdn_frontdoor_custom_domain_ids").(*pluginsdk.Set).List()
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
@@ -268,13 +277,19 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		originGroup = expandResourceReference(id.ID())
 	}
 
-	normalizedRuleSets, err := expandRuleSetIds(ruleSetIdsRaw)
+	if !features.FourPointOhBeta() {
+		ruleSetIdsRaw = d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
+	}
+
+	ruleSets, err := expandRuleSetIds(ruleSetIdsRaw)
 	if err != nil {
 		return err
 	}
 
-	props := cdn.Route{
-		RouteProperties: &cdn.RouteProperties{
+	props := cdn.Route{}
+
+	if !features.FourPointOhBeta() {
+		props.RouteProperties = &cdn.RouteProperties{
 			CustomDomains:       expandCustomDomainActivatedResourceArray(normalizedCustomDomains),
 			CacheConfiguration:  expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{})),
 			EnabledState:        expandEnabledBool(d.Get("enabled").(bool)),
@@ -283,9 +298,22 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 			LinkToDefaultDomain: expandEnabledBoolToLinkToDefaultDomain(linkToDefaultDomain),
 			OriginGroup:         originGroup,
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
-			RuleSets:            expandRuleSetReferenceArray(normalizedRuleSets),
+			RuleSets:            expandRuleSetReferenceArray(ruleSets),
 			SupportedProtocols:  expandEndpointProtocolsArray(protocolsRaw),
-		},
+		}
+	} else {
+		// NOTE: In v4.0 RuleSets are no longer sent in the create call...
+		props.RouteProperties = &cdn.RouteProperties{
+			CustomDomains:       expandCustomDomainActivatedResourceArray(normalizedCustomDomains),
+			CacheConfiguration:  expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{})),
+			EnabledState:        expandEnabledBool(d.Get("enabled").(bool)),
+			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
+			HTTPSRedirect:       expandEnabledBoolToRouteHttpsRedirect(httpsRedirect),
+			LinkToDefaultDomain: expandEnabledBoolToLinkToDefaultDomain(linkToDefaultDomain),
+			OriginGroup:         originGroup,
+			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
+			SupportedProtocols:  expandEndpointProtocolsArray(protocolsRaw),
+		}
 	}
 
 	if originPath := d.Get("cdn_frontdoor_origin_path").(string); originPath != "" {
@@ -377,8 +405,10 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `cdn_frontdoor_origin_group_id`: %+v", err)
 		}
 
-		if err := d.Set("cdn_frontdoor_rule_set_ids", flattenRuleSetResourceArray(props.RuleSets)); err != nil {
-			return fmt.Errorf("setting `cdn_frontdoor_rule_set_ids`: %+v", err)
+		if !features.FourPointOhBeta() {
+			if err := d.Set("cdn_frontdoor_rule_set_ids", flattenRuleSetResourceArray(props.RuleSets)); err != nil {
+				return fmt.Errorf("setting `cdn_frontdoor_rule_set_ids`: %+v", err)
+			}
 		}
 
 		if err := d.Set("supported_protocols", flattenCdnFrontdoorRouteEndpointProtocolsArray(props.SupportedProtocols)); err != nil {
@@ -391,7 +421,6 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	workaroundsClient := azuresdkhacks.NewCdnFrontDoorRoutesWorkaroundClient(client)
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -418,8 +447,12 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
 	customDomainsRaw := d.Get("cdn_frontdoor_custom_domain_ids").(*pluginsdk.Set).List()
 	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
-	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
+	ruleSetIdsRaw := make([]interface{}, 0)
 	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
+
+	if !features.FourPointOhBeta() {
+		ruleSetIdsRaw = d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
+	}
 
 	// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
 	// This configuration does not cause an error when provisioned, however the http requests that
@@ -452,68 +485,65 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	// NOTE: You need to always pass these these three on update else you will
-	// disable/disassociate your custom domains, cache configuration or rule sets...
-	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains:      existing.RouteProperties.CustomDomains,
-		CacheConfiguration: existing.RouteProperties.CacheConfiguration,
-		RuleSets:           existing.RuleSets,
-	}
+	props := existing.RouteProperties
 
 	if d.HasChange("cache") {
-		updateProps.CacheConfiguration = expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{}))
+		props.CacheConfiguration = expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{}))
 	}
 
 	if d.HasChange("enabled") {
-		updateProps.EnabledState = expandEnabledBool(d.Get("enabled").(bool))
+		props.EnabledState = expandEnabledBool(d.Get("enabled").(bool))
 	}
 
 	if d.HasChange("forwarding_protocol") {
-		updateProps.ForwardingProtocol = cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string))
+		props.ForwardingProtocol = cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string))
 	}
 
 	if d.HasChange("https_redirect_enabled") {
-		updateProps.HTTPSRedirect = expandEnabledBoolToRouteHttpsRedirect(httpsRedirect)
+		props.HTTPSRedirect = expandEnabledBoolToRouteHttpsRedirect(httpsRedirect)
 	}
 
 	if d.HasChange("link_to_default_domain") {
-		updateProps.LinkToDefaultDomain = expandEnabledBoolToLinkToDefaultDomain(d.Get("link_to_default_domain").(bool))
+		props.LinkToDefaultDomain = expandEnabledBoolToLinkToDefaultDomain(d.Get("link_to_default_domain").(bool))
 	}
 
 	if d.HasChange("cdn_frontdoor_custom_domain_ids") {
-		updateProps.CustomDomains = expandCustomDomainActivatedResourceArray(customDomains)
+		props.CustomDomains = expandCustomDomainActivatedResourceArray(customDomains)
 	}
 
 	if d.HasChange("cdn_frontdoor_origin_group_id") {
-		updateProps.OriginGroup = expandResourceReference(originGroup.ID())
+		props.OriginGroup = expandResourceReference(originGroup.ID())
 	}
 
 	if d.HasChange("cdn_frontdoor_origin_path") {
-		updateProps.OriginPath = utils.String(d.Get("cdn_frontdoor_origin_path").(string))
+		props.OriginPath = utils.String(d.Get("cdn_frontdoor_origin_path").(string))
 	}
 
 	if d.HasChange("patterns_to_match") {
-		updateProps.PatternsToMatch = utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{}))
+		props.PatternsToMatch = utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{}))
 	}
 
-	if d.HasChange("cdn_frontdoor_rule_set_ids") {
-		ruleSets, err := expandRuleSetIds(ruleSetIdsRaw)
-		if err != nil {
-			return err
-		}
+	if !features.FourPointOhBeta() {
+		if d.HasChange("cdn_frontdoor_rule_set_ids") {
+			ruleSets, err := expandRuleSetIds(ruleSetIdsRaw)
+			if err != nil {
+				return err
+			}
 
-		updateProps.RuleSets = expandRuleSetReferenceArray(ruleSets)
+			props.RuleSets = expandRuleSetReferenceArray(ruleSets)
+		}
 	}
 
 	if d.HasChange("supported_protocols") {
-		updateProps.SupportedProtocols = expandEndpointProtocolsArray(protocolsRaw)
+		props.SupportedProtocols = expandEndpointProtocolsArray(protocolsRaw)
 	}
 
-	updateParams := azuresdkhacks.RouteUpdateParameters{
-		RouteUpdatePropertiesParameters: &updateProps,
+	routeProps := cdn.Route{
+		RouteProperties: props,
 	}
 
-	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, updateParams)
+	// NOTE: Calling Create intentionally to avoid having to use the azuresdkhacks for the Update (PATCH) call..
+	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, routeProps)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}

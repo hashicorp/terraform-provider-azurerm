@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -63,7 +62,6 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomain() *pluginsdk.Resource {
 
 func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	routeClient := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	workaroundsClient := azuresdkhacks.NewCdnFrontDoorRoutesWorkaroundClient(routeClient)
 	routeCtx, routeCancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer routeCancel()
 
@@ -122,22 +120,15 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainCreate(d *pluginsdk.Reso
 
 	// If it is already disabled do not update the route...
 	if props.LinkToDefaultDomain != cdn.LinkToDefaultDomainDisabled {
-		// NOTE: You need to always pass these these three on update else you will
-		// disable/disassociate your custom domains, cache configuration or rule sets...
-		updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-			CustomDomains:      expandCustomDomainActivatedResourceArray(customDomains),
-			CacheConfiguration: props.CacheConfiguration,
-			RuleSets:           props.RuleSets,
-		}
-
 		// Since this unlink default domain resource always set the value to false
-		updateProps.LinkToDefaultDomain = cdn.LinkToDefaultDomainDisabled
+		props.LinkToDefaultDomain = cdn.LinkToDefaultDomainDisabled
 
-		updateParams := azuresdkhacks.RouteUpdateParameters{
-			RouteUpdatePropertiesParameters: &updateProps,
+		routeProps := cdn.Route{
+			RouteProperties: props,
 		}
 
-		future, err := workaroundsClient.Update(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updateParams)
+		// NOTE: Calling Create intentionally to avoid having to use the azuresdkhacks for the Update (PATCH) call..
+		future, err := routeClient.Create(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, routeProps)
 		if err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
@@ -201,7 +192,6 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainRead(d *pluginsdk.Resour
 
 func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	routeClient := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	workaroundsClient := azuresdkhacks.NewCdnFrontDoorRoutesWorkaroundClient(routeClient)
 	routeCtx, routeCancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer routeCancel()
 
@@ -257,22 +247,15 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate(d *pluginsdk.Reso
 
 		// If it is already disabled do not update the route...
 		if props.LinkToDefaultDomain != cdn.LinkToDefaultDomainDisabled {
-			// NOTE: You need to always pass these these three on update else you will
-			// disable/disassociate your custom domains, cache configuration or rule sets...
-			updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-				CustomDomains:      expandCustomDomainActivatedResourceArray(customDomains),
-				CacheConfiguration: props.CacheConfiguration,
-				RuleSets:           props.RuleSets,
-			}
-
 			// Since this unlink default domain resource always set the value to false
-			updateProps.LinkToDefaultDomain = cdn.LinkToDefaultDomainDisabled
+			props.LinkToDefaultDomain = cdn.LinkToDefaultDomainDisabled
 
-			updateParams := azuresdkhacks.RouteUpdateParameters{
-				RouteUpdatePropertiesParameters: &updateProps,
+			routeProps := cdn.Route{
+				RouteProperties: props,
 			}
 
-			future, err := workaroundsClient.Update(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updateParams)
+			// NOTE: Calling Create intentionally to avoid having to use the azuresdkhacks for the Update (PATCH) call..
+			future, err := routeClient.Create(routeCtx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, routeProps)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -290,7 +273,6 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainUpdate(d *pluginsdk.Reso
 
 func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	workaroundsClient := azuresdkhacks.NewCdnFrontDoorRoutesWorkaroundClient(client)
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -324,14 +306,6 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.Reso
 		return fmt.Errorf("deleting %s: %s properties are 'nil'", *id, *route)
 	}
 
-	// NOTE: You need to always pass these these three on update else you will
-	// disable/disassociate your custom domains, cache configuration or rule sets...
-	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains:      props.CustomDomains,
-		CacheConfiguration: props.CacheConfiguration,
-		RuleSets:           props.RuleSets,
-	}
-
 	customDomains, err := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
 	if err != nil {
 		return err
@@ -340,14 +314,15 @@ func resourceCdnFrontDoorRouteDisableLinkToDefaultDomainDelete(d *pluginsdk.Reso
 	// NOTE: Only update LinkToDefaultDomain to enabled if there are not any custom domains associated with the route
 	if len(customDomains) == 0 {
 		// only update the route if it is currently in the disabled state...
-		if updateProps.LinkToDefaultDomain == cdn.LinkToDefaultDomainDisabled {
-			updateProps.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
+		if props.LinkToDefaultDomain == cdn.LinkToDefaultDomainDisabled {
+			props.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
 
-			updateParams := azuresdkhacks.RouteUpdateParameters{
-				RouteUpdatePropertiesParameters: &updateProps,
+			routeProps := cdn.Route{
+				RouteProperties: props,
 			}
 
-			future, err := workaroundsClient.Update(ctx, route.ResourceGroup, route.ProfileName, route.AfdEndpointName, route.RouteName, updateParams)
+			// NOTE: Calling Create intentionally to avoid having to use the azuresdkhacks for the Update (PATCH) call..
+			future, err := client.Create(ctx, route.ResourceGroup, route.ProfileName, route.AfdEndpointName, route.RouteName, routeProps)
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}

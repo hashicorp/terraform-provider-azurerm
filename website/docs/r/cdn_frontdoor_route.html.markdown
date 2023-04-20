@@ -82,7 +82,6 @@ resource "azurerm_cdn_frontdoor_route" "example" {
   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
-  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.example.id]
   enabled                       = true
 
   forwarding_protocol    = "HttpsOnly"
@@ -99,6 +98,11 @@ resource "azurerm_cdn_frontdoor_route" "example" {
     compression_enabled           = true
     content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
   }
+}
+
+resource "azurerm_cdn_frontdoor_rule_sets_association" "example" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.example.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.static.id, azurerm_cdn_frontdoor_rule_set.images.id]
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "contoso" {
@@ -132,6 +136,8 @@ The following arguments are supported:
 
 ~> **NOTE:** If `https_redirect_enabled` is set to `true` the `supported_protocols` field must contain both `Http` and `Https` values.
 
+---
+
 * `cache` - (Optional) A `cache` block as defined below.
 
 ~> **NOTE:** To disable caching, do not provide the `cache` block in the configuration file.
@@ -139,8 +145,6 @@ The following arguments are supported:
 * `cdn_frontdoor_custom_domain_ids` - (Optional) The IDs of the Front Door Custom Domains which are associated with this Front Door Route.
 
 * `cdn_frontdoor_origin_path` - (Optional) A directory path on the Front Door Origin that can be used to retrieve content (e.g. `contoso.cloudapp.net/originpath`).
-
-* `cdn_frontdoor_rule_set_ids` - (Optional) A list of the Front Door Rule Set IDs which should be assigned to this Front Door Route.
 
 * `enabled` - (Optional) Is this Front Door Route enabled? Possible values are `true` or `false`. Defaults to `true`.
 

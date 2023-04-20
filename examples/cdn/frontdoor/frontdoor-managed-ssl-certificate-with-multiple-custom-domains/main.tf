@@ -221,7 +221,6 @@ resource "azurerm_cdn_frontdoor_route" "example" {
   https_redirect_enabled     = true
   patterns_to_match          = ["/*"]
   supported_protocols        = ["Http", "Https"]
-  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
 
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]
   link_to_default_domain          = false
@@ -232,6 +231,11 @@ resource "azurerm_cdn_frontdoor_route" "example" {
     query_strings                 = ["account", "settings"]
     query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
   }
+}
+
+resource "azurerm_cdn_frontdoor_rule_sets_association" "example" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.example.Id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
