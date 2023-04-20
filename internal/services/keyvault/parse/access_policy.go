@@ -22,10 +22,10 @@ type AccessPolicyId struct {
 func NewAccessPolicyId(keyVaultId VaultId, objectId, applicationId string) AccessPolicyId {
 	out := AccessPolicyId{}
 	if applicationId != "" {
-		id := NewAccessPolicyApplicationID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, objectId, applicationId)
+		id := NewAccessPolicyApplicationID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, objectId, applicationId)
 		out.applicationId = &id
 	} else {
-		id := NewAccessPolicyObjectID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, objectId)
+		id := NewAccessPolicyObjectID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, objectId)
 		out.objectId = &id
 	}
 	return out

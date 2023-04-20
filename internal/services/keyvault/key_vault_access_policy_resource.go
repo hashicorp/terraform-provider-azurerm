@@ -101,7 +101,7 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *pluginsdk.ResourceData, meta 
 
 	id := parse.NewAccessPolicyId(*vaultId, objectId, applicationIdRaw)
 
-	keyVault, err := client.Get(ctx, vaultId.ResourceGroup, vaultId.Name)
+	keyVault, err := client.Get(ctx, vaultId.ResourceGroupName, vaultId.VaultName)
 	if err != nil {
 		// If the key vault does not exist but this is not a new resource, the policy
 		// which previously existed was deleted with the key vault, so reflect that in
@@ -117,8 +117,8 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *pluginsdk.ResourceData, meta 
 	}
 
 	// Locking to prevent parallel changes causing issues
-	locks.ByName(vaultId.Name, keyVaultResourceName)
-	defer locks.UnlockByName(vaultId.Name, keyVaultResourceName)
+	locks.ByName(vaultId.VaultName, keyVaultResourceName)
+	defer locks.UnlockByName(vaultId.VaultName, keyVaultResourceName)
 
 	if d.IsNewResource() {
 		props := keyVault.Properties
@@ -154,7 +154,7 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *pluginsdk.ResourceData, meta 
 	case keyvault.AccessPolicyUpdateKindRemove:
 		// To remove a policy correctly, we need to send it with all permissions in the correct case which may have drifted
 		// in config over time so we read it back from the vault by objectId
-		resp, err := client.Get(ctx, vaultId.ResourceGroup, vaultId.Name)
+		resp, err := client.Get(ctx, vaultId.ResourceGroupName, vaultId.VaultName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				log.Printf("[DEBUG] parent %s was not found - removing from state", *vaultId)
@@ -211,19 +211,19 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *pluginsdk.ResourceData, meta 
 	accessPolicies := []keyvault.AccessPolicyEntry{accessPolicy}
 
 	parameters := keyvault.VaultAccessPolicyParameters{
-		Name: utils.String(vaultId.Name),
+		Name: utils.String(vaultId.VaultName),
 		Properties: &keyvault.VaultAccessPolicyProperties{
 			AccessPolicies: &accessPolicies,
 		},
 	}
 
-	if _, err = client.UpdateAccessPolicy(ctx, vaultId.ResourceGroup, vaultId.Name, action, parameters); err != nil {
+	if _, err = client.UpdateAccessPolicy(ctx, vaultId.ResourceGroupName, vaultId.VaultName, action, parameters); err != nil {
 		return fmt.Errorf("updating Access Policy (Object ID %q / Application ID %q) for %s: %+v", objectId, applicationIdRaw, *vaultId, err)
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"notfound", "vaultnotfound"},
 		Target:                    []string{"found"},
-		Refresh:                   accessPolicyRefreshFunc(ctx, client, vaultId.ResourceGroup, vaultId.Name, objectId, applicationIdRaw),
+		Refresh:                   accessPolicyRefreshFunc(ctx, client, vaultId.ResourceGroupName, vaultId.VaultName, objectId, applicationIdRaw),
 		Delay:                     5 * time.Second,
 		ContinuousTargetOccurence: 3,
 		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
@@ -274,7 +274,7 @@ func resourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{
 
 	vaultId := id.KeyVaultId()
 
-	resp, err := client.Get(ctx, vaultId.ResourceGroup, vaultId.Name)
+	resp, err := client.Get(ctx, vaultId.ResourceGroupName, vaultId.VaultName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] parent %q was not found - removing from state", vaultId)

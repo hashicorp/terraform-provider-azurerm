@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -25,18 +26,18 @@ type keyVaultDetails struct {
 }
 
 func (c *Client) AddToCache(keyVaultId parse.VaultId, dataPlaneUri string) {
-	cacheKey := c.cacheKeyForKeyVault(keyVaultId.Name)
+	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
 	keysmith.Lock()
 	keyVaultsCache[cacheKey] = keyVaultDetails{
 		keyVaultId:       keyVaultId.ID(),
 		dataPlaneBaseUri: dataPlaneUri,
-		resourceGroup:    keyVaultId.ResourceGroup,
+		resourceGroup:    keyVaultId.ResourceGroupName,
 	}
 	keysmith.Unlock()
 }
 
 func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultId) (*string, error) {
-	cacheKey := c.cacheKeyForKeyVault(keyVaultId.Name)
+	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {
 		lock[cacheKey] = &sync.RWMutex{}
@@ -55,7 +56,7 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultI
 		vaultsClient = c.KeyVaultClientForSubscription(keyVaultId.SubscriptionId)
 	}
 
-	resp, err := vaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
+	resp, err := vaultsClient.Get(ctx, keyVaultId.ResourceGroupName, keyVaultId.VaultName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, fmt.Errorf("%s was not found", keyVaultId)
@@ -73,7 +74,7 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultI
 }
 
 func (c *Client) Exists(ctx context.Context, keyVaultId parse.VaultId) (bool, error) {
-	cacheKey := c.cacheKeyForKeyVault(keyVaultId.Name)
+	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {
 		lock[cacheKey] = &sync.RWMutex{}
@@ -86,7 +87,7 @@ func (c *Client) Exists(ctx context.Context, keyVaultId parse.VaultId) (bool, er
 		return true, nil
 	}
 
-	resp, err := c.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
+	resp, err := c.VaultsClient.Get(ctx, keyVaultId.ResourceGroupName, keyVaultId.VaultName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil
@@ -134,15 +135,15 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *res
 				continue
 			}
 
-			id, err := parse.VaultID(*v.ID)
+			id, err := commonids.ParseKeyVaultID(*v.ID)
 			if err != nil {
 				return nil, fmt.Errorf("parsing %q: %+v", *v.ID, err)
 			}
-			if !strings.EqualFold(id.Name, *keyVaultName) {
+			if !strings.EqualFold(id.VaultName, *keyVaultName) {
 				continue
 			}
 
-			props, err := c.VaultsClient.Get(ctx, id.ResourceGroup, id.Name)
+			props, err := c.VaultsClient.Get(ctx, id.ResourceGroupName, id.VaultName)
 			if err != nil {
 				return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -164,7 +165,7 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *res
 }
 
 func (c *Client) Purge(keyVaultId parse.VaultId) {
-	cacheKey := c.cacheKeyForKeyVault(keyVaultId.Name)
+	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {
 		lock[cacheKey] = &sync.RWMutex{}

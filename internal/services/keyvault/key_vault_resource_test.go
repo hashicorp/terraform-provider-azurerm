@@ -421,7 +421,7 @@ func (KeyVaultResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, err
 	}
 
-	resp, err := clients.KeyVault.VaultsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.KeyVault.VaultsClient.Get(ctx, id.ResourceGroupName, id.VaultName)
 	if err != nil {
 		return nil, fmt.Errorf("reading Key Vault (%s): %+v", id, err)
 	}
@@ -435,7 +435,7 @@ func (KeyVaultResource) Destroy(ctx context.Context, client *clients.Client, sta
 		return nil, err
 	}
 
-	if _, err := client.KeyVault.VaultsClient.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+	if _, err := client.KeyVault.VaultsClient.Delete(ctx, id.ResourceGroupName, id.VaultName); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

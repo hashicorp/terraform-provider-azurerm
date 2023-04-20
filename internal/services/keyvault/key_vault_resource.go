@@ -422,13 +422,13 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	// Locking this resource so we don't make modifications to it at the same time if there is a
 	// key vault access policy trying to update it as well
-	locks.ByName(id.Name, keyVaultResourceName)
-	defer locks.UnlockByName(id.Name, keyVaultResourceName)
+	locks.ByName(id.VaultName, keyVaultResourceName)
+	defer locks.UnlockByName(id.VaultName, keyVaultResourceName)
 
 	d.Partial(true)
 
 	// first pull the existing key vault since we need to lock on several bits of its information
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	existing, err := client.Get(ctx, id.ResourceGroupName, id.VaultName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -594,7 +594,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		update.Tags = tags.Expand(t)
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.VaultName, update); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -634,7 +634,7 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.VaultName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
@@ -653,8 +653,8 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	props := *resp.Properties
 	meta.(*clients.Client).KeyVault.AddToCache(*id, *resp.Properties.VaultURI)
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.VaultName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	d.Set("tenant_id", props.TenantID.String())
@@ -721,10 +721,10 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	locks.ByName(id.Name, keyVaultResourceName)
-	defer locks.UnlockByName(id.Name, keyVaultResourceName)
+	locks.ByName(id.VaultName, keyVaultResourceName)
+	defer locks.UnlockByName(id.VaultName, keyVaultResourceName)
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	read, err := client.Get(ctx, id.ResourceGroupName, id.VaultName)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			return nil
@@ -776,7 +776,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroupName, id.VaultName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -787,32 +787,32 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy && softDeleteEnabled {
 		// KeyVaults with Purge Protection Enabled cannot be deleted unless done by Azure
 		if purgeProtectionEnabled {
-			deletedInfo, err := getSoftDeletedStateForKeyVault(ctx, client, id.Name, *read.Location)
+			deletedInfo, err := getSoftDeletedStateForKeyVault(ctx, client, id.VaultName, *read.Location)
 			if err != nil {
 				return fmt.Errorf("retrieving the Deletion Details for %s: %+v", *id, err)
 			}
 
 			// in the future it'd be nice to raise a warning, but this is the best we can do for now
 			if deletedInfo != nil {
-				log.Printf("[DEBUG] The Key Vault %q has Purge Protection Enabled and was deleted on %q. Azure will purge this on %q", id.Name, deletedInfo.deleteDate, deletedInfo.purgeDate)
+				log.Printf("[DEBUG] The Key Vault %q has Purge Protection Enabled and was deleted on %q. Azure will purge this on %q", id.VaultName, deletedInfo.deleteDate, deletedInfo.purgeDate)
 			} else {
-				log.Printf("[DEBUG] The Key Vault %q has Purge Protection Enabled and will be purged automatically by Azure", id.Name)
+				log.Printf("[DEBUG] The Key Vault %q has Purge Protection Enabled and will be purged automatically by Azure", id.VaultName)
 			}
 			return nil
 		}
 
-		log.Printf("[DEBUG] KeyVault %q marked for purge - executing purge", id.Name)
-		future, err := client.PurgeDeleted(ctx, id.Name, *read.Location)
+		log.Printf("[DEBUG] KeyVault %q marked for purge - executing purge", id.VaultName)
+		future, err := client.PurgeDeleted(ctx, id.VaultName, *read.Location)
 		if err != nil {
 			return err
 		}
 
-		log.Printf("[DEBUG] Waiting for purge of KeyVault %q..", id.Name)
+		log.Printf("[DEBUG] Waiting for purge of KeyVault %q..", id.VaultName)
 		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("purging %s: %+v", *id, err)
 		}
-		log.Printf("[DEBUG] Purged KeyVault %q.", id.Name)
+		log.Printf("[DEBUG] Purged KeyVault %q.", id.VaultName)
 	}
 
 	meta.(*clients.Client).KeyVault.Purge(*id)
