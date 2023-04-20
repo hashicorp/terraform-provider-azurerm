@@ -1458,24 +1458,16 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 		}
 
 		dataDisk := map[string]interface{}{
-			"name":                      name,
-			"caching":                   string(v.Caching),
-			"create_option":             string(v.CreateOption),
-			"lun":                       lun,
-			"disk_encryption_set_id":    diskEncryptionSetId,
-			"disk_size_gb":              diskSizeGb,
-			"storage_account_type":      storageAccountType,
-			"write_accelerator_enabled": writeAcceleratorEnabled,
-		}
-
-		// Do not set value unless value is greater than 0 - issue 15516
-		if iops > 0 {
-			dataDisk["ultra_ssd_disk_iops_read_write"] = iops
-		}
-
-		// Do not set value unless value is greater than 0 - issue 15516
-		if mbps > 0 {
-			dataDisk["ultra_ssd_disk_mbps_read_write"] = mbps
+			"name":                           name,
+			"caching":                        string(v.Caching),
+			"create_option":                  string(v.CreateOption),
+			"lun":                            lun,
+			"disk_encryption_set_id":         diskEncryptionSetId,
+			"disk_size_gb":                   diskSizeGb,
+			"storage_account_type":           storageAccountType,
+			"ultra_ssd_disk_iops_read_write": iops,
+			"ultra_ssd_disk_mbps_read_write": mbps,
+			"write_accelerator_enabled":      writeAcceleratorEnabled,
 		}
 
 		output = append(output, dataDisk)

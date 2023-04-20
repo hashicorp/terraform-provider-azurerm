@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -972,13 +973,13 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 			d.Set("disk_iops_read_only", props.DiskIOPSReadOnly)
 			d.Set("disk_mbps_read_only", props.DiskMBpsReadOnly)
-			d.Set("os_type", props.OsType)
+			d.Set("os_type", string(pointer.From(props.OsType)))
 			d.Set("tier", props.Tier)
 			d.Set("max_shares", props.MaxShares)
-			d.Set("hyper_v_generation", props.HyperVGeneration)
+			d.Set("hyper_v_generation", string(pointer.From(props.HyperVGeneration)))
 
 			if networkAccessPolicy := props.NetworkAccessPolicy; *networkAccessPolicy != disks.NetworkAccessPolicyAllowAll {
-				d.Set("network_access_policy", props.NetworkAccessPolicy)
+				d.Set("network_access_policy", string(pointer.From(props.NetworkAccessPolicy)))
 			}
 			d.Set("disk_access_id", props.DiskAccessId)
 

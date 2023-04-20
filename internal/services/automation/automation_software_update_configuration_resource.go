@@ -86,7 +86,9 @@ func updateTaskFromSDK(prop *softwareupdateconfiguration.TaskProperties) (res []
 	res = append(res, UpdateTask{
 		Source: utils.NormalizeNilableString(prop.Source),
 	})
+
 	if prop.Parameters != nil {
+		res[0].Parameters = map[string]string{}
 		for k, v := range *prop.Parameters {
 			res[0].Parameters[k] = v
 		}
@@ -839,6 +841,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"time_zone": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						Default:      "Etc/UTC",
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 

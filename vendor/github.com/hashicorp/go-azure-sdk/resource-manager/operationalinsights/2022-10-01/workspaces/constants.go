@@ -31,26 +31,6 @@ func PossibleValuesForCapacityReservationLevel() []int64 {
 	}
 }
 
-func parseCapacityReservationLevel(input int64) (*CapacityReservationLevel, error) {
-	vals := map[int64]CapacityReservationLevel{
-		500:  CapacityReservationLevelFiveHundred,
-		5000: CapacityReservationLevelFiveThousand,
-		400:  CapacityReservationLevelFourHundred,
-		100:  CapacityReservationLevelOneHundred,
-		1000: CapacityReservationLevelOneThousand,
-		300:  CapacityReservationLevelThreeHundred,
-		200:  CapacityReservationLevelTwoHundred,
-		2000: CapacityReservationLevelTwoThousand,
-	}
-	if v, ok := vals[input]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := CapacityReservationLevel(input)
-	return &out, nil
-}
-
 type DataIngestionStatus string
 
 const (

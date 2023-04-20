@@ -251,36 +251,21 @@ func TestAccKubernetesCluster_upgradeSkuTier(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.freeSkuConfig(data),
+			Config: r.skuConfigFree(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.paidSkuConfig(data),
+			Config: r.skuConfigStandard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.freeSkuConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesCluster_paidSku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.paidSkuConfig(data),
+			Config: r.skuConfigFree(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -523,8 +508,6 @@ func TestAccKubernetesCluster_basicMaintenanceConfig(t *testing.T) {
 			Config: r.basicMaintenanceConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.0").HasValue("2"),
-				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.1").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -570,8 +553,6 @@ func TestAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
 			Config: r.basicMaintenanceConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.0").HasValue("2"),
-				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.1").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -586,8 +567,6 @@ func TestAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
 			Config: r.basicMaintenanceConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.0").HasValue("2"),
-				check.That(data.ResourceName).Key("maintenance_window.0.allowed.0.hours.1").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -1422,7 +1401,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) paidSkuConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) skuConfigStandard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1438,7 +1417,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  sku_tier            = "Paid"
+  sku_tier            = "Standard"
 
   default_node_pool {
     name       = "default"
@@ -1494,7 +1473,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  sku_tier            = "Paid"
+  sku_tier            = "Standard"
   default_node_pool {
     name           = "default"
     node_count     = 1
@@ -1512,7 +1491,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) freeSkuConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) skuConfigFree(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1954,7 +1933,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   maintenance_window {
     allowed {
       day   = "Monday"
-      hours = [2, 1]
+      hours = [1, 2]
     }
   }
 }

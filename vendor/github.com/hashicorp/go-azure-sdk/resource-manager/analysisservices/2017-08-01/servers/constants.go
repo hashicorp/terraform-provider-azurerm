@@ -47,20 +47,6 @@ func PossibleValuesForManagedMode() []int64 {
 	}
 }
 
-func parseManagedMode(input int64) (*ManagedMode, error) {
-	vals := map[int64]ManagedMode{
-		1: ManagedModeOne,
-		0: ManagedModeZero,
-	}
-	if v, ok := vals[input]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := ManagedMode(input)
-	return &out, nil
-}
-
 type ProvisioningState string
 
 const (
@@ -131,20 +117,6 @@ func PossibleValuesForServerMonitorMode() []int64 {
 		int64(ServerMonitorModeOne),
 		int64(ServerMonitorModeZero),
 	}
-}
-
-func parseServerMonitorMode(input int64) (*ServerMonitorMode, error) {
-	vals := map[int64]ServerMonitorMode{
-		1: ServerMonitorModeOne,
-		0: ServerMonitorModeZero,
-	}
-	if v, ok := vals[input]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := ServerMonitorMode(input)
-	return &out, nil
 }
 
 type SkuTier string
@@ -246,17 +218,4 @@ func PossibleValuesForStatus() []int64 {
 	return []int64{
 		int64(StatusZero),
 	}
-}
-
-func parseStatus(input int64) (*Status, error) {
-	vals := map[int64]Status{
-		0: StatusZero,
-	}
-	if v, ok := vals[input]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := Status(input)
-	return &out, nil
 }

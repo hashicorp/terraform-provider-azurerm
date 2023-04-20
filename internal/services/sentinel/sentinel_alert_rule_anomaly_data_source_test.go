@@ -124,7 +124,7 @@ func (SentinelAlertRuleAnomalyDataSource) basic_withThreshold(data acceptance.Te
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "(Preview) Potential data staging"
+  display_name               = "Potential data staging"
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }
@@ -135,7 +135,7 @@ func (SentinelAlertRuleAnomalyDataSource) basic_withSingleSelect(data acceptance
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "(Preview) Suspicious geography change in Palo Alto GlobalProtect account logins"
+  display_name               = "Suspicious geography change in Palo Alto GlobalProtect account logins"
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }
@@ -146,7 +146,7 @@ func (SentinelAlertRuleAnomalyDataSource) basic_withMultiSelect(data acceptance.
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "(Preview) Attempted user account bruteforce per logon type"
+  display_name               = "Attempted user account bruteforce per logon type"
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }
@@ -157,7 +157,7 @@ func (SentinelAlertRuleAnomalyDataSource) basic_withPrioritizeExclude(data accep
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "(Preview) Anomalous web request activity"
+  display_name               = "Anomalous web request activity"
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }

@@ -249,6 +249,21 @@ func TestAccMsSqlDatabase_HSWithRetentionPolicy(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_S0(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.s0WithRetentionPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlDatabase_createCopyMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "copy")
 	r := MsSqlDatabaseResource{}
@@ -1023,6 +1038,29 @@ resource "azurerm_mssql_database" "test" {
   server_id          = azurerm_mssql_server.test.id
   read_replica_count = 2
   sku_name           = "HS_Gen5_2"
+
+  long_term_retention_policy {
+    weekly_retention  = "P1W"
+    monthly_retention = "P1M"
+    yearly_retention  = "P1Y"
+    week_of_year      = 1
+  }
+
+  short_term_retention_policy {
+    retention_days = 10
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) s0WithRetentionPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+  sku_name  = "S0"
 
   long_term_retention_policy {
     weekly_retention  = "P1W"
