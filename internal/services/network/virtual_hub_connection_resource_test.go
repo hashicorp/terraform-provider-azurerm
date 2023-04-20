@@ -559,7 +559,10 @@ resource "azurerm_virtual_hub_connection" "test" {
       next_hop_ip_address = "10.0.5.5"
     }
 
-    vnet_local_route_override_criteria = "Contains"
+    static_vnet_route_config {
+      vnet_local_route_override_criteria = "Contains"
+    }
+
   }
 }
 `, r.template(data), data.RandomInteger)
