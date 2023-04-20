@@ -119,7 +119,7 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 					"scheduled_scan_day": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
-						Default:  0,
+						Default:  8,
 						ValidateFunc: validation.IntInSlice([]int{
 							0, 1, 2, 3, 4, 5, 6, 7, 8,
 						}),
@@ -128,7 +128,7 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      0,
-						ValidateFunc: validation.IntBetween(0, 1440),
+						ValidateFunc: validation.IntBetween(0, 1439),
 					},
 					"exclusions": {
 						Type:     pluginsdk.TypeList,
