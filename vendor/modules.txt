@@ -571,8 +571,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/skus
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/tableservice
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/tableserviceproperties
-github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2021-09-01/caches
-github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2021-09-01/storagetargets
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/caches
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/storagetargets
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/storagemovers
 github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools
 github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets
@@ -594,10 +594,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/geo
 github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/profiles
 github.com/hashicorp/go-azure-sdk/resource-manager/videoanalyzer/2021-05-01-preview/edgemodules
 github.com/hashicorp/go-azure-sdk/resource-manager/videoanalyzer/2021-05-01-preview/videoanalyzers
-github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/authorizations
-github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/clusters
-github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/privateclouds
-github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2021-12-01/datastores
+github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/authorizations
+github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/clusters
+github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/datastores
+github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds
 github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-01-31/communicationsgateways
 github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-01-31/testlines
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections
