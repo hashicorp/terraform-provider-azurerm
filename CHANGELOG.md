@@ -9,8 +9,17 @@ ENHANCEMENTS:
 * `hpccache`: updating to API Version `2023-01-01` [GH-21459]
 * `orbital`: updating to API Version `2022-11-01` [GH-21405]
 * `vmware`: updating to API Version `2022-05-01` [GH-21458]
+* `azurerm_linux_function_app` - support `hosting_environment_id` property [GH-20471]
+* `azurerm_linux_function_app_slot` - support `hosting_environment_id` property [GH-20471]
+* `azurerm_linux_web_app` - support `hosting_environment_id` property [GH-20471]
 * `azurerm_linux_web_app`Add PHP 8.2 `application_stack` support [GH-21420]
+* `azurerm_linux_web_app_slot`  - support `hosting_environment_id` property [GH-20471]
 * `azurerm_linux_web_app_slot`Add PHP 8.2 `application_stack` support [GH-21420]
+* `azurerm_windows_function_app` - support `hosting_environment_id` property [GH-20471]
+* `azurerm_windows_function_app_slot` - support `hosting_environment_id` property [GH-20471]
+* `azurerm_windows_web_app` - support `hosting_environment_id` property [GH-20471]
+* `azurerm_windows_web_app_slot` - support `hosting_environment_id` property [GH-20471]
+
 
 BUG FIXES: 
 
@@ -30,22 +39,14 @@ ENHANCEMENTS:
 * Data Source: `azurerm_key_vault_secret` - support specifying the keyvault secret version ([#21336](https://github.com/hashicorp/terraform-provider-azurerm/issues/21336))
 * `azurerm_dashboard_grafana`- support for `UserAssigned` identitiues ([#21394](https://github.com/hashicorp/terraform-provider-azurerm/issues/21394))
 * `azurerm_key_vault_certificate` - add support for `resource_manager_id` and `resource_manager_versionless_id` ([#21314](https://github.com/hashicorp/terraform-provider-azurerm/issues/21314))
-* `azurerm_linux_function_app` - support `hosting_environment_id` property [GH-20471]
 * `azurerm_linux_function_app` - mark the `site_credential` block as `Sensitive` ([#21393](https://github.com/hashicorp/terraform-provider-azurerm/issues/21393))
 * `azurerm_linux_function_app_slot` - mark the `site_credential` block as `Sensitive` ([#21393](https://github.com/hashicorp/terraform-provider-azurerm/issues/21393))
-* `azurerm_linux_function_app_slot` - support `hosting_environment_id` property [GH-20471]
 * `azurerm_linux_web_app` - mark the `site_credential` block as `Sensitive` ([#21393](https://github.com/hashicorp/terraform-provider-azurerm/issues/21393))
-* `azurerm_linux_web_app` - support `hosting_environment_id` property [GH-20471]
 * `azurerm_linux_web_app_slot`  - mark the `site_credential` block as `Sensitive` ([#21393](https://github.com/hashicorp/terraform-provider-azurerm/issues/21393))
-* `azurerm_linux_web_app_slot`  - support `hosting_environment_id` property [GH-20471]
 * `azurerm_windows_function_app` - mark the `site_credential` block as `Sensitive` ([#21393](https://github.com/hashicorp/terraform-provider-azurerm/issues/21393))
-* `azurerm_windows_function_app` - support `hosting_environment_id` property [GH-20471]
 * `azurerm_windows_function_app_slot` - mark the `site_credential` block as `Sensitive` ([#21393](https://github.com/hashicorp/terraform-provider-azurerm/issues/21393))
-* `azurerm_windows_function_app_slot` - support `hosting_environment_id` property [GH-20471]
 * `azurerm_windows_web_app` - mark the `site_credential` block as `Sensitive` ([#21393](https://github.com/hashicorp/terraform-provider-azurerm/issues/21393))
-* `azurerm_windows_web_app` - support `hosting_environment_id` property [GH-20471]
 * `azurerm_windows_web_app_slot` - mark the  `site_credential` block as `Sensitive` ([#21393](https://github.com/hashicorp/terraform-provider-azurerm/issues/21393))
-* `azurerm_windows_web_app_slot` - support `hosting_environment_id` property [GH-20471]
 
 
 BUG FIXES:
