@@ -87,7 +87,7 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"roa_validity_end_date": {
 			Type:     pluginsdk.TypeString,
-			Required: true,
+			Optional: true,
 			ForceNew: true,
 			ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
 				v, ok := i.(string)
@@ -106,7 +106,7 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"wan_validation_signed_message": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -130,7 +130,7 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r CustomIpPrefixResource) Attributes() map[string]*pluginsdk.Schema {
-	return nil
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
@@ -164,11 +164,35 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			roaValidityEndDate, err := time.Parse("2006-01-02", model.ROAValidityEndDate)
+			_, cidr, err := net.ParseCIDR(model.CIDR)
 			if err != nil {
-				return err
+				return fmt.Errorf("parsing `cidr`: %+v", err)
 			}
-			authorizationMessage := fmt.Sprintf("%s|%s|%s", subscriptionId, model.CIDR, roaValidityEndDate.Format("20060102"))
+
+			results, err := r.client.ListAll(ctx)
+			if err != nil {
+				return fmt.Errorf("listing existing %s: %+v", id, err)
+			}
+
+			// Check for an existing CIDR
+			for results.NotDone() {
+				for _, prefix := range results.Values() {
+					if prefix.CustomIPPrefixPropertiesFormat != nil && prefix.CustomIPPrefixPropertiesFormat.Cidr != nil {
+						_, netw, err := net.ParseCIDR(*prefix.CustomIPPrefixPropertiesFormat.Cidr)
+						if err != nil {
+							// couldn't parse the existing custom prefix, so skip it
+							continue
+						}
+						if cidr == netw {
+							return metadata.ResourceRequiresImport(r.ResourceType(), id)
+						}
+					}
+				}
+
+				if err = results.NextWithContext(ctx); err != nil {
+					return fmt.Errorf("listing next page of %s: %+v", id, err)
+				}
+			}
 
 			properties := network.CustomIPPrefix{
 				Name:             &model.Name,
@@ -176,11 +200,22 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				Tags:             tags.FromTypedObject(model.Tags),
 				ExtendedLocation: nil,
 				CustomIPPrefixPropertiesFormat: &network.CustomIPPrefixPropertiesFormat{
-					Cidr:                 &model.CIDR,
-					SignedMessage:        &model.WANValidationSignedMessage,
-					AuthorizationMessage: &authorizationMessage,
-					CommissionedState:    network.CommissionedStateProvisioning,
+					Cidr:              &model.CIDR,
+					CommissionedState: network.CommissionedStateProvisioning,
 				},
+			}
+
+			if model.WANValidationSignedMessage != "" {
+				properties.CustomIPPrefixPropertiesFormat.SignedMessage = &model.WANValidationSignedMessage
+			}
+
+			if model.ROAValidityEndDate != "" {
+				roaValidityEndDate, err := time.Parse("2006-01-02", model.ROAValidityEndDate)
+				if err != nil {
+					return err
+				}
+				authorizationMessage := fmt.Sprintf("%s|%s|%s", subscriptionId, model.CIDR, roaValidityEndDate.Format("20060102"))
+				properties.CustomIPPrefixPropertiesFormat.AuthorizationMessage = &authorizationMessage
 			}
 
 			if len(model.Zones) > 0 {
