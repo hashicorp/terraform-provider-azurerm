@@ -188,41 +188,39 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, met
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			if input, ok := (*props).(inputs.InputProperties); ok {
-				if streamInput, ok := input.(inputs.StreamInputProperties); ok {
-					if ds := streamInput.Datasource; ds != nil {
-						if streamIotHubInput, ok := (*ds).(inputs.IoTHubStreamInputDataSource); ok {
-							if inputProps := streamIotHubInput.Properties; inputProps != nil {
-								eventHubConsumerGroupName := ""
-								if v := inputProps.ConsumerGroupName; v != nil {
-									eventHubConsumerGroupName = *v
-								}
-								d.Set("eventhub_consumer_group_name", eventHubConsumerGroupName)
-
-								endpoint := ""
-								if v := inputProps.Endpoint; v != nil {
-									endpoint = *v
-								}
-								d.Set("endpoint", endpoint)
-
-								iothubNamespace := ""
-								if v := inputProps.IotHubNamespace; v != nil {
-									iothubNamespace = *v
-								}
-								d.Set("iothub_namespace", iothubNamespace)
-
-								sharedAccessPolicyName := ""
-								if v := inputProps.SharedAccessPolicyName; v != nil {
-									sharedAccessPolicyName = *v
-								}
-								d.Set("shared_access_policy_name", sharedAccessPolicyName)
+			if streamInput, ok := (*props).(inputs.StreamInputProperties); ok {
+				if ds := streamInput.Datasource; ds != nil {
+					if streamIotHubInput, ok := (*ds).(inputs.IoTHubStreamInputDataSource); ok {
+						if inputProps := streamIotHubInput.Properties; inputProps != nil {
+							eventHubConsumerGroupName := ""
+							if v := inputProps.ConsumerGroupName; v != nil {
+								eventHubConsumerGroupName = *v
 							}
+							d.Set("eventhub_consumer_group_name", eventHubConsumerGroupName)
+
+							endpoint := ""
+							if v := inputProps.Endpoint; v != nil {
+								endpoint = *v
+							}
+							d.Set("endpoint", endpoint)
+
+							iothubNamespace := ""
+							if v := inputProps.IotHubNamespace; v != nil {
+								iothubNamespace = *v
+							}
+							d.Set("iothub_namespace", iothubNamespace)
+
+							sharedAccessPolicyName := ""
+							if v := inputProps.SharedAccessPolicyName; v != nil {
+								sharedAccessPolicyName = *v
+							}
+							d.Set("shared_access_policy_name", sharedAccessPolicyName)
 						}
 					}
+				}
 
-					if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(streamInput.Serialization)); err != nil {
-						return fmt.Errorf("setting `serialization`: %+v", err)
-					}
+				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(streamInput.Serialization)); err != nil {
+					return fmt.Errorf("setting `serialization`: %+v", err)
 				}
 			}
 		}

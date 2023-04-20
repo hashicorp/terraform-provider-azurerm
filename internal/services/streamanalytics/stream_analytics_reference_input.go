@@ -25,15 +25,13 @@ func importStreamAnalyticsReferenceInput(expectType string) pluginsdk.ImporterFu
 		var actualType string
 		if model := resp.Model; model != nil {
 			if props := model.Properties; props != nil {
-				if input, ok := (*props).(inputs.InputProperties); ok {
-					if reference, ok := input.(inputs.ReferenceInputProperties); ok {
-						if ds := reference.Datasource; ds != nil {
-							if _, ok := (*ds).(inputs.BlobReferenceInputDataSource); ok {
-								actualType = "Microsoft.Storage/Blob"
-							}
-							if _, ok := (*ds).(inputs.AzureSqlReferenceInputDataSource); ok {
-								actualType = "Microsoft.Sql/Server/Database"
-							}
+				if reference, ok := (*props).(inputs.ReferenceInputProperties); ok {
+					if ds := reference.Datasource; ds != nil {
+						if _, ok := (*ds).(inputs.BlobReferenceInputDataSource); ok {
+							actualType = "Microsoft.Storage/Blob"
+						}
+						if _, ok := (*ds).(inputs.AzureSqlReferenceInputDataSource); ok {
+							actualType = "Microsoft.Sql/Server/Database"
 						}
 					}
 				}

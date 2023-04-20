@@ -207,53 +207,51 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			if input, ok := (*props).(inputs.InputProperties); ok {
-				if streamInput, ok := input.(inputs.StreamInputProperties); ok {
-					if ds := streamInput.Datasource; ds != nil {
-						if streamEventHubInput, ok := (*ds).(inputs.EventHubStreamInputDataSource); ok {
-							if inputProps := streamEventHubInput.Properties; inputProps != nil {
-								eventHubName := ""
-								if v := inputProps.EventHubName; v != nil {
-									eventHubName = *v
-								}
-								d.Set("eventhub_name", eventHubName)
-
-								serviceBusNameSpace := ""
-								if v := inputProps.ServiceBusNamespace; v != nil {
-									serviceBusNameSpace = *v
-								}
-								d.Set("servicebus_namespace", serviceBusNameSpace)
-
-								authMode := ""
-								if v := inputProps.AuthenticationMode; v != nil {
-									authMode = string(*v)
-								}
-								d.Set("authentication_mode", authMode)
-
-								consumerGroupName := ""
-								if v := inputProps.ConsumerGroupName; v != nil {
-									consumerGroupName = *v
-								}
-								d.Set("eventhub_consumer_group_name", consumerGroupName)
-
-								sharedAccessPolicyName := ""
-								if v := inputProps.SharedAccessPolicyName; v != nil {
-									sharedAccessPolicyName = *v
-								}
-								d.Set("shared_access_policy_name", sharedAccessPolicyName)
-
-								partitionKey := ""
-								if v := streamInput.PartitionKey; v != nil {
-									partitionKey = *v
-								}
-								d.Set("partition_key", partitionKey)
+			if streamInput, ok := (*props).(inputs.StreamInputProperties); ok {
+				if ds := streamInput.Datasource; ds != nil {
+					if streamEventHubInput, ok := (*ds).(inputs.EventHubStreamInputDataSource); ok {
+						if inputProps := streamEventHubInput.Properties; inputProps != nil {
+							eventHubName := ""
+							if v := inputProps.EventHubName; v != nil {
+								eventHubName = *v
 							}
+							d.Set("eventhub_name", eventHubName)
+
+							serviceBusNameSpace := ""
+							if v := inputProps.ServiceBusNamespace; v != nil {
+								serviceBusNameSpace = *v
+							}
+							d.Set("servicebus_namespace", serviceBusNameSpace)
+
+							authMode := ""
+							if v := inputProps.AuthenticationMode; v != nil {
+								authMode = string(*v)
+							}
+							d.Set("authentication_mode", authMode)
+
+							consumerGroupName := ""
+							if v := inputProps.ConsumerGroupName; v != nil {
+								consumerGroupName = *v
+							}
+							d.Set("eventhub_consumer_group_name", consumerGroupName)
+
+							sharedAccessPolicyName := ""
+							if v := inputProps.SharedAccessPolicyName; v != nil {
+								sharedAccessPolicyName = *v
+							}
+							d.Set("shared_access_policy_name", sharedAccessPolicyName)
+
+							partitionKey := ""
+							if v := streamInput.PartitionKey; v != nil {
+								partitionKey = *v
+							}
+							d.Set("partition_key", partitionKey)
 						}
 					}
+				}
 
-					if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(streamInput.Serialization)); err != nil {
-						return fmt.Errorf("setting `serialization`: %+v", err)
-					}
+				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(streamInput.Serialization)); err != nil {
+					return fmt.Errorf("setting `serialization`: %+v", err)
 				}
 			}
 		}

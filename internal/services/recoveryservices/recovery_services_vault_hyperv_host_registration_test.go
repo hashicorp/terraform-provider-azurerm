@@ -47,7 +47,11 @@ func (HyperVHostTestResource) generateHyperVHostRegistrationCert(callbackFunc fu
 			return fmt.Errorf("retrieving %s: Model was nil", id)
 		}
 
-		detail, ok := resp.Model.Properties.(vaultcertificates.ResourceCertificateAndAadDetails)
+		if resp.Model.Properties == nil {
+			return fmt.Errorf("retrieving %s: Model.Properties was nil", id)
+		}
+
+		detail, ok := (*resp.Model.Properties).(vaultcertificates.ResourceCertificateAndAadDetails)
 		if !ok {
 			return fmt.Errorf("unexpected response type")
 		}

@@ -199,50 +199,47 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			if input, ok := (*props).(inputs.InputProperties); ok {
-				if streamInput, ok := input.(inputs.StreamInputProperties); ok {
-					if ds := streamInput.Datasource; ds != nil {
-						if streamBlobInput, ok := (*ds).(inputs.BlobStreamInputDataSource); ok {
-							if blobProps := streamBlobInput.Properties; blobProps != nil {
-								dateFormat := ""
-								if v := blobProps.DateFormat; v != nil {
-									dateFormat = *v
-								}
-								d.Set("date_format", dateFormat)
-
-								pathPattern := ""
-								if v := blobProps.PathPattern; v != nil {
-									pathPattern = *v
-								}
-								d.Set("path_pattern", pathPattern)
-
-								containerName := ""
-								if v := blobProps.Container; v != nil {
-									containerName = *v
-								}
-								d.Set("storage_container_name", containerName)
-
-								timeFormat := ""
-								if v := blobProps.TimeFormat; v != nil {
-									timeFormat = *v
-								}
-								d.Set("time_format", timeFormat)
-
-								if accounts := blobProps.StorageAccounts; accounts != nil && len(*accounts) > 0 {
-									account := (*accounts)[0]
-									d.Set("storage_account_name", account.AccountName)
-								}
-
+			if streamInput, ok := (*props).(inputs.StreamInputProperties); ok {
+				if ds := streamInput.Datasource; ds != nil {
+					if streamBlobInput, ok := (*ds).(inputs.BlobStreamInputDataSource); ok {
+						if blobProps := streamBlobInput.Properties; blobProps != nil {
+							dateFormat := ""
+							if v := blobProps.DateFormat; v != nil {
+								dateFormat = *v
 							}
+							d.Set("date_format", dateFormat)
+
+							pathPattern := ""
+							if v := blobProps.PathPattern; v != nil {
+								pathPattern = *v
+							}
+							d.Set("path_pattern", pathPattern)
+
+							containerName := ""
+							if v := blobProps.Container; v != nil {
+								containerName = *v
+							}
+							d.Set("storage_container_name", containerName)
+
+							timeFormat := ""
+							if v := blobProps.TimeFormat; v != nil {
+								timeFormat = *v
+							}
+							d.Set("time_format", timeFormat)
+
+							if accounts := blobProps.StorageAccounts; accounts != nil && len(*accounts) > 0 {
+								account := (*accounts)[0]
+								d.Set("storage_account_name", account.AccountName)
+							}
+
 						}
 					}
+				}
 
-					if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(streamInput.Serialization)); err != nil {
-						return fmt.Errorf("setting `serialization`: %+v", err)
-					}
+				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(streamInput.Serialization)); err != nil {
+					return fmt.Errorf("setting `serialization`: %+v", err)
 				}
 			}
-
 		}
 	}
 

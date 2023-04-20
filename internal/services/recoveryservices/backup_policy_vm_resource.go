@@ -754,26 +754,6 @@ func flattenBackupProtectionPolicyVMRetentionYearly(input *protectionpolicies.Re
 	return output
 }
 
-func flattenBackupProtectionPolicyVMRetentionWeeklyFormat(retention *protectionpolicies.WeeklyRetentionFormat) (weekdays, weeks *pluginsdk.Set) {
-	if days := retention.DaysOfTheWeek; days != nil {
-		slice := make([]interface{}, 0)
-		for _, d := range *days {
-			slice = append(slice, string(d))
-		}
-		weekdays = pluginsdk.NewSet(pluginsdk.HashString, slice)
-	}
-
-	if days := retention.WeeksOfTheMonth; days != nil {
-		slice := make([]interface{}, 0)
-		for _, d := range *days {
-			slice = append(slice, string(d))
-		}
-		weeks = pluginsdk.NewSet(pluginsdk.HashString, slice)
-	}
-
-	return weekdays, weeks
-}
-
 func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
