@@ -1,5 +1,9 @@
 ## 3.53.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_storage_mover_agent` [GH-21273]
+
 ENHANCEMENTS:
 
 * `advisor` - refactoring to use `hashicorp/go-azure-sdk` [GH-21307]
