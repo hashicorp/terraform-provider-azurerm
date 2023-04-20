@@ -254,6 +254,27 @@ func TestAccVirtualHubConnection_updateRoutingConfiguration(t *testing.T) {
 	})
 }
 
+func TestAccVirtualHubConnection_updateRouteOverride(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withRoutingConfiguration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withLocalRouteOverride(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VirtualHubConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.HubVirtualNetworkConnectionID(state.ID)
 	if err != nil {
@@ -507,6 +528,38 @@ resource "azurerm_virtual_hub_connection" "test" {
       address_prefixes    = ["10.0.5.0/24"]
       next_hop_ip_address = "10.0.5.5"
     }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r VirtualHubConnectionResource) withLocalRouteOverride(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_hub_connection" "test" {
+  name                      = "acctest-vhubconn-%[2]d"
+  virtual_hub_id            = azurerm_virtual_hub.test.id
+  remote_virtual_network_id = azurerm_virtual_network.test.id
+
+  routing {
+    propagated_route_table {
+      labels = ["label1", "label2"]
+    }
+
+    static_vnet_route {
+      name                = "testvnetroute"
+      address_prefixes    = ["10.0.3.0/24", "10.0.4.0/24"]
+      next_hop_ip_address = "10.0.3.5"
+    }
+
+    static_vnet_route {
+      name                = "testvnetroute2"
+      address_prefixes    = ["10.0.5.0/24"]
+      next_hop_ip_address = "10.0.5.5"
+    }
+
+    vnet_local_route_override_criteria = "Contains"
   }
 }
 `, r.template(data), data.RandomInteger)

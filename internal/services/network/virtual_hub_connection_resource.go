@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -147,6 +148,29 @@ func resourceVirtualHubConnectionSchema() map[string]*pluginsdk.Schema {
 							},
 						},
 						AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
+					},
+
+					"static_vnet_route_config": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"vnet_local_route_override_criteria": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.VnetLocalRouteOverrideCriteriaContains),
+										string(network.VnetLocalRouteOverrideCriteriaEqual),
+									}, false),
+								},
+
+								"static_route_propagated": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+							},
+						},
 					},
 				},
 			},
@@ -308,8 +332,24 @@ func expandVirtualHubConnectionRouting(input []interface{}) *network.RoutingConf
 		}
 	}
 
+	var staticRoutes *[]network.StaticRoute
+	var staticRoutesConfig *network.StaticRoutesConfig
 	if vnetStaticRoute := v["static_vnet_route"].([]interface{}); len(vnetStaticRoute) != 0 {
-		result.VnetRoutes = expandVirtualHubConnectionVnetStaticRoute(vnetStaticRoute)
+		staticRoutes = pointer.To(expandVirtualHubConnectionVnetStaticRoute(vnetStaticRoute))
+	}
+
+	if vnetStaticRouteConfig := v["static_vnet_route_config"].([]interface{}); len(vnetStaticRouteConfig) != 0 {
+		staticRoutesConfig = expandVirtualHubConnectionVnetStaticRouteConfig(vnetStaticRouteConfig)
+	}
+
+	if staticRoutes != nil || staticRoutesConfig != nil {
+		result.VnetRoutes = &network.VnetRoute{}
+		if staticRoutes != nil {
+			result.VnetRoutes.StaticRoutes = staticRoutes
+		}
+		if staticRoutesConfig != nil {
+			result.VnetRoutes.StaticRoutesConfig = staticRoutesConfig
+		}
 	}
 
 	if propagatedRouteTable := v["propagated_route_table"].([]interface{}); len(propagatedRouteTable) != 0 {
@@ -339,11 +379,7 @@ func expandVirtualHubConnectionPropagatedRouteTable(input []interface{}) *networ
 	return &result
 }
 
-func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *network.VnetRoute {
-	if len(input) == 0 {
-		return &network.VnetRoute{}
-	}
-
+func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) []network.StaticRoute {
 	results := make([]network.StaticRoute, 0)
 
 	for _, item := range input {
@@ -370,8 +406,18 @@ func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *network.Vne
 		results = append(results, result)
 	}
 
-	return &network.VnetRoute{
-		StaticRoutes: &results,
+	return results
+}
+
+func expandVirtualHubConnectionVnetStaticRouteConfig(input []interface{}) *network.StaticRoutesConfig {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &network.StaticRoutesConfig{
+		VnetLocalRouteOverrideCriteria: network.VnetLocalRouteOverrideCriteria(v["vnet_local_route_override_criteria"].(string)),
 	}
 }
 
@@ -397,11 +443,19 @@ func flattenVirtualHubConnectionRouting(input *network.RoutingConfiguration) []i
 		associatedRouteTableId = *input.AssociatedRouteTable.ID
 	}
 
+	var vnetRoute []interface{}
+	var vnetRouteConfig []interface{}
+	if input.VnetRoutes != nil {
+		vnetRoute = flattenVirtualHubConnectionVnetStaticRoute(input.VnetRoutes.StaticRoutes)
+		vnetRouteConfig = flattenVirtualHubConnectionVnetStaticRouteConfig(input.VnetRoutes.StaticRoutesConfig)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"associated_route_table_id": associatedRouteTableId,
 			"propagated_route_table":    flattenVirtualHubConnectionPropagatedRouteTable(input.PropagatedRouteTables),
-			"static_vnet_route":         flattenVirtualHubConnectionVnetStaticRoute(input.VnetRoutes),
+			"static_vnet_route":         vnetRoute,
+			"static_vnet_route_config":  vnetRouteConfig,
 		},
 	}
 }
@@ -429,13 +483,13 @@ func flattenVirtualHubConnectionPropagatedRouteTable(input *network.PropagatedRo
 	}
 }
 
-func flattenVirtualHubConnectionVnetStaticRoute(input *network.VnetRoute) []interface{} {
+func flattenVirtualHubConnectionVnetStaticRoute(input *[]network.StaticRoute) []interface{} {
 	results := make([]interface{}, 0)
-	if input == nil || input.StaticRoutes == nil {
+	if input == nil || len(*input) == 0 {
 		return results
 	}
 
-	for _, item := range *input.StaticRoutes {
+	for _, item := range *input {
 		var name string
 		if item.Name != nil {
 			name = *item.Name
@@ -461,6 +515,23 @@ func flattenVirtualHubConnectionVnetStaticRoute(input *network.VnetRoute) []inte
 	}
 
 	return results
+}
+
+func flattenVirtualHubConnectionVnetStaticRouteConfig(input *network.StaticRoutesConfig) []interface{} {
+	var results []interface{}
+	if input == nil {
+		return results
+	}
+
+	result := map[string]interface{}{
+		"vnet_local_route_override_criteria": string(input.VnetLocalRouteOverrideCriteria),
+	}
+
+	if input.PropagateStaticRoutes != nil {
+		result["static_route_propagated"] = *input.PropagateStaticRoutes
+	}
+
+	return append(results, result)
 }
 
 func flattenSubResourcesToIDs(input *[]network.SubResource) []interface{} {

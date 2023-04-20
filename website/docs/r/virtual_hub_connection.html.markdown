@@ -72,6 +72,8 @@ A `routing` block supports the following:
 
 * `static_vnet_route` - (Optional) A `static_vnet_route` block as defined below.
 
+* `static_vnet_route_config` - (Optional) A `static_vnet_route_config` block as defined below. 
+
 ---
 
 A `propagated_route_table` block supports the following:
@@ -89,6 +91,14 @@ A `static_vnet_route` block supports the following:
 * `address_prefixes` - (Optional) A list of CIDR Ranges which should be used as Address Prefixes.
 
 * `next_hop_ip_address` - (Optional) The IP Address which should be used for the Next Hop.
+
+---
+
+A `static_vnet_route` block supports the following:
+
+* `vnet_local_route_override_criteria` - (Optional) Specifies whether Network Virtual Appliance in spoke vnet is bypassed for traffic with destination to local vnet. Possible values are `Contains` and `Equal`. 
+
+* `static_route_propagated` - Whether static routes on this connection are automatically propagate to route tables which this connection propagates to. 
 
 ## Attributes Reference
 
