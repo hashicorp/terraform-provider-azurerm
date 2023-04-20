@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_cost_management_scheduled_action` [GH-21325]
 * **New Resource:** `azurerm_storage_mover_agent` [GH-21273]
 
 ENHANCEMENTS:
