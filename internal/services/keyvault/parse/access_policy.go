@@ -2,6 +2,7 @@ package parse
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
@@ -19,7 +20,7 @@ type AccessPolicyId struct {
 	objectId      *AccessPolicyObjectId
 }
 
-func NewAccessPolicyId(keyVaultId VaultId, objectId, applicationId string) AccessPolicyId {
+func NewAccessPolicyId(keyVaultId commonids.KeyVaultId, objectId, applicationId string) AccessPolicyId {
 	out := AccessPolicyId{}
 	if applicationId != "" {
 		id := NewAccessPolicyApplicationID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, objectId, applicationId)
@@ -74,13 +75,13 @@ func (a AccessPolicyId) ApplicationId() string {
 	return ""
 }
 
-func (a AccessPolicyId) KeyVaultId() VaultId {
+func (a AccessPolicyId) KeyVaultId() commonids.KeyVaultId {
 	if a.applicationId != nil {
-		return NewVaultID(a.applicationId.SubscriptionId, a.applicationId.ResourceGroup, a.applicationId.VaultName)
+		return commonids.NewKeyVaultID(a.applicationId.SubscriptionId, a.applicationId.ResourceGroup, a.applicationId.VaultName)
 	}
 
 	// whilst this is a pointer, as it has to be either/or it's fine
-	return NewVaultID(a.objectId.SubscriptionId, a.objectId.ResourceGroup, a.objectId.VaultName)
+	return commonids.NewKeyVaultID(a.objectId.SubscriptionId, a.objectId.ResourceGroup, a.objectId.VaultName)
 }
 
 func (a AccessPolicyId) ObjectID() string {

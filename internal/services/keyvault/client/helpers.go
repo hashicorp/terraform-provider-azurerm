@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -25,7 +24,7 @@ type keyVaultDetails struct {
 	resourceGroup    string
 }
 
-func (c *Client) AddToCache(keyVaultId parse.VaultId, dataPlaneUri string) {
+func (c *Client) AddToCache(keyVaultId commonids.KeyVaultId, dataPlaneUri string) {
 	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
 	keysmith.Lock()
 	keyVaultsCache[cacheKey] = keyVaultDetails{
@@ -36,7 +35,7 @@ func (c *Client) AddToCache(keyVaultId parse.VaultId, dataPlaneUri string) {
 	keysmith.Unlock()
 }
 
-func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultId) (*string, error) {
+func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId commonids.KeyVaultId) (*string, error) {
 	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {
@@ -73,7 +72,7 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultI
 	return resp.Properties.VaultURI, nil
 }
 
-func (c *Client) Exists(ctx context.Context, keyVaultId parse.VaultId) (bool, error) {
+func (c *Client) Exists(ctx context.Context, keyVaultId commonids.KeyVaultId) (bool, error) {
 	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {
@@ -164,7 +163,7 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *res
 	return nil, nil
 }
 
-func (c *Client) Purge(keyVaultId parse.VaultId) {
+func (c *Client) Purge(keyVaultId commonids.KeyVaultId) {
 	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {
