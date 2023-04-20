@@ -124,13 +124,11 @@ func (r StorageMoverSourceEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			properties := endpoints.Endpoint{
-				Name: utils.String(model.Name),
 				Properties: endpoints.NfsMountEndpointProperties{
 					Export:     model.Export,
 					Host:       model.Host,
 					NfsVersion: &model.NfsVersion,
 				},
-				Type: utils.String(string(endpoints.EndpointTypeNfsMount)),
 			}
 
 			if model.Description != "" {
@@ -176,9 +174,10 @@ func (r StorageMoverSourceEndpointResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				nfsProperties := properties.Properties.(endpoints.NfsMountEndpointProperties)
-				nfsProperties.Description = utils.String(model.Description)
-				properties.Properties = nfsProperties
+				if v, ok := properties.Properties.(endpoints.NfsMountEndpointProperties); ok {
+					v.Description = utils.String(model.Description)
+					properties.Properties = v
+				}
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *properties); err != nil {
@@ -216,19 +215,20 @@ func (r StorageMoverSourceEndpointResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				nfsProperties := model.Properties.(endpoints.NfsMountEndpointProperties)
-				state.Export = nfsProperties.Export
-				state.Host = nfsProperties.Host
+				if v, ok := model.Properties.(endpoints.NfsMountEndpointProperties); ok {
+					state.Export = v.Export
+					state.Host = v.Host
 
-				if v := nfsProperties.NfsVersion; v != nil {
-					state.NfsVersion = *v
-				}
+					if v := v.NfsVersion; v != nil {
+						state.NfsVersion = *v
+					}
 
-				des := ""
-				if nfsProperties.Description != nil {
-					des = *nfsProperties.Description
+					des := ""
+					if v.Description != nil {
+						des = *v.Description
+					}
+					state.Description = des
 				}
-				state.Description = des
 			}
 
 			return metadata.Encode(&state)

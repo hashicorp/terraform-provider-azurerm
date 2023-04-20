@@ -112,12 +112,10 @@ func (r StorageMoverTargetEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			properties := endpoints.Endpoint{
-				Name: utils.String(model.Name),
 				Properties: endpoints.AzureStorageBlobContainerEndpointProperties{
 					BlobContainerName:        model.StorageContainerName,
 					StorageAccountResourceId: model.StorageAccountId,
 				},
-				Type: utils.String(string(endpoints.EndpointTypeAzureStorageBlobContainer)),
 			}
 
 			if model.Description != "" {
@@ -163,9 +161,10 @@ func (r StorageMoverTargetEndpointResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				sbcProperties := properties.Properties.(endpoints.AzureStorageBlobContainerEndpointProperties)
-				sbcProperties.Description = utils.String(model.Description)
-				properties.Properties = sbcProperties
+				if v, ok := properties.Properties.(endpoints.AzureStorageBlobContainerEndpointProperties); ok {
+					v.Description = utils.String(model.Description)
+					properties.Properties = v
+				}
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *properties); err != nil {
@@ -203,15 +202,16 @@ func (r StorageMoverTargetEndpointResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				sbcProperties := model.Properties.(endpoints.AzureStorageBlobContainerEndpointProperties)
-				state.StorageContainerName = sbcProperties.BlobContainerName
-				state.StorageAccountId = sbcProperties.StorageAccountResourceId
+				if v, ok := model.Properties.(endpoints.AzureStorageBlobContainerEndpointProperties); ok {
+					state.StorageContainerName = v.BlobContainerName
+					state.StorageAccountId = v.StorageAccountResourceId
 
-				des := ""
-				if sbcProperties.Description != nil {
-					des = *sbcProperties.Description
+					des := ""
+					if v.Description != nil {
+						des = *v.Description
+					}
+					state.Description = des
 				}
-				state.Description = des
 			}
 
 			return metadata.Encode(&state)
