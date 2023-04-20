@@ -230,13 +230,16 @@ resource "azurerm_storage_mover" "test" {
   name                = "acctest-ssm-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  depends_on = [
+    azurerm_linux_virtual_machine.test
+  ]
 }
 
 data "azurerm_hybrid_compute_machine" "test" {
   name                = azurerm_linux_virtual_machine.test.name
   resource_group_name = azurerm_resource_group.test.name
   depends_on = [
-    azurerm_linux_virtual_machine.test, azurerm_storage_mover.test
+    azurerm_storage_mover.test
   ]
 }
 
