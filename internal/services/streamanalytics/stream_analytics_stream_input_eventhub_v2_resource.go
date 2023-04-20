@@ -276,51 +276,49 @@ func (r StreamInputEventHubV2Resource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					if input, ok := (*props).(inputs.InputProperties); ok {
-						if streamInput, ok := input.(inputs.StreamInputProperties); ok {
-							if ds := streamInput.Datasource; ds != nil {
-								if eventHubV2Input, ok := (*ds).(inputs.EventHubV2StreamInputDataSource); ok {
-									if inputProps := eventHubV2Input.Properties; inputProps != nil {
-										servicebusNamespace := ""
-										if v := inputProps.ServiceBusNamespace; v != nil {
-											servicebusNamespace = *v
-										}
-
-										eventHubName := ""
-										if v := inputProps.EventHubName; v != nil {
-											eventHubName = *v
-										}
-
-										eventHubConsumerGroup := ""
-										if v := inputProps.ConsumerGroupName; v != nil {
-											eventHubConsumerGroup = *v
-										}
-
-										authenticationMode := ""
-										if v := inputProps.AuthenticationMode; v != nil {
-											authenticationMode = string(*v)
-										}
-
-										sharedAccessPolicyName := ""
-										if v := inputProps.SharedAccessPolicyName; v != nil {
-											sharedAccessPolicyName = *v
-										}
-
-										serialization := flattenStreamAnalyticsStreamInputSerializationTyped(streamInput.Serialization)
-										partitionKey := ""
-										if v := streamInput.PartitionKey; v != nil {
-											partitionKey = *v
-										}
-
-										state.ServiceBusNamespace = servicebusNamespace
-										state.EventHubName = eventHubName
-										state.EventHubConsumerGroupName = eventHubConsumerGroup
-										state.AuthenticationMode = authenticationMode
-										state.SharedAccessPolicyName = sharedAccessPolicyName
-										state.SharedAccessPolicyKey = metadata.ResourceData.Get("shared_access_policy_key").(string)
-										state.Serialization = []Serialization{serialization}
-										state.PartitionKey = partitionKey
+					if streamInput, ok := (*props).(inputs.StreamInputProperties); ok {
+						if ds := streamInput.Datasource; ds != nil {
+							if eventHubV2Input, ok := (*ds).(inputs.EventHubV2StreamInputDataSource); ok {
+								if inputProps := eventHubV2Input.Properties; inputProps != nil {
+									servicebusNamespace := ""
+									if v := inputProps.ServiceBusNamespace; v != nil {
+										servicebusNamespace = *v
 									}
+
+									eventHubName := ""
+									if v := inputProps.EventHubName; v != nil {
+										eventHubName = *v
+									}
+
+									eventHubConsumerGroup := ""
+									if v := inputProps.ConsumerGroupName; v != nil {
+										eventHubConsumerGroup = *v
+									}
+
+									authenticationMode := ""
+									if v := inputProps.AuthenticationMode; v != nil {
+										authenticationMode = string(*v)
+									}
+
+									sharedAccessPolicyName := ""
+									if v := inputProps.SharedAccessPolicyName; v != nil {
+										sharedAccessPolicyName = *v
+									}
+
+									serialization := flattenStreamAnalyticsStreamInputSerializationTyped(streamInput.Serialization)
+									partitionKey := ""
+									if v := streamInput.PartitionKey; v != nil {
+										partitionKey = *v
+									}
+
+									state.ServiceBusNamespace = servicebusNamespace
+									state.EventHubName = eventHubName
+									state.EventHubConsumerGroupName = eventHubConsumerGroup
+									state.AuthenticationMode = authenticationMode
+									state.SharedAccessPolicyName = sharedAccessPolicyName
+									state.SharedAccessPolicyKey = metadata.ResourceData.Get("shared_access_policy_key").(string)
+									state.Serialization = []Serialization{serialization}
+									state.PartitionKey = partitionKey
 								}
 							}
 						}
@@ -374,12 +372,10 @@ func (r StreamInputEventHubV2Resource) CustomImporter() sdk.ResourceRunFunc {
 		valid := false
 		if model := resp.Model; model != nil {
 			if props := model.Properties; props != nil {
-				if inputProps, ok := (*props).(inputs.InputProperties); ok {
-					if v, ok := inputProps.(inputs.StreamInputProperties); ok {
-						if ds := v.Datasource; ds != nil {
-							if _, ok := (*ds).(inputs.EventHubV2StreamInputDataSource); !ok {
-								valid = true
-							}
+				if v, ok := (*props).(inputs.StreamInputProperties); ok {
+					if ds := v.Datasource; ds != nil {
+						if _, ok := (*ds).(inputs.EventHubV2StreamInputDataSource); !ok {
+							valid = true
 						}
 					}
 				}

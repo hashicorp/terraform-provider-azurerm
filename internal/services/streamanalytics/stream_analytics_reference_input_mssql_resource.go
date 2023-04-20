@@ -222,59 +222,57 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			if input, ok := (*props).(inputs.InputProperties); ok {
-				if reference, ok := input.(inputs.ReferenceInputProperties); ok {
-					if ds := reference.Datasource; ds != nil {
-						if referenceInputAzureSql, ok := (*ds).(inputs.AzureSqlReferenceInputDataSource); ok {
-							if sqlProps := referenceInputAzureSql.Properties; props != nil {
-								server := ""
-								if v := sqlProps.Server; v != nil {
-									server = *v
-								}
-								d.Set("server", server)
-
-								database := ""
-								if v := sqlProps.Database; v != nil {
-									database = *v
-								}
-								d.Set("database", database)
-
-								username := ""
-								if v := sqlProps.User; v != nil {
-									username = *v
-								}
-								d.Set("username", username)
-
-								refreshType := ""
-								if v := sqlProps.RefreshType; v != nil {
-									refreshType = string(*v)
-								}
-								d.Set("refresh_type", refreshType)
-
-								intervalDuration := ""
-								if v := sqlProps.RefreshRate; v != nil {
-									intervalDuration = *v
-								}
-								d.Set("refresh_interval_duration", intervalDuration)
-
-								fullSnapshotQuery := ""
-								if v := sqlProps.FullSnapshotQuery; v != nil {
-									fullSnapshotQuery = *v
-								}
-								d.Set("full_snapshot_query", fullSnapshotQuery)
-
-								deltaSnapshotQuery := ""
-								if v := sqlProps.DeltaSnapshotQuery; v != nil {
-									deltaSnapshotQuery = *v
-								}
-								d.Set("delta_snapshot_query", deltaSnapshotQuery)
-
-								table := ""
-								if v := sqlProps.Table; v != nil {
-									table = *v
-								}
-								d.Set("table", table)
+			if reference, ok := (*props).(inputs.ReferenceInputProperties); ok {
+				if ds := reference.Datasource; ds != nil {
+					if referenceInputAzureSql, ok := (*ds).(inputs.AzureSqlReferenceInputDataSource); ok {
+						if sqlProps := referenceInputAzureSql.Properties; props != nil {
+							server := ""
+							if v := sqlProps.Server; v != nil {
+								server = *v
 							}
+							d.Set("server", server)
+
+							database := ""
+							if v := sqlProps.Database; v != nil {
+								database = *v
+							}
+							d.Set("database", database)
+
+							username := ""
+							if v := sqlProps.User; v != nil {
+								username = *v
+							}
+							d.Set("username", username)
+
+							refreshType := ""
+							if v := sqlProps.RefreshType; v != nil {
+								refreshType = string(*v)
+							}
+							d.Set("refresh_type", refreshType)
+
+							intervalDuration := ""
+							if v := sqlProps.RefreshRate; v != nil {
+								intervalDuration = *v
+							}
+							d.Set("refresh_interval_duration", intervalDuration)
+
+							fullSnapshotQuery := ""
+							if v := sqlProps.FullSnapshotQuery; v != nil {
+								fullSnapshotQuery = *v
+							}
+							d.Set("full_snapshot_query", fullSnapshotQuery)
+
+							deltaSnapshotQuery := ""
+							if v := sqlProps.DeltaSnapshotQuery; v != nil {
+								deltaSnapshotQuery = *v
+							}
+							d.Set("delta_snapshot_query", deltaSnapshotQuery)
+
+							table := ""
+							if v := sqlProps.Table; v != nil {
+								table = *v
+							}
+							d.Set("table", table)
 						}
 					}
 				}
