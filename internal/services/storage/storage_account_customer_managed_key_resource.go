@@ -52,7 +52,7 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 				ValidateFunc: validation.Any(
 					// Storage Account Customer Managed Keys support both Key Vault and Key Vault Managed HSM keys:
 					// https://learn.microsoft.com/en-us/azure/storage/common/customer-managed-keys-overview
-					keyVaultValidate.VaultID,
+					commonids.ValidateKeyVaultID,
 					keyVaultValidate.ManagedHSMID,
 				),
 			},
