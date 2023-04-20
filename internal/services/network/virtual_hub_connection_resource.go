@@ -153,12 +153,14 @@ func resourceVirtualHubConnectionSchema() map[string]*pluginsdk.Schema {
 					"static_vnet_route_config": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
+						Computed: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"vnet_local_route_override_criteria": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
+									Computed: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(network.VnetLocalRouteOverrideCriteriaContains),
 										string(network.VnetLocalRouteOverrideCriteriaEqual),
