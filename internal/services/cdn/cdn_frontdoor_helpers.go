@@ -385,7 +385,7 @@ func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta int
 				if isAssociated {
 					// it is, now removed the association...
 					newDomains := sliceRemoveString(customDomains, customDomainID.ID())
-					if err := updateRouteAssociations(d, meta, &route, newDomains, props, customDomainID); err != nil {
+					if err := updateRouteCustomDomainAssociations(d, meta, &route, newDomains, props, customDomainID); err != nil {
 						return err
 					}
 				}
@@ -396,7 +396,7 @@ func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func updateRouteAssociations(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, customDomains []interface{}, props *cdn.RouteProperties, customDomainID *parse.FrontDoorCustomDomainId) error {
+func updateRouteCustomDomainAssociations(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, customDomains []interface{}, props *cdn.RouteProperties, customDomainID *parse.FrontDoorCustomDomainId) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -406,6 +406,9 @@ func updateRouteAssociations(d *pluginsdk.ResourceData, meta interface{}, routeI
 	if len(customDomains) == 0 {
 		props.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
 	}
+
+	// Set the new list of custom domains to the route properties...
+	props.CustomDomains = expandCustomDomainActivatedResourceArray(customDomains)
 
 	routeProps := cdn.Route{
 		RouteProperties: props,

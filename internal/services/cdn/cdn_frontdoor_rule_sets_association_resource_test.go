@@ -137,8 +137,8 @@ func TestAccCdnFrontDoorRuleSetsAssociation_destroySingleRuleSetAssociation(t *t
 		{
 			// NOTE: Need to delete one of rule sets and the rule set association,
 			// this step is the actual regression part of this test case... This may
-			// seem a bit confusing, but the route will still exist just the association
-			// and rule set two will be destroyed with out an error being raised by the service...
+			// seem a bit confusing, but the route will still exist just the rule set association
+			// and rule set two will be destroyed without an error being raised by the service...
 			Config: d.destroy(data),
 			Check:  acceptance.ComposeTestCheckFunc(),
 		},
