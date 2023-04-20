@@ -65,6 +65,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Linux Function App.
 
+* `hosting_environment_id` - The ID of the App Service Environment used by Function App.
+
 * `enabled` - Is the Function App enabled?
 
 * `functions_extension_version` - The runtime version associated with the Function App.
