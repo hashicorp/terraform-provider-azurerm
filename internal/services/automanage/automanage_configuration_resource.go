@@ -224,7 +224,7 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 				Tags:       tags.FromTypedObject(model.Tags),
 			}
 
-			// Convert all to a map[string]interface{} and convert to a json property
+			// building configuration profile in json format
 			jsonConfig := make(map[string]interface{})
 
 			if model.Antimalware != nil && len(model.Antimalware) > 0 {
