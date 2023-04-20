@@ -196,8 +196,7 @@ func resourceSiteRecoveryContainerMappingUpdate(d *pluginsdk.ResourceData, meta 
 
 	if d.HasChange("automatic_update") {
 		autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update").([]interface{}))
-		var mappingInput replicationprotectioncontainermappings.ReplicationProviderSpecificUpdateContainerMappingInput
-		mappingInput = replicationprotectioncontainermappings.A2AUpdateContainerMappingInput{
+		var mappingInput replicationprotectioncontainermappings.ReplicationProviderSpecificUpdateContainerMappingInput = replicationprotectioncontainermappings.A2AUpdateContainerMappingInput{
 			AgentAutoUpdateStatus:  &autoUpdateEnabledValue,
 			AutomationAccountArmId: automationAccountArmId,
 		}
