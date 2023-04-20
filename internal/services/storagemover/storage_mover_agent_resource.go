@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/agents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/storagemovers"
@@ -18,7 +20,7 @@ type StorageMoverAgentResourceModel struct {
 	Name                string `tfschema:"name"`
 	StorageMoverId      string `tfschema:"storage_mover_id"`
 	ArcVirtualMachineId string `tfschema:"arc_virtual_machine_id"`
-	ArcVmUuid           string `tfschema:"arc_vm_uuid"`
+	ArcVmUuid           string `tfschema:"arc_virtual_machine_uuid"`
 	Description         string `tfschema:"description"`
 }
 
@@ -54,7 +56,7 @@ func (r StorageMoverAgentResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: computevalidate.HybridMachineID,
 		},
 
-		"arc_vm_uuid": {
+		"arc_virtual_machine_uuid": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -194,11 +196,7 @@ func (r StorageMoverAgentResource) Read() sdk.ResourceFunc {
 				state.ArcVmUuid = model.Properties.ArcVMUuid
 				state.ArcVirtualMachineId = model.Properties.ArcResourceId
 
-				des := ""
-				if model.Properties.Description != nil {
-					des = *model.Properties.Description
-				}
-				state.Description = des
+				state.Description = pointer.From(model.Properties.Description)
 			}
 
 			return metadata.Encode(&state)

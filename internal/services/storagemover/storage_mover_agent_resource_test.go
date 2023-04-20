@@ -247,6 +247,7 @@ func (r StorageMoverAgentTestResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 
+
 provider "azurerm" {
   features {
     resource_group {
@@ -258,10 +259,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_storage_mover_agent" "test" {
-  name                   = "acctest-sa-%d"
-  storage_mover_id       = azurerm_storage_mover.test.id
-  arc_virtual_machine_id = data.azurerm_hybrid_compute_machine.test.id
-  arc_vm_uuid            = data.azurerm_hybrid_compute_machine.test.vm_uuid
+  name                     = "acctest-sa-%d"
+  storage_mover_id         = azurerm_storage_mover.test.id
+  arc_virtual_machine_id   = data.azurerm_hybrid_compute_machine.test.id
+  arc_virtual_machine_uuid = data.azurerm_hybrid_compute_machine.test.vm_uuid
 }
 `, template, data.RandomInteger)
 }
@@ -272,11 +273,12 @@ func (r StorageMoverAgentTestResource) requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_storage_mover_agent" "import" {
-  name                   = azurerm_storage_mover_agent.test.name
-  storage_mover_id       = azurerm_storage_mover_agent.test.storage_mover_id
-  arc_virtual_machine_id = azurerm_storage_mover_agent.test.arc_virtual_machine_id
-  arc_vm_uuid            = azurerm_storage_mover_agent.test.arc_vm_uuid
+  name                     = azurerm_storage_mover_agent.test.name
+  storage_mover_id         = azurerm_storage_mover_agent.test.storage_mover_id
+  arc_virtual_machine_id   = azurerm_storage_mover_agent.test.arc_virtual_machine_id
+  arc_virtual_machine_uuid = azurerm_storage_mover_agent.test.arc_virtual_machine_uuid
 }
+
 
 `, config)
 }
@@ -285,6 +287,7 @@ func (r StorageMoverAgentTestResource) complete(data acceptance.TestData) string
 	template := r.template(data)
 	return fmt.Sprintf(`
 
+
 provider "azurerm" {
   features {
     resource_group {
@@ -296,11 +299,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_storage_mover_agent" "test" {
-  name                   = "acctest-sa-%d"
-  storage_mover_id       = azurerm_storage_mover.test.id
-  arc_virtual_machine_id = data.azurerm_hybrid_compute_machine.test.id
-  arc_vm_uuid            = data.azurerm_hybrid_compute_machine.test.vm_uuid
-  description            = "Example Agent Description"
+  name                     = "acctest-sa-%d"
+  storage_mover_id         = azurerm_storage_mover.test.id
+  arc_virtual_machine_id   = data.azurerm_hybrid_compute_machine.test.id
+  arc_virtual_machine_uuid = data.azurerm_hybrid_compute_machine.test.vm_uuid
+  description              = "Example Agent Description"
 }
 `, template, data.RandomInteger)
 }
@@ -309,6 +312,7 @@ func (r StorageMoverAgentTestResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 
+
 provider "azurerm" {
   features {
     resource_group {
@@ -320,11 +324,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_storage_mover_agent" "test" {
-  name                   = "acctest-sa-%d"
-  storage_mover_id       = azurerm_storage_mover.test.id
-  arc_virtual_machine_id = data.azurerm_hybrid_compute_machine.test.id
-  arc_vm_uuid            = data.azurerm_hybrid_compute_machine.test.vm_uuid
-  description            = "Update Example Agent Description"
+  name                     = "acctest-sa-%d"
+  storage_mover_id         = azurerm_storage_mover.test.id
+  arc_virtual_machine_id   = data.azurerm_hybrid_compute_machine.test.id
+  arc_virtual_machine_uuid = data.azurerm_hybrid_compute_machine.test.vm_uuid
+  description              = "Update Example Agent Description"
 
 }
 `, template, data.RandomInteger)
