@@ -283,7 +283,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.AppPlatform = appPlatform.NewClient(o)
 	client.AppService = appService.NewClient(o)
 	client.ArcKubernetes = arckubernetes.NewClient(o)
-	client.Attestation = attestation.NewClient(o)
+	if client.Attestation, err = attestation.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Attestation: %+v", err)
+	}
 	client.Authorization = authorization.NewClient(o)
 	client.Automation = automation.NewClient(o)
 	client.AzureStackHCI = azureStackHCI.NewClient(o)
@@ -292,16 +294,28 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Bot = bot.NewClient(o)
 	client.Cdn = cdn.NewClient(o)
 	client.Cognitive = cognitiveServices.NewClient(o)
-	client.Communication = communication.NewClient(o)
+	if client.Communication, err = communication.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Communication: %+v", err)
+	}
 	client.Compute = compute.NewClient(o)
-	client.ConfidentialLedger = confidentialledger.NewClient(o)
+	if client.ConfidentialLedger, err = confidentialledger.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ConfidentialLedger: %+v", err)
+	}
 	client.Connections = connections.NewClient(o)
-	client.Consumption = consumption.NewClient(o)
-	client.Containers = containerServices.NewContainersClient(o)
+	if client.Consumption, err = consumption.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Consumption: %+v", err)
+	}
+	if client.Containers, err = containerServices.NewContainersClient(o); err != nil {
+		return fmt.Errorf("building clients for Containers: %+v", err)
+	}
 	client.ContainerApps = containerapps.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
-	client.CostManagement = costmanagement.NewClient(o)
-	client.CustomProviders = customproviders.NewClient(o)
+	if client.CostManagement, err = costmanagement.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for CostManagement: %+v", err)
+	}
+	if client.CustomProviders, err = customproviders.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for CustomProviders: %+v", err)
+	}
 	if client.Dashboard, err = dashboard.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Dashboard: %+v", err)
 	}

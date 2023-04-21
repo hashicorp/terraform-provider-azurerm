@@ -12,7 +12,7 @@ on:
 permissions:
   contents: read
   id-token: write
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   secrets-check:
@@ -66,5 +66,14 @@ jobs:
       - name: Clean Up OIDC Token File Path
         run: rm -f "${RUNNER_TEMP}/oidc-token.jwt"
         if: always()
+
+      - name: Add waiting-response on fail
+        if: failure()
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: waiting-response
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ github.event.number }}
+          repo: ${{ github.event.repository.full_name }}
 
 # vim: set ts=2 sts=2 sw=2 et:

@@ -3,7 +3,7 @@ name: 32 Bit Build
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
 
 on:
   pull_request:
@@ -27,3 +27,11 @@ jobs:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
       - run: GOARCH=386 GOOS=linux go build -o 32bitbuild .
+      - name: Add waiting-response on fail
+        if: failure()
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: waiting-response
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ github.event.number }}
+          repo: ${{ github.event.repository.full_name }}

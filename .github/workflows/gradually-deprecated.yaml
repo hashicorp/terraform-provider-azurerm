@@ -32,19 +32,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ github.event.number }}
           repo: ${{ github.event.repository.full_name }}
-      - name: Get run url
-        if: failure()
-        run: |
-          echo "gha_url=https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}" >> $GITHUB_ENV
-      - name: Send build failure comment
-        if: failure()
-        uses: actions/github-script@v6
-        with:
-          result-encoding: string
-          script: |
-            github.rest.issues.createComment({
-             issue_number: ${{ github.event.number }},
-             owner: context.repo.owner,
-             repo: context.repo.repo,
-             body: '<b>Build failure</b> \n\n Found new usages of deprecated functionality: \n\n ${{ env.gha_url}}'
-             })

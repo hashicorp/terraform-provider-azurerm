@@ -43,6 +43,20 @@ func TestAccLocalUser_sshKeyOnly(t *testing.T) {
 			),
 		},
 		data.ImportStep("ssh_authorized_key"),
+		{
+			Config: r.sshKeyOnlyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ssh_authorized_key"),
+		{
+			Config: r.sshKeyOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ssh_authorized_key"),
 	})
 }
 
@@ -75,6 +89,13 @@ func TestAccLocalUser_passwordAndSSHKey(t *testing.T) {
 			),
 		},
 		data.ImportStep("ssh_authorized_key"),
+		{
+			Config: r.passwordOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
 	})
 }
 
@@ -186,6 +207,27 @@ resource "azurerm_storage_account_local_user" "test" {
   ssh_key_enabled    = true
   ssh_authorized_key {
     description = "key1"
+    key         = local.first_public_key
+  }
+}
+`, template)
+}
+
+func (r LocalUserResource) sshKeyOnlyUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account_local_user" "test" {
+  name               = "user"
+  storage_account_id = azurerm_storage_account.test.id
+  ssh_key_enabled    = true
+  ssh_authorized_key {
+    description = "key1"
+    key         = local.first_public_key
+  }
+  ssh_authorized_key {
+    description = "key2"
     key         = local.first_public_key
   }
 }

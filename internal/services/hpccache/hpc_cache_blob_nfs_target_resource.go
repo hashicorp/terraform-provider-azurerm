@@ -5,17 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/storagetargets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHPCCacheBlobNFSTarget() *pluginsdk.Resource {
@@ -26,7 +26,7 @@ func resourceHPCCacheBlobNFSTarget() *pluginsdk.Resource {
 		Delete: resourceHPCCacheBlobNFSTargetDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.StorageTargetID(id)
+			_, err := storagetargets.ParseStorageTargetID(id)
 			return err
 		}),
 
@@ -102,17 +102,17 @@ func resourceHPCCacheBlobNFSTargetCreateUpdate(d *pluginsdk.ResourceData, meta i
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	cache := d.Get("cache_name").(string)
-	id := parse.NewStorageTargetID(subscriptionId, resourceGroup, cache, name)
+	id := storagetargets.NewStorageTargetID(subscriptionId, resourceGroup, cache, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.CacheName, id.Name)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
+			if !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_hpc_cache_blob_nfs_target", id.ID())
 		}
 	}
@@ -121,32 +121,27 @@ func resourceHPCCacheBlobNFSTargetCreateUpdate(d *pluginsdk.ResourceData, meta i
 	containerId := d.Get("storage_container_id").(string)
 
 	// Construct parameters
-	namespaceJunction := []storagecache.NamespaceJunction{
-		{
-			NamespacePath:   &namespacePath,
-			TargetPath:      utils.String("/"),
-			NfsExport:       utils.String("/"),
-			NfsAccessPolicy: utils.String(d.Get("access_policy_name").(string)),
-		},
-	}
-	param := &storagecache.StorageTarget{
-		StorageTargetProperties: &storagecache.StorageTargetProperties{
-			Junctions:  &namespaceJunction,
-			TargetType: storagecache.StorageTargetTypeBlobNfs,
-			BlobNfs: &storagecache.BlobNfsTarget{
-				Target:     utils.String(containerId),
-				UsageModel: utils.String(d.Get("usage_model").(string)),
+
+	param := storagetargets.StorageTarget{
+		Properties: &storagetargets.StorageTargetProperties{
+			Junctions: &[]storagetargets.NamespaceJunction{
+				{
+					NamespacePath:   &namespacePath,
+					TargetPath:      pointer.To("/"),
+					NfsExport:       pointer.To("/"),
+					NfsAccessPolicy: pointer.To(d.Get("access_policy_name").(string)),
+				},
+			},
+			TargetType: storagetargets.StorageTargetTypeBlobNfs,
+			BlobNfs: &storagetargets.BlobNfsTarget{
+				Target:     pointer.To(containerId),
+				UsageModel: pointer.To(d.Get("usage_model").(string)),
 			},
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.CacheName, id.Name, param)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -159,14 +154,14 @@ func resourceHPCCacheBlobNFSTargetRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StorageTargetID(d.Id())
+	id, err := storagetargets.ParseStorageTargetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.CacheName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -175,38 +170,36 @@ func resourceHPCCacheBlobNFSTargetRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.StorageTargetName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("cache_name", id.CacheName)
 
-	if props := resp.StorageTargetProperties; props != nil {
-		if props.TargetType != storagecache.StorageTargetTypeBlobNfs {
-			return fmt.Errorf("The type of this HPC Cache Target %s is not a Blob NFS Target", id)
-		}
-
-		storageContainerId := ""
-		usageModel := ""
-		if b := props.BlobNfs; b != nil {
-			if b.Target != nil {
-				storageContainerId = *b.Target
+	if m := resp.Model; m != nil {
+		if props := m.Properties; props != nil {
+			if props.TargetType != storagetargets.StorageTargetTypeBlobNfs {
+				return fmt.Errorf("The type of this HPC Cache Target %s is not a Blob NFS Target", id)
 			}
-			if b.UsageModel != nil {
-				usageModel = *b.UsageModel
-			}
-		}
-		d.Set("storage_container_id", storageContainerId)
-		d.Set("usage_model", usageModel)
 
-		namespacePath := ""
-		accessPolicy := ""
-		// There is only one namespace path allowed for the blob nfs target,
-		// which maps to the root path of it.
-		if props.Junctions != nil && len(*props.Junctions) == 1 && (*props.Junctions)[0].NamespacePath != nil {
-			namespacePath = *(*props.Junctions)[0].NamespacePath
-			accessPolicy = *(*props.Junctions)[0].NfsAccessPolicy
+			storageContainerId := ""
+			usageModel := ""
+			if b := props.BlobNfs; b != nil {
+				storageContainerId = pointer.From(b.Target)
+				usageModel = pointer.From(b.UsageModel)
+			}
+			d.Set("storage_container_id", storageContainerId)
+			d.Set("usage_model", usageModel)
+
+			namespacePath := ""
+			accessPolicy := ""
+			// There is only one namespace path allowed for the blob nfs target,
+			// which maps to the root path of it.
+			if props.Junctions != nil && len(*props.Junctions) == 1 && (*props.Junctions)[0].NamespacePath != nil {
+				namespacePath = *(*props.Junctions)[0].NamespacePath
+				accessPolicy = *(*props.Junctions)[0].NfsAccessPolicy
+			}
+			d.Set("namespace_path", namespacePath)
+			d.Set("access_policy_name", accessPolicy)
 		}
-		d.Set("namespace_path", namespacePath)
-		d.Set("access_policy_name", accessPolicy)
 	}
 	return nil
 }
@@ -216,18 +209,13 @@ func resourceHPCCacheBlobNFSTargetDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StorageTargetID(d.Id())
+	id, err := storagetargets.ParseStorageTargetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.CacheName, id.Name, "")
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id, storagetargets.DeleteOperationOptions{}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil

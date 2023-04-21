@@ -358,13 +358,15 @@ type SiteCredential struct {
 
 func SiteCredentialSchema() *pluginsdk.Schema { // TODO - This can apparently be disabled as a security option for the service?
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
+		Type:      pluginsdk.TypeList,
+		Computed:  true,
+		Sensitive: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
+					Sensitive:   true,
 					Description: "The Site Credentials Username used for publishing.",
 				},
 

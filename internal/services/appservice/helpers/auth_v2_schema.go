@@ -976,7 +976,9 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirector
 			if result.Validation == nil {
 				result.Validation = &web.AzureActiveDirectoryValidation{}
 			}
-			result.Validation.DefaultAuthorizationPolicy = &web.DefaultAuthorizationPolicy{}
+			result.Validation.DefaultAuthorizationPolicy = &web.DefaultAuthorizationPolicy{
+				AllowedPrincipals: &web.AllowedPrincipals{},
+			}
 			if len(aad.AllowedGroups) > 0 {
 				result.Validation.DefaultAuthorizationPolicy.AllowedPrincipals.Groups = pointer.To(aad.AllowedGroups)
 			}
