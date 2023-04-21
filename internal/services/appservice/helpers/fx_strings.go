@@ -6,6 +6,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -24,7 +26,7 @@ type DockerParts struct {
 	imageTag         string
 }
 
-func decodeApplicationStackLinux(fxString string, appSettings web.StringDictionary) ApplicationStackLinux {
+func decodeApplicationStackLinux(fxString string, appSettings web.StringDictionary, metadata sdk.ResourceMetaData) ApplicationStackLinux {
 	parts := strings.Split(fxString, "|")
 	result := ApplicationStackLinux{}
 	if len(parts) != 2 {
@@ -89,8 +91,15 @@ func decodeApplicationStackLinux(fxString string, appSettings web.StringDictiona
 		result.DockerImage = dockerSetting.imageName
 		result.DockerImageTag = dockerSetting.imageTag
 		result.DockerContainerRegistry = dockerSetting.registryURL
-		result.DockerContainerRegistryUserName = dockerSetting.registryUsername
-		result.DockerContainerRegistryUserPassword = dockerSetting.registryPassword
+		if !features.FourPointOhBeta() && metadata.ResourceData.Get("site_config.0.application_stack.0.registry_url").(string) == "" {
+			result.DockerContainerRegistry = ""
+		}
+		if registryUserName, ok := metadata.ResourceData.Get("site_config.0.application_stack.0.registry_username").(string); ok {
+			result.DockerContainerRegistryUserName = registryUserName
+		}
+		if registryPwd, ok := metadata.ResourceData.Get("site_config.0.application_stack.0.registry_password").(string); ok {
+			result.DockerContainerRegistryUserPassword = registryPwd
+		}
 	}
 
 	return result

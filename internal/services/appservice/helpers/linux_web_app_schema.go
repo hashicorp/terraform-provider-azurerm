@@ -921,7 +921,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int, appSettings web.StringDictionary) []SiteConfigLinux {
+func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int, appSettings web.StringDictionary, metadata sdk.ResourceMetaData) []SiteConfigLinux {
 	if appSiteConfig == nil {
 		return []SiteConfigLinux{}
 	}
@@ -972,7 +972,7 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 		var linuxAppStack ApplicationStackLinux
 		siteConfig.LinuxFxVersion = *appSiteConfig.LinuxFxVersion
 		// Decode the string to docker values
-		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion, appSettings)
+		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion, appSettings, metadata)
 		siteConfig.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 	}
 

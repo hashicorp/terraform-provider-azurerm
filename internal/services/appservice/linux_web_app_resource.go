@@ -354,6 +354,9 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			if siteConfigAppSetting := siteConfig.AppSettings; siteConfigAppSetting != nil && len(*siteConfigAppSetting) > 0 {
+				if webApp.AppSettings == nil {
+					webApp.AppSettings = make(map[string]string)
+				}
 				for _, pair := range *siteConfigAppSetting {
 					if pair.Name == nil || pair.Value == nil {
 						continue
@@ -581,7 +584,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 
 			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			state.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount, appSettings)
+			state.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount, appSettings, metadata)
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 

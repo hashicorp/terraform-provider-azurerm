@@ -733,7 +733,7 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthCheckCount *int, appSettings web.StringDictionary) []SiteConfigLinuxWebAppSlot {
+func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthCheckCount *int, appSettings web.StringDictionary, metadata sdk.ResourceMetaData) []SiteConfigLinuxWebAppSlot {
 	if appSiteSlotConfig == nil {
 		return nil
 	}
@@ -785,7 +785,7 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 		var linuxAppStack ApplicationStackLinux
 		siteConfig.LinuxFxVersion = *appSiteSlotConfig.LinuxFxVersion
 		// Decode the string to docker values
-		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion, appSettings)
+		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion, appSettings, metadata)
 		siteConfig.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 	}
 

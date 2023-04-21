@@ -332,7 +332,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 
 			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			webApp.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount, appSettings)
+			webApp.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount, appSettings, metadata)
 
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
