@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -315,6 +316,7 @@ func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]network
 		for _, cfg := range *ipConfigs {
 			props := cfg.VirtualNetworkGatewayIPConfigurationPropertiesFormat
 			v := make(map[string]interface{})
+			v["private_ip_address"] = pointer.From(props.PrivateIPAddress)
 
 			if id := cfg.ID; id != nil {
 				v["id"] = *id
@@ -329,10 +331,6 @@ func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]network
 				if id := subnet.ID; id != nil {
 					v["subnet_id"] = *id
 				}
-			}
-
-			if privateIP := props.PrivateIPAddress; privateIP != nil {
-				v["private_ip_address"] = *privateIP
 			}
 
 			if pip := props.PublicIPAddress; pip != nil {
