@@ -21,13 +21,11 @@ func resourceCdnFrontDoorRuleSetAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCdnFrontDoorRuleSetAssociationCreate,
 		Read:   resourceCdnFrontDoorRuleSetAssociationRead,
-		Update: resourceCdnFrontDoorRuleSetAssociationUpdate,
 		Delete: resourceCdnFrontDoorRuleSetAssociationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -69,6 +67,7 @@ func resourceCdnFrontDoorRuleSetAssociation() *pluginsdk.Resource {
 			"cdn_frontdoor_rule_set_ids": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
+				ForceNew: true,
 
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -93,12 +92,15 @@ func resourceCdnFrontDoorRuleSetAssociationCreate(d *pluginsdk.ResourceData, met
 	// e.g. subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associations/route1
 	id := parse.NewFrontDoorRuleSetAssociationID(routeId.SubscriptionId, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
 
-	// lock the route and rule set resource for create...
+	// lock the route, association and rule set resource types for create...
 	locks.ByID(cdnFrontDoorRouteResourceType)
 	defer locks.UnlockByID(cdnFrontDoorRouteResourceType)
 
 	locks.ByID(cdnFrontDoorRuleSetAssociationResourceType)
 	defer locks.UnlockByID(cdnFrontDoorRuleSetAssociationResourceType)
+
+	locks.ByID(cdnFrontDoorRuleSetResourceType)
+	defer locks.UnlockByID(cdnFrontDoorRuleSetResourceType)
 
 	log.Printf("[INFO] preparing arguments for CDN FrontDoor Route <-> CDN FrontDoor Rule Set Association creation")
 
@@ -141,7 +143,7 @@ func resourceCdnFrontDoorRuleSetAssociationCreate(d *pluginsdk.ResourceData, met
 
 func resourceCdnFrontDoorRuleSetAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.FrontDoorRuleSetAssociationID(d.Id())
@@ -168,66 +170,9 @@ func resourceCdnFrontDoorRuleSetAssociationRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceCdnFrontDoorRuleSetAssociationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.FrontDoorRuleSetAssociationID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	// lock the route and rule set resource for update...
-	locks.ByID(cdnFrontDoorRouteResourceType)
-	defer locks.UnlockByID(cdnFrontDoorRouteResourceType)
-
-	locks.ByID(cdnFrontDoorRuleSetAssociationResourceType)
-	defer locks.UnlockByID(cdnFrontDoorRuleSetAssociationResourceType)
-
-	if d.HasChange("cdn_frontdoor_rule_set_ids") {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName)
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-
-		props := existing.RouteProperties
-		if props == nil {
-			return fmt.Errorf("retrieving existing %s: 'properties' was nil", id)
-		}
-
-		ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
-
-		ruleSets, err := expandRuleSetIds(ruleSetIdsRaw)
-		if err != nil {
-			return err
-		}
-
-		props.RuleSets = expandRuleSetReferenceArray(ruleSets)
-
-		routeProps := cdn.Route{
-			RouteProperties: props,
-		}
-
-		// NOTE: Calling Create intentionally to avoid having to use the azuresdkhacks for the Update (PATCH) call..
-		future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName, routeProps)
-		if err != nil {
-			return fmt.Errorf("updating %s: %+v", *id, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
-		}
-
-		return resourceCdnFrontDoorRuleSetAssociationRead(d, meta)
-	}
-
-	return nil
-}
-
 func resourceCdnFrontDoorRuleSetAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.FrontDoorRuleSetAssociationID(d.Id())
@@ -235,12 +180,15 @@ func resourceCdnFrontDoorRuleSetAssociationDelete(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	// lock the route and rule set resource for delete...
+	// lock the route, association and rule set resource types for delete...
 	locks.ByID(cdnFrontDoorRouteResourceType)
 	defer locks.UnlockByID(cdnFrontDoorRouteResourceType)
 
 	locks.ByID(cdnFrontDoorRuleSetAssociationResourceType)
 	defer locks.UnlockByID(cdnFrontDoorRuleSetAssociationResourceType)
+
+	locks.ByID(cdnFrontDoorRuleSetResourceType)
+	defer locks.UnlockByID(cdnFrontDoorRuleSetResourceType)
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName)
 	if err != nil {

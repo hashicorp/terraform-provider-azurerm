@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+const cdnFrontDoorRuleSetResourceType string = "azurerm_cdn_frontdoor_rule_set"
+
 func resourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCdnFrontDoorRuleSetCreate,

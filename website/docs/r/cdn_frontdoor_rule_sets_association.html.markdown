@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_cdn_frontdoor_rule_sets_association
 
-Manages the association(s) between one or more Front Door (standard/premium) Rule Sets and a Front Door (standard/premium) Route. Use this resource to avoid receiving the service side error `This resource is still associated with a route. Please delete the association with the route first before deleting this resource` when you attempt to `destroy`/`delete` a Front Door (standard/premium) Rule Set. If you are `destroying`/`deleting` a Front Door (standard/premium) Rule Set you must also `destroy`/`delete` the Front Door Rule Sets Association resource as well, else you will receive the same server side error as mentioned above.
+Manages the association(s) between one or more Front Door (standard/premium) Rule Sets and a Front Door (standard/premium) Route. Use this resource to avoid receiving the service side error `This resource is still associated with a route. Please delete the association with the route first before deleting this resource` when you attempt to `destroy`/`delete` a Front Door (standard/premium) Rule Set. 
 
 !> **IMPORTANT:** When you delete this resource it will remove **all** of the Front Door Rule Set associations from the referenced Front Door Route resource.
 
@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_route_id` - (Required) The ID of the Front Door Route that should be managed by the association resource. Changing this forces a new association resource to be created.
 
-* `cdn_frontdoor_rule_set_ids` - (Required) One or more Front Door Rule Set IDs which are associated with the Front Door Route.
+* `cdn_frontdoor_rule_set_ids` - (Required) One or more Front Door Rule Set IDs which are associated with the Front Door Route. Changing this forces a new association resource to be created.
 
 ## Attributes Reference
 
@@ -43,7 +43,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Rule Set Association.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Rule Set Association.
-* `update` - (Defaults to 30 minutes) Used when retrieving the Front Door Rule Set Association.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Rule Set Association.
 
 ## Import

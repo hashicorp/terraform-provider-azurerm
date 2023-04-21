@@ -13,20 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontDoorRuleSetsAssociationResource struct {
-	// The 'azurerm_cdn_frontdoor_rule_set' configuration block(s) for the Front Door Rule Set Resource(s)
-	RuleSetConfig string
-}
-
-func NewCdnFrontDoorRuleSetsAssociationResource(ruleSetConfig string) *CdnFrontDoorRuleSetsAssociationResource {
-	return &CdnFrontDoorRuleSetsAssociationResource{
-		RuleSetConfig: ruleSetConfig,
-	}
-}
+type CdnFrontDoorRuleSetsAssociationResource struct{}
 
 func TestAccCdnFrontDoorRuleSetsAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "test")
-	r := NewCdnFrontDoorRuleSetsAssociationResource(templateOneRuleSet(data))
+	r := CdnFrontDoorRuleSetsAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -43,7 +34,7 @@ func TestAccCdnFrontDoorRuleSetsAssociation_basic(t *testing.T) {
 
 func TestAccCdnFrontDoorRuleSetsAssociation_destroy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "test")
-	r := NewCdnFrontDoorRuleSetsAssociationResource(templateOneRuleSet(data))
+	r := CdnFrontDoorRuleSetsAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +53,7 @@ func TestAccCdnFrontDoorRuleSetsAssociation_destroy(t *testing.T) {
 
 func TestAccCdnFrontDoorRuleSetsAssociation_removeRouteRuleSetAssociations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "test")
-	r := NewCdnFrontDoorRuleSetsAssociationResource(templateOneRuleSet(data))
+	r := CdnFrontDoorRuleSetsAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +75,7 @@ func TestAccCdnFrontDoorRuleSetsAssociation_removeRouteRuleSetAssociations(t *te
 
 func TestAccCdnFrontDoorRuleSetsAssociation_removeMultipleRouteRuleSetAssociations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "test")
-	r := NewCdnFrontDoorRuleSetsAssociationResource(templateMultipleRuleSets(data))
+	r := CdnFrontDoorRuleSetsAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -106,7 +97,7 @@ func TestAccCdnFrontDoorRuleSetsAssociation_removeMultipleRouteRuleSetAssociatio
 
 func TestAccCdnFrontDoorRuleSetsAssociation_multipleRuleSetAssociations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "test")
-	r := NewCdnFrontDoorRuleSetsAssociationResource(templateMultipleRuleSets(data))
+	r := CdnFrontDoorRuleSetsAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -122,9 +113,7 @@ func TestAccCdnFrontDoorRuleSetsAssociation_multipleRuleSetAssociations(t *testi
 func TestAccCdnFrontDoorRuleSetsAssociation_destroySingleRuleSetAssociation(t *testing.T) {
 	// Regression test case for issue #20744
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "test")
-	r := NewCdnFrontDoorRuleSetsAssociationResource(templateMultipleRuleSets(data))
-	d := NewCdnFrontDoorRuleSetsAssociationResource(templateRuleSetsOneAndThreeOnly(data))
-	n := NewCdnFrontDoorRuleSetsAssociationResource(templateRuleSetsOneAndThreeOnly(data))
+	r := CdnFrontDoorRuleSetsAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -135,20 +124,11 @@ func TestAccCdnFrontDoorRuleSetsAssociation_destroySingleRuleSetAssociation(t *t
 			),
 		},
 		{
-			// NOTE: Need to delete one of rule sets and the rule set association,
-			// this step is the actual regression part of this test case... This may
-			// seem a bit confusing, but the route will still exist just the rule set association
-			// and rule set two will be destroyed without an error being raised by the service...
-			Config: d.destroy(data),
-			Check:  acceptance.ComposeTestCheckFunc(),
-		},
-		{
-			// NOTE: Now that the rule set and the association have been destroyed you need to add
-			// the association back with the correct rule sets to be associated with the route
-			// which still exist in Azure...
-			Config: n.ruleSetsOneAndThreeOnly(data),
+			// NOTE: Destroy rule set two and update the rule set association resource
+			// to reference only rule sets one and three which still exist in Azure per issue #20744...
+			Config: r.ruleSetsOneAndThreeOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(n),
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("2"),
 			),
 		},
@@ -179,11 +159,26 @@ func (r CdnFrontDoorRuleSetsAssociationResource) multipleRuleSets(data acceptanc
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_cdn_frontdoor_rule_set" "one" {
+  name                     = "acctestrulesetone%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "two" {
+  name                     = "acctestrulesettwo%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "three" {
+  name                     = "acctestrulesetthree%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
 resource "azurerm_cdn_frontdoor_rule_sets_association" "test" {
   cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
   cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.two.id, azurerm_cdn_frontdoor_rule_set.three.id]
 }
-`, template)
+`, template, data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleSetsAssociationResource) ruleSetsOneAndThreeOnly(data acceptance.TestData) string {
@@ -191,11 +186,21 @@ func (r CdnFrontDoorRuleSetsAssociationResource) ruleSetsOneAndThreeOnly(data ac
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_cdn_frontdoor_rule_set" "one" {
+  name                     = "acctestrulesetone%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "three" {
+  name                     = "acctestrulesetthree%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
 resource "azurerm_cdn_frontdoor_rule_sets_association" "test" {
   cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
   cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.three.id]
 }
-`, template)
+`, template, data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleSetsAssociationResource) removeRouteRuleSetAssociations(data acceptance.TestData) string {
@@ -222,11 +227,16 @@ func (r CdnFrontDoorRuleSetsAssociationResource) basic(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_cdn_frontdoor_rule_set" "one" {
+  name                     = "acctestrulesetone%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
 resource "azurerm_cdn_frontdoor_rule_sets_association" "test" {
   cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
   cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id]
 }
-`, template)
+`, template, data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleSetsAssociationResource) template(data acceptance.TestData) string {
@@ -284,8 +294,6 @@ resource "azurerm_cdn_frontdoor_endpoint" "test" {
   enabled                  = true
 }
 
-%[4]s
-
 resource "azurerm_cdn_frontdoor_route" "test" {
   name                          = "acctest-contoso-%[1]d"
   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
@@ -306,47 +314,5 @@ resource "azurerm_cdn_frontdoor_route" "test" {
     query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(10), r.RuleSetConfig)
-}
-
-func templateOneRuleSet(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_cdn_frontdoor_rule_set" "one" {
-  name                     = "acctestrulesetone%[1]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-}
-`, data.RandomInteger)
-}
-
-func templateMultipleRuleSets(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_cdn_frontdoor_rule_set" "one" {
-  name                     = "acctestrulesetone%[1]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-}
-
-resource "azurerm_cdn_frontdoor_rule_set" "two" {
-  name                     = "acctestrulesettwo%[1]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-}
-
-resource "azurerm_cdn_frontdoor_rule_set" "three" {
-  name                     = "acctestrulesetthree%[1]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-}
-`, data.RandomInteger)
-}
-
-func templateRuleSetsOneAndThreeOnly(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_cdn_frontdoor_rule_set" "one" {
-  name                     = "acctestrulesetone%[1]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-}
-
-resource "azurerm_cdn_frontdoor_rule_set" "three" {
-  name                     = "acctestrulesetthree%[1]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-}
-`, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(10))
 }
