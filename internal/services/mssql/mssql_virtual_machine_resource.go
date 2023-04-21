@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -431,6 +432,40 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
+			"sql_virtual_machine_group_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: sqlvirtualmachinegroups.ValidateSqlVirtualMachineGroupID,
+			},
+
+			"wsfc_domain_credentials": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"cluster_bootstrap_account_password": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"cluster_operator_account_password": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"sql_service_account_password": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -491,6 +526,14 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if *respvm.Location == "" {
 		return fmt.Errorf("location is empty from making Read request on Azure Virtual Machine %s: %+v", id.SqlVirtualMachineName, err)
 	}
+	sqlVmGroupId := ""
+	if sqlVmGroupId = d.Get("sql_virtual_machine_group_id").(string); sqlVmGroupId != "" {
+		parsedVmGroupId, err := sqlvirtualmachines.ParseSqlVirtualMachineGroupIDInsensitively(sqlVmGroupId)
+		if err != nil {
+			return err
+		}
+		sqlVmGroupId = parsedVmGroupId.ID()
+	}
 
 	sqlInstance, err := expandSqlVirtualMachineSQLInstance(d.Get("sql_instance").([]interface{}))
 	if err != nil {
@@ -508,10 +551,12 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	parameters := sqlvirtualmachines.SqlVirtualMachine{
 		Location: *respvm.Location,
 		Properties: &sqlvirtualmachines.SqlVirtualMachineProperties{
-			AutoBackupSettings:         autoBackupSettings,
-			AutoPatchingSettings:       expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
-			AssessmentSettings:         expandSqlVirtualMachineAssessmentSettings(d.Get("assessment").([]interface{})),
-			KeyVaultCredentialSettings: expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
+			AutoBackupSettings:               autoBackupSettings,
+			AutoPatchingSettings:             expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
+			AssessmentSettings:               expandSqlVirtualMachineAssessmentSettings(d.Get("assessment").([]interface{})),
+			KeyVaultCredentialSettings:       expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
+			WsfcDomainCredentials:            expandSqlVirtualMachineWsfcDomainCredentials(d.Get("wsfc_domain_credentials").([]interface{})),
+			SqlVirtualMachineGroupResourceId: utils.String(sqlVmGroupId),
 			ServerConfigurationsManagementSettings: &sqlvirtualmachines.ServerConfigurationsManagementSettings{
 				AdditionalFeaturesServerConfigurations: &sqlvirtualmachines.AdditionalFeaturesServerConfigurations{
 					IsRServicesEnabled: utils.Bool(d.Get("r_services_enabled").(bool)),
@@ -637,7 +682,7 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				}
 				if scus := mgmtSettings.SqlConnectivityUpdateSettings; scus != nil {
 					d.Set("sql_connectivity_port", mgmtSettings.SqlConnectivityUpdateSettings.Port)
-					d.Set("sql_connectivity_type", string(pointer.From(mgmtSettings.SqlConnectivityUpdateSettings.ConnectivityType)))
+					d.Set("sql_connectivity_type", pointer.From(mgmtSettings.SqlConnectivityUpdateSettings.ConnectivityType))
 				}
 
 				d.Set("sql_instance", flattenSqlVirtualMachineSQLInstance(mgmtSettings.SqlInstanceSettings))
@@ -653,6 +698,21 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("storage_configuration", flattenSqlVirtualMachineStorageConfigurationSettings(props.StorageConfigurationSettings, storageWorkloadType)); err != nil {
 				return fmt.Errorf("setting `storage_configuration`: %+v", err)
 			}
+
+			if err := d.Set("wsfc_domain_credentials", flattenSqlVirtualMachineWsfcDomainCredentials(props.WsfcDomainCredentials)); err != nil {
+				return fmt.Errorf("setting `wsfc_domain_credentials`: %+v", err)
+			}
+
+			sqlVirtualMachineGroupIdStr := ""
+			if props.SqlVirtualMachineGroupResourceId != nil {
+				sqlVirtualMachineGroupId, err := sqlvirtualmachines.ParseSqlVirtualMachineGroupIDInsensitively(*props.SqlVirtualMachineGroupResourceId)
+				if err != nil {
+					return err
+				}
+				sqlVirtualMachineGroupIdStr = sqlVirtualMachineGroupId.ID()
+			}
+			d.Set("sql_virtual_machine_group_id", sqlVirtualMachineGroupIdStr)
+
 			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 				return err
 			}
@@ -1377,6 +1437,48 @@ func flattenSqlVirtualMachineSQLInstance(input *sqlvirtualmachines.SQLInstanceSe
 			"max_dop":                              maxDop,
 			"max_server_memory_mb":                 maxServerMemoryMB,
 			"min_server_memory_mb":                 minServerMemoryMB,
+		},
+	}
+}
+
+func expandSqlVirtualMachineWsfcDomainCredentials(input []interface{}) *sqlvirtualmachines.WsfcDomainCredentials {
+	if len(input) == 0 {
+		return nil
+	}
+	wsfcDomainCredentials := input[0].(map[string]interface{})
+
+	return &sqlvirtualmachines.WsfcDomainCredentials{
+		ClusterBootstrapAccountPassword: utils.String(wsfcDomainCredentials["cluster_bootstrap_account_password"].(string)),
+		ClusterOperatorAccountPassword:  utils.String(wsfcDomainCredentials["cluster_operator_account_password"].(string)),
+		SqlServiceAccountPassword:       utils.String(wsfcDomainCredentials["sql_service_account_password"].(string)),
+	}
+}
+
+func flattenSqlVirtualMachineWsfcDomainCredentials(wsfcDomainCredentials *sqlvirtualmachines.WsfcDomainCredentials) []interface{} {
+	if wsfcDomainCredentials == nil {
+		return []interface{}{}
+	}
+
+	clusterBootstrapAccountPassword := ""
+	if wsfcDomainCredentials.ClusterBootstrapAccountPassword != nil {
+		clusterBootstrapAccountPassword = *wsfcDomainCredentials.ClusterBootstrapAccountPassword
+	}
+
+	clusterOperatorAccountPassword := ""
+	if wsfcDomainCredentials.ClusterOperatorAccountPassword != nil {
+		clusterOperatorAccountPassword = *wsfcDomainCredentials.ClusterOperatorAccountPassword
+	}
+
+	sqlServiceAccountPassword := ""
+	if wsfcDomainCredentials.SqlServiceAccountPassword != nil {
+		sqlServiceAccountPassword = *wsfcDomainCredentials.SqlServiceAccountPassword
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"cluster_bootstrap_account_password": clusterBootstrapAccountPassword,
+			"cluster_operator_account_password":  clusterOperatorAccountPassword,
+			"sql_service_account_password":       sqlServiceAccountPassword,
 		},
 	}
 }
