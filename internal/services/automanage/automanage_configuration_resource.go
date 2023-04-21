@@ -77,15 +77,15 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 
 		"location": commonschema.Location(),
 
-		//"Antimalware/Enable": boolean,
-		//"Antimalware/EnableRealTimeProtection": boolean,
-		//"Antimalware/RunScheduledScan": boolean,
-		//"Antimalware/ScanType": string ("Quick", "Full"),
-		//"Antimalware/ScanDay": int (0-8) Ex: 0 - daily, 1 - Sunday, 2 - Monday, .... 7 - Saturday, 8 - Disabled,
-		//"Antimalware/ScanTimeInMinutes": int (0 - 1440),
-		//"Antimalware/Exclusions/Extensions": string (extensions separated by semicolon. Ex: ".ext1;.ext2"),
-		//"Antimalware/Exclusions/Paths": string (Paths separated by semicolon. Ex: "c:\excluded-path-1;c:\excluded-path-2"),
-		//"Antimalware/Exclusions/Processes": string (Processes separated by semicolon. Ex: "proc1.exe;proc2.exe"),
+		// "Antimalware/Enable": boolean,
+		// "Antimalware/EnableRealTimeProtection": boolean,
+		// "Antimalware/RunScheduledScan": boolean,
+		// "Antimalware/ScanType": string ("Quick", "Full"),
+		// "Antimalware/ScanDay": int (0-8) Ex: 0 - daily, 1 - Sunday, 2 - Monday, .... 7 - Saturday, 8 - Disabled,
+		// "Antimalware/ScanTimeInMinutes": int (0 - 1440),
+		// "Antimalware/Exclusions/Extensions": string (extensions separated by semicolon. Ex: ".ext1;.ext2"),
+		// "Antimalware/Exclusions/Paths": string (Paths separated by semicolon. Ex: "c:\excluded-path-1;c:\excluded-path-2"),
+		// "Antimalware/Exclusions/Processes": string (Processes separated by semicolon. Ex: "proc1.exe;proc2.exe"),
 		"antimalware": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -155,14 +155,14 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
-		//"AutomationAccount/Enable": boolean,
+		// "AutomationAccount/Enable": boolean,
 		"automation_account_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
-		//"BootDiagnostics/Enable": boolean,
+		// "BootDiagnostics/Enable": boolean,
 		"boot_diagnostics_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -175,14 +175,14 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 			Optional: true,
 			Default:  false,
 		},
-		//"GuestConfiguration/Enable": boolean,
+		// "GuestConfiguration/Enable": boolean,
 		"guest_configuration_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
-		//"Alerts/AutomanageStatusChanges/Enable": boolean,
+		// "Alerts/AutomanageStatusChanges/Enable": boolean,
 		"status_change_alert_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
