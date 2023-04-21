@@ -19,20 +19,35 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_automanage_configuration" "example" {
-  name                = "example-configurationprofile"
+  name                = "example-acmp"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  configuration_json = jsonencode({
-    "Antimalware/Enable" : false,
-    "AzureSecurityCenter/Enable" : true,
-    "Backup/Enable" : false,
-    "BootDiagnostics/Enable" : true,
-    "ChangeTrackingAndInventory/Enable" : true,
-    "GuestConfiguration/Enable" : true,
-    "LogAnalytics/Enable" : true,
-    "UpdateManagement/Enable" : true,
-    "VMInsights/Enable" : true
-  })
+  
+  antimalware {
+    enabled = true
+    
+    exclusions {
+      extensions = "exe;dll"
+      paths = "C:\\Windows\\Temp;D:\\Temp"
+      processes = "svchost.exe;notepad.exe"
+    }
+    
+    real_time_protection_enabled   = true
+    scheduled_scan_enabled         = true
+    scheduled_scan_type            = "Quick"
+    scheduled_scan_day             = 1
+    scheduled_scan_time_in_minutes = 1339
+  }
+  
+  automation_account_enabled = true
+  boot_diagnostics_enabled = true
+  defender_for_cloud_enabled = true
+  guest_configuration_enabled = true
+  status_change_alert_enabled = true
+  
+  tags = {
+	"env" = "test"
+  }
 }
 ```
 
@@ -46,9 +61,45 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the automanage ConfigurationProfile should exist. Changing this forces a new automanage ConfigurationProfile to be created.
 
-* `configuration_json` - (Required) configuration dictionary of the configuration profile. Changing this forces a new automanage ConfigurationProfile to be created.
+* `antimalware` - (Optional) A `antimalware` block as defined below.
+
+* `automation_account_enabled` - (Optional) Whether the automation account is enabled. Defaults to `false`.
+
+* `boot_diagnostics_enabled` - (Optional) Whether the boot diagnostics is enabled. Defaults to `false`.
+
+* `defender_for_cloud_enabled` - (Optional) Whether the defender for cloud is enabled. Defaults to `false`.
+
+* `guest_configuration_enabled` - (Optional) Whether the guest configuration is enabled. Defaults to `false`.
+
+* `status_change_alert_enabled` - (Optional) Whether the status change alert is enabled. Defaults to `false`.
 
 ---
+
+* `antimalware` supports the following:
+
+* `enabled` - (Required) Whether the antimalware is enabled. Defaults to `false`.
+
+* `exclusions` - (Optional) A `exclusions` block as defined below.
+
+* `real_time_protection_enabled` - (Optional) Whether the real time protection is enabled. Defaults to `false`.
+
+* `scheduled_scan_enabled` - (Optional) Whether the scheduled scan is enabled. Defaults to `false`.
+
+* `scheduled_scan_type` - (Optional) The type of the scheduled scan. Possible values are `Quick` and `Full`. Defaults to `Quick`.
+
+* `scheduled_scan_day` - (Optional) The day of the scheduled scan. Possible values are `0` to `8` where `0` is daily, `1` to `7` are the days of the week and `8` is Disabled. Defaults to `8`.
+
+* `scheduled_scan_time_in_minutes` - (Optional) The time of the scheduled scan in minutes. Possible values are `0` to `1439` where `0` is 12:00 AM and `1439` is 11:59 PM. 
+
+---
+
+* `exclusions` supports the following:
+
+* `extensions` - (Optional) The extensions to exclude from the antimalware scan, separated by `;`. For example `.ext1;.ext2`.
+
+* `paths` - (Optional) The paths to exclude from the antimalware scan, separated by `;`. For example `C:\\Windows\\Temp;D:\\Temp`.
+
+* `processes` - (Optional) The processes to exclude from the antimalware scan, separated by `;`. For example `svchost.exe;notepad.exe`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the automanage ConfigurationProfile.
 
