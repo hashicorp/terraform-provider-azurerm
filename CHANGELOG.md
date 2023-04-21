@@ -28,12 +28,12 @@ ENHANCEMENTS:
 * `azurerm_windows_web_app` - support `hosting_environment_id` property [GH-20471]
 * `azurerm_windows_web_app_slot` - support `hosting_environment_id` property [GH-20471]
 
-
 BUG FIXES: 
 
 * `azurerm_cdn_endpoint` - Remove the length limit of the `query_string` [GH-21474]
 * `azurerm_cognitive_account` - mark `custom_question_answering_search_service_key` as sensitive [GH-21469]
 * `azurerm_monitor_metric_alert` - fix crash when `dynamic_criteria.0.ignore_data_before` isn't set [GH-21446]
+* `azurerm_postgresql_flexible_server` - correctly set the `point_in_time_restore_time_in_utc` property [GH-21501]
 * `azurerm_search_service` - mark `primary_key` and `secondary_key` as sensitive [GH-21469]
 
 ## 3.52.0 (April 13, 2023)
