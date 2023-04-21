@@ -2588,9 +2588,9 @@ resource "azurerm_linux_web_app" "test" {
 
   site_config {
     application_stack {
-      registry_url      = "https://mcr.microsoft.com"
-      docker_image      = "%s"
-      docker_image_tag  = "%s"
+      registry_url     = "https://mcr.microsoft.com"
+      docker_image     = "%s"
+      docker_image_tag = "%s"
     }
   }
 }
