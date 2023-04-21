@@ -987,7 +987,7 @@ func TestAccLinuxWebApp_withDocker(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|mcr.microsoft.com/appsvc/staticsite:latest"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_config.0.application_stack.0.registry_username", "site_config.0.application_stack.0.registry_password", "site_config.0.application_stack.0.registry_url"),
 	})
 }
 
