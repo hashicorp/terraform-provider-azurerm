@@ -452,7 +452,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		if err != nil {
 			return fmt.Errorf("unable to parse `point_in_time_restore_time_in_utc` value")
 		}
-		parameters.Properties.PointInTimeUTC = utils.String(v.Format(time.RFC3339))
+		parameters.Properties.SetPointInTimeUTCAsTime(v)
 	}
 
 	if authRaw, ok := d.GetOk("authentication"); ok {
@@ -521,7 +521,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 		if props := model.Properties; props != nil {
 			d.Set("administrator_login", props.AdministratorLogin) // if pwdEnabled is set to false, then the service does not return the value of AdministratorLogin
 			d.Set("zone", props.AvailabilityZone)
-			d.Set("version", string(pointer.From(props.Version)))
+			d.Set("version", pointer.From(props.Version))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 
 			// Currently, `replicationRole` is set to `Primary` when `createMode` is `Replica` and `replicationRole` is updated to `None`. Service team confirmed it should be set to `None` for this scenario. See more details from https://github.com/Azure/azure-rest-api-specs/issues/22499
