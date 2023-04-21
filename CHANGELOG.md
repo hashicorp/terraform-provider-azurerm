@@ -1,3 +1,9 @@
+## 3.54.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_storage_mover_project` [GH-21477]
+
 ## 3.53.0 (April 20, 2023)
 
 FEATURES:
