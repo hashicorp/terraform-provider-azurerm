@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/projects"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/storagemovers"
@@ -136,8 +138,8 @@ func (r StorageMoverProjectResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			if metadata.ResourceData.HasChange("description") {
-				properties.Properties.Description = &model.Description
+			if metadata.ResourceData.HasChange("description") && properties.Properties != nil {
+				properties.Properties.Description = pointer.To(model.Description)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *properties); err != nil {
@@ -176,9 +178,7 @@ func (r StorageMoverProjectResource) Read() sdk.ResourceFunc {
 
 			if resp.Model != nil {
 				if properties := resp.Model.Properties; properties != nil {
-					if properties.Description != nil {
-						state.Description = *properties.Description
-					}
+					state.Description = pointer.From(properties.Description)
 				}
 			}
 
