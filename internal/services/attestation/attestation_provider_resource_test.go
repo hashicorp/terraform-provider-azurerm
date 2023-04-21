@@ -8,12 +8,15 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"encoding/pem"
 	"fmt"
 	"math/big"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attestationproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -92,6 +95,47 @@ func TestAccAttestationProvider_completeFile(t *testing.T) {
 		},
 		// must ignore policy_signing_certificate since the API does not return these values
 		data.ImportStep("policy_signing_certificate"),
+	})
+}
+
+func TestAccAttestationProvider_WithPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
+	r := AttestationProviderResource{}
+	randStr := strings.ToLower(acceptance.RandString(10))
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withPolicy(data, randStr),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// must ignore policy_signing_certificate since the API does not return these values
+		data.ImportStep("policy_signing_certificate", "policy"),
+	})
+}
+
+func TestAccAttestationProvider_WithPolicyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
+	r := AttestationProviderResource{}
+	randStr := strings.ToLower(acceptance.RandString(10))
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, randStr),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withPolicy(data, randStr),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// must ignore policy_signing_certificate since the API does not return these values
+		data.ImportStep("policy_signing_certificate", "policy"),
 	})
 }
 
@@ -269,4 +313,45 @@ resource "azurerm_attestation_provider" "test" {
   }
 }
 `, template, randStr)
+}
+
+func (a AttestationProviderResource) withPolicy(data acceptance.TestData, randStr string) string {
+	// do not set `policy_signing_certificate_data`, for policy will use `jwt.SigningMethodNone`
+	template := AttestationProviderResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_attestation_provider" "test" {
+  name                = "acctestap%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy {
+    environment_type = "SgxEnclave"
+    data             = "%s"
+  }
+}
+`, template, randStr, a.genJWT())
+}
+
+func (AttestationProviderResource) genJWT() string {
+	// document about create policy: https://learn.microsoft.com/en-us/azure/attestation/author-sign-policy
+	policyContent := `version=1.0;
+authorizationrules
+{
+[type=="secureBootEnabled", value==true, issuer=="AttestationService"]=>permit();
+};
+
+issuancerules
+{
+=> issue(type="SecurityLevelValue", value=100);
+};`
+	b64Encoded := base64.RawURLEncoding.EncodeToString([]byte(policyContent))
+	token := jwt.NewWithClaims(jwt.SigningMethodNone, jwt.MapClaims{
+		"AttestationPolicy": b64Encoded,
+	})
+	token.Header["jku"] = "https://xxx.us.attest.azure.net/certs"
+	token.Header["kid"] = "xxx"
+	str, _ := token.SignedString(jwt.UnsafeAllowNoneSignatureType)
+	return str
 }
