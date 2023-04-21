@@ -778,7 +778,7 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
-						ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
+						ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100}),
 					},
 				},
 			},
