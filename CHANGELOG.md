@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `hpccache`: updating to API Version `2023-01-01` [GH-21459]
 * `orbital`: updating to API Version `2022-11-01` [GH-21405]
 * `vmware`: updating to API Version `2022-05-01` [GH-21458]
+* `azurerm_attestation_provider` - support for the `policy` block [GH-20972]
 * `azurerm_linux_function_app` - support `hosting_environment_id` property [GH-20471]
 * `azurerm_linux_function_app_slot` - support `hosting_environment_id` property [GH-20471]
 * `azurerm_linux_web_app` - support `hosting_environment_id` property [GH-20471]
