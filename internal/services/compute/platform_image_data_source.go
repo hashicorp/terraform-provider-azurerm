@@ -59,7 +59,7 @@ func dataSourcePlatformImageRead(d *pluginsdk.ResourceData, meta interface{}) er
 	sku := d.Get("sku").(string)
 
 	result, err := client.List(ctx, location, publisher, offer, sku, "", utils.Int32(int32(1000)), "name")
-	if err != nil {
+	if err != nil || result.Value == nil {
 		return fmt.Errorf("reading Platform Images: %+v", err)
 	}
 
