@@ -68,7 +68,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf("unable to build authorizer for Storage API: %+v", err)
 	}
 
-	if _, ok := builder.AuthConfig.Environment.Attestation.ResourceIdentifier(); ok {
+	if _, ok := builder.AuthConfig.Environment.Attestation.Endpoint(); ok {
 		attestationAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Attestation)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build authorizer for Attestation API: %+v", err)
