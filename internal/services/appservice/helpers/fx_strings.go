@@ -234,13 +234,7 @@ func DecodeFunctionAppDockerFxString(input string, partial ApplicationStackDocke
 }
 
 func DecodeLinuxWebAppDockerFxString(input string, dockerAppSetting web.StringDictionary) DockerParts {
-	dockerValue := strings.Split(input, ":")
-	imagePart := dockerValue[0]
-	result := DockerParts{
-		imageName: imagePart,
-		imageTag:  dockerValue[1],
-	}
-	urlIndex := strings.Index(imagePart, "/")
+	result := DockerParts{}
 	if dockerAppSetting.Properties == nil || dockerAppSetting.Properties["DOCKER_REGISTRY_SERVER_URL"] == nil {
 		return result
 	}
@@ -264,11 +258,18 @@ func DecodeLinuxWebAppDockerFxString(input string, dockerAppSetting web.StringDi
 		}
 	}
 
-	if strings.Contains(imagePart, registryURL) {
-		result.imageName = imagePart[urlIndex+1:]
+	if strings.Contains(input, registryURL) {
+		imageAndTagPart := strings.TrimPrefix(input, registryURL+"/")
+		imageAndTagCollection := strings.Split(imageAndTagPart, ":")
+		result.imageTag = imageAndTagCollection[1]
+		result.imageName = imageAndTagCollection[0]
 	} else {
+		imageAndTagCollection := strings.Split(input, ":")
 		result.registryURL = ""
+		result.imageTag = imageAndTagCollection[1]
+		result.imageName = imageAndTagCollection[0]
 	}
+
 	return result
 }
 

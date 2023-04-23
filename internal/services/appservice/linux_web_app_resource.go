@@ -751,6 +751,9 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") || metadata.ResourceData.HasChanges("site_config.0.application_stack") {
 				if siteConfigAppSetting := existing.SiteConfig.AppSettings; siteConfigAppSetting != nil && len(*siteConfigAppSetting) > 0 {
+					if state.AppSettings == nil {
+						state.AppSettings = make(map[string]string)
+					}
 					for _, pair := range *siteConfigAppSetting {
 						if pair.Name == nil || pair.Value == nil {
 							continue
