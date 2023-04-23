@@ -56,7 +56,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf(azureStackEnvironmentError)
 	}
 
-	var resourceManagerAuth, storageAuth, synapseAuth, batchManagementAuth, keyVaultAuth auth.Authorizer
+	var resourceManagerAuth, storageAuth, synapseAuth, batchManagementAuth, keyVaultAuth, attestationAuth auth.Authorizer
 
 	resourceManagerAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.ResourceManager)
 	if err != nil {
@@ -68,9 +68,13 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf("unable to build authorizer for Storage API: %+v", err)
 	}
 
-	attestationAuth, err := auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Attestation)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build authorizer for Attestation API: %+v", err)
+	if _, ok := builder.AuthConfig.Environment.Attestation.ResourceIdentifier(); ok {
+		attestationAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Attestation)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build authorizer for Attestation API: %+v", err)
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping building the Attestation Authorizer since this is not supported in the current Azure Environment")
 	}
 
 	keyVaultAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.KeyVault)
