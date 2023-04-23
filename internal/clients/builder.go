@@ -68,6 +68,11 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf("unable to build authorizer for Storage API: %+v", err)
 	}
 
+	attestationAuth, err := auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Attestation)
+	if err != nil {
+		return nil, fmt.Errorf("unable to build authorizer for Attestation API: %+v", err)
+	}
+
 	keyVaultAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.KeyVault)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build authorizer for Key Vault API: %+v", err)
@@ -135,6 +140,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		PartnerId:        builder.PartnerID,
 		TerraformVersion: builder.TerraformVersion,
 
+		AttestationAuthorizer:     authWrapper.AutorestAuthorizer(attestationAuth).BearerAuthorizerCallback(),
 		BatchManagementAuthorizer: authWrapper.AutorestAuthorizer(batchManagementAuth),
 		KeyVaultAuthorizer:        authWrapper.AutorestAuthorizer(keyVaultAuth).BearerAuthorizerCallback(),
 		ResourceManagerAuthorizer: authWrapper.AutorestAuthorizer(resourceManagerAuth),

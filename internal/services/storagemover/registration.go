@@ -34,5 +34,6 @@ func (r Registration) Resources() []sdk.Resource {
 		StorageMoverAgentResource{},
 		StorageMoverSourceEndpointResource{},
 		StorageMoverTargetEndpointResource{},
+		StorageMoverProjectResource{},
 	}
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/agents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/projects"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -13,6 +14,7 @@ type Client struct {
 	StorageMoversClient *storagemovers.StorageMoversClient
 	AgentsClient        *agents.AgentsClient
 	EndpointsClient     *endpoints.EndpointsClient
+	ProjectsClient      *projects.ProjectsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -34,9 +36,16 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(endpointsClient.Client, o.Authorizers.ResourceManager)
 
+	projectsClient, err := projects.NewProjectsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Projects client: %+v", err)
+	}
+	o.Configure(projectsClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		StorageMoversClient: storageMoversClient,
 		AgentsClient:        agentsClient,
 		EndpointsClient:     endpointsClient,
+		ProjectsClient:      projectsClient,
 	}, nil
 }
