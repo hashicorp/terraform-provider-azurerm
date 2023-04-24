@@ -708,7 +708,7 @@ An `ingress_application_gateway` block supports the following:
 
 A `service_mesh_profile` block supports the following:
 
-* `mode` - (Required) The mode of the service mesh. Possible value is `Istio`. Defaults to `Istio`.
+* `mode` - (Required) The mode of the service mesh. Possible value is `Istio`.
 
 ---
 
