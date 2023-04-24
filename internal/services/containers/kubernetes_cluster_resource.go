@@ -3783,14 +3783,15 @@ func base64IsEncoded(data string) bool {
 }
 
 func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *managedclusters.ServiceMeshProfile) *managedclusters.ServiceMeshProfile {
-	wasEnabled := existing != nil && existing.Mode == managedclusters.ServiceMeshModeIstio
-	if (input == nil) || len(input) == 0 && !wasEnabled {
-		return nil
-	}
-	if (input == nil) || len(input) == 0 && wasEnabled {
-		return &managedclusters.ServiceMeshProfile{
-			Mode: managedclusters.ServiceMeshModeDisabled,
+	if (input == nil) || len(input) == 0 {
+		// explicitly disable istio if it was enabled before
+		if existing != nil && existing.Mode == managedclusters.ServiceMeshModeIstio {
+			return &managedclusters.ServiceMeshProfile{
+				Mode: managedclusters.ServiceMeshModeDisabled,
+			}
 		}
+
+		return nil
 	}
 
 	raw := input[0].(map[string]interface{})
