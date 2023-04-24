@@ -6,13 +6,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iotconnectors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceHealthcareIotConnector() *pluginsdk.Resource {
@@ -33,8 +36,7 @@ func dataSourceHealthcareIotConnector() *pluginsdk.Resource {
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
 			"identity": commonschema.SystemAssignedIdentityComputed(),
@@ -63,21 +65,26 @@ func dataSourceHealthcareIotConnector() *pluginsdk.Resource {
 }
 
 func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceMedTechServiceClient
+	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	domainSuffix, ok := meta.(*clients.Client).Account.Environment.ServiceBus.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("unable to retrieve the Domain Suffix for ServiceBus, this is not configured for this Cloud Environment")
+	}
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspaceId, err := parse.WorkspaceID(d.Get("workspace_id").(string))
+	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing workspace id error: %+v", err)
 	}
 
-	id := parse.NewMedTechServiceID(subscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
+	id := iotconnectors.NewIotConnectorID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotConnectorName)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -88,41 +95,49 @@ func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta interf
 
 	d.Set("workspace_id", workspaceId.ID())
 
-	if err := d.Set("identity", flattenMedTechServiceIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-	if props := resp.IotConnectorProperties; props != nil {
-		if props.IngestionEndpointConfiguration.EventHubName != nil {
-			d.Set("eventhub_name", props.IngestionEndpointConfiguration.EventHubName)
+	if m := resp.Model; m != nil {
+		i, err := identity.FlattenLegacySystemAndUserAssignedMap(m.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", i); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		if props.IngestionEndpointConfiguration.ConsumerGroup != nil {
-			d.Set("eventhub_consumer_group_name", props.IngestionEndpointConfiguration.ConsumerGroup)
-		}
+		if props := m.Properties; props != nil {
+			eventHubNamespaceName := ""
+			if config := props.IngestionEndpointConfiguration; config != nil {
+				d.Set("eventhub_consumer_group_name", pointer.From(config.ConsumerGroup))
+				d.Set("eventhub_name", pointer.From(config.EventHubName))
 
-		if props.DeviceMapping != nil {
-			deviceMapData, err := json.Marshal(props.DeviceMapping)
-			if err != nil {
-				return err
+				if props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace != nil {
+					suffixToTrim := "." + *domainSuffix
+					eventHubNamespaceName = strings.TrimSuffix(*props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace, suffixToTrim)
+				}
 			}
 
-			var m map[string]*json.RawMessage
-			if err = json.Unmarshal(deviceMapData, &m); err != nil {
-				return err
-			}
+			d.Set("eventhub_namespace_name", eventHubNamespaceName)
+
 			mapContent := ""
-			if v, ok := m["content"]; ok {
-				contents, err := json.Marshal(v)
+			if props.DeviceMapping != nil {
+				deviceMapData, err := json.Marshal(props.DeviceMapping)
 				if err != nil {
 					return err
 				}
-				mapContent = string(contents)
+
+				var m map[string]*json.RawMessage
+				if err = json.Unmarshal(deviceMapData, &m); err != nil {
+					return err
+				}
+				if v, ok := m["content"]; ok {
+					contents, err := json.Marshal(v)
+					if err != nil {
+						return err
+					}
+					mapContent = string(contents)
+				}
 			}
 			d.Set("device_mapping_json", mapContent)
-		}
-
-		if props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace != nil {
-			d.Set("eventhub_namespace_name", strings.TrimSuffix(*props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace, ".servicebus.windows.net"))
 		}
 	}
 	return nil

@@ -402,7 +402,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: networkValidate.SubnetID,
 						},
 
 						"id": {
@@ -539,7 +539,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"firewall_policy_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: networkValidate.ApplicationGatewayWebApplicationFirewallPolicyID,
 						},
 
 						"ssl_profile_name": {
@@ -598,7 +598,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 									"subnet_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: azure.ValidateResourceID,
+										ValidateFunc: networkValidate.SubnetID,
 									},
 
 									"private_ip_address": {
@@ -1157,10 +1157,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"data": {
-							Type:      pluginsdk.TypeString,
-							Optional:  true,
-							Sensitive: true,
-							StateFunc: base64EncodedStateFunc,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							StateFunc:    base64EncodedStateFunc,
+							ValidateFunc: validation.StringIsBase64,
 						},
 
 						"password": {
@@ -1502,7 +1503,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			"firewall_policy_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: networkValidate.ApplicationGatewayWebApplicationFirewallPolicyID,
 			},
 
 			"custom_error_configuration": {
@@ -2176,9 +2177,15 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `waf_configuration`: %+v", setErr)
 		}
 
-		if props.FirewallPolicy != nil {
-			d.Set("firewall_policy_id", props.FirewallPolicy.ID)
+		firewallPolicyId := ""
+		if props.FirewallPolicy != nil && props.FirewallPolicy.ID != nil {
+			firewallPolicyId = *props.FirewallPolicy.ID
+			policyId, err := parse.ApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(firewallPolicyId)
+			if err == nil {
+				firewallPolicyId = policyId.ID()
+			}
 		}
+		d.Set("firewall_policy_id", firewallPolicyId)
 	}
 
 	return tags.FlattenAndSet(d, applicationGateway.Tags)

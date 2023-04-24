@@ -17,6 +17,42 @@ import (
 
 type SimPolicyDataSource struct{}
 
+type SimPolicyDataSourceModel struct {
+	Name                string                              `tfschema:"name"`
+	MobileNetworkId     string                              `tfschema:"mobile_network_id"`
+	DefaultSliceId      string                              `tfschema:"default_slice_id"`
+	Location            string                              `tfschema:"location"`
+	RegistrationTimer   int64                               `tfschema:"registration_timer_in_seconds"`
+	RfspIndex           int64                               `tfschema:"rat_frequency_selection_priority_index"`
+	SliceConfigurations []SliceConfigurationDataSourceModel `tfschema:"slice"`
+	Tags                map[string]string                   `tfschema:"tags"`
+	UeAmbr              []AmbrDataSourceModel               `tfschema:"user_equipment_aggregate_maximum_bit_rate"`
+}
+
+type SliceConfigurationDataSourceModel struct {
+	DataNetworkConfigurations []DataNetworkConfigurationDataSourceModel `tfschema:"data_network"`
+	DefaultDataNetworkId      string                                    `tfschema:"default_data_network_id"`
+	SliceId                   string                                    `tfschema:"slice_id"`
+}
+
+type DataNetworkConfigurationDataSourceModel struct {
+	AdditionalAllowedSessionTypes       []string              `tfschema:"additional_allowed_session_types"`
+	AllocationAndRetentionPriorityLevel int64                 `tfschema:"allocation_and_retention_priority_level"`
+	AllowedServices                     []string              `tfschema:"allowed_services_ids"`
+	DataNetworkId                       string                `tfschema:"data_network_id"`
+	DefaultSessionType                  string                `tfschema:"default_session_type"`
+	QosIdentifier                       int64                 `tfschema:"qos_indicator"`
+	MaximumNumberOfBufferedPackets      int64                 `tfschema:"max_buffered_packets"`
+	PreemptionCapability                string                `tfschema:"preemption_capability"`
+	PreemptionVulnerability             string                `tfschema:"preemption_vulnerability"`
+	SessionAmbr                         []AmbrDataSourceModel `tfschema:"session_aggregate_maximum_bit_rate"`
+}
+
+type AmbrDataSourceModel struct {
+	Downlink string `tfschema:"downlink"`
+	Uplink   string `tfschema:"uplink"`
+}
+
 var _ sdk.DataSource = SimPolicyDataSource{}
 
 func (r SimPolicyDataSource) ResourceType() string {
@@ -24,7 +60,7 @@ func (r SimPolicyDataSource) ResourceType() string {
 }
 
 func (r SimPolicyDataSource) ModelObject() interface{} {
-	return &SimPolicyModel{}
+	return &SimPolicyDataSourceModel{}
 }
 
 func (r SimPolicyDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -188,13 +224,13 @@ func (r SimPolicyDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var metaModel SimPolicyModel
+			var metaModel SimPolicyDataSourceModel
 			if err := metadata.Decode(&metaModel); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			client := metadata.Client.MobileNetwork.SIMPolicyClient
-			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(metaModel.MobileNetworkMobileNetworkId)
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(metaModel.MobileNetworkId)
 			if err != nil {
 				return err
 			}
@@ -210,9 +246,9 @@ func (r SimPolicyDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := SimPolicyModel{
-				Name:                         id.SimPolicyName,
-				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
+			state := SimPolicyDataSourceModel{
+				Name:            id.SimPolicyName,
+				MobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
 			}
 
 			if model := resp.Model; model != nil {
@@ -228,9 +264,8 @@ func (r SimPolicyDataSource) Read() sdk.ResourceFunc {
 					state.RfspIndex = *model.Properties.RfspIndex
 				}
 
-				state.SliceConfigurations = flattenSliceConfigurationModel(model.Properties.SliceConfigurations)
-
-				state.UeAmbr = flattenSimPolicyAmbrModel(model.Properties.UeAmbr)
+				state.SliceConfigurations = flattenSliceConfigurationDataSourceModel(model.Properties.SliceConfigurations)
+				state.UeAmbr = flattenSimPolicyAmbrDataSourceModel(model.Properties.UeAmbr)
 
 				if model.Tags != nil {
 					state.Tags = *model.Tags
@@ -241,6 +276,94 @@ func (r SimPolicyDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			return metadata.Encode(&state)
+		},
+	}
+}
+
+func flattenSliceConfigurationDataSourceModel(input []simpolicy.SliceConfiguration) []SliceConfigurationDataSourceModel {
+	output := make([]SliceConfigurationDataSourceModel, 0)
+
+	for _, v := range input {
+		output = append(output, SliceConfigurationDataSourceModel{
+			DataNetworkConfigurations: flattenDataNetworkConfigurationDataSourceModel(v.DataNetworkConfigurations),
+			DefaultDataNetworkId:      v.DefaultDataNetwork.Id,
+			SliceId:                   v.Slice.Id,
+		})
+	}
+
+	return output
+}
+
+func flattenDataNetworkConfigurationDataSourceModel(inputList []simpolicy.DataNetworkConfiguration) []DataNetworkConfigurationDataSourceModel {
+	output := make([]DataNetworkConfigurationDataSourceModel, 0)
+
+	for _, input := range inputList {
+		item := DataNetworkConfigurationDataSourceModel{
+			DataNetworkId: input.DataNetwork.Id,
+		}
+
+		item.AdditionalAllowedSessionTypes = flattenSimPolicyAllowedSessionTypeDataSource(input.AdditionalAllowedSessionTypes)
+
+		if input.AllocationAndRetentionPriorityLevel != nil {
+			item.AllocationAndRetentionPriorityLevel = *input.AllocationAndRetentionPriorityLevel
+		}
+
+		item.AllowedServices = flattenServiceResourceIdDataSourceModel(input.AllowedServices)
+
+		if input.DefaultSessionType != nil {
+			item.DefaultSessionType = string(*input.DefaultSessionType)
+		}
+
+		if input.Fiveqi != nil {
+			item.QosIdentifier = *input.Fiveqi
+		}
+
+		if input.MaximumNumberOfBufferedPackets != nil {
+			item.MaximumNumberOfBufferedPackets = *input.MaximumNumberOfBufferedPackets
+		}
+
+		if input.PreemptionCapability != nil {
+			item.PreemptionCapability = string(*input.PreemptionCapability)
+		}
+
+		if input.PreemptionVulnerability != nil {
+			item.PreemptionVulnerability = string(*input.PreemptionVulnerability)
+		}
+
+		item.SessionAmbr = flattenSimPolicyAmbrDataSourceModel(input.SessionAmbr)
+
+		output = append(output, item)
+	}
+
+	return output
+}
+
+func flattenSimPolicyAllowedSessionTypeDataSource(input *[]simpolicy.PduSessionType) []string {
+	output := make([]string, 0)
+	if input == nil {
+		return output
+	}
+	for _, v := range *input {
+		output = append(output, string(v))
+	}
+	return output
+}
+
+func flattenServiceResourceIdDataSourceModel(input []simpolicy.ServiceResourceId) []string {
+	output := make([]string, 0)
+
+	for _, v := range input {
+		output = append(output, v.Id)
+	}
+
+	return output
+}
+
+func flattenSimPolicyAmbrDataSourceModel(input simpolicy.Ambr) []AmbrDataSourceModel {
+	return []AmbrDataSourceModel{
+		{
+			Downlink: input.Downlink,
+			Uplink:   input.Uplink,
 		},
 	}
 }

@@ -313,7 +313,7 @@ A `http_listener` block supports the following:
 
 * `protocol` - (Required) The Protocol to use for this HTTP Listener. Possible values are `Http` and `Https`.
 
-* `require_sni` - (Optional) Should Server Name Indication be Required? 
+* `require_sni` - (Optional) Should Server Name Indication be Required? Defaults to `false`.
 
 * `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
 
@@ -461,7 +461,9 @@ A `ssl_certificate` block supports the following:
 
 * `name` - (Required) The Name of the SSL certificate that is unique within this Application Gateway
 
-* `data` - (Optional) PFX certificate. Required if `key_vault_secret_id` is not set.
+* `data` - (Optional) The base64-encoded PFX certificate data. Required if `key_vault_secret_id` is not set.
+
+-> **NOTE:** When specifying a file, use `data = filebase64("path/to/file")` to encode the contents of that file.
 
 * `password` - (Optional) Password for the pfx file specified in data. Required if `data` is set.
 
@@ -670,7 +672,7 @@ A `url` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Application Gateway.
 

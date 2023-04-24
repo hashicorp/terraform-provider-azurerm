@@ -49,7 +49,7 @@ func (c SignalRClient) PrivateEndpointConnectionsList(ctx context.Context, id Si
 	}
 
 	var values struct {
-		Values *[]PrivateEndpointConnection `json:"values"`
+		Values *[]PrivateEndpointConnection `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

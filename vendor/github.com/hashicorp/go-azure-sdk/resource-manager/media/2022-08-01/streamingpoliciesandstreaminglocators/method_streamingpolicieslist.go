@@ -85,7 +85,7 @@ func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingPoliciesList(ctx c
 	}
 
 	var values struct {
-		Values *[]StreamingPolicy `json:"values"`
+		Values *[]StreamingPolicy `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

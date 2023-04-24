@@ -212,7 +212,13 @@ func (m TimeSeriesDatabaseConnectionResource) Read() sdk.ResourceFunc {
 				output.EventhubName = properties.EventHubEntityPath
 				output.EventhubNamespaceEndpointUri = properties.EventHubEndpointUri
 				output.EventhubNamespaceId = properties.EventHubNamespaceResourceId
-				output.KustoClusterId = properties.AdxResourceId
+
+				kustoClusterId, err := clusters.ParseClusterIDInsensitively(properties.AdxResourceId)
+				if err != nil {
+					return fmt.Errorf("parsing `kusto_cluster_uri`: %+v", err)
+				}
+				output.KustoClusterId = kustoClusterId.ID()
+
 				output.KustoClusterUri = properties.AdxEndpointUri
 				output.KustoDatabaseName = properties.AdxDatabaseName
 

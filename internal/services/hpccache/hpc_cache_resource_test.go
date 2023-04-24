@@ -6,13 +6,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/caches"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/parse"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HPCCacheResource struct{}
@@ -382,17 +382,17 @@ func TestAccHPCCache_customerManagedKeyUpdateAutoKeyRotation(t *testing.T) {
 }
 
 func (HPCCacheResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CacheID(state.ID)
+	id, err := caches.ParseCacheID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.HPCCache.CachesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.HPCCache.CachesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving HPC Cache (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.CacheProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r HPCCacheResource) basic(data acceptance.TestData) string {

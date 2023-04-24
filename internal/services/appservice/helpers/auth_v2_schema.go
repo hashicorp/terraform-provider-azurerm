@@ -537,6 +537,7 @@ func flattenAuthV2LoginSettings(input *web.Login) []AuthV2Login {
 		result.LogoutEndpoint = pointer.From(routes.LogoutEndpoint)
 	}
 	if token := input.TokenStore; token != nil {
+		result.TokenStoreEnabled = pointer.From(token.Enabled)
 		result.TokenRefreshExtension = pointer.From(token.TokenRefreshExtensionHours)
 		if fs := token.FileSystem; fs != nil {
 			result.TokenFilesystemPath = pointer.From(fs.Directory)
@@ -837,7 +838,7 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 					Description: "The ID of the Client to use to authenticate with Azure Active Directory.",
 				},
 
-				"tenant_id": {
+				"tenant_auth_endpoint": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
 					Description: "The Azure Tenant URI for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`",
@@ -871,6 +872,12 @@ func AadAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeString,
 					},
 					Description: "A list of Allowed Client Applications in the JWT Claim.",
+				},
+
+				"www_authentication_disabled": {
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Is the www-authenticate provider omitted from the request?",
 				},
 
 				"allowed_groups": {
@@ -922,34 +929,26 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirector
 	result := &web.AzureActiveDirectory{
 		Enabled: pointer.To(false),
 	}
+
 	if len(input) == 1 {
 		aad := input[0]
 		result = &web.AzureActiveDirectory{
 			Enabled: pointer.To(true),
 			Registration: &web.AzureActiveDirectoryRegistration{
-				OpenIDIssuer:                      pointer.To(aad.TenantAuthURI),
-				ClientID:                          pointer.To(aad.ClientId),
-				ClientSecretSettingName:           pointer.To(aad.ClientSecretSettingName),
-				ClientSecretCertificateThumbprint: pointer.To(aad.ClientSecretCertificateThumbprint),
+				OpenIDIssuer: pointer.To(aad.TenantAuthURI),
+				ClientID:     pointer.To(aad.ClientId),
 			},
 			Login: &web.AzureActiveDirectoryLogin{
-				LoginParameters:        pointer.To([]string{}),
 				DisableWWWAuthenticate: pointer.To(aad.DisableWWWAuth),
 			},
-			Validation: &web.AzureActiveDirectoryValidation{
-				JwtClaimChecks: &web.JwtClaimChecks{
-					AllowedGroups:             pointer.To(aad.JWTAllowedGroups),
-					AllowedClientApplications: pointer.To(aad.JWTAllowedClientApps),
-				},
-				DefaultAuthorizationPolicy: &web.DefaultAuthorizationPolicy{
-					AllowedPrincipals: &web.AllowedPrincipals{
-						Groups:     pointer.To(aad.AllowedGroups),
-						Identities: pointer.To(aad.AllowedIdentities),
-					},
-					AllowedApplications: pointer.To(aad.AllowedApplications),
-				},
-				AllowedAudiences: pointer.To(aad.AllowedAudiences),
-			},
+		}
+
+		if aad.ClientSecretSettingName != "" {
+			result.Registration.ClientSecretSettingName = pointer.To(aad.ClientSecretSettingName)
+		}
+
+		if aad.ClientSecretCertificateThumbprint != "" {
+			result.Registration.ClientSecretCertificateThumbprint = pointer.To(aad.ClientSecretCertificateThumbprint)
 		}
 
 		if len(aad.LoginParameters) > 0 {
@@ -958,6 +957,40 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirector
 				params = append(params, fmt.Sprintf("%s=%s", k, v))
 			}
 			result.Login.LoginParameters = &params
+		}
+
+		if len(aad.JWTAllowedGroups) != 0 || len(aad.JWTAllowedClientApps) != 0 {
+			if result.Validation == nil {
+				result.Validation = &web.AzureActiveDirectoryValidation{}
+			}
+			result.Validation.JwtClaimChecks = &web.JwtClaimChecks{}
+			if len(aad.JWTAllowedGroups) != 0 {
+				result.Validation.JwtClaimChecks.AllowedGroups = pointer.To(aad.JWTAllowedGroups)
+			}
+			if len(aad.JWTAllowedClientApps) != 0 {
+				result.Validation.JwtClaimChecks.AllowedClientApplications = pointer.To(aad.JWTAllowedClientApps)
+			}
+		}
+
+		if len(aad.AllowedGroups) > 0 || len(aad.AllowedIdentities) > 0 {
+			if result.Validation == nil {
+				result.Validation = &web.AzureActiveDirectoryValidation{}
+			}
+			result.Validation.DefaultAuthorizationPolicy = &web.DefaultAuthorizationPolicy{
+				AllowedPrincipals: &web.AllowedPrincipals{},
+			}
+			if len(aad.AllowedGroups) > 0 {
+				result.Validation.DefaultAuthorizationPolicy.AllowedPrincipals.Groups = pointer.To(aad.AllowedGroups)
+			}
+			if len(aad.AllowedIdentities) > 0 {
+				result.Validation.DefaultAuthorizationPolicy.AllowedPrincipals.Identities = pointer.To(aad.AllowedIdentities)
+			}
+		}
+		if len(aad.AllowedAudiences) > 0 {
+			if result.Validation == nil {
+				result.Validation = &web.AzureActiveDirectoryValidation{}
+			}
+			result.Validation.AllowedAudiences = pointer.To(aad.AllowedAudiences)
 		}
 	}
 

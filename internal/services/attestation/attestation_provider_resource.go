@@ -5,8 +5,10 @@ import (
 	"encoding/pem"
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/attestation/2020-10-01/attestation"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -16,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -68,8 +71,38 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						// one type MUST have only one policy as most, add this validation in Create/Update
+						"environment_type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(attestation.OpenEnclave),
+								string(attestation.SgxEnclave),
+								string(attestation.Tpm),
+							}, false),
+						},
+
+						"data": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(`[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*`), ""),
+						},
+					},
+				},
+			},
 		},
 	}
+}
+
+type policyDef struct {
+	Type attestation.Type
+	Data string
 }
 
 func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -90,6 +123,12 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 	}
 	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_attestation_provider", id.ID())
+	}
+
+	// each type of policy should have 1 item at most.
+	policies, err := expandPolicies(d.Get("policy").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("configuration in policy invalid: %+v", err)
 	}
 
 	props := attestationproviders.AttestationServiceCreationParams{
@@ -115,8 +154,20 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 		props.Properties.PolicySigningCertificates = expandArmAttestationProviderJSONWebKeySet(v)
 	}
 
-	if _, err := client.Create(ctx, id, props); err != nil {
+	resp, err := client.Create(ctx, id, props)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	// set policies
+	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.AttestUri != nil {
+		url := *resp.Model.Properties.AttestUri
+		cli := meta.(*clients.Client).Attestation.PolicyClient
+		for _, policy := range policies {
+			if _, err = cli.Set(ctx, url, policy.Type, policy.Data); err != nil {
+				return fmt.Errorf("set policy: %+v", err)
+			}
+		}
 	}
 
 	d.SetId(id.ID())
@@ -169,13 +220,36 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	var hasChange bool
 	updateParams := attestationproviders.AttestationServicePatchParams{}
 	if d.HasChange("tags") {
+		hasChange = true
 		updateParams.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, *id, updateParams); err != nil {
-		return fmt.Errorf("updating %s: %+v", *id, err)
+	if hasChange {
+		if _, err := client.Update(ctx, *id, updateParams); err != nil {
+			return fmt.Errorf("updating %s: %+v", *id, err)
+		}
+	}
+
+	if d.HasChange("policy") {
+		policies, err := expandPolicies(d.Get("policy").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expand policies: %+v", err)
+		}
+		policyClient := meta.(*clients.Client).Attestation.PolicyClient
+
+		url := d.Get("attestation_uri").(string)
+		if url == "" {
+			log.Printf("[Warn] got empty attestation instance url")
+		} else {
+			for _, policy := range policies {
+				if _, err = policyClient.Set(ctx, url, policy.Type, policy.Data); err != nil {
+					return fmt.Errorf("set policy in %s: %+v", url, err)
+				}
+			}
+		}
 	}
 	return resourceAttestationProviderRead(d, meta)
 }
@@ -220,4 +294,25 @@ func expandArmAttestationProviderJSONWebKeyArray(pem string) *[]attestationprovi
 	results = append(results, result)
 
 	return &results
+}
+
+func expandPolicies(input []interface{}) (res []policyDef, err error) {
+	for _, ins := range input {
+		if ins == nil {
+			continue
+		}
+		policy := ins.(map[string]interface{})
+		typ := attestation.Type(policy["environment_type"].(string))
+
+		for _, def := range res {
+			if def.Type == typ {
+				return nil, fmt.Errorf("repeated policy environment_type: %s", typ)
+			}
+		}
+		res = append(res, policyDef{
+			Type: typ,
+			Data: policy["data"].(string),
+		})
+	}
+	return
 }

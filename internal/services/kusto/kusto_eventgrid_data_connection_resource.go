@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	eventGridValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/validate"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -135,17 +137,18 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForDatabaseRouting(), false),
 			},
 
+			// TODO: rename this to `eventgrid_event_subscription_id` in 4.0
 			"eventgrid_resource_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: eventGridValidate.EventSubscriptionID,
 			},
 
+			// TODO: rename this to `managed_identity_id` in 4.0
 			"managed_identity_resource_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.Any(
-					validation.StringIsEmpty,
 					clusters.ValidateClusterID,
 					commonids.ValidateUserAssignedIdentityID,
 				),
@@ -257,13 +260,29 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 			d.Set("eventhub_id", props.EventHubResourceId)
 			d.Set("eventhub_consumer_group_name", props.ConsumerGroup)
 			d.Set("skip_first_record", props.IgnoreFirstRecord)
-			d.Set("blob_storage_event_type", props.BlobStorageEventType)
+			d.Set("blob_storage_event_type", string(pointer.From(props.BlobStorageEventType)))
 			d.Set("table_name", props.TableName)
 			d.Set("mapping_rule_name", props.MappingRuleName)
-			d.Set("data_format", props.DataFormat)
-			d.Set("database_routing_type", props.DatabaseRouting)
+			d.Set("data_format", string(pointer.From(props.DataFormat)))
+			d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
 			d.Set("eventgrid_resource_id", props.EventGridResourceId)
-			d.Set("managed_identity_resource_id", props.ManagedIdentityResourceId)
+
+			managedIdentityResourceId := ""
+			if props.ManagedIdentityResourceId != nil && *props.ManagedIdentityResourceId != "" {
+				managedIdentityResourceId = *props.ManagedIdentityResourceId
+				clusterId, clusterIdErr := clusters.ParseClusterIDInsensitively(managedIdentityResourceId)
+				if clusterIdErr == nil {
+					managedIdentityResourceId = clusterId.ID()
+				} else {
+					userAssignedIdentityId, userAssignedIdentityIdErr := commonids.ParseUserAssignedIdentityIDInsensitively(managedIdentityResourceId)
+					if userAssignedIdentityIdErr == nil {
+						managedIdentityResourceId = userAssignedIdentityId.ID()
+					} else {
+						return fmt.Errorf("parsing `managed_identity_resource_id`: %+v; %+v", clusterIdErr, userAssignedIdentityIdErr)
+					}
+				}
+			}
+			d.Set("managed_identity_resource_id", managedIdentityResourceId)
 		}
 	}
 
