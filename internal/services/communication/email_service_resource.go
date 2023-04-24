@@ -21,9 +21,9 @@ import (
 
 func resourceArmEmailService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmEmailServiceCreateUpdate,
+		Create: resourceArmEmailServiceCreate,
 		Read:   resourceArmEmailServiceRead,
-		Update: resourceArmEmailServiceCreateUpdate,
+		Update: resourceArmEmailServiceUpdate,
 		Delete: resourceArmEmailServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -82,7 +82,7 @@ func resourceArmEmailService() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmEmailServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmEmailServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Communication.EmailServicesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -112,7 +112,36 @@ func resourceArmEmailServiceCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameter); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceArmEmailServiceRead(d, meta)
+}
+
+func resourceArmEmailServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Communication.EmailServicesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := emailservices.NewEmailServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("reading %s: %+v", id, err)
+	}
+	model := existing.Model
+	if model == nil || model.Properties == nil {
+		return fmt.Errorf("retreiving properties for %s for update: %+v", id, err)
+	}
+
+	if d.HasChange("tags") {
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
