@@ -11,14 +11,25 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = CommunicationServiceResource{}
+var _ sdk.ResourceWithStateMigration = CommunicationServiceResource{}
 
 type CommunicationServiceResource struct{}
+
+func (CommunicationServiceResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.ServiceV0ToV1{},
+		},
+	}
+}
 
 func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
