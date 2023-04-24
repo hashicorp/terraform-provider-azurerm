@@ -1102,7 +1102,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"mode": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							validation.StringInSlice([]string{
+							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.ServiceMeshModeIstio),
 							}, false),
 						},
