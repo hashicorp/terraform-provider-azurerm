@@ -1096,9 +1096,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     service_cidr       = "10.10.0.0/16"
   }
 
-	service_mesh_profile {
-		mode = "Istio"
-	}
+  service_mesh_profile {
+    mode = "Istio"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

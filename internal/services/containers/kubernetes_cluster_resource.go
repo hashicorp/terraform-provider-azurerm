@@ -1537,7 +1537,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.IngressProfile = ingressProfile
 	}
 
-	if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d, d.Get("service_mesh_profile").([]interface{})); serviceMeshProfile != nil {
+	if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{})); serviceMeshProfile != nil {
 		parameters.Properties.ServiceMeshProfile = serviceMeshProfile
 	}
 
@@ -1850,7 +1850,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 	if d.HasChange("service_mesh_profile") {
 		updateCluster = true
-		if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d, d.Get("service_mesh_profile").([]interface{})); serviceMeshProfile != nil {
+		if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{})); serviceMeshProfile != nil {
 			existing.Model.Properties.ServiceMeshProfile = serviceMeshProfile
 		}
 	}
@@ -3783,7 +3783,7 @@ func base64IsEncoded(data string) bool {
 }
 
 // write and expand function for `service_mesh_profile`
-func expandKubernetesClusterServiceMeshProfile(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ServiceMeshProfile {
+func expandKubernetesClusterServiceMeshProfile(input []interface{}) *managedclusters.ServiceMeshProfile {
 	if (input == nil) || len(input) == 0 {
 		return nil
 	}
