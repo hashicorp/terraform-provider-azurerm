@@ -955,6 +955,21 @@ func TestAccKubernetesClusterNodePool_nodeIPTags(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_sourceSnapshotId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sourceSnapshotId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := agentpools.ParseAgentPoolID(state.ID)
 	if err != nil {
@@ -2543,4 +2558,56 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 }
  `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterNodePoolResource) sourceSnapshotId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "source" {
+  name                  = "source"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D2s_v3"
+  provisioner "local-exec" {
+    command = "az aks nodepool snapshot create --name %[3]s --resource-group ${azurerm_resource_group.test.name} --nodepool-id ${self.id} --location ${azurerm_resource_group.test.location}"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "new"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  source_snapshot_id    = "${azurerm_resource_group.test.id}/providers/Microsoft.ContainerService/snapshots/%[3]s"
+  depends_on = [
+    azurerm_kubernetes_cluster_node_pool.source
+  ]
+}
+ `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

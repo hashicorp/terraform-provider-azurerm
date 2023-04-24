@@ -294,6 +294,13 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 			},
 
+			"source_snapshot_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: containerValidate.SnapshotID,
+			},
+
 			"spot_max_price": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
@@ -582,6 +589,12 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
 	}
 
+	if sourceSnapshotId := d.Get("source_snapshot_id").(string); sourceSnapshotId != "" {
+		profile.CreationData = &agentpools.CreationData{
+			SourceResourceId: utils.String(sourceSnapshotId),
+		}
+	}
+
 	parameters := agentpools.AgentPool{
 		Name:       utils.String(id.AgentPoolName),
 		Properties: &profile,
@@ -810,6 +823,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if v := props.KubeletDiskType; v != nil {
 			d.Set("kubelet_disk_type", string(*v))
+		}
+
+		if props.CreationData != nil {
+			d.Set("source_snapshot_id", props.CreationData.SourceResourceId)
 		}
 
 		scaleDownMode := string(managedclusters.ScaleDownModeDelete)
