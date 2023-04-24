@@ -43,7 +43,7 @@ func TestAccKubernetesCluster_serviceMeshProfile(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_serviceMeshProfileUpdate(t *testing.T) {
+func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 

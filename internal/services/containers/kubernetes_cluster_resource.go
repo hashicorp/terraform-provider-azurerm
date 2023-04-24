@@ -1537,7 +1537,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.IngressProfile = ingressProfile
 	}
 
-	if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{})); serviceMeshProfile != nil {
+	if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{}), &managedclusters.ServiceMeshProfile{}); serviceMeshProfile != nil {
 		parameters.Properties.ServiceMeshProfile = serviceMeshProfile
 	}
 
@@ -1850,7 +1850,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 	if d.HasChange("service_mesh_profile") {
 		updateCluster = true
-		if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{})); serviceMeshProfile != nil {
+		if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{}), existing.Model.Properties.ServiceMeshProfile); serviceMeshProfile != nil {
 			existing.Model.Properties.ServiceMeshProfile = serviceMeshProfile
 		}
 	}
@@ -3782,14 +3782,18 @@ func base64IsEncoded(data string) bool {
 	return err == nil
 }
 
-// write and expand function for `service_mesh_profile`
-func expandKubernetesClusterServiceMeshProfile(input []interface{}) *managedclusters.ServiceMeshProfile {
-	if (input == nil) || len(input) == 0 {
+func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *managedclusters.ServiceMeshProfile) *managedclusters.ServiceMeshProfile {
+	wasEnabled := existing != nil && existing.Mode == managedclusters.ServiceMeshModeIstio
+	if (input == nil) || len(input) == 0 && !wasEnabled {
 		return nil
+	}
+	if (input == nil) || len(input) == 0 && wasEnabled {
+		return &managedclusters.ServiceMeshProfile{
+			Mode: managedclusters.ServiceMeshModeDisabled,
+		}
 	}
 
 	raw := input[0].(map[string]interface{})
-
 	profile := managedclusters.ServiceMeshProfile{}
 	if managedclusters.ServiceMeshMode(raw["mode"].(string)) == managedclusters.ServiceMeshModeIstio {
 		profile.Mode = managedclusters.ServiceMeshMode(raw["mode"].(string))
