@@ -134,6 +134,13 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"node_public_ip_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
+
 			"ssh_public_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -181,6 +188,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		VMPriority:             &vmPriority,
 		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
 		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]interface{})),
+		EnableNodePublicIP:     utils.Bool(d.Get("node_public_ip_enabled").(bool)),
 	}
 
 	computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = utils.ToPtr(machinelearningcomputes.RemoteLoginPortPublicAccessDisabled)
@@ -270,6 +278,11 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("vm_priority", string(pointer.From(props.VMPriority)))
 		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
 		d.Set("ssh", flattenUserAccountCredentials(props.UserAccountCredentials))
+		nodePublicIPEnabled := true
+		if props.EnableNodePublicIP != nil {
+			nodePublicIPEnabled = *props.EnableNodePublicIP
+		}
+		d.Set("node_public_ip_enabled", nodePublicIPEnabled)
 		if props.Subnet != nil {
 			d.Set("subnet_resource_id", props.Subnet.Id)
 		}

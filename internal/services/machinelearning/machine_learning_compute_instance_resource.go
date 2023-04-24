@@ -116,6 +116,13 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"node_public_ip_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
+
 			"ssh": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -188,6 +195,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	computeInstance := &machinelearningcomputes.ComputeInstance{
 		Properties: &machinelearningcomputes.ComputeInstanceProperties{
+			EnableNodePublicIP:              utils.Bool(d.Get("node_public_ip_enabled").(bool)),
 			VMSize:                          utils.String(d.Get("virtual_machine_size").(string)),
 			Subnet:                          subnet,
 			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
@@ -266,6 +274,11 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	d.Set("description", props.Description)
 	if props.Properties != nil {
+		nodePublicIPEnabled := true
+		if props.Properties.EnableNodePublicIP != nil {
+			nodePublicIPEnabled = *props.Properties.EnableNodePublicIP
+		}
+		d.Set("node_public_ip_enabled", nodePublicIPEnabled)
 		d.Set("virtual_machine_size", props.Properties.VMSize)
 		if props.Properties.Subnet != nil {
 			d.Set("subnet_resource_id", props.Properties.Subnet.Id)

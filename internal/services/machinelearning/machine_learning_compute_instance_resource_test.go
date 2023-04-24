@@ -189,8 +189,9 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   ssh {
     public_key = var.ssh_key
   }
-  subnet_resource_id = azurerm_subnet.test.id
-  description        = "this is desc"
+  subnet_resource_id     = azurerm_subnet.test.id
+  description            = "this is desc"
+  node_public_ip_enabled = true
   tags = {
     Label1 = "Value1"
   }

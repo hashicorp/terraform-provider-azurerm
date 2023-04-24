@@ -219,6 +219,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
     type = "SystemAssigned"
   }
 
+  node_public_ip_enabled    = true
   ssh_public_access_enabled = false
   ssh {
     admin_username = "adminuser"
