@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource:** `azurerm_storage_mover_project` [GH-21477]
 
+ENHANCEMENTS:
+
+* Data Source: `azurerm_virtual_network_gateway` - add support for the `private_ip_address` property [GH-21432]
+
 ## 3.53.0 (April 20, 2023)
 
 FEATURES:
