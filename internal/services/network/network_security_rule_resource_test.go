@@ -60,6 +60,32 @@ func TestAccNetworkSecurityRule_disappears(t *testing.T) {
 	})
 }
 
+func TestAccNetworkSecurityRule_disappearsWithGroupUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
+	r := NetworkSecurityRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disappearsWithGroupUpdate(data),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+
+}
+
 func TestAccNetworkSecurityRule_addingRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test1")
 	r := NetworkSecurityRuleResource{}
@@ -173,6 +199,29 @@ resource "azurerm_network_security_rule" "test" {
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
 }
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (NetworkSecurityRuleResource) disappearsWithGroupUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acceptanceTestSecurityGroup1"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tags = {
+     foo = "bar"
+  }
+}
+
 `, data.RandomInteger, data.Locations.Primary)
 }
 

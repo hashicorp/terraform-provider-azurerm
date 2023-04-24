@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -189,6 +190,9 @@ func resourceNetworkSecurityRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 			return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
 		}
 	}
+
+	locks.ByName(id.Name, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(id.Name, networkSecurityGroupResourceName)
 
 	sourcePortRange := d.Get("source_port_range").(string)
 	destinationPortRange := d.Get("destination_port_range").(string)

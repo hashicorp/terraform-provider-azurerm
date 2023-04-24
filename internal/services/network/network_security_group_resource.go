@@ -25,9 +25,9 @@ var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
 func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkSecurityGroupCreateUpdate,
+		Create: resourceNetworkSecurityGroupCreate,
 		Read:   resourceNetworkSecurityGroupRead,
-		Update: resourceNetworkSecurityGroupCreateUpdate,
+		Update: resourceNetworkSecurityGroupUpdate,
 		Delete: resourceNetworkSecurityGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -178,7 +178,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityGroupClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -186,17 +186,15 @@ func resourceNetworkSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	id := parse.NewNetworkSecurityGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_network_security_group", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_network_security_group", id.ID())
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -204,7 +202,7 @@ func resourceNetworkSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	sgRules, sgErr := expandAzureRmSecurityRules(d)
 	if sgErr != nil {
-		return fmt.Errorf("Building list of Network Security Group Rules: %+v", sgErr)
+		return fmt.Errorf("building list of Network Security Group Rules: %+v", sgErr)
 	}
 
 	locks.ByName(id.Name, networkSecurityGroupResourceName)
@@ -220,6 +218,51 @@ func resourceNetworkSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, sg)
+	if err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the completion of %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceNetworkSecurityGroupRead(d, meta)
+}
+
+func resourceNetworkSecurityGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.SecurityGroupClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := parse.NewNetworkSecurityGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return fmt.Errorf("making Read request on Network Security Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+	if existing.SecurityGroupPropertiesFormat == nil {
+		return fmt.Errorf("unexpected nil property of %s", id)
+	}
+
+	if d.HasChange("tags") {
+		existing.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("security_rule") {
+		sgRules, sgErr := expandAzureRmSecurityRules(d)
+		if sgErr != nil {
+			return fmt.Errorf("building list of Network Security Group Rules: %+v", sgErr)
+		}
+		existing.SecurityGroupPropertiesFormat.SecurityRules = &sgRules
+	}
+
+	locks.ByName(id.Name, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(id.Name, networkSecurityGroupResourceName)
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
