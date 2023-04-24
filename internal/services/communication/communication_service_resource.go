@@ -69,7 +69,11 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": commonschema.Tags(),
+	}
+}
 
+func (CommunicationServiceResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"primary_connection_string": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -90,10 +94,6 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
-}
-
-func (CommunicationServiceResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
 }
 
 func (CommunicationServiceResource) ModelObject() interface{} {
