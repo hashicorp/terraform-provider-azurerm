@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CommunicationServiceResource struct{}
+type CommunicationService struct{}
 
 func TestAccCommunicationService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
-	r := CommunicationServiceResource{}
+	r := CommunicationService{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,7 +33,7 @@ func TestAccCommunicationService_basic(t *testing.T) {
 
 func TestAccCommunicationService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
-	r := CommunicationServiceResource{}
+	r := CommunicationService{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,7 +48,7 @@ func TestAccCommunicationService_requiresImport(t *testing.T) {
 
 func TestAccCommunicationService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
-	r := CommunicationServiceResource{}
+	r := CommunicationService{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,7 +67,7 @@ func TestAccCommunicationService_complete(t *testing.T) {
 
 func TestAccCommunicationService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
-	r := CommunicationServiceResource{}
+	r := CommunicationService{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +87,7 @@ func TestAccCommunicationService_update(t *testing.T) {
 	})
 }
 
-func (r CommunicationServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CommunicationService) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	clusterClient := client.Communication.ServiceClient
 	id, err := communicationservices.ParseCommunicationServiceID(state.ID)
 	if err != nil {
@@ -106,7 +106,7 @@ func (r CommunicationServiceResource) Exists(ctx context.Context, client *client
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r CommunicationServiceResource) basic(data acceptance.TestData) string {
+func (r CommunicationService) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -117,7 +117,7 @@ resource "azurerm_communication_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CommunicationServiceResource) requiresImport(data acceptance.TestData) string {
+func (r CommunicationService) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -130,7 +130,7 @@ resource "azurerm_communication_service" "import" {
 `, config)
 }
 
-func (r CommunicationServiceResource) complete(data acceptance.TestData) string {
+func (r CommunicationService) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -146,7 +146,7 @@ resource "azurerm_communication_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CommunicationServiceResource) update(data acceptance.TestData) string {
+func (r CommunicationService) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -162,7 +162,7 @@ resource "azurerm_communication_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CommunicationServiceResource) template(data acceptance.TestData) string {
+func (r CommunicationService) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

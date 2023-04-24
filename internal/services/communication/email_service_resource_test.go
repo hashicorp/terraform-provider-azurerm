@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EmailServiceResource struct{}
+type EmailService struct{}
 
 func TestAccEmailService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_email_communication_service", "test")
-	r := EmailServiceResource{}
+	r := EmailService{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,7 +33,7 @@ func TestAccEmailService_basic(t *testing.T) {
 
 func TestAccEmailService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_email_communication_service", "test")
-	r := EmailServiceResource{}
+	r := EmailService{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,7 +48,7 @@ func TestAccEmailService_requiresImport(t *testing.T) {
 
 func TestAccEmailService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_email_communication_service", "test")
-	r := EmailServiceResource{}
+	r := EmailService{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +68,7 @@ func TestAccEmailService_update(t *testing.T) {
 	})
 }
 
-func (r EmailServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r EmailService) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	clusterClient := client.Communication.EmailServicesClient
 	id, err := emailservices.ParseEmailServiceID(state.ID)
 	if err != nil {
@@ -87,7 +87,7 @@ func (r EmailServiceResource) Exists(ctx context.Context, client *clients.Client
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r EmailServiceResource) basic(data acceptance.TestData) string {
+func (r EmailService) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -99,7 +99,7 @@ resource "azurerm_email_communication_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r EmailServiceResource) requiresImport(data acceptance.TestData) string {
+func (r EmailService) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -112,7 +112,7 @@ resource "azurerm_email_communication_service" "import" {
 `, config)
 }
 
-func (r EmailServiceResource) complete(data acceptance.TestData) string {
+func (r EmailService) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -128,7 +128,7 @@ resource "azurerm_email_communication_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r EmailServiceResource) update(data acceptance.TestData) string {
+func (r EmailService) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -144,7 +144,7 @@ resource "azurerm_email_communication_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r EmailServiceResource) template(data acceptance.TestData) string {
+func (r EmailService) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
