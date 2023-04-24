@@ -92,10 +92,10 @@ fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
     }
 }
 
-fun ParametrizedWithType.TerraformAcceptanceTestParameters(parallelism : Int, prefix : String, timeout: String) {
+fun ParametrizedWithType.TerraformAcceptanceTestParameters(parallelism : Int, prefix : String, timeout: Int) {
     text("PARALLELISM", "%d".format(parallelism))
     text("TEST_PREFIX", prefix)
-    text("TIMEOUT", timeout)
+    text("TIMEOUT", "%d".format(timeout))
 }
 
 fun ParametrizedWithType.ReadOnlySettings() {

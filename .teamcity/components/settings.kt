@@ -4,6 +4,9 @@ var defaultStartHour = 0
 // specifies the default level of parallelism per-service-package
 var defaultParallelism = 20
 
+// specifies the default test timeout in hours
+var defaultTimeout = 12
+
 // specifies the default version of Terraform Core which should be used for testing
 var defaultTerraformCoreVersion = "1.1.5"
 
@@ -116,6 +119,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // netapp has a max of 10 accounts and the max capacity of pool is 25 TiB per subscription so lets limit it to 1 to account for broken ones, run Monday, Wednesday, Friday
         "netapp" to testConfiguration(parallelism = 1, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false), useDevTestSubscription = true),
 
+        // network has increased timeout to accommodate the custom_ip_prefix resource
+        "network" to testConfiguration(timeout = 24),
+
         // Orbital is only available in certain locations
         "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false)),
 
@@ -159,7 +165,7 @@ var serviceTestConfigurationOverrides = mapOf(
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
         "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
-        // moved to alt subsription
+        // moved to alt subscription
         "appconfiguration" to testConfiguration(useDevTestSubscription = true),
         "dns" to testConfiguration(useDevTestSubscription = true),
         "eventgrid" to testConfiguration(useDevTestSubscription = true),
