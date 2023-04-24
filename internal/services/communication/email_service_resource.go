@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/migration"
@@ -19,12 +19,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceArmCommunicationService() *pluginsdk.Resource {
+func resourceArmEmailService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmCommunicationServiceCreateUpdate,
-		Read:   resourceArmCommunicationServiceRead,
-		Update: resourceArmCommunicationServiceCreateUpdate,
-		Delete: resourceArmCommunicationServiceDelete,
+		Create: resourceArmEmailServiceCreateUpdate,
+		Read:   resourceArmEmailServiceRead,
+		Update: resourceArmEmailServiceCreateUpdate,
+		Delete: resourceArmEmailServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -34,7 +34,7 @@ func resourceArmCommunicationService() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := communicationservices.ParseCommunicationServiceID(id)
+			_, err := emailservices.ParseEmailServiceID(id)
 			return err
 		}),
 
@@ -54,11 +54,9 @@ func resourceArmCommunicationService() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"data_location": {
-				Type: pluginsdk.TypeString,
-				// TODO: should this become Required and remove the default in 4.0?
-				Optional: true,
+				Type:     pluginsdk.TypeString,
+				Required: true,
 				ForceNew: true,
-				Default:  "United States",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Africa",
 					"Asia Pacific",
@@ -80,37 +78,17 @@ func resourceArmCommunicationService() *pluginsdk.Resource {
 			},
 
 			"tags": commonschema.Tags(),
-
-			"primary_connection_string": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"secondary_connection_string": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"primary_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"secondary_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
 
-func resourceArmCommunicationServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmEmailServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Communication.ServiceClient
+	client := meta.(*clients.Client).Communication.EmailServicesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := communicationservices.NewCommunicationServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := emailservices.NewEmailServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -120,14 +98,14 @@ func resourceArmCommunicationServiceCreateUpdate(d *pluginsdk.ResourceData, meta
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_communication_service", id.ID())
+			return tf.ImportAsExistsError("azurerm_email_communication_service", id.ID())
 		}
 	}
 
-	parameter := communicationservices.CommunicationServiceResource{
+	parameter := emailservices.EmailServiceResource{
 		// The location is always `global` from the Azure Portal
 		Location: location.Normalize("global"),
-		Properties: &communicationservices.CommunicationServiceProperties{
+		Properties: &emailservices.EmailServiceProperties{
 			DataLocation: d.Get("data_location").(string),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -139,15 +117,15 @@ func resourceArmCommunicationServiceCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	d.SetId(id.ID())
 
-	return resourceArmCommunicationServiceRead(d, meta)
+	return resourceArmEmailServiceRead(d, meta)
 }
 
-func resourceArmCommunicationServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Communication.ServiceClient
+func resourceArmEmailServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Communication.EmailServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := communicationservices.ParseCommunicationServiceID(d.Id())
+	id, err := emailservices.ParseEmailServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -163,12 +141,7 @@ func resourceArmCommunicationServiceRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	keysResp, err := client.ListKeys(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("listing keys for %s: %+v", *id, err)
-	}
-
-	d.Set("name", id.CommunicationServiceName)
+	d.Set("name", id.EmailServiceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -181,22 +154,15 @@ func resourceArmCommunicationServiceRead(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if model := keysResp.Model; model != nil {
-		d.Set("primary_connection_string", model.PrimaryConnectionString)
-		d.Set("secondary_connection_string", model.SecondaryConnectionString)
-		d.Set("primary_key", model.PrimaryKey)
-		d.Set("secondary_key", model.SecondaryKey)
-	}
-
 	return nil
 }
 
-func resourceArmCommunicationServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Communication.ServiceClient
+func resourceArmEmailServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Communication.EmailServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := communicationservices.ParseCommunicationServiceID(d.Id())
+	id, err := emailservices.ParseEmailServiceID(d.Id())
 	if err != nil {
 		return err
 	}

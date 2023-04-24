@@ -196,7 +196,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/certificate
 github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/cognitiveservicesaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/deployments
-github.com/hashicorp/go-azure-sdk/resource-manager/communication/2020-08-20/communicationservice
+github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices
+github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/galleries
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/galleryapplications
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/galleryapplicationversions

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CommunicationServiceResource struct{}
+type EmailServiceResource struct{}
 
-func TestAccCommunicationService_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
-	r := CommunicationServiceResource{}
+func TestAccEmailService_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_email_communication_service", "test")
+	r := EmailServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,9 +31,9 @@ func TestAccCommunicationService_basic(t *testing.T) {
 	})
 }
 
-func TestAccCommunicationService_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
-	r := CommunicationServiceResource{}
+func TestAccEmailService_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_email_communication_service", "test")
+	r := EmailServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,28 +46,9 @@ func TestAccCommunicationService_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCommunicationService_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
-	r := CommunicationServiceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
-				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
-				check.That(data.ResourceName).Key("primary_key").Exists(),
-				check.That(data.ResourceName).Key("secondary_key").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccCommunicationService_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
-	r := CommunicationServiceResource{}
+func TestAccEmailService_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_email_communication_service", "test")
+	r := EmailServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,9 +68,9 @@ func TestAccCommunicationService_update(t *testing.T) {
 	})
 }
 
-func (r CommunicationServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	clusterClient := client.Communication.ServiceClient
-	id, err := communicationservices.ParseCommunicationServiceID(state.ID)
+func (r EmailServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	clusterClient := client.Communication.EmailServicesClient
+	id, err := emailservices.ParseEmailServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -100,41 +81,42 @@ func (r CommunicationServiceResource) Exists(ctx context.Context, client *client
 			return utils.Bool(false), nil
 		}
 
-		return nil, fmt.Errorf("retrieving Communication Service %q: %+v", state.ID, err)
+		return nil, fmt.Errorf("retrieving Email Communication Service %q: %+v", state.ID, err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r CommunicationServiceResource) basic(data acceptance.TestData) string {
+func (r EmailServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_communication_service" "test" {
+resource "azurerm_email_communication_service" "test" {
   name                = "acctest-CommunicationService-%d"
   resource_group_name = azurerm_resource_group.test.name
+  data_location       = "United States"
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CommunicationServiceResource) requiresImport(data acceptance.TestData) string {
+func (r EmailServiceResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_communication_service" "import" {
-  name                = azurerm_communication_service.test.name
-  resource_group_name = azurerm_communication_service.test.resource_group_name
-  data_location       = azurerm_communication_service.test.data_location
+resource "azurerm_email_communication_service" "import" {
+  name                = azurerm_email_communication_service.test.name
+  resource_group_name = azurerm_email_communication_service.test.resource_group_name
+  data_location       = azurerm_email_communication_service.test.data_location
 }
 `, config)
 }
 
-func (r CommunicationServiceResource) complete(data acceptance.TestData) string {
+func (r EmailServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_communication_service" "test" {
+resource "azurerm_email_communication_service" "test" {
   name                = "acctest-CommunicationService-%d"
   resource_group_name = azurerm_resource_group.test.name
   data_location       = "United States"
@@ -146,11 +128,11 @@ resource "azurerm_communication_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CommunicationServiceResource) update(data acceptance.TestData) string {
+func (r EmailServiceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_communication_service" "test" {
+resource "azurerm_email_communication_service" "test" {
   name                = "acctest-CommunicationService-%d"
   resource_group_name = azurerm_resource_group.test.name
   data_location       = "United States"
@@ -162,7 +144,7 @@ resource "azurerm_communication_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CommunicationServiceResource) template(data acceptance.TestData) string {
+func (r EmailServiceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
