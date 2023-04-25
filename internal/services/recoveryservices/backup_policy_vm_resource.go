@@ -215,12 +215,19 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 				d.Set("instant_restore_retention_days", policy.InstantRpRetentionRangeInDays)
 				d.Set("timezone", policy.TimeZone)
 
-				if err := d.Set("backup", flattenBackupProtectionPolicyVMSchedule(policy.SchedulePolicy)); err != nil {
-					return fmt.Errorf("setting `backup`: %+v", err)
-				}
+				if schedulePolicyPtr := policy.SchedulePolicy; schedulePolicyPtr != nil {
+					schedulePolicy := *schedulePolicyPtr
+					if _, ok = schedulePolicy.(protectionpolicies.SimpleSchedulePolicy); ok {
+						if err = d.Set("backup", flattenBackupProtectionPolicyVMSchedule(policy.SchedulePolicy)); err != nil {
+							return fmt.Errorf("setting `backup`: %+v", err)
+						}
+					}
 
-				if err := d.Set("backup", flattenBackupProtectionPolicyVMScheduleV2(policy.SchedulePolicy)); err != nil {
-					return fmt.Errorf("setting `backup`: %+v", err)
+					if _, ok = schedulePolicy.(protectionpolicies.SimpleSchedulePolicyV2); ok {
+						if err = d.Set("backup", flattenBackupProtectionPolicyVMScheduleV2(policy.SchedulePolicy)); err != nil {
+							return fmt.Errorf("setting `backup`: %+v", err)
+						}
+					}
 				}
 
 				policyType := string(protectionpolicies.IAASVMPolicyTypeVOne)
