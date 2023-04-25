@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * Data Source: `azurerm_virtual_network_gateway` - add support for the `private_ip_address` property [GH-21432]
+* `azurerm_kubernetes_cluster` - add support for the `service_mesh_profile` block [GH-21516]
 
 ## 3.53.0 (April 20, 2023)
 
