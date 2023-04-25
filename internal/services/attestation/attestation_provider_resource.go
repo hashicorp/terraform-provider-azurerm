@@ -103,12 +103,12 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 						Schema: map[string]*pluginsdk.Schema{
 							"environment_type": {
 								Type:     pluginsdk.TypeString,
-								Computed: true,
+								Optional: true,
 							},
 
 							"data": {
 								Type:     pluginsdk.TypeString,
-								Computed: true,
+								Optional: true,
 							},
 						},
 					},
