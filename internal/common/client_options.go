@@ -18,7 +18,6 @@ import (
 )
 
 type Authorizers struct {
-	Attestation     auth.Authorizer
 	BatchManagement auth.Authorizer
 	KeyVault        auth.Authorizer
 	ResourceManager auth.Authorizer

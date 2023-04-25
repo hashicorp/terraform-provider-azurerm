@@ -76,21 +76,21 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 				},
 
 				"open_enclave_policy_base64": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// TODO: Is a StoredAttestationPolicy
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
 
 				"sgx_enclave_policy_base64": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// TODO: Is a StoredAttestationPolicy
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
 
 				"tpm_policy_base64": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// TODO: Is a StoredAttestationPolicy
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
 			}
 
