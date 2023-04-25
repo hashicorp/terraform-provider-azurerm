@@ -474,9 +474,12 @@ func flattenBackupPolicyPostgreSQLRetentionRuleArray(input []backuppolicies.Base
 	var taggingCriterias []backuppolicies.TaggingCriteria
 	for _, item := range input {
 		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
-			if trigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
-				if trigger.TaggingCriteria != nil {
-					taggingCriterias = trigger.TaggingCriteria
+			if backupRule.Trigger != nil {
+				triggerPtr := *backupRule.Trigger.(*backuppolicies.TriggerContext)
+				if trigger, ok := triggerPtr.(backuppolicies.ScheduleBasedTriggerContext); ok {
+					if trigger.TaggingCriteria != nil {
+						taggingCriterias = trigger.TaggingCriteria
+					}
 				}
 			}
 		}
@@ -494,8 +497,9 @@ func flattenBackupPolicyPostgreSQLRetentionRuleArray(input []backuppolicies.Base
 				}
 			}
 			var duration string
-			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
+			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 && retentionRule.Lifecycles[0].DeleteAfter != nil {
+				deleteOptionPtr := *retentionRule.Lifecycles[0].DeleteAfter.(*backuppolicies.DeleteOption)
+				if deleteOption, ok := deleteOptionPtr.(backuppolicies.AbsoluteDeleteOption); ok {
 					duration = deleteOption.Duration
 				}
 			}
