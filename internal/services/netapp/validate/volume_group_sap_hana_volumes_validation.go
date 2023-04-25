@@ -79,12 +79,43 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 	volumeSpecRepeatCount := make(map[string]int)
 	applicationType := string(volumegroups.ApplicationTypeSAPNegativeHANA)
 
+	// Validating minimum volume count
+	if len(*volumeList) < len(RequiredVolumesForSAPHANA()) {
+		errors = append(errors, fmt.Errorf("'minimum %v volumes are required for %v'", len(RequiredVolumesForSAPHANA()), applicationType))
+	}
+
 	// Validating each volume
 	for _, volume := range pointer.From(volumeList) {
+
+		// Get protocol list
 		protocolTypeList := pointer.From(volume.Properties.ProtocolTypes)
 		protocolType := ""
+
+		// Validate protocol list is not empty
+		if len(protocolTypeList) == 0 {
+			errors = append(errors, fmt.Errorf("'protocol type list cannot be empty'"))
+		}
+
+		// Validate protocol list is not > 1
+		if len(protocolTypeList) > 1 {
+			errors = append(errors, fmt.Errorf("'multi-protocol volumes are not supported, protocol count is %v'", len(protocolTypeList)))
+		}
+
+		// Getting protocol for next validations
 		if len(protocolTypeList) > 0 {
 			protocolType = protocolTypeList[0]
+		}
+
+		// Validate protocol list does not contain invalid protocols
+		for _, protocol := range protocolTypeList {
+			if !findStringInSlice(PossibleValuesForProtocolType(), protocolType) {
+				errors = append(errors, fmt.Errorf("'protocol %v is invalid'", protocol))
+			}
+		}
+
+		// Validate that protocol is valid for SAP Hana
+		if !findStringInSlice(PossibleValuesForProtocolTypeVolumeGroupSapHana(), protocolType) {
+			errors = append(errors, fmt.Errorf("'protocol %v is invalid for SAP Hana'", protocolType))
 		}
 
 		// Can't be nfsv3 on data, log and share volumes
@@ -156,4 +187,13 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 	}
 
 	return errors
+}
+
+func findStringInSlice(slice []string, val string) bool {
+	for _, item := range slice {
+		if strings.EqualFold(item, val) {
+			return true
+		}
+	}
+	return false
 }
