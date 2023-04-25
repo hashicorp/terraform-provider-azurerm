@@ -1,4 +1,4 @@
-package mssql_test
+package mssqlmanagedinstance_test
 
 import (
 	"fmt"

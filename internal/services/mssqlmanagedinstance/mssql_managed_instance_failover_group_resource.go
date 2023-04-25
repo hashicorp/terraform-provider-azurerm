@@ -1,4 +1,4 @@
-package mssql
+package mssqlmanagedinstance
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -53,7 +53,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) ModelObject() interface{} {
 }
 
 func (r MsSqlManagedInstanceFailoverGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.InstanceFailoverGroupID
+	return validate.ManagedInstanceFailoverGroupID
 }
 
 func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
@@ -62,7 +62,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*plugi
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ValidateMsSqlFailoverGroupName,
+			ValidateFunc: validate.ValidateMsSqlManagedInstanceFailoverGroupName,
 		},
 
 		"location": commonschema.Location(),
@@ -141,8 +141,8 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.InstanceFailoverGroupsClient
-			instancesClient := metadata.Client.MSSQL.ManagedInstancesClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient
+			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 
 			var model MsSqlManagedInstanceFailoverGroupModel
 			if err := metadata.Decode(&model); err != nil {
@@ -231,8 +231,8 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.InstanceFailoverGroupsClient
-			instancesClient := metadata.Client.MSSQL.ManagedInstancesClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient
+			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 
 			id, err := parse.InstanceFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {
@@ -312,7 +312,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.InstanceFailoverGroupsClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient
 
 			id, err := parse.InstanceFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {
@@ -405,7 +405,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.InstanceFailoverGroupsClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient
 
 			id, err := parse.InstanceFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {

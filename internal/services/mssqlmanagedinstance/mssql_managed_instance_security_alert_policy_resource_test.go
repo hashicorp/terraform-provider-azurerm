@@ -1,4 +1,4 @@
-package mssql_test
+package mssqlmanagedinstance_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -58,7 +58,7 @@ func (MsSqlManagedInstanceSecurityAlertPolicyResource) Exists(ctx context.Contex
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.ManagedInstanceServerSecurityAlertPoliciesClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName)
+	resp, err := client.MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, fmt.Errorf("SQL Managed Instance Security Alert Policy for server %q (Resource Group %q) does not exist", id.ManagedInstanceName, id.ResourceGroup)

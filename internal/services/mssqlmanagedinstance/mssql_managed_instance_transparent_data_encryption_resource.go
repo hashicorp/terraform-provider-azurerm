@@ -1,4 +1,4 @@
-package mssql
+package mssqlmanagedinstance
 
 import (
 	"fmt"
@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	mssqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -43,7 +43,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryption() *pluginsdk.Resource
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: mssqlValidate.ManagedInstanceID,
+				ValidateFunc: validate.ManagedInstanceID,
 			},
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
@@ -60,8 +60,8 @@ func resourceMsSqlManagedInstanceTransparentDataEncryption() *pluginsdk.Resource
 }
 
 func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	encryptionProtectorClient := meta.(*clients.Client).MSSQL.ManagedInstanceEncryptionProtectorClient
-	managedInstanceKeysClient := meta.(*clients.Client).MSSQL.ManagedInstanceKeysClient
+	encryptionProtectorClient := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceEncryptionProtectorClient
+	managedInstanceKeysClient := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceKeysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -167,7 +167,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *plugin
 }
 
 func resourceMsSqlManagedInstanceTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	encryptionProtectorClient := meta.(*clients.Client).MSSQL.ManagedInstanceEncryptionProtectorClient
+	encryptionProtectorClient := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceEncryptionProtectorClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -222,7 +222,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionDelete(d *pluginsdk.Re
 	// and SystemManaged. For safety, when this resource is deleted, we're resetting the key type
 	// to service managed to prevent accidental lockout if someone were to delete the keys from key vault
 
-	encryptionProtectorClient := meta.(*clients.Client).MSSQL.ManagedInstanceEncryptionProtectorClient
+	encryptionProtectorClient := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceEncryptionProtectorClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -79,6 +79,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
@@ -157,6 +158,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		monitor.Registration{},
 		mobilenetwork.Registration{},
 		mssql.Registration{},
+		mssqlmanagedinstance.Registration{},
 		network.Registration{},
 		nginx.Registration{},
 		policy.Registration{},
@@ -252,6 +254,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			monitor.Registration{},
 			managedidentity.Registration{},
 			mssql.Registration{},
+			mssqlmanagedinstance.Registration{},
 			mysql.Registration{},
 			netapp.Registration{},
 			network.Registration{},

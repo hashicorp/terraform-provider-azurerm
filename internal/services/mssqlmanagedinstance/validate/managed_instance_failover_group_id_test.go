@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestInstanceFailoverGroupID(t *testing.T) {
+func TestManagedInstanceFailoverGroupID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -53,13 +53,13 @@ func TestInstanceFailoverGroupID(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing InstanceFailoverGroupName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/locations/Location/",
 			Valid: false,
 		},
 
 		{
-			// missing value for Name
+			// missing value for InstanceFailoverGroupName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/locations/Location/instanceFailoverGroups/",
 			Valid: false,
 		},
@@ -78,7 +78,7 @@ func TestInstanceFailoverGroupID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := InstanceFailoverGroupID(tc.Input, "test")
+		_, errors := ManagedInstanceFailoverGroupID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
