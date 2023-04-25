@@ -37,8 +37,6 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Attestation Provider should exist. Changing this forces a new resource to be created.
 
--> **NOTE:** Currently only supported in the `East US 2`, `West Central US`, and `UK South` regions.
-
 * `policy_signing_certificate_data` - (Optional) A valid X.509 certificate (Section 4 of [RFC4648](https://tools.ietf.org/html/rfc4648)). Changing this forces a new resource to be created.
 
 -> **NOTE:** If the `policy_signing_certificate_data` argument contains more than one valid X.509 certificate only the first certificate will be used.
