@@ -745,14 +745,15 @@ func flattenBackupProtectionPolicyVMWorkloadSchedulePolicy(input protectionpolic
 
 	backupBlock := Backup{}
 
+	schedulePtr := *input.(*protectionpolicies.SchedulePolicy)
 	if policyType == protectionpolicies.PolicyTypeLog {
-		logSchedulePolicy, _ := input.(protectionpolicies.LogSchedulePolicy)
+		logSchedulePolicy, _ := schedulePtr.(protectionpolicies.LogSchedulePolicy)
 
 		if v := logSchedulePolicy.ScheduleFrequencyInMins; v != nil {
 			backupBlock.FrequencyInMinutes = *v
 		}
 	} else {
-		simpleSchedulePolicy, _ := input.(protectionpolicies.SimpleSchedulePolicy)
+		simpleSchedulePolicy, _ := schedulePtr.(protectionpolicies.SimpleSchedulePolicy)
 
 		backupBlock.Frequency = string(pointer.From(simpleSchedulePolicy.ScheduleRunFrequency))
 

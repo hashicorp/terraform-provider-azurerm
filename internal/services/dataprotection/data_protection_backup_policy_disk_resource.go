@@ -338,7 +338,8 @@ func flattenBackupPolicyDiskBackupRuleArray(input []backuppolicies.BasePolicyRul
 	for _, item := range input {
 		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
 			if backupRule.Trigger != nil {
-				if scheduleBasedTrigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
+				triggerPtr := *backupRule.Trigger.(*backuppolicies.TriggerContext)
+				if scheduleBasedTrigger, ok := triggerPtr.(backuppolicies.ScheduleBasedTriggerContext); ok {
 					return utils.FlattenStringSlice(&scheduleBasedTrigger.Schedule.RepeatingTimeIntervals)
 				}
 			}
@@ -350,8 +351,9 @@ func flattenBackupPolicyDiskBackupRuleArray(input []backuppolicies.BasePolicyRul
 func flattenBackupPolicyDiskDefaultRetentionRuleDuration(input []backuppolicies.BasePolicyRule) interface{} {
 	for _, item := range input {
 		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
-			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
+			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 && retentionRule.Lifecycles[0].DeleteAfter != nil {
+				deleteOptionPtr := *retentionRule.Lifecycles[0].DeleteAfter.(*backuppolicies.DeleteOption)
+				if deleteOption, ok := deleteOptionPtr.(backuppolicies.AbsoluteDeleteOption); ok {
 					return deleteOption.Duration
 				}
 			}
@@ -364,8 +366,9 @@ func flattenBackupPolicyDiskRetentionRuleArray(input []backuppolicies.BasePolicy
 	results := make([]interface{}, 0)
 	var taggingCriterias []backuppolicies.TaggingCriteria
 	for _, item := range input {
-		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
-			if trigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
+		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok && backupRule.Trigger != nil {
+			backupRulePtr := *backupRule.Trigger.(*backuppolicies.TriggerContext)
+			if trigger, ok := backupRulePtr.(backuppolicies.ScheduleBasedTriggerContext); ok {
 				if trigger.TaggingCriteria != nil {
 					taggingCriterias = trigger.TaggingCriteria
 				}
@@ -385,8 +388,9 @@ func flattenBackupPolicyDiskRetentionRuleArray(input []backuppolicies.BasePolicy
 				}
 			}
 			var duration string
-			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
+			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 && retentionRule.Lifecycles[0].DeleteAfter != nil {
+				deleteOptionPtr := *retentionRule.Lifecycles[0].DeleteAfter.(*backuppolicies.DeleteOption)
+				if deleteOption, ok := deleteOptionPtr.(backuppolicies.AbsoluteDeleteOption); ok {
 					duration = deleteOption.Duration
 				}
 			}
