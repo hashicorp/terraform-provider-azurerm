@@ -85,7 +85,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 
 	dataDisksRaw := d.Get("data_disk").([]interface{})
 	ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
-	dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw, ultraSSDEnabled)
+	dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(d, dataDisksRaw, ultraSSDEnabled)
 	if err != nil {
 		return fmt.Errorf("expanding `data_disk`: %+v", err)
 	}
@@ -612,7 +612,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 		if d.HasChange("data_disk") {
 			ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
-			dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(d.Get("data_disk").([]interface{}), ultraSSDEnabled)
+			dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(d, d.Get("data_disk").([]interface{}), ultraSSDEnabled)
 			if err != nil {
 				return fmt.Errorf("expanding `data_disk`: %+v", err)
 			}

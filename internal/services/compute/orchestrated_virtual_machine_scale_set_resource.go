@@ -549,7 +549,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	if v, ok := d.GetOk("data_disk"); ok {
 		ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
-		dataDisks, err := ExpandOrchestratedVirtualMachineScaleSetDataDisk(v.([]interface{}), ultraSSDEnabled)
+		dataDisks, err := ExpandOrchestratedVirtualMachineScaleSetDataDisk(d, v.([]interface{}), ultraSSDEnabled)
 		if err != nil {
 			return fmt.Errorf("expanding `data_disk`: %+v", err)
 		}
@@ -927,7 +927,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 			if d.HasChange("data_disk") {
 				ultraSSDEnabled := false // Currently not supported in orchestrated vmss
-				dataDisks, err := ExpandOrchestratedVirtualMachineScaleSetDataDisk(d.Get("data_disk").([]interface{}), ultraSSDEnabled)
+				dataDisks, err := ExpandOrchestratedVirtualMachineScaleSetDataDisk(d, d.Get("data_disk").([]interface{}), ultraSSDEnabled)
 				if err != nil {
 					return fmt.Errorf("expanding `data_disk`: %+v", err)
 				}
