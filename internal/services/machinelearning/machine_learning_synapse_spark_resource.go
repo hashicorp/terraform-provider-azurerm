@@ -7,10 +7,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
@@ -117,15 +116,15 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	var compute machinelearningcomputes.Compute = machinelearningcomputes.SynapseSpark{
 		Properties:       nil,
-		ComputeLocation:  utils.String(d.Get("location").(string)),
-		Description:      utils.String(d.Get("description").(string)),
-		ResourceId:       utils.String(d.Get("synapse_spark_pool_id").(string)),
-		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
+		ComputeLocation:  pointer.To(d.Get("location").(string)),
+		Description:      pointer.To(d.Get("description").(string)),
+		ResourceId:       pointer.To(d.Get("synapse_spark_pool_id").(string)),
+		DisableLocalAuth: pointer.To(!d.Get("local_auth_enabled").(bool)),
 	}
 	parameters := machinelearningcomputes.ComputeResource{
 		Properties: pointer.To(compute),
 		Identity:   identity,
-		Location:   utils.String(location.Normalize(d.Get("location").(string))),
+		Location:   pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
