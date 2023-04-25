@@ -243,7 +243,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.Any(
-					validation.StringMatch(regexp.MustCompile(`^UserAssignedIdentity(.)+$`), "user assigned identities must be in the format of: 'UserAssignedIdentity=/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{userAssignedIdentityName}'"),
+					validation.StringMatch(regexp.MustCompile(`^UserAssignedIdentity(.)+$`), "user assigned identity must be in the format of: 'UserAssignedIdentity=/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{userAssignedIdentityName}'"),
 					validation.StringInSlice([]string{
 						"FirstPartyIdentity",
 						"SystemAssignedIdentity",
