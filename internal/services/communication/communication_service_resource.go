@@ -129,7 +129,7 @@ func (r CommunicationServiceResource) Create() sdk.ResourceFunc {
 				},
 				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
 			}
-			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
+			if _, err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
