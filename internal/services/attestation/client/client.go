@@ -44,7 +44,7 @@ func (c *Client) DataPlaneEndpointForProvider(ctx context.Context, id attestatio
 		dataPlaneUri = *model.Properties.AttestUri
 	}
 	if dataPlaneUri == "" {
-		return nil, fmt.Errorf("retrieving %s: unable to determing the Data Plane URI `model.Properties.AttestUri` was nil", id)
+		return nil, fmt.Errorf("retrieving %s: unable to determining the Data Plane URI `model.Properties.AttestUri` was nil", id)
 	}
 	return &dataPlaneUri, nil
 }
