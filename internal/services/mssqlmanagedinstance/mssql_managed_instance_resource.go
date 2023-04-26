@@ -1,4 +1,4 @@
-package mssql
+package mssqlmanagedinstance
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -73,7 +73,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ValidateMsSqlServerName,
+			ValidateFunc: validate.ValidateMsSqlManagedInstanceServerName,
 		},
 
 		"location": commonschema.Location(),
@@ -264,7 +264,7 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 24 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.ManagedInstancesClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model MsSqlManagedInstanceModel
@@ -346,7 +346,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 24 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.ManagedInstancesClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 
 			id, err := parse.ManagedInstanceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -418,7 +418,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.ManagedInstancesClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 
 			id, err := parse.ManagedInstanceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -506,7 +506,7 @@ func (r MsSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 24 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.ManagedInstancesClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 
 			id, err := parse.ManagedInstanceID(metadata.ResourceData.Id())
 			if err != nil {

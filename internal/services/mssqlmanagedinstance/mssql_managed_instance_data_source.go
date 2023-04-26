@@ -1,4 +1,4 @@
-package mssql
+package mssqlmanagedinstance
 
 import (
 	"context"
@@ -155,7 +155,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.ManagedInstancesClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state MsSqlManagedInstanceDataSourceModel

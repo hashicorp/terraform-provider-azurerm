@@ -1,4 +1,4 @@
-package mssql
+package mssqlmanagedinstance
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -106,7 +106,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicy() *pluginsdk.Resource {
 }
 
 func resourceMsSqlManagedInstanceSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.ManagedInstanceServerSecurityAlertPoliciesClient
+	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,7 +144,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyCreate(d *pluginsdk.Resource
 }
 
 func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.ManagedInstanceServerSecurityAlertPoliciesClient
+	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -228,7 +228,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 }
 
 func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.ManagedInstanceServerSecurityAlertPoliciesClient
+	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -299,7 +299,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 }
 
 func resourceMsSqlManagedInstanceSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.ManagedInstanceServerSecurityAlertPoliciesClient
+	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

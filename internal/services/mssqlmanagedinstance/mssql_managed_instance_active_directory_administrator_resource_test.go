@@ -1,4 +1,4 @@
-package mssql_test
+package mssqlmanagedinstance_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -46,7 +46,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Exists(ctx con
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.ManagedInstanceAdministratorsClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName)
+	resp, err := client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

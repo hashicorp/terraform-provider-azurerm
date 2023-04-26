@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = InstanceFailoverGroupId{}
+var _ resourceids.Id = ManagedInstanceFailoverGroupId{}
 
-func TestInstanceFailoverGroupIDFormatter(t *testing.T) {
-	actual := NewInstanceFailoverGroupID("12345678-1234-9876-4563-123456789012", "resGroup1", "Location", "failoverGroup1").ID()
+func TestManagedInstanceFailoverGroupIDFormatter(t *testing.T) {
+	actual := NewManagedInstanceFailoverGroupID("12345678-1234-9876-4563-123456789012", "resGroup1", "Location", "failoverGroup1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/locations/Location/instanceFailoverGroups/failoverGroup1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestInstanceFailoverGroupID(t *testing.T) {
+func TestManagedInstanceFailoverGroupID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *InstanceFailoverGroupId
+		Expected *ManagedInstanceFailoverGroupId
 	}{
 
 		{
@@ -68,13 +68,13 @@ func TestInstanceFailoverGroupID(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing InstanceFailoverGroupName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/locations/Location/",
 			Error: true,
 		},
 
 		{
-			// missing value for Name
+			// missing value for InstanceFailoverGroupName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/locations/Location/instanceFailoverGroups/",
 			Error: true,
 		},
@@ -82,11 +82,11 @@ func TestInstanceFailoverGroupID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/locations/Location/instanceFailoverGroups/failoverGroup1",
-			Expected: &InstanceFailoverGroupId{
-				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resGroup1",
-				LocationName:   "Location",
-				Name:           "failoverGroup1",
+			Expected: &ManagedInstanceFailoverGroupId{
+				SubscriptionId:            "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:             "resGroup1",
+				LocationName:              "Location",
+				InstanceFailoverGroupName: "failoverGroup1",
 			},
 		},
 
@@ -100,7 +100,7 @@ func TestInstanceFailoverGroupID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := InstanceFailoverGroupID(v.Input)
+		actual, err := ManagedInstanceFailoverGroupID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -121,8 +121,8 @@ func TestInstanceFailoverGroupID(t *testing.T) {
 		if actual.LocationName != v.Expected.LocationName {
 			t.Fatalf("Expected %q but got %q for LocationName", v.Expected.LocationName, actual.LocationName)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.InstanceFailoverGroupName != v.Expected.InstanceFailoverGroupName {
+			t.Fatalf("Expected %q but got %q for InstanceFailoverGroupName", v.Expected.InstanceFailoverGroupName, actual.InstanceFailoverGroupName)
 		}
 	}
 }

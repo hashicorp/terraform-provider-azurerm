@@ -5,7 +5,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 )
 
 func ManagedInstanceAzureActiveDirectoryAdministratorID(input interface{}, key string) (warnings []string, errors []error) {

@@ -1,4 +1,4 @@
-package mssql
+package mssqlmanagedinstance
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -83,8 +83,8 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.ManagedInstanceAdministratorsClient
-			aadAuthOnlyClient := metadata.Client.MSSQL.ManagedInstanceAzureADOnlyAuthenticationsClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient
+			aadAuthOnlyClient := metadata.Client.MSSQLManagedInstance.ManagedInstanceAzureADOnlyAuthenticationsClient
 
 			var model MsSqlManagedInstanceActiveDirectoryAdministratorModel
 			if err := metadata.Decode(&model); err != nil {
@@ -165,8 +165,8 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.ManagedInstanceAdministratorsClient
-			aadAuthOnlyClient := metadata.Client.MSSQL.ManagedInstanceAzureADOnlyAuthenticationsClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient
+			aadAuthOnlyClient := metadata.Client.MSSQLManagedInstance.ManagedInstanceAzureADOnlyAuthenticationsClient
 
 			id, err := parse.ManagedInstanceAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
 			if err != nil {
@@ -233,8 +233,8 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.ManagedInstanceAdministratorsClient
-			aadAuthOnlyClient := metadata.Client.MSSQL.ManagedInstanceAzureADOnlyAuthenticationsClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient
+			aadAuthOnlyClient := metadata.Client.MSSQLManagedInstance.ManagedInstanceAzureADOnlyAuthenticationsClient
 
 			id, err := parse.ManagedInstanceAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
 			if err != nil {
@@ -292,7 +292,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.R
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.ManagedInstanceAdministratorsClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient
 
 			id, err := parse.ManagedInstanceAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
 			if err != nil {

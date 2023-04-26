@@ -1,4 +1,4 @@
-package mssql
+package mssqlmanagedinstance
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -53,7 +53,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ValidateMsSqlDatabaseName,
+			ValidateFunc: validate.ValidateMsSqlManagedInstanceDatabaseName,
 		},
 
 		"managed_instance_id": {
@@ -82,10 +82,10 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.ManagedDatabasesClient
-			instancesClient := metadata.Client.MSSQL.ManagedInstancesClient
-			longTermRetentionClient := metadata.Client.MSSQL.ManagedInstancesLongTermRetentionPoliciesClient
-			shortTermRetentionClient := metadata.Client.MSSQL.ManagedInstancesShortTermRetentionPoliciesClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedDatabasesClient
+			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
+			longTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesLongTermRetentionPoliciesClient
+			shortTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesShortTermRetentionPoliciesClient
 
 			var model MsSqlManagedDatabaseModel
 			if err := metadata.Decode(&model); err != nil {
@@ -170,8 +170,8 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			longTermRetentionClient := metadata.Client.MSSQL.ManagedInstancesLongTermRetentionPoliciesClient
-			shortTermRetentionClient := metadata.Client.MSSQL.ManagedInstancesShortTermRetentionPoliciesClient
+			longTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesLongTermRetentionPoliciesClient
+			shortTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesShortTermRetentionPoliciesClient
 
 			var model MsSqlManagedDatabaseModel
 			if err := metadata.Decode(&model); err != nil {
@@ -225,9 +225,9 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.ManagedDatabasesClient
-			longTermRetentionClient := metadata.Client.MSSQL.ManagedInstancesLongTermRetentionPoliciesClient
-			shortTermRetentionClient := metadata.Client.MSSQL.ManagedInstancesShortTermRetentionPoliciesClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedDatabasesClient
+			longTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesLongTermRetentionPoliciesClient
+			shortTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesShortTermRetentionPoliciesClient
 
 			id, err := parse.ManagedDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
@@ -280,7 +280,7 @@ func (r MsSqlManagedDatabaseResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.ManagedDatabasesClient
+			client := metadata.Client.MSSQLManagedInstance.ManagedDatabasesClient
 
 			id, err := parse.ManagedDatabaseID(metadata.ResourceData.Id())
 			if err != nil {

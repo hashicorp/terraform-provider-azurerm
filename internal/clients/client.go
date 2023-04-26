@@ -92,6 +92,7 @@ import (
 	mobilenetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	mssql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
+	mssqlmanagedinstance "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
 	mysql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
 	netapp "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	network "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
@@ -217,6 +218,7 @@ type Client struct {
 	Monitor               *monitor.Client
 	MobileNetwork         *mobilenetwork.Client
 	MSSQL                 *mssql.Client
+	MSSQLManagedInstance  *mssqlmanagedinstance.Client
 	MySQL                 *mysql.Client
 	NetApp                *netapp.Client
 	Network               *network.Client
