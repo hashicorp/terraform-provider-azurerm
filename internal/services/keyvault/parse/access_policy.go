@@ -2,8 +2,8 @@ package parse
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
