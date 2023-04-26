@@ -523,6 +523,10 @@ func (r CosmosDbPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 			}
 
 			if props := model.Properties; props != nil {
+				state.AdministratorLoginPassword = metadata.ResourceData.Get("administrator_login_password").(string)
+				state.SourceResourceId = metadata.ResourceData.Get("source_resource_id").(string)
+				state.SourceLocation = metadata.ResourceData.Get("source_location").(string)
+				state.PointInTimeInUTC = metadata.ResourceData.Get("point_in_time_in_utc").(string)
 				state.CoordinatorPublicIPAccessEnabled = pointer.From(props.CoordinatorEnablePublicIPAccess)
 				state.CoordinatorServerEdition = pointer.From(props.CoordinatorServerEdition)
 				state.CoordinatorStorageQuotaInMb = pointer.From(props.CoordinatorStorageQuotaInMb)
@@ -576,7 +580,7 @@ func (r CosmosDbPostgreSQLClusterResource) Delete() sdk.ResourceFunc {
 func expandMaintenanceWindow(input []MaintenanceWindow) *clusters.MaintenanceWindow {
 	if len(input) == 0 {
 		return &clusters.MaintenanceWindow{
-			CustomWindow: utils.String("Disabled"),
+			CustomWindow: pointer.To("Disabled"),
 		}
 	}
 

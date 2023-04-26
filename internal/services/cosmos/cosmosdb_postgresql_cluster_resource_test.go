@@ -28,7 +28,7 @@ func TestAccCosmosDbPostgreSQLCluster_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password"),
+		data.ImportStep(),
 	})
 }
 
