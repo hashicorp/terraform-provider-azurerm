@@ -26,6 +26,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_attestation_provider` - the field `policy` is deprecated and non-functional - instead please use the fields  `open_enclave_policy_base64`, `sgx_enclave_policy_base64` and `tpm_policy_base64` [GH-21524]
+* `azurerm_mysql_flexible_server` - fix issue where `identity` was not being removed properly on updates [GH-21533]
 
 ## 3.53.0 (April 20, 2023)
 
