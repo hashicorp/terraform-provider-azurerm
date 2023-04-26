@@ -4,6 +4,15 @@ FEATURES:
 
 * **New Resource:** `azurerm_storage_mover_project` [GH-21477]
 
+ENHANCEMENTS:
+
+* `security`: updating to API Version `2023-01-01` [GH-21531]
+* Data Source: `azurerm_virtual_network_gateway` - add support for the `private_ip_address` property [GH-21432]
+* `azurerm_kubernetes_cluster` - add support for the `service_mesh_profile` block [GH-21516]
+* `azurerm_billing_account_cost_management_export` - add support for the value `TheLast7Days` for the property `time_frame` [GH-21528]
+* `azurerm_resource_group_cost_management_export` - add support for the value `TheLast7Days` for the property `time_frame` [GH-21528]
+* `azurerm_subscription_cost_management_export` - add support for the value `TheLast7Days` for the property `time_frame` [GH-21528]
+
 ## 3.53.0 (April 20, 2023)
 
 FEATURES:
