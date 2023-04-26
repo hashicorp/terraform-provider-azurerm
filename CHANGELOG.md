@@ -13,15 +13,15 @@ FEATURES:
 ENHANCEMENTS:
 
 * `security`: updating to API Version `2023-01-01` [GH-21531]
-* Data Source: `azurerm_virtual_network_gateway` - add support for the `private_ip_address` property [GH-21432]
+* Data Source: `azurerm_virtual_network_gateway` - add support for the field `private_ip_address` [GH-21432]
 * `azurerm_attestation_provider` - adding support for the field `open_enclave_policy_base64`, `sgx_enclave_policy_base64` and `tpm_policy_base64` [GH-21524]
 * `azurerm_attestation_provider` - adding support for the field `sgx_enclave_policy_base64` [GH-21524]
 * `azurerm_attestation_provider` - adding support for the field `tpm_policy_base64` [GH-21524]
-* `azurerm_firewall_policy_rule_collection_group` - the fields `source_addresses` and `destination_addresses` now accept IPv4 ranges [GH-21542]
+* `azurerm_billing_account_cost_management_export` - the field `time_frame` can now be set to `TheLast7Days` [GH-21528]
+* `azurerm_firewall_policy_rule_collection_group` - the fields `source_addresses` and `destination_addresses` now accepts an IPv4 range [GH-21542]
 * `azurerm_kubernetes_cluster` - add support for the `service_mesh_profile` block [GH-21516]
-* `azurerm_billing_account_cost_management_export` - add support for the value `TheLast7Days` for the property `time_frame` [GH-21528]
-* `azurerm_resource_group_cost_management_export` - add support for the value `TheLast7Days` for the property `time_frame` [GH-21528]
-* `azurerm_subscription_cost_management_export` - add support for the value `TheLast7Days` for the property `time_frame` [GH-21528]
+* `azurerm_resource_group_cost_management_export` - the field `time_frame` can now be set to `TheLast7Days` [GH-21528]
+* `azurerm_subscription_cost_management_export` - the field `time_frame` can now be set to `TheLast7Days` [GH-21528]
 
 BUG FIXES:
 
