@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -71,7 +71,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ClusterName,
+			ValidateFunc: validation.StringLenBetween(1, 260),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -82,7 +82,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ValidateFunc: validate.AdministratorLoginPassword,
+			ValidateFunc: validation.StringLenBetween(8, 256),
 		},
 
 		"coordinator_storage_quota_in_mb": {
@@ -523,40 +523,24 @@ func (r CosmosDbPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 			}
 
 			if props := model.Properties; props != nil {
-				state.AdministratorLoginPassword = metadata.ResourceData.Get("administrator_login_password").(string)
-				state.SourceResourceId = metadata.ResourceData.Get("source_resource_id").(string)
-				state.SourceLocation = metadata.ResourceData.Get("source_location").(string)
-				state.PointInTimeInUTC = metadata.ResourceData.Get("point_in_time_in_utc").(string)
-				state.CoordinatorPublicIPAccessEnabled = *props.CoordinatorEnablePublicIPAccess
-				state.CoordinatorServerEdition = *props.CoordinatorServerEdition
-				state.CoordinatorStorageQuotaInMb = *props.CoordinatorStorageQuotaInMb
-				state.CoordinatorVCoreCount = *props.CoordinatorVCores
-				state.HaEnabled = *props.EnableHa
-				state.NodeCount = *props.NodeCount
-				state.NodePublicIPAccessEnabled = *props.NodeEnablePublicIPAccess
-				state.NodeServerEdition = *props.NodeServerEdition
-				state.NodeStorageQuotaInMb = *props.NodeStorageQuotaInMb
-				state.NodeVCores = *props.NodeVCores
-				state.ShardsOnCoordinatorEnabled = *props.EnableShardsOnCoordinator
-
-				if v := props.CitusVersion; v != nil {
-					state.CitusVersion = *v
-				}
+				state.CoordinatorPublicIPAccessEnabled = pointer.From(props.CoordinatorEnablePublicIPAccess)
+				state.CoordinatorServerEdition = pointer.From(props.CoordinatorServerEdition)
+				state.CoordinatorStorageQuotaInMb = pointer.From(props.CoordinatorStorageQuotaInMb)
+				state.CoordinatorVCoreCount = pointer.From(props.CoordinatorVCores)
+				state.HaEnabled = pointer.From(props.EnableHa)
+				state.NodeCount = pointer.From(props.NodeCount)
+				state.NodePublicIPAccessEnabled = pointer.From(props.NodeEnablePublicIPAccess)
+				state.NodeServerEdition = pointer.From(props.NodeServerEdition)
+				state.NodeStorageQuotaInMb = pointer.From(props.NodeStorageQuotaInMb)
+				state.NodeVCores = pointer.From(props.NodeVCores)
+				state.ShardsOnCoordinatorEnabled = pointer.From(props.EnableShardsOnCoordinator)
+				state.CitusVersion = pointer.From(props.CitusVersion)
+				state.PreferredPrimaryZone = pointer.From(props.PreferredPrimaryZone)
+				state.SqlVersion = pointer.From(props.PostgresqlVersion)
+				state.EarliestRestoreTime = pointer.From(props.EarliestRestoreTime)
 
 				if v := props.MaintenanceWindow; v != nil {
 					state.MaintenanceWindow = flattenMaintenanceWindow(v)
-				}
-
-				if v := props.PreferredPrimaryZone; v != nil {
-					state.PreferredPrimaryZone = *v
-				}
-
-				if v := props.PostgresqlVersion; v != nil {
-					state.SqlVersion = *v
-				}
-
-				if v := props.EarliestRestoreTime; v != nil {
-					state.EarliestRestoreTime = *v
 				}
 			}
 
@@ -599,10 +583,10 @@ func expandMaintenanceWindow(input []MaintenanceWindow) *clusters.MaintenanceWin
 	v := input[0]
 
 	maintenanceWindow := clusters.MaintenanceWindow{
-		CustomWindow: utils.String("Enabled"),
-		StartHour:    utils.Int64(v.StartHour),
-		StartMinute:  utils.Int64(v.StartMinute),
-		DayOfWeek:    utils.Int64(v.DayOfWeek),
+		CustomWindow: pointer.To("Enabled"),
+		StartHour:    pointer.To(v.StartHour),
+		StartMinute:  pointer.To(v.StartMinute),
+		DayOfWeek:    pointer.To(v.DayOfWeek),
 	}
 
 	return &maintenanceWindow
@@ -613,19 +597,11 @@ func flattenMaintenanceWindow(input *clusters.MaintenanceWindow) []MaintenanceWi
 		return nil
 	}
 
-	result := MaintenanceWindow{}
-
-	if input.DayOfWeek != nil {
-		result.DayOfWeek = *input.DayOfWeek
+	return []MaintenanceWindow{
+		{
+			DayOfWeek:   pointer.From(input.DayOfWeek),
+			StartHour:   pointer.From(input.StartHour),
+			StartMinute: pointer.From(input.StartMinute),
+		},
 	}
-
-	if input.StartHour != nil {
-		result.StartHour = *input.StartHour
-	}
-
-	if input.StartMinute != nil {
-		result.StartMinute = *input.StartMinute
-	}
-
-	return []MaintenanceWindow{result}
 }
