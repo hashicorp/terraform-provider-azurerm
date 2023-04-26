@@ -3,12 +3,12 @@ subcategory: "Attestation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_attestation_provider"
 description: |-
-  Manages a Attestation Provider.
+  Manages an Attestation Provider.
 ---
 
 # azurerm_attestation_provider
 
-Manages a Attestation Provider.
+Manages an Attestation Provider.
 
 ## Example Usage
 
@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_attestation_provider" "example" {
-  name                = "attestationprovider"
+  name                = "exampleprovider"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
@@ -37,25 +37,19 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Attestation Provider should exist. Changing this forces a new resource to be created.
 
--> **NOTE:** Currently only supported in the `East US 2`, `West Central US`, and `UK South` regions.
-
 * `policy_signing_certificate_data` - (Optional) A valid X.509 certificate (Section 4 of [RFC4648](https://tools.ietf.org/html/rfc4648)). Changing this forces a new resource to be created.
 
 -> **NOTE:** If the `policy_signing_certificate_data` argument contains more than one valid X.509 certificate only the first certificate will be used.
 
-* `policy` - (Optional) One or more `policy` blocks as defined below.
+* `open_enclave_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the TPM Policy.
+
+* `sgx_enclave_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the TPM Policy.
+
+* `tpm_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the TPM Policy.
+
+-> [More information on the JWT Policies can be found in this article on `learn.microsoft.com`](https://learn.microsoft.com/azure/attestation/author-sign-policy).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Attestation Provider.
-
----
-
-A `policy` supports the followings:
-
-* `environment_type` - (Required) Specifies the type of the trusted environment to be used. Possible values are `OpenEnclave`, `SgxEnclave` and `Tpm`.
-
--> **NOTE:** Each environment type can have at most one policy to set.
-
-* `data` - (Required) Specifies an RFC 7519 JWT Expressing the new policy. more details see: [How-to-build-a-policy](https://learn.microsoft.com/en-us/azure/attestation/author-sign-policy).
 
 ## Attributes Reference
 
