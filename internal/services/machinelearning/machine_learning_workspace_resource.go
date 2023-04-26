@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	appInsightsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -77,7 +76,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: keyVaultValidate.VaultID,
+				ValidateFunc: commonids.ValidateKeyVaultID,
 				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -137,11 +136,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"key_vault_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: keyVaultValidate.VaultID,
-						},
+						"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
 						"key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,

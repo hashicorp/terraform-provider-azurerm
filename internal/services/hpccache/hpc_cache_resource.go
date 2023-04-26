@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -664,12 +665,12 @@ func storageCacheRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.C
 		return nil, fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultKeyId.KeyVaultBaseUrl)
 	}
 
-	parsedKeyVaultID, err := keyVaultParse.VaultID(*keyVaultID)
+	parsedKeyVaultID, err := commonids.ParseKeyVaultID(*keyVaultID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := keyVaultsClient.VaultsClient.Get(ctx, parsedKeyVaultID.ResourceGroup, parsedKeyVaultID.Name)
+	resp, err := keyVaultsClient.VaultsClient.Get(ctx, parsedKeyVaultID.ResourceGroupName, parsedKeyVaultID.VaultName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *parsedKeyVaultID, err)
 	}
@@ -694,8 +695,8 @@ func storageCacheRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.C
 
 	return &storageCacheKeyVault{
 		keyVaultId:             *keyVaultID,
-		resourceGroupName:      parsedKeyVaultID.ResourceGroup,
-		keyVaultName:           parsedKeyVaultID.Name,
+		resourceGroupName:      parsedKeyVaultID.ResourceGroupName,
+		keyVaultName:           parsedKeyVaultID.VaultName,
 		location:               location,
 		purgeProtectionEnabled: purgeProtectionEnabled,
 		softDeleteEnabled:      softDeleteEnabled,

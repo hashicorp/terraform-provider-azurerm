@@ -31,8 +31,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	}
 }
 
-func (client Client) KeyVaultClientForSubscription(subscriptionId string) *keyvault.VaultsClient {
-	vaultsClient := keyvault.NewVaultsClientWithBaseURI(client.options.ResourceManagerEndpoint, subscriptionId)
-	client.options.ConfigureClient(&vaultsClient.Client, client.options.ResourceManagerAuthorizer)
+func (c Client) KeyVaultClientForSubscription(subscriptionId string) *keyvault.VaultsClient {
+	vaultsClient := keyvault.NewVaultsClientWithBaseURI(c.options.ResourceManagerEndpoint, subscriptionId)
+	c.options.ConfigureClient(&vaultsClient.Client, c.options.ResourceManagerAuthorizer)
 	return &vaultsClient
 }
