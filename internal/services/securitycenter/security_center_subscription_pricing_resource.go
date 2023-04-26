@@ -7,7 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	pricings_v2022_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-03-01/pricings"
+	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
@@ -87,10 +87,10 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 
 	// TODO: add a requires import check ensuring this is != Free (meaning we should likely remove Free as a SKU option?)
 
-	id := pricings_v2022_03_01.NewPricingID(subscriptionId, d.Get("resource_type").(string))
-	pricing := pricings_v2022_03_01.Pricing{
-		Properties: &pricings_v2022_03_01.PricingProperties{
-			PricingTier: pricings_v2022_03_01.PricingTier(d.Get("tier").(string)),
+	id := pricings_v2023_01_01.NewPricingID(subscriptionId, d.Get("resource_type").(string))
+	pricing := pricings_v2023_01_01.Pricing{
+		Properties: &pricings_v2023_01_01.PricingProperties{
+			PricingTier: pricings_v2023_01_01.PricingTier(d.Get("tier").(string)),
 		},
 	}
 
@@ -111,7 +111,7 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := pricings_v2022_03_01.ParsePricingID(d.Id())
+	id, err := pricings_v2023_01_01.ParsePricingID(d.Id())
 	if err != nil {
 		return err
 	}

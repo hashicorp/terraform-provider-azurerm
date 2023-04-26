@@ -97,6 +97,8 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 							string(exports.TimeframeTypeTheLastMonth),
 							string(exports.TimeframeTypeWeekToDate),
 							string(exports.TimeframeTypeMonthToDate),
+							// TODO Use value from SDK after https://github.com/Azure/azure-rest-api-specs/issues/23707 is fixed
+							"TheLast7Days",
 						}, false),
 					},
 				},
