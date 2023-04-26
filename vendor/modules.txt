@@ -451,6 +451,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/capacitypoo
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/netappaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshotpolicy
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshots
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01
