@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/attestation/2020-10-01/attestation"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -22,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/attestation/2022-08-01/attestation"
 )
 
 func resourceAttestationProvider() *pluginsdk.Resource {
@@ -173,17 +173,17 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v := d.Get("open_enclave_policy_base64"); v != "" {
-		if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.OpenEnclave, d.Get("open_enclave_policy_base64").(string)); err != nil {
+		if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.TypeOpenEnclave, d.Get("open_enclave_policy_base64").(string)); err != nil {
 			return fmt.Errorf("updating value for `open_enclave_policy_base64`: %+v", err)
 		}
 	}
 	if v := d.Get("sgx_enclave_policy_base64"); v != "" {
-		if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.SgxEnclave, d.Get("sgx_enclave_policy_base64").(string)); err != nil {
+		if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.TypeSgxEnclave, d.Get("sgx_enclave_policy_base64").(string)); err != nil {
 			return fmt.Errorf("updating value for `sgx_enclave_policy_base64`: %+v", err)
 		}
 	}
 	if v := d.Get("tpm_policy_base64"); v != "" {
-		if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.Tpm, d.Get("tpm_policy_base64").(string)); err != nil {
+		if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.TypeTpm, d.Get("tpm_policy_base64").(string)); err != nil {
 			return fmt.Errorf("updating value for `tpm_policy_base64`: %+v", err)
 		}
 	}
@@ -221,15 +221,15 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	// Status=400 Code="Bad request" Message="Tpm attestation is not supported in the 'UKSouth' region"
-	openEnclavePolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.OpenEnclave)
+	openEnclavePolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeOpenEnclave)
 	if err != nil && !utils.ResponseWasBadRequest(openEnclavePolicy.Response) {
 		return fmt.Errorf("retrieving OpenEnclave Policy for %s: %+v", *id, err)
 	}
-	sgxEnclavePolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.SgxEnclave)
+	sgxEnclavePolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeSgxEnclave)
 	if err != nil && !utils.ResponseWasBadRequest(sgxEnclavePolicy.Response) {
 		return fmt.Errorf("retrieving SgxEnclave Policy for %s: %+v", *id, err)
 	}
-	tpmPolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.Tpm)
+	tpmPolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeTpm)
 	if err != nil && !utils.ResponseWasBadRequest(tpmPolicy.Response) {
 		return fmt.Errorf("retrieving Tpm Policy for %s: %+v", *id, err)
 	}
@@ -307,17 +307,17 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if d.HasChange("open_enclave_policy_base64") {
-			if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.OpenEnclave, d.Get("open_enclave_policy_base64").(string)); err != nil {
+			if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.TypeOpenEnclave, d.Get("open_enclave_policy_base64").(string)); err != nil {
 				return fmt.Errorf("updating value for `open_enclave_policy_base64`: %+v", err)
 			}
 		}
 		if d.HasChange("sgx_enclave_policy_base64") {
-			if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.SgxEnclave, d.Get("sgx_enclave_policy_base64").(string)); err != nil {
+			if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.TypeSgxEnclave, d.Get("sgx_enclave_policy_base64").(string)); err != nil {
 				return fmt.Errorf("updating value for `sgx_enclave_policy_base64`: %+v", err)
 			}
 		}
 		if d.HasChange("tpm_policy_base64") {
-			if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.Tpm, d.Get("tpm_policy_base64").(string)); err != nil {
+			if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.TypeTpm, d.Get("tpm_policy_base64").(string)); err != nil {
 				return fmt.Errorf("updating value for `tpm_policy_base64`: %+v", err)
 			}
 		}
