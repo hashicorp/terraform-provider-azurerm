@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/adminkeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/querykeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -91,10 +90,10 @@ func resourceSearchService() *pluginsdk.Resource {
 				}),
 			},
 
-			"local_authentication_disabled": {
+			"local_authentication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"authentication_failure_mode": {
@@ -110,7 +109,7 @@ func resourceSearchService() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  services.HostingModeDefault,
+				Default:  string(services.HostingModeDefault),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(services.HostingModeDefault),
 					string(services.HostingModeHighDensity),
@@ -121,11 +120,6 @@ func resourceSearchService() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
-			},
-
-			"customer_managed_key_enforcement_compliance": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
 			},
 
 			"primary_key": {
@@ -184,7 +178,7 @@ func resourceSearchService() *pluginsdk.Resource {
 func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Search.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := services.NewSearchServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -198,8 +192,6 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return tf.ImportAsExistsError("azurerm_search_service", id.ID())
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
 	publicNetworkAccess := services.PublicNetworkAccessEnabled
 	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
 		publicNetworkAccess = services.PublicNetworkAccessDisabled
@@ -210,7 +202,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
 	hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
 	cmkEnforcementEnabled := d.Get("customer_managed_key_enforcement_enabled").(bool)
-	localAuthenticationDisabled := d.Get("local_authentication_disabled").(bool)
+	localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
 	authenticationFailureMode := d.Get("authentication_failure_mode").(string)
 
 	cmkEnforcement := services.SearchEncryptionWithCmkDisabled
@@ -220,20 +212,20 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	// NOTE: hosting mode is only valid if the SKU is 'standard3'
 	if skuName != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
-		return fmt.Errorf("'hosting_mode' can only be defined if the 'sku' field is set to the 'standard3' SKU, got %q", skuName)
+		return fmt.Errorf("'hosting_mode' can only be defined if the 'sku' field is set to the %q SKU, got %q", string(services.SkuNameStandardThree), skuName)
 	}
 
 	// NOTE: 'partition_count' values greater than 1 are not valid for 'free' or 'basic' SKUs...
 	partitionCount := int64(d.Get("partition_count").(int))
 
 	if (skuName == services.SkuNameFree || skuName == services.SkuNameBasic) && partitionCount > 1 {
-		return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", skuName, partitionCount)
+		return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", string(skuName), partitionCount)
 	}
 
 	// NOTE: 'standard3' services with 'hostingMode' set to 'highDensity' the
 	// 'partition_count' must be between 1 and 3.
 	if skuName == services.SkuNameStandardThree && partitionCount > 3 && hostingMode == services.HostingModeHighDensity {
-		return fmt.Errorf("%q SKUs in %q mode can have a maximum of 3 partitions, got %d", services.SkuNameStandardThree, services.HostingModeHighDensity, partitionCount)
+		return fmt.Errorf("%q SKUs in %q mode can have a maximum of 3 partitions, got %d", string(services.SkuNameStandardThree), string(services.HostingModeHighDensity), partitionCount)
 	}
 
 	// The number of replicas can be between 1 and 12 for 'standard', 'storage_optimized_l1' and storage_optimized_l2' SKUs
@@ -243,31 +235,31 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	if localAuthenticationDisabled && authenticationFailureMode != "" {
-		return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_disabled' has been set to 'true'")
+	if !localAuthenticationEnabled && authenticationFailureMode != "" {
+		return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'true'")
 	}
 
-	// API Only Mode (Defalut)(e.g. localAuthenticationDisabled = false)...
+	// API Only Mode (Default) (e.g. localAuthenticationEnabled = true)...
 	authenticationOptions := pointer.To(services.DataPlaneAuthOptions{
 		ApiKeyOnly: pointer.To(apiKeyOnly),
 	})
 
-	if !localAuthenticationDisabled && authenticationFailureMode != "" {
+	if localAuthenticationEnabled && authenticationFailureMode != "" {
 		// API & RBAC Mode..
 		authenticationOptions = pointer.To(services.DataPlaneAuthOptions{
 			AadOrApiKey: pointer.To(services.DataPlaneAadOrApiKeyAuthOption{
-				AadAuthFailureMode: (*services.AadAuthFailureMode)(pointer.To(authenticationFailureMode)),
+				AadAuthFailureMode: pointer.To(services.AadAuthFailureMode(authenticationFailureMode)),
 			}),
 		})
 	}
 
-	if localAuthenticationDisabled {
+	if !localAuthenticationEnabled {
 		// RBAC Only Mode...
 		authenticationOptions = nil
 	}
 
-	searchService := services.SearchService{
-		Location: location,
+	payload := services.SearchService{
+		Location: location.Normalize(d.Get("location").(string)),
 		Sku: pointer.To(services.Sku{
 			Name: pointer.To(skuName),
 		}),
@@ -281,7 +273,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			}),
 			HostingMode:      pointer.To(hostingMode),
 			AuthOptions:      authenticationOptions,
-			DisableLocalAuth: pointer.To(localAuthenticationDisabled),
+			DisableLocalAuth: pointer.To(!localAuthenticationEnabled),
 			PartitionCount:   pointer.To(partitionCount),
 			ReplicaCount:     pointer.To(replicaCount),
 		},
@@ -297,10 +289,10 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	// in the create call, only in the update call when 'identity' is removed from the
 	// configuration file...
 	if expandedIdentity.Type != identity.TypeNone {
-		searchService.Identity = expandedIdentity
+		payload.Identity = expandedIdentity
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, searchService, services.CreateOrUpdateOperationOptions{})
+	err = client.CreateOrUpdateThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -312,7 +304,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Search.ServicesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := services.ParseSearchServiceID(d.Id())
@@ -324,120 +316,128 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-
-	if model := resp.Model; model != nil {
-		if d.HasChange("public_network_access_enabled") {
-			publicNetworkAccess := services.PublicNetworkAccessEnabled
-			if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
-				publicNetworkAccess = services.PublicNetworkAccessDisabled
-			}
-
-			model.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
-		}
-
-		if d.HasChange("identity") {
-			expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
-			}
-
-			model.Identity = expandedIdentity
-		}
-
-		if d.HasChange("hosting_mode") {
-			hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
-			if pointer.From(model.Sku.Name) != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
-				return fmt.Errorf("'hosting_mode' can only be set to %q if the 'sku' is %q, got %q", services.HostingModeHighDensity, services.SkuNameStandardThree, pointer.From(model.Sku.Name))
-			}
-
-			model.Properties.HostingMode = pointer.To(hostingMode)
-		}
-
-		if d.HasChange("customer_managed_key_enforcement_enabled") {
-			cmkEnforcement := services.SearchEncryptionWithCmkDisabled
-			if enabled := d.Get("customer_managed_key_enforcement_enabled").(bool); enabled {
-				cmkEnforcement = services.SearchEncryptionWithCmkEnabled
-			}
-
-			model.Properties.EncryptionWithCmk.Enforcement = pointer.To(cmkEnforcement)
-		}
-
-		if d.HasChange("local_authentication_disabled") || d.HasChange("authentication_failure_mode") {
-			localAuthenticationDisabled := d.Get("local_authentication_disabled").(bool)
-			authenticationFailureMode := d.Get("authentication_failure_mode").(string)
-
-			if localAuthenticationDisabled && authenticationFailureMode != "" {
-				return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_disabled' has been set to 'true'")
-			}
-
-			var apiKeyOnly interface{} = make(map[string]interface{}, 0)
-
-			// API Only Mode (Defalut)...
-			authenticationOptions := pointer.To(services.DataPlaneAuthOptions{
-				ApiKeyOnly: pointer.To(apiKeyOnly),
-			})
-
-			if !localAuthenticationDisabled && authenticationFailureMode != "" {
-				// API & RBAC Mode..
-				authenticationOptions = pointer.To(services.DataPlaneAuthOptions{
-					AadOrApiKey: pointer.To(services.DataPlaneAadOrApiKeyAuthOption{
-						AadAuthFailureMode: (*services.AadAuthFailureMode)(pointer.To(authenticationFailureMode)),
-					}),
-				})
-			}
-
-			if localAuthenticationDisabled {
-				// RBAC Only Mode...
-				authenticationOptions = nil
-			}
-
-			model.Properties.DisableLocalAuth = pointer.To(localAuthenticationDisabled)
-			model.Properties.AuthOptions = authenticationOptions
-		}
-
-		if d.HasChange("replica_count") {
-			replicaCount, err := validateSearchServiceReplicaCount(int64(d.Get("replica_count").(int)), pointer.From(model.Sku.Name))
-			if err != nil {
-				return err
-			}
-
-			model.Properties.ReplicaCount = pointer.To(replicaCount)
-		}
-
-		if d.HasChange("partition_count") {
-			partitionCount := int64(d.Get("partition_count").(int))
-			// NOTE: 'partition_count' values greater than 1 are not valid for 'free' or 'basic' SKUs...
-			if (pointer.From(model.Sku.Name) == services.SkuNameFree || pointer.From(model.Sku.Name) == services.SkuNameBasic) && partitionCount > 1 {
-				return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", pointer.From(model.Sku.Name), partitionCount)
-			}
-
-			// NOTE: If SKU is 'standard3' and the 'hosting_mode' is set to 'highDensity' the maximum number of partitions allowed is 3
-			// where if 'hosting_mode' is set to 'default' the maximum number of partitions is 12...
-			if pointer.From(model.Sku.Name) == services.SkuNameStandardThree && partitionCount > 3 && pointer.From(model.Properties.HostingMode) == services.HostingModeHighDensity {
-				return fmt.Errorf("%q SKUs in %q mode can have a maximum of 3 partitions, got %d", services.SkuNameStandardThree, services.HostingModeHighDensity, partitionCount)
-			}
-
-			model.Properties.PartitionCount = pointer.To(partitionCount)
-		}
-
-		if d.HasChange("allowed_ips") {
-			ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
-			model.Properties.NetworkRuleSet.IPRules = expandSearchServiceIPRules(ipRulesRaw)
-		}
-
-		if d.HasChange("tags") {
-			model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-		}
-
-		err = client.CreateOrUpdateThenPoll(ctx, pointer.From(id), pointer.From(model), services.CreateOrUpdateOperationOptions{})
-		if err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
-
-		return resourceSearchServiceRead(d, meta)
+	if resp.Model == nil {
+		return fmt.Errorf("retrieving existing %s: %+v", id, err)
+	}
+	model := *resp.Model
+	if model.Properties == nil {
+		return fmt.Errorf("retrieving existing %s: `properties` was nil", id)
 	}
 
-	return nil
+	if d.HasChange("customer_managed_key_enforcement_enabled") {
+		cmkEnforcement := services.SearchEncryptionWithCmkDisabled
+		if enabled := d.Get("customer_managed_key_enforcement_enabled").(bool); enabled {
+			cmkEnforcement = services.SearchEncryptionWithCmkEnabled
+		}
+		model.Properties.EncryptionWithCmk = &services.EncryptionWithCmk{
+			Enforcement: pointer.To(cmkEnforcement),
+		}
+	}
+
+	if d.HasChange("hosting_mode") {
+		hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
+		if model.Sku == nil {
+			return fmt.Errorf("updating `hosting_mode` for %s: unable to validate the hosting_mode since `model.Sku` was nil", *id)
+		}
+
+		if pointer.From(model.Sku.Name) != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
+			return fmt.Errorf("'hosting_mode' can only be set to %q if the 'sku' is %q, got %q", services.HostingModeHighDensity, services.SkuNameStandardThree, pointer.From(model.Sku.Name))
+		}
+
+		model.Properties.HostingMode = pointer.To(hostingMode)
+	}
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		model.Identity = expandedIdentity
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := services.PublicNetworkAccessEnabled
+		if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+			publicNetworkAccess = services.PublicNetworkAccessDisabled
+		}
+
+		model.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+	}
+
+	if d.HasChanges("authentication_failure_mode", "local_authentication_enabled") {
+		authenticationFailureMode := d.Get("authentication_failure_mode").(string)
+		localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
+		if !localAuthenticationEnabled && authenticationFailureMode != "" {
+			return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
+		}
+
+		var apiKeyOnly interface{} = make(map[string]interface{}, 0)
+
+		// API Only Mode (Default)...
+		authenticationOptions := pointer.To(services.DataPlaneAuthOptions{
+			ApiKeyOnly: pointer.To(apiKeyOnly),
+		})
+
+		if localAuthenticationEnabled && authenticationFailureMode != "" {
+			// API & RBAC Mode..
+			authenticationOptions = pointer.To(services.DataPlaneAuthOptions{
+				AadOrApiKey: pointer.To(services.DataPlaneAadOrApiKeyAuthOption{
+					AadAuthFailureMode: (*services.AadAuthFailureMode)(pointer.To(authenticationFailureMode)),
+				}),
+			})
+		}
+
+		if !localAuthenticationEnabled {
+			// RBAC Only Mode...
+			authenticationOptions = nil
+		}
+
+		model.Properties.DisableLocalAuth = pointer.To(!localAuthenticationEnabled)
+		model.Properties.AuthOptions = authenticationOptions
+	}
+
+	if d.HasChange("replica_count") {
+		replicaCount, err := validateSearchServiceReplicaCount(int64(d.Get("replica_count").(int)), pointer.From(model.Sku.Name))
+		if err != nil {
+			return err
+		}
+
+		model.Properties.ReplicaCount = pointer.To(replicaCount)
+	}
+
+	if d.HasChange("partition_count") {
+		partitionCount := int64(d.Get("partition_count").(int))
+		// NOTE: 'partition_count' values greater than 1 are not valid for 'free' or 'basic' SKUs...
+		if (pointer.From(model.Sku.Name) == services.SkuNameFree || pointer.From(model.Sku.Name) == services.SkuNameBasic) && partitionCount > 1 {
+			return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", pointer.From(model.Sku.Name), partitionCount)
+		}
+
+		// NOTE: If SKU is 'standard3' and the 'hosting_mode' is set to 'highDensity' the maximum number of partitions allowed is 3
+		// where if 'hosting_mode' is set to 'default' the maximum number of partitions is 12...
+		if pointer.From(model.Sku.Name) == services.SkuNameStandardThree && partitionCount > 3 && pointer.From(model.Properties.HostingMode) == services.HostingModeHighDensity {
+			return fmt.Errorf("%q SKUs in %q mode can have a maximum of 3 partitions, got %d", string(services.SkuNameStandardThree), string(services.HostingModeHighDensity), partitionCount)
+		}
+
+		model.Properties.PartitionCount = pointer.To(partitionCount)
+	}
+
+	if d.HasChange("allowed_ips") {
+		ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
+		model.Properties.NetworkRuleSet = &services.NetworkRuleSet{
+			IPRules: expandSearchServiceIPRules(ipRulesRaw),
+		}
+	}
+
+	if d.HasChange("tags") {
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, model, services.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceSearchServiceRead(d, meta)
 }
 
 func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -479,7 +479,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			publicNetworkAccess := true // publicNetworkAccess defaults to true...
 			cmkEnforcement := false     // cmkEnforcment defaults to false...
 			hostingMode := services.HostingModeDefault
-			localAuthDisabled := false
+			localAuthEnabled := true
 			authFailureMode := ""
 
 			if count := props.PartitionCount; count != nil {
@@ -500,16 +500,14 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				hostingMode = *props.HostingMode
 			}
 
-			var cmkCompliance string
 			if props.EncryptionWithCmk != nil {
 				cmkEnforcement = strings.EqualFold(string(pointer.From(props.EncryptionWithCmk.Enforcement)), string(services.SearchEncryptionWithCmkEnabled))
-				cmkCompliance = string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus))
 			}
 
 			// I am using 'DisableLocalAuth' here because when you are in
 			// RBAC Only Mode, the 'props.AuthOptions' will be 'nil'...
 			if props.DisableLocalAuth != nil {
-				localAuthDisabled = pointer.From(props.DisableLocalAuth)
+				localAuthEnabled = !pointer.From(props.DisableLocalAuth)
 
 				// if the AuthOptions are nil that means you are in RBAC Only Mode...
 				if props.AuthOptions != nil {
@@ -523,13 +521,12 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			d.Set("authentication_failure_mode", authFailureMode)
-			d.Set("local_authentication_disabled", localAuthDisabled)
+			d.Set("local_authentication_enabled", localAuthEnabled)
 			d.Set("partition_count", partitionCount)
 			d.Set("replica_count", replicaCount)
 			d.Set("public_network_access_enabled", publicNetworkAccess)
 			d.Set("hosting_mode", hostingMode)
 			d.Set("customer_managed_key_enforcement_enabled", cmkEnforcement)
-			d.Set("customer_managed_key_enforcement_compliance", cmkCompliance)
 			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 		}
 
@@ -549,11 +546,12 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	adminKeysResp, err := adminKeysClient.Get(ctx, *adminKeysId, adminkeys.GetOperationOptions{})
-	if err == nil {
-		if model := adminKeysResp.Model; model != nil {
-			d.Set("primary_key", model.PrimaryKey)
-			d.Set("secondary_key", model.SecondaryKey)
-		}
+	if err != nil {
+		return fmt.Errorf("retrieving Admin Keys for %s: %+v", *id, err)
+	}
+	if model := adminKeysResp.Model; model != nil {
+		d.Set("primary_key", model.PrimaryKey)
+		d.Set("secondary_key", model.SecondaryKey)
 	}
 
 	queryKeysClient := meta.(*clients.Client).Search.QueryKeysClient
@@ -562,10 +560,11 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 	queryKeysResp, err := queryKeysClient.ListBySearchService(ctx, *queryKeysId, querykeys.ListBySearchServiceOperationOptions{})
-	if err == nil {
-		if model := queryKeysResp.Model; model != nil {
-			d.Set("query_keys", flattenSearchQueryKeys(*model))
-		}
+	if err != nil {
+		return fmt.Errorf("retrieving Query Keys for %s: %+v", *id, err)
+	}
+	if err := d.Set("query_keys", flattenSearchQueryKeys(queryKeysResp.Model)); err != nil {
+		return fmt.Errorf("setting `query_keys`: %+v", err)
 	}
 
 	return nil
@@ -581,30 +580,23 @@ func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	resp, err := client.Delete(ctx, *id, services.DeleteOperationOptions{})
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return nil
-		}
-
+	if _, err := client.Delete(ctx, *id, services.DeleteOperationOptions{}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func flattenSearchQueryKeys(input []querykeys.QueryKey) []interface{} {
+func flattenSearchQueryKeys(input *[]querykeys.QueryKey) []interface{} {
 	results := make([]interface{}, 0)
 
-	for _, v := range input {
-		result := make(map[string]interface{})
-
-		if v.Name != nil {
-			result["name"] = *v.Name
+	if input != nil {
+		for _, v := range *input {
+			results = append(results, map[string]interface{}{
+				"name": utils.NormalizeNilableString(v.Name),
+				"key":  utils.NormalizeNilableString(v.Key),
+			})
 		}
-		result["key"] = *v.Key
-
-		results = append(results, result)
 	}
 
 	return results
@@ -612,9 +604,6 @@ func flattenSearchQueryKeys(input []querykeys.QueryKey) []interface{} {
 
 func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 	output := make([]services.IPRule, 0)
-	if input == nil {
-		return &output
-	}
 
 	for _, rule := range input {
 		if rule != nil {
@@ -628,12 +617,11 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 }
 
 func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
-	if input == nil || *input.IPRules == nil || len(*input.IPRules) == 0 {
-		return nil
-	}
 	result := make([]interface{}, 0)
-	for _, rule := range *input.IPRules {
-		result = append(result, rule.Value)
+	if input != nil || input.IPRules != nil {
+		for _, rule := range *input.IPRules {
+			result = append(result, rule.Value)
+		}
 	}
 	return result
 }

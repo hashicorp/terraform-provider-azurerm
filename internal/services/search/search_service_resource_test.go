@@ -16,13 +16,13 @@ import (
 
 type SearchServiceResource struct{}
 
-func TestAccSearchService_basicStandard(t *testing.T) {
+func TestAccSearchService_basicSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	r := SearchServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "standard"),
+			Config: r.basic(data, "basic"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -31,7 +31,7 @@ func TestAccSearchService_basicStandard(t *testing.T) {
 	})
 }
 
-func TestAccSearchService_basicFree(t *testing.T) {
+func TestAccSearchService_freeSku(t *testing.T) {
 	// Regression test case for issue #10151
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	r := SearchServiceResource{}
@@ -47,13 +47,13 @@ func TestAccSearchService_basicFree(t *testing.T) {
 	})
 }
 
-func TestAccSearchService_basicBasic(t *testing.T) {
+func TestAccSearchService_standardSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	r := SearchServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "basic"),
+			Config: r.basic(data, "standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -309,8 +309,7 @@ func TestAccSearchService_apiAccessControlRbacError(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.apiAccessControlBoth(data, true, "http401WithBearerChallenge"),
-			Check:       acceptance.ComposeTestCheckFunc(),
+			Config:      r.apiAccessControlBoth(data, false, "http401WithBearerChallenge"),
 			ExpectError: regexp.MustCompile("cannot be defined"),
 		},
 	})
@@ -329,13 +328,6 @@ func TestAccSearchService_apiAccessControlUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.apiAccessControlApiKeysOrRBAC(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.apiAccessControlApiKeysOrRBAC(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -343,14 +335,21 @@ func TestAccSearchService_apiAccessControlUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.apiAccessControlBoth(data, false, "http401WithBearerChallenge"),
+			Config: r.apiAccessControlApiKeysOrRBAC(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.apiAccessControlBoth(data, false, "http403"),
+			Config: r.apiAccessControlBoth(data, true, "http401WithBearerChallenge"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.apiAccessControlBoth(data, true, "http403"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -366,7 +365,7 @@ func TestAccSearchService_apiAccessControlUpdate(t *testing.T) {
 	})
 }
 
-func (t SearchServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SearchServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := services.ParseSearchServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -403,10 +402,6 @@ resource "azurerm_search_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%s"
-
-  tags = {
-    environment = "staging"
-  }
 }
 `, template, data.RandomInteger, sku)
 }
@@ -421,10 +416,6 @@ resource "azurerm_search_service" "import" {
   resource_group_name = azurerm_search_service.test.resource_group_name
   location            = azurerm_search_service.test.location
   sku                 = azurerm_search_service.test.sku
-
-  tags = {
-    environment = "staging"
-  }
 }
 `, template)
 }
@@ -471,12 +462,7 @@ resource "azurerm_search_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
-
-  allowed_ips = ["168.1.5.65", "1.2.3.0/24"]
-
-  tags = {
-    environment = "staging"
-  }
+  allowed_ips         = ["168.1.5.65", "1.2.3.0/24"]
 }
 `, template, data.RandomInteger)
 }
@@ -499,10 +485,6 @@ resource "azurerm_search_service" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  tags = {
-    environment = "staging"
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -522,10 +504,6 @@ resource "azurerm_search_service" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "%s"
   hosting_mode        = "highDensity"
-
-  tags = {
-    environment = "staging"
-  }
 }
 `, template, data.RandomInteger, sku)
 }
@@ -584,15 +562,11 @@ resource "azurerm_search_service" "test" {
   sku                 = "standard"
 
   customer_managed_key_enforcement_enabled = %t
-
-  tags = {
-    environment = "staging"
-  }
 }
 `, template, data.RandomInteger, enforceCustomerManagedKey)
 }
 
-func (r SearchServiceResource) apiAccessControlApiKeysOrRBAC(data acceptance.TestData, localAuthenticationDisabled bool) string {
+func (r SearchServiceResource) apiAccessControlApiKeysOrRBAC(data acceptance.TestData, localAuthenticationEnabled bool) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -607,16 +581,12 @@ resource "azurerm_search_service" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
 
-  local_authentication_disabled = %t
-
-  tags = {
-    environment = "staging"
-  }
+  local_authentication_enabled = %t
 }
-`, template, data.RandomInteger, localAuthenticationDisabled)
+`, template, data.RandomInteger, localAuthenticationEnabled)
 }
 
-func (r SearchServiceResource) apiAccessControlBoth(data acceptance.TestData, localAuthenticationDisabled bool, authenticationFailureMode string) string {
+func (r SearchServiceResource) apiAccessControlBoth(data acceptance.TestData, localAuthenticationEnabled bool, authenticationFailureMode string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -631,12 +601,8 @@ resource "azurerm_search_service" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
 
-  local_authentication_disabled = %t
-  authentication_failure_mode   = "%s"
-
-  tags = {
-    environment = "staging"
-  }
+  local_authentication_enabled = %t
+  authentication_failure_mode  = "%s"
 }
-`, template, data.RandomInteger, localAuthenticationDisabled, authenticationFailureMode)
+`, template, data.RandomInteger, localAuthenticationEnabled, authenticationFailureMode)
 }

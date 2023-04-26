@@ -10,7 +10,7 @@ description: |-
 
 Manages a Search Service.
 
-## Example Usage
+## Example Usage (supporting API Keys)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -23,6 +23,43 @@ resource "azurerm_search_service" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku                 = "standard"
+}
+```
+
+## Example Usage (using both AzureAD and API Keys)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_search_service" "example" {
+  name                = "example-resource"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "standard"
+
+  local_authentication_enabled = true
+  authentication_failure_mode  = "http403"
+}
+```
+
+## Example Usage (supporting only AzureAD Authentication)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_search_service" "example" {
+  name                = "example-resource"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "standard"
+
+  local_authentication_enabled = false
 }
 ```
 
@@ -44,37 +81,34 @@ The following arguments are supported:
 
 ---
 
-* `authentication_failure_mode` - (Optional) Describes what response the Search Service should return for requests that fail authentication. Possible values include `http401WithBearerChallenge` or `http403`.
-
-~> **NOTE:** The `authentication_failure_mode` field is only valid if the Search Service is in the `Role-based access control and API Key` mode. For more information on how to correctly configure the Search Services `API Access Control` settings, please see the `Setting API Access Control` section below.
-
-* `customer_managed_key_enforcement_enabled` - (Optional) Should the Search Service enforce having non customer encrypted resources? Possible values include `true` or `false`. If `true` the Search Service will be marked as `non-compliant` if there are one or more non customer encrypted resources, if `false` no enforcement will be made and the Search Service can contain one or more non customer encrypted resources. Defaults to `false`.
-
-* `hosting_mode` - (Optional) Enable high density partitions that allow for up to a 1000 indexes. Possible values are `highDensity` or `default`. Defaults to `default`. Changing this forces a new Search Service to be created.
-
--> **NOTE:** When the Search Service is in `highDensity` mode the maximum number of partitions allowed is `3`, to enable `hosting_mode` you must use a `standard3` SKU.
-
-* `local_authentication_disabled` - (Optional) Should tha Search Service *not* be allowed to use API keys for authentication? Possible values include `true` or `false`. Defaults to `false`.
-
--> **NOTE:** For more information on how to correctly configure the Search Services `API Access Control` settings, please see the `Setting API Access Control` section below.
-
-* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this resource. Defaults to `true`.
-
-* `partition_count` - (Optional) The number of partitions which should be created. Possible values include `1`, `2`, `3`, `4`, `6`, or `12`. Defaults to `1`.
-
--> **NOTE:** `partition_count` cannot be configured when using a `free` or `basic` SKU. For more information please to the [product documentation](https://learn.microsoft.com/azure/search/search-sku-tier).
-
-* `replica_count` - (Optional) The number of replica's which should be created.
-
--> **NOTE:** `replica_count` cannot be configured when using a `free` SKU. For more information please to the [product documentation](https://learn.microsoft.com/azure/search/search-sku-tier).
-
-* `allowed_ips` - (Optional) A list of inbound IPv4 or CIDRs that are allowed to access the Search Service. If the incoming IP request is from an IP address which is not included in the `allowed_ips` it will be blocked by the Search Services firewall.
+* `allowed_ips` - (Optional) Specifies a list of inbound IPv4 or CIDRs that are allowed to access the Search Service. If the incoming IP request is from an IP address which is not included in the `allowed_ips` it will be blocked by the Search Services firewall.
 
 -> **NOTE:** The `allowed_ips` are only applied if the `public_network_access_enabled` field has been set to `true`, else all traffic over the public interface will be rejected, even if the `allowed_ips` field has been defined. When the `public_network_access_enabled` field has been set to `false` the private endpoint connections are the only allowed access point to the Search Service.
 
+* `authentication_failure_mode` - (Optional) Specifies the response that the Search Service should return for requests that fail authentication. Possible values include `http401WithBearerChallenge` or `http403`.
+
+-> **NOTE:** `authentication_failure_mode` can only be configured when using `local_authentication_enabled` is set to `true` - which when set together specifies that both API Keys and AzureAD Authentication should be supported.
+
+* `customer_managed_key_enforcement_enabled` - (Optional) Specifies whether the Search Service should enforce that non-customer resources are encrypted. Defaults to `false`.
+
+* `hosting_mode` - (Optional) Specifies the Hosting Mode, which allows for High Density partitions (that allow for up to 1000 indexes) should be supported. Possible values are `highDensity` or `default`. Defaults to `default`. Changing this forces a new Search Service to be created.
+
+-> **NOTE:** `hosting_mode` can only be configured when `sku` is set to `standard3`.
+
+
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Search Service.
+* `local_authentication_enabled` - (Optional) Specifies whether the Search Service allows authenticating using API Keys? Defaults to `false`.
+
+* `partition_count` - (Optional) Specifies the number of partitions which should be created. This field cannot be set when using a `free` or `basic` sku ([see the Microsoft documentation](https://learn.microsoft.com/azure/search/search-sku-tier)). Possible values include `1`, `2`, `3`, `4`, `6`, or `12`. Defaults to `1`.
+
+-> **NOTE:** when `hosting_mode` is set to `highDensity` the maximum number of partitions allowed is `3`.
+
+* `public_network_access_enabled` - (Optional) Specifies whether Public Network Access is allowed for this resource. Defaults to `true`.
+
+* `replica_count` - (Optional) Specifies the number of Replica's which should be created for this Search Service. This field cannot be set when using a `free` sku ([see the Microsoft documentation](https://learn.microsoft.com/azure/search/search-sku-tier)).
+
+* `tags` - (Optional) Specifies a mapping of tags which should be assigned to this Search Service.
 
 ---
 
@@ -89,8 +123,6 @@ An `identity` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Search Service.
-
-* `customer_managed_key_enforcement_compliance` - Describes whether the Search Service is `compliant` or not with respect to having non customer encrypted resources.
 
 * `primary_key` - The Primary Key used for Search Service Administration.
 
@@ -113,20 +145,6 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
-
----
-
-## Setting API Access Control:
-
-The values of the `local_authentication_disabled` and `authentication_failure_mode` fields will determin which `API Access Control` mode the Search Service will operate under. To correctly configure your Search Service to your desired `API Access Control` mode please configure your Search Service based on the field values in the below table.
-
-| Field Name                                                       | Value                                                     | API Access Control Mode                  |
-|------------------------------------------------------------------|:---------------------------------------------------------:|:----------------------------------------:|
-| `local_authentication_disabled`<br>`authentication_failure_mode` | `false`<br>`<not defined>`                                | `API key` (`Default`)                    |
-| `local_authentication_disabled`<br>`authentication_failure_mode` | `false`<br>`authentication_failure_mode` as defined above | `Role-based access control and API Key`  |
-| `local_authentication_disabled`<br>`authentication_failure_mode` | `true`<br>`<not defined>`                                 | `Role-based access control`              |
-
--> **NOTE:** When the Search Service is in `Role-based access contol` (e.g. `local_authentication_disabled` is `true`) the `authentication_failure_mode` field *cannot* be defined.
 
 ---
 
