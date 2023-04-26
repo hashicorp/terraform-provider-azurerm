@@ -42,7 +42,6 @@ func Required() map[string]struct{} {
 		"Microsoft.HealthcareApis":          {},
 		"Microsoft.GuestConfiguration":      {},
 		"Microsoft.KeyVault":                {},
-		"Microsoft.KubernetesConfiguration": {},
 		"Microsoft.Kusto":                   {},
 		"microsoft.insights":                {},
 		"Microsoft.Logic":                   {},

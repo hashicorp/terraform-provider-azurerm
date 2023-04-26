@@ -349,38 +349,23 @@ func (r KubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 					}
 
 					state.ConfigurationProtectedSettings = originalModel.ConfigurationProtectedSettings
-
-					if properties.ConfigurationSettings != nil {
-						state.ConfigurationSettings = *properties.ConfigurationSettings
-					}
-
-					if properties.CurrentVersion != nil {
-						state.CurrentVersion = *properties.CurrentVersion
-					}
-
-					if properties.ExtensionType != nil {
-						state.ExtensionType = *properties.ExtensionType
-					}
-
+					state.ConfigurationSettings = pointer.From(properties.ConfigurationSettings)
+					state.CurrentVersion = pointer.From(properties.CurrentVersion)
+					state.ExtensionType = pointer.From(properties.ExtensionType)
 					state.Plan = flattenPlanModel(model.Plan)
-
-					if properties.ReleaseTrain != nil {
-						state.ReleaseTrain = *properties.ReleaseTrain
-					}
+					state.ReleaseTrain = pointer.From(properties.ReleaseTrain)
 
 					if properties.Scope != nil {
-						if properties.Scope.Cluster != nil && properties.Scope.Cluster.ReleaseNamespace != nil {
-							state.ReleaseNamespace = *properties.Scope.Cluster.ReleaseNamespace
+						if properties.Scope.Cluster != nil {
+							state.ReleaseNamespace = pointer.From(properties.Scope.Cluster.ReleaseNamespace)
 						}
 
-						if properties.Scope.Namespace != nil && properties.Scope.Namespace.TargetNamespace != nil {
-							state.TargetNamespace = *properties.Scope.Namespace.TargetNamespace
+						if properties.Scope.Namespace != nil {
+							state.TargetNamespace = pointer.From(properties.Scope.Namespace.TargetNamespace)
 						}
 					}
 
-					if properties.Version != nil {
-						state.Version = *properties.Version
-					}
+					state.Version = pointer.From(properties.Version)
 				}
 			}
 
@@ -400,7 +385,7 @@ func (r KubernetesClusterExtensionResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id, extensions.DeleteOperationOptions{}); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id, extensions.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -440,13 +425,9 @@ func flattenPlanModel(input *extensions.Plan) []PlanModel {
 		Product:   input.Product,
 		Publisher: input.Publisher,
 	}
-	if input.PromotionCode != nil {
-		output.PromotionCode = *input.PromotionCode
-	}
 
-	if input.Version != nil {
-		output.Version = *input.Version
-	}
+	output.PromotionCode = pointer.From(input.PromotionCode)
+	output.Version = pointer.From(input.Version)
 
 	return append(outputList, output)
 }

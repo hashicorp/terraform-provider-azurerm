@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -299,36 +301,22 @@ func (r ArcKubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 					}
 
 					state.ConfigurationProtectedSettings = originalModel.ConfigurationProtectedSettings
-
-					if properties.ConfigurationSettings != nil {
-						state.ConfigurationSettings = *properties.ConfigurationSettings
-					}
-
-					if properties.CurrentVersion != nil {
-						state.CurrentVersion = *properties.CurrentVersion
-					}
-
-					if properties.ExtensionType != nil {
-						state.ExtensionType = *properties.ExtensionType
-					}
-
-					if properties.ReleaseTrain != nil {
-						state.ReleaseTrain = *properties.ReleaseTrain
-					}
+					state.ConfigurationSettings = pointer.From(properties.ConfigurationSettings)
+					state.CurrentVersion = pointer.From(properties.CurrentVersion)
+					state.ExtensionType = pointer.From(properties.ExtensionType)
+					state.ReleaseTrain = pointer.From(properties.ReleaseTrain)
 
 					if properties.Scope != nil {
-						if properties.Scope.Cluster != nil && properties.Scope.Cluster.ReleaseNamespace != nil {
-							state.ReleaseNamespace = *properties.Scope.Cluster.ReleaseNamespace
+						if properties.Scope.Cluster != nil {
+							state.ReleaseNamespace = pointer.From(properties.Scope.Cluster.ReleaseNamespace)
 						}
 
-						if properties.Scope.Namespace != nil && properties.Scope.Namespace.TargetNamespace != nil {
-							state.TargetNamespace = *properties.Scope.Namespace.TargetNamespace
+						if properties.Scope.Namespace != nil {
+							state.TargetNamespace = pointer.From(properties.Scope.Namespace.TargetNamespace)
 						}
 					}
 
-					if properties.Version != nil {
-						state.Version = *properties.Version
-					}
+					state.Version = pointer.From(properties.Version)
 				}
 			}
 
@@ -348,7 +336,7 @@ func (r ArcKubernetesClusterExtensionResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id, extensions.DeleteOperationOptions{}); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id, extensions.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
