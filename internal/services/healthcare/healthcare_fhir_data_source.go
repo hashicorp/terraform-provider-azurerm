@@ -177,10 +177,8 @@ func dataSourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta int
 			}
 		}
 
-		i, err := identity.FlattenLegacySystemAndUserAssignedMap(m.Identity)
-		if err != nil {
-			return fmt.Errorf("flattening `identity`: %+v", err)
-		}
+		systemAssignedIdentity := dataSourceHealthcareApisFhirServiceLegacyAssignedToSystemAssigned(m.Identity)
+		i := identity.FlattenSystemAssigned(systemAssignedIdentity)
 		if err := d.Set("identity", i); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
@@ -189,4 +187,16 @@ func dataSourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	return nil
+}
+
+// The FHIR service data source schema expets a SystemAssignedIdentity schema. The HealthcareWorkspaceFhirServiceClients Get() method returns
+// a pointer to a LegacySystemAndUserAssignedMap. The LegacySystemAndUserAssignedMap needs to be converted to a SystemAssigned struct to
+// avoid the following error when setting the identity field:
+// Error: setting `identity`: Invalid address to set: []string{"identity", "0", "identity_ids"}
+func dataSourceHealthcareApisFhirServiceLegacyAssignedToSystemAssigned(i *identity.LegacySystemAndUserAssignedMap) *identity.SystemAssigned {
+	return &identity.SystemAssigned{
+		Type:        i.Type,
+		PrincipalId: i.PrincipalId,
+		TenantId:    i.TenantId,
+	}
 }

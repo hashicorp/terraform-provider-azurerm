@@ -23,6 +23,19 @@ func TestAccHealthCareFhirServiceDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccHealthCareFhirServiceDataSource_systemAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_fhir_service", "test")
+	r := HealthCareFhirServiceDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.systemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists()),
+		},
+	})
+}
+
 func (HealthCareFhirServiceDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -32,4 +45,15 @@ data "azurerm_healthcare_fhir_service" "test" {
   workspace_id = azurerm_healthcare_fhir_service.test.workspace_id
 }
 `, HealthcareApiFhirServiceResource{}.basic(data))
+}
+
+func (HealthCareFhirServiceDataSource) systemAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_healthcare_fhir_service" "test" {
+  name         = azurerm_healthcare_fhir_service.test.name
+  workspace_id = azurerm_healthcare_fhir_service.test.workspace_id
+}
+`, HealthcareApiFhirServiceResource{}.complete(data))
 }
