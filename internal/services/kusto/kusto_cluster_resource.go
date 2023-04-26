@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -480,8 +481,8 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("language_extensions", flattenKustoClusterLanguageExtensions(props.LanguageExtensions))
 			d.Set("uri", props.Uri)
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
-			d.Set("engine", props.EngineType)
-			d.Set("public_ip_type", props.PublicIPType)
+			d.Set("engine", string(pointer.From(props.EngineType)))
+			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))
 
 		}
 

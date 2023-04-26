@@ -6,6 +6,8 @@ import (
 	"log"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/ssh"
@@ -171,7 +173,7 @@ func (ImageResource) Exists(ctx context.Context, clients *clients.Client, state 
 
 func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.VirtualMachineID(state.ID)
+		id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 		if err != nil {
 			return err
 		}
@@ -255,19 +257,13 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 		}
 
 		log.Printf("[DEBUG] Deallocating VM..")
-		// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the GET method
-		future, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
-		if err != nil {
-			return fmt.Errorf("Bad: deallocating vm: %+v", err)
-		}
-		log.Printf("[DEBUG] Waiting for Deallocation..")
-		if err = future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
-			return fmt.Errorf("Bad: waiting for deallocation: %+v", err)
+		if err := client.Compute.VirtualMachinesClient.DeallocateThenPoll(ctx, *id, virtualmachines.DefaultDeallocateOperationOptions()); err != nil {
+			return fmt.Errorf("Bad: deallocating %s: %+v", *id, err)
 		}
 
 		log.Printf("[DEBUG] Generalizing VM..")
-		if _, err = client.Compute.VMClient.Generalize(ctx, id.ResourceGroup, id.Name); err != nil {
-			return fmt.Errorf("Bad: Generalizing error %+v", err)
+		if _, err = client.Compute.VirtualMachinesClient.Generalize(ctx, *id); err != nil {
+			return fmt.Errorf("Bad: Generalizing %s: %+v", *id, err)
 		}
 
 		return nil
@@ -275,18 +271,18 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 }
 
 func (ImageResource) virtualMachineExists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := parse.VirtualMachineID(state.ID)
+	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Compute.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Compute.VirtualMachinesClient.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", *id)
 		}
 
-		return fmt.Errorf("Bad: Get on client: %+v", err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return nil

@@ -31,5 +31,9 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		StorageMoverResource{},
+		StorageMoverAgentResource{},
+		StorageMoverSourceEndpointResource{},
+		StorageMoverTargetEndpointResource{},
+		StorageMoverProjectResource{},
 	}
 }

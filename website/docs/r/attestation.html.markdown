@@ -43,7 +43,19 @@ The following arguments are supported:
 
 -> **NOTE:** If the `policy_signing_certificate_data` argument contains more than one valid X.509 certificate only the first certificate will be used.
 
+* `policy` - (Optional) One or more `policy` blocks as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Attestation Provider.
+
+---
+
+A `policy` supports the followings:
+
+* `environment_type` - (Required) Specifies the type of the trusted environment to be used. Possible values are `OpenEnclave`, `SgxEnclave` and `Tpm`.
+
+-> **NOTE:** Each environment type can have at most one policy to set.
+
+* `data` - (Required) Specifies an RFC 7519 JWT Expressing the new policy. more details see: [How-to-build-a-policy](https://learn.microsoft.com/en-us/azure/attestation/author-sign-policy).
 
 ## Attributes Reference
 

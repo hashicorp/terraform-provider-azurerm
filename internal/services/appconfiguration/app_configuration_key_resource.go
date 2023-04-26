@@ -144,15 +144,20 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context had no deadline")
+			}
+
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
-			// allow up to 15 min for role permission to be done propagated
+			// allow some time for role permission to be done propagated
 			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be done propagated", model.Key)
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:      []string{"Forbidden"},
 				Target:       []string{"Error", "Exists"},
 				Refresh:      appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
 				PollInterval: 20 * time.Second,
-				Timeout:      15 * time.Minute,
+				Timeout:      time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {

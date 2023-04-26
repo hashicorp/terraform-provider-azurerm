@@ -1,18 +1,26 @@
 package attestationproviders
 
-import "github.com/Azure/go-autorest/autorest"
+import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AttestationProvidersClient struct {
-	Client  autorest.Client
-	baseUri string
+	Client *resourcemanager.Client
 }
 
-func NewAttestationProvidersClientWithBaseURI(endpoint string) AttestationProvidersClient {
-	return AttestationProvidersClient{
-		Client:  autorest.NewClientWithUserAgent(userAgent()),
-		baseUri: endpoint,
+func NewAttestationProvidersClientWithBaseURI(api environments.Api) (*AttestationProvidersClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(api, "attestationproviders", defaultApiVersion)
+	if err != nil {
+		return nil, fmt.Errorf("instantiating AttestationProvidersClient: %+v", err)
 	}
+
+	return &AttestationProvidersClient{
+		Client: client,
+	}, nil
 }

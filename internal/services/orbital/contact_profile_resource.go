@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/contactprofile"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -145,7 +145,7 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 				Id:         utils.String(id.ID()),
 				Location:   model.Location,
 				Name:       utils.String(model.Name),
-				Properties: &contactProfilesProperties,
+				Properties: contactProfilesProperties,
 				Tags:       &model.Tags,
 			}
 
@@ -259,7 +259,7 @@ func (r ContactProfileResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChangesExcept("name", "resource_group_name") {
 				contactProfile := contactprofile.ContactProfile{
 					Location: state.Location,
-					Properties: &contactprofile.ContactProfilesProperties{
+					Properties: contactprofile.ContactProfilesProperties{
 						AutoTrackingConfiguration:    &autoTrackingConfiguration,
 						EventHubUri:                  &state.EventHubUri,
 						Links:                        contactProfileLinks,

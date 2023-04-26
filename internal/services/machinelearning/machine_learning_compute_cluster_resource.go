@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -266,7 +267,7 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("description", computeCluster.Description)
 	if props := computeCluster.Properties; props != nil {
 		d.Set("vm_size", props.VMSize)
-		d.Set("vm_priority", props.VMPriority)
+		d.Set("vm_priority", string(pointer.From(props.VMPriority)))
 		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
 		d.Set("ssh", flattenUserAccountCredentials(props.UserAccountCredentials))
 		if props.Subnet != nil {

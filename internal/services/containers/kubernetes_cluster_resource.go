@@ -1093,6 +1093,23 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"service_mesh_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"mode": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(managedclusters.ServiceMeshModeIstio),
+							}, false),
+						},
+					},
+				},
+			},
+
 			"service_principal": {
 				Type:         pluginsdk.TypeList,
 				Optional:     true,
@@ -1434,24 +1451,25 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			Tier: utils.ToPtr(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
 		},
 		Properties: &managedclusters.ManagedClusterProperties{
-			ApiServerAccessProfile:    apiAccessProfile,
-			AadProfile:                azureADProfile,
-			AddonProfiles:             addonProfiles,
-			AgentPoolProfiles:         agentProfiles,
-			AutoScalerProfile:         autoScalerProfile,
-			AzureMonitorProfile:       azureMonitorProfile,
-			DnsPrefix:                 utils.String(dnsPrefix),
-			EnableRBAC:                utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
-			KubernetesVersion:         utils.String(kubernetesVersion),
-			LinuxProfile:              linuxProfile,
-			WindowsProfile:            windowsProfile,
-			NetworkProfile:            networkProfile,
-			NodeResourceGroup:         utils.String(nodeResourceGroup),
-			PublicNetworkAccess:       &publicNetworkAccess,
-			DisableLocalAccounts:      utils.Bool(d.Get("local_account_disabled").(bool)),
-			HTTPProxyConfig:           httpProxyConfig,
-			OidcIssuerProfile:         oidcIssuerProfile,
-			SecurityProfile:           securityProfile,
+			ApiServerAccessProfile: apiAccessProfile,
+			AadProfile:             azureADProfile,
+			AddonProfiles:          addonProfiles,
+			AgentPoolProfiles:      agentProfiles,
+			AutoScalerProfile:      autoScalerProfile,
+			AzureMonitorProfile:    azureMonitorProfile,
+			DnsPrefix:              utils.String(dnsPrefix),
+			EnableRBAC:             utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
+			KubernetesVersion:      utils.String(kubernetesVersion),
+			LinuxProfile:           linuxProfile,
+			WindowsProfile:         windowsProfile,
+			NetworkProfile:         networkProfile,
+			NodeResourceGroup:      utils.String(nodeResourceGroup),
+			PublicNetworkAccess:    &publicNetworkAccess,
+			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
+			HTTPProxyConfig:        httpProxyConfig,
+			OidcIssuerProfile:      oidcIssuerProfile,
+			SecurityProfile:        securityProfile,
+
 			StorageProfile:            storageProfile,
 			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
 		},
@@ -1520,6 +1538,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	if ingressProfile := expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{})); ingressProfile != nil {
 		parameters.Properties.IngressProfile = ingressProfile
+	}
+
+	if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{}), &managedclusters.ServiceMeshProfile{}); serviceMeshProfile != nil {
+		parameters.Properties.ServiceMeshProfile = serviceMeshProfile
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id, parameters)
@@ -1827,6 +1849,12 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			existing.Model.Properties.NetworkProfile.NatGatewayProfile = &natGatewayProfile
+		}
+	}
+	if d.HasChange("service_mesh_profile") {
+		updateCluster = true
+		if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{}), existing.Model.Properties.ServiceMeshProfile); serviceMeshProfile != nil {
+			existing.Model.Properties.ServiceMeshProfile = serviceMeshProfile
 		}
 	}
 
@@ -2252,6 +2280,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			azureMonitorProfile := flattenKubernetesClusterAzureMonitorProfile(props.AzureMonitorProfile)
 			if err := d.Set("monitor_metrics", azureMonitorProfile); err != nil {
 				return fmt.Errorf("setting `monitor_metrics`: %+v", err)
+			}
+
+			serviceMeshProfile := flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
+			if err := d.Set("service_mesh_profile", serviceMeshProfile); err != nil {
+				return fmt.Errorf("setting `service_mesh_profile`: %+v", err)
 			}
 
 			flattenedDefaultNodePool, err := FlattenDefaultNodePool(props.AgentPoolProfiles, d)
@@ -3752,6 +3785,28 @@ func base64IsEncoded(data string) bool {
 	return err == nil
 }
 
+func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *managedclusters.ServiceMeshProfile) *managedclusters.ServiceMeshProfile {
+	if (input == nil) || len(input) == 0 {
+		// explicitly disable istio if it was enabled before
+		if existing != nil && existing.Mode == managedclusters.ServiceMeshModeIstio {
+			return &managedclusters.ServiceMeshProfile{
+				Mode: managedclusters.ServiceMeshModeDisabled,
+			}
+		}
+
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	profile := managedclusters.ServiceMeshProfile{}
+	if managedclusters.ServiceMeshMode(raw["mode"].(string)) == managedclusters.ServiceMeshModeIstio {
+		profile.Mode = managedclusters.ServiceMeshMode(raw["mode"].(string))
+		profile.Istio = &managedclusters.IstioServiceMesh{}
+	}
+
+	return &profile
+}
+
 func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ManagedClusterIngressProfile {
 	if len(input) == 0 && d.HasChange("web_app_routing") {
 		return &managedclusters.ManagedClusterIngressProfile{
@@ -3818,6 +3873,18 @@ func expandKubernetesClusterAzureMonitorProfile(input []interface{}) *managedclu
 				MetricAnnotationsAllowList: utils.String(config["annotations_allowed"].(string)),
 				MetricLabelsAllowlist:      utils.String(config["labels_allowed"].(string)),
 			},
+		},
+	}
+}
+
+func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.ServiceMeshProfile) []interface{} {
+	if input == nil || input.Mode != managedclusters.ServiceMeshModeIstio {
+		return nil
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"mode": string(managedclusters.ServiceMeshModeIstio),
 		},
 	}
 }

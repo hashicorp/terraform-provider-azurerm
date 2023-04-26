@@ -8,17 +8,17 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -34,7 +34,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 		Delete: resourceMonitorMetricAlertDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.MetricAlertID(id)
+			_, err := metricalerts.ParseMetricAlertID(id)
 			return err
 		}),
 
@@ -150,12 +150,11 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(insights.OperatorEquals),
-								string(insights.OperatorGreaterThan),
-								string(insights.OperatorGreaterThanOrEqual),
-								string(insights.OperatorLessThan),
-								string(insights.OperatorLessThanOrEqual),
-								string(insights.OperatorNotEquals),
+								string(metricalerts.OperatorEquals),
+								string(metricalerts.OperatorGreaterThan),
+								string(metricalerts.OperatorGreaterThanOrEqual),
+								string(metricalerts.OperatorLessThan),
+								string(metricalerts.OperatorLessThanOrEqual),
 							}, false),
 						},
 						"threshold": {
@@ -236,18 +235,18 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(insights.DynamicThresholdOperatorLessThan),
-								string(insights.DynamicThresholdOperatorGreaterThan),
-								string(insights.DynamicThresholdOperatorGreaterOrLessThan),
+								string(metricalerts.DynamicThresholdOperatorLessThan),
+								string(metricalerts.DynamicThresholdOperatorGreaterThan),
+								string(metricalerts.DynamicThresholdOperatorGreaterOrLessThan),
 							}, false),
 						},
 						"alert_sensitivity": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(insights.DynamicThresholdSensitivityLow),
-								string(insights.DynamicThresholdSensitivityMedium),
-								string(insights.DynamicThresholdSensitivityHigh),
+								string(metricalerts.DynamicThresholdSensitivityLow),
+								string(metricalerts.DynamicThresholdSensitivityMedium),
+								string(metricalerts.DynamicThresholdSensitivityHigh),
 							}, false),
 						},
 
@@ -391,17 +390,17 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewMetricAlertID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := metricalerts.NewMetricAlertID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_monitor_metric_alert", id.ID())
 		}
 	}
@@ -418,57 +417,57 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	targetResourceLocation := d.Get("target_resource_location").(string)
 
 	t := d.Get("tags").(map[string]interface{})
-	expandedTags := tags.Expand(t)
 
 	// The criteria type of "old" resource is `MetricAlertSingleResourceMultipleMetricCriteria` (rather than `MetricAlertMultipleResourceMultipleMetricCriteria`).
 	// We need to keep using that type in order to keep backward compatibility. Otherwise, changing the criteria type will cause error as reported in issue:
 	// https://github.com/hashicorp/terraform-provider-azurerm/issues/7910
 	var isLegacy bool
 	if !d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving Monitor %s: %+v", id, err)
 		}
-		if existing.MetricAlertProperties == nil || existing.MetricAlertProperties.Criteria == nil {
+		if existing.Model == nil || existing.Model.Properties.Criteria == nil {
 			return fmt.Errorf("unexpected nil properties of Monitor %s", id)
 		}
-		_, isLegacy = existing.MetricAlertProperties.Criteria.AsMetricAlertSingleResourceMultipleMetricCriteria()
+		_, isLegacy = existing.Model.Properties.Criteria.(metricalerts.MetricAlertMultipleResourceMultipleMetricCriteria)
+
 	}
 
 	criteria, err := expandMonitorMetricAlertCriteria(d, isLegacy)
 	if err != nil {
-		return fmt.Errorf(`Expanding criteria: %+v`, err)
+		return fmt.Errorf(`expanding criteria: %+v`, err)
 	}
 
-	parameters := insights.MetricAlertResource{
-		Location: utils.String(azure.NormalizeLocation("Global")),
-		MetricAlertProperties: &insights.MetricAlertProperties{
-			Enabled:              utils.Bool(enabled),
+	parameters := metricalerts.MetricAlertResource{
+		Location: azure.NormalizeLocation("Global"),
+		Properties: metricalerts.MetricAlertProperties{
+			Enabled:              enabled,
 			AutoMitigate:         utils.Bool(autoMitigate),
 			Description:          utils.String(description),
-			Severity:             utils.Int32(int32(severity)),
-			EvaluationFrequency:  utils.String(frequency),
-			WindowSize:           utils.String(windowSize),
-			Scopes:               utils.ExpandStringSlice(scopesRaw),
+			Severity:             int64(severity),
+			EvaluationFrequency:  frequency,
+			WindowSize:           windowSize,
+			Scopes:               expandStringValues(scopesRaw),
 			Criteria:             criteria,
 			Actions:              expandMonitorMetricAlertAction(actionRaw),
 			TargetResourceType:   utils.String(targetResourceType),
 			TargetResourceRegion: utils.String(targetResourceLocation),
 		},
-		Tags: expandedTags,
+		Tags: utils.ExpandPtrMapStringString(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating or updating Monitor %s: %+v", id, err)
 	}
 
 	// Monitor Metric Alert API would return 404 while creating multiple Monitor Metric Alerts and get each resource immediately once it's created successfully in parallel.
 	// Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10973
-	log.Printf("[DEBUG] Waiting for Monitor Metric Alert %q (Resource Group %q) to be created", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to be created", id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
-		Refresh:                   monitorMetricAlertStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
+		Refresh:                   monitorMetricAlertStateRefreshFunc(ctx, client, id),
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
@@ -493,69 +492,76 @@ func resourceMonitorMetricAlertRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MetricAlertID(d.Id())
+	id, err := metricalerts.ParseMetricAlertID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Metric Alert %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("getting Monitor %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if alert := resp.MetricAlertProperties; alert != nil {
-		d.Set("enabled", alert.Enabled)
-		d.Set("auto_mitigate", alert.AutoMitigate)
-		d.Set("description", alert.Description)
-		d.Set("severity", alert.Severity)
-		d.Set("frequency", alert.EvaluationFrequency)
-		d.Set("window_size", alert.WindowSize)
-		if err := d.Set("scopes", utils.FlattenStringSlice(alert.Scopes)); err != nil {
+	d.Set("name", id.MetricAlertName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		props := model.Properties
+		d.Set("enabled", props.Enabled)
+		d.Set("auto_mitigate", props.AutoMitigate)
+		d.Set("description", props.Description)
+		d.Set("severity", props.Severity)
+		d.Set("frequency", props.EvaluationFrequency)
+		d.Set("window_size", props.WindowSize)
+		if err := d.Set("scopes", props.Scopes); err != nil {
 			return fmt.Errorf("setting `scopes`: %+v", err)
 		}
 
 		// Determine the correct criteria schema to set
 		var criteriaSchema string
-		switch c := alert.Criteria.(type) {
-		case insights.MetricAlertSingleResourceMultipleMetricCriteria:
+		switch c := props.Criteria.(type) {
+		case metricalerts.MetricAlertSingleResourceMultipleMetricCriteria:
 			criteriaSchema = "criteria"
-		case insights.MetricAlertMultipleResourceMultipleMetricCriteria:
+		case metricalerts.MetricAlertMultipleResourceMultipleMetricCriteria:
 			if c.AllOf == nil || len(*c.AllOf) == 0 {
 				return fmt.Errorf("nil or empty contained criteria of MultipleResourceMultipleMetricCriteria")
 			}
 			// `MinItems` defined in schema guaranteed there is at least one element.
 			switch (*c.AllOf)[0].(type) {
-			case insights.DynamicMetricCriteria:
+			case metricalerts.DynamicMetricCriteria:
 				criteriaSchema = "dynamic_criteria"
-			case insights.MetricCriteria:
+			case metricalerts.MetricCriteria:
 				criteriaSchema = "criteria"
 			}
-		case insights.WebtestLocationAvailabilityCriteria:
+		case metricalerts.WebtestLocationAvailabilityCriteria:
 			criteriaSchema = "application_insights_web_test_location_availability_criteria"
 		default:
-			return fmt.Errorf("Unknown criteria type")
+			return fmt.Errorf("unknown criteria type")
 		}
 
-		monitorMetricAlertCriteria := flattenMonitorMetricAlertCriteria(alert.Criteria)
+		monitorMetricAlertCriteria := flattenMonitorMetricAlertCriteria(props.Criteria)
 		// lintignore:R001
 		if err := d.Set(criteriaSchema, monitorMetricAlertCriteria); err != nil {
 			return fmt.Errorf("failed setting `%s`: %+v", criteriaSchema, err)
 		}
 
-		if err := d.Set("action", flattenMonitorMetricAlertAction(alert.Actions)); err != nil {
+		if err := d.Set("action", flattenMonitorMetricAlertAction(props.Actions)); err != nil {
 			return fmt.Errorf("setting `action`: %+v", err)
 		}
-		d.Set("target_resource_type", alert.TargetResourceType)
-		d.Set("target_resource_location", alert.TargetResourceRegion)
+		d.Set("target_resource_type", props.TargetResourceType)
+		d.Set("target_resource_location", props.TargetResourceRegion)
+
+		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+			return err
+		}
 	}
-	return tags.FlattenAndSet(d, resp.Tags)
+
+	return nil
 }
 
 func resourceMonitorMetricAlertDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -563,13 +569,13 @@ func resourceMonitorMetricAlertDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MetricAlertID(d.Id())
+	id, err := metricalerts.ParseMetricAlertID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		if !response.WasNotFound(resp.Response) {
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting Monitor %s: %+v", *id, err)
 		}
 	}
@@ -577,7 +583,7 @@ func resourceMonitorMetricAlertDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandMonitorMetricAlertCriteria(d *pluginsdk.ResourceData, isLegacy bool) (insights.BasicMetricAlertCriteria, error) {
+func expandMonitorMetricAlertCriteria(d *pluginsdk.ResourceData, isLegacy bool) (metricalerts.MetricAlertCriteria, error) {
 	switch {
 	case len(d.Get("criteria").([]interface{})) != 0:
 		if isLegacy {
@@ -594,182 +600,164 @@ func expandMonitorMetricAlertCriteria(d *pluginsdk.ResourceData, isLegacy bool) 
 	}
 }
 
-func expandMonitorMetricAlertSingleResourceMultiMetricCriteria(input []interface{}) insights.BasicMetricAlertCriteria {
-	criteria := make([]insights.MetricCriteria, 0)
+func expandMonitorMetricAlertSingleResourceMultiMetricCriteria(input []interface{}) metricalerts.MetricAlertCriteria {
+	criteria := make([]metricalerts.MultiMetricCriteria, 0)
 	for i, item := range input {
 		v := item.(map[string]interface{})
 		dimensions := expandMonitorMetricDimension(v["dimension"].([]interface{}))
-		criteria = append(criteria, insights.MetricCriteria{
-			Name:                 utils.String(fmt.Sprintf("Metric%d", i+1)),
+		criteria = append(criteria, metricalerts.MetricCriteria{
+			Name:                 fmt.Sprintf("Metric%d", i+1),
 			MetricNamespace:      utils.String(v["metric_namespace"].(string)),
-			MetricName:           utils.String(v["metric_name"].(string)),
-			TimeAggregation:      insights.AggregationTypeEnum(v["aggregation"].(string)),
+			MetricName:           v["metric_name"].(string),
+			TimeAggregation:      metricalerts.AggregationTypeEnum(v["aggregation"].(string)),
 			Dimensions:           &dimensions,
-			Operator:             insights.Operator(v["operator"].(string)),
-			Threshold:            utils.Float(v["threshold"].(float64)),
+			Operator:             metricalerts.Operator(v["operator"].(string)),
+			Threshold:            v["threshold"].(float64),
 			SkipMetricValidation: utils.Bool(v["skip_metric_validation"].(bool)),
 		})
 	}
-	return &insights.MetricAlertSingleResourceMultipleMetricCriteria{
-		AllOf:     &criteria,
-		OdataType: insights.OdataTypeBasicMetricAlertCriteriaOdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria,
+	return &metricalerts.MetricAlertSingleResourceMultipleMetricCriteria{
+		AllOf: &criteria,
 	}
 }
 
-func expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(input []interface{}) insights.BasicMetricAlertCriteria {
-	criteria := make([]insights.BasicMultiMetricCriteria, 0)
+func expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(input []interface{}) metricalerts.MetricAlertCriteria {
+	criteria := make([]metricalerts.MultiMetricCriteria, 0)
 	for i, item := range input {
 		v := item.(map[string]interface{})
 		dimensions := expandMonitorMetricDimension(v["dimension"].([]interface{}))
-		criteria = append(criteria, insights.MetricCriteria{
-			Name:                 utils.String(fmt.Sprintf("Metric%d", i+1)),
+		criteria = append(criteria, metricalerts.MetricCriteria{
+			Name:                 fmt.Sprintf("Metric%d", i+1),
 			MetricNamespace:      utils.String(v["metric_namespace"].(string)),
-			MetricName:           utils.String(v["metric_name"].(string)),
-			TimeAggregation:      insights.AggregationTypeEnum(v["aggregation"].(string)),
+			MetricName:           v["metric_name"].(string),
+			TimeAggregation:      metricalerts.AggregationTypeEnum(v["aggregation"].(string)),
 			Dimensions:           &dimensions,
-			Operator:             insights.Operator(v["operator"].(string)),
-			Threshold:            utils.Float(v["threshold"].(float64)),
+			Operator:             metricalerts.Operator(v["operator"].(string)),
+			Threshold:            v["threshold"].(float64),
 			SkipMetricValidation: utils.Bool(v["skip_metric_validation"].(bool)),
 		})
 	}
-	return &insights.MetricAlertMultipleResourceMultipleMetricCriteria{
-		AllOf:     &criteria,
-		OdataType: insights.OdataTypeBasicMetricAlertCriteriaOdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria,
+	return &metricalerts.MetricAlertMultipleResourceMultipleMetricCriteria{
+		AllOf: &criteria,
 	}
 }
 
-func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(input []interface{}) insights.BasicMetricAlertCriteria {
-	criteria := make([]insights.BasicMultiMetricCriteria, 0)
+func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(input []interface{}) metricalerts.MetricAlertCriteria {
+	criteria := make([]metricalerts.MultiMetricCriteria, 0)
 	for i, item := range input {
 		v := item.(map[string]interface{})
 		dimensions := expandMonitorMetricDimension(v["dimension"].([]interface{}))
-		var ignoreDataBefore *date.Time
-		if v := v["ignore_data_before"].(string); v != "" {
-			// Guaranteed in schema validation func.
-			t, _ := time.Parse(time.RFC3339, v)
-			ignoreDataBefore = &date.Time{Time: t}
-		}
-		criteria = append(criteria, insights.DynamicMetricCriteria{
-			Name:             utils.String(fmt.Sprintf("Metric%d", i+1)),
+
+		dynamicMetricCriteria := metricalerts.DynamicMetricCriteria{
+			Name:             fmt.Sprintf("Metric%d", i+1),
 			MetricNamespace:  utils.String(v["metric_namespace"].(string)),
-			MetricName:       utils.String(v["metric_name"].(string)),
-			TimeAggregation:  insights.AggregationTypeEnum(v["aggregation"].(string)),
+			MetricName:       v["metric_name"].(string),
+			TimeAggregation:  metricalerts.AggregationTypeEnum(v["aggregation"].(string)),
 			Dimensions:       &dimensions,
-			Operator:         insights.DynamicThresholdOperator(v["operator"].(string)),
-			AlertSensitivity: insights.DynamicThresholdSensitivity(v["alert_sensitivity"].(string)),
-			FailingPeriods: &insights.DynamicThresholdFailingPeriods{
-				NumberOfEvaluationPeriods: utils.Float(float64(v["evaluation_total_count"].(int))),
-				MinFailingPeriodsToAlert:  utils.Float(float64(v["evaluation_failure_count"].(int))),
+			Operator:         metricalerts.DynamicThresholdOperator(v["operator"].(string)),
+			AlertSensitivity: metricalerts.DynamicThresholdSensitivity(v["alert_sensitivity"].(string)),
+			FailingPeriods: metricalerts.DynamicThresholdFailingPeriods{
+				NumberOfEvaluationPeriods: float64(v["evaluation_total_count"].(int)),
+				MinFailingPeriodsToAlert:  float64(v["evaluation_failure_count"].(int)),
 			},
-			IgnoreDataBefore:     ignoreDataBefore,
 			SkipMetricValidation: utils.Bool(v["skip_metric_validation"].(bool)),
-		})
+		}
+
+		if datetime := v["ignore_data_before"].(string); datetime != "" {
+			// Guaranteed in schema validation func.
+			t, _ := time.Parse(time.RFC3339, datetime)
+			ignoreDataBefore := &date.Time{Time: t}
+			dynamicMetricCriteria.IgnoreDataBefore = pointer.To(ignoreDataBefore.String())
+		}
+
+		criteria = append(criteria, dynamicMetricCriteria)
 	}
-	return &insights.MetricAlertMultipleResourceMultipleMetricCriteria{
-		AllOf:     &criteria,
-		OdataType: insights.OdataTypeBasicMetricAlertCriteriaOdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria,
+	return &metricalerts.MetricAlertMultipleResourceMultipleMetricCriteria{
+		AllOf: &criteria,
 	}
 }
 
-func expandMonitorMetricAlertWebtestLocAvailCriteria(input []interface{}) insights.BasicMetricAlertCriteria {
+func expandMonitorMetricAlertWebtestLocAvailCriteria(input []interface{}) metricalerts.MetricAlertCriteria {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	return &insights.WebtestLocationAvailabilityCriteria{
-		WebTestID:           utils.String(v["web_test_id"].(string)),
-		ComponentID:         utils.String(v["component_id"].(string)),
-		FailedLocationCount: utils.Float(float64(v["failed_location_count"].(int))),
-		OdataType:           insights.OdataTypeBasicMetricAlertCriteriaOdataTypeMicrosoftAzureMonitorWebtestLocationAvailabilityCriteria,
+	return &metricalerts.WebtestLocationAvailabilityCriteria{
+		WebTestId:           v["web_test_id"].(string),
+		ComponentId:         v["component_id"].(string),
+		FailedLocationCount: float64(v["failed_location_count"].(int)),
 	}
 }
 
-func expandMonitorMetricDimension(input []interface{}) []insights.MetricDimension {
-	result := make([]insights.MetricDimension, 0)
+func expandMonitorMetricDimension(input []interface{}) []metricalerts.MetricDimension {
+	result := make([]metricalerts.MetricDimension, 0)
 	for _, dimension := range input {
 		dVal := dimension.(map[string]interface{})
-		result = append(result, insights.MetricDimension{
-			Name:     utils.String(dVal["name"].(string)),
-			Operator: utils.String(dVal["operator"].(string)),
-			Values:   utils.ExpandStringSlice(dVal["values"].([]interface{})),
+		result = append(result, metricalerts.MetricDimension{
+			Name:     dVal["name"].(string),
+			Operator: dVal["operator"].(string),
+			Values:   expandStringValues(dVal["values"].([]interface{})),
 		})
 	}
 	return result
 }
 
-func expandMonitorMetricAlertAction(input []interface{}) *[]insights.MetricAlertAction {
-	actions := make([]insights.MetricAlertAction, 0)
+func expandMonitorMetricAlertAction(input []interface{}) *[]metricalerts.MetricAlertAction {
+	actions := make([]metricalerts.MetricAlertAction, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		if agID := v["action_group_id"].(string); agID != "" {
-			props := make(map[string]*string)
+			props := make(map[string]string)
 			if pVal, ok := v["webhook_properties"]; ok {
 				for pk, pv := range pVal.(map[string]interface{}) {
-					props[pk] = utils.String(pv.(string))
+					props[pk] = pv.(string)
 				}
 			}
 
-			actions = append(actions, insights.MetricAlertAction{
-				ActionGroupID:     utils.String(agID),
-				WebHookProperties: props,
+			actions = append(actions, metricalerts.MetricAlertAction{
+				ActionGroupId:     utils.String(agID),
+				WebHookProperties: &props,
 			})
 		}
 	}
 	return &actions
 }
 
-func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) []interface{} {
+func flattenMonitorMetricAlertCriteria(input metricalerts.MetricAlertCriteria) []interface{} {
 	switch criteria := input.(type) {
-	case insights.MetricAlertSingleResourceMultipleMetricCriteria:
+	case metricalerts.MetricAlertSingleResourceMultipleMetricCriteria:
 		return flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(criteria.AllOf)
-	case insights.MetricAlertMultipleResourceMultipleMetricCriteria:
+	case metricalerts.MetricAlertMultipleResourceMultipleMetricCriteria:
 		return flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(criteria.AllOf)
-	case insights.WebtestLocationAvailabilityCriteria:
+	case metricalerts.WebtestLocationAvailabilityCriteria:
 		return flattenMonitorMetricAlertWebtestLocAvailCriteria(&criteria)
 	default:
 		return nil
 	}
 }
 
-func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]insights.MetricCriteria) []interface{} {
+func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metricalerts.MultiMetricCriteria) []interface{} {
 	if input == nil || len(*input) == 0 {
 		return nil
 	}
-	criteria := (*input)[0]
-
-	metricName := ""
-	if criteria.MetricName != nil {
-		metricName = *criteria.MetricName
-	}
-
-	metricNamespace := ""
-	if criteria.MetricNamespace != nil {
-		metricNamespace = *criteria.MetricNamespace
-	}
-
+	criteria := (*input)[0].(metricalerts.MetricCriteria)
+	metricName := criteria.MetricName
+	metricNamespace := criteria.MetricNamespace
 	timeAggregation := criteria.TimeAggregation
 
 	dimResult := make([]map[string]interface{}, 0)
 	if criteria.Dimensions != nil {
 		for _, dimension := range *criteria.Dimensions {
 			dVal := make(map[string]interface{})
-			if dimension.Name != nil {
-				dVal["name"] = *dimension.Name
-			}
-			if dimension.Operator != nil {
-				dVal["operator"] = *dimension.Operator
-			}
-			dVal["values"] = utils.FlattenStringSlice(dimension.Values)
+			dVal["name"] = dimension.Name
+			dVal["operator"] = dimension.Operator
+			dVal["values"] = dimension.Values
 			dimResult = append(dimResult, dVal)
 		}
 	}
 
 	operator := string(criteria.Operator)
-
-	threshold := 0.0
-	if criteria.Threshold != nil {
-		threshold = *criteria.Threshold
-	}
+	threshold := criteria.Threshold
 
 	var skipMetricValidation bool
 	if criteria.SkipMetricValidation != nil {
@@ -789,7 +777,7 @@ func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]insight
 	}
 }
 
-func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]insights.BasicMultiMetricCriteria) []interface{} {
+func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metricalerts.MultiMetricCriteria) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -801,15 +789,14 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]insights
 			metricName           string
 			metricNamespace      string
 			timeAggregation      interface{}
-			dimensions           []insights.MetricDimension
+			dimensions           []metricalerts.MetricDimension
 			skipMetricValidation bool
 		)
 
 		switch criteria := criteria.(type) {
-		case insights.MetricCriteria:
-			if criteria.MetricName != nil {
-				metricName = *criteria.MetricName
-			}
+		case metricalerts.MetricCriteria:
+			metricName = criteria.MetricName
+
 			if criteria.MetricNamespace != nil {
 				metricNamespace = *criteria.MetricNamespace
 			}
@@ -820,19 +807,13 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]insights
 
 			// MetricCriteria specific properties
 			v["operator"] = string(criteria.Operator)
-
-			threshold := 0.0
-			if criteria.Threshold != nil {
-				threshold = *criteria.Threshold
-			}
-			v["threshold"] = threshold
+			v["threshold"] = criteria.Threshold
 			if criteria.SkipMetricValidation != nil {
 				skipMetricValidation = *criteria.SkipMetricValidation
 			}
-		case insights.DynamicMetricCriteria:
-			if criteria.MetricName != nil {
-				metricName = *criteria.MetricName
-			}
+		case metricalerts.DynamicMetricCriteria:
+			metricName = criteria.MetricName
+
 			if criteria.MetricNamespace != nil {
 				metricNamespace = *criteria.MetricNamespace
 			}
@@ -846,24 +827,13 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]insights
 			// DynamicMetricCriteria specific properties
 			v["operator"] = string(criteria.Operator)
 			v["alert_sensitivity"] = string(criteria.AlertSensitivity)
-			var (
-				nEvl     = 1
-				nFailEvl = 1
-			)
-			if period := criteria.FailingPeriods; period != nil {
-				if period.NumberOfEvaluationPeriods != nil {
-					nEvl = int(*period.NumberOfEvaluationPeriods)
-				}
-				if period.MinFailingPeriodsToAlert != nil {
-					nFailEvl = int(*period.MinFailingPeriodsToAlert)
-				}
-			}
-			v["evaluation_total_count"] = nEvl
-			v["evaluation_failure_count"] = nFailEvl
+
+			v["evaluation_total_count"] = int(criteria.FailingPeriods.NumberOfEvaluationPeriods)
+			v["evaluation_failure_count"] = int(criteria.FailingPeriods.MinFailingPeriodsToAlert)
 
 			ignoreDataBefore := ""
 			if criteria.IgnoreDataBefore != nil {
-				ignoreDataBefore = criteria.IgnoreDataBefore.Format(time.RFC3339)
+				ignoreDataBefore = *criteria.IgnoreDataBefore
 			}
 			v["ignore_data_before"] = ignoreDataBefore
 		}
@@ -877,13 +847,9 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]insights
 			dimResult := make([]map[string]interface{}, 0)
 			for _, dimension := range dimensions {
 				dVal := make(map[string]interface{})
-				if dimension.Name != nil {
-					dVal["name"] = *dimension.Name
-				}
-				if dimension.Operator != nil {
-					dVal["operator"] = *dimension.Operator
-				}
-				dVal["values"] = utils.FlattenStringSlice(dimension.Values)
+				dVal["name"] = dimension.Name
+				dVal["operator"] = dimension.Operator
+				dVal["values"] = dimension.Values
 				dimResult = append(dimResult, dVal)
 			}
 			v["dimension"] = dimResult
@@ -894,35 +860,21 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]insights
 	return result
 }
 
-func flattenMonitorMetricAlertWebtestLocAvailCriteria(input *insights.WebtestLocationAvailabilityCriteria) []interface{} {
+func flattenMonitorMetricAlertWebtestLocAvailCriteria(input *metricalerts.WebtestLocationAvailabilityCriteria) []interface{} {
 	if input == nil {
 		return nil
-	}
-	webtestID := ""
-	if input.WebTestID != nil {
-		webtestID = *input.WebTestID
-	}
-
-	componentID := ""
-	if input.ComponentID != nil {
-		componentID = *input.ComponentID
-	}
-
-	failedLocationCount := 0
-	if input.FailedLocationCount != nil {
-		failedLocationCount = int(*input.FailedLocationCount)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"web_test_id":           webtestID,
-			"component_id":          componentID,
-			"failed_location_count": failedLocationCount,
+			"web_test_id":           input.WebTestId,
+			"component_id":          input.ComponentId,
+			"failed_location_count": int(input.FailedLocationCount),
 		},
 	}
 }
 
-func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (result []interface{}) {
+func flattenMonitorMetricAlertAction(input *[]metricalerts.MetricAlertAction) (result []interface{}) {
 	result = make([]interface{}, 0)
 	if input == nil {
 		return
@@ -930,14 +882,14 @@ func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (resul
 	for _, action := range *input {
 		v := make(map[string]interface{})
 
-		if action.ActionGroupID != nil {
-			v["action_group_id"] = *action.ActionGroupID
+		if action.ActionGroupId != nil {
+			v["action_group_id"] = *action.ActionGroupId
 		}
 
 		props := make(map[string]string)
-		for pk, pv := range action.WebHookProperties {
-			if pv != nil {
-				props[pk] = *pv
+		if action.WebHookProperties != nil {
+			for pk, pv := range *action.WebHookProperties {
+				props[pk] = pv
 			}
 		}
 		v["webhook_properties"] = props
@@ -959,17 +911,17 @@ func resourceMonitorMetricAlertActionHash(input interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func monitorMetricAlertStateRefreshFunc(ctx context.Context, client *insights.MetricAlertsClient, resourceGroupName string, name string) pluginsdk.StateRefreshFunc {
+func monitorMetricAlertStateRefreshFunc(ctx context.Context, client *metricalerts.MetricAlertsClient, id metricalerts.MetricAlertId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroupName, name)
+		res, err := client.Get(ctx, id)
 		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
+			if response.WasNotFound(res.HttpResponse) {
 				return nil, "404", nil
 			}
 
-			return nil, "", fmt.Errorf("retrieving Monitor Metric Alert %q (Resource Group %q): %s", name, resourceGroupName, err)
+			return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
 		}
 
-		return res, strconv.Itoa(res.StatusCode), nil
+		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
 	}
 }
