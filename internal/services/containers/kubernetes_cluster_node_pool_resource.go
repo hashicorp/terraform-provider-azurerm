@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/snapshots"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -294,11 +295,11 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 			},
 
-			"source_snapshot_id": {
+			"snapshot_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: containerValidate.SnapshotID,
+				ValidateFunc: snapshots.ValidateSnapshotID,
 			},
 
 			"spot_max_price": {
@@ -589,9 +590,9 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
 	}
 
-	if sourceSnapshotId := d.Get("source_snapshot_id").(string); sourceSnapshotId != "" {
+	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
 		profile.CreationData = &agentpools.CreationData{
-			SourceResourceId: utils.String(sourceSnapshotId),
+			SourceResourceId: utils.String(snapshotId),
 		}
 	}
 
@@ -826,7 +827,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		}
 
 		if props.CreationData != nil {
-			d.Set("source_snapshot_id", props.CreationData.SourceResourceId)
+			d.Set("snapshot_id", props.CreationData.SourceResourceId)
 		}
 
 		scaleDownMode := string(managedclusters.ScaleDownModeDelete)

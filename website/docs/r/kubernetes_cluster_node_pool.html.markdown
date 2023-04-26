@@ -138,7 +138,7 @@ The following arguments are supported:
 
 ~> **Note:** This field can only be configured when `priority` is set to `Spot`.
 
-* `source_snapshot_id` - (Optional) The ID of the Snapshot which should be used to create this Node Pool. Changing this forces a new resource to be created.
+* `snapshot_id` - (Optional) The ID of the Snapshot which should be used to create this Node Pool. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
