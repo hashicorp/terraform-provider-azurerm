@@ -4,6 +4,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -11,6 +12,7 @@ type Client struct {
 	CassandraClient                  *documentdb.CassandraResourcesClient
 	CassandraClustersClient          *managedcassandras.ManagedCassandrasClient
 	CassandraDatacentersClient       *documentdb.CassandraDataCentersClient
+	ClustersClient                   *clusters.ClustersClient
 	DatabaseClient                   *documentdb.DatabaseAccountsClient
 	GremlinClient                    *documentdb.GremlinResourcesClient
 	MongoDbClient                    *documentdb.MongoDBResourcesClient
@@ -31,6 +33,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	cassandraDatacentersClient := documentdb.NewCassandraDataCentersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&cassandraDatacentersClient.Client, o.ResourceManagerAuthorizer)
+
+	clustersClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&clustersClient.Client, o.ResourceManagerAuthorizer)
 
 	databaseClient := documentdb.NewDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databaseClient.Client, o.ResourceManagerAuthorizer)
@@ -63,6 +68,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		CassandraClient:                  &cassandraClient,
 		CassandraClustersClient:          &cassandraClustersClient,
 		CassandraDatacentersClient:       &cassandraDatacentersClient,
+		ClustersClient:                   &clustersClient,
 		DatabaseClient:                   &databaseClient,
 		GremlinClient:                    &gremlinClient,
 		MongoDbClient:                    &mongoDbClient,
