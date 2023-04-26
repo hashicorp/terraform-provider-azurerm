@@ -3,6 +3,7 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -135,6 +136,122 @@ func TestAccCdnFrontDoorRuleSetsAssociation_destroySingleRuleSetAssociation(t *t
 	})
 }
 
+func TestAccCdnFrontDoorRuleSetsAssociation_multipleRoutesSameRuleSets(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "test")
+	fabrikamData := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "fabrikam")
+	r := CdnFrontDoorRuleSetsAssociationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleRoutes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+				check.That(fabrikamData.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+			),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRuleSetsAssociation_multipleRoutesRemoveOne(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "test")
+	fabrikamData := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "fabrikam")
+	r := CdnFrontDoorRuleSetsAssociationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleRoutes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+				check.That(fabrikamData.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+			),
+		},
+		{
+			Config: r.multipleRoutesRemoveOne(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+				check.That(fabrikamData.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("2"),
+			),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRuleSetsAssociation_multipleRoutesRemoveOneFromBoth(t *testing.T) {
+	// Regression test case for issue #20744
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "test")
+	fabrikamData := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "fabrikam")
+	r := CdnFrontDoorRuleSetsAssociationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleRoutes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+				check.That(fabrikamData.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+			),
+		},
+		{
+			// NOTE: This test case actually deletes the rule set as well
+			Config: r.multipleRoutesRemoveOneFromBoth(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("2"),
+				check.That(fabrikamData.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("2"),
+			),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRuleSetsAssociation_multipleRoutesRemoveAllFromOne(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "test")
+	fabrikamData := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "fabrikam")
+	r := CdnFrontDoorRuleSetsAssociationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleRoutes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+				check.That(fabrikamData.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+			),
+		},
+		{
+			Config: r.multipleRoutesRemoveAllFromOne(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+				check.That(fabrikamData.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("0"),
+			),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRuleSetsAssociation_multipleRoutesRemoveError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "test")
+	fabrikamData := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_sets_association", "fabrikam")
+	r := CdnFrontDoorRuleSetsAssociationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleRoutes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+				check.That(fabrikamData.ResourceName).Key("cdn_frontdoor_rule_set_ids.#").HasValue("3"),
+			),
+		},
+		{
+			Config:      r.multipleRoutesRemoveError(data),
+			Check:       acceptance.ComposeTestCheckFunc(),
+			ExpectError: regexp.MustCompile("Reference to undeclared resource"),
+		},
+	})
+}
+
 func (r CdnFrontDoorRuleSetsAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontDoorRuleSetAssociationID(state.ID)
 	if err != nil {
@@ -237,6 +354,261 @@ resource "azurerm_cdn_frontdoor_rule_sets_association" "test" {
   cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id]
 }
 `, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleSetsAssociationResource) multipleRoutes(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_rule_set" "one" {
+  name                     = "acctestrulesetone%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "two" {
+  name                     = "acctestrulesettwo%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "three" {
+  name                     = "acctestrulesetthree%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_route" "fabrikam" {
+  name                          = "acctest-fabrikam-%[2]d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+  enabled                       = true
+
+  https_redirect_enabled = true
+  forwarding_protocol    = "HttpsOnly"
+  patterns_to_match      = ["/%[3]s/fabrikam"]
+  supported_protocols    = ["Http", "Https"]
+  link_to_default_domain = true
+
+  cache {
+    compression_enabled           = true
+    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
+    query_strings                 = ["account", "settings", "foo", "bar"]
+    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
+  }
+}
+
+resource "azurerm_cdn_frontdoor_rule_sets_association" "test" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.two.id, azurerm_cdn_frontdoor_rule_set.three.id]
+}
+
+resource "azurerm_cdn_frontdoor_rule_sets_association" "fabrikam" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.fabrikam.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.two.id, azurerm_cdn_frontdoor_rule_set.three.id]
+}
+`, template, data.RandomInteger, data.RandomStringOfLength(10))
+}
+
+func (r CdnFrontDoorRuleSetsAssociationResource) multipleRoutesRemoveError(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_rule_set" "one" {
+  name                     = "acctestrulesetone%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "three" {
+  name                     = "acctestrulesetthree%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_route" "fabrikam" {
+  name                          = "acctest-fabrikam-%[2]d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+  enabled                       = true
+
+  https_redirect_enabled = true
+  forwarding_protocol    = "HttpsOnly"
+  patterns_to_match      = ["/%[3]s/fabrikam"]
+  supported_protocols    = ["Http", "Https"]
+  link_to_default_domain = true
+
+  cache {
+    compression_enabled           = true
+    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
+    query_strings                 = ["account", "settings", "foo", "bar"]
+    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
+  }
+}
+
+resource "azurerm_cdn_frontdoor_rule_sets_association" "test" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.two.id, azurerm_cdn_frontdoor_rule_set.three.id]
+}
+
+resource "azurerm_cdn_frontdoor_rule_sets_association" "fabrikam" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.fabrikam.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.three.id]
+}
+`, template, data.RandomInteger, data.RandomStringOfLength(10))
+}
+
+func (r CdnFrontDoorRuleSetsAssociationResource) multipleRoutesRemoveOne(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_rule_set" "one" {
+  name                     = "acctestrulesetone%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "two" {
+  name                     = "acctestrulesettwo%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "three" {
+  name                     = "acctestrulesetthree%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_route" "fabrikam" {
+  name                          = "acctest-fabrikam-%[2]d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+  enabled                       = true
+
+  https_redirect_enabled = true
+  forwarding_protocol    = "HttpsOnly"
+  patterns_to_match      = ["/%[3]s/fabrikam"]
+  supported_protocols    = ["Http", "Https"]
+  link_to_default_domain = true
+
+  cache {
+    compression_enabled           = true
+    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
+    query_strings                 = ["account", "settings", "foo", "bar"]
+    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
+  }
+}
+
+resource "azurerm_cdn_frontdoor_rule_sets_association" "test" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.two.id, azurerm_cdn_frontdoor_rule_set.three.id]
+}
+
+resource "azurerm_cdn_frontdoor_rule_sets_association" "fabrikam" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.fabrikam.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.three.id]
+}
+`, template, data.RandomInteger, data.RandomStringOfLength(10))
+}
+
+func (r CdnFrontDoorRuleSetsAssociationResource) multipleRoutesRemoveOneFromBoth(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_rule_set" "one" {
+  name                     = "acctestrulesetone%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "three" {
+  name                     = "acctestrulesetthree%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_route" "fabrikam" {
+  name                          = "acctest-fabrikam-%[2]d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+  enabled                       = true
+
+  https_redirect_enabled = true
+  forwarding_protocol    = "HttpsOnly"
+  patterns_to_match      = ["/%[3]s/fabrikam"]
+  supported_protocols    = ["Http", "Https"]
+  link_to_default_domain = true
+
+  cache {
+    compression_enabled           = true
+    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
+    query_strings                 = ["account", "settings", "foo", "bar"]
+    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
+  }
+}
+
+resource "azurerm_cdn_frontdoor_rule_sets_association" "test" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.three.id]
+}
+
+resource "azurerm_cdn_frontdoor_rule_sets_association" "fabrikam" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.fabrikam.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.three.id]
+}
+`, template, data.RandomInteger, data.RandomStringOfLength(10))
+}
+
+func (r CdnFrontDoorRuleSetsAssociationResource) multipleRoutesRemoveAllFromOne(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_rule_set" "one" {
+  name                     = "acctestrulesetone%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "two" {
+  name                     = "acctestrulesettwo%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "three" {
+  name                     = "acctestrulesetthree%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_route" "fabrikam" {
+  name                          = "acctest-fabrikam-%[2]d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+  enabled                       = true
+
+  https_redirect_enabled = true
+  forwarding_protocol    = "HttpsOnly"
+  patterns_to_match      = ["/%[3]s/fabrikam"]
+  supported_protocols    = ["Http", "Https"]
+  link_to_default_domain = true
+
+  cache {
+    compression_enabled           = true
+    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
+    query_strings                 = ["account", "settings", "foo", "bar"]
+    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
+  }
+}
+
+resource "azurerm_cdn_frontdoor_rule_sets_association" "test" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.test.id
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.one.id, azurerm_cdn_frontdoor_rule_set.two.id, azurerm_cdn_frontdoor_rule_set.three.id]
+}
+
+resource "azurerm_cdn_frontdoor_rule_sets_association" "fabrikam" {
+  cdn_frontdoor_route_id     = azurerm_cdn_frontdoor_route.fabrikam.id
+  cdn_frontdoor_rule_set_ids = []
+}
+`, template, data.RandomInteger, data.RandomStringOfLength(10))
 }
 
 func (r CdnFrontDoorRuleSetsAssociationResource) template(data acceptance.TestData) string {
