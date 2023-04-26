@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_arc_kubernetes_cluster_extension` [GH-21310]
+* **New Resource:** `azurerm_kubernetes_cluster_extension` [GH-21310]
 * **New Resource:** `azurerm_storage_mover_project` [GH-21477]
 
 ENHANCEMENTS:
