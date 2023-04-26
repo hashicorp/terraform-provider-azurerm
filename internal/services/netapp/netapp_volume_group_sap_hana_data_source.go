@@ -256,7 +256,7 @@ func (r NetAppVolumeGroupSapHanaDataSource) Read() sdk.ResourceFunc {
 			resp, err := client.VolumeGroupsGet(ctx, id)
 			if err != nil {
 				if resp.HttpResponse.StatusCode == http.StatusNotFound {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
