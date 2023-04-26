@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 * `security`: updating to API Version `2023-01-01` [GH-21531]
 * Data Source: `azurerm_virtual_network_gateway` - add support for the `private_ip_address` property [GH-21432]
+* `azurerm_firewall_policy_rule_collection_group` - the properties `source_addresses` and `destination_addresses` accept IPv4 ranges [GH-21542]
 * `azurerm_kubernetes_cluster` - add support for the `service_mesh_profile` block [GH-21516]
 * `azurerm_billing_account_cost_management_export` - add support for the value `TheLast7Days` for the property `time_frame` [GH-21528]
 * `azurerm_resource_group_cost_management_export` - add support for the value `TheLast7Days` for the property `time_frame` [GH-21528]
