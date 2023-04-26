@@ -603,9 +603,18 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	patchSchedulesRedisId := patchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
 	if patchSchedule == nil || len(patchSchedule.Properties.ScheduleEntries) == 0 {
-		_, err = patchClient.Delete(ctx, patchSchedulesRedisId)
+		existing, err := patchClient.Get(ctx, patchSchedulesRedisId)
 		if err != nil {
-			return fmt.Errorf("deleting Patch Schedule for %s: %+v", *id, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing patch schedule %s: %+v", patchSchedulesRedisId, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			_, err = patchClient.Delete(ctx, patchSchedulesRedisId)
+			if err != nil {
+				return fmt.Errorf("deleting Patch Schedule for %s: %+v", *id, err)
+			}
 		}
 	} else {
 		_, err = patchClient.CreateOrUpdate(ctx, patchSchedulesRedisId, *patchSchedule)
