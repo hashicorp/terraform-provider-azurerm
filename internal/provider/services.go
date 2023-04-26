@@ -128,6 +128,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		appconfiguration.Registration{},
 		applicationinsights.Registration{},
 		appservice.Registration{},
+		arckubernetes.Registration{},
 		automation.Registration{},
 		batch.Registration{},
 		bot.Registration{},
