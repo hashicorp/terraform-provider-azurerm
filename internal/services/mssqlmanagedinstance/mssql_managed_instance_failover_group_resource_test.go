@@ -54,7 +54,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Exists(ctx context.Context, c
 		return nil, err
 	}
 
-	resp, err := client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient.Get(ctx, id.ResourceGroup, id.LocationName, id.Name)
+	resp, err := client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient.Get(ctx, id.ResourceGroup, id.LocationName, id.InstanceFailoverGroupName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

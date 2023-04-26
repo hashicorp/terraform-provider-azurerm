@@ -13,12 +13,12 @@ var (
 )
 
 func (r Registration) AssociatedGitHubLabel() string {
-	return "service/mssql"
+	return "service/mssqlmanagedinstance"
 }
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "Microsoft SQL Server / Azure SQL"
+	return "Microsoft SQL Server Managed Instances"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar

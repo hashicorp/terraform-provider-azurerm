@@ -209,6 +209,8 @@ service/monitor:
 
 service/mssql:
   - internal/services/mssql/**/*
+
+service/mssqlmanagedinstance:
   - internal/services/mssqlmanagedinstance/**/*
 
 service/mysql:

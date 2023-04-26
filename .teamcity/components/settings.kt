@@ -107,6 +107,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // MSSQl uses app service which is only available in certain locations
         "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
+        // MSSQL Managed Instance creation can impact the service so limit the frequency and number of tests
+        "mssqlmanagedinstance" to testConfiguration(parallelism = 5, daysOfWeek = "2,6", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
+
         // MySQL has quota available in certain locations
         "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
