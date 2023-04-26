@@ -131,6 +131,21 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"virtual_router_auto_scale_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"min_capacity": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(2),
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -167,12 +182,14 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	t := d.Get("tags").(map[string]interface{})
 
 	hubRoutingPreference := d.Get("hub_routing_preference").(string)
+	autoscale := expandAutoScaleConfig(d.Get("virtual_router_auto_scale_configuration").([]interface{}))
 
 	parameters := network.VirtualHub{
 		Location: utils.String(location),
 		VirtualHubProperties: &network.VirtualHubProperties{
-			RouteTable:           expandVirtualHubRoute(route),
-			HubRoutingPreference: network.HubRoutingPreference(hubRoutingPreference),
+			RouteTable:                          expandVirtualHubRoute(route),
+			HubRoutingPreference:                network.HubRoutingPreference(hubRoutingPreference),
+			VirtualRouterAutoScaleConfiguration: autoscale,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -276,6 +293,8 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			virtualRouterIps = props.VirtualRouterIps
 		}
 		d.Set("virtual_router_ips", virtualRouterIps)
+
+		d.Set("virtual_router_auto_scale_configuration", flattenAutoScaleConfig(props.VirtualRouterAutoScaleConfiguration))
 	}
 
 	defaultRouteTable := parse.NewHubRouteTableID(id.SubscriptionId, id.ResourceGroup, id.Name, "defaultRouteTable")
@@ -360,6 +379,31 @@ func flattenVirtualHubRoute(input *network.VirtualHubRouteTable) []interface{} {
 	}
 
 	return results
+}
+
+func expandAutoScaleConfig(input []interface{}) *network.VirtualRouterAutoScaleConfiguration {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	minCapacity := utils.Int32(int32(v["min_capacity"].(int)))
+
+	return &network.VirtualRouterAutoScaleConfiguration{
+		MinCapacity: minCapacity,
+	}
+}
+
+func flattenAutoScaleConfig(config *network.VirtualRouterAutoScaleConfiguration) []interface{} {
+	if config == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"min_capacity": int(*config.MinCapacity),
+		},
+	}
 }
 
 func virtualHubCreateRefreshFunc(ctx context.Context, client *network.VirtualHubsClient, resourceGroup, name string) pluginsdk.StateRefreshFunc {

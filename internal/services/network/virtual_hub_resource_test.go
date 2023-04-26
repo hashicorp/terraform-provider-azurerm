@@ -105,6 +105,21 @@ func TestAccVirtualHub_tags(t *testing.T) {
 	})
 }
 
+func TestAccVirtualHub_autoscale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
+	r := VirtualHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoScaleSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VirtualHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualHubID(state.ID)
 	if err != nil {
@@ -234,6 +249,24 @@ resource "azurerm_virtual_hub" "test" {
   address_prefix      = "10.0.1.0/24"
 
   hub_routing_preference = "ASPath"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r VirtualHubResource) autoScaleSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctestVHUB-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
+
+  virtual_router_auto_scale_configuration {
+	min_capacity: 2
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
