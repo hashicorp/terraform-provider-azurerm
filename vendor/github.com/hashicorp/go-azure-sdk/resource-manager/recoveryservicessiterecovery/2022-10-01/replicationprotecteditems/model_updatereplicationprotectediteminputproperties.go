@@ -9,16 +9,16 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UpdateReplicationProtectedItemInputProperties struct {
-	EnableRdpOnTargetOption        *string                                     `json:"enableRdpOnTargetOption,omitempty"`
-	LicenseType                    *LicenseType                                `json:"licenseType,omitempty"`
-	ProviderSpecificDetails        UpdateReplicationProtectedItemProviderInput `json:"providerSpecificDetails"`
-	RecoveryAvailabilitySetId      *string                                     `json:"recoveryAvailabilitySetId,omitempty"`
-	RecoveryAzureVMName            *string                                     `json:"recoveryAzureVMName,omitempty"`
-	RecoveryAzureVMSize            *string                                     `json:"recoveryAzureVMSize,omitempty"`
-	SelectedRecoveryAzureNetworkId *string                                     `json:"selectedRecoveryAzureNetworkId,omitempty"`
-	SelectedSourceNicId            *string                                     `json:"selectedSourceNicId,omitempty"`
-	SelectedTfoAzureNetworkId      *string                                     `json:"selectedTfoAzureNetworkId,omitempty"`
-	VMNics                         *[]VMNicInputDetails                        `json:"vmNics,omitempty"`
+	EnableRdpOnTargetOption        *string                                      `json:"enableRdpOnTargetOption,omitempty"`
+	LicenseType                    *LicenseType                                 `json:"licenseType,omitempty"`
+	ProviderSpecificDetails        *UpdateReplicationProtectedItemProviderInput `json:"providerSpecificDetails,omitempty"`
+	RecoveryAvailabilitySetId      *string                                      `json:"recoveryAvailabilitySetId,omitempty"`
+	RecoveryAzureVMName            *string                                      `json:"recoveryAzureVMName,omitempty"`
+	RecoveryAzureVMSize            *string                                      `json:"recoveryAzureVMSize,omitempty"`
+	SelectedRecoveryAzureNetworkId *string                                      `json:"selectedRecoveryAzureNetworkId,omitempty"`
+	SelectedSourceNicId            *string                                      `json:"selectedSourceNicId,omitempty"`
+	SelectedTfoAzureNetworkId      *string                                      `json:"selectedTfoAzureNetworkId,omitempty"`
+	VMNics                         *[]VMNicInputDetails                         `json:"vmNics,omitempty"`
 }
 
 var _ json.Unmarshaler = &UpdateReplicationProtectedItemInputProperties{}
@@ -50,7 +50,7 @@ func (s *UpdateReplicationProtectedItemInputProperties) UnmarshalJSON(bytes []by
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificDetails' for 'UpdateReplicationProtectedItemInputProperties': %+v", err)
 		}
-		s.ProviderSpecificDetails = impl
+		s.ProviderSpecificDetails = &impl
 	}
 	return nil
 }

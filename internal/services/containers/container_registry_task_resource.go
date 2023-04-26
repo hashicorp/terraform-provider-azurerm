@@ -698,10 +698,11 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
+			taskStep := expandRegistryTaskStep(model)
 			params := tasks.Task{
 				Properties: &tasks.TaskProperties{
 					Platform:           expandRegistryTaskPlatform(model.Platform),
-					Step:               expandRegistryTaskStep(model),
+					Step:               pointer.To(taskStep),
 					Trigger:            expandRegistryTaskTrigger(model),
 					Status:             pointer.To(status),
 					IsSystemTask:       &model.IsSystemTask,
@@ -895,7 +896,8 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 				existing.Model.Properties.Platform = expandRegistryTaskPlatform(model.Platform)
 			}
 			if metadata.ResourceData.HasChange("docker_step") || metadata.ResourceData.HasChange("file_step") || metadata.ResourceData.HasChange("encoded_step") {
-				existing.Model.Properties.Step = expandRegistryTaskStep(model)
+				taskStep := expandRegistryTaskStep(model)
+				existing.Model.Properties.Step = pointer.To(taskStep)
 			}
 
 			if metadata.ResourceData.HasChange("base_image_trigger") || metadata.ResourceData.HasChange("source_trigger") || metadata.ResourceData.HasChange("timer_trigger") {

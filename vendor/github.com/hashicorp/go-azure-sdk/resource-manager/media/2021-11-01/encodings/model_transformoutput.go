@@ -36,7 +36,7 @@ func (s *TransformOutput) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Preset' for 'TransformOutput': %+v", err)
 		}
-		s.Preset = impl
+		s.Preset = &impl
 	}
 	return nil
 }

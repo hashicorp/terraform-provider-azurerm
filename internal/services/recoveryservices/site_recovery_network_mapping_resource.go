@@ -116,19 +116,20 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
+	var mappingInput replicationnetworkmappings.FabricSpecificCreateNetworkMappingInput = replicationnetworkmappings.AzureToAzureCreateNetworkMappingInput{
+		PrimaryNetworkId: sourceNetworkId,
+	}
 	parameters := replicationnetworkmappings.CreateNetworkMappingInput{
 		Properties: replicationnetworkmappings.CreateNetworkMappingInputProperties{
-			RecoveryNetworkId:  targetNetworkId,
-			RecoveryFabricName: &targetFabricName,
-			FabricSpecificDetails: replicationnetworkmappings.AzureToAzureCreateNetworkMappingInput{
-				PrimaryNetworkId: sourceNetworkId,
-			},
+			RecoveryNetworkId:     targetNetworkId,
+			RecoveryFabricName:    &targetFabricName,
+			FabricSpecificDetails: &mappingInput,
 		},
 	}
 
 	err = client.CreateThenPoll(ctx, id, parameters)
 	if err != nil {
-		return fmt.Errorf("creating site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -137,14 +138,14 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceSiteRecoveryNetworkMappingRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RecoveryServices.NetworkMappingClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	id, err := replicationnetworkmappings.ParseReplicationNetworkMappingID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	client := meta.(*clients.Client).RecoveryServices.NetworkMappingClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -155,38 +156,36 @@ func resourceSiteRecoveryNetworkMappingRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("making Read request on site recovery network mapping %q: %+v", id, err)
 	}
 
-	if resp.Model == nil {
-		return fmt.Errorf("retrieving site recovery network mapping %q: `model` was nil", id)
-	}
-	model := resp.Model
-
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("recovery_vault_name", id.VaultName)
 	d.Set("source_recovery_fabric_name", id.ReplicationFabricName)
 	d.Set("name", id.ReplicationNetworkMappingName)
-	if props := model.Properties; props != nil {
-		d.Set("source_network_id", props.PrimaryNetworkId)
-		d.Set("target_network_id", props.RecoveryNetworkId)
 
-		targetFabricId, err := parse.ReplicationFabricID(handleAzureSdkForGoBug2824(*props.RecoveryFabricArmId))
-		if err != nil {
-			return err
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("source_network_id", props.PrimaryNetworkId)
+			d.Set("target_network_id", props.RecoveryNetworkId)
+
+			targetFabricId, err := parse.ReplicationFabricID(handleAzureSdkForGoBug2824(*props.RecoveryFabricArmId))
+			if err != nil {
+				return err
+			}
+			d.Set("target_recovery_fabric_name", targetFabricId.Name)
 		}
-		d.Set("target_recovery_fabric_name", targetFabricId.Name)
 	}
 
 	return nil
 }
 
 func resourceSiteRecoveryNetworkMappingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RecoveryServices.NetworkMappingClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	id, err := replicationnetworkmappings.ParseReplicationNetworkMappingID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	client := meta.(*clients.Client).RecoveryServices.NetworkMappingClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {

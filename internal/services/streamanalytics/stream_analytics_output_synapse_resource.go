@@ -119,18 +119,19 @@ func resourceStreamAnalyticsOutputSynapseCreateUpdate(d *pluginsdk.ResourceData,
 		}
 	}
 
+	var dataSource outputs.OutputDataSource = outputs.AzureSynapseOutputDataSource{
+		Properties: &outputs.AzureSynapseDataSourceProperties{
+			Server:   utils.String(d.Get("server").(string)),
+			Database: utils.String(d.Get("database").(string)),
+			User:     utils.String(d.Get("user").(string)),
+			Password: utils.String(d.Get("password").(string)),
+			Table:    utils.String(d.Get("table").(string)),
+		},
+	}
 	props := outputs.Output{
 		Name: utils.String(id.OutputName),
 		Properties: &outputs.OutputProperties{
-			Datasource: &outputs.AzureSynapseOutputDataSource{
-				Properties: &outputs.AzureSynapseDataSourceProperties{
-					Server:   utils.String(d.Get("server").(string)),
-					Database: utils.String(d.Get("database").(string)),
-					User:     utils.String(d.Get("user").(string)),
-					Password: utils.String(d.Get("password").(string)),
-					Table:    utils.String(d.Get("table").(string)),
-				},
-			},
+			Datasource: &dataSource,
 		},
 	}
 
@@ -177,34 +178,36 @@ func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta in
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.AzureSynapseOutputDataSource)
-			if !ok {
-				return fmt.Errorf("converting %s to a Synapse Output", *id)
-			}
+			if ds := props.Datasource; ds != nil {
+				if output, ok := (*ds).(outputs.AzureSynapseOutputDataSource); ok {
+					if outputProps := output.Properties; outputProps != nil {
 
-			server := ""
-			if v := output.Properties.Server; v != nil {
-				server = *v
-			}
-			d.Set("server", server)
+						server := ""
+						if v := outputProps.Server; v != nil {
+							server = *v
+						}
+						d.Set("server", server)
 
-			database := ""
-			if v := output.Properties.Database; v != nil {
-				database = *v
-			}
-			d.Set("database", database)
+						database := ""
+						if v := outputProps.Database; v != nil {
+							database = *v
+						}
+						d.Set("database", database)
 
-			table := ""
-			if v := output.Properties.Table; v != nil {
-				table = *v
-			}
-			d.Set("table", table)
+						table := ""
+						if v := outputProps.Table; v != nil {
+							table = *v
+						}
+						d.Set("table", table)
 
-			user := ""
-			if v := output.Properties.User; v != nil {
-				user = *v
+						user := ""
+						if v := outputProps.User; v != nil {
+							user = *v
+						}
+						d.Set("user", user)
+					}
+				}
 			}
-			d.Set("user", user)
 		}
 	}
 	return nil

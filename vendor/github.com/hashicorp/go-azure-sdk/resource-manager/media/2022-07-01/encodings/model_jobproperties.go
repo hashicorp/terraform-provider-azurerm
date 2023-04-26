@@ -100,7 +100,7 @@ func (s *JobProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Input' for 'JobProperties': %+v", err)
 		}
-		s.Input = impl
+		s.Input = &impl
 	}
 
 	if v, ok := temp["outputs"]; ok {

@@ -9,10 +9,10 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ServiceResource struct {
-	Id         *string                   `json:"id,omitempty"`
-	Name       *string                   `json:"name,omitempty"`
-	Properties ServiceResourceProperties `json:"properties"`
-	Type       *string                   `json:"type,omitempty"`
+	Id         *string                    `json:"id,omitempty"`
+	Name       *string                    `json:"name,omitempty"`
+	Properties *ServiceResourceProperties `json:"properties,omitempty"`
+	Type       *string                    `json:"type,omitempty"`
 }
 
 var _ json.Unmarshaler = &ServiceResource{}
@@ -38,7 +38,7 @@ func (s *ServiceResource) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Properties' for 'ServiceResource': %+v", err)
 		}
-		s.Properties = impl
+		s.Properties = &impl
 	}
 	return nil
 }

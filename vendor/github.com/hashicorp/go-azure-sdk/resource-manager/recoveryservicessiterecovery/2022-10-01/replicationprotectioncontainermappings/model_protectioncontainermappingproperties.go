@@ -9,17 +9,17 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ProtectionContainerMappingProperties struct {
-	Health                                *string                                           `json:"health,omitempty"`
-	HealthErrorDetails                    *[]HealthError                                    `json:"healthErrorDetails,omitempty"`
-	PolicyFriendlyName                    *string                                           `json:"policyFriendlyName,omitempty"`
-	PolicyId                              *string                                           `json:"policyId,omitempty"`
-	ProviderSpecificDetails               ProtectionContainerMappingProviderSpecificDetails `json:"providerSpecificDetails"`
-	SourceFabricFriendlyName              *string                                           `json:"sourceFabricFriendlyName,omitempty"`
-	SourceProtectionContainerFriendlyName *string                                           `json:"sourceProtectionContainerFriendlyName,omitempty"`
-	State                                 *string                                           `json:"state,omitempty"`
-	TargetFabricFriendlyName              *string                                           `json:"targetFabricFriendlyName,omitempty"`
-	TargetProtectionContainerFriendlyName *string                                           `json:"targetProtectionContainerFriendlyName,omitempty"`
-	TargetProtectionContainerId           *string                                           `json:"targetProtectionContainerId,omitempty"`
+	Health                                *string                                            `json:"health,omitempty"`
+	HealthErrorDetails                    *[]HealthError                                     `json:"healthErrorDetails,omitempty"`
+	PolicyFriendlyName                    *string                                            `json:"policyFriendlyName,omitempty"`
+	PolicyId                              *string                                            `json:"policyId,omitempty"`
+	ProviderSpecificDetails               *ProtectionContainerMappingProviderSpecificDetails `json:"providerSpecificDetails,omitempty"`
+	SourceFabricFriendlyName              *string                                            `json:"sourceFabricFriendlyName,omitempty"`
+	SourceProtectionContainerFriendlyName *string                                            `json:"sourceProtectionContainerFriendlyName,omitempty"`
+	State                                 *string                                            `json:"state,omitempty"`
+	TargetFabricFriendlyName              *string                                            `json:"targetFabricFriendlyName,omitempty"`
+	TargetProtectionContainerFriendlyName *string                                            `json:"targetProtectionContainerFriendlyName,omitempty"`
+	TargetProtectionContainerId           *string                                            `json:"targetProtectionContainerId,omitempty"`
 }
 
 var _ json.Unmarshaler = &ProtectionContainerMappingProperties{}
@@ -52,7 +52,7 @@ func (s *ProtectionContainerMappingProperties) UnmarshalJSON(bytes []byte) error
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificDetails' for 'ProtectionContainerMappingProperties': %+v", err)
 		}
-		s.ProviderSpecificDetails = impl
+		s.ProviderSpecificDetails = &impl
 	}
 	return nil
 }

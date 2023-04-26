@@ -36,7 +36,7 @@ func (s *SourceLifeCycle) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'DeleteAfter' for 'SourceLifeCycle': %+v", err)
 		}
-		s.DeleteAfter = impl
+		s.DeleteAfter = &impl
 	}
 	return nil
 }

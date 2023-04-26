@@ -15,7 +15,7 @@ type TaskPropertiesUpdateParameters struct {
 	LogTemplate        *string                   `json:"logTemplate,omitempty"`
 	Platform           *PlatformUpdateParameters `json:"platform,omitempty"`
 	Status             *TaskStatus               `json:"status,omitempty"`
-	Step               TaskStepUpdateParameters  `json:"step"`
+	Step               *TaskStepUpdateParameters `json:"step,omitempty"`
 	Timeout            *int64                    `json:"timeout,omitempty"`
 	Trigger            *TriggerUpdateParameters  `json:"trigger,omitempty"`
 }
@@ -48,7 +48,7 @@ func (s *TaskPropertiesUpdateParameters) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Step' for 'TaskPropertiesUpdateParameters': %+v", err)
 		}
-		s.Step = impl
+		s.Step = &impl
 	}
 	return nil
 }

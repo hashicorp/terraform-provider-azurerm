@@ -9,12 +9,12 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type OutputProperties struct {
-	Datasource    OutputDataSource `json:"datasource"`
-	Diagnostics   *Diagnostics     `json:"diagnostics,omitempty"`
-	Etag          *string          `json:"etag,omitempty"`
-	Serialization Serialization    `json:"serialization"`
-	SizeWindow    *int64           `json:"sizeWindow,omitempty"`
-	TimeWindow    *string          `json:"timeWindow,omitempty"`
+	Datasource    *OutputDataSource `json:"datasource,omitempty"`
+	Diagnostics   *Diagnostics      `json:"diagnostics,omitempty"`
+	Etag          *string           `json:"etag,omitempty"`
+	Serialization *Serialization    `json:"serialization,omitempty"`
+	SizeWindow    *int64            `json:"sizeWindow,omitempty"`
+	TimeWindow    *string           `json:"timeWindow,omitempty"`
 }
 
 var _ json.Unmarshaler = &OutputProperties{}
@@ -41,7 +41,7 @@ func (s *OutputProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Datasource' for 'OutputProperties': %+v", err)
 		}
-		s.Datasource = impl
+		s.Datasource = &impl
 	}
 
 	if v, ok := temp["serialization"]; ok {
@@ -49,7 +49,7 @@ func (s *OutputProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Serialization' for 'OutputProperties': %+v", err)
 		}
-		s.Serialization = impl
+		s.Serialization = &impl
 	}
 	return nil
 }

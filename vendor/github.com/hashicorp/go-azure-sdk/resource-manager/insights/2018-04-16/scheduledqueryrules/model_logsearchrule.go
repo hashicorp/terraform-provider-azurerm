@@ -67,7 +67,7 @@ func (s *LogSearchRule) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Action' for 'LogSearchRule': %+v", err)
 		}
-		s.Action = impl
+		s.Action = &impl
 	}
 	return nil
 }

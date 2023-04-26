@@ -11,9 +11,9 @@ import (
 var _ RestoreTargetInfoBase = RestoreTargetInfo{}
 
 type RestoreTargetInfo struct {
-	DatasourceAuthCredentials AuthCredentials `json:"datasourceAuthCredentials"`
-	DatasourceInfo            Datasource      `json:"datasourceInfo"`
-	DatasourceSetInfo         *DatasourceSet  `json:"datasourceSetInfo,omitempty"`
+	DatasourceAuthCredentials *AuthCredentials `json:"datasourceAuthCredentials,omitempty"`
+	DatasourceInfo            Datasource       `json:"datasourceInfo"`
+	DatasourceSetInfo         *DatasourceSet   `json:"datasourceSetInfo,omitempty"`
 
 	// Fields inherited from RestoreTargetInfoBase
 	RecoveryOption  RecoveryOption `json:"recoveryOption"`
@@ -68,7 +68,7 @@ func (s *RestoreTargetInfo) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'DatasourceAuthCredentials' for 'RestoreTargetInfo': %+v", err)
 		}
-		s.DatasourceAuthCredentials = impl
+		s.DatasourceAuthCredentials = &impl
 	}
 	return nil
 }

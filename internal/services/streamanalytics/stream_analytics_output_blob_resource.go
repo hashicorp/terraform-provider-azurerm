@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -154,25 +155,26 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
+	var dataSource outputs.OutputDataSource = outputs.BlobOutputDataSource{
+		Properties: &outputs.BlobOutputDataSourceProperties{
+			StorageAccounts: &[]outputs.StorageAccount{
+				{
+					AccountKey:  getStorageAccountKey(d.Get("storage_account_key").(string)),
+					AccountName: utils.String(storageAccountName),
+				},
+			},
+			Container:          utils.String(containerName),
+			DateFormat:         utils.String(dateFormat),
+			PathPattern:        utils.String(pathPattern),
+			TimeFormat:         utils.String(timeFormat),
+			AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		},
+	}
 	props := outputs.Output{
 		Name: utils.String(id.OutputName),
 		Properties: &outputs.OutputProperties{
-			Datasource: &outputs.BlobOutputDataSource{
-				Properties: &outputs.BlobOutputDataSourceProperties{
-					StorageAccounts: &[]outputs.StorageAccount{
-						{
-							AccountKey:  getStorageAccountKey(d.Get("storage_account_key").(string)),
-							AccountName: utils.String(storageAccountName),
-						},
-					},
-					Container:          utils.String(containerName),
-					DateFormat:         utils.String(dateFormat),
-					PathPattern:        utils.String(pathPattern),
-					TimeFormat:         utils.String(timeFormat),
-					AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
-				},
-			},
-			Serialization: serialization,
+			Datasource:    pointer.To(dataSource),
+			Serialization: pointer.To(serialization),
 		},
 	}
 
@@ -232,44 +234,45 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.BlobOutputDataSource)
-			if !ok {
-				return fmt.Errorf("converting %s to a Blob Output", *id)
-			}
+			if ds := props.Datasource; ds != nil {
+				if output, ok := (*ds).(outputs.BlobOutputDataSource); ok {
+					if outputProps := output.Properties; outputProps != nil {
+						dateFormat := ""
+						if v := outputProps.DateFormat; v != nil {
+							dateFormat = *v
+						}
+						d.Set("date_format", dateFormat)
 
-			dateFormat := ""
-			if v := output.Properties.DateFormat; v != nil {
-				dateFormat = *v
-			}
-			d.Set("date_format", dateFormat)
+						pathPattern := ""
+						if v := outputProps.PathPattern; v != nil {
+							pathPattern = *v
+						}
+						d.Set("path_pattern", pathPattern)
 
-			pathPattern := ""
-			if v := output.Properties.PathPattern; v != nil {
-				pathPattern = *v
-			}
-			d.Set("path_pattern", pathPattern)
+						containerName := ""
+						if v := outputProps.Container; v != nil {
+							containerName = *v
+						}
+						d.Set("storage_container_name", containerName)
 
-			containerName := ""
-			if v := output.Properties.Container; v != nil {
-				containerName = *v
-			}
-			d.Set("storage_container_name", containerName)
+						timeFormat := ""
+						if v := outputProps.TimeFormat; v != nil {
+							timeFormat = *v
+						}
+						d.Set("time_format", timeFormat)
 
-			timeFormat := ""
-			if v := output.Properties.TimeFormat; v != nil {
-				timeFormat = *v
-			}
-			d.Set("time_format", timeFormat)
+						authenticationMode := ""
+						if v := outputProps.AuthenticationMode; v != nil {
+							authenticationMode = string(*v)
+						}
+						d.Set("authentication_mode", authenticationMode)
 
-			authenticationMode := ""
-			if v := output.Properties.AuthenticationMode; v != nil {
-				authenticationMode = string(*v)
-			}
-			d.Set("authentication_mode", authenticationMode)
-
-			if accounts := output.Properties.StorageAccounts; accounts != nil && len(*accounts) > 0 {
-				account := (*accounts)[0]
-				d.Set("storage_account_name", account.AccountName)
+						if accounts := outputProps.StorageAccounts; accounts != nil && len(*accounts) > 0 {
+							account := (*accounts)[0]
+							d.Set("storage_account_name", account.AccountName)
+						}
+					}
+				}
 			}
 
 			if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
@@ -292,10 +295,8 @@ func resourceStreamAnalyticsOutputBlobDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, *id); err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting %s: %+v", id, err)
-		}
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
