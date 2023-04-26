@@ -325,14 +325,26 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.DataBricks, err = databricks.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DataBricks: %+v", err)
 	}
-	client.DataboxEdge = databoxedge.NewClient(o)
-	client.Datadog = datadog.NewClient(o)
+	if client.DataboxEdge, err = databoxedge.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataboxEdge: %+v", err)
+	}
+	if client.Datadog, err = datadog.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Datadog: %+v", err)
+	}
 	client.DataFactory = datafactory.NewClient(o)
-	client.DataProtection = dataprotection.NewClient(o)
-	client.DataShare = datashare.NewClient(o)
-	client.DesktopVirtualization = desktopvirtualization.NewClient(o)
+	if client.DataProtection, err = dataprotection.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataProtection: %+v", err)
+	}
+	if client.DataShare, err = datashare.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataShare: %+v", err)
+	}
+	if client.DesktopVirtualization, err = desktopvirtualization.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DesktopVirtualization: %+v", err)
+	}
 	client.DevTestLabs = devtestlabs.NewClient(o)
-	client.DigitalTwins = digitaltwins.NewClient(o)
+	if client.DigitalTwins, err = digitaltwins.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DigitalTwins: %+v", err)
+	}
 	client.Disks = disks.NewClient(o)
 	if client.Dns, err = dns.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Dns: %+v", err)
