@@ -21,12 +21,20 @@ ENHANCEMENTS:
 * `azurerm_firewall_policy_rule_collection_group` - the fields `source_addresses` and `destination_addresses` now accepts an IPv4 range [GH-21542]
 * `azurerm_kubernetes_cluster` - add support for the `service_mesh_profile` block [GH-21516]
 * `azurerm_resource_group_cost_management_export` - the field `time_frame` can now be set to `TheLast7Days` [GH-21528]
+* `azurerm_search_service` - adding support for `authentication_failure_mode ` [GH-21323]
+* `azurerm_search_service` - adding support for `customer_managed_key_enforcement_enabled ` [GH-21323]
+* `azurerm_search_service` - adding support for `hosting_mode ` [GH-21323]
+* `azurerm_search_service` - adding support for `local_authentication_enabled` [GH-21323]
+* `azurerm_search_service` - support for setting `sku` to `StorageOptimizedL2` [GH-21323]
 * `azurerm_subscription_cost_management_export` - the field `time_frame` can now be set to `TheLast7Days` [GH-21528]
 
 BUG FIXES:
 
 * `azurerm_attestation_provider` - the field `policy` is deprecated and non-functional - instead please use the fields  `open_enclave_policy_base64`, `sgx_enclave_policy_base64` and `tpm_policy_base64` [GH-21524]
 * `azurerm_mysql_flexible_server` - fix issue where `identity` was not being removed properly on updates [GH-21533]
+* `azurerm_search_service` - updating the default value for `partition_count` to `1` to match the API [GH-21323]
+* `azurerm_search_service` - updating the default value for `replica_count` to `1` to match the API [GH-21323]
+* `azurerm_search_service` - the field `allowed_ips` is now a Set rather than a List [GH-21323]
 
 ## 3.53.0 (April 20, 2023)
 
