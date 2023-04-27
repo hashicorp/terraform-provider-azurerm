@@ -33,6 +33,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* **Provider:** fix an authentication bug when specifying `auxiliary_tenant_ids` whilst authenticating using Azure CLI [GH-21583]
 * `azurerm_attestation_provider` - the field `policy` is deprecated and non-functional - instead please use the fields  `open_enclave_policy_base64`, `sgx_enclave_policy_base64` and `tpm_policy_base64` [GH-21524]
 * `azurerm_mysql_flexible_server` - fix issue where `identity` was not being removed properly on updates [GH-21533]
 * `azurerm_search_service` - updating the default value for `partition_count` to `1` to match the API [GH-21323]
