@@ -11,8 +11,8 @@ import (
 var _ AuthInfoBase = SecretAuthInfo{}
 
 type SecretAuthInfo struct {
-	Name       *string        `json:"name,omitempty"`
-	SecretInfo SecretInfoBase `json:"secretInfo"`
+	Name       *string         `json:"name,omitempty"`
+	SecretInfo *SecretInfoBase `json:"secretInfo,omitempty"`
 
 	// Fields inherited from AuthInfoBase
 }
@@ -62,7 +62,7 @@ func (s *SecretAuthInfo) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'SecretInfo' for 'SecretAuthInfo': %+v", err)
 		}
-		s.SecretInfo = impl
+		s.SecretInfo = &impl
 	}
 	return nil
 }

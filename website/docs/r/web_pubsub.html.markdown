@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Web PubSub service exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Specifies which SKU to use. Possible values are `Free_F1` and `Standard_S1`.
+* `sku` - (Required) Specifies which SKU to use. Possible values are `Free_F1`, `Standard_S1`, and `Premium_P1`.
 
 * `capacity` - (Optional) Specifies the number of units associated with this Web PubSub resource. Valid values are: Free: `1`, Standard: `1`, `2`, `5`, `10`, `20`, `50`, `100`.
 
@@ -92,7 +92,7 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Web PubSub service.
 

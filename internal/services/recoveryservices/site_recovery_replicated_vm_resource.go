@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
@@ -361,12 +362,7 @@ func diskEncryptionResource() *pluginsdk.Resource {
 							ValidateFunc: keyVaultValidate.NestedItemId,
 						},
 
-						"vault_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: keyVaultValidate.VaultID,
-						},
+						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
 					},
 				},
 			},
@@ -384,12 +380,7 @@ func diskEncryptionResource() *pluginsdk.Resource {
 							ValidateFunc: keyVaultValidate.NestedItemId,
 						},
 
-						"vault_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: keyVaultValidate.VaultID,
-						},
+						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
 					},
 				},
 			},
@@ -480,24 +471,25 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 
 	}
 
+	var protectionInput replicationprotecteditems.EnableProtectionProviderSpecificInput = replicationprotecteditems.A2AEnableProtectionInput{
+		FabricObjectId:                     sourceVmId,
+		RecoveryContainerId:                &targetProtectionContainerId,
+		RecoveryResourceGroupId:            &targetResourceGroupId,
+		RecoveryAvailabilitySetId:          targetAvailabilitySetID,
+		RecoveryAvailabilityZone:           targetAvailabilityZone,
+		MultiVMGroupName:                   utils.String(d.Get("multi_vm_group_name").(string)),
+		RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
+		RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diagnostic_storage_account_id").(string)),
+		RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
+		RecoveryVirtualMachineScaleSetId:   utils.String(d.Get("target_virtual_machine_scale_set_id").(string)),
+		VMManagedDisks:                     &managedDisks,
+		VMDisks:                            &vmDisks,
+		RecoveryExtendedLocation:           expandEdgeZone(d.Get("target_edge_zone").(string)),
+	}
 	parameters := replicationprotecteditems.EnableProtectionInput{
 		Properties: &replicationprotecteditems.EnableProtectionInputProperties{
-			PolicyId: &policyId,
-			ProviderSpecificDetails: replicationprotecteditems.A2AEnableProtectionInput{
-				FabricObjectId:                     sourceVmId,
-				RecoveryContainerId:                &targetProtectionContainerId,
-				RecoveryResourceGroupId:            &targetResourceGroupId,
-				RecoveryAvailabilitySetId:          targetAvailabilitySetID,
-				RecoveryAvailabilityZone:           targetAvailabilityZone,
-				MultiVMGroupName:                   utils.String(d.Get("multi_vm_group_name").(string)),
-				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
-				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diagnostic_storage_account_id").(string)),
-				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
-				RecoveryVirtualMachineScaleSetId:   utils.String(d.Get("target_virtual_machine_scale_set_id").(string)),
-				VMManagedDisks:                     &managedDisks,
-				VMDisks:                            &vmDisks,
-				RecoveryExtendedLocation:           expandEdgeZone(d.Get("target_edge_zone").(string)),
-			},
+			PolicyId:                &policyId,
+			ProviderSpecificDetails: &protectionInput,
 		},
 	}
 
@@ -521,8 +513,6 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 
 func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	resGroup := d.Get("resource_group_name").(string)
-	vaultName := d.Get("recovery_vault_name").(string)
 	client := meta.(*clients.Client).RecoveryServices.ReplicationProtectedItemsClient
 
 	// We are only allowed to update the configuration once the VM is fully protected
@@ -531,6 +521,9 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		return err
 	}
 
+	// TODO: this should be parsing the Resource ID and not the config
+	resGroup := d.Get("resource_group_name").(string)
+	vaultName := d.Get("recovery_vault_name").(string)
 	name := d.Get("name").(string)
 	fabricName := d.Get("source_recovery_fabric_name").(string)
 	sourceProtectionContainerName := d.Get("source_recovery_protection_container_name").(string)
@@ -547,7 +540,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		targetAvailabilitySetID = nil
 	}
 
-	var vmNics []replicationprotecteditems.VMNicInputDetails
+	vmNics := make([]replicationprotecteditems.VMNicInputDetails, 0)
 	nicList := d.Get("network_interface").(*pluginsdk.Set).List()
 	for _, raw := range nicList {
 		vmNicInput := raw.(map[string]interface{})
@@ -580,7 +573,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		})
 	}
 
-	var managedDisks []replicationprotecteditems.A2AVMManagedDiskUpdateDetails
+	managedDisks := make([]replicationprotecteditems.A2AVMManagedDiskUpdateDetails, 0)
 	for _, raw := range d.Get("managed_disk").(*pluginsdk.Set).List() {
 		diskInput := raw.(map[string]interface{})
 		diskId := diskInput["disk_id"].(string)
@@ -597,7 +590,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 
 	if targetNetworkId == "" {
 		// No target network id was specified, so we want to preserve what was selected
-		if a2aDetails, isA2a := state.Properties.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails); isA2a {
+		if a2aDetails, isA2a := (*state.Properties.ProviderSpecificDetails).(replicationprotecteditems.A2AReplicationDetails); isA2a {
 			if a2aDetails.SelectedRecoveryAzureNetworkId != nil {
 				targetNetworkId = *a2aDetails.SelectedRecoveryAzureNetworkId
 			} else {
@@ -610,13 +603,20 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 
 	if testNetworkId == "" {
 		// No test network id was specified, so we want to preserve what was selected
-		if a2aDetails, isA2a := state.Properties.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails); isA2a {
+		if a2aDetails, isA2a := (*state.Properties.ProviderSpecificDetails).(replicationprotecteditems.A2AReplicationDetails); isA2a {
 			if a2aDetails.SelectedTfoAzureNetworkId != nil {
 				testNetworkId = *a2aDetails.SelectedTfoAzureNetworkId
 			}
 		}
 	}
 
+	var providerInput replicationprotecteditems.UpdateReplicationProtectedItemProviderInput = replicationprotecteditems.A2AUpdateReplicationProtectedItemInput{
+		ManagedDiskUpdateDetails:           &managedDisks,
+		RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
+		RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diagnostic_storage_account_id").(string)),
+		RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
+		RecoveryVirtualMachineScaleSetId:   utils.String(d.Get("target_virtual_machine_scale_set_id").(string)),
+	}
 	parameters := replicationprotecteditems.UpdateReplicationProtectedItemInput{
 		Properties: &replicationprotecteditems.UpdateReplicationProtectedItemInputProperties{
 			RecoveryAzureVMName:            &name,
@@ -624,13 +624,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 			SelectedTfoAzureNetworkId:      &testNetworkId,
 			VMNics:                         &vmNics,
 			RecoveryAvailabilitySetId:      targetAvailabilitySetID,
-			ProviderSpecificDetails: replicationprotecteditems.A2AUpdateReplicationProtectedItemInput{
-				ManagedDiskUpdateDetails:           &managedDisks,
-				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
-				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diagnostic_storage_account_id").(string)),
-				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
-				RecoveryVirtualMachineScaleSetId:   utils.String(d.Get("target_virtual_machine_scale_set_id").(string)),
-			},
+			ProviderSpecificDetails:        &providerInput,
 		},
 	}
 
@@ -643,7 +637,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 }
 
 func findNicId(state *replicationprotecteditems.ReplicationProtectedItem, sourceNicId string) *string {
-	if a2aDetails, isA2a := state.Properties.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails); isA2a {
+	if a2aDetails, isA2a := (*state.Properties.ProviderSpecificDetails).(replicationprotecteditems.A2AReplicationDetails); isA2a {
 		if a2aDetails.VMNics != nil {
 			for _, nic := range *a2aDetails.VMNics {
 				if nic.SourceNicArmId != nil && *nic.SourceNicArmId == sourceNicId {
@@ -691,110 +685,112 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("recovery_replication_policy_id", prop.PolicyId)
 		d.Set("target_recovery_protection_container_id", prop.RecoveryContainerId)
 
-		if a2aDetails, isA2a := prop.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails); isA2a {
-			d.Set("source_vm_id", a2aDetails.FabricObjectId)
-			d.Set("target_resource_group_id", a2aDetails.RecoveryAzureResourceGroupId)
-			d.Set("target_availability_set_id", a2aDetails.RecoveryAvailabilitySet)
-			d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
-			d.Set("target_network_id", a2aDetails.SelectedRecoveryAzureNetworkId)
-			d.Set("test_network_id", a2aDetails.SelectedTfoAzureNetworkId)
-			d.Set("target_proximity_placement_group_id", a2aDetails.RecoveryProximityPlacementGroupId)
-			d.Set("target_boot_diagnostic_storage_account_id", a2aDetails.RecoveryBootDiagStorageAccountId)
-			d.Set("target_capacity_reservation_group_id", a2aDetails.RecoveryCapacityReservationGroupId)
-			d.Set("target_virtual_machine_scale_set_id", a2aDetails.RecoveryVirtualMachineScaleSetId)
-			d.Set("target_edge_zone", flattenEdgeZone(a2aDetails.RecoveryExtendedLocation))
-			d.Set("multi_vm_group_name", a2aDetails.MultiVMGroupName)
+		if details := prop.ProviderSpecificDetails; details != nil {
+			if a2aDetails, isA2a := (*details).(replicationprotecteditems.A2AReplicationDetails); isA2a {
+				d.Set("source_vm_id", a2aDetails.FabricObjectId)
+				d.Set("target_resource_group_id", a2aDetails.RecoveryAzureResourceGroupId)
+				d.Set("target_availability_set_id", a2aDetails.RecoveryAvailabilitySet)
+				d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
+				d.Set("target_network_id", a2aDetails.SelectedRecoveryAzureNetworkId)
+				d.Set("test_network_id", a2aDetails.SelectedTfoAzureNetworkId)
+				d.Set("target_proximity_placement_group_id", a2aDetails.RecoveryProximityPlacementGroupId)
+				d.Set("target_boot_diagnostic_storage_account_id", a2aDetails.RecoveryBootDiagStorageAccountId)
+				d.Set("target_capacity_reservation_group_id", a2aDetails.RecoveryCapacityReservationGroupId)
+				d.Set("target_virtual_machine_scale_set_id", a2aDetails.RecoveryVirtualMachineScaleSetId)
+				d.Set("target_edge_zone", flattenEdgeZone(a2aDetails.RecoveryExtendedLocation))
+				d.Set("multi_vm_group_name", a2aDetails.MultiVMGroupName)
 
-			if a2aDetails.ProtectedDisks != nil {
-				disksOutput := make([]interface{}, 0)
-				for _, disk := range *a2aDetails.ProtectedDisks {
-					disksOutput = append(disksOutput, map[string]interface{}{
-						"disk_uri":                   disk.DiskUri,
-						"staging_storage_account_id": disk.PrimaryStagingAzureStorageAccountId,
-						"target_storage_account_id":  disk.RecoveryAzureStorageAccountId,
-					})
+				if a2aDetails.ProtectedDisks != nil {
+					disksOutput := make([]interface{}, 0)
+					for _, disk := range *a2aDetails.ProtectedDisks {
+						disksOutput = append(disksOutput, map[string]interface{}{
+							"disk_uri":                   disk.DiskUri,
+							"staging_storage_account_id": disk.PrimaryStagingAzureStorageAccountId,
+							"target_storage_account_id":  disk.RecoveryAzureStorageAccountId,
+						})
+					}
+					d.Set("unmanaged_disk", disksOutput)
 				}
-				d.Set("unmanaged_disk", disksOutput)
-			}
 
-			if a2aDetails.ProtectedManagedDisks != nil {
-				disksOutput := make([]interface{}, 0)
-				for _, disk := range *a2aDetails.ProtectedManagedDisks {
-					diskOutput := make(map[string]interface{})
-					diskId := ""
-					if disk.DiskId != nil {
-						diskId = *disk.DiskId
+				if a2aDetails.ProtectedManagedDisks != nil {
+					disksOutput := make([]interface{}, 0)
+					for _, disk := range *a2aDetails.ProtectedManagedDisks {
+						diskOutput := make(map[string]interface{})
+						diskId := ""
+						if disk.DiskId != nil {
+							diskId = *disk.DiskId
+						}
+						diskOutput["disk_id"] = diskId
+
+						primaryStagingAzureStorageAccountID := ""
+						if disk.PrimaryStagingAzureStorageAccountId != nil {
+							primaryStagingAzureStorageAccountID = *disk.PrimaryStagingAzureStorageAccountId
+						}
+						diskOutput["staging_storage_account_id"] = primaryStagingAzureStorageAccountID
+
+						recoveryResourceGroupID := ""
+						if disk.RecoveryResourceGroupId != nil {
+							recoveryResourceGroupID = *disk.RecoveryResourceGroupId
+						}
+						diskOutput["target_resource_group_id"] = recoveryResourceGroupID
+
+						recoveryReplicaDiskAccountType := ""
+						if disk.RecoveryReplicaDiskAccountType != nil {
+							recoveryReplicaDiskAccountType = *disk.RecoveryReplicaDiskAccountType
+						}
+						diskOutput["target_replica_disk_type"] = recoveryReplicaDiskAccountType
+
+						recoveryTargetDiskAccountType := ""
+						if disk.RecoveryTargetDiskAccountType != nil {
+							recoveryTargetDiskAccountType = *disk.RecoveryTargetDiskAccountType
+						}
+						diskOutput["target_disk_type"] = recoveryTargetDiskAccountType
+
+						recoveryEncryptionSetId := ""
+						if disk.RecoveryDiskEncryptionSetId != nil {
+							recoveryEncryptionSetId = *disk.RecoveryDiskEncryptionSetId
+						}
+						diskOutput["target_disk_encryption_set_id"] = recoveryEncryptionSetId
+
+						diskOutput["target_disk_encryption"] = flattenTargetDiskEncryption(disk)
+
+						disksOutput = append(disksOutput, diskOutput)
 					}
-					diskOutput["disk_id"] = diskId
-
-					primaryStagingAzureStorageAccountID := ""
-					if disk.PrimaryStagingAzureStorageAccountId != nil {
-						primaryStagingAzureStorageAccountID = *disk.PrimaryStagingAzureStorageAccountId
-					}
-					diskOutput["staging_storage_account_id"] = primaryStagingAzureStorageAccountID
-
-					recoveryResourceGroupID := ""
-					if disk.RecoveryResourceGroupId != nil {
-						recoveryResourceGroupID = *disk.RecoveryResourceGroupId
-					}
-					diskOutput["target_resource_group_id"] = recoveryResourceGroupID
-
-					recoveryReplicaDiskAccountType := ""
-					if disk.RecoveryReplicaDiskAccountType != nil {
-						recoveryReplicaDiskAccountType = *disk.RecoveryReplicaDiskAccountType
-					}
-					diskOutput["target_replica_disk_type"] = recoveryReplicaDiskAccountType
-
-					recoveryTargetDiskAccountType := ""
-					if disk.RecoveryTargetDiskAccountType != nil {
-						recoveryTargetDiskAccountType = *disk.RecoveryTargetDiskAccountType
-					}
-					diskOutput["target_disk_type"] = recoveryTargetDiskAccountType
-
-					recoveryEncryptionSetId := ""
-					if disk.RecoveryDiskEncryptionSetId != nil {
-						recoveryEncryptionSetId = *disk.RecoveryDiskEncryptionSetId
-					}
-					diskOutput["target_disk_encryption_set_id"] = recoveryEncryptionSetId
-
-					diskOutput["target_disk_encryption"] = flattenTargetDiskEncryption(disk)
-
-					disksOutput = append(disksOutput, diskOutput)
+					d.Set("managed_disk", pluginsdk.NewSet(resourceSiteRecoveryReplicatedVMDiskHash, disksOutput))
 				}
-				d.Set("managed_disk", pluginsdk.NewSet(resourceSiteRecoveryReplicatedVMDiskHash, disksOutput))
-			}
 
-			if a2aDetails.VMNics != nil {
-				nicsOutput := make([]interface{}, 0)
-				for _, nic := range *a2aDetails.VMNics {
-					nicOutput := make(map[string]interface{})
-					if nic.SourceNicArmId != nil {
-						nicOutput["source_network_interface_id"] = *nic.SourceNicArmId
+				if a2aDetails.VMNics != nil {
+					nicsOutput := make([]interface{}, 0)
+					for _, nic := range *a2aDetails.VMNics {
+						nicOutput := make(map[string]interface{})
+						if nic.SourceNicArmId != nil {
+							nicOutput["source_network_interface_id"] = *nic.SourceNicArmId
+						}
+						if nic.IPConfigs != nil && len(*(nic.IPConfigs)) > 0 {
+							ipConfig := (*(nic.IPConfigs))[0]
+							if ipConfig.RecoveryStaticIPAddress != nil {
+								nicOutput["target_static_ip"] = *ipConfig.RecoveryStaticIPAddress
+							}
+							if ipConfig.RecoverySubnetName != nil {
+								nicOutput["target_subnet_name"] = *ipConfig.RecoverySubnetName
+							}
+							if ipConfig.RecoveryPublicIPAddressId != nil {
+								nicOutput["recovery_public_ip_address_id"] = *ipConfig.RecoveryPublicIPAddressId
+							}
+							if ipConfig.TfoStaticIPAddress != nil {
+								nicOutput["failover_test_static_ip"] = *ipConfig.TfoStaticIPAddress
+							}
+							if ipConfig.TfoSubnetName != nil {
+								nicOutput["failover_test_subnet_name"] = *ipConfig.TfoSubnetName
+							}
+							if ipConfig.TfoPublicIPAddressId != nil {
+								nicOutput["failover_test_public_ip_address_id"] = *ipConfig.TfoPublicIPAddressId
+							}
+						}
+						nicsOutput = append(nicsOutput, nicOutput)
 					}
-					if nic.IPConfigs != nil && len(*(nic.IPConfigs)) > 0 {
-						ipConfig := (*(nic.IPConfigs))[0]
-						if ipConfig.RecoveryStaticIPAddress != nil {
-							nicOutput["target_static_ip"] = *ipConfig.RecoveryStaticIPAddress
-						}
-						if ipConfig.RecoverySubnetName != nil {
-							nicOutput["target_subnet_name"] = *ipConfig.RecoverySubnetName
-						}
-						if ipConfig.RecoveryPublicIPAddressId != nil {
-							nicOutput["recovery_public_ip_address_id"] = *ipConfig.RecoveryPublicIPAddressId
-						}
-						if ipConfig.TfoStaticIPAddress != nil {
-							nicOutput["failover_test_static_ip"] = *ipConfig.TfoStaticIPAddress
-						}
-						if ipConfig.TfoSubnetName != nil {
-							nicOutput["failover_test_subnet_name"] = *ipConfig.TfoSubnetName
-						}
-						if ipConfig.TfoPublicIPAddressId != nil {
-							nicOutput["failover_test_public_ip_address_id"] = *ipConfig.TfoPublicIPAddressId
-						}
-					}
-					nicsOutput = append(nicsOutput, nicOutput)
+					d.Set("network_interface", pluginsdk.NewSet(pluginsdk.HashResource(networkInterfaceResource()), nicsOutput))
 				}
-				d.Set("network_interface", pluginsdk.NewSet(pluginsdk.HashResource(networkInterfaceResource()), nicsOutput))
 			}
 		}
 	}
@@ -803,27 +799,26 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RecoveryServices.ReplicationProtectedItemsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	id, err := replicationprotecteditems.ParseReplicationProtectedItemID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationProtectedItemsClient
-
 	disableProtectionReason := replicationprotecteditems.DisableProtectionReasonNotSpecified
-
+	var providerInput replicationprotecteditems.DisableProtectionProviderSpecificInput = siterecovery.DisableProtectionProviderSpecificInput{
+		InstanceType: siterecovery.InstanceTypeDisableProtectionProviderSpecificInput,
+	}
 	disableProtectionInput := replicationprotecteditems.DisableProtectionInput{
 		Properties: replicationprotecteditems.DisableProtectionInputProperties{
-			DisableProtectionReason: &disableProtectionReason,
-			// It's a workaround for https://github.com/hashicorp/pandora/issues/1864
-			ReplicationProviderInput: &siterecovery.DisableProtectionProviderSpecificInput{
-				InstanceType: siterecovery.InstanceTypeDisableProtectionProviderSpecificInput,
-			},
+			DisableProtectionReason:  &disableProtectionReason,
+			ReplicationProviderInput: &providerInput,
 		},
 	}
 
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 	err = client.DeleteThenPoll(ctx, *id, disableProtectionInput)
 	if err != nil {
 		return fmt.Errorf("deleting site recovery replicated vm %s : %+v", id.String(), err)
@@ -862,7 +857,7 @@ func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceDat
 	stateConf := &pluginsdk.StateChangeConf{
 		Target:       []string{"Protected"},
 		Refresh:      waitForReplicationToBeHealthyRefreshFunc(d, meta),
-		PollInterval: time.Minute,
+		PollInterval: 1 * time.Minute,
 	}
 
 	deadline, ok := ctx.Deadline()
@@ -914,7 +909,7 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 		}
 
 		// Find first disk that is not fully replicated yet
-		if a2aDetails, isA2a := resp.Model.Properties.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails); isA2a {
+		if a2aDetails, isA2a := (*resp.Model.Properties.ProviderSpecificDetails).(replicationprotecteditems.A2AReplicationDetails); isA2a {
 			if a2aDetails.MonitoringPercentageCompletion != nil {
 				log.Printf("Waiting for Site Recover to replicate VM, %d%% complete.", *a2aDetails.MonitoringPercentageCompletion)
 			}

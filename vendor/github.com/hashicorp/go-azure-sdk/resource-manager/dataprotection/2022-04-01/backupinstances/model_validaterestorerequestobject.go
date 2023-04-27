@@ -26,7 +26,7 @@ func (s *ValidateRestoreRequestObject) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RestoreRequestObject' for 'ValidateRestoreRequestObject': %+v", err)
 		}
-		s.RestoreRequestObject = impl
+		s.RestoreRequestObject = &impl
 	}
 	return nil
 }

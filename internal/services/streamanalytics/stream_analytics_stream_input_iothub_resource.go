@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
@@ -129,31 +130,31 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
-	props := inputs.Input{
-		Name: utils.String(id.InputName),
-		Properties: &inputs.StreamInputProperties{
-			Datasource: &inputs.IoTHubStreamInputDataSource{
-				Properties: &inputs.IoTHubStreamInputDataSourceProperties{
-					ConsumerGroupName:      utils.String(consumerGroupName),
-					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
-					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
-					Endpoint:               utils.String(endpoint),
-					IotHubNamespace:        utils.String(iotHubNamespace),
-				},
-			},
-			Serialization: serialization,
+	var dataSource inputs.StreamInputDataSource = inputs.IoTHubStreamInputDataSource{
+		Properties: &inputs.IoTHubStreamInputDataSourceProperties{
+			ConsumerGroupName:      utils.String(consumerGroupName),
+			SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
+			SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
+			Endpoint:               utils.String(endpoint),
+			IotHubNamespace:        utils.String(iotHubNamespace),
 		},
 	}
+	var inputProperties inputs.InputProperties = inputs.StreamInputProperties{
+		Datasource:    pointer.To(dataSource),
+		Serialization: pointer.To(serialization),
+	}
+	props := inputs.Input{
+		Name:       utils.String(id.InputName),
+		Properties: &inputProperties,
+	}
 
-	var createOpts inputs.CreateOrReplaceOperationOptions
-	var updateOpts inputs.UpdateOperationOptions
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, id, props, createOpts); err != nil {
+		if _, err := client.CreateOrReplace(ctx, id, props, inputs.DefaultCreateOrReplaceOperationOptions()); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		d.SetId(id.ID())
-	} else if _, err := client.Update(ctx, id, props, updateOpts); err != nil {
+	} else if _, err := client.Update(ctx, id, props, inputs.DefaultUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -187,45 +188,36 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, met
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties) // nolint: gosimple
-			if !ok {
-				return fmt.Errorf("converting %s to an Input", *id)
-			}
+			if streamInput, ok := (*props).(inputs.StreamInputProperties); ok {
+				if ds := streamInput.Datasource; ds != nil {
+					if streamIotHubInput, ok := (*ds).(inputs.IoTHubStreamInputDataSource); ok {
+						if inputProps := streamIotHubInput.Properties; inputProps != nil {
+							eventHubConsumerGroupName := ""
+							if v := inputProps.ConsumerGroupName; v != nil {
+								eventHubConsumerGroupName = *v
+							}
+							d.Set("eventhub_consumer_group_name", eventHubConsumerGroupName)
 
-			streamInput, ok := input.(inputs.StreamInputProperties)
-			if !ok {
-				return fmt.Errorf("converting %s to a Stream Input", *id)
-			}
+							endpoint := ""
+							if v := inputProps.Endpoint; v != nil {
+								endpoint = *v
+							}
+							d.Set("endpoint", endpoint)
 
-			streamIotHubInput, ok := streamInput.Datasource.(inputs.IoTHubStreamInputDataSource)
-			if !ok {
-				return fmt.Errorf("converting %s Stream Input Blob to an Stream Input", *id)
-			}
+							iothubNamespace := ""
+							if v := inputProps.IotHubNamespace; v != nil {
+								iothubNamespace = *v
+							}
+							d.Set("iothub_namespace", iothubNamespace)
 
-			if streamIotHubInputProps := streamIotHubInput.Properties; streamIotHubInputProps != nil {
-				eventHubConsumerGroupName := ""
-				if v := streamIotHubInputProps.ConsumerGroupName; v != nil {
-					eventHubConsumerGroupName = *v
+							sharedAccessPolicyName := ""
+							if v := inputProps.SharedAccessPolicyName; v != nil {
+								sharedAccessPolicyName = *v
+							}
+							d.Set("shared_access_policy_name", sharedAccessPolicyName)
+						}
+					}
 				}
-				d.Set("eventhub_consumer_group_name", eventHubConsumerGroupName)
-
-				endpoint := ""
-				if v := streamIotHubInputProps.Endpoint; v != nil {
-					endpoint = *v
-				}
-				d.Set("endpoint", endpoint)
-
-				iothubNamespace := ""
-				if v := streamIotHubInputProps.IotHubNamespace; v != nil {
-					iothubNamespace = *v
-				}
-				d.Set("iothub_namespace", iothubNamespace)
-
-				sharedAccessPolicyName := ""
-				if v := streamIotHubInputProps.SharedAccessPolicyName; v != nil {
-					sharedAccessPolicyName = *v
-				}
-				d.Set("shared_access_policy_name", sharedAccessPolicyName)
 
 				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(streamInput.Serialization)); err != nil {
 					return fmt.Errorf("setting `serialization`: %+v", err)

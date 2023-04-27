@@ -18,6 +18,15 @@ import (
 
 type SimGroupDataSource struct{}
 
+type SimGroupDataSourceModel struct {
+	Name             string                       `tfschema:"name"`
+	EncryptionKeyUrl string                       `tfschema:"encryption_key_url"`
+	Identity         []identity.ModelUserAssigned `tfschema:"identity"`
+	Location         string                       `tfschema:"location"`
+	MobileNetworkId  string                       `tfschema:"mobile_network_id"`
+	Tags             map[string]string            `tfschema:"tags"`
+}
+
 var _ sdk.DataSource = SimGroupDataSource{}
 
 func (r SimGroupDataSource) ResourceType() string {
@@ -25,7 +34,7 @@ func (r SimGroupDataSource) ResourceType() string {
 }
 
 func (r SimGroupDataSource) ModelObject() interface{} {
-	return &SimGroupModel{}
+	return &SimGroupDataSourceModel{}
 }
 
 func (r SimGroupDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -50,7 +59,6 @@ func (r SimGroupDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r SimGroupDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"encryption_key_url": { // needs UserAssignedIdentity
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -68,17 +76,17 @@ func (r SimGroupDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var metaModel SimGroupModel
-			if err := metadata.Decode(&metaModel); err != nil {
+			var state SimGroupDataSourceModel
+			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			client := metadata.Client.MobileNetwork.SIMGroupClient
-			parsedMobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(metaModel.MobileNetworkId)
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(state.MobileNetworkId)
 			if err != nil {
 				return fmt.Errorf("parsing `mobile_network_id`: %+v", err)
 			}
-			id := simgroup.NewSimGroupID(parsedMobileNetworkId.SubscriptionId, parsedMobileNetworkId.ResourceGroupName, metaModel.Name)
+			id := simgroup.NewSimGroupID(mobileNetworkId.SubscriptionId, mobileNetworkId.ResourceGroupName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -89,42 +97,33 @@ func (r SimGroupDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			model := *resp.Model
-
-			state := SimGroupModel{
-				Name:            id.SimGroupName,
-				MobileNetworkId: metaModel.MobileNetworkId,
-				Location:        location.Normalize(model.Location),
-			}
-
-			identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
-
-			if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
-			}
-
-			properties := model.Properties
-
-			if properties.EncryptionKey != nil && properties.EncryptionKey.KeyUrl != nil {
-				state.EncryptionKeyUrl = *properties.EncryptionKey.KeyUrl
-			}
-
-			if properties.MobileNetwork != nil {
-				state.MobileNetworkId = properties.MobileNetwork.Id
-			}
-
-			if model.Tags != nil {
-				state.Tags = *model.Tags
-			}
-
 			metadata.SetID(id)
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+
+				identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+
+				if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
+					return fmt.Errorf("setting `identity`: %+v", err)
+				}
+
+				properties := model.Properties
+
+				if properties.EncryptionKey != nil && properties.EncryptionKey.KeyUrl != nil {
+					state.EncryptionKeyUrl = *properties.EncryptionKey.KeyUrl
+				}
+
+				if properties.MobileNetwork != nil {
+					state.MobileNetworkId = properties.MobileNetwork.Id
+				}
+
+				if model.Tags != nil {
+					state.Tags = *model.Tags
+				}
+			}
 
 			return metadata.Encode(&state)
 		},

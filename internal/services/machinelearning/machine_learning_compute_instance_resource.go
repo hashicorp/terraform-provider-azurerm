@@ -7,14 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
@@ -173,7 +174,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -185,7 +186,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	computeInstance := &machinelearningcomputes.ComputeInstance{
+	computeInstance := machinelearningcomputes.ComputeInstance{
 		Properties: &machinelearningcomputes.ComputeInstanceProperties{
 			VMSize:                          utils.String(d.Get("virtual_machine_size").(string)),
 			Subnet:                          subnet,
@@ -201,19 +202,16 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		computeInstance.Properties.ComputeInstanceAuthorizationType = utils.ToPtr(machinelearningcomputes.ComputeInstanceAuthorizationType(authType))
 	}
 
+	var compute machinelearningcomputes.Compute = computeInstance
 	parameters := machinelearningcomputes.ComputeResource{
-		Properties: computeInstance,
+		Properties: pointer.To(compute),
 		Identity:   identity,
 		Location:   utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.ComputeCreateOrUpdate(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating Machine Learning Compute (%q): %+v", id, err)
-	}
-	if err := future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting for creation of Machine Learning Compute (%q): %+v", id, err)
+	if err := client.ComputeCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -246,35 +244,45 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 	workspaceId := workspaces.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
 	d.Set("machine_learning_workspace_id", workspaceId.ID())
 
-	if location := resp.Model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
-	identity, err := flattenIdentity(resp.Model.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	props := resp.Model.Properties.(machinelearningcomputes.ComputeInstance)
-
-	if props.DisableLocalAuth != nil {
-		d.Set("local_auth_enabled", !*props.DisableLocalAuth)
-	}
-	d.Set("description", props.Description)
-	if props.Properties != nil {
-		d.Set("virtual_machine_size", props.Properties.VMSize)
-		if props.Properties.Subnet != nil {
-			d.Set("subnet_resource_id", props.Properties.Subnet.Id)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
-		d.Set("authorization_type", props.Properties.ComputeInstanceAuthorizationType)
-		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
-		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			if computeInstance, ok := (*props).(machinelearningcomputes.ComputeInstance); ok {
+				localAuthEnabled := true
+				if computeInstance.DisableLocalAuth != nil {
+					localAuthEnabled = !*computeInstance.DisableLocalAuth
+				}
+				d.Set("local_auth_enabled", localAuthEnabled)
+
+				d.Set("description", computeInstance.Description)
+				if instanceProps := computeInstance.Properties; instanceProps != nil {
+					d.Set("virtual_machine_size", instanceProps.VMSize)
+					subnetId := ""
+					if computeInstance.Properties.Subnet != nil {
+						subnetId = instanceProps.Subnet.Id
+					}
+					d.Set("subnet_resource_id", subnetId)
+					d.Set("authorization_type", string(pointer.From(instanceProps.ComputeInstanceAuthorizationType)))
+					d.Set("ssh", flattenComputeSSHSetting(instanceProps.SshSettings))
+					d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(instanceProps.PersonalComputeInstanceSettings))
+				}
+			}
+		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Model.Tags)
+	return nil
 }
 
 func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -286,16 +294,13 @@ func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	future, err := client.ComputeDelete(ctx, *id, machinelearningcomputes.ComputeDeleteOperationOptions{
+	opts := machinelearningcomputes.ComputeDeleteOperationOptions{
 		UnderlyingResourceAction: utils.ToPtr(machinelearningcomputes.UnderlyingResourceActionDelete),
-	})
-	if err != nil {
-		return fmt.Errorf("deleting Machine Learning Compute (%q): %+v", id, err)
+	}
+	if err := client.ComputeDeleteThenPoll(ctx, *id, opts); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err := future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting for deletion of the Machine Learning Compute (%q): %+v", id, err)
-	}
 	return nil
 }
 

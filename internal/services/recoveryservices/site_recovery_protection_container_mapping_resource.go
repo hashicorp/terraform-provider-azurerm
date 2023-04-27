@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainermappings"
@@ -83,6 +84,7 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 				MinItems: 1,
 				MaxItems: 1,
 				Optional: true,
+				// TODO: remove `computed` and `enabled` in `4.0` and use the presence of the block to indicate that
 				Computed: true, // set it to computed because the service will return it no matter if we have passed it.
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
@@ -133,21 +135,22 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
+	var mappingInput replicationprotectioncontainermappings.ReplicationProviderSpecificContainerMappingInput = replicationprotectioncontainermappings.A2AContainerMappingInput{}
 	parameters := replicationprotectioncontainermappings.CreateProtectionContainerMappingInput{
 		Properties: &replicationprotectioncontainermappings.CreateProtectionContainerMappingInputProperties{
 			TargetProtectionContainerId: &targetContainerId,
 			PolicyId:                    &policyId,
-			ProviderSpecificInput:       replicationprotectioncontainermappings.A2AContainerMappingInput{},
+			ProviderSpecificInput:       &mappingInput,
 		},
 	}
 
 	autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update").([]interface{}))
-
 	if autoUpdateEnabledValue == replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled {
-		parameters.Properties.ProviderSpecificInput = replicationprotectioncontainermappings.A2AContainerMappingInput{
+		mappingInput = replicationprotectioncontainermappings.A2AContainerMappingInput{
 			AgentAutoUpdateStatus:  &autoUpdateEnabledValue,
 			AutomationAccountArmId: automationAccountArmId,
 		}
+		parameters.Properties.ProviderSpecificInput = pointer.To(mappingInput)
 	}
 
 	err := client.CreateThenPoll(ctx, id, parameters)
@@ -192,11 +195,11 @@ func resourceSiteRecoveryContainerMappingUpdate(d *pluginsdk.ResourceData, meta 
 
 	if d.HasChange("automatic_update") {
 		autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update").([]interface{}))
-		updateInput := replicationprotectioncontainermappings.A2AUpdateContainerMappingInput{
+		var mappingInput replicationprotectioncontainermappings.ReplicationProviderSpecificUpdateContainerMappingInput = replicationprotectioncontainermappings.A2AUpdateContainerMappingInput{
 			AgentAutoUpdateStatus:  &autoUpdateEnabledValue,
 			AutomationAccountArmId: automationAccountArmId,
 		}
-		update.Properties.ProviderSpecificInput = updateInput
+		update.Properties.ProviderSpecificInput = pointer.To(mappingInput)
 	}
 
 	err = client.UpdateThenPoll(ctx, *id, update)
@@ -235,15 +238,13 @@ func resourceSiteRecoveryContainerMappingRead(d *pluginsdk.ResourceData, meta in
 	d.Set("recovery_vault_name", id.VaultName)
 	d.Set("recovery_fabric_name", id.ReplicationFabricName)
 	d.Set("name", model.Name)
-	if prop := model.Properties; prop != nil {
-		d.Set("recovery_source_protection_container_name", model.Properties.SourceProtectionContainerFriendlyName)
-		d.Set("recovery_replication_policy_id", model.Properties.PolicyId)
-		d.Set("recovery_target_protection_container_id", model.Properties.TargetProtectionContainerId)
+	if props := model.Properties; props != nil {
+		d.Set("recovery_source_protection_container_name", props.SourceProtectionContainerFriendlyName)
+		d.Set("recovery_replication_policy_id", props.PolicyId)
+		d.Set("recovery_target_protection_container_id", props.TargetProtectionContainerId)
 
-		if detail, ok := prop.ProviderSpecificDetails.(replicationprotectioncontainermappings.A2AProtectionContainerMappingDetails); ok {
-			d.Set("automatic_update", flattenAutoUpdateSettings(&detail))
-		} else {
-			d.Set("automatic_update", flattenAutoUpdateSettings(nil))
+		if err := d.Set("automatic_update", flattenAutoUpdateSettings(props.ProviderSpecificDetails)); err != nil {
+			return fmt.Errorf("setting `automatic_update`: %+v", err)
 		}
 	}
 
@@ -300,13 +301,29 @@ func expandAutoUpdateSettings(input []interface{}) (enabled replicationprotectio
 	return autoUpdateEnabledValue, accountIdOutput
 }
 
-func flattenAutoUpdateSettings(input *replicationprotectioncontainermappings.A2AProtectionContainerMappingDetails) []interface{} {
-	output := map[string]interface{}{}
-	if input == nil {
-		output["enabled"] = false
-		return []interface{}{output}
+func flattenAutoUpdateSettings(input *replicationprotectioncontainermappings.ProtectionContainerMappingProviderSpecificDetails) []interface{} {
+	output := make([]interface{}, 0)
+
+	// TODO: in 4.0 the `enabled` field should be removed and we should use the presence of the block to indicate this
+
+	if input != nil {
+		if v, ok := (*input).(replicationprotectioncontainermappings.A2AProtectionContainerMappingDetails); ok {
+			enabled := false
+			if v.AgentAutoUpdateStatus != nil {
+				enabled = *v.AgentAutoUpdateStatus == replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled
+			}
+
+			automationAccountId := ""
+			if v.AutomationAccountArmId != nil {
+				automationAccountId = *v.AutomationAccountArmId
+			}
+
+			output = append(output, map[string]interface{}{
+				"automation_account_id": automationAccountId,
+				"enabled":               enabled,
+			})
+		}
 	}
-	output["enabled"] = *input.AgentAutoUpdateStatus == replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled
-	output["automation_account_id"] = input.AutomationAccountArmId
-	return []interface{}{output}
+
+	return output
 }

@@ -38,7 +38,7 @@ func (s *RecoveryPlanAction) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'CustomDetails' for 'RecoveryPlanAction': %+v", err)
 		}
-		s.CustomDetails = impl
+		s.CustomDetails = &impl
 	}
 	return nil
 }

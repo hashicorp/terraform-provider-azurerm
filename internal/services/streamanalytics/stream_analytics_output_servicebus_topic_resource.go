@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -159,13 +160,14 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 		dataSourceProperties.SharedAccessPolicyName = utils.String(d.Get("shared_access_policy_name").(string))
 	}
 
+	var dataSource outputs.OutputDataSource = outputs.ServiceBusTopicOutputDataSource{
+		Properties: dataSourceProperties,
+	}
 	props := outputs.Output{
 		Name: utils.String(id.OutputName),
 		Properties: &outputs.OutputProperties{
-			Datasource: &outputs.ServiceBusTopicOutputDataSource{
-				Properties: dataSourceProperties,
-			},
-			Serialization: serialization,
+			Datasource:    pointer.To(dataSource),
+			Serialization: pointer.To(serialization),
 		},
 	}
 
@@ -211,43 +213,44 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.ServiceBusTopicOutputDataSource)
-			if !ok {
-				return fmt.Errorf("converting %s to a ServiceBus Topic Output", *id)
-			}
+			if ds := props.Datasource; ds != nil {
+				if output, ok := (*ds).(outputs.ServiceBusTopicOutputDataSource); ok {
+					if outputProps := output.Properties; outputProps != nil {
+						topicName := ""
+						if v := outputProps.TopicName; v != nil {
+							topicName = *v
+						}
+						d.Set("topic_name", topicName)
 
-			topicName := ""
-			if v := output.Properties.TopicName; v != nil {
-				topicName = *v
-			}
-			d.Set("topic_name", topicName)
+						namespace := ""
+						if v := outputProps.ServiceBusNamespace; v != nil {
+							namespace = *v
+						}
+						d.Set("servicebus_namespace", namespace)
 
-			namespace := ""
-			if v := output.Properties.ServiceBusNamespace; v != nil {
-				namespace = *v
-			}
-			d.Set("servicebus_namespace", namespace)
+						accessPolicy := ""
+						if v := outputProps.SharedAccessPolicyName; v != nil {
+							accessPolicy = *v
+						}
+						d.Set("shared_access_policy_name", accessPolicy)
 
-			accessPolicy := ""
-			if v := output.Properties.SharedAccessPolicyName; v != nil {
-				accessPolicy = *v
-			}
-			d.Set("shared_access_policy_name", accessPolicy)
+						var propertyColumns []string
+						if v := outputProps.PropertyColumns; v != nil {
+							propertyColumns = *v
+						}
+						d.Set("property_columns", propertyColumns)
 
-			var propertyColumns []string
-			if v := output.Properties.PropertyColumns; v != nil {
-				propertyColumns = *v
-			}
-			d.Set("property_columns", propertyColumns)
+						authMode := ""
+						if v := outputProps.AuthenticationMode; v != nil {
+							authMode = string(*v)
+						}
+						d.Set("authentication_mode", authMode)
 
-			authMode := ""
-			if v := output.Properties.AuthenticationMode; v != nil {
-				authMode = string(*v)
-			}
-			d.Set("authentication_mode", authMode)
-
-			if err = d.Set("system_property_columns", output.Properties.SystemPropertyColumns); err != nil {
-				return err
+						if err = d.Set("system_property_columns", outputProps.SystemPropertyColumns); err != nil {
+							return err
+						}
+					}
+				}
 			}
 
 			if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {

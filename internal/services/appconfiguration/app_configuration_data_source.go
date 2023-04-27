@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -223,7 +224,7 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
 			d.Set("encryption", flattenAppConfigurationEncryption(props.Encryption))
-			d.Set("public_network_access", props.PublicNetworkAccess)
+			d.Set("public_network_access", string(pointer.From(props.PublicNetworkAccess)))
 			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
 
 			localAuthEnabled := true

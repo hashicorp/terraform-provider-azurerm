@@ -150,7 +150,7 @@ The `match_conditions` block supports the following:
 
 * `match_variables` - (Required) One or more `match_variables` blocks as defined below.
 
-* `match_values` - (Required) A list of match values.
+* `match_values` - (Optional) A list of match values. This is **Required** when the `operator` is not `Any`.
 
 * `operator` - (Required) Describes operator to be matched. Possible values are `Any`, `IPMatch`, `GeoMatch`, `Equal`, `Contains`, `LessThan`, `GreaterThan`, `LessThanOrEqual`, `GreaterThanOrEqual`, `BeginsWith`, `EndsWith` and `Regex`.
 
@@ -248,7 +248,7 @@ The `rule` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Web Application Firewall Policy.
 

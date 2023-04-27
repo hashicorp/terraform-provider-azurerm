@@ -72,7 +72,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"match_values": {
 										Type:     pluginsdk.TypeList,
-										Required: true,
+										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},

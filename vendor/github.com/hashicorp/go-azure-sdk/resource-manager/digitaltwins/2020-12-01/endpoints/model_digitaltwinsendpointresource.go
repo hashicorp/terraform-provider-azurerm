@@ -38,7 +38,7 @@ func (s *DigitalTwinsEndpointResource) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Properties' for 'DigitalTwinsEndpointResource': %+v", err)
 		}
-		s.Properties = impl
+		s.Properties = &impl
 	}
 	return nil
 }

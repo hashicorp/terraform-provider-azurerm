@@ -16,6 +16,16 @@ import (
 
 type MobileNetworkDataSource struct{}
 
+type MobileNetworkDataSourceModel struct {
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Location          string            `tfschema:"location"`
+	MobileCountryCode string            `tfschema:"mobile_country_code"`
+	MobileNetworkCode string            `tfschema:"mobile_network_code"`
+	Tags              map[string]string `tfschema:"tags"`
+	ServiceKey        string            `tfschema:"service_key"`
+}
+
 var _ sdk.DataSource = MobileNetworkDataSource{}
 
 func (r MobileNetworkDataSource) ResourceType() string {
@@ -23,7 +33,7 @@ func (r MobileNetworkDataSource) ResourceType() string {
 }
 
 func (r MobileNetworkDataSource) ModelObject() interface{} {
-	return &MobileNetworkModel{}
+	return &MobileNetworkDataSourceModel{}
 }
 
 func (r MobileNetworkDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -70,7 +80,7 @@ func (r MobileNetworkDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var metaModel MobileNetworkModel
+			var metaModel MobileNetworkDataSourceModel
 			if err := metadata.Decode(&metaModel); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -93,7 +103,7 @@ func (r MobileNetworkDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := MobileNetworkModel{
+			state := MobileNetworkDataSourceModel{
 				Name:              id.MobileNetworkName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),

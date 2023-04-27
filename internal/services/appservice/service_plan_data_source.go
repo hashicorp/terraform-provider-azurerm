@@ -115,7 +115,7 @@ func (r ServicePlanDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.AppService.ServicePlanClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var servicePlan ServicePlanModel
+			var servicePlan ServicePlanDataSourceModel
 			if err := metadata.Decode(&servicePlan); err != nil {
 				return err
 			}

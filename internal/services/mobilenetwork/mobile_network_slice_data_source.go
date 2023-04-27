@@ -17,6 +17,20 @@ import (
 
 type SliceDataSource struct{}
 
+type SliceDataSourceModel struct {
+	Name                                             string                                                            `tfschema:"name"`
+	MobileNetworkId                                  string                                                            `tfschema:"mobile_network_id"`
+	Description                                      string                                                            `tfschema:"description"`
+	Location                                         string                                                            `tfschema:"location"`
+	SingleNetworkSliceSelectionAssistanceInformation []SingleNetworkSliceSelectionAssistanceInformationDataSourceModel `tfschema:"single_network_slice_selection_assistance_information"`
+	Tags                                             map[string]string                                                 `tfschema:"tags"`
+}
+
+type SingleNetworkSliceSelectionAssistanceInformationDataSourceModel struct {
+	SliceDifferentiator string `tfschema:"slice_differentiator"`
+	SliceServiceType    int64  `tfschema:"slice_service_type"`
+}
+
 var _ sdk.DataSource = SliceDataSource{}
 
 func (r SliceDataSource) ResourceType() string {
@@ -24,7 +38,7 @@ func (r SliceDataSource) ResourceType() string {
 }
 
 func (r SliceDataSource) ModelObject() interface{} {
-	return &SliceModel{}
+	return &SliceDataSourceModel{}
 }
 
 func (r SliceDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -84,7 +98,7 @@ func (r SliceDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var metaModel SliceModel
+			var metaModel SliceDataSourceModel
 			if err := metadata.Decode(&metaModel); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -112,7 +126,7 @@ func (r SliceDataSource) Read() sdk.ResourceFunc {
 
 			model := *resp.Model
 
-			state := SliceModel{
+			state := SliceDataSourceModel{
 				Name:            id.SliceName,
 				MobileNetworkId: mobileNetworkId.ID(),
 				Location:        location.Normalize(model.Location),
@@ -123,7 +137,7 @@ func (r SliceDataSource) Read() sdk.ResourceFunc {
 				state.Description = *properties.Description
 			}
 
-			state.Snssai = flattenSnssaiModel(properties.Snssai)
+			state.SingleNetworkSliceSelectionAssistanceInformation = flattenSingleNetworkSliceSelectionAssistanceInformationDataSourceModel(properties.Snssai)
 
 			if resp.Model.Tags != nil {
 				state.Tags = *model.Tags
@@ -133,5 +147,19 @@ func (r SliceDataSource) Read() sdk.ResourceFunc {
 
 			return metadata.Encode(&state)
 		},
+	}
+}
+
+func flattenSingleNetworkSliceSelectionAssistanceInformationDataSourceModel(input slice.Snssai) []SingleNetworkSliceSelectionAssistanceInformationDataSourceModel {
+	output := SingleNetworkSliceSelectionAssistanceInformationDataSourceModel{
+		SliceServiceType: input.Sst,
+	}
+
+	if input.Sd != nil {
+		output.SliceDifferentiator = *input.Sd
+	}
+
+	return []SingleNetworkSliceSelectionAssistanceInformationDataSourceModel{
+		output,
 	}
 }

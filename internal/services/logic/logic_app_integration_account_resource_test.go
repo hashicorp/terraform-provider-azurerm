@@ -96,6 +96,8 @@ func TestAccLogicAppIntegrationAccount_update(t *testing.T) {
 }
 
 func TestAccLogicAppIntegrationAccount_integrationServiceEnvironment(t *testing.T) {
+	t.Skip("skip as Integration Service Environment is being deprecated")
+
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account", "test")
 	r := LogicAppIntegrationAccountResource{}
 

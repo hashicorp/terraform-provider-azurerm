@@ -29,7 +29,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), useDevTestSubscription = true),
 
         // App Service Plans for Linux are currently unavailable in WestUS2
-        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus", "eastus2", true)),
+        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "northeurope", "eastus2", false), useDevTestSubscription = true),
 
         // these tests all conflict with one another
         "authorization" to testConfiguration(parallelism = 1),
@@ -107,6 +107,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // MSSQl uses app service which is only available in certain locations
         "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
+        // MSSQL Managed Instance creation can impact the service so limit the frequency and number of tests
+        "mssqlmanagedinstance" to testConfiguration(parallelism = 5, daysOfWeek = "2,6", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
+
         // MySQL has quota available in certain locations
         "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
@@ -138,6 +141,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // SQL has quota available in certain locations
         "sql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
+        "storagemover" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus2", "westus3", false), useDevTestSubscription = true),
+
         // StreamAnalytics has quota available in certain locations
         "streamanalytics" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
@@ -147,8 +152,12 @@ var serviceTestConfigurationOverrides = mapOf(
         // Currently, we have insufficient quota to actually run these, but there are a few nodes in West Europe, so we'll pin it there for now
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false), useDevTestSubscription = true),
 
+        // In general, Azure Voice Service is available in several different regions, but each subscription will only be allowlisted for specific regions(`westcentralus`, `westcentralus`, `westcentralus`).
+        // Only the regions (`westcentralus`) is specified since the devtest subscription does not support creating resource group for the other two regions.
+        "voiceservices" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westcentralus", "westcentralus", "westcentralus", false), useDevTestSubscription = true),
+
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
-        "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+        "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
         // moved to alt subsription
         "appconfiguration" to testConfiguration(useDevTestSubscription = true),

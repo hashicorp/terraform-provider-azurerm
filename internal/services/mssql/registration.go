@@ -47,9 +47,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_mssql_firewall_rule":                                   resourceMsSqlFirewallRule(),
 		"azurerm_mssql_job_agent":                                       resourceMsSqlJobAgent(),
 		"azurerm_mssql_job_credential":                                  resourceMsSqlJobCredential(),
-		"azurerm_mssql_managed_instance_security_alert_policy":          resourceMsSqlManagedInstanceSecurityAlertPolicy(),
-		"azurerm_mssql_managed_instance_transparent_data_encryption":    resourceMsSqlManagedInstanceTransparentDataEncryption(),
-		"azurerm_mssql_managed_instance_vulnerability_assessment":       resourceMsSqlManagedInstanceVulnerabilityAssessment(),
 		"azurerm_mssql_outbound_firewall_rule":                          resourceMsSqlOutboundFirewallRule(),
 		"azurerm_mssql_server":                                          resourceMsSqlServer(),
 		"azurerm_mssql_server_extended_auditing_policy":                 resourceMsSqlServerExtendedAuditingPolicy(),
@@ -64,19 +61,13 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 // DataSources returns the typed DataSources supported by this service
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{
-		MsSqlManagedInstanceDataSource{},
-	}
+	return []sdk.DataSource{}
 }
 
 // Resources returns the typed Resources supported by this service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		MsSqlFailoverGroupResource{},
-		MsSqlManagedDatabaseResource{},
-		MsSqlManagedInstanceActiveDirectoryAdministratorResource{},
-		MsSqlManagedInstanceFailoverGroupResource{},
-		MsSqlManagedInstanceResource{},
 		ServerDNSAliasResource{},
 	}
 }

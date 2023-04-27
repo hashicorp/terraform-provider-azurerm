@@ -8,6 +8,7 @@ var services = mapOf(
         "appconfiguration" to "App Configuration",
         "appservice" to "AppService",
         "applicationinsights" to "Application Insights",
+        "arckubernetes" to "ArcKubernetes",
         "attestation" to "Attestation",
         "authorization" to "Authorization",
         "automation" to "Automation",
@@ -74,6 +75,7 @@ var services = mapOf(
         "mariadb" to "MariaDB",
         "media" to "Media",
         "mssql" to "Microsoft SQL Server / Azure SQL",
+        "mssqlmanagedinstance" to "Microsoft SQL Server Managed Instances",
         "mixedreality" to "Mixed Reality",
         "mobilenetwork" to "Mobile Network",
         "monitor" to "Monitor",
@@ -106,6 +108,7 @@ var services = mapOf(
         "signalr" to "SignalR",
         "springcloud" to "Spring Cloud",
         "storage" to "Storage",
+        "storagemover" to "Storage Mover",
         "streamanalytics" to "Stream Analytics",
         "subscription" to "Subscription",
         "synapse" to "Synapse",
@@ -113,5 +116,6 @@ var services = mapOf(
         "trafficmanager" to "Traffic Manager",
         "vmware" to "VMware",
         "videoanalyzer" to "Video Analyzer",
+        "voiceservices" to "Voice Services",
         "web" to "Web"
 )

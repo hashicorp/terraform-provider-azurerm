@@ -49,7 +49,7 @@ func (c DisasterRecoveryConfigsClient) List(ctx context.Context, id NamespaceId)
 	}
 
 	var values struct {
-		Values *[]ArmDisasterRecovery `json:"values"`
+		Values *[]ArmDisasterRecovery `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

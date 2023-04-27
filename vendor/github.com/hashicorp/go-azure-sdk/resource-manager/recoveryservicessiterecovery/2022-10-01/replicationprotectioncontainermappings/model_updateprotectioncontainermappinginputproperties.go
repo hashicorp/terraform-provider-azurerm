@@ -9,7 +9,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UpdateProtectionContainerMappingInputProperties struct {
-	ProviderSpecificInput ReplicationProviderSpecificUpdateContainerMappingInput `json:"providerSpecificInput"`
+	ProviderSpecificInput *ReplicationProviderSpecificUpdateContainerMappingInput `json:"providerSpecificInput,omitempty"`
 }
 
 var _ json.Unmarshaler = &UpdateProtectionContainerMappingInputProperties{}
@@ -26,7 +26,7 @@ func (s *UpdateProtectionContainerMappingInputProperties) UnmarshalJSON(bytes []
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificInput' for 'UpdateProtectionContainerMappingInputProperties': %+v", err)
 		}
-		s.ProviderSpecificInput = impl
+		s.ProviderSpecificInput = &impl
 	}
 	return nil
 }

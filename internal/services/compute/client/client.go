@@ -168,7 +168,9 @@ func NewClient(o *common.ClientOptions) *Client {
 		VMScaleSetExtensionsClient:       &vmScaleSetExtensionsClient,
 		VMScaleSetRollingUpgradesClient:  &vmScaleSetRollingUpgradesClient,
 		VMScaleSetVMsClient:              &vmScaleSetVMsClient,
-		VMClient:                         &vmClient,
 		VMImageClient:                    &vmImageClient,
+
+		// NOTE: use `VirtualMachinesClient` instead
+		VMClient: &vmClient,
 	}
 }

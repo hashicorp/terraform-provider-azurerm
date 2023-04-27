@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -76,11 +77,12 @@ func (r HyperVSiteResource) Create() sdk.ResourceFunc {
 			}
 
 			// the instance type `HyperVSite` is not exposed in Swagger, tracked on https://github.com/Azure/azure-rest-api-specs/issues/22016
+			var instanceType replicationfabrics.FabricSpecificCreationInput = HyperVSiteInstanceType{
+				InstanceType: "HyperVSite",
+			}
 			parameters := replicationfabrics.FabricCreationInput{
 				Properties: &replicationfabrics.FabricCreationInputProperties{
-					CustomDetails: HyperVSiteInstanceType{
-						InstanceType: "HyperVSite",
-					},
+					CustomDetails: pointer.To(instanceType),
 				},
 			}
 

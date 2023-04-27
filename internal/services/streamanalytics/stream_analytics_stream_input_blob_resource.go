@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
@@ -134,38 +135,36 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
-	props := inputs.Input{
-		Name: utils.String(id.InputName),
-		Properties: &inputs.StreamInputProperties{
-			// Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
-			Datasource: &inputs.BlobStreamInputDataSource{
-				// Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob,
-				Properties: &inputs.BlobStreamInputDataSourceProperties{
-					Container:   utils.String(containerName),
-					DateFormat:  utils.String(dateFormat),
-					PathPattern: utils.String(pathPattern),
-					TimeFormat:  utils.String(timeFormat),
-					StorageAccounts: &[]inputs.StorageAccount{
-						{
-							AccountName: utils.String(storageAccountName),
-							AccountKey:  utils.String(storageAccountKey),
-						},
-					},
+	var dataSource inputs.StreamInputDataSource = inputs.BlobStreamInputDataSource{
+		Properties: &inputs.BlobStreamInputDataSourceProperties{
+			Container:   utils.String(containerName),
+			DateFormat:  utils.String(dateFormat),
+			PathPattern: utils.String(pathPattern),
+			TimeFormat:  utils.String(timeFormat),
+			StorageAccounts: &[]inputs.StorageAccount{
+				{
+					AccountName: utils.String(storageAccountName),
+					AccountKey:  utils.String(storageAccountKey),
 				},
 			},
-			Serialization: serialization,
 		},
 	}
+	var inputProperties inputs.InputProperties = inputs.StreamInputProperties{
+		Datasource:    &dataSource,
+		Serialization: pointer.To(serialization),
+	}
+	props := inputs.Input{
+		Name:       utils.String(id.InputName),
+		Properties: &inputProperties,
+	}
 
-	var createOpts inputs.CreateOrReplaceOperationOptions
-	var updateOpts inputs.UpdateOperationOptions
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, id, props, createOpts); err != nil {
+		if _, err := client.CreateOrReplace(ctx, id, props, inputs.DefaultCreateOrReplaceOperationOptions()); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		d.SetId(id.ID())
-	} else if _, err := client.Update(ctx, id, props, updateOpts); err != nil {
+	} else if _, err := client.Update(ctx, id, props, inputs.DefaultUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -199,49 +198,41 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties) // nolint: gosimple
-			if !ok {
-				return fmt.Errorf("converting %s to an Input", *id)
-			}
+			if streamInput, ok := (*props).(inputs.StreamInputProperties); ok {
+				if ds := streamInput.Datasource; ds != nil {
+					if streamBlobInput, ok := (*ds).(inputs.BlobStreamInputDataSource); ok {
+						if blobProps := streamBlobInput.Properties; blobProps != nil {
+							dateFormat := ""
+							if v := blobProps.DateFormat; v != nil {
+								dateFormat = *v
+							}
+							d.Set("date_format", dateFormat)
 
-			streamInput, ok := input.(inputs.StreamInputProperties)
-			if !ok {
-				return fmt.Errorf("converting %s to a Stream Input", *id)
-			}
+							pathPattern := ""
+							if v := blobProps.PathPattern; v != nil {
+								pathPattern = *v
+							}
+							d.Set("path_pattern", pathPattern)
 
-			streamBlobInput, ok := streamInput.Datasource.(inputs.BlobStreamInputDataSource)
-			if !ok {
-				return fmt.Errorf("converting Stream Input Blob to an Stream Input: %+v", err)
-			}
+							containerName := ""
+							if v := blobProps.Container; v != nil {
+								containerName = *v
+							}
+							d.Set("storage_container_name", containerName)
 
-			if streamBlobInputProps := streamBlobInput.Properties; streamBlobInputProps != nil {
-				dateFormat := ""
-				if v := streamBlobInput.Properties.DateFormat; v != nil {
-					dateFormat = *v
-				}
-				d.Set("date_format", dateFormat)
+							timeFormat := ""
+							if v := blobProps.TimeFormat; v != nil {
+								timeFormat = *v
+							}
+							d.Set("time_format", timeFormat)
 
-				pathPattern := ""
-				if v := streamBlobInputProps.PathPattern; v != nil {
-					pathPattern = *v
-				}
-				d.Set("path_pattern", pathPattern)
+							if accounts := blobProps.StorageAccounts; accounts != nil && len(*accounts) > 0 {
+								account := (*accounts)[0]
+								d.Set("storage_account_name", account.AccountName)
+							}
 
-				containerName := ""
-				if v := streamBlobInputProps.Container; v != nil {
-					containerName = *v
-				}
-				d.Set("storage_container_name", containerName)
-
-				timeFormat := ""
-				if v := streamBlobInputProps.TimeFormat; v != nil {
-					timeFormat = *v
-				}
-				d.Set("time_format", timeFormat)
-
-				if accounts := streamBlobInputProps.StorageAccounts; accounts != nil && len(*accounts) > 0 {
-					account := (*accounts)[0]
-					d.Set("storage_account_name", account.AccountName)
+						}
+					}
 				}
 
 				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(streamInput.Serialization)); err != nil {

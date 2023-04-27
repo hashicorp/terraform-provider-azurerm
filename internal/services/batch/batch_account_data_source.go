@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -121,7 +122,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			if autoStorage := props.AutoStorage; autoStorage != nil {
 				d.Set("storage_account_id", autoStorage.StorageAccountId)
 			}
-			d.Set("pool_allocation_mode", props.PoolAllocationMode)
+			d.Set("pool_allocation_mode", string(pointer.From(props.PoolAllocationMode)))
 			poolAllocationMode := d.Get("pool_allocation_mode").(string)
 
 			if encryption := props.Encryption; encryption != nil {
