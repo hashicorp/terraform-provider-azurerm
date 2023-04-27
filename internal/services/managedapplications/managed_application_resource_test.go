@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applications"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagedApplicationResource struct{}
@@ -164,17 +164,17 @@ func TestAccManagedApplication_parameterValues(t *testing.T) {
 }
 
 func (ManagedApplicationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ApplicationID(state.ID)
+	id, err := applications.ParseApplicationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ManagedApplication.ApplicationClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.ManagedApplication.ApplicationClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Managed Application %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Managed Application %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ApplicationProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ManagedApplicationResource) basic(data acceptance.TestData) string {

@@ -7,20 +7,21 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applicationdefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceManagedApplication() *pluginsdk.Resource {
@@ -31,7 +32,7 @@ func resourceManagedApplication() *pluginsdk.Resource {
 		Delete: resourceManagedApplicationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ApplicationID(id)
+			_, err := applications.ParseApplicationID(id)
 			return err
 		}),
 
@@ -69,7 +70,7 @@ func resourceManagedApplication() *pluginsdk.Resource {
 			"application_definition_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ApplicationDefinitionID,
+				ValidateFunc: applicationdefinitions.ValidateApplicationDefinitionID,
 			},
 
 			"parameters": {
@@ -126,7 +127,7 @@ func resourceManagedApplication() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"outputs": {
 				Type:     pluginsdk.TypeMap,
@@ -145,35 +146,35 @@ func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := applications.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("failed to check for presence of %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_managed_application", id.ID())
 		}
 	}
 
-	parameters := managedapplications.Application{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
-		Kind:     utils.String(d.Get("kind").(string)),
+	parameters := applications.Application{
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location"))),
+		Kind:     d.Get("kind").(string),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("managed_resource_group_name"); ok {
 		targetResourceGroupId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", meta.(*clients.Client).Account.SubscriptionId, v)
-		parameters.ApplicationProperties = &managedapplications.ApplicationProperties{
-			ManagedResourceGroupID: utils.String(targetResourceGroupId),
+		parameters.Properties = applications.ApplicationProperties{
+			ManagedResourceGroupId: pointer.To(targetResourceGroupId),
 		}
 	}
 
 	if v, ok := d.GetOk("application_definition_id"); ok {
-		parameters.ApplicationDefinitionID = utils.String(v.(string))
+		parameters.Properties.ApplicationDefinitionId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("plan"); ok {
@@ -184,14 +185,11 @@ func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	if err != nil {
 		return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
 	}
-	parameters.Parameters = params
+	parameters.Properties.Parameters = pointer.To(interface{}(params))
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("failed to create %s: %+v", id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed to wait for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -204,44 +202,47 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApplicationID(d.Id())
+	id, err := applications.ParseApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Managed Application %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to read Managed Application %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("failed to read Managed Application %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("kind", resp.Kind)
-	if err := d.Set("plan", flattenManagedApplicationPlan(resp.Plan)); err != nil {
-		return fmt.Errorf("setting `plan`: %+v", err)
-	}
-	if props := resp.ApplicationProperties; props != nil {
-		id, err := resourcesParse.ResourceGroupIDInsensitively(*props.ManagedResourceGroupID)
+	if m := resp.Model; m != nil {
+		p := m.Properties
+
+		d.Set("name", m.Name)
+		d.Set("resource_group_name", id.ResourceGroupName)
+		d.Set("location", location.NormalizeNilable(m.Location))
+		d.Set("kind", m.Kind)
+		if err := d.Set("plan", flattenManagedApplicationPlan(m.Plan)); err != nil {
+			return fmt.Errorf("setting `plan`: %+v", err)
+		}
+
+		id, err := resourcesParse.ResourceGroupIDInsensitively(*p.ManagedResourceGroupId)
 		if err != nil {
 			return err
 		}
 
 		d.Set("managed_resource_group_name", id.ResourceGroup)
-		d.Set("application_definition_id", props.ApplicationDefinitionID)
+		d.Set("application_definition_id", p.ApplicationDefinitionId)
 
-		parameterValues, err := flattenManagedApplicationParameterValuesValueToString(props.Parameters)
+		parameterValues, err := flattenManagedApplicationParameterValuesValueToString(p.Parameters)
 		if err != nil {
 			return fmt.Errorf("serializing JSON from `parameter_values`: %+v", err)
 		}
 		d.Set("parameter_values", parameterValues)
 
-		parameters, err := flattenManagedApplicationParametersOrOutputs(props.Parameters)
+		parameters, err := flattenManagedApplicationParametersOrOutputs(p.Parameters)
 		if err != nil {
 			return err
 		}
@@ -249,16 +250,18 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 			return err
 		}
 
-		outputs, err := flattenManagedApplicationParametersOrOutputs(props.Outputs)
+		outputs, err := flattenManagedApplicationParametersOrOutputs(p.Outputs)
 		if err != nil {
 			return err
 		}
 		if err = d.Set("outputs", outputs); err != nil {
 			return err
 		}
+
+		return tags.FlattenAndSet(d, m.Tags)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceManagedApplicationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -266,35 +269,31 @@ func resourceManagedApplicationDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApplicationID(d.Id())
+	id, err := applications.ParseApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("failed to delete Managed Application %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed to wait for deleting Managed Application (Managed Application Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("failed to delete Managed Application %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandManagedApplicationPlan(input []interface{}) *managedapplications.Plan {
+func expandManagedApplicationPlan(input []interface{}) *applications.Plan {
 	if len(input) == 0 {
 		return nil
 	}
 	plan := input[0].(map[string]interface{})
 
-	return &managedapplications.Plan{
-		Name:          utils.String(plan["name"].(string)),
-		Product:       utils.String(plan["product"].(string)),
-		Publisher:     utils.String(plan["publisher"].(string)),
-		Version:       utils.String(plan["version"].(string)),
-		PromotionCode: utils.String(plan["promotion_code"].(string)),
+	return &applications.Plan{
+		Name:          plan["name"].(string),
+		Product:       plan["product"].(string),
+		Publisher:     plan["publisher"].(string),
+		Version:       plan["version"].(string),
+		PromotionCode: pointer.To(plan["promotion_code"].(string)),
 	}
 }
 
@@ -322,39 +321,18 @@ func expandManagedApplicationParameters(d *pluginsdk.ResourceData) (*map[string]
 	return &newParams, nil
 }
 
-func flattenManagedApplicationPlan(input *managedapplications.Plan) []interface{} {
+func flattenManagedApplicationPlan(input *applications.Plan) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
-	product := ""
-	if input.Product != nil {
-		product = *input.Product
-	}
-	publisher := ""
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
-	version := ""
-	if input.Version != nil {
-		version = *input.Version
-	}
-	promotionCode := ""
-	if input.PromotionCode != nil {
-		promotionCode = *input.PromotionCode
-	}
-
 	results = append(results, map[string]interface{}{
-		"name":           name,
-		"product":        product,
-		"publisher":      publisher,
-		"version":        version,
-		"promotion_code": promotionCode,
+		"name":           input.Name,
+		"product":        input.Product,
+		"publisher":      input.Publisher,
+		"version":        input.Version,
+		"promotion_code": pointer.From(input.PromotionCode),
 	})
 
 	return results

@@ -363,7 +363,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Logz = logz.NewClient(o)
 	client.MachineLearning = machinelearning.NewClient(o)
 	client.Maintenance = maintenance.NewClient(o)
-	client.ManagedApplication = managedapplication.NewClient(o)
+	if client.ManagedApplication, err = managedapplication.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Managed Applications: %+v", err)
+	}
 	client.ManagementGroups = managementgroup.NewClient(o)
 	if client.Maps, err = maps.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Maps: %+v", err)
