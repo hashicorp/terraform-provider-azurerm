@@ -292,7 +292,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Automation = automation.NewClient(o)
 	client.AzureStackHCI = azureStackHCI.NewClient(o)
 	client.Batch = batch.NewClient(o)
-	client.Blueprints = blueprints.NewClient(o)
+	if client.Blueprints, err = blueprints.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for BluePrints: %+v", err)
+	}
 	client.Bot = bot.NewClient(o)
 	client.Cdn = cdn.NewClient(o)
 	client.Cognitive = cognitiveServices.NewClient(o)
