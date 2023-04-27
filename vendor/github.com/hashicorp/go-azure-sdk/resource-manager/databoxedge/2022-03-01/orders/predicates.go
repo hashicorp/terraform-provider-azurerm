@@ -5,6 +5,7 @@ package orders
 
 type OrderOperationPredicate struct {
 	Id   *string
+	Kind *string
 	Name *string
 	Type *string
 }
@@ -12,6 +13,10 @@ type OrderOperationPredicate struct {
 func (p OrderOperationPredicate) Matches(input Order) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+		return false
+	}
+
+	if p.Kind != nil && (input.Kind == nil && *p.Kind != *input.Kind) {
 		return false
 	}
 

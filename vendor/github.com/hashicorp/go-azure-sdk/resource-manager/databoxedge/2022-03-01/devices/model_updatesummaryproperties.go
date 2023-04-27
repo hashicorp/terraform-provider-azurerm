@@ -18,15 +18,23 @@ type UpdateSummaryProperties struct {
 	InProgressInstallJobId               *string                `json:"inProgressInstallJobId,omitempty"`
 	InProgressInstallJobStartedDateTime  *string                `json:"inProgressInstallJobStartedDateTime,omitempty"`
 	LastCompletedDownloadJobDateTime     *string                `json:"lastCompletedDownloadJobDateTime,omitempty"`
+	LastCompletedDownloadJobId           *string                `json:"lastCompletedDownloadJobId,omitempty"`
 	LastCompletedInstallJobDateTime      *string                `json:"lastCompletedInstallJobDateTime,omitempty"`
+	LastCompletedInstallJobId            *string                `json:"lastCompletedInstallJobId,omitempty"`
 	LastCompletedScanJobDateTime         *string                `json:"lastCompletedScanJobDateTime,omitempty"`
+	LastDownloadJobStatus                *JobStatus             `json:"lastDownloadJobStatus,omitempty"`
+	LastInstallJobStatus                 *JobStatus             `json:"lastInstallJobStatus,omitempty"`
+	LastSuccessfulInstallJobDateTime     *string                `json:"lastSuccessfulInstallJobDateTime,omitempty"`
+	LastSuccessfulScanJobTime            *string                `json:"lastSuccessfulScanJobTime,omitempty"`
 	OngoingUpdateOperation               *UpdateOperation       `json:"ongoingUpdateOperation,omitempty"`
 	RebootBehavior                       *InstallRebootBehavior `json:"rebootBehavior,omitempty"`
 	TotalNumberOfUpdatesAvailable        *int64                 `json:"totalNumberOfUpdatesAvailable,omitempty"`
 	TotalNumberOfUpdatesPendingDownload  *int64                 `json:"totalNumberOfUpdatesPendingDownload,omitempty"`
 	TotalNumberOfUpdatesPendingInstall   *int64                 `json:"totalNumberOfUpdatesPendingInstall,omitempty"`
+	TotalTimeInMinutes                   *int64                 `json:"totalTimeInMinutes,omitempty"`
 	TotalUpdateSizeInBytes               *float64               `json:"totalUpdateSizeInBytes,omitempty"`
 	UpdateTitles                         *[]string              `json:"updateTitles,omitempty"`
+	Updates                              *[]UpdateDetails       `json:"updates,omitempty"`
 }
 
 func (o *UpdateSummaryProperties) GetDeviceLastScannedDateTimeAsTime() (*time.Time, error) {
@@ -99,4 +107,28 @@ func (o *UpdateSummaryProperties) GetLastCompletedScanJobDateTimeAsTime() (*time
 func (o *UpdateSummaryProperties) SetLastCompletedScanJobDateTimeAsTime(input time.Time) {
 	formatted := input.Format("2006-01-02T15:04:05Z07:00")
 	o.LastCompletedScanJobDateTime = &formatted
+}
+
+func (o *UpdateSummaryProperties) GetLastSuccessfulInstallJobDateTimeAsTime() (*time.Time, error) {
+	if o.LastSuccessfulInstallJobDateTime == nil {
+		return nil, nil
+	}
+	return dates.ParseAsFormat(o.LastSuccessfulInstallJobDateTime, "2006-01-02T15:04:05Z07:00")
+}
+
+func (o *UpdateSummaryProperties) SetLastSuccessfulInstallJobDateTimeAsTime(input time.Time) {
+	formatted := input.Format("2006-01-02T15:04:05Z07:00")
+	o.LastSuccessfulInstallJobDateTime = &formatted
+}
+
+func (o *UpdateSummaryProperties) GetLastSuccessfulScanJobTimeAsTime() (*time.Time, error) {
+	if o.LastSuccessfulScanJobTime == nil {
+		return nil, nil
+	}
+	return dates.ParseAsFormat(o.LastSuccessfulScanJobTime, "2006-01-02T15:04:05Z07:00")
+}
+
+func (o *UpdateSummaryProperties) SetLastSuccessfulScanJobTimeAsTime(input time.Time) {
+	formatted := input.Format("2006-01-02T15:04:05Z07:00")
+	o.LastSuccessfulScanJobTime = &formatted
 }

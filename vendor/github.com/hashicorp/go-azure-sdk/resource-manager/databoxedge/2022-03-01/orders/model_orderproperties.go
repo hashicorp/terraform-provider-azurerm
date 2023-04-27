@@ -8,6 +8,7 @@ type OrderProperties struct {
 	CurrentStatus        *OrderStatus    `json:"currentStatus,omitempty"`
 	DeliveryTrackingInfo *[]TrackingInfo `json:"deliveryTrackingInfo,omitempty"`
 	OrderHistory         *[]OrderStatus  `json:"orderHistory,omitempty"`
+	OrderId              *string         `json:"orderId,omitempty"`
 	ReturnTrackingInfo   *[]TrackingInfo `json:"returnTrackingInfo,omitempty"`
 	SerialNumber         *string         `json:"serialNumber,omitempty"`
 	ShipmentType         *ShipmentType   `json:"shipmentType,omitempty"`
