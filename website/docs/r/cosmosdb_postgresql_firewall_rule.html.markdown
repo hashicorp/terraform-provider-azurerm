@@ -19,15 +19,20 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_cosmosdb_postgresql_cluster" "example" {
-  name                = "example-postgresqlhscsg"
-  resource_group_name = azurerm_resource_group.example.name
+  name                            = "examplecluster"
+  resource_group_name             = azurerm_resource_group.example.name
+  location                        = azurerm_resource_group.example.location
+  administrator_login_password    = "H@Sh1CoR3!"
+  coordinator_storage_quota_in_mb = 131072
+  coordinator_vcore_count         = 2
+  node_count                      = 0
 }
 
 resource "azurerm_cosmosdb_postgresql_firewall_rule" "example" {
-  name             = "example-postgresqlhscfwr"
-  server_group_id  = azurerm_cosmosdb_postgresql_cluster.example.id
-  end_ip_address   = "10.0.17.62"
-  start_ip_address = "10.0.17.64"
+  name             = "example-pshscfwr"
+  cluster_id       = azurerm_cosmosdb_postgresql_cluster.example.id
+  start_ip_address = "10.0.17.62"
+  end_ip_address   = "10.0.17.64"
 }
 ```
 
