@@ -3,6 +3,7 @@ package digitaltwins
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/endpoints"
