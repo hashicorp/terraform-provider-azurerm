@@ -14,7 +14,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* `security`: updating to API Version `2023-01-01` [GH-21531]
+* dependencies: updating to `v0.20230427.1112058` of `github.com/hashicorp/go-azure-sdk` [GH-21583]
+*  `security`: updating to API Version `2023-01-01` [GH-21531]
 * Data Source: `azurerm_virtual_network_gateway` - add support for the field `private_ip_address` [GH-21432]
 * `azurerm_attestation_provider` - adding support for the field `open_enclave_policy_base64`, `sgx_enclave_policy_base64` and `tpm_policy_base64` [GH-21524]
 * `azurerm_attestation_provider` - adding support for the field `sgx_enclave_policy_base64` [GH-21524]
