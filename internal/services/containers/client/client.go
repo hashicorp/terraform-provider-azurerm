@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -25,6 +26,7 @@ type Client struct {
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
 	KubernetesClustersClient                    *managedclusters.ManagedClustersClient
 	KubernetesExtensionsClient                  *extensions.ExtensionsClient
+	KubernetesFluxConfigurationClient           *fluxconfiguration.FluxConfigurationClient
 	MaintenanceConfigurationsClient             *maintenanceconfigurations.MaintenanceConfigurationsClient
 	ServicesClient                              *containerservices.ContainerServicesClient
 	SnapshotClient                              *snapshots.SnapshotsClient
@@ -59,6 +61,9 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(kubernetesExtensionsClient.Client, o.Authorizers.ResourceManager)
 
+	fluxConfigurationClient := fluxconfiguration.NewFluxConfigurationClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&fluxConfigurationClient.Client, o.ResourceManagerAuthorizer)
+
 	agentPoolsClient := agentpools.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&agentPoolsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -78,6 +83,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
 		KubernetesClustersClient:                    &kubernetesClustersClient,
 		KubernetesExtensionsClient:                  kubernetesExtensionsClient,
+		KubernetesFluxConfigurationClient:           &fluxConfigurationClient,
 		MaintenanceConfigurationsClient:             &maintenanceConfigurationsClient,
 		ServicesClient:                              &servicesClient,
 		SnapshotClient:                              &snapshotClient,

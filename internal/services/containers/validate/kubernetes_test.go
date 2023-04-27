@@ -161,3 +161,57 @@ func TestKubernetesDNSPrefix(t *testing.T) {
 		})
 	}
 }
+
+func TestKubernetesGitRepositoryUrl(t *testing.T) {
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+
+		{
+			// empty
+			Input: "",
+			Valid: false,
+		},
+
+		{
+			// start with https://
+			Input: "https://github.com/Azure/arc-k8s-demo",
+			Valid: true,
+		},
+
+		{
+			// start with http://
+			Input: "http://github.com/Azure/arc-k8s-demo",
+			Valid: true,
+		},
+
+		{
+			// start with git@
+			Input: "git@github.com:Azure/arc-k8s-demo.git",
+			Valid: true,
+		},
+
+		{
+			// start with ssh://
+			Input: "ssh://git@github.com:Azure/arc-k8s-demo.git",
+			Valid: true,
+		},
+
+		{
+			// random string
+			Input: "randomstring",
+			Valid: false,
+		},
+	}
+	validationFunction := KubernetesGitRepositoryUrl()
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := validationFunction(tc.Input, "test")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t", tc.Valid, valid)
+		}
+	}
+}

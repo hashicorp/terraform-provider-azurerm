@@ -372,6 +372,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/managedhsms
 github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/vaults
 github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions
+github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/attacheddatabaseconfigurations
 github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/clusterprincipalassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/clusters
