@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionruleassociations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-04-03/azuremonitorworkspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -50,6 +51,7 @@ type Client struct {
 	PrivateLinkScopedResourcesClient     *privatelinkscopedresources.PrivateLinkScopedResourcesClient
 	ScheduledQueryRulesClient            *scheduledqueryrules2018.ScheduledQueryRulesClient
 	ScheduledQueryRulesV2Client          *scheduledqueryrules.ScheduledQueryRulesClient
+	WorkspacesClient                     *azuremonitorworkspaces.AzureMonitorWorkspacesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -113,6 +115,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	ScheduledQueryRulesV2Client := scheduledqueryrules.NewScheduledQueryRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&ScheduledQueryRulesV2Client.Client, o.ResourceManagerAuthorizer)
 
+	WorkspacesClient := azuremonitorworkspaces.NewAzureMonitorWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AADDiagnosticSettingsClient:          &AADDiagnosticSettingsClient,
 		AutoscaleSettingsClient:              &AutoscaleSettingsClient,
@@ -134,5 +139,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		PrivateLinkScopedResourcesClient:     &PrivateLinkScopedResourcesClient,
 		ScheduledQueryRulesClient:            &ScheduledQueryRulesClient,
 		ScheduledQueryRulesV2Client:          &ScheduledQueryRulesV2Client,
+		WorkspacesClient:                     &WorkspacesClient,
 	}
 }
