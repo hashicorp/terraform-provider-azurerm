@@ -280,23 +280,22 @@ func resourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			d.Set("hyper_v_generation", hyperVGeneration)
 
-			sourceVirtualMachineId := ""
+			// either source VM or storage profile can be specified, but not both
 			if props.SourceVirtualMachine != nil && props.SourceVirtualMachine.Id != nil {
-				sourceVirtualMachineId = *props.SourceVirtualMachine.Id
+				d.Set("source_virtual_machine_id", pointer.From(props.SourceVirtualMachine.Id))
+			} else {
+				if err := d.Set("os_disk", flattenImageOSDisk(props.StorageProfile)); err != nil {
+					return fmt.Errorf("setting `os_disk`: %+v", err)
+				}
+				if err := d.Set("data_disk", flattenImageDataDisks(props.StorageProfile)); err != nil {
+					return fmt.Errorf("setting `data_disk`: %+v", err)
+				}
+				zoneResilient := false
+				if props.StorageProfile != nil && props.StorageProfile.ZoneResilient != nil {
+					zoneResilient = *props.StorageProfile.ZoneResilient
+				}
+				d.Set("zone_resilient", zoneResilient)
 			}
-			d.Set("source_virtual_machine_id", sourceVirtualMachineId)
-
-			if err := d.Set("os_disk", flattenImageOSDisk(props.StorageProfile)); err != nil {
-				return fmt.Errorf("setting `os_disk`: %+v", err)
-			}
-			if err := d.Set("data_disk", flattenImageDataDisks(props.StorageProfile)); err != nil {
-				return fmt.Errorf("setting `data_disk`: %+v", err)
-			}
-			zoneResilient := false
-			if props.StorageProfile != nil && props.StorageProfile.ZoneResilient != nil {
-				zoneResilient = *props.StorageProfile.ZoneResilient
-			}
-			d.Set("zone_resilient", zoneResilient)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
