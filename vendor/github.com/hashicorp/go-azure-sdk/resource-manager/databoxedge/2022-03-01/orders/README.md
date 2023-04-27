@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/orders` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/orders` Documentation
 
-The `orders` SDK allows for interaction with the Azure Resource Manager Service `databoxedge` (API Version `2020-12-01`).
+The `orders` SDK allows for interaction with the Azure Resource Manager Service `databoxedge` (API Version `2022-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/orders"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/orders"
 ```
 
 

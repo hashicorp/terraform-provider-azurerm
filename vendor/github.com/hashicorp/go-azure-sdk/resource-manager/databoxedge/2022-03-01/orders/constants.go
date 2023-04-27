@@ -14,7 +14,7 @@ type OrderState string
 const (
 	OrderStateArriving               OrderState = "Arriving"
 	OrderStateAwaitingDrop           OrderState = "AwaitingDrop"
-	OrderStateAwaitingFulfilment     OrderState = "AwaitingFulfilment"
+	OrderStateAwaitingFulfillment    OrderState = "AwaitingFulfillment"
 	OrderStateAwaitingPickup         OrderState = "AwaitingPickup"
 	OrderStateAwaitingPreparation    OrderState = "AwaitingPreparation"
 	OrderStateAwaitingReturnShipment OrderState = "AwaitingReturnShipment"
@@ -35,7 +35,7 @@ func PossibleValuesForOrderState() []string {
 	return []string{
 		string(OrderStateArriving),
 		string(OrderStateAwaitingDrop),
-		string(OrderStateAwaitingFulfilment),
+		string(OrderStateAwaitingFulfillment),
 		string(OrderStateAwaitingPickup),
 		string(OrderStateAwaitingPreparation),
 		string(OrderStateAwaitingReturnShipment),
@@ -70,7 +70,7 @@ func parseOrderState(input string) (*OrderState, error) {
 	vals := map[string]OrderState{
 		"arriving":               OrderStateArriving,
 		"awaitingdrop":           OrderStateAwaitingDrop,
-		"awaitingfulfilment":     OrderStateAwaitingFulfilment,
+		"awaitingfulfillment":    OrderStateAwaitingFulfillment,
 		"awaitingpickup":         OrderStateAwaitingPickup,
 		"awaitingpreparation":    OrderStateAwaitingPreparation,
 		"awaitingreturnshipment": OrderStateAwaitingReturnShipment,

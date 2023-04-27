@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/devices` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices` Documentation
 
-The `devices` SDK allows for interaction with the Azure Resource Manager Service `databoxedge` (API Version `2020-12-01`).
+The `devices` SDK allows for interaction with the Azure Resource Manager Service `databoxedge` (API Version `2022-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/devices"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
 ```
 
 
@@ -31,8 +31,12 @@ payload := devices.DataBoxEdgeDevice{
 }
 
 
-if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+read, err := client.CreateOrUpdate(ctx, id, payload)
+if err != nil {
 	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
 }
 ```
 

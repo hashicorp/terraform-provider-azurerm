@@ -50,6 +50,50 @@ func parseAuthenticationType(input string) (*AuthenticationType, error) {
 	return &out, nil
 }
 
+type ClusterWitnessType string
+
+const (
+	ClusterWitnessTypeCloud     ClusterWitnessType = "Cloud"
+	ClusterWitnessTypeFileShare ClusterWitnessType = "FileShare"
+	ClusterWitnessTypeNone      ClusterWitnessType = "None"
+)
+
+func PossibleValuesForClusterWitnessType() []string {
+	return []string{
+		string(ClusterWitnessTypeCloud),
+		string(ClusterWitnessTypeFileShare),
+		string(ClusterWitnessTypeNone),
+	}
+}
+
+func (s *ClusterWitnessType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterWitnessType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseClusterWitnessType(input string) (*ClusterWitnessType, error) {
+	vals := map[string]ClusterWitnessType{
+		"cloud":     ClusterWitnessTypeCloud,
+		"fileshare": ClusterWitnessTypeFileShare,
+		"none":      ClusterWitnessTypeNone,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ClusterWitnessType(input)
+	return &out, nil
+}
+
 type DataBoxEdgeDeviceKind string
 
 const (
@@ -150,6 +194,47 @@ func parseDataBoxEdgeDeviceStatus(input string) (*DataBoxEdgeDeviceStatus, error
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := DataBoxEdgeDeviceStatus(input)
+	return &out, nil
+}
+
+type DataResidencyType string
+
+const (
+	DataResidencyTypeGeoZoneReplication DataResidencyType = "GeoZoneReplication"
+	DataResidencyTypeZoneReplication    DataResidencyType = "ZoneReplication"
+)
+
+func PossibleValuesForDataResidencyType() []string {
+	return []string{
+		string(DataResidencyTypeGeoZoneReplication),
+		string(DataResidencyTypeZoneReplication),
+	}
+}
+
+func (s *DataResidencyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDataResidencyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseDataResidencyType(input string) (*DataResidencyType, error) {
+	vals := map[string]DataResidencyType{
+		"geozonereplication": DataResidencyTypeGeoZoneReplication,
+		"zonereplication":    DataResidencyTypeZoneReplication,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DataResidencyType(input)
 	return &out, nil
 }
 
@@ -279,10 +364,111 @@ func parseInstallRebootBehavior(input string) (*InstallRebootBehavior, error) {
 	return &out, nil
 }
 
+type InstallationImpact string
+
+const (
+	InstallationImpactDeviceRebooted          InstallationImpact = "DeviceRebooted"
+	InstallationImpactKubernetesWorkloadsDown InstallationImpact = "KubernetesWorkloadsDown"
+	InstallationImpactNone                    InstallationImpact = "None"
+)
+
+func PossibleValuesForInstallationImpact() []string {
+	return []string{
+		string(InstallationImpactDeviceRebooted),
+		string(InstallationImpactKubernetesWorkloadsDown),
+		string(InstallationImpactNone),
+	}
+}
+
+func (s *InstallationImpact) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseInstallationImpact(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseInstallationImpact(input string) (*InstallationImpact, error) {
+	vals := map[string]InstallationImpact{
+		"devicerebooted":          InstallationImpactDeviceRebooted,
+		"kubernetesworkloadsdown": InstallationImpactKubernetesWorkloadsDown,
+		"none":                    InstallationImpactNone,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := InstallationImpact(input)
+	return &out, nil
+}
+
+type JobStatus string
+
+const (
+	JobStatusCanceled  JobStatus = "Canceled"
+	JobStatusFailed    JobStatus = "Failed"
+	JobStatusInvalid   JobStatus = "Invalid"
+	JobStatusPaused    JobStatus = "Paused"
+	JobStatusRunning   JobStatus = "Running"
+	JobStatusScheduled JobStatus = "Scheduled"
+	JobStatusSucceeded JobStatus = "Succeeded"
+)
+
+func PossibleValuesForJobStatus() []string {
+	return []string{
+		string(JobStatusCanceled),
+		string(JobStatusFailed),
+		string(JobStatusInvalid),
+		string(JobStatusPaused),
+		string(JobStatusRunning),
+		string(JobStatusScheduled),
+		string(JobStatusSucceeded),
+	}
+}
+
+func (s *JobStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseJobStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseJobStatus(input string) (*JobStatus, error) {
+	vals := map[string]JobStatus{
+		"canceled":  JobStatusCanceled,
+		"failed":    JobStatusFailed,
+		"invalid":   JobStatusInvalid,
+		"paused":    JobStatusPaused,
+		"running":   JobStatusRunning,
+		"scheduled": JobStatusScheduled,
+		"succeeded": JobStatusSucceeded,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := JobStatus(input)
+	return &out, nil
+}
+
 type KeyVaultSyncStatus string
 
 const (
 	KeyVaultSyncStatusKeyVaultNotConfigured KeyVaultSyncStatus = "KeyVaultNotConfigured"
+	KeyVaultSyncStatusKeyVaultNotSynced     KeyVaultSyncStatus = "KeyVaultNotSynced"
 	KeyVaultSyncStatusKeyVaultSyncFailed    KeyVaultSyncStatus = "KeyVaultSyncFailed"
 	KeyVaultSyncStatusKeyVaultSyncPending   KeyVaultSyncStatus = "KeyVaultSyncPending"
 	KeyVaultSyncStatusKeyVaultSynced        KeyVaultSyncStatus = "KeyVaultSynced"
@@ -292,6 +478,7 @@ const (
 func PossibleValuesForKeyVaultSyncStatus() []string {
 	return []string{
 		string(KeyVaultSyncStatusKeyVaultNotConfigured),
+		string(KeyVaultSyncStatusKeyVaultNotSynced),
 		string(KeyVaultSyncStatusKeyVaultSyncFailed),
 		string(KeyVaultSyncStatusKeyVaultSyncPending),
 		string(KeyVaultSyncStatusKeyVaultSynced),
@@ -315,6 +502,7 @@ func (s *KeyVaultSyncStatus) UnmarshalJSON(bytes []byte) error {
 func parseKeyVaultSyncStatus(input string) (*KeyVaultSyncStatus, error) {
 	vals := map[string]KeyVaultSyncStatus{
 		"keyvaultnotconfigured": KeyVaultSyncStatusKeyVaultNotConfigured,
+		"keyvaultnotsynced":     KeyVaultSyncStatusKeyVaultNotSynced,
 		"keyvaultsyncfailed":    KeyVaultSyncStatusKeyVaultSyncFailed,
 		"keyvaultsyncpending":   KeyVaultSyncStatusKeyVaultSyncPending,
 		"keyvaultsynced":        KeyVaultSyncStatusKeyVaultSynced,
@@ -643,39 +831,55 @@ func parseRoleTypes(input string) (*RoleTypes, error) {
 type SkuName string
 
 const (
-	SkuNameEdge                 SkuName = "Edge"
-	SkuNameEdgeMRMini           SkuName = "EdgeMR_Mini"
-	SkuNameEdgePBase            SkuName = "EdgeP_Base"
-	SkuNameEdgePHigh            SkuName = "EdgeP_High"
-	SkuNameEdgePRBase           SkuName = "EdgePR_Base"
-	SkuNameEdgePRBaseUPS        SkuName = "EdgePR_Base_UPS"
-	SkuNameGPU                  SkuName = "GPU"
-	SkuNameGateway              SkuName = "Gateway"
-	SkuNameRCALarge             SkuName = "RCA_Large"
-	SkuNameRCASmall             SkuName = "RCA_Small"
-	SkuNameRDC                  SkuName = "RDC"
-	SkuNameTCALarge             SkuName = "TCA_Large"
-	SkuNameTCASmall             SkuName = "TCA_Small"
-	SkuNameTDC                  SkuName = "TDC"
-	SkuNameTEAFourNodeHeater    SkuName = "TEA_4Node_Heater"
-	SkuNameTEAFourNodeUPSHeater SkuName = "TEA_4Node_UPS_Heater"
-	SkuNameTEAOneNode           SkuName = "TEA_1Node"
-	SkuNameTEAOneNodeHeater     SkuName = "TEA_1Node_Heater"
-	SkuNameTEAOneNodeUPS        SkuName = "TEA_1Node_UPS"
-	SkuNameTEAOneNodeUPSHeater  SkuName = "TEA_1Node_UPS_Heater"
-	SkuNameTMA                  SkuName = "TMA"
+	SkuNameEPTwoOneTwoEightGPUOneMxOneW   SkuName = "EP2_128_GPU1_Mx1_W"
+	SkuNameEPTwoOneTwoEightOneTFourMxOneW SkuName = "EP2_128_1T4_Mx1_W"
+	SkuNameEPTwoSixFourMxOneW             SkuName = "EP2_64_Mx1_W"
+	SkuNameEPTwoSixFourOneVPUW            SkuName = "EP2_64_1VPU_W"
+	SkuNameEPTwoTwoFiveSixGPUTwoMxOne     SkuName = "EP2_256_GPU2_Mx1"
+	SkuNameEPTwoTwoFiveSixTwoTFourW       SkuName = "EP2_256_2T4_W"
+	SkuNameEdge                           SkuName = "Edge"
+	SkuNameEdgeMRMini                     SkuName = "EdgeMR_Mini"
+	SkuNameEdgeMRTCP                      SkuName = "EdgeMR_TCP"
+	SkuNameEdgePBase                      SkuName = "EdgeP_Base"
+	SkuNameEdgePHigh                      SkuName = "EdgeP_High"
+	SkuNameEdgePRBase                     SkuName = "EdgePR_Base"
+	SkuNameEdgePRBaseUPS                  SkuName = "EdgePR_Base_UPS"
+	SkuNameGPU                            SkuName = "GPU"
+	SkuNameGateway                        SkuName = "Gateway"
+	SkuNameManagement                     SkuName = "Management"
+	SkuNameRCALarge                       SkuName = "RCA_Large"
+	SkuNameRCASmall                       SkuName = "RCA_Small"
+	SkuNameRDC                            SkuName = "RDC"
+	SkuNameTCALarge                       SkuName = "TCA_Large"
+	SkuNameTCASmall                       SkuName = "TCA_Small"
+	SkuNameTDC                            SkuName = "TDC"
+	SkuNameTEAFourNodeHeater              SkuName = "TEA_4Node_Heater"
+	SkuNameTEAFourNodeUPSHeater           SkuName = "TEA_4Node_UPS_Heater"
+	SkuNameTEAOneNode                     SkuName = "TEA_1Node"
+	SkuNameTEAOneNodeHeater               SkuName = "TEA_1Node_Heater"
+	SkuNameTEAOneNodeUPS                  SkuName = "TEA_1Node_UPS"
+	SkuNameTEAOneNodeUPSHeater            SkuName = "TEA_1Node_UPS_Heater"
+	SkuNameTMA                            SkuName = "TMA"
 )
 
 func PossibleValuesForSkuName() []string {
 	return []string{
+		string(SkuNameEPTwoOneTwoEightGPUOneMxOneW),
+		string(SkuNameEPTwoOneTwoEightOneTFourMxOneW),
+		string(SkuNameEPTwoSixFourMxOneW),
+		string(SkuNameEPTwoSixFourOneVPUW),
+		string(SkuNameEPTwoTwoFiveSixGPUTwoMxOne),
+		string(SkuNameEPTwoTwoFiveSixTwoTFourW),
 		string(SkuNameEdge),
 		string(SkuNameEdgeMRMini),
+		string(SkuNameEdgeMRTCP),
 		string(SkuNameEdgePBase),
 		string(SkuNameEdgePHigh),
 		string(SkuNameEdgePRBase),
 		string(SkuNameEdgePRBaseUPS),
 		string(SkuNameGPU),
 		string(SkuNameGateway),
+		string(SkuNameManagement),
 		string(SkuNameRCALarge),
 		string(SkuNameRCASmall),
 		string(SkuNameRDC),
@@ -707,14 +911,22 @@ func (s *SkuName) UnmarshalJSON(bytes []byte) error {
 
 func parseSkuName(input string) (*SkuName, error) {
 	vals := map[string]SkuName{
+		"ep2_128_gpu1_mx1_w":   SkuNameEPTwoOneTwoEightGPUOneMxOneW,
+		"ep2_128_1t4_mx1_w":    SkuNameEPTwoOneTwoEightOneTFourMxOneW,
+		"ep2_64_mx1_w":         SkuNameEPTwoSixFourMxOneW,
+		"ep2_64_1vpu_w":        SkuNameEPTwoSixFourOneVPUW,
+		"ep2_256_gpu2_mx1":     SkuNameEPTwoTwoFiveSixGPUTwoMxOne,
+		"ep2_256_2t4_w":        SkuNameEPTwoTwoFiveSixTwoTFourW,
 		"edge":                 SkuNameEdge,
 		"edgemr_mini":          SkuNameEdgeMRMini,
+		"edgemr_tcp":           SkuNameEdgeMRTCP,
 		"edgep_base":           SkuNameEdgePBase,
 		"edgep_high":           SkuNameEdgePHigh,
 		"edgepr_base":          SkuNameEdgePRBase,
 		"edgepr_base_ups":      SkuNameEdgePRBaseUPS,
 		"gpu":                  SkuNameGPU,
 		"gateway":              SkuNameGateway,
+		"management":           SkuNameManagement,
 		"rca_large":            SkuNameRCALarge,
 		"rca_small":            SkuNameRCASmall,
 		"rdc":                  SkuNameRDC,
@@ -870,5 +1082,99 @@ func parseUpdateOperation(input string) (*UpdateOperation, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := UpdateOperation(input)
+	return &out, nil
+}
+
+type UpdateStatus string
+
+const (
+	UpdateStatusDownloadCompleted UpdateStatus = "DownloadCompleted"
+	UpdateStatusDownloadPending   UpdateStatus = "DownloadPending"
+	UpdateStatusDownloadStarted   UpdateStatus = "DownloadStarted"
+	UpdateStatusInstallCompleted  UpdateStatus = "InstallCompleted"
+	UpdateStatusInstallStarted    UpdateStatus = "InstallStarted"
+)
+
+func PossibleValuesForUpdateStatus() []string {
+	return []string{
+		string(UpdateStatusDownloadCompleted),
+		string(UpdateStatusDownloadPending),
+		string(UpdateStatusDownloadStarted),
+		string(UpdateStatusInstallCompleted),
+		string(UpdateStatusInstallStarted),
+	}
+}
+
+func (s *UpdateStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUpdateStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseUpdateStatus(input string) (*UpdateStatus, error) {
+	vals := map[string]UpdateStatus{
+		"downloadcompleted": UpdateStatusDownloadCompleted,
+		"downloadpending":   UpdateStatusDownloadPending,
+		"downloadstarted":   UpdateStatusDownloadStarted,
+		"installcompleted":  UpdateStatusInstallCompleted,
+		"installstarted":    UpdateStatusInstallStarted,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := UpdateStatus(input)
+	return &out, nil
+}
+
+type UpdateType string
+
+const (
+	UpdateTypeFirmware   UpdateType = "Firmware"
+	UpdateTypeKubernetes UpdateType = "Kubernetes"
+	UpdateTypeSoftware   UpdateType = "Software"
+)
+
+func PossibleValuesForUpdateType() []string {
+	return []string{
+		string(UpdateTypeFirmware),
+		string(UpdateTypeKubernetes),
+		string(UpdateTypeSoftware),
+	}
+}
+
+func (s *UpdateType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUpdateType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseUpdateType(input string) (*UpdateType, error) {
+	vals := map[string]UpdateType{
+		"firmware":   UpdateTypeFirmware,
+		"kubernetes": UpdateTypeKubernetes,
+		"software":   UpdateTypeSoftware,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := UpdateType(input)
 	return &out, nil
 }
