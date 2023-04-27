@@ -76,6 +76,11 @@ resource "azurerm_storage_account" "example" {
   identity {
     type = "SystemAssigned"
   }
+  
+  lifecycle {
+    ignore_changes = [
+      customer_managed_key
+    ]
 }
 
 resource "azurerm_storage_account_customer_managed_key" "example" {
