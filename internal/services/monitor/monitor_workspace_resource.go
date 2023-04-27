@@ -156,18 +156,15 @@ func (r WorkspaceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
-			}
-
 			state := WorkspaceResourceModel{
 				Name:              id.AccountName,
 				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
 			}
 
-			state.Tags = pointer.From(model.Tags)
+			if model := resp.Model; model != nil {
+				state.Tags = pointer.From(model.Tags)
+				state.Location = location.Normalize(model.Location)
+			}
 
 			return metadata.Encode(&state)
 		},
