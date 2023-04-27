@@ -78,7 +78,7 @@ func (s *AzureBlobDatastore) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Credentials' for 'AzureBlobDatastore': %+v", err)
 		}
-		s.Credentials = impl
+		s.Credentials = &impl
 	}
 	return nil
 }

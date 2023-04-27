@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -124,18 +125,19 @@ func (r OutputFunctionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			var dataSource outputs.OutputDataSource = outputs.AzureFunctionOutputDataSource{
+				Properties: &outputs.AzureFunctionOutputDataSourceProperties{
+					FunctionAppName: utils.String(model.FunctionApp),
+					FunctionName:    utils.String(model.FunctionName),
+					ApiKey:          utils.String(model.ApiKey),
+					MaxBatchSize:    utils.Float(float64(model.BatchMaxInBytes)),
+					MaxBatchCount:   utils.Float(float64(model.BatchMaxCount)),
+				},
+			}
 			props := outputs.Output{
 				Name: utils.String(model.Name),
 				Properties: &outputs.OutputProperties{
-					Datasource: &outputs.AzureFunctionOutputDataSource{
-						Properties: &outputs.AzureFunctionOutputDataSourceProperties{
-							FunctionAppName: utils.String(model.FunctionApp),
-							FunctionName:    utils.String(model.FunctionName),
-							ApiKey:          utils.String(model.ApiKey),
-							MaxBatchSize:    utils.Float(float64(model.BatchMaxInBytes)),
-							MaxBatchCount:   utils.Float(float64(model.BatchMaxCount)),
-						},
-					},
+					Datasource: pointer.To(dataSource),
 				},
 			}
 
@@ -169,54 +171,45 @@ func (r OutputFunctionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
+			state := OutputFunctionResourceModel{
+				Name:               id.OutputName,
+				ResourceGroup:      id.ResourceGroupName,
+				StreamAnalyticsJob: id.StreamingJobName,
+				ApiKey:             metadata.ResourceData.Get("api_key").(string),
+			}
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					output, ok := props.Datasource.(outputs.AzureFunctionOutputDataSource)
-					if !ok {
-						return fmt.Errorf("converting %s to a Function Output", *id)
-					}
+					if ds := props.Datasource; ds != nil {
+						if output, ok := (*ds).(outputs.AzureFunctionOutputDataSource); ok && output.Properties != nil {
+							functionApp := ""
+							if v := output.Properties.FunctionAppName; v != nil {
+								functionApp = *v
+							}
+							state.FunctionApp = functionApp
 
-					if output.Properties != nil {
-						if output.Properties.FunctionAppName == nil || output.Properties.FunctionName == nil || output.Properties.MaxBatchCount == nil || output.Properties.MaxBatchSize == nil {
-							return nil
+							functionName := ""
+							if v := output.Properties.FunctionName; v != nil {
+								functionName = *v
+							}
+							state.FunctionName = functionName
+
+							batchMaxInBytes := 0
+							if v := output.Properties.MaxBatchSize; v != nil {
+								batchMaxInBytes = int(*v)
+							}
+							state.BatchMaxInBytes = batchMaxInBytes
+
+							batchMaxCount := 0
+							if v := output.Properties.MaxBatchCount; v != nil {
+								batchMaxCount = int(*v)
+							}
+							state.BatchMaxCount = batchMaxCount
 						}
-
-						state := OutputFunctionResourceModel{
-							Name:               id.OutputName,
-							ResourceGroup:      id.ResourceGroupName,
-							StreamAnalyticsJob: id.StreamingJobName,
-							ApiKey:             metadata.ResourceData.Get("api_key").(string),
-						}
-
-						functionApp := ""
-						if v := output.Properties.FunctionAppName; v != nil {
-							functionApp = *v
-						}
-						state.FunctionApp = functionApp
-
-						functionName := ""
-						if v := output.Properties.FunctionName; v != nil {
-							functionName = *v
-						}
-						state.FunctionName = functionName
-
-						batchMaxInBytes := 0
-						if v := output.Properties.MaxBatchSize; v != nil {
-							batchMaxInBytes = int(*v)
-						}
-						state.BatchMaxInBytes = batchMaxInBytes
-
-						batchMaxCount := 0
-						if v := output.Properties.MaxBatchCount; v != nil {
-							batchMaxCount = int(*v)
-						}
-						state.BatchMaxCount = batchMaxCount
-
-						return metadata.Encode(&state)
 					}
 				}
 			}
-			return nil
+
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -236,18 +229,19 @@ func (r OutputFunctionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
+			var dataSource outputs.OutputDataSource = outputs.AzureFunctionOutputDataSource{
+				Properties: &outputs.AzureFunctionOutputDataSourceProperties{
+					FunctionAppName: utils.String(state.FunctionApp),
+					FunctionName:    utils.String(state.FunctionName),
+					ApiKey:          utils.String(state.ApiKey),
+					MaxBatchSize:    utils.Float(float64(state.BatchMaxInBytes)),
+					MaxBatchCount:   utils.Float(float64(state.BatchMaxCount)),
+				},
+			}
 			props := outputs.Output{
 				Name: utils.String(state.Name),
 				Properties: &outputs.OutputProperties{
-					Datasource: &outputs.AzureFunctionOutputDataSource{
-						Properties: &outputs.AzureFunctionOutputDataSourceProperties{
-							FunctionAppName: utils.String(state.FunctionApp),
-							FunctionName:    utils.String(state.FunctionName),
-							ApiKey:          utils.String(state.ApiKey),
-							MaxBatchSize:    utils.Float(float64(state.BatchMaxInBytes)),
-							MaxBatchCount:   utils.Float(float64(state.BatchMaxCount)),
-						},
-					},
+					Datasource: pointer.To(dataSource),
 				},
 			}
 
@@ -290,14 +284,25 @@ func (r OutputFunctionResource) CustomImporter() sdk.ResourceRunFunc {
 
 		client := metadata.Client.StreamAnalytics.OutputsClient
 		resp, err := client.Get(ctx, *id)
-		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
+		if err != nil {
 			return fmt.Errorf("reading %s: %+v", *id, err)
 		}
 
-		props := resp.Model.Properties
-		if _, ok := props.Datasource.(outputs.AzureFunctionOutputDataSource); !ok {
-			return fmt.Errorf("specified output is not of type")
+		valid := false
+		if model := resp.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if ds := props.Datasource; ds != nil {
+					if _, ok := (*ds).(outputs.AzureFunctionOutputDataSource); !ok {
+						valid = true
+					}
+				}
+			}
 		}
+
+		if !valid {
+			return fmt.Errorf("retrieving %s: expected Output to be a Function Output", *id)
+		}
+
 		return nil
 	}
 }

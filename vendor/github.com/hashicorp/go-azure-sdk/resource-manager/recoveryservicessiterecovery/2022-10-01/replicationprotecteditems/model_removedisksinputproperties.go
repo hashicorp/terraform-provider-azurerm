@@ -9,7 +9,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type RemoveDisksInputProperties struct {
-	ProviderSpecificDetails RemoveDisksProviderSpecificInput `json:"providerSpecificDetails"`
+	ProviderSpecificDetails *RemoveDisksProviderSpecificInput `json:"providerSpecificDetails,omitempty"`
 }
 
 var _ json.Unmarshaler = &RemoveDisksInputProperties{}
@@ -26,7 +26,7 @@ func (s *RemoveDisksInputProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificDetails' for 'RemoveDisksInputProperties': %+v", err)
 		}
-		s.ProviderSpecificDetails = impl
+		s.ProviderSpecificDetails = &impl
 	}
 	return nil
 }

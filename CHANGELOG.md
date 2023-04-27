@@ -1,17 +1,44 @@
 ## 3.54.0 (Unreleased)
 
+BREAKING CHANGES:
+
+* `azurerm_attestation_provider` - the field `policy` is deprecated and non-functional due to a design issue with the original resource (where this wasn't retrieved from the Azure API and thus wasn't exposed correctly) - this has been superseded by the fields `open_enclave_policy_base64`, `sgx_enclave_policy_base64` and `tpm_policy_base64`. [GH-21524]
+
 FEATURES:
 
+* **New Resource:** `azurerm_arc_kubernetes_cluster_extension` [GH-21310]
+* **New Resource:** `azurerm_cosmosdb_postgresql_cluster` [GH-21090]
+* **New Resource:** `azurerm_kubernetes_cluster_extension` [GH-21310]
+* **New Resource:** `azurerm_netapp_volume_group_sap_hana` [GH-21290]
 * **New Resource:** `azurerm_storage_mover_project` [GH-21477]
 
 ENHANCEMENTS:
 
+* authentication: loading the access token expiry time from the Azure CLI when using this authentication method (#21460 and https://github.com/hashicorp/go-azure-sdk/pull/415)
+* dependencies: updating to `v0.20230425.1021638` of `github.com/hashicorp/go-azure-sdk` [GH-21557]
 * `security`: updating to API Version `2023-01-01` [GH-21531]
-* Data Source: `azurerm_virtual_network_gateway` - add support for the `private_ip_address` property [GH-21432]
+* Data Source: `azurerm_virtual_network_gateway` - add support for the field `private_ip_address` [GH-21432]
+* `azurerm_attestation_provider` - adding support for the field `open_enclave_policy_base64`, `sgx_enclave_policy_base64` and `tpm_policy_base64` [GH-21524]
+* `azurerm_attestation_provider` - adding support for the field `sgx_enclave_policy_base64` [GH-21524]
+* `azurerm_attestation_provider` - adding support for the field `tpm_policy_base64` [GH-21524]
+* `azurerm_billing_account_cost_management_export` - the field `time_frame` can now be set to `TheLast7Days` [GH-21528]
+* `azurerm_firewall_policy_rule_collection_group` - the fields `source_addresses` and `destination_addresses` now accepts an IPv4 range [GH-21542]
 * `azurerm_kubernetes_cluster` - add support for the `service_mesh_profile` block [GH-21516]
-* `azurerm_billing_account_cost_management_export` - add support for the value `TheLast7Days` for the property `time_frame` [GH-21528]
-* `azurerm_resource_group_cost_management_export` - add support for the value `TheLast7Days` for the property `time_frame` [GH-21528]
-* `azurerm_subscription_cost_management_export` - add support for the value `TheLast7Days` for the property `time_frame` [GH-21528]
+* `azurerm_resource_group_cost_management_export` - the field `time_frame` can now be set to `TheLast7Days` [GH-21528]
+* `azurerm_search_service` - adding support for `authentication_failure_mode ` [GH-21323]
+* `azurerm_search_service` - adding support for `customer_managed_key_enforcement_enabled ` [GH-21323]
+* `azurerm_search_service` - adding support for `hosting_mode ` [GH-21323]
+* `azurerm_search_service` - adding support for `local_authentication_enabled` [GH-21323]
+* `azurerm_search_service` - support for setting `sku` to `StorageOptimizedL2` [GH-21323]
+* `azurerm_subscription_cost_management_export` - the field `time_frame` can now be set to `TheLast7Days` [GH-21528]
+
+BUG FIXES:
+
+* `azurerm_attestation_provider` - the field `policy` is deprecated and non-functional - instead please use the fields  `open_enclave_policy_base64`, `sgx_enclave_policy_base64` and `tpm_policy_base64` [GH-21524]
+* `azurerm_mysql_flexible_server` - fix issue where `identity` was not being removed properly on updates [GH-21533]
+* `azurerm_search_service` - updating the default value for `partition_count` to `1` to match the API [GH-21323]
+* `azurerm_search_service` - updating the default value for `replica_count` to `1` to match the API [GH-21323]
+* `azurerm_search_service` - the field `allowed_ips` is now a Set rather than a List [GH-21323]
 
 ## 3.53.0 (April 20, 2023)
 

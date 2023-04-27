@@ -9,8 +9,8 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SwitchProtectionInputProperties struct {
-	ProviderSpecificDetails      SwitchProtectionProviderSpecificInput `json:"providerSpecificDetails"`
-	ReplicationProtectedItemName *string                               `json:"replicationProtectedItemName,omitempty"`
+	ProviderSpecificDetails      *SwitchProtectionProviderSpecificInput `json:"providerSpecificDetails,omitempty"`
+	ReplicationProtectedItemName *string                                `json:"replicationProtectedItemName,omitempty"`
 }
 
 var _ json.Unmarshaler = &SwitchProtectionInputProperties{}
@@ -34,7 +34,7 @@ func (s *SwitchProtectionInputProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificDetails' for 'SwitchProtectionInputProperties': %+v", err)
 		}
-		s.ProviderSpecificDetails = impl
+		s.ProviderSpecificDetails = &impl
 	}
 	return nil
 }

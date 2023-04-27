@@ -9,13 +9,13 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type LinkerProperties struct {
-	AuthInfo          AuthInfoBase      `json:"authInfo"`
-	ClientType        *ClientType       `json:"clientType,omitempty"`
-	ProvisioningState *string           `json:"provisioningState,omitempty"`
-	Scope             *string           `json:"scope,omitempty"`
-	SecretStore       *SecretStore      `json:"secretStore,omitempty"`
-	TargetService     TargetServiceBase `json:"targetService"`
-	VNetSolution      *VNetSolution     `json:"vNetSolution,omitempty"`
+	AuthInfo          *AuthInfoBase      `json:"authInfo,omitempty"`
+	ClientType        *ClientType        `json:"clientType,omitempty"`
+	ProvisioningState *string            `json:"provisioningState,omitempty"`
+	Scope             *string            `json:"scope,omitempty"`
+	SecretStore       *SecretStore       `json:"secretStore,omitempty"`
+	TargetService     *TargetServiceBase `json:"targetService,omitempty"`
+	VNetSolution      *VNetSolution      `json:"vNetSolution,omitempty"`
 }
 
 var _ json.Unmarshaler = &LinkerProperties{}
@@ -43,7 +43,7 @@ func (s *LinkerProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'AuthInfo' for 'LinkerProperties': %+v", err)
 		}
-		s.AuthInfo = impl
+		s.AuthInfo = &impl
 	}
 
 	if v, ok := temp["targetService"]; ok {
@@ -51,7 +51,7 @@ func (s *LinkerProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'TargetService' for 'LinkerProperties': %+v", err)
 		}
-		s.TargetService = impl
+		s.TargetService = &impl
 	}
 	return nil
 }

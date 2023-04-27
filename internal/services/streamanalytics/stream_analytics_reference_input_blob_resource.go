@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
@@ -137,30 +138,31 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
-	props := inputs.Input{
-		Name: utils.String(id.InputName),
-		Properties: &inputs.ReferenceInputProperties{
-			Datasource: &inputs.BlobReferenceInputDataSource{
-				Properties: &inputs.BlobDataSourceProperties{
-					Container:   utils.String(d.Get("storage_container_name").(string)),
-					DateFormat:  utils.String(d.Get("date_format").(string)),
-					PathPattern: utils.String(d.Get("path_pattern").(string)),
-					TimeFormat:  utils.String(d.Get("time_format").(string)),
-					StorageAccounts: &[]inputs.StorageAccount{
-						{
-							AccountName: utils.String(d.Get("storage_account_name").(string)),
-							AccountKey:  normalizeAccountKey(d.Get("storage_account_key").(string)),
-						},
-					},
-					AuthenticationMode: utils.ToPtr(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+	var dataSource inputs.ReferenceInputDataSource = inputs.BlobReferenceInputDataSource{
+		Properties: &inputs.BlobDataSourceProperties{
+			Container:   utils.String(d.Get("storage_container_name").(string)),
+			DateFormat:  utils.String(d.Get("date_format").(string)),
+			PathPattern: utils.String(d.Get("path_pattern").(string)),
+			TimeFormat:  utils.String(d.Get("time_format").(string)),
+			StorageAccounts: &[]inputs.StorageAccount{
+				{
+					AccountName: utils.String(d.Get("storage_account_name").(string)),
+					AccountKey:  normalizeAccountKey(d.Get("storage_account_key").(string)),
 				},
 			},
-			Serialization: serialization,
+			AuthenticationMode: utils.ToPtr(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 		},
 	}
+	var inputProperties inputs.InputProperties = inputs.ReferenceInputProperties{
+		Datasource:    pointer.To(dataSource),
+		Serialization: pointer.To(serialization),
+	}
+	props := inputs.Input{
+		Name:       utils.String(id.InputName),
+		Properties: &inputProperties,
+	}
 
-	var opts inputs.CreateOrReplaceOperationOptions
-	if _, err := client.CreateOrReplace(ctx, id, props, opts); err != nil {
+	if _, err := client.CreateOrReplace(ctx, id, props, inputs.DefaultCreateOrReplaceOperationOptions()); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -186,26 +188,28 @@ func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	// TODO d.HasChanges()
-	props := inputs.Input{
-		Name: utils.String(id.InputName),
-		Properties: &inputs.ReferenceInputProperties{
-			Datasource: &inputs.BlobReferenceInputDataSource{
-				Properties: &inputs.BlobDataSourceProperties{
-					Container:   utils.String(d.Get("storage_container_name").(string)),
-					DateFormat:  utils.String(d.Get("date_format").(string)),
-					PathPattern: utils.String(d.Get("path_pattern").(string)),
-					TimeFormat:  utils.String(d.Get("time_format").(string)),
-					StorageAccounts: &[]inputs.StorageAccount{
-						{
-							AccountName: utils.String(d.Get("storage_account_name").(string)),
-							AccountKey:  normalizeAccountKey(d.Get("storage_account_key").(string)),
-						},
-					},
-					AuthenticationMode: utils.ToPtr(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+	var inputDataSource inputs.ReferenceInputDataSource = inputs.BlobReferenceInputDataSource{
+		Properties: &inputs.BlobDataSourceProperties{
+			Container:   utils.String(d.Get("storage_container_name").(string)),
+			DateFormat:  utils.String(d.Get("date_format").(string)),
+			PathPattern: utils.String(d.Get("path_pattern").(string)),
+			TimeFormat:  utils.String(d.Get("time_format").(string)),
+			StorageAccounts: &[]inputs.StorageAccount{
+				{
+					AccountName: utils.String(d.Get("storage_account_name").(string)),
+					AccountKey:  normalizeAccountKey(d.Get("storage_account_key").(string)),
 				},
 			},
-			Serialization: serialization,
+			AuthenticationMode: utils.ToPtr(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 		},
+	}
+	var inputProperties inputs.InputProperties = inputs.ReferenceInputProperties{
+		Datasource:    pointer.To(inputDataSource),
+		Serialization: pointer.To(serialization),
+	}
+	props := inputs.Input{
+		Name:       utils.String(id.InputName),
+		Properties: &inputProperties,
 	}
 
 	var opts inputs.UpdateOperationOptions
@@ -243,59 +247,51 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties) // nolint: gosimple
-			if !ok {
-				return fmt.Errorf("converting %s to an Input", *id)
-			}
+			if dataSource, ok := (*props).(inputs.ReferenceInputProperties); ok {
+				if ds := dataSource.Datasource; ds != nil {
+					if referenceInputBlob, ok := (*ds).(inputs.BlobReferenceInputDataSource); ok {
+						if blobProps := referenceInputBlob.Properties; blobProps != nil {
+							dateFormat := ""
+							if v := blobProps.DateFormat; v != nil {
+								dateFormat = *v
+							}
+							d.Set("date_format", dateFormat)
 
-			dataSource, ok := input.(inputs.ReferenceInputProperties)
-			if !ok {
-				return fmt.Errorf("converting %s to a Reference Input", *id)
-			}
+							pathPattern := ""
+							if v := blobProps.PathPattern; v != nil {
+								pathPattern = *v
+							}
+							d.Set("path_pattern", pathPattern)
 
-			referenceInputBlob, ok := dataSource.Datasource.(inputs.BlobReferenceInputDataSource)
-			if !ok {
-				return fmt.Errorf("converting %s to a Blob Reference Input", *id)
-			}
+							containerName := ""
+							if v := blobProps.Container; v != nil {
+								containerName = *v
+							}
+							d.Set("storage_container_name", containerName)
 
-			if referenceInputBlob.Properties != nil {
-				dateFormat := ""
-				if v := referenceInputBlob.Properties.DateFormat; v != nil {
-					dateFormat = *v
+							timeFormat := ""
+							if v := blobProps.TimeFormat; v != nil {
+								timeFormat = *v
+							}
+							d.Set("time_format", timeFormat)
+
+							authMode := ""
+							if v := blobProps.AuthenticationMode; v != nil {
+								authMode = string(*v)
+							}
+							d.Set("authentication_mode", authMode)
+
+							if accounts := blobProps.StorageAccounts; accounts != nil && len(*accounts) > 0 {
+								account := (*accounts)[0]
+								d.Set("storage_account_name", account.AccountName)
+							}
+						}
+					}
 				}
-				d.Set("date_format", dateFormat)
 
-				pathPattern := ""
-				if v := referenceInputBlob.Properties.PathPattern; v != nil {
-					pathPattern = *v
+				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(dataSource.Serialization)); err != nil {
+					return fmt.Errorf("setting `serialization`: %+v", err)
 				}
-				d.Set("path_pattern", pathPattern)
-
-				containerName := ""
-				if v := referenceInputBlob.Properties.Container; v != nil {
-					containerName = *v
-				}
-				d.Set("storage_container_name", containerName)
-
-				timeFormat := ""
-				if v := referenceInputBlob.Properties.TimeFormat; v != nil {
-					timeFormat = *v
-				}
-				d.Set("time_format", timeFormat)
-
-				authMode := ""
-				if v := referenceInputBlob.Properties.AuthenticationMode; v != nil {
-					authMode = string(*v)
-				}
-				d.Set("authentication_mode", authMode)
-
-				if accounts := referenceInputBlob.Properties.StorageAccounts; accounts != nil && len(*accounts) > 0 {
-					account := (*accounts)[0]
-					d.Set("storage_account_name", account.AccountName)
-				}
-			}
-			if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(dataSource.Serialization)); err != nil {
-				return fmt.Errorf("setting `serialization`: %+v", err)
 			}
 		}
 	}

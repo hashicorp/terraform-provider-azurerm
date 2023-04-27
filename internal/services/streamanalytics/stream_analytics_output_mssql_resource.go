@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -157,24 +158,23 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 		dataSourceProperties.Password = utils.String(d.Get("password").(string))
 	}
 
+	var dataSource outputs.OutputDataSource = outputs.AzureSqlDatabaseOutputDataSource{
+		Properties: &dataSourceProperties,
+	}
 	props := outputs.Output{
 		Name: utils.String(id.OutputName),
 		Properties: &outputs.OutputProperties{
-			Datasource: &outputs.AzureSqlDatabaseOutputDataSource{
-				Properties: &dataSourceProperties,
-			},
+			Datasource: pointer.To(dataSource),
 		},
 	}
 
-	var createOpts outputs.CreateOrReplaceOperationOptions
-	var updateOpts outputs.UpdateOperationOptions
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, id, props, createOpts); err != nil {
+		if _, err := client.CreateOrReplace(ctx, id, props, outputs.DefaultCreateOrReplaceOperationOptions()); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		d.SetId(id.ID())
-	} else if _, err := client.Update(ctx, id, props, updateOpts); err != nil {
+	} else if _, err := client.Update(ctx, id, props, outputs.DefaultUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -208,52 +208,53 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.AzureSqlDatabaseOutputDataSource)
-			if !ok {
-				return fmt.Errorf("converting %s to a SQL Output", *id)
-			}
+			if ds := props.Datasource; ds != nil {
+				if output, ok := (*ds).(outputs.AzureSqlDatabaseOutputDataSource); ok {
+					if outputProps := output.Properties; outputProps != nil {
+						server := ""
+						if v := outputProps.Server; v != nil {
+							server = *v
+						}
+						d.Set("server", server)
 
-			server := ""
-			if v := output.Properties.Server; v != nil {
-				server = *v
-			}
-			d.Set("server", server)
+						database := ""
+						if v := outputProps.Database; v != nil {
+							database = *v
+						}
+						d.Set("database", database)
 
-			database := ""
-			if v := output.Properties.Database; v != nil {
-				database = *v
-			}
-			d.Set("database", database)
+						table := ""
+						if v := outputProps.Table; v != nil {
+							table = *v
+						}
+						d.Set("table", table)
 
-			table := ""
-			if v := output.Properties.Table; v != nil {
-				table = *v
-			}
-			d.Set("table", table)
+						user := ""
+						if v := outputProps.User; v != nil {
+							user = *v
+						}
+						d.Set("user", user)
 
-			user := ""
-			if v := output.Properties.User; v != nil {
-				user = *v
-			}
-			d.Set("user", user)
+						authMode := ""
+						if v := outputProps.AuthenticationMode; v != nil {
+							authMode = string(*v)
+						}
+						d.Set("authentication_mode", authMode)
 
-			authMode := ""
-			if v := output.Properties.AuthenticationMode; v != nil {
-				authMode = string(*v)
-			}
-			d.Set("authentication_mode", authMode)
+						maxBatchCount := float64(10000)
+						if v := outputProps.MaxBatchCount; v != nil {
+							maxBatchCount = *v
+						}
+						d.Set("max_batch_count", maxBatchCount)
 
-			maxBatchCount := float64(10000)
-			if v := output.Properties.MaxBatchCount; v != nil {
-				maxBatchCount = *v
+						maxWriterCount := float64(1)
+						if v := outputProps.MaxWriterCount; v != nil {
+							maxWriterCount = *v
+						}
+						d.Set("max_writer_count", maxWriterCount)
+					}
+				}
 			}
-			d.Set("max_batch_count", maxBatchCount)
-
-			maxWriterCount := float64(1)
-			if v := output.Properties.MaxWriterCount; v != nil {
-				maxWriterCount = *v
-			}
-			d.Set("max_writer_count", maxWriterCount)
 		}
 	}
 	return nil

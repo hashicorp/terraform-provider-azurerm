@@ -136,12 +136,13 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 	}
 
 	if v, ok := d.GetOk("database_credential_key_vault_secret_id"); ok {
-		parameters.Properties.DatasourceAuthCredentials = backupinstances.SecretStoreBasedAuthCredentials{
+		var authCredentials backupinstances.AuthCredentials = backupinstances.SecretStoreBasedAuthCredentials{
 			SecretStoreResource: &backupinstances.SecretStoreResource{
 				Uri:             utils.String(v.(string)),
 				SecretStoreType: backupinstances.SecretStoreTypeAzureKeyVault,
 			},
 		}
+		parameters.Properties.DatasourceAuthCredentials = &authCredentials
 	}
 
 	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
@@ -199,7 +200,7 @@ func resourceDataProtectionBackupInstancePostgreSQLRead(d *schema.ResourceData, 
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)
 
 			if props.DatasourceAuthCredentials != nil {
-				credential := props.DatasourceAuthCredentials.(backupinstances.SecretStoreBasedAuthCredentials)
+				credential := (*props.DatasourceAuthCredentials).(backupinstances.SecretStoreBasedAuthCredentials)
 				if credential.SecretStoreResource != nil {
 					d.Set("database_credential_key_vault_secret_id", credential.SecretStoreResource.Uri)
 				}

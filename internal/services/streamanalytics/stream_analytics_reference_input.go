@@ -22,32 +22,26 @@ func importStreamAnalyticsReferenceInput(expectType string) pluginsdk.ImporterFu
 			return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
+		var actualType string
 		if model := resp.Model; model != nil {
 			if props := model.Properties; props != nil {
-				input, ok := props.(inputs.InputProperties) // nolint: gosimple
-				if !ok {
-					return nil, fmt.Errorf("failed to convert to Input")
-				}
-
-				reference, ok := input.(inputs.ReferenceInputProperties)
-				if !ok {
-					return nil, fmt.Errorf("failed to convert to Reference Input")
-				}
-
-				var actualType string
-
-				if _, ok := reference.Datasource.(inputs.BlobReferenceInputDataSource); ok {
-					actualType = "Microsoft.Storage/Blob"
-				}
-				if _, ok := reference.Datasource.(inputs.AzureSqlReferenceInputDataSource); ok {
-					actualType = "Microsoft.Sql/Server/Database"
-				}
-
-				if actualType != expectType {
-					return nil, fmt.Errorf("stream analytics reference input has mismatched type, expected: %q, got %q", expectType, actualType)
+				if reference, ok := (*props).(inputs.ReferenceInputProperties); ok {
+					if ds := reference.Datasource; ds != nil {
+						if _, ok := (*ds).(inputs.BlobReferenceInputDataSource); ok {
+							actualType = "Microsoft.Storage/Blob"
+						}
+						if _, ok := (*ds).(inputs.AzureSqlReferenceInputDataSource); ok {
+							actualType = "Microsoft.Sql/Server/Database"
+						}
+					}
 				}
 			}
 		}
+
+		if actualType != expectType {
+			return nil, fmt.Errorf("expected the Reference Input to be a %q but got got %q", expectType, actualType)
+		}
+
 		return []*pluginsdk.ResourceData{d}, nil
 	}
 }

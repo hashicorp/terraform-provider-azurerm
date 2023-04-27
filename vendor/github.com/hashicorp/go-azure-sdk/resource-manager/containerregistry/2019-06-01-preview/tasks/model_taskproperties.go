@@ -21,7 +21,7 @@ type TaskProperties struct {
 	Platform           *PlatformProperties `json:"platform,omitempty"`
 	ProvisioningState  *ProvisioningState  `json:"provisioningState,omitempty"`
 	Status             *TaskStatus         `json:"status,omitempty"`
-	Step               TaskStepProperties  `json:"step"`
+	Step               *TaskStepProperties `json:"step,omitempty"`
 	Timeout            *int64              `json:"timeout,omitempty"`
 	Trigger            *TriggerProperties  `json:"trigger,omitempty"`
 }
@@ -69,7 +69,7 @@ func (s *TaskProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Step' for 'TaskProperties': %+v", err)
 		}
-		s.Step = impl
+		s.Step = &impl
 	}
 	return nil
 }

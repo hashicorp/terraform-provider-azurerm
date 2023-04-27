@@ -84,28 +84,29 @@ func resourceDataProtectionBackupPolicyBlobStorageCreate(d *schema.ResourceData,
 		return tf.ImportAsExistsError("azurerm_data_protection_backup_policy_blob_storage", id.ID())
 	}
 
-	parameters := backuppolicies.BaseBackupPolicyResource{
-		Properties: &backuppolicies.BackupPolicy{
-			PolicyRules: []backuppolicies.BasePolicyRule{
-				backuppolicies.AzureRetentionRule{
-					Name:      "Default",
-					IsDefault: utils.Bool(true),
-					Lifecycles: []backuppolicies.SourceLifeCycle{
-						{
-							DeleteAfter: backuppolicies.AbsoluteDeleteOption{
-								Duration: d.Get("retention_duration").(string),
-							},
-							SourceDataStore: backuppolicies.DataStoreInfoBase{
-								DataStoreType: "OperationalStore",
-								ObjectType:    "DataStoreInfoBase",
-							},
-							TargetDataStoreCopySettings: &[]backuppolicies.TargetCopySetting{},
+	var backupPolicy backuppolicies.BaseBackupPolicy = backuppolicies.BackupPolicy{
+		PolicyRules: []backuppolicies.BasePolicyRule{
+			backuppolicies.AzureRetentionRule{
+				Name:      "Default",
+				IsDefault: utils.Bool(true),
+				Lifecycles: []backuppolicies.SourceLifeCycle{
+					{
+						DeleteAfter: backuppolicies.AbsoluteDeleteOption{
+							Duration: d.Get("retention_duration").(string),
 						},
+						SourceDataStore: backuppolicies.DataStoreInfoBase{
+							DataStoreType: "OperationalStore",
+							ObjectType:    "DataStoreInfoBase",
+						},
+						TargetDataStoreCopySettings: &[]backuppolicies.TargetCopySetting{},
 					},
 				},
 			},
-			DatasourceTypes: []string{"Microsoft.Storage/storageAccounts/blobServices"},
 		},
+		DatasourceTypes: []string{"Microsoft.Storage/storageAccounts/blobServices"},
+	}
+	parameters := backuppolicies.BaseBackupPolicyResource{
+		Properties: &backupPolicy,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -138,10 +139,10 @@ func resourceDataProtectionBackupPolicyBlobStorageRead(d *schema.ResourceData, m
 	vaultId := backuppolicies.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 	d.Set("name", id.BackupPolicyName)
 	d.Set("vault_id", vaultId.ID())
-	if resp.Model != nil {
-		if resp.Model.Properties != nil {
-			if props, ok := resp.Model.Properties.(backuppolicies.BackupPolicy); ok {
-				if err := d.Set("retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules)); err != nil {
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if policy, ok := (*props).(backuppolicies.BackupPolicy); ok {
+				if err := d.Set("retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(policy.PolicyRules)); err != nil {
 					return fmt.Errorf("setting `default_retention_duration`: %+v", err)
 				}
 			}
@@ -177,8 +178,9 @@ func flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(input []backuppo
 
 	for _, item := range input {
 		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
-			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
+			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 && retentionRule.Lifecycles[0].DeleteAfter != nil {
+				deleteOptionPtr := *retentionRule.Lifecycles[0].DeleteAfter.(*backuppolicies.DeleteOption)
+				if deleteOption, ok := deleteOptionPtr.(backuppolicies.AbsoluteDeleteOption); ok {
 					return deleteOption.Duration
 				}
 			}

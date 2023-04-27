@@ -58,6 +58,9 @@ type Query struct {
 
 	// Top specifies the page size of the result set
 	Top int
+
+	// DeltaToken is used to query a delta endpoint
+	DeltaToken string
 }
 
 // Headers returns an http.Header map containing OData specific headers
@@ -123,6 +126,9 @@ func (q Query) Values() url.Values {
 	}
 	if q.Top > 0 {
 		p.Add("$top", strconv.Itoa(q.Top))
+	}
+	if q.DeltaToken != "" {
+		p.Add("$deltatoken", q.DeltaToken)
 	}
 
 	return p

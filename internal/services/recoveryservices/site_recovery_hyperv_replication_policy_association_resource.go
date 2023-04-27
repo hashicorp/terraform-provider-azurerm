@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
@@ -103,12 +104,12 @@ func (h HyperVReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 			type hyperVMappingSpecificInput struct { // a workaround for https://github.com/Azure/azure-rest-api-specs/issues/22769
 				InstanceType string `json:"instanceType"`
 			}
-
+			var input replicationprotectioncontainermappings.ReplicationProviderSpecificContainerMappingInput = hyperVMappingSpecificInput{}
 			param := replicationprotectioncontainermappings.CreateProtectionContainerMappingInput{
 				Properties: &replicationprotectioncontainermappings.CreateProtectionContainerMappingInputProperties{
 					PolicyId:                    &plan.PolicyId,
 					TargetProtectionContainerId: utils.String(TargetContainerIdAzure),
-					ProviderSpecificInput:       hyperVMappingSpecificInput{},
+					ProviderSpecificInput:       pointer.To(input),
 				},
 			}
 			if err := client.CreateThenPoll(ctx, id, param); err != nil {

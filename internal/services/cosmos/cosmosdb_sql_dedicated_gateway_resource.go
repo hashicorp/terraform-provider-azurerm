@@ -187,7 +187,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Read() sdk.ResourceFunc {
 			}
 
 			if props := model.Properties; props != nil {
-				existing := props.(sqldedicatedgateway.SqlDedicatedGatewayServiceResourceProperties)
+				existing := (*props).(sqldedicatedgateway.SqlDedicatedGatewayServiceResourceProperties)
 
 				if existing.InstanceCount != nil {
 					state.InstanceCount = *existing.InstanceCount

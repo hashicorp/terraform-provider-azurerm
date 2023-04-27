@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/links"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/servicelinker"
@@ -127,18 +128,20 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			serviceConnectorProperties := servicelinker.LinkerProperties{
-				AuthInfo: authInfo,
+				AuthInfo: pointer.To(authInfo),
 			}
 
 			if _, err := parse.StorageAccountID(model.TargetResourceId); err == nil {
 				targetResourceId := model.TargetResourceId + "/blobServices/default"
-				serviceConnectorProperties.TargetService = servicelinker.AzureResource{
+				var resource servicelinker.TargetServiceBase = servicelinker.AzureResource{
 					Id: &targetResourceId,
 				}
+				serviceConnectorProperties.TargetService = pointer.To(resource)
 			} else {
-				serviceConnectorProperties.TargetService = servicelinker.AzureResource{
+				var resource servicelinker.TargetServiceBase = servicelinker.AzureResource{
 					Id: &model.TargetResourceId,
 				}
+				serviceConnectorProperties.TargetService = pointer.To(resource)
 			}
 
 			if model.SecretStore != nil {
@@ -279,11 +282,15 @@ func (r SpringCloudConnectorResource) Update() sdk.ResourceFunc {
 			}
 
 			if d.HasChange("secret_store") {
-				linkerProps.SecretStore = (*links.SecretStore)(expandSecretStore(state.SecretStore))
+				linkerProps.SecretStore = expandLinksSecretStore(state.SecretStore)
 			}
 
 			if d.HasChange("authentication") {
-				linkerProps.AuthInfo = state.AuthInfo
+				authInfo, err := expandServiceConnectorLinksAuthInfo(state.AuthInfo)
+				if err != nil {
+					return fmt.Errorf("expanding `authentication`: %+v", err)
+				}
+				linkerProps.AuthInfo = pointer.To(authInfo)
 			}
 
 			props := links.LinkerPatch{

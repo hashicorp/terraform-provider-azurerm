@@ -79,7 +79,7 @@ func (s *ContentKeyPolicyPlayReadyLicense) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ContentKeyLocation' for 'ContentKeyPolicyPlayReadyLicense': %+v", err)
 		}
-		s.ContentKeyLocation = impl
+		s.ContentKeyLocation = &impl
 	}
 	return nil
 }

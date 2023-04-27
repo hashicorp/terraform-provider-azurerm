@@ -12,11 +12,11 @@ var _ JobInput = JobInputAsset{}
 
 type JobInputAsset struct {
 	AssetName        string             `json:"assetName"`
-	End              ClipTime           `json:"end"`
+	End              *ClipTime          `json:"end,omitempty"`
 	Files            *[]string          `json:"files,omitempty"`
 	InputDefinitions *[]InputDefinition `json:"inputDefinitions,omitempty"`
 	Label            *string            `json:"label,omitempty"`
-	Start            ClipTime           `json:"start"`
+	Start            *ClipTime          `json:"start,omitempty"`
 
 	// Fields inherited from JobInput
 }
@@ -68,7 +68,7 @@ func (s *JobInputAsset) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'End' for 'JobInputAsset': %+v", err)
 		}
-		s.End = impl
+		s.End = &impl
 	}
 
 	if v, ok := temp["inputDefinitions"]; ok {
@@ -93,7 +93,7 @@ func (s *JobInputAsset) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Start' for 'JobInputAsset': %+v", err)
 		}
-		s.Start = impl
+		s.Start = &impl
 	}
 	return nil
 }

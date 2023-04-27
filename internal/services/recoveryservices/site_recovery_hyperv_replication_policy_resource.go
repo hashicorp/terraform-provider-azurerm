@@ -100,13 +100,14 @@ func (r ReplicationPolicyHyperVResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			var policyInput replicationpolicies.PolicyProviderSpecificInput = replicationpolicies.HyperVReplicaAzurePolicyInput{
+				RecoveryPointHistoryDuration:                  &plan.RecoveryPointRetentionInHours,
+				ApplicationConsistentSnapshotFrequencyInHours: &plan.ApplicationConsistentSnapshotFrequencyInHours,
+				ReplicationInterval:                           &plan.CopyFrequency,
+			}
 			parameters := replicationpolicies.CreatePolicyInput{
 				Properties: &replicationpolicies.CreatePolicyInputProperties{
-					ProviderSpecificInput: &replicationpolicies.HyperVReplicaAzurePolicyInput{
-						RecoveryPointHistoryDuration:                  &plan.RecoveryPointRetentionInHours,
-						ApplicationConsistentSnapshotFrequencyInHours: &plan.ApplicationConsistentSnapshotFrequencyInHours,
-						ReplicationInterval:                           &plan.CopyFrequency,
-					},
+					ProviderSpecificInput: &policyInput,
 				},
 			}
 			err = client.CreateThenPoll(ctx, id, parameters)
@@ -182,13 +183,14 @@ func (r ReplicationPolicyHyperVResource) Update() sdk.ResourceFunc {
 
 			client := metadata.Client.RecoveryServices.ReplicationPoliciesClient
 
+			var policyInput replicationpolicies.PolicyProviderSpecificInput = replicationpolicies.HyperVReplicaAzurePolicyInput{
+				RecoveryPointHistoryDuration:                  &model.RecoveryPointRetentionInHours,
+				ApplicationConsistentSnapshotFrequencyInHours: &model.ApplicationConsistentSnapshotFrequencyInHours,
+				ReplicationInterval:                           &model.CopyFrequency,
+			}
 			parameters := replicationpolicies.UpdatePolicyInput{
 				Properties: &replicationpolicies.UpdatePolicyInputProperties{
-					ReplicationProviderSettings: &replicationpolicies.HyperVReplicaAzurePolicyInput{
-						RecoveryPointHistoryDuration:                  &model.RecoveryPointRetentionInHours,
-						ApplicationConsistentSnapshotFrequencyInHours: &model.ApplicationConsistentSnapshotFrequencyInHours,
-						ReplicationInterval:                           &model.CopyFrequency,
-					},
+					ReplicationProviderSettings: &policyInput,
 				},
 			}
 
@@ -234,7 +236,7 @@ func expandHyperVToAzurePolicyDetail(input *replicationpolicies.Policy) (out *re
 	if input.Properties.ProviderSpecificDetails == nil {
 		return nil, false
 	}
-	detail, isA2A := input.Properties.ProviderSpecificDetails.(replicationpolicies.HyperVReplicaAzurePolicyDetails)
+	detail, isA2A := (*input.Properties.ProviderSpecificDetails).(replicationpolicies.HyperVReplicaAzurePolicyDetails)
 	if isA2A {
 		out = &detail
 	}

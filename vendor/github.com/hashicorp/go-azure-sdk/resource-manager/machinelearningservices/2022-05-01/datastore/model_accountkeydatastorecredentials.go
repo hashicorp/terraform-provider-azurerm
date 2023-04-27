@@ -54,7 +54,7 @@ func (s *AccountKeyDatastoreCredentials) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Secrets' for 'AccountKeyDatastoreCredentials': %+v", err)
 		}
-		s.Secrets = impl
+		s.Secrets = &impl
 	}
 	return nil
 }

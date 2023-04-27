@@ -174,13 +174,15 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 		properties.Table = utils.String(v.(string))
 	}
 
+	var dataSource inputs.ReferenceInputDataSource = inputs.AzureSqlReferenceInputDataSource{
+		Properties: properties,
+	}
+	var inputProperties inputs.InputProperties = inputs.ReferenceInputProperties{
+		Datasource: &dataSource,
+	}
 	props := inputs.Input{
-		Name: utils.String(id.InputName),
-		Properties: &inputs.ReferenceInputProperties{
-			Datasource: &inputs.AzureSqlReferenceInputDataSource{
-				Properties: properties,
-			},
-		},
+		Name:       utils.String(id.InputName),
+		Properties: &inputProperties,
 	}
 
 	var opts inputs.CreateOrReplaceOperationOptions
@@ -220,69 +222,60 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties) // nolint: gosimple
-			if !ok {
-				return fmt.Errorf("converting %s to an Input", *id)
-			}
+			if reference, ok := (*props).(inputs.ReferenceInputProperties); ok {
+				if ds := reference.Datasource; ds != nil {
+					if referenceInputAzureSql, ok := (*ds).(inputs.AzureSqlReferenceInputDataSource); ok {
+						if sqlProps := referenceInputAzureSql.Properties; props != nil {
+							server := ""
+							if v := sqlProps.Server; v != nil {
+								server = *v
+							}
+							d.Set("server", server)
 
-			reference, ok := input.(inputs.ReferenceInputProperties)
-			if !ok {
-				return fmt.Errorf("converting %s to Reference Input", *id)
-			}
+							database := ""
+							if v := sqlProps.Database; v != nil {
+								database = *v
+							}
+							d.Set("database", database)
 
-			referenceInputAzureSql, ok := reference.Datasource.(inputs.AzureSqlReferenceInputDataSource)
-			if !ok {
-				return fmt.Errorf("converting %s to an Azure Sql Reference Input", *id)
-			}
+							username := ""
+							if v := sqlProps.User; v != nil {
+								username = *v
+							}
+							d.Set("username", username)
 
-			if referenceInputAzureSql.Properties != nil {
-				server := ""
-				if v := referenceInputAzureSql.Properties.Server; v != nil {
-					server = *v
+							refreshType := ""
+							if v := sqlProps.RefreshType; v != nil {
+								refreshType = string(*v)
+							}
+							d.Set("refresh_type", refreshType)
+
+							intervalDuration := ""
+							if v := sqlProps.RefreshRate; v != nil {
+								intervalDuration = *v
+							}
+							d.Set("refresh_interval_duration", intervalDuration)
+
+							fullSnapshotQuery := ""
+							if v := sqlProps.FullSnapshotQuery; v != nil {
+								fullSnapshotQuery = *v
+							}
+							d.Set("full_snapshot_query", fullSnapshotQuery)
+
+							deltaSnapshotQuery := ""
+							if v := sqlProps.DeltaSnapshotQuery; v != nil {
+								deltaSnapshotQuery = *v
+							}
+							d.Set("delta_snapshot_query", deltaSnapshotQuery)
+
+							table := ""
+							if v := sqlProps.Table; v != nil {
+								table = *v
+							}
+							d.Set("table", table)
+						}
+					}
 				}
-				d.Set("server", server)
-
-				database := ""
-				if v := referenceInputAzureSql.Properties.Database; v != nil {
-					database = *v
-				}
-				d.Set("database", database)
-
-				username := ""
-				if v := referenceInputAzureSql.Properties.User; v != nil {
-					username = *v
-				}
-				d.Set("username", username)
-
-				refreshType := ""
-				if v := referenceInputAzureSql.Properties.RefreshType; v != nil {
-					refreshType = string(*v)
-				}
-				d.Set("refresh_type", refreshType)
-
-				intervalDuration := ""
-				if v := referenceInputAzureSql.Properties.RefreshRate; v != nil {
-					intervalDuration = *v
-				}
-				d.Set("refresh_interval_duration", intervalDuration)
-
-				fullSnapshotQuery := ""
-				if v := referenceInputAzureSql.Properties.FullSnapshotQuery; v != nil {
-					fullSnapshotQuery = *v
-				}
-				d.Set("full_snapshot_query", fullSnapshotQuery)
-
-				deltaSnapshotQuery := ""
-				if v := referenceInputAzureSql.Properties.DeltaSnapshotQuery; v != nil {
-					deltaSnapshotQuery = *v
-				}
-				d.Set("delta_snapshot_query", deltaSnapshotQuery)
-
-				table := ""
-				if v := referenceInputAzureSql.Properties.Table; v != nil {
-					table = *v
-				}
-				d.Set("table", table)
 			}
 		}
 	}

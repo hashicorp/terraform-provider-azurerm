@@ -9,8 +9,8 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PlannedFailoverInputProperties struct {
-	FailoverDirection       *string                                      `json:"failoverDirection,omitempty"`
-	ProviderSpecificDetails PlannedFailoverProviderSpecificFailoverInput `json:"providerSpecificDetails"`
+	FailoverDirection       *string                                       `json:"failoverDirection,omitempty"`
+	ProviderSpecificDetails *PlannedFailoverProviderSpecificFailoverInput `json:"providerSpecificDetails,omitempty"`
 }
 
 var _ json.Unmarshaler = &PlannedFailoverInputProperties{}
@@ -34,7 +34,7 @@ func (s *PlannedFailoverInputProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificDetails' for 'PlannedFailoverInputProperties': %+v", err)
 		}
-		s.ProviderSpecificDetails = impl
+		s.ProviderSpecificDetails = &impl
 	}
 	return nil
 }

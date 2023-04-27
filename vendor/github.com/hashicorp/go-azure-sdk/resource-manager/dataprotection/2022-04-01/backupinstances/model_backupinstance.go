@@ -12,7 +12,7 @@ type BackupInstance struct {
 	CurrentProtectionState    *CurrentProtectionState  `json:"currentProtectionState,omitempty"`
 	DataSourceInfo            Datasource               `json:"dataSourceInfo"`
 	DataSourceSetInfo         *DatasourceSet           `json:"dataSourceSetInfo,omitempty"`
-	DatasourceAuthCredentials AuthCredentials          `json:"datasourceAuthCredentials"`
+	DatasourceAuthCredentials *AuthCredentials         `json:"datasourceAuthCredentials,omitempty"`
 	FriendlyName              *string                  `json:"friendlyName,omitempty"`
 	ObjectType                string                   `json:"objectType"`
 	PolicyInfo                PolicyInfo               `json:"policyInfo"`
@@ -52,7 +52,7 @@ func (s *BackupInstance) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'DatasourceAuthCredentials' for 'BackupInstance': %+v", err)
 		}
-		s.DatasourceAuthCredentials = impl
+		s.DatasourceAuthCredentials = &impl
 	}
 	return nil
 }

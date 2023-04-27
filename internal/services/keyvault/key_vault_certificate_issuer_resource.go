@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -35,12 +37,7 @@ func resourceKeyVaultCertificateIssuer() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"key_vault_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.VaultID,
-			},
+			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
 
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -113,7 +110,7 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 	defer cancel()
 
 	name := d.Get("name").(string)
-	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}
@@ -198,7 +195,7 @@ func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta inter
 		return nil
 	}
 
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return err
 	}
@@ -261,7 +258,7 @@ func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta int
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return err
 	}
