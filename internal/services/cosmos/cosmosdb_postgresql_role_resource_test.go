@@ -27,7 +27,7 @@ func TestCosmosDbPostgreSQLRole_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("password"),
 	})
 }
 

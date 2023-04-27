@@ -133,10 +133,8 @@ func (r CosmosDbPostgreSQLRoleResource) Read() sdk.ResourceFunc {
 			state := CosmosDbPostgreSQLRoleModel{
 				Name:      id.RoleName,
 				ClusterId: roles.NewServerGroupsv2ID(id.SubscriptionId, id.ResourceGroupName, id.ServerGroupsv2Name).ID(),
+				Password:  metadata.ResourceData.Get("password").(string),
 			}
-
-			properties := &model.Properties
-			state.Password = properties.Password
 
 			return metadata.Encode(&state)
 		},
