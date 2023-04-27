@@ -1,26 +1,18 @@
 package digitaltwinsinstance
 
-import (
-	"fmt"
-
-	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
-)
+import "github.com/Azure/go-autorest/autorest"
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DigitalTwinsInstanceClient struct {
-	Client *resourcemanager.Client
+	Client  autorest.Client
+	baseUri string
 }
 
-func NewDigitalTwinsInstanceClientWithBaseURI(api environments.Api) (*DigitalTwinsInstanceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "digitaltwinsinstance", defaultApiVersion)
-	if err != nil {
-		return nil, fmt.Errorf("instantiating DigitalTwinsInstanceClient: %+v", err)
+func NewDigitalTwinsInstanceClientWithBaseURI(endpoint string) DigitalTwinsInstanceClient {
+	return DigitalTwinsInstanceClient{
+		Client:  autorest.NewClientWithUserAgent(userAgent()),
+		baseUri: endpoint,
 	}
-
-	return &DigitalTwinsInstanceClient{
-		Client: client,
-	}, nil
 }
