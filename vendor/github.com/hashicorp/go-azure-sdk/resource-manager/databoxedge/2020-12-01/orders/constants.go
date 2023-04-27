@@ -1,6 +1,10 @@
 package orders
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -49,6 +53,19 @@ func PossibleValuesForOrderState() []string {
 	}
 }
 
+func (s *OrderState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOrderState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseOrderState(input string) (*OrderState, error) {
 	vals := map[string]OrderState{
 		"arriving":               OrderStateArriving,
@@ -92,6 +109,19 @@ func PossibleValuesForShipmentType() []string {
 		string(ShipmentTypeSelfPickup),
 		string(ShipmentTypeShippedToCustomer),
 	}
+}
+
+func (s *ShipmentType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseShipmentType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseShipmentType(input string) (*ShipmentType, error) {
