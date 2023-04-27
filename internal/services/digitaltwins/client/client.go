@@ -1,8 +1,6 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/digitaltwinsinstance"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/endpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2022-10-31/timeseriesdatabaseconnections"
@@ -15,28 +13,19 @@ type Client struct {
 	TimeSeriesDatabaseConnectionsClient *timeseriesdatabaseconnections.TimeSeriesDatabaseConnectionsClient
 }
 
-func NewClient(o *common.ClientOptions) (*Client, error) {
-	endpointClient, err := endpoints.NewEndpointsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Endpoints client: %+v", err)
-	}
-	o.Configure(endpointClient.Client, o.Authorizers.ResourceManager)
+func NewClient(o *common.ClientOptions) *Client {
+	endpointClient := endpoints.NewEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&endpointClient.Client, o.ResourceManagerAuthorizer)
 
-	instanceClient, err := digitaltwinsinstance.NewDigitalTwinsInstanceClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Instances client: %+v", err)
-	}
-	o.Configure(instanceClient.Client, o.Authorizers.ResourceManager)
+	InstanceClient := digitaltwinsinstance.NewDigitalTwinsInstanceClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&InstanceClient.Client, o.ResourceManagerAuthorizer)
 
-	timeSeriesDatabaseConnectionsClient, err := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building TimeSeriesDatabaseConnections client: %+v", err)
-	}
-	o.Configure(timeSeriesDatabaseConnectionsClient.Client, o.Authorizers.ResourceManager)
+	TimeSeriesDatabaseConnectionsClient := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&TimeSeriesDatabaseConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		EndpointClient:                      endpointClient,
-		InstanceClient:                      instanceClient,
-		TimeSeriesDatabaseConnectionsClient: timeSeriesDatabaseConnectionsClient,
-	}, nil
+		EndpointClient:                      &endpointClient,
+		InstanceClient:                      &InstanceClient,
+		TimeSeriesDatabaseConnectionsClient: &TimeSeriesDatabaseConnectionsClient,
+	}
 }

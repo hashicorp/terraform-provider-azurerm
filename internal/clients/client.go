@@ -335,16 +335,12 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.DataProtection, err = dataprotection.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DataProtection: %+v", err)
 	}
-	if client.DataShare, err = datashare.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for DataShare: %+v", err)
-	}
+	client.DataShare = datashare.NewClient(o)
 	if client.DesktopVirtualization, err = desktopvirtualization.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DesktopVirtualization: %+v", err)
 	}
 	client.DevTestLabs = devtestlabs.NewClient(o)
-	if client.DigitalTwins, err = digitaltwins.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for DigitalTwins: %+v", err)
-	}
+	client.DigitalTwins = digitaltwins.NewClient(o)
 	client.Disks = disks.NewClient(o)
 	if client.Dns, err = dns.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Dns: %+v", err)
