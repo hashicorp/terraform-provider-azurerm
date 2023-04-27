@@ -4,6 +4,7 @@ on:
     branches:
       - main
     paths:
+      - '.github/workflows/mkdocs.yaml'
       - 'contributing/**'
   workflow_dispatch:
 
@@ -21,7 +22,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Publish
-        uses: mhausenblas/mkdocs-deploy-gh-pages@master
+        uses: mhausenblas/mkdocs-deploy-gh-pages@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CONFIG_FILE: mkdocs.yml
