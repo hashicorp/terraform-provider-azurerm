@@ -1,12 +1,12 @@
+// Copyright (c) HashiCorp Inc. All rights reserved.
+// Licensed under the MPL-2.0 License. See NOTICE.txt in the project root for license information.
+
 package environments
 
 import (
 	"fmt"
 	"strings"
 )
-
-// Copyright (c) HashiCorp Inc. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 func FromName(name string) (*Environment, error) {
 	switch strings.ToLower(name) {
