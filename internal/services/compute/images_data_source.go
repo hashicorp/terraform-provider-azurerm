@@ -130,7 +130,7 @@ func dataSourceImagesRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	virtualMachineImages := resp.Items
-	if filterTags != nil {
+	if filterTags != nil && len(*filterTags) > 0 {
 		virtualMachineImages = filterToImagesMatchingTags(virtualMachineImages, *filterTags)
 	}
 	if len(virtualMachineImages) == 0 {
