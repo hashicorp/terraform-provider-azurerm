@@ -81,7 +81,7 @@ func (c TopicsClient) ListByNamespace(ctx context.Context, id NamespaceId, optio
 	}
 
 	var values struct {
-		Values *[]SBTopic `json:"values"`
+		Values *[]SBTopic `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

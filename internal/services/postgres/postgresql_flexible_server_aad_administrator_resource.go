@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/administrators"
@@ -149,7 +150,7 @@ func resourcePostgresqlFlexibleServerAdministratorRead(d *pluginsdk.ResourceData
 		props := model.Properties
 		d.Set("object_id", props.ObjectId)
 		d.Set("principal_name", props.PrincipalName)
-		d.Set("principal_type", props.PrincipalType)
+		d.Set("principal_type", string(pointer.From(props.PrincipalType)))
 		d.Set("tenant_id", props.TenantId)
 	}
 

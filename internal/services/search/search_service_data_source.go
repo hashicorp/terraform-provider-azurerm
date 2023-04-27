@@ -2,17 +2,21 @@ package search
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/querykeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/adminkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/querykeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceSearchService() *pluginsdk.Resource {
@@ -29,7 +33,7 @@ func dataSourceSearchService() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": commonschema.ResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"replica_count": {
 				Type:     pluginsdk.TypeInt,
@@ -102,9 +106,9 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			partitionCount := 0
-			replicaCount := 0
-			publicNetworkAccess := false
+			partitionCount := 1
+			replicaCount := 1
+			publicNetworkAccess := true
 
 			if count := props.PartitionCount; count != nil {
 				partitionCount = int(*count)
@@ -115,7 +119,7 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 
 			if props.PublicNetworkAccess != nil {
-				publicNetworkAccess = *props.PublicNetworkAccess != "Disabled"
+				publicNetworkAccess = strings.EqualFold(string(pointer.From(props.PublicNetworkAccess)), string(services.PublicNetworkAccessEnabled))
 			}
 
 			d.Set("partition_count", partitionCount)
@@ -128,19 +132,23 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
+	primaryKey := ""
+	secondaryKey := ""
 	adminKeysClient := meta.(*clients.Client).Search.AdminKeysClient
 	adminKeysId, err := adminkeys.ParseSearchServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-
 	adminKeysResp, err := adminKeysClient.Get(ctx, *adminKeysId, adminkeys.GetOperationOptions{})
-	if err == nil {
-		if model := adminKeysResp.Model; model != nil {
-			d.Set("primary_key", model.PrimaryKey)
-			d.Set("secondary_key", model.SecondaryKey)
-		}
+	if err != nil && !response.WasStatusCode(adminKeysResp.HttpResponse, http.StatusForbidden) {
+		return fmt.Errorf("retrieving Admin Keys for %s: %+v", id, err)
 	}
+	if model := adminKeysResp.Model; model != nil {
+		primaryKey = utils.NormalizeNilableString(model.PrimaryKey)
+		secondaryKey = utils.NormalizeNilableString(model.SecondaryKey)
+	}
+	d.Set("primary_key", primaryKey)
+	d.Set("secondary_key", secondaryKey)
 
 	queryKeysClient := meta.(*clients.Client).Search.QueryKeysClient
 	queryKeysId, err := querykeys.ParseSearchServiceID(d.Id())
@@ -148,10 +156,11 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 	queryKeysResp, err := queryKeysClient.ListBySearchService(ctx, *queryKeysId, querykeys.ListBySearchServiceOperationOptions{})
-	if err == nil {
-		if model := queryKeysResp.Model; model != nil {
-			d.Set("query_keys", flattenSearchQueryKeys(*model))
-		}
+	if err != nil && !response.WasStatusCode(queryKeysResp.HttpResponse, http.StatusForbidden) {
+		return fmt.Errorf("retrieving Query Keys for %s: %+v", id, err)
+	}
+	if err := d.Set("query_keys", flattenSearchQueryKeys(queryKeysResp.Model)); err != nil {
+		return fmt.Errorf("setting `query_keys`: %+v", err)
 	}
 
 	return nil

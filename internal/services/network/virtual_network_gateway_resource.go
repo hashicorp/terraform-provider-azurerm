@@ -161,7 +161,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						ValidateFunc: validate.PublicIpAddressID,
 					},
 				},
 			},
@@ -383,7 +383,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		"default_local_network_gateway_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			ValidateFunc: validate.LocalNetworkGatewayID,
 		},
 
 		"tags": tags.Schema(),

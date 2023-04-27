@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -144,12 +145,13 @@ func (r OutputPowerBIResource) Create() sdk.ResourceFunc {
 				powerBIOutputProps.TokenUserPrincipalName = utils.String(model.TokenUserPrincipalName)
 			}
 
+			var dataSource outputs.OutputDataSource = outputs.PowerBIOutputDataSource{
+				Properties: powerBIOutputProps,
+			}
 			props := outputs.Output{
 				Name: utils.String(model.Name),
 				Properties: &outputs.OutputProperties{
-					Datasource: &outputs.PowerBIOutputDataSource{
-						Properties: powerBIOutputProps,
-					},
+					Datasource: pointer.To(dataSource),
 				},
 			}
 
@@ -180,56 +182,43 @@ func (r OutputPowerBIResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			needUpdateDataSourceProps := false
 			dataSourceProps := outputs.PowerBIOutputDataSourceProperties{}
-			d := metadata.ResourceData
 
-			if d.HasChange("dataset") {
-				needUpdateDataSourceProps = true
+			if metadata.ResourceData.HasChange("dataset") {
 				dataSourceProps.Dataset = &state.DataSet
 			}
 
-			if d.HasChange("table") {
-				needUpdateDataSourceProps = true
+			if metadata.ResourceData.HasChange("table") {
 				dataSourceProps.Table = &state.Table
 			}
 
-			if d.HasChange("group_name") {
-				needUpdateDataSourceProps = true
+			if metadata.ResourceData.HasChange("group_name") {
 				dataSourceProps.GroupName = &state.GroupName
 			}
 
-			if d.HasChange("group_id") {
-				needUpdateDataSourceProps = true
+			if metadata.ResourceData.HasChange("group_id") {
 				dataSourceProps.GroupId = &state.GroupID
 			}
 
-			if d.HasChange("token_user_principal_name") {
-				needUpdateDataSourceProps = true
+			if metadata.ResourceData.HasChange("token_user_principal_name") {
 				dataSourceProps.TokenUserPrincipalName = &state.TokenUserPrincipalName
 			}
 
-			if d.HasChange("token_user_display_name") {
-				needUpdateDataSourceProps = true
+			if metadata.ResourceData.HasChange("token_user_display_name") {
 				dataSourceProps.TokenUserDisplayName = &state.TokenUserDisplayName
 			}
 
-			if !needUpdateDataSourceProps {
-				return nil
-			}
-
-			updateDataSource := outputs.PowerBIOutputDataSource{
+			var updateDataSource outputs.OutputDataSource = outputs.PowerBIOutputDataSource{
 				Properties: &dataSourceProps,
 			}
 
 			props := outputs.Output{
 				Properties: &outputs.OutputProperties{
-					Datasource: updateDataSource,
+					Datasource: pointer.To(updateDataSource),
 				},
 			}
 
-			var opts outputs.UpdateOperationOptions
-			if _, err = client.Update(ctx, *id, props, opts); err != nil {
+			if _, err = client.Update(ctx, *id, props, outputs.DefaultUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -256,51 +245,48 @@ func (r OutputPowerBIResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
+			state := OutputPowerBIResourceModel{
+				Name:                   id.OutputName,
+				StreamAnalyticsJob:     streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.StreamingJobName).ID(),
+				TokenUserDisplayName:   metadata.ResourceData.Get("token_user_display_name").(string),
+				TokenUserPrincipalName: metadata.ResourceData.Get("token_user_principal_name").(string),
+			}
+
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					output, ok := props.Datasource.(outputs.PowerBIOutputDataSource)
-					if !ok {
-						return fmt.Errorf("converting %s to a PowerBI Output", *id)
+					if ds := props.Datasource; ds != nil {
+						if output, ok := (*ds).(outputs.PowerBIOutputDataSource); ok {
+							if outputProps := output.Properties; outputProps != nil {
+								dataset := ""
+								if v := outputProps.Dataset; v != nil {
+									dataset = *v
+								}
+								state.DataSet = dataset
+
+								table := ""
+								if v := outputProps.Table; v != nil {
+									table = *v
+								}
+								state.Table = table
+
+								groupId := ""
+								if v := outputProps.GroupId; v != nil {
+									groupId = *v
+								}
+								state.GroupID = groupId
+
+								groupName := ""
+								if v := outputProps.GroupName; v != nil {
+									groupName = *v
+								}
+								state.GroupName = groupName
+							}
+						}
 					}
-
-					streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.StreamingJobName)
-
-					state := OutputPowerBIResourceModel{
-						Name:               id.OutputName,
-						StreamAnalyticsJob: streamingJobId.ID(),
-					}
-
-					dataset := ""
-					if v := output.Properties.Dataset; v != nil {
-						dataset = *v
-					}
-					state.DataSet = dataset
-
-					table := ""
-					if v := output.Properties.Table; v != nil {
-						table = *v
-					}
-					state.Table = table
-
-					groupId := ""
-					if v := output.Properties.GroupId; v != nil {
-						groupId = *v
-					}
-					state.GroupID = groupId
-
-					groupName := ""
-					if v := output.Properties.GroupName; v != nil {
-						groupName = *v
-					}
-					state.GroupName = groupName
-
-					state.TokenUserDisplayName = metadata.ResourceData.Get("token_user_display_name").(string)
-					state.TokenUserPrincipalName = metadata.ResourceData.Get("token_user_principal_name").(string)
-
-					return metadata.Encode(&state)
 				}
 			}
-			return nil
+
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -317,10 +303,8 @@ func (r OutputPowerBIResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if _, err := client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 			return nil
 		},
@@ -340,14 +324,25 @@ func (r OutputPowerBIResource) CustomImporter() sdk.ResourceRunFunc {
 
 		client := metadata.Client.StreamAnalytics.OutputsClient
 		resp, err := client.Get(ctx, *id)
-		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
+		if err != nil {
 			return fmt.Errorf("reading %s: %+v", *id, err)
 		}
 
-		props := resp.Model.Properties
-		if _, ok := props.Datasource.(outputs.PowerBIOutputDataSource); !ok {
-			return fmt.Errorf("specified output is not of type")
+		valid := false
+		if model := resp.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if ds := props.Datasource; ds != nil {
+					if _, ok := (*ds).(outputs.PowerBIOutputDataSource); !ok {
+						valid = true
+					}
+				}
+			}
 		}
+
+		if !valid {
+			return fmt.Errorf("retrieving %s: expected Output to be a PowerBI Output", *id)
+		}
+
 		return nil
 	}
 }

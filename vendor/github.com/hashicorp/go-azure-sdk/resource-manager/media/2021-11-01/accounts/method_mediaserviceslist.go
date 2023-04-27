@@ -50,7 +50,7 @@ func (c AccountsClient) MediaservicesList(ctx context.Context, id commonids.Reso
 	}
 
 	var values struct {
-		Values *[]MediaService `json:"values"`
+		Values *[]MediaService `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

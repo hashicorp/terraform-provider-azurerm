@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -161,13 +162,14 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 		eventHubOutputDataSourceProps.SharedAccessPolicyName = &sharedAccessPolicyName
 	}
 
+	var dataSource outputs.OutputDataSource = outputs.EventHubOutputDataSource{
+		Properties: eventHubOutputDataSourceProps,
+	}
 	props := outputs.Output{
 		Name: utils.String(id.OutputName),
 		Properties: &outputs.OutputProperties{
-			Datasource: &outputs.EventHubOutputDataSource{
-				Properties: eventHubOutputDataSourceProps,
-			},
-			Serialization: serialization,
+			Datasource:    pointer.To(dataSource),
+			Serialization: pointer.To(serialization),
 		},
 	}
 
@@ -213,46 +215,47 @@ func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta i
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.EventHubOutputDataSource)
-			if !ok {
-				return fmt.Errorf("converting %s to a EventHub Output", *id)
-			}
+			if ds := props.Datasource; ds != nil {
+				if output, ok := (*ds).(outputs.EventHubOutputDataSource); ok {
+					if outputProps := output.Properties; outputProps != nil {
+						eventHubName := ""
+						if v := outputProps.EventHubName; v != nil {
+							eventHubName = *v
+						}
+						d.Set("eventhub_name", eventHubName)
 
-			eventHubName := ""
-			if v := output.Properties.EventHubName; v != nil {
-				eventHubName = *v
-			}
-			d.Set("eventhub_name", eventHubName)
+						serviceBusNamespace := ""
+						if v := outputProps.ServiceBusNamespace; v != nil {
+							serviceBusNamespace = *v
+						}
+						d.Set("servicebus_namespace", serviceBusNamespace)
 
-			serviceBusNamespace := ""
-			if v := output.Properties.ServiceBusNamespace; v != nil {
-				serviceBusNamespace = *v
-			}
-			d.Set("servicebus_namespace", serviceBusNamespace)
+						sharedAccessPolicyName := ""
+						if v := outputProps.SharedAccessPolicyName; v != nil {
+							sharedAccessPolicyName = *v
+						}
+						d.Set("shared_access_policy_name", sharedAccessPolicyName)
 
-			sharedAccessPolicyName := ""
-			if v := output.Properties.SharedAccessPolicyName; v != nil {
-				sharedAccessPolicyName = *v
-			}
-			d.Set("shared_access_policy_name", sharedAccessPolicyName)
+						partitionKey := ""
+						if v := outputProps.PartitionKey; v != nil {
+							partitionKey = *v
+						}
+						d.Set("partition_key", partitionKey)
 
-			partitionKey := ""
-			if v := output.Properties.PartitionKey; v != nil {
-				partitionKey = *v
-			}
-			d.Set("partition_key", partitionKey)
+						authMode := ""
+						if v := outputProps.AuthenticationMode; v != nil {
+							authMode = string(*v)
+						}
+						d.Set("authentication_mode", authMode)
 
-			authMode := ""
-			if v := output.Properties.AuthenticationMode; v != nil {
-				authMode = string(*v)
+						var propertyColumns []string
+						if v := outputProps.PropertyColumns; v != nil {
+							propertyColumns = *v
+						}
+						d.Set("property_columns", propertyColumns)
+					}
+				}
 			}
-			d.Set("authentication_mode", authMode)
-
-			var propertyColumns []string
-			if v := output.Properties.PropertyColumns; v != nil {
-				propertyColumns = *v
-			}
-			d.Set("property_columns", propertyColumns)
 
 			if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 				return fmt.Errorf("setting `serialization`: %+v", err)

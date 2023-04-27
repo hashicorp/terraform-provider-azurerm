@@ -58,6 +58,44 @@ func TestAccSoftwareUpdateConfiguration_basic(t *testing.T) {
 	})
 }
 
+func TestAccSoftwareUpdateConfiguration_withTask(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
+	r := newSoftwareUpdateConfigurationResource()
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withTask(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always return null
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+	})
+}
+
+func TestAccSoftwareUpdateConfiguration_defaultTimeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
+	r := newSoftwareUpdateConfigurationResource()
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.defaultTimeZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always return null
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always return null
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+	})
+}
+
 func TestAccSoftwareUpdateConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
@@ -94,6 +132,58 @@ func TestAccSoftwareUpdateConfiguration_windows(t *testing.T) {
 		// scheduleInfo.advancedSchedule always return null
 		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
 	})
+}
+
+func (a SoftwareUpdateConfigurationResource) defaultTimeZone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_automation_software_update_configuration" "test" {
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-suc-%[2]d"
+  operating_system      = "Linux"
+
+  linux {
+    classification_included = "Security"
+    excluded_packages       = ["apt"]
+    included_packages       = ["vim"]
+    reboot                  = "IfRequired"
+  }
+
+  duration            = "PT1H1M1S"
+  virtual_machine_ids = []
+
+  target {
+    azure_query {
+      scope     = [azurerm_resource_group.test.id]
+      locations = [azurerm_resource_group.test.location]
+    }
+
+    non_azure_query {
+      function_alias = "savedSearch1"
+      workspace_id   = azurerm_log_analytics_workspace.test.id
+    }
+  }
+
+  schedule {
+    description         = "foo-schedule"
+    start_time          = "%[3]s"
+    is_enabled          = true
+    interval            = 1
+    frequency           = "Hour"
+    advanced_week_days  = ["Monday", "Tuesday"]
+    advanced_month_days = [1, 10, 15]
+    monthly_occurrence {
+      occurrence = 1
+      day        = "Tuesday"
+    }
+  }
+
+  depends_on = [azurerm_log_analytics_linked_service.test]
+}
+`, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
 
 func (a SoftwareUpdateConfigurationResource) basic(data acceptance.TestData) string {
@@ -141,6 +231,93 @@ resource "azurerm_automation_software_update_configuration" "test" {
     monthly_occurrence {
       occurrence = 1
       day        = "Tuesday"
+    }
+  }
+
+  depends_on = [azurerm_log_analytics_linked_service.test]
+}
+`, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
+}
+
+func (a SoftwareUpdateConfigurationResource) withTask(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+resource "azurerm_automation_runbook" "test" {
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShell"
+
+  content = <<CONTENT
+# Some test content
+# for Terraform acceptance test
+CONTENT
+  tags = {
+    ENV = "runbook_test"
+  }
+}
+
+%s
+
+resource "azurerm_automation_software_update_configuration" "test" {
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-suc-%[2]d"
+  operating_system      = "Linux"
+
+  linux {
+    classification_included = "Security"
+    excluded_packages       = ["apt"]
+    included_packages       = ["vim"]
+    reboot                  = "IfRequired"
+  }
+
+  duration            = "PT1H1M1S"
+  virtual_machine_ids = []
+
+  target {
+    azure_query {
+      scope     = [azurerm_resource_group.test.id]
+      locations = [azurerm_resource_group.test.location]
+    }
+
+    non_azure_query {
+      function_alias = "savedSearch1"
+      workspace_id   = azurerm_log_analytics_workspace.test.id
+    }
+  }
+
+  schedule {
+    description         = "foo-schedule"
+    start_time          = "%[3]s"
+    is_enabled          = true
+    interval            = 1
+    frequency           = "Hour"
+    time_zone           = "Etc/UTC"
+    advanced_week_days  = ["Monday", "Tuesday"]
+    advanced_month_days = [1, 10, 15]
+    monthly_occurrence {
+      occurrence = 1
+      day        = "Tuesday"
+    }
+  }
+
+  pre_task {
+    source = azurerm_automation_runbook.test.name
+    parameters = {
+      COMPUTERNAME = "Foo"
+    }
+  }
+
+  post_task {
+    source = azurerm_automation_runbook.test.name
+    parameters = {
+      COMPUTERNAME = "Foo"
     }
   }
 

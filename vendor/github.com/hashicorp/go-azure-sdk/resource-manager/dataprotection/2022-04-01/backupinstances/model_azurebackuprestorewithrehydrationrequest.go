@@ -70,7 +70,7 @@ func (s *AzureBackupRestoreWithRehydrationRequest) UnmarshalJSON(bytes []byte) e
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RestoreTargetInfo' for 'AzureBackupRestoreWithRehydrationRequest': %+v", err)
 		}
-		s.RestoreTargetInfo = impl
+		s.RestoreTargetInfo = &impl
 	}
 	return nil
 }

@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-01-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -177,13 +180,14 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("AKS not found")
 	}
 
-	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
+	var compute machinelearningcomputes.Compute = expandAksComputeProperties(aksID.ID(), aksModel, d)
 	inferenceClusterParameters := machinelearningcomputes.ComputeResource{
-		Properties: expandAksComputeProperties(aksID.ID(), aksModel, d),
+		Properties: pointer.To(compute),
 		Identity:   identity,
 		Location:   utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -216,9 +220,9 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("name", id.ComputeName)
 
 	// Check that Inference Cluster Response can be read
-	computeResource, err := client.ComputeGet(ctx, *id)
+	resp, err := client.ComputeGet(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(computeResource.HttpResponse) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -231,32 +235,39 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	workspaceId := machinelearningcomputes.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
 	d.Set("machine_learning_workspace_id", workspaceId.ID())
 
-	// use ComputeResource to get to AKS Cluster ID and other properties
-	aksComputeProperties := computeResource.Model.Properties.(machinelearningcomputes.AKS)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	// Retrieve AKS Cluster ID
-	aksId, err := managedclusters.ParseManagedClusterIDInsensitively(*aksComputeProperties.ResourceId)
-	if err != nil {
-		return err
-	}
-	d.Set("kubernetes_cluster_id", aksId.ID())
-	d.Set("cluster_purpose", aksComputeProperties.Properties.ClusterPurpose)
-	d.Set("description", aksComputeProperties.Description)
+		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
 
-	// Retrieve location
-	if location := computeResource.Model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			if aksProps, ok := (*props).(machinelearningcomputes.AKS); ok {
+				aksId, err := managedclusters.ParseManagedClusterIDInsensitively(*aksProps.ResourceId)
+				if err != nil {
+					return err
+				}
+				d.Set("kubernetes_cluster_id", aksId.ID())
+				clusterPurpose := ""
+				if aksProps.Properties != nil {
+					clusterPurpose = string(pointer.From(aksProps.Properties.ClusterPurpose))
+				}
+				d.Set("cluster_purpose", clusterPurpose)
+				d.Set("description", aksProps.Description)
+			}
+		}
 	}
 
-	identity, err := flattenIdentity(computeResource.Model.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	return tags.FlattenAndSet(d, computeResource.Model.Tags)
+	return nil
 }
 
 func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -268,16 +279,11 @@ func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	future, err := client.ComputeDelete(ctx, *id, machinelearningcomputes.ComputeDeleteOperationOptions{
+	opts := machinelearningcomputes.ComputeDeleteOperationOptions{
 		UnderlyingResourceAction: utils.ToPtr(machinelearningcomputes.UnderlyingResourceActionDetach),
-	})
-	if err != nil {
-		return fmt.Errorf("deleting Inference Cluster %q in workspace %q (Resource Group %q): %+v",
-			id.ComputeName, id.WorkspaceName, id.ResourceGroupName, err)
 	}
-	if err := future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting for deletion of Inference Cluster %q in workspace %q (Resource Group %q): %+v",
-			id.ComputeName, id.WorkspaceName, id.ResourceGroupName, err)
+	if err := client.ComputeDeleteThenPoll(ctx, *id, opts); err != nil {
+		return fmt.Errorf("deleting Inference Cluster %s: %+v", *id, err)
 	}
 	return nil
 }

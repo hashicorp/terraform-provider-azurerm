@@ -9,9 +9,9 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UpdateNetworkMappingInputProperties struct {
-	FabricSpecificDetails FabricSpecificUpdateNetworkMappingInput `json:"fabricSpecificDetails"`
-	RecoveryFabricName    *string                                 `json:"recoveryFabricName,omitempty"`
-	RecoveryNetworkId     *string                                 `json:"recoveryNetworkId,omitempty"`
+	FabricSpecificDetails *FabricSpecificUpdateNetworkMappingInput `json:"fabricSpecificDetails,omitempty"`
+	RecoveryFabricName    *string                                  `json:"recoveryFabricName,omitempty"`
+	RecoveryNetworkId     *string                                  `json:"recoveryNetworkId,omitempty"`
 }
 
 var _ json.Unmarshaler = &UpdateNetworkMappingInputProperties{}
@@ -36,7 +36,7 @@ func (s *UpdateNetworkMappingInputProperties) UnmarshalJSON(bytes []byte) error 
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'FabricSpecificDetails' for 'UpdateNetworkMappingInputProperties': %+v", err)
 		}
-		s.FabricSpecificDetails = impl
+		s.FabricSpecificDetails = &impl
 	}
 	return nil
 }

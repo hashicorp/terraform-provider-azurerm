@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
@@ -191,9 +193,10 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		computeClusterAmlComputeProperties.Subnet = &machinelearningcomputes.ResourceId{Id: subnetId.(string)}
 	}
 
-	computeClusterProperties := machinelearningcomputes.AmlCompute{
+	loc := location.Normalize(d.Get("location").(string))
+	var computeClusterProperties machinelearningcomputes.Compute = machinelearningcomputes.AmlCompute{
 		Properties:       &computeClusterAmlComputeProperties,
-		ComputeLocation:  utils.String(d.Get("location").(string)),
+		ComputeLocation:  utils.String(loc),
 		Description:      utils.String(d.Get("description").(string)),
 		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
 	}
@@ -204,15 +207,15 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	computeClusterParameters := machinelearningcomputes.ComputeResource{
-		Properties: computeClusterProperties,
+		Properties: &computeClusterProperties,
 		Identity:   identity,
-		Location:   computeClusterProperties.ComputeLocation,
+		Location:   pointer.To(loc),
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &machinelearningcomputes.Sku{
 			Name: workspace.Model.Sku.Name,
@@ -243,9 +246,9 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("parsing Compute Cluster ID `%q`: %+v", d.Id(), err)
 	}
 
-	computeResource, err := client.ComputeGet(ctx, *id)
+	resp, err := client.ComputeGet(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(computeResource.HttpResponse) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -253,49 +256,52 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	d.Set("name", id.ComputeName)
+	d.Set("machine_learning_workspace_id", workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
 
-	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
-	d.Set("machine_learning_workspace_id", workspaceId.ID())
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	// use ComputeResource to get to AKS Cluster ID and other properties
-	computeCluster := computeResource.Model.Properties.(machinelearningcomputes.AmlCompute)
+		if props := model.Properties; props != nil {
+			if cluster, ok := (*props).(machinelearningcomputes.AmlCompute); ok {
+				localAuthEnabled := true
+				if cluster.DisableLocalAuth != nil {
+					localAuthEnabled = !*cluster.DisableLocalAuth
+				}
+				d.Set("local_auth_enabled", localAuthEnabled)
 
-	if computeCluster.DisableLocalAuth != nil {
-		d.Set("local_auth_enabled", !*computeCluster.DisableLocalAuth)
-	}
-	d.Set("description", computeCluster.Description)
-	if props := computeCluster.Properties; props != nil {
-		d.Set("vm_size", props.VMSize)
-		d.Set("vm_priority", props.VMPriority)
-		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
-		d.Set("ssh", flattenUserAccountCredentials(props.UserAccountCredentials))
-		if props.Subnet != nil {
-			d.Set("subnet_resource_id", props.Subnet.Id)
+				d.Set("description", cluster.Description)
+				if clusterProps := cluster.Properties; clusterProps != nil {
+					d.Set("vm_size", clusterProps.VMSize)
+					d.Set("vm_priority", string(pointer.From(clusterProps.VMPriority)))
+					d.Set("scale_settings", flattenScaleSettings(clusterProps.ScaleSettings))
+					d.Set("ssh", flattenUserAccountCredentials(clusterProps.UserAccountCredentials))
+					if clusterProps.Subnet != nil {
+						d.Set("subnet_resource_id", clusterProps.Subnet.Id)
+					}
+
+					sshPublicAccessEnabled := true
+					if clusterProps.RemoteLoginPortPublicAccess != nil {
+						sshPublicAccessEnabled = *clusterProps.RemoteLoginPortPublicAccess != machinelearningcomputes.RemoteLoginPortPublicAccessDisabled
+					}
+					d.Set("ssh_public_access_enabled", sshPublicAccessEnabled)
+				}
+
+				identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				if err := d.Set("identity", identity); err != nil {
+					return fmt.Errorf("setting `identity`: %+v", err)
+				}
+
+				if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+					return fmt.Errorf("setting `tags`: %+v", err)
+				}
+			}
 		}
-
-		switch *props.RemoteLoginPortPublicAccess {
-		case machinelearningcomputes.RemoteLoginPortPublicAccessNotSpecified:
-			d.Set("ssh_public_access_enabled", nil)
-		case machinelearningcomputes.RemoteLoginPortPublicAccessEnabled:
-			d.Set("ssh_public_access_enabled", true)
-		case machinelearningcomputes.RemoteLoginPortPublicAccessDisabled:
-			d.Set("ssh_public_access_enabled", false)
-		}
 	}
 
-	if location := computeResource.Model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
-	identity, err := flattenIdentity(computeResource.Model.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	return tags.FlattenAndSet(d, computeResource.Model.Tags)
+	return nil
 }
 
 func resourceComputeClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {

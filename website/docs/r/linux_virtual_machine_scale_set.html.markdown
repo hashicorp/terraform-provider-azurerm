@@ -168,7 +168,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
-* `gallery_application` - (Optional) A `gallery_application` block as defined below.
+* `gallery_application` - (Optional) One or more `gallery_application` blocks as defined below.
 
 * `health_probe_id` - (Optional) The ID of a Load Balancer Probe which should be used to determine the health of an instance. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
 
@@ -590,7 +590,7 @@ A `spot_restore` block supports the following:
 
 ## Attributes Reference
 
-In addition to all arguments above, the following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Linux Virtual Machine Scale Set.
 

@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -163,27 +164,26 @@ func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.Resou
 		dataSourceProperties.SharedAccessPolicyKey = utils.String(sharedAccessPolicyKey)
 	}
 
+	var dataSource outputs.OutputDataSource = outputs.ServiceBusQueueOutputDataSource{
+		Properties: dataSourceProperties,
+	}
 	props := outputs.Output{
 		Name: utils.String(id.OutputName),
 		Properties: &outputs.OutputProperties{
-			Datasource: &outputs.ServiceBusQueueOutputDataSource{
-				Properties: dataSourceProperties,
-			},
-			Serialization: serialization,
+			Datasource:    pointer.To(dataSource),
+			Serialization: pointer.To(serialization),
 		},
 	}
 
 	// TODO: split the create/update functions to allow for ignore changes etc
-	var createOpts outputs.CreateOrReplaceOperationOptions
-	var updateOpts outputs.UpdateOperationOptions
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, id, props, createOpts); err != nil {
+		if _, err := client.CreateOrReplace(ctx, id, props, outputs.DefaultCreateOrReplaceOperationOptions()); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		d.SetId(id.ID())
-	} else if _, err := client.Update(ctx, id, props, updateOpts); err != nil {
-		return fmt.Errorf("uUpdating %s: %+v", id, err)
+	} else if _, err := client.Update(ctx, id, props, outputs.DefaultUpdateOperationOptions()); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceStreamAnalyticsOutputServiceBusQueueRead(d, meta)
@@ -216,46 +216,47 @@ func resourceStreamAnalyticsOutputServiceBusQueueRead(d *pluginsdk.ResourceData,
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			output, ok := props.Datasource.(outputs.ServiceBusQueueOutputDataSource)
-			if !ok {
-				return fmt.Errorf("converting %s to a ServiceBus Queue Output", *id)
-			}
+			if ds := props.Datasource; ds != nil {
+				if output, ok := (*ds).(outputs.ServiceBusQueueOutputDataSource); ok {
+					if outputProps := output.Properties; outputProps != nil {
+						queue := ""
+						if v := outputProps.QueueName; v != nil {
+							queue = *v
+						}
+						d.Set("queue_name", queue)
 
-			queue := ""
-			if v := output.Properties.QueueName; v != nil {
-				queue = *v
-			}
-			d.Set("queue_name", queue)
+						namespace := ""
+						if v := outputProps.ServiceBusNamespace; v != nil {
+							namespace = *v
+						}
+						d.Set("servicebus_namespace", namespace)
 
-			namespace := ""
-			if v := output.Properties.ServiceBusNamespace; v != nil {
-				namespace = *v
-			}
-			d.Set("servicebus_namespace", namespace)
+						policyName := ""
+						if v := outputProps.SharedAccessPolicyName; v != nil {
+							policyName = *v
+						}
+						d.Set("shared_access_policy_name", policyName)
 
-			policyName := ""
-			if v := output.Properties.SharedAccessPolicyName; v != nil {
-				policyName = *v
-			}
-			d.Set("shared_access_policy_name", policyName)
+						columns := make([]string, 0)
+						if v := outputProps.PropertyColumns; v != nil {
+							columns = *v
+						}
+						d.Set("property_columns", columns)
 
-			var columns []string
-			if v := output.Properties.PropertyColumns; v != nil {
-				columns = *v
-			}
-			d.Set("property_columns", columns)
+						var systemColumns interface{}
+						if v := outputProps.SystemPropertyColumns; v != nil {
+							systemColumns = *v
+						}
+						d.Set("system_property_columns", systemColumns)
 
-			var systemColumns interface{}
-			if v := output.Properties.SystemPropertyColumns; v != nil {
-				systemColumns = *v
+						authMode := ""
+						if v := outputProps.AuthenticationMode; v != nil {
+							authMode = string(*v)
+						}
+						d.Set("authentication_mode", authMode)
+					}
+				}
 			}
-			d.Set("system_property_columns", systemColumns)
-
-			authMode := ""
-			if v := output.Properties.AuthenticationMode; v != nil {
-				authMode = string(*v)
-			}
-			d.Set("authentication_mode", authMode)
 
 			if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 				return fmt.Errorf("setting `serialization`: %+v", err)

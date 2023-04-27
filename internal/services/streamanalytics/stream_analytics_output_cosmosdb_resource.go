@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -137,12 +138,13 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 				PartitionKey:          utils.String(model.PartitionKey),
 			}
 
+			var outputDataSource outputs.OutputDataSource = outputs.DocumentDbOutputDataSource{
+				Properties: documentDbOutputProps,
+			}
 			props := outputs.Output{
 				Name: utils.String(model.Name),
 				Properties: &outputs.OutputProperties{
-					Datasource: &outputs.DocumentDbOutputDataSource{
-						Properties: documentDbOutputProps,
-					},
+					Datasource: pointer.To(outputDataSource),
 				},
 			}
 
@@ -176,46 +178,43 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
+			streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.StreamingJobName)
+			state := OutputCosmosDBResourceModel{
+				Name:               id.OutputName,
+				StreamAnalyticsJob: streamingJobId.ID(),
+				AccountKey:         metadata.ResourceData.Get("cosmosdb_account_key").(string),
+			}
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					output, ok := props.Datasource.(outputs.DocumentDbOutputDataSource)
-					if !ok {
-						return fmt.Errorf("converting %s to a CosmosDb Output", *id)
+					if ds := props.Datasource; ds != nil {
+						if output, ok := (*ds).(outputs.DocumentDbOutputDataSource); ok {
+							if outputProps := output.Properties; outputProps != nil {
+								databaseId := cosmosParse.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, *outputProps.AccountId, *outputProps.Database)
+								state.Database = databaseId.ID()
+
+								collectionName := ""
+								if v := outputProps.CollectionNamePattern; v != nil {
+									collectionName = *v
+								}
+								state.ContainerName = collectionName
+
+								document := ""
+								if v := outputProps.DocumentId; v != nil {
+									document = *v
+								}
+								state.DocumentID = document
+
+								partitionKey := ""
+								if v := outputProps.PartitionKey; v != nil {
+									partitionKey = *v
+								}
+								state.PartitionKey = partitionKey
+							}
+						}
 					}
-
-					streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroupName, id.StreamingJobName)
-					state := OutputCosmosDBResourceModel{
-						Name:               id.OutputName,
-						StreamAnalyticsJob: streamingJobId.ID(),
-					}
-
-					state.AccountKey = metadata.ResourceData.Get("cosmosdb_account_key").(string)
-
-					databaseId := cosmosParse.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, *output.Properties.AccountId, *output.Properties.Database)
-					state.Database = databaseId.ID()
-
-					collectionName := ""
-					if v := output.Properties.CollectionNamePattern; v != nil {
-						collectionName = *v
-					}
-					state.ContainerName = collectionName
-
-					document := ""
-					if v := output.Properties.DocumentId; v != nil {
-						document = *v
-					}
-					state.DocumentID = document
-
-					partitionKey := ""
-					if v := output.Properties.PartitionKey; v != nil {
-						partitionKey = *v
-					}
-					state.PartitionKey = partitionKey
-
-					return metadata.Encode(&state)
 				}
 			}
-			return nil
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -232,10 +231,8 @@ func (r OutputCosmosDBResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if _, err := client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 			return nil
 		},
@@ -267,21 +264,21 @@ func (r OutputCosmosDBResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChangesExcept("name", "stream_analytics_job_id") {
-				props := outputs.Output{
-					Properties: &outputs.OutputProperties{
-						Datasource: outputs.DocumentDbOutputDataSource{
-							Properties: &outputs.DocumentDbOutputDataSourceProperties{
-								AccountKey:            &state.AccountKey,
-								Database:              &databaseId.Name,
-								CollectionNamePattern: &state.ContainerName,
-								DocumentId:            &state.DocumentID,
-								PartitionKey:          &state.PartitionKey,
-							},
-						},
+				var dataSource outputs.OutputDataSource = outputs.DocumentDbOutputDataSource{
+					Properties: &outputs.DocumentDbOutputDataSourceProperties{
+						AccountKey:            &state.AccountKey,
+						Database:              &databaseId.Name,
+						CollectionNamePattern: &state.ContainerName,
+						DocumentId:            &state.DocumentID,
+						PartitionKey:          &state.PartitionKey,
 					},
 				}
-				var opts outputs.UpdateOperationOptions
-				if _, err := client.Update(ctx, *id, props, opts); err != nil {
+				props := outputs.Output{
+					Properties: &outputs.OutputProperties{
+						Datasource: pointer.To(dataSource),
+					},
+				}
+				if _, err := client.Update(ctx, *id, props, outputs.DefaultUpdateOperationOptions()); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}
@@ -300,14 +297,24 @@ func (r OutputCosmosDBResource) CustomImporter() sdk.ResourceRunFunc {
 
 		client := metadata.Client.StreamAnalytics.OutputsClient
 		resp, err := client.Get(ctx, *id)
-		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
+		if err != nil {
 			return fmt.Errorf("reading %s: %+v", *id, err)
 		}
 
-		props := resp.Model.Properties
-		if _, ok := props.Datasource.(outputs.DocumentDbOutputDataSource); !ok {
-			return fmt.Errorf("specified output is not of type")
+		valid := false
+		if model := resp.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if dataSource := props.Datasource; dataSource != nil {
+					if _, ok := (*dataSource).(outputs.DocumentDbOutputDataSource); !ok {
+						valid = true
+					}
+				}
+			}
 		}
+		if !valid {
+			return fmt.Errorf("reading %s: Output was not a DocumentDB Output", *id)
+		}
+
 		return nil
 	}
 }

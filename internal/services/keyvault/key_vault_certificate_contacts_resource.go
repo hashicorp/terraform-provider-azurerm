@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -35,12 +37,7 @@ type Contact struct {
 
 func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"key_vault_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.VaultID,
-		},
+		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
 
 		"contact": {
 			Type:     pluginsdk.TypeSet,
@@ -97,7 +94,7 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			keyVaultId, err := parse.VaultID(state.KeyVaultId)
+			keyVaultId, err := commonids.ParseKeyVaultID(state.KeyVaultId)
 			if err != nil {
 				return fmt.Errorf("parsing `key_vault_id`, %+v", err)
 			}
@@ -122,8 +119,10 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if existing.ContactList != nil && len(*existing.ContactList) != 0 {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				if existing.ContactList != nil && len(*existing.ContactList) != 0 {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			contacts := keyvault.Contacts{
@@ -161,16 +160,18 @@ func (r KeyVaultCertificateContactsResource) Read() sdk.ResourceFunc {
 				metadata.Logger.Infof("Unable to determine the Resource ID for the Key Vault at URL %s - removing from state!", id.KeyVaultBaseUrl)
 				return metadata.MarkAsGone(id)
 			}
-			keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+			keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 			if err != nil {
 				return fmt.Errorf("parsing Key Vault ID: %+v", err)
 			}
 
 			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", id.KeyVaultBaseUrl, err)
+				if utils.ResponseWasNotFound(existing.Response) {
+					metadata.Logger.Infof("No Certificate Contacts could be found at %s - removing from state!", id.KeyVaultBaseUrl)
+					return metadata.MarkAsGone(id)
 				}
+				return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", id.KeyVaultBaseUrl, err)
 			}
 
 			state := KeyVaultCertificateContactsResourceModel{
@@ -204,9 +205,7 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", id.KeyVaultBaseUrl, err)
-				}
+				return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", id.KeyVaultBaseUrl, err)
 			}
 
 			if metadata.ResourceData.HasChange("contact") {

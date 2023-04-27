@@ -34,7 +34,7 @@ func (s *TargetCopySetting) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'CopyAfter' for 'TargetCopySetting': %+v", err)
 		}
-		s.CopyAfter = impl
+		s.CopyAfter = &impl
 	}
 	return nil
 }

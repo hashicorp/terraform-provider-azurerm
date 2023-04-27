@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -159,7 +159,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.RegistryID,
+			ValidateFunc: registries.ValidateRegistryID,
 		},
 		"platform": {
 			Type:     pluginsdk.TypeList,
@@ -171,28 +171,28 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(containerregistry.OSWindows),
-							string(containerregistry.OSLinux),
+							string(tasks.OSWindows),
+							string(tasks.OSLinux),
 						}, false),
 					},
 					"architecture": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(containerregistry.ArchitectureAmd64),
-							string(containerregistry.ArchitectureArm),
-							string(containerregistry.ArchitectureArm64),
-							string(containerregistry.ArchitectureThreeEightSix),
-							string(containerregistry.ArchitectureX86),
+							string(tasks.ArchitectureAmdSixFour),
+							string(tasks.ArchitectureArm),
+							string(tasks.ArchitectureArmSixFour),
+							string(tasks.ArchitectureThreeEightSix),
+							string(tasks.ArchitectureXEightSix),
 						}, false),
 					},
 					"variant": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(containerregistry.VariantV6),
-							string(containerregistry.VariantV7),
-							string(containerregistry.VariantV8),
+							string(tasks.VariantVSix),
+							string(tasks.VariantVSeven),
+							string(tasks.VariantVEight),
 						}, false),
 					},
 				},
@@ -370,8 +370,8 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(containerregistry.BaseImageTriggerTypeAll),
-							string(containerregistry.BaseImageTriggerTypeRuntime),
+							string(tasks.BaseImageTriggerTypeAll),
+							string(tasks.BaseImageTriggerTypeRuntime),
 						}, false),
 					},
 					"enabled": {
@@ -389,8 +389,8 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(containerregistry.UpdateTriggerPayloadTypeDefault),
-							string(containerregistry.UpdateTriggerPayloadTypeToken),
+							string(tasks.UpdateTriggerPayloadTypeDefault),
+							string(tasks.UpdateTriggerPayloadTypeToken),
 						}, false),
 					},
 				},
@@ -412,8 +412,8 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerregistry.SourceTriggerEventCommit),
-								string(containerregistry.SourceTriggerEventPullrequest),
+								string(tasks.SourceTriggerEventCommit),
+								string(tasks.SourceTriggerEventPullrequest),
 							}, false),
 						},
 					},
@@ -421,8 +421,8 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(containerregistry.SourceControlTypeGithub),
-							string(containerregistry.SourceControlTypeVisualStudioTeamService),
+							string(tasks.SourceControlTypeGithub),
+							string(tasks.SourceControlTypeVisualStudioTeamService),
 						}, false),
 					},
 					"repository_url": {
@@ -444,8 +444,8 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 									Type:     pluginsdk.TypeString,
 									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										string(containerregistry.TokenTypePAT),
-										string(containerregistry.TokenTypeOAuth),
+										string(tasks.TokenTypePAT),
+										string(tasks.TokenTypeOAuth),
 									}, false),
 								},
 								"token": {
@@ -521,8 +521,8 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 									Type:     pluginsdk.TypeString,
 									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										string(containerregistry.SourceRegistryLoginModeNone),
-										string(containerregistry.SourceRegistryLoginModeDefault),
+										string(tasks.SourceRegistryLoginModeNone),
+										string(tasks.SourceRegistryLoginModeDefault),
 									}, false),
 								},
 							},
@@ -604,7 +604,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: validation.IntBetween(300, 28800),
 			Default:      3600,
 		},
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -652,83 +652,80 @@ func (r ContainerRegistryTaskResource) ModelObject() interface{} {
 }
 
 func (r ContainerRegistryTaskResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ContainerRegistryTaskID
+	return tasks.ValidateTaskID
 }
 
 func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.TasksClient
-			registryClient := metadata.Client.Containers.RegistriesClient
+			client := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Tasks
+			registryClient := metadata.Client.Containers.ContainerRegistryClient_v2021_08_01_preview.Registries
 
 			var model ContainerRegistryTaskModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			registryId, err := parse.RegistryID(model.ContainerRegistryId)
+			registryId, err := registries.ParseRegistryID(model.ContainerRegistryId)
 			if err != nil {
 				return err
 			}
 
-			registry, err := registryClient.Get(ctx, registryId.ResourceGroup, registryId.Name)
+			registry, err := registryClient.Get(ctx, *registryId)
 			if err != nil {
 				return fmt.Errorf("getting registry %s: %+v", registryId, err)
 			}
 
-			id := parse.NewContainerRegistryTaskID(registryId.SubscriptionId, registryId.ResourceGroup, registryId.Name, model.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TaskName)
+			id := tasks.NewTaskID(registryId.SubscriptionId, registryId.ResourceGroupName, registryId.RegistryName, model.Name)
+			existing, err := client.Get(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			status := containerregistry.TaskStatusDisabled
+			status := tasks.TaskStatusDisabled
 			if model.Enabled {
-				status = containerregistry.TaskStatusEnabled
+				status = tasks.TaskStatusEnabled
 			}
 
-			expandedIdentity, err := expandRegistryTaskIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			params := containerregistry.Task{
-				TaskProperties: &containerregistry.TaskProperties{
+			taskStep := expandRegistryTaskStep(model)
+			params := tasks.Task{
+				Properties: &tasks.TaskProperties{
 					Platform:           expandRegistryTaskPlatform(model.Platform),
-					Step:               expandRegistryTaskStep(model),
+					Step:               pointer.To(taskStep),
 					Trigger:            expandRegistryTaskTrigger(model),
-					Status:             status,
+					Status:             pointer.To(status),
 					IsSystemTask:       &model.IsSystemTask,
-					Timeout:            utils.Int32(int32(model.TimeoutInSec)),
+					Timeout:            utils.Int64(int64(model.TimeoutInSec)),
 					Credentials:        expandRegistryTaskCredentials(model.RegistryCredential),
 					AgentConfiguration: expandRegistryTaskAgentProperties(model.AgentConfig),
 				},
 
 				// The location of the task must be the same as the registry, otherwise the API will raise error complaining can't find the registry.
-				Location: utils.String(location.NormalizeNilable(registry.Location)),
+				Location: location.Normalize(registry.Model.Location),
 				Identity: expandedIdentity,
-				Tags:     tags.FromTypedObject(model.Tags),
+				Tags:     &model.Tags,
 			}
 
 			if model.AgentPoolName != "" {
-				params.TaskProperties.AgentPoolName = &model.AgentPoolName
+				params.Properties.AgentPoolName = &model.AgentPoolName
 			}
 			if model.LogTemplate != "" {
-				params.TaskProperties.LogTemplate = &model.LogTemplate
+				params.Properties.LogTemplate = &model.LogTemplate
 			}
 
-			future, err := client.Create(ctx, id.ResourceGroup, id.RegistryName, id.TaskName, params)
-			if err != nil {
+			if err := client.CreateThenPoll(ctx, id, params); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -742,16 +739,16 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.TasksClient
-			id, err := parse.ContainerRegistryTaskID(metadata.ResourceData.Id())
+			client := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Tasks
+			id, err := tasks.ParseTaskID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			registryId := parse.NewRegistryID(id.SubscriptionId, id.ResourceGroup, id.RegistryName)
+			registryId := registries.NewRegistryID(id.SubscriptionId, id.ResourceGroupName, id.RegistryName)
 
-			task, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TaskName)
+			task, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(task.Response) {
+				if response.WasNotFound(task.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -777,32 +774,48 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 				sourceTrigger      []SourceTrigger
 				timerTrigger       []TimerTrigger
 				registryCredential []RegistryCredential
+				tag                map[string]string
 			)
-			if props := task.TaskProperties; props != nil {
-				agentConfig = flattenRegistryTaskAgentProperties(props.AgentConfiguration)
-				if props.AgentPoolName != nil {
-					agentPoolName = *props.AgentPoolName
+
+			if model := task.Model; model != nil {
+				if model.Tags != nil {
+					tag = *model.Tags
 				}
-				if props.IsSystemTask != nil {
-					isSystemTask = *props.IsSystemTask
+
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				if props.LogTemplate != nil {
-					logTemplate = *props.LogTemplate
+				if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+					return fmt.Errorf("setting `identity`: %+v", err)
 				}
-				platform = flattenRegistryTaskPlatform(props.Platform)
-				enabled = props.Status == containerregistry.TaskStatusEnabled
-				if props.Timeout != nil {
-					timeoutInSec = int(*props.Timeout)
+
+				if props := model.Properties; props != nil {
+					agentConfig = flattenRegistryTaskAgentProperties(props.AgentConfiguration)
+					if props.AgentPoolName != nil {
+						agentPoolName = *props.AgentPoolName
+					}
+					if props.IsSystemTask != nil {
+						isSystemTask = *props.IsSystemTask
+					}
+					if props.LogTemplate != nil {
+						logTemplate = *props.LogTemplate
+					}
+					platform = flattenRegistryTaskPlatform(props.Platform)
+					enabled = *props.Status == tasks.TaskStatusEnabled
+					if props.Timeout != nil {
+						timeoutInSec = int(*props.Timeout)
+					}
+					dockerStep = flattenRegistryTaskDockerStep(props.Step, diffOrStateModel)
+					fileTaskStep = flattenRegistryTaskFileTaskStep(props.Step, diffOrStateModel)
+					encodedTaskStep = flattenRegistryTaskEncodedTaskStep(props.Step, diffOrStateModel)
+					if trigger := props.Trigger; trigger != nil {
+						baseImageTrigger = flattenRegistryTaskBaseImageTrigger(trigger.BaseImageTrigger, diffOrStateModel)
+						sourceTrigger = flattenRegistryTaskSourceTriggers(trigger.SourceTriggers, diffOrStateModel)
+						timerTrigger = flattenRegistryTaskTimerTriggers(trigger.TimerTriggers)
+					}
+					registryCredential = flattenRegistryTaskCredentials(props.Credentials, diffOrStateModel)
 				}
-				dockerStep = flattenRegistryTaskDockerStep(props.Step, diffOrStateModel)
-				fileTaskStep = flattenRegistryTaskFileTaskStep(props.Step, diffOrStateModel)
-				encodedTaskStep = flattenRegistryTaskEncodedTaskStep(props.Step, diffOrStateModel)
-				if trigger := props.Trigger; trigger != nil {
-					baseImageTrigger = flattenRegistryTaskBaseImageTrigger(trigger.BaseImageTrigger, diffOrStateModel)
-					sourceTrigger = flattenRegistryTaskSourceTriggers(trigger.SourceTriggers, diffOrStateModel)
-					timerTrigger = flattenRegistryTaskTimerTriggers(trigger.TimerTriggers)
-				}
-				registryCredential = flattenRegistryTaskCredentials(props.Credentials, diffOrStateModel)
 			}
 
 			model := ContainerRegistryTaskModel{
@@ -822,19 +835,11 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 				SourceTrigger:       sourceTrigger,
 				TimerTrigger:        timerTrigger,
 				RegistryCredential:  registryCredential,
-				Tags:                tags.ToTypedObject(task.Tags),
+				Tags:                tag,
 			}
 
 			if err := metadata.Encode(&model); err != nil {
 				return fmt.Errorf("encoding: %+v", err)
-			}
-
-			flattenedIdentity, err := flattenRegistryTaskIdentity(task.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
-			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
 			return nil
@@ -846,22 +851,16 @@ func (r ContainerRegistryTaskResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.TasksClient
+			client := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Tasks
 
-			id, err := parse.ContainerRegistryTaskID(metadata.ResourceData.Id())
+			id, err := tasks.ParseTaskID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.RegistryName, id.TaskName)
-			if err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				if !response.WasNotFound(future.Response()) {
-					return fmt.Errorf("waiting for removal of %s: %+v", id, err)
-				}
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil
@@ -873,18 +872,19 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.ContainerRegistryTaskID(metadata.ResourceData.Id())
+			id, err := tasks.ParseTaskID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			client := metadata.Client.Containers.TasksClient
-			existing, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TaskName)
+			client := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Tasks
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: +%v", *id, err)
 			}
-			if existing.TaskProperties == nil {
-				return fmt.Errorf("unexpected null properties of %s", *id)
+
+			if existing.Model == nil {
+				return fmt.Errorf("model is nil for %s", *id)
 			}
 
 			var model ContainerRegistryTaskModel
@@ -893,65 +893,62 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("platform") {
-				existing.TaskProperties.Platform = expandRegistryTaskPlatform(model.Platform)
+				existing.Model.Properties.Platform = expandRegistryTaskPlatform(model.Platform)
 			}
 			if metadata.ResourceData.HasChange("docker_step") || metadata.ResourceData.HasChange("file_step") || metadata.ResourceData.HasChange("encoded_step") {
-				existing.TaskProperties.Step = expandRegistryTaskStep(model)
+				taskStep := expandRegistryTaskStep(model)
+				existing.Model.Properties.Step = pointer.To(taskStep)
 			}
 
 			if metadata.ResourceData.HasChange("base_image_trigger") || metadata.ResourceData.HasChange("source_trigger") || metadata.ResourceData.HasChange("timer_trigger") {
-				existing.TaskProperties.Trigger = expandRegistryTaskTrigger(model)
+				existing.Model.Properties.Trigger = expandRegistryTaskTrigger(model)
 			}
 
-			if existing.TaskProperties.Trigger != nil {
-				if !metadata.ResourceData.HasChange("source_triggers") && existing.TaskProperties.Trigger.SourceTriggers != nil {
+			if existing.Model.Properties.Trigger != nil {
+				if !metadata.ResourceData.HasChange("source_triggers") && existing.Model.Properties.Trigger.SourceTriggers != nil {
 					// For update that is not affecting source_triggers, we need to patch the source_triggers to include the properties missing in the response of GET.
-					existing.TaskProperties.Trigger.SourceTriggers = patchRegistryTaskTriggerSourceTrigger(*existing.TaskProperties.Trigger.SourceTriggers, model)
+					existing.Model.Properties.Trigger.SourceTriggers = patchRegistryTaskTriggerSourceTrigger(*existing.Model.Properties.Trigger.SourceTriggers, model)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := expandRegistryTaskIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
-				existing.Identity = expandedIdentity
+				existing.Model.Identity = expandedIdentity
 			}
 
 			// Deliberately always set "registry_credential" as the custom registry's credentials are not returned by API, but are required for a PUT request.
-			existing.TaskProperties.Credentials = expandRegistryTaskCredentials(model.RegistryCredential)
+			existing.Model.Properties.Credentials = expandRegistryTaskCredentials(model.RegistryCredential)
 
 			if metadata.ResourceData.HasChange("agent_setting") {
-				existing.TaskProperties.AgentConfiguration = expandRegistryTaskAgentProperties(model.AgentConfig)
+				existing.Model.Properties.AgentConfiguration = expandRegistryTaskAgentProperties(model.AgentConfig)
 			}
 			if metadata.ResourceData.HasChange("agent_pool_name") && model.AgentPoolName != "" {
-				existing.TaskProperties.AgentPoolName = &model.AgentPoolName
+				existing.Model.Properties.AgentPoolName = &model.AgentPoolName
 			}
 			if metadata.ResourceData.HasChange("enabled") {
-				status := containerregistry.TaskStatusDisabled
+				status := tasks.TaskStatusDisabled
 				if model.Enabled {
-					status = containerregistry.TaskStatusEnabled
+					status = tasks.TaskStatusEnabled
 				}
-				existing.TaskProperties.Status = status
+				existing.Model.Properties.Status = pointer.To(status)
 			}
 			if metadata.ResourceData.HasChange("log_template") && model.LogTemplate != "" {
-				existing.TaskProperties.LogTemplate = &model.LogTemplate
+				existing.Model.Properties.LogTemplate = &model.LogTemplate
 			}
 			if metadata.ResourceData.HasChange("timeout_in_seconds") {
-				existing.TaskProperties.Timeout = utils.Int32(int32(model.TimeoutInSec))
+				existing.Model.Properties.Timeout = utils.Int64(int64(model.TimeoutInSec))
 			}
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Tags = tags.FromTypedObject(model.Tags)
+				existing.Model.Tags = &model.Tags
 			}
 
 			// Due to the fact that the service doesn't honor explicitly set to null fields in the PATCH request,
 			// we can not use PATCH (i.e. the Update) here.
-			future, err := client.Create(ctx, id.ResourceGroup, id.RegistryName, id.TaskName, existing)
-			if err != nil {
+			if err := client.CreateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of %s: %+v", id, err)
 			}
 
 			return nil
@@ -959,57 +956,58 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func expandRegistryTaskTrigger(model ContainerRegistryTaskModel) *containerregistry.TriggerProperties {
+func expandRegistryTaskTrigger(model ContainerRegistryTaskModel) *tasks.TriggerProperties {
 	baseImageTrigger := expandRegistryTaskBaseImageTrigger(model.BaseImageTrigger)
 	sourceTriggers := expandRegistryTaskSourceTriggers(model.SourceTrigger)
 	timerTriggers := expandRegistryTaskTimerTriggers(model.TimerTrigger)
 	if baseImageTrigger == nil && sourceTriggers == nil && timerTriggers == nil {
 		return nil
 	}
-	return &containerregistry.TriggerProperties{
+	return &tasks.TriggerProperties{
 		BaseImageTrigger: baseImageTrigger,
 		SourceTriggers:   sourceTriggers,
 		TimerTriggers:    timerTriggers,
 	}
 }
 
-func expandRegistryTaskBaseImageTrigger(triggers []BaseImageTrigger) *containerregistry.BaseImageTrigger {
+func expandRegistryTaskBaseImageTrigger(triggers []BaseImageTrigger) *tasks.BaseImageTrigger {
 	if len(triggers) == 0 {
 		return nil
 	}
 
 	trigger := triggers[0]
-	status := containerregistry.TriggerStatusDisabled
+	status := tasks.TriggerStatusDisabled
 	if trigger.Enabled {
-		status = containerregistry.TriggerStatusEnabled
+		status = tasks.TriggerStatusEnabled
 	}
-	out := &containerregistry.BaseImageTrigger{
-		Name:                 &trigger.Name,
-		BaseImageTriggerType: containerregistry.BaseImageTriggerType(trigger.Type),
-		Status:               status,
+	out := &tasks.BaseImageTrigger{
+		Name:                 trigger.Name,
+		BaseImageTriggerType: tasks.BaseImageTriggerType(trigger.Type),
+		Status:               &status,
 	}
 	if trigger.UpdateTriggerEndpoint != "" {
 		out.UpdateTriggerEndpoint = &trigger.UpdateTriggerEndpoint
 	}
 	if trigger.UpdateTriggerPayloadType != "" {
-		out.UpdateTriggerPayloadType = containerregistry.UpdateTriggerPayloadType(trigger.UpdateTriggerPayloadType)
+		out.UpdateTriggerPayloadType = pointer.To(tasks.UpdateTriggerPayloadType(trigger.UpdateTriggerPayloadType))
 	}
 	return out
 }
 
-func flattenRegistryTaskBaseImageTrigger(trigger *containerregistry.BaseImageTrigger, model ContainerRegistryTaskModel) []BaseImageTrigger {
+func flattenRegistryTaskBaseImageTrigger(trigger *tasks.BaseImageTrigger, model ContainerRegistryTaskModel) []BaseImageTrigger {
 	if trigger == nil {
 		return nil
 	}
 
+	payloadType := ""
+	if v := trigger.UpdateTriggerPayloadType; v != nil {
+		payloadType = string(*v)
+	}
 	obj := BaseImageTrigger{
 		Type:                     string(trigger.BaseImageTriggerType),
-		Enabled:                  trigger.Status == containerregistry.TriggerStatusEnabled,
-		UpdateTriggerPayloadType: string(trigger.UpdateTriggerPayloadType),
-	}
-
-	if trigger.Name != nil {
-		obj.Name = *trigger.Name
+		Enabled:                  *trigger.Status == tasks.TriggerStatusEnabled,
+		UpdateTriggerPayloadType: payloadType,
+		Name:                     trigger.Name,
 	}
 
 	// UpdateTriggerEndpoint is not returned from API, setting it from config.
@@ -1020,30 +1018,30 @@ func flattenRegistryTaskBaseImageTrigger(trigger *containerregistry.BaseImageTri
 	return []BaseImageTrigger{obj}
 }
 
-func expandRegistryTaskSourceTriggers(triggers []SourceTrigger) *[]containerregistry.SourceTrigger {
+func expandRegistryTaskSourceTriggers(triggers []SourceTrigger) *[]tasks.SourceTrigger {
 	if len(triggers) == 0 {
 		return nil
 	}
-	out := make([]containerregistry.SourceTrigger, 0, len(triggers))
+	out := make([]tasks.SourceTrigger, 0, len(triggers))
 	for _, trigger := range triggers {
-		status := containerregistry.TriggerStatusDisabled
+		status := tasks.TriggerStatusDisabled
 		if trigger.Enabled {
-			status = containerregistry.TriggerStatusEnabled
+			status = tasks.TriggerStatusEnabled
 		}
-		sourceTrigger := containerregistry.SourceTrigger{
-			Name:   &trigger.Name,
-			Status: status,
-			SourceRepository: &containerregistry.SourceProperties{
-				SourceControlType: containerregistry.SourceControlType(trigger.SourceType),
-				RepositoryURL:     &trigger.RepositoryURL,
+		sourceTrigger := tasks.SourceTrigger{
+			Name:   trigger.Name,
+			Status: &status,
+			SourceRepository: tasks.SourceProperties{
+				SourceControlType: tasks.SourceControlType(trigger.SourceType),
+				RepositoryUrl:     trigger.RepositoryURL,
 			},
 		}
 		if len(trigger.Events) != 0 {
-			events := make([]containerregistry.SourceTriggerEvent, 0, len(trigger.Events))
+			events := make([]tasks.SourceTriggerEvent, 0, len(trigger.Events))
 			for _, event := range trigger.Events {
-				events = append(events, containerregistry.SourceTriggerEvent(event))
+				events = append(events, tasks.SourceTriggerEvent(event))
 			}
-			sourceTrigger.SourceTriggerEvents = &events
+			sourceTrigger.SourceTriggerEvents = events
 		}
 
 		if trigger.Branch != "" {
@@ -1057,33 +1055,29 @@ func expandRegistryTaskSourceTriggers(triggers []SourceTrigger) *[]containerregi
 	return &out
 }
 
-func flattenRegistryTaskSourceTriggers(triggers *[]containerregistry.SourceTrigger, model ContainerRegistryTaskModel) []SourceTrigger {
+func flattenRegistryTaskSourceTriggers(triggers *[]tasks.SourceTrigger, model ContainerRegistryTaskModel) []SourceTrigger {
 	if triggers == nil {
 		return nil
 	}
 	out := make([]SourceTrigger, 0, len(*triggers))
 	for i, trigger := range *triggers {
 		obj := SourceTrigger{
-			Enabled: trigger.Status == containerregistry.TriggerStatusEnabled,
+			Enabled: *trigger.Status == tasks.TriggerStatusEnabled,
 		}
-		if trigger.Name != nil {
-			obj.Name = *trigger.Name
-		}
+		obj.Name = trigger.Name
+
 		if trigger.SourceTriggerEvents != nil {
-			events := make([]string, 0, len(*trigger.SourceTriggerEvents))
-			for _, event := range *trigger.SourceTriggerEvents {
+			events := make([]string, 0, len(trigger.SourceTriggerEvents))
+			for _, event := range trigger.SourceTriggerEvents {
 				events = append(events, string(event))
 			}
 			obj.Events = events
 		}
-		if sourceProp := trigger.SourceRepository; sourceProp != nil {
-			obj.SourceType = string(sourceProp.SourceControlType)
-			if sourceProp.RepositoryURL != nil {
-				obj.RepositoryURL = *sourceProp.RepositoryURL
-			}
-			if sourceProp.Branch != nil {
-				obj.Branch = *sourceProp.Branch
-			}
+
+		obj.SourceType = string(trigger.SourceRepository.SourceControlType)
+		obj.RepositoryURL = trigger.SourceRepository.RepositoryUrl
+		if trigger.SourceRepository.Branch != nil {
+			obj.Branch = *trigger.SourceRepository.Branch
 		}
 
 		// Auth is not returned from API, setting it from config.
@@ -1096,10 +1090,10 @@ func flattenRegistryTaskSourceTriggers(triggers *[]containerregistry.SourceTrigg
 	return out
 }
 
-func expandRegistryTaskAuthInfo(auth Auth) *containerregistry.AuthInfo {
-	out := containerregistry.AuthInfo{
-		TokenType: containerregistry.TokenType(auth.TokenType),
-		Token:     &auth.Token,
+func expandRegistryTaskAuthInfo(auth Auth) *tasks.AuthInfo {
+	out := tasks.AuthInfo{
+		TokenType: tasks.TokenType(auth.TokenType),
+		Token:     auth.Token,
 	}
 	if auth.RefreshToken != "" {
 		out.RefreshToken = &auth.RefreshToken
@@ -1108,52 +1102,48 @@ func expandRegistryTaskAuthInfo(auth Auth) *containerregistry.AuthInfo {
 		out.Scope = &auth.Scope
 	}
 	if auth.ExpireInSec != 0 {
-		out.ExpiresIn = utils.Int32(int32(auth.ExpireInSec))
+		out.ExpiresIn = utils.Int64(int64(auth.ExpireInSec))
 	}
 	return &out
 }
 
-func expandRegistryTaskTimerTriggers(triggers []TimerTrigger) *[]containerregistry.TimerTrigger {
+func expandRegistryTaskTimerTriggers(triggers []TimerTrigger) *[]tasks.TimerTrigger {
 	if len(triggers) == 0 {
 		return nil
 	}
-	out := make([]containerregistry.TimerTrigger, 0, len(triggers))
+	out := make([]tasks.TimerTrigger, 0, len(triggers))
 	for _, trigger := range triggers {
-		status := containerregistry.TriggerStatusDisabled
+		status := tasks.TriggerStatusDisabled
 		if trigger.Enabled {
-			status = containerregistry.TriggerStatusEnabled
+			status = tasks.TriggerStatusEnabled
 		}
-		timerTrigger := containerregistry.TimerTrigger{
-			Name:     &trigger.Name,
-			Schedule: &trigger.Schedule,
-			Status:   status,
+		timerTrigger := tasks.TimerTrigger{
+			Name:     trigger.Name,
+			Schedule: trigger.Schedule,
+			Status:   &status,
 		}
 		out = append(out, timerTrigger)
 	}
 	return &out
 }
 
-func flattenRegistryTaskTimerTriggers(triggers *[]containerregistry.TimerTrigger) []TimerTrigger {
+func flattenRegistryTaskTimerTriggers(triggers *[]tasks.TimerTrigger) []TimerTrigger {
 	if triggers == nil {
 		return nil
 	}
 	out := make([]TimerTrigger, 0, len(*triggers))
 	for _, trigger := range *triggers {
 		obj := TimerTrigger{
-			Enabled: trigger.Status == containerregistry.TriggerStatusEnabled,
+			Enabled: *trigger.Status == tasks.TriggerStatusEnabled,
 		}
-		if trigger.Name != nil {
-			obj.Name = *trigger.Name
-		}
-		if trigger.Schedule != nil {
-			obj.Schedule = *trigger.Schedule
-		}
+		obj.Name = trigger.Name
+		obj.Schedule = trigger.Schedule
 		out = append(out, obj)
 	}
 	return out
 }
 
-func expandRegistryTaskStep(model ContainerRegistryTaskModel) containerregistry.BasicTaskStepProperties {
+func expandRegistryTaskStep(model ContainerRegistryTaskModel) tasks.TaskStepProperties {
 	switch {
 	case len(model.DockerStep) != 0:
 		return expandRegistryTaskDockerStep(model.DockerStep[0])
@@ -1165,10 +1155,9 @@ func expandRegistryTaskStep(model ContainerRegistryTaskModel) containerregistry.
 	return nil
 }
 
-func expandRegistryTaskDockerStep(step DockerStep) containerregistry.DockerBuildStep {
-	out := containerregistry.DockerBuildStep{
-		Type:           containerregistry.TypeBasicTaskStepPropertiesTypeDocker,
-		DockerFilePath: &step.DockerfilePath,
+func expandRegistryTaskDockerStep(step DockerStep) tasks.DockerBuildStep {
+	out := tasks.DockerBuildStep{
+		DockerFilePath: step.DockerfilePath,
 		IsPushEnabled:  &step.IsPushEnabled,
 		NoCache:        utils.Bool(!step.IsCacheEnabled),
 		Arguments:      expandRegistryTaskArguments(step.Arguments, step.SecretArguments),
@@ -1189,12 +1178,12 @@ func expandRegistryTaskDockerStep(step DockerStep) containerregistry.DockerBuild
 	return out
 }
 
-func flattenRegistryTaskDockerStep(step containerregistry.BasicTaskStepProperties, model ContainerRegistryTaskModel) []DockerStep {
+func flattenRegistryTaskDockerStep(step tasks.TaskStepProperties, model ContainerRegistryTaskModel) []DockerStep {
 	if step == nil {
 		return nil
 	}
 
-	dockerStep, ok := step.AsDockerBuildStep()
+	dockerStep, ok := step.(tasks.DockerBuildStep)
 	if !ok {
 		return nil
 	}
@@ -1206,9 +1195,8 @@ func flattenRegistryTaskDockerStep(step containerregistry.BasicTaskStepPropertie
 	if dockerStep.ContextPath != nil {
 		obj.ContextPath = *dockerStep.ContextPath
 	}
-	if dockerStep.DockerFilePath != nil {
-		obj.DockerfilePath = *dockerStep.DockerFilePath
-	}
+	obj.DockerfilePath = dockerStep.DockerFilePath
+
 	if dockerStep.ImageNames != nil {
 		obj.ImageNames = *dockerStep.ImageNames
 	}
@@ -1233,10 +1221,9 @@ func flattenRegistryTaskDockerStep(step containerregistry.BasicTaskStepPropertie
 	return []DockerStep{obj}
 }
 
-func expandRegistryTaskFileTaskStep(step FileTaskStep) containerregistry.FileTaskStep {
-	out := containerregistry.FileTaskStep{
-		Type:         containerregistry.TypeBasicTaskStepPropertiesTypeFileTask,
-		TaskFilePath: &step.TaskFilePath,
+func expandRegistryTaskFileTaskStep(step FileTaskStep) tasks.FileTaskStep {
+	out := tasks.FileTaskStep{
+		TaskFilePath: step.TaskFilePath,
 		Values:       expandRegistryTaskValues(step.Values, step.SecretValues),
 	}
 	if step.ValueFilePath != "" {
@@ -1251,12 +1238,12 @@ func expandRegistryTaskFileTaskStep(step FileTaskStep) containerregistry.FileTas
 	return out
 }
 
-func flattenRegistryTaskFileTaskStep(step containerregistry.BasicTaskStepProperties, model ContainerRegistryTaskModel) []FileTaskStep {
+func flattenRegistryTaskFileTaskStep(step tasks.TaskStepProperties, model ContainerRegistryTaskModel) []FileTaskStep {
 	if step == nil {
 		return nil
 	}
 
-	fileTaskStep, ok := step.AsFileTaskStep()
+	fileTaskStep, ok := step.(tasks.FileTaskStep)
 	if !ok {
 		return nil
 	}
@@ -1268,9 +1255,8 @@ func flattenRegistryTaskFileTaskStep(step containerregistry.BasicTaskStepPropert
 	if fileTaskStep.ContextPath != nil {
 		obj.ContextPath = *fileTaskStep.ContextPath
 	}
-	if fileTaskStep.TaskFilePath != nil {
-		obj.TaskFilePath = *fileTaskStep.TaskFilePath
-	}
+	obj.TaskFilePath = fileTaskStep.TaskFilePath
+
 	if fileTaskStep.ValuesFilePath != nil {
 		obj.ValueFilePath = *fileTaskStep.ValuesFilePath
 	}
@@ -1286,10 +1272,9 @@ func flattenRegistryTaskFileTaskStep(step containerregistry.BasicTaskStepPropert
 	return []FileTaskStep{obj}
 }
 
-func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) containerregistry.EncodedTaskStep {
-	out := containerregistry.EncodedTaskStep{
-		Type:               containerregistry.TypeBasicTaskStepPropertiesTypeEncodedTask,
-		EncodedTaskContent: utils.String(utils.Base64EncodeIfNot(step.TaskContent)),
+func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskStep {
+	out := tasks.EncodedTaskStep{
+		EncodedTaskContent: utils.Base64EncodeIfNot(step.TaskContent),
 		Values:             expandRegistryTaskValues(step.Values, step.SecretValues),
 	}
 	if step.ContextPath != "" {
@@ -1304,12 +1289,12 @@ func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) containerregistry.E
 	return out
 }
 
-func flattenRegistryTaskEncodedTaskStep(step containerregistry.BasicTaskStepProperties, model ContainerRegistryTaskModel) []EncodedTaskStep {
+func flattenRegistryTaskEncodedTaskStep(step tasks.TaskStepProperties, model ContainerRegistryTaskModel) []EncodedTaskStep {
 	if step == nil {
 		return nil
 	}
 
-	encodedTaskStep, ok := step.AsEncodedTaskStep()
+	encodedTaskStep, ok := step.(tasks.EncodedTaskStep)
 	if !ok {
 		return nil
 	}
@@ -1324,9 +1309,8 @@ func flattenRegistryTaskEncodedTaskStep(step containerregistry.BasicTaskStepProp
 	if encodedTaskStep.ContextAccessToken != nil {
 		obj.ContextAccessToken = *encodedTaskStep.ContextAccessToken
 	}
-	if encodedTaskStep.EncodedTaskContent != nil {
-		obj.TaskContent = *encodedTaskStep.EncodedTaskContent
-	}
+	obj.TaskContent = encodedTaskStep.EncodedTaskContent
+
 	if encodedTaskStep.EncodedValuesContent != nil {
 		obj.ValueContent = *encodedTaskStep.EncodedValuesContent
 	}
@@ -1342,29 +1326,29 @@ func flattenRegistryTaskEncodedTaskStep(step containerregistry.BasicTaskStepProp
 	return []EncodedTaskStep{obj}
 }
 
-func expandRegistryTaskArguments(arguments map[string]string, secretArguments map[string]string) *[]containerregistry.Argument {
+func expandRegistryTaskArguments(arguments map[string]string, secretArguments map[string]string) *[]tasks.Argument {
 	if len(arguments) == 0 && len(secretArguments) == 0 {
 		return nil
 	}
-	out := make([]containerregistry.Argument, 0, len(arguments)+len(secretArguments))
+	out := make([]tasks.Argument, 0, len(arguments)+len(secretArguments))
 	for k, v := range arguments {
-		out = append(out, containerregistry.Argument{
-			Name:     utils.String(k),
-			Value:    utils.String(v),
+		out = append(out, tasks.Argument{
+			Name:     k,
+			Value:    v,
 			IsSecret: utils.Bool(false),
 		})
 	}
 	for k, v := range secretArguments {
-		out = append(out, containerregistry.Argument{
-			Name:     utils.String(k),
-			Value:    utils.String(v),
+		out = append(out, tasks.Argument{
+			Name:     k,
+			Value:    v,
 			IsSecret: utils.Bool(true),
 		})
 	}
 	return &out
 }
 
-func flattenRegistryTaskArguments(arguments *[]containerregistry.Argument) map[string]string {
+func flattenRegistryTaskArguments(arguments *[]tasks.Argument) map[string]string {
 	if arguments == nil {
 		return nil
 	}
@@ -1377,13 +1361,9 @@ func flattenRegistryTaskArguments(arguments *[]containerregistry.Argument) map[s
 			v        string
 			isSecret bool
 		)
+		k = argument.Name
+		v = argument.Value
 
-		if argument.Name != nil {
-			k = *argument.Name
-		}
-		if argument.Value != nil {
-			v = *argument.Value
-		}
 		if argument.IsSecret != nil {
 			isSecret = *argument.IsSecret
 		}
@@ -1398,29 +1378,29 @@ func flattenRegistryTaskArguments(arguments *[]containerregistry.Argument) map[s
 	return args
 }
 
-func expandRegistryTaskValues(values map[string]string, secretValues map[string]string) *[]containerregistry.SetValue {
+func expandRegistryTaskValues(values map[string]string, secretValues map[string]string) *[]tasks.SetValue {
 	if len(values) == 0 && len(secretValues) == 0 {
 		return nil
 	}
-	out := make([]containerregistry.SetValue, 0, len(values)+len(secretValues))
+	out := make([]tasks.SetValue, 0, len(values)+len(secretValues))
 	for k, v := range values {
-		out = append(out, containerregistry.SetValue{
-			Name:     utils.String(k),
-			Value:    utils.String(v),
+		out = append(out, tasks.SetValue{
+			Name:     k,
+			Value:    v,
 			IsSecret: utils.Bool(false),
 		})
 	}
 	for k, v := range secretValues {
-		out = append(out, containerregistry.SetValue{
-			Name:     utils.String(k),
-			Value:    utils.String(v),
+		out = append(out, tasks.SetValue{
+			Name:     k,
+			Value:    v,
 			IsSecret: utils.Bool(true),
 		})
 	}
 	return &out
 }
 
-func flattenRegistryTaskValues(values *[]containerregistry.SetValue) map[string]string {
+func flattenRegistryTaskValues(values *[]tasks.SetValue) map[string]string {
 	if values == nil {
 		return nil
 	}
@@ -1433,13 +1413,9 @@ func flattenRegistryTaskValues(values *[]containerregistry.SetValue) map[string]
 			v        string
 			isSecret bool
 		)
+		k = value.Name
+		v = value.Value
 
-		if value.Name != nil {
-			k = *value.Name
-		}
-		if value.Value != nil {
-			v = *value.Value
-		}
 		if value.IsSecret != nil {
 			isSecret = *value.IsSecret
 		}
@@ -1453,91 +1429,57 @@ func flattenRegistryTaskValues(values *[]containerregistry.SetValue) map[string]
 	return vals
 }
 
-func expandRegistryTaskIdentity(input []interface{}) (*containerregistry.IdentityProperties, error) {
-	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	out := containerregistry.IdentityProperties{
-		Type: containerregistry.ResourceIdentityType(string(expanded.Type)),
-	}
-	if len(expanded.IdentityIds) > 0 {
-		out.UserAssignedIdentities = map[string]*containerregistry.UserIdentityProperties{}
-		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &containerregistry.UserIdentityProperties{
-				// intentionally empty
-			}
-		}
-	}
-	return &out, nil
-}
-
-func flattenRegistryTaskIdentity(input *containerregistry.IdentityProperties) (*[]interface{}, error) {
-	var transform *identity.SystemAndUserAssignedMap
-
-	if input != nil {
-		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-		if input.PrincipalID != nil {
-			transform.PrincipalId = *input.PrincipalID
-		}
-		if input.TenantID != nil {
-			transform.TenantId = *input.TenantID
-		}
-		for k, v := range input.UserAssignedIdentities {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-				ClientId:    v.ClientID,
-				PrincipalId: v.PrincipalID,
-			}
-		}
-	}
-
-	return identity.FlattenSystemAndUserAssignedMap(transform)
-}
-
-func expandRegistryTaskPlatform(input []Platform) *containerregistry.PlatformProperties {
+func expandRegistryTaskPlatform(input []Platform) *tasks.PlatformProperties {
 	if len(input) == 0 {
 		return nil
 	}
 	platform := input[0]
-	out := &containerregistry.PlatformProperties{
-		Os: containerregistry.OS(platform.OS),
+	out := &tasks.PlatformProperties{
+		Os: tasks.OS(platform.OS),
 	}
 	if arch := platform.Architecture; arch != "" {
-		out.Architecture = containerregistry.Architecture(arch)
+		out.Architecture = pointer.To(tasks.Architecture(arch))
 	}
 	if variant := platform.Variant; variant != "" {
-		out.Variant = containerregistry.Variant(variant)
+		out.Variant = pointer.To(tasks.Variant(variant))
 	}
 	return out
 }
 
-func flattenRegistryTaskPlatform(platform *containerregistry.PlatformProperties) []Platform {
+func flattenRegistryTaskPlatform(platform *tasks.PlatformProperties) []Platform {
 	if platform == nil {
 		return nil
 	}
+
+	architecture := ""
+	if v := platform.Architecture; v != nil {
+		architecture = string(*v)
+	}
+
+	variant := ""
+	if v := platform.Variant; v != nil {
+		variant = string(*v)
+	}
+
 	return []Platform{{
 		OS:           string(platform.Os),
-		Architecture: string(platform.Architecture),
-		Variant:      string(platform.Variant),
+		Architecture: architecture,
+		Variant:      variant,
 	}}
 }
 
-func expandRegistryTaskCredentials(input []RegistryCredential) *containerregistry.Credentials {
+func expandRegistryTaskCredentials(input []RegistryCredential) *tasks.Credentials {
 	if len(input) == 0 {
 		return nil
 	}
 
-	return &containerregistry.Credentials{
+	return &tasks.Credentials{
 		SourceRegistry:   expandSourceRegistryCredential(input[0].Source),
-		CustomRegistries: expandCustomRegistryCredential(input[0].Custom),
+		CustomRegistries: pointer.To(expandCustomRegistryCredential(input[0].Custom)),
 	}
 }
 
-func flattenRegistryTaskCredentials(input *containerregistry.Credentials, model ContainerRegistryTaskModel) []RegistryCredential {
+func flattenRegistryTaskCredentials(input *tasks.Credentials, model ContainerRegistryTaskModel) []RegistryCredential {
 	if input == nil {
 		return nil
 	}
@@ -1556,49 +1498,49 @@ func flattenRegistryTaskCredentials(input *containerregistry.Credentials, model 
 	}
 }
 
-func expandSourceRegistryCredential(input []SourceRegistryCredential) *containerregistry.SourceRegistryCredentials {
+func expandSourceRegistryCredential(input []SourceRegistryCredential) *tasks.SourceRegistryCredentials {
 	if len(input) == 0 {
 		return nil
 	}
 
-	return &containerregistry.SourceRegistryCredentials{LoginMode: containerregistry.SourceRegistryLoginMode(input[0].LoginMode)}
+	return &tasks.SourceRegistryCredentials{LoginMode: pointer.To(tasks.SourceRegistryLoginMode(input[0].LoginMode))}
 }
 
-func flattenSourceRegistryCredential(input *containerregistry.SourceRegistryCredentials) []SourceRegistryCredential {
+func flattenSourceRegistryCredential(input *tasks.SourceRegistryCredentials) []SourceRegistryCredential {
 	if input == nil {
 		return nil
 	}
 
-	return []SourceRegistryCredential{{LoginMode: string(input.LoginMode)}}
+	return []SourceRegistryCredential{{LoginMode: string(*input.LoginMode)}}
 }
 
-func expandCustomRegistryCredential(input []CustomRegistryCredential) map[string]*containerregistry.CustomRegistryCredentials {
+func expandCustomRegistryCredential(input []CustomRegistryCredential) map[string]tasks.CustomRegistryCredentials {
 	if len(input) == 0 {
 		return nil
 	}
 
-	out := map[string]*containerregistry.CustomRegistryCredentials{}
+	out := map[string]tasks.CustomRegistryCredentials{}
 	for _, credential := range input {
-		cred := &containerregistry.CustomRegistryCredentials{}
+		cred := tasks.CustomRegistryCredentials{}
 
 		if credential.UserName != "" {
-			usernameType := containerregistry.SecretObjectTypeOpaque
+			usernameType := tasks.SecretObjectTypeOpaque
 			if _, err := keyVaultParse.ParseNestedItemID(credential.UserName); err == nil {
-				usernameType = containerregistry.SecretObjectTypeVaultsecret
+				usernameType = tasks.SecretObjectTypeVaultsecret
 			}
-			cred.UserName = &containerregistry.SecretObject{
+			cred.UserName = &tasks.SecretObject{
 				Value: utils.String(credential.UserName),
-				Type:  usernameType,
+				Type:  &usernameType,
 			}
 		}
 		if credential.Password != "" {
-			passwordType := containerregistry.SecretObjectTypeOpaque
+			passwordType := tasks.SecretObjectTypeOpaque
 			if _, err := keyVaultParse.ParseNestedItemID(credential.Password); err == nil {
-				passwordType = containerregistry.SecretObjectTypeVaultsecret
+				passwordType = tasks.SecretObjectTypeVaultsecret
 			}
-			cred.Password = &containerregistry.SecretObject{
+			cred.Password = &tasks.SecretObject{
 				Value: utils.String(credential.Password),
-				Type:  passwordType,
+				Type:  &passwordType,
 			}
 		}
 		if credential.Identity != "" {
@@ -1609,43 +1551,40 @@ func expandCustomRegistryCredential(input []CustomRegistryCredential) map[string
 	return out
 }
 
-func expandRegistryTaskAgentProperties(input []AgentConfig) *containerregistry.AgentProperties {
+func expandRegistryTaskAgentProperties(input []AgentConfig) *tasks.AgentProperties {
 	if len(input) == 0 {
 		return nil
 	}
 
 	agentConfig := input[0]
-	return &containerregistry.AgentProperties{CPU: utils.Int32(int32(agentConfig.CPU))}
+	return &tasks.AgentProperties{Cpu: utils.Int64(int64(agentConfig.CPU))}
 }
 
-func flattenRegistryTaskAgentProperties(input *containerregistry.AgentProperties) []AgentConfig {
+func flattenRegistryTaskAgentProperties(input *tasks.AgentProperties) []AgentConfig {
 	if input == nil {
 		return nil
 	}
 
 	cpu := 0
-	if input.CPU != nil {
-		cpu = int(*input.CPU)
+	if input.Cpu != nil {
+		cpu = int(*input.Cpu)
 	}
 	return []AgentConfig{{CPU: cpu}}
 }
 
-func patchRegistryTaskTriggerSourceTrigger(triggers []containerregistry.SourceTrigger, model ContainerRegistryTaskModel) *[]containerregistry.SourceTrigger {
+func patchRegistryTaskTriggerSourceTrigger(triggers []tasks.SourceTrigger, model ContainerRegistryTaskModel) *[]tasks.SourceTrigger {
 	if len(triggers) != len(model.SourceTrigger) {
 		return &triggers
 	}
 
-	result := make([]containerregistry.SourceTrigger, len(triggers))
+	result := make([]tasks.SourceTrigger, len(triggers))
 	for i, trigger := range model.SourceTrigger {
 		t := (triggers)[i]
 		if len(trigger.Auth) == 0 {
 			result[i] = t
 			continue
 		}
-		if t.SourceRepository == nil {
-			result[i] = t
-			continue
-		}
+
 		t.SourceRepository.SourceControlAuthProperties = expandRegistryTaskAuthInfo(trigger.Auth[0])
 		result[i] = t
 	}

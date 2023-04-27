@@ -50,7 +50,7 @@ func (c TenantsClient) ListByResourceGroup(ctx context.Context, id commonids.Res
 	}
 
 	var values struct {
-		Values *[]Tenant `json:"values"`
+		Values *[]Tenant `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

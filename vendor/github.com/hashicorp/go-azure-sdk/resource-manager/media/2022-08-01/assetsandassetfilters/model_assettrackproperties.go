@@ -10,7 +10,7 @@ import (
 
 type AssetTrackProperties struct {
 	ProvisioningState *ProvisioningState `json:"provisioningState,omitempty"`
-	Track             TrackBase          `json:"track"`
+	Track             *TrackBase         `json:"track,omitempty"`
 }
 
 var _ json.Unmarshaler = &AssetTrackProperties{}
@@ -34,7 +34,7 @@ func (s *AssetTrackProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Track' for 'AssetTrackProperties': %+v", err)
 		}
-		s.Track = impl
+		s.Track = &impl
 	}
 	return nil
 }

@@ -31,6 +31,20 @@ func TestAccSecurityInsightsSentinelOnboardingState_basic(t *testing.T) {
 	})
 }
 
+func TestAccSecurityInsightsSentinelOnboardingState_basicWithName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_log_analytics_workspace_onboarding", "test")
+	r := SecurityInsightsSentinelOnboardingStateResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSecurityInsightsSentinelOnboardingState_ToggleCmkEnabled(t *testing.T) {
 
 	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
@@ -83,6 +97,30 @@ func (r SecurityInsightsSentinelOnboardingStateResource) Exists(ctx context.Cont
 }
 
 func (r SecurityInsightsSentinelOnboardingStateResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  workspace_id = azurerm_log_analytics_workspace.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r SecurityInsightsSentinelOnboardingStateResource) basicWithName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -232,13 +270,11 @@ resource "azurerm_log_analytics_linked_service" "test" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
-  resource_group_name          = azurerm_resource_group.test.name
-  workspace_name               = azurerm_log_analytics_workspace.test.name
+  workspace_id                 = azurerm_log_analytics_workspace.test.id
   customer_managed_key_enabled = true
 
   depends_on = [azurerm_log_analytics_linked_service.test]
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
@@ -248,8 +284,7 @@ func (r SecurityInsightsSentinelOnboardingStateResource) requiresImport(data acc
 			%s
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "import" {
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_log_analytics_workspace.test.name
+  workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 `, config)
 }

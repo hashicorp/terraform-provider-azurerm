@@ -168,8 +168,9 @@ func (m TimeSeriesDatabaseConnectionResource) Create() sdk.ResourceFunc {
 				properties.EventHubConsumerGroup = utils.String(model.EventhubConsumerGroupName)
 			}
 
+			var props timeseriesdatabaseconnections.TimeSeriesDatabaseConnectionProperties = properties
 			req := timeseriesdatabaseconnections.TimeSeriesDatabaseConnection{
-				Properties: properties,
+				Properties: &props,
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, req); err != nil {
@@ -192,41 +193,47 @@ func (m TimeSeriesDatabaseConnectionResource) Read() sdk.ResourceFunc {
 			}
 
 			client := meta.Client.DigitalTwins.TimeSeriesDatabaseConnectionsClient
-			result, err := client.Get(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				if response.WasNotFound(result.HttpResponse) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return meta.MarkAsGone(id)
 				}
-				return err
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if result.Model == nil {
-				return fmt.Errorf("retrieving %s got nil model", id)
+			output := TimeSeriesDatabaseConnectionModel{
+				Name:           id.TimeSeriesDatabaseConnectionName,
+				DigitalTwinsId: timeseriesdatabaseconnections.NewDigitalTwinsInstanceID(id.SubscriptionId, id.ResourceGroupName, id.DigitalTwinsInstanceName).ID(),
 			}
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if properties, ok := (*props).(timeseriesdatabaseconnections.AzureDataExplorerConnectionProperties); ok {
+						output.EventhubName = properties.EventHubEntityPath
+						output.EventhubNamespaceEndpointUri = properties.EventHubEndpointUri
+						output.EventhubNamespaceId = properties.EventHubNamespaceResourceId
 
-			var output TimeSeriesDatabaseConnectionModel
-			output.Name = id.TimeSeriesDatabaseConnectionName
-			output.DigitalTwinsId = timeseriesdatabaseconnections.NewDigitalTwinsInstanceID(id.SubscriptionId, id.ResourceGroupName, id.DigitalTwinsInstanceName).ID()
+						kustoClusterId, err := clusters.ParseClusterIDInsensitively(properties.AdxResourceId)
+						if err != nil {
+							return fmt.Errorf("parsing `kusto_cluster_uri`: %+v", err)
+						}
+						output.KustoClusterId = kustoClusterId.ID()
 
-			if properties, ok := result.Model.Properties.(timeseriesdatabaseconnections.AzureDataExplorerConnectionProperties); ok {
-				output.EventhubName = properties.EventHubEntityPath
-				output.EventhubNamespaceEndpointUri = properties.EventHubEndpointUri
-				output.EventhubNamespaceId = properties.EventHubNamespaceResourceId
-				output.KustoClusterId = properties.AdxResourceId
-				output.KustoClusterUri = properties.AdxEndpointUri
-				output.KustoDatabaseName = properties.AdxDatabaseName
+						output.KustoClusterUri = properties.AdxEndpointUri
+						output.KustoDatabaseName = properties.AdxDatabaseName
 
-				eventhubConsumerGroupName := "$Default"
-				if properties.EventHubConsumerGroup != nil {
-					eventhubConsumerGroupName = *properties.EventHubConsumerGroup
+						eventhubConsumerGroupName := "$Default"
+						if properties.EventHubConsumerGroup != nil {
+							eventhubConsumerGroupName = *properties.EventHubConsumerGroup
+						}
+						output.EventhubConsumerGroupName = eventhubConsumerGroupName
+
+						kustoTableName := ""
+						if properties.AdxTableName != nil {
+							kustoTableName = *properties.AdxTableName
+						}
+						output.KustoTableName = kustoTableName
+					}
 				}
-				output.EventhubConsumerGroupName = eventhubConsumerGroupName
-
-				kustoTableName := ""
-				if properties.AdxTableName != nil {
-					kustoTableName = *properties.AdxTableName
-				}
-				output.KustoTableName = kustoTableName
 			}
 
 			return meta.Encode(&output)

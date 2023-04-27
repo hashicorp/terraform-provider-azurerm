@@ -9,6 +9,11 @@ type Registration struct {
 	autoRegistration
 }
 
+var (
+	_ sdk.TypedServiceRegistration   = Registration{}
+	_ sdk.UntypedServiceRegistration = Registration{}
+)
+
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "Container Services"
@@ -62,6 +67,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ContainerRegistryTaskScheduleResource{},
 		ContainerRegistryTokenPasswordResource{},
 		ContainerConnectedRegistryResource{},
+		KubernetesClusterExtensionResource{},
 	}
 	resources = append(resources, r.autoRegistration.Resources()...)
 	return resources

@@ -78,7 +78,7 @@ func (s *AzureDataLakeGen2Datastore) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Credentials' for 'AzureDataLakeGen2Datastore': %+v", err)
 		}
-		s.Credentials = impl
+		s.Credentials = &impl
 	}
 	return nil
 }

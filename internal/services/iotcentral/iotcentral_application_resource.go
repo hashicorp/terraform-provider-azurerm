@@ -34,9 +34,10 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ApplicationV0ToV1{},
+			1: migration.ApplicationV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{

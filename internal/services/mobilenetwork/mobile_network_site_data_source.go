@@ -17,6 +17,14 @@ import (
 
 type SiteDataSource struct{}
 
+type SiteDataSourceModel struct {
+	Name                string            `tfschema:"name"`
+	MobileNetworkId     string            `tfschema:"mobile_network_id"`
+	Location            string            `tfschema:"location"`
+	NetworkFunctionsIds []string          `tfschema:"network_function_ids"`
+	Tags                map[string]string `tfschema:"tags"`
+}
+
 var _ sdk.DataSource = SiteDataSource{}
 
 func (r SiteDataSource) ResourceType() string {
@@ -24,7 +32,7 @@ func (r SiteDataSource) ResourceType() string {
 }
 
 func (r SiteDataSource) ModelObject() interface{} {
-	return &SiteModel{}
+	return &SiteDataSourceModel{}
 }
 
 func (r SiteDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -67,19 +75,18 @@ func (r SiteDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var metaModel SiteModel
-			if err := metadata.Decode(&metaModel); err != nil {
+			var state SiteDataSourceModel
+			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			client := metadata.Client.MobileNetwork.SiteClient
-			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(metaModel.MobileNetworkId)
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(state.MobileNetworkId)
 			if err != nil {
 				return err
 			}
 
-			id := site.NewSiteID(mobileNetworkId.SubscriptionId, mobileNetworkId.ResourceGroupName, mobileNetworkId.MobileNetworkName, metaModel.Name)
-
+			id := site.NewSiteID(mobileNetworkId.SubscriptionId, mobileNetworkId.ResourceGroupName, mobileNetworkId.MobileNetworkName, state.Name)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -89,25 +96,21 @@ func (r SiteDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			state := SiteModel{
+			metadata.SetID(id)
+			state = SiteDataSourceModel{
 				Name:            id.SiteName,
 				MobileNetworkId: mobileNetworkId.ID(),
-				Location:        location.Normalize(model.Location),
 			}
 
-			if properties := model.Properties; properties != nil {
-				state.NetworkFunctions = flattenSubResourceModel(properties.NetworkFunctions)
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				if properties := model.Properties; properties != nil {
+					state.NetworkFunctionsIds = flattenSubResourceModel(properties.NetworkFunctions)
+				}
+				if model.Tags != nil {
+					state.Tags = *model.Tags
+				}
 			}
-			if model.Tags != nil {
-				state.Tags = *model.Tags
-			}
-
-			metadata.SetID(id)
 
 			return metadata.Encode(&state)
 		},

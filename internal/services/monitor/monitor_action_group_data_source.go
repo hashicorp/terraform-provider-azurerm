@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-09-01/actiongroupsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceMonitorActionGroup() *pluginsdk.Resource {
@@ -408,63 +408,64 @@ func dataSourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{
 
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewActionGroupID(subscriptionId, resourceGroup, d.Get("name").(string))
+	id := actiongroupsapis.NewActionGroupID(subscriptionId, resourceGroup, d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.ActionGroupsGet(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
 
-	if group := resp.ActionGroup; group != nil {
-		d.Set("short_name", group.GroupShortName)
-		d.Set("enabled", group.Enabled)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("short_name", props.GroupShortName)
+			d.Set("enabled", props.Enabled)
 
-		if err = d.Set("email_receiver", flattenMonitorActionGroupEmailReceiver(group.EmailReceivers)); err != nil {
-			return fmt.Errorf("setting `email_receiver`: %+v", err)
-		}
+			if err = d.Set("email_receiver", flattenMonitorActionGroupEmailReceiver(props.EmailReceivers)); err != nil {
+				return fmt.Errorf("setting `email_receiver`: %+v", err)
+			}
 
-		if err = d.Set("itsm_receiver", flattenMonitorActionGroupItsmReceiver(group.ItsmReceivers)); err != nil {
-			return fmt.Errorf("setting `itsm_receiver`: %+v", err)
-		}
+			if err = d.Set("itsm_receiver", flattenMonitorActionGroupItsmReceiver(props.ItsmReceivers)); err != nil {
+				return fmt.Errorf("setting `itsm_receiver`: %+v", err)
+			}
 
-		if err = d.Set("azure_app_push_receiver", flattenMonitorActionGroupAzureAppPushReceiver(group.AzureAppPushReceivers)); err != nil {
-			return fmt.Errorf("setting `azure_app_push_receiver`: %+v", err)
-		}
+			if err = d.Set("azure_app_push_receiver", flattenMonitorActionGroupAzureAppPushReceiver(props.AzureAppPushReceivers)); err != nil {
+				return fmt.Errorf("setting `azure_app_push_receiver`: %+v", err)
+			}
 
-		if err = d.Set("sms_receiver", flattenMonitorActionGroupSmsReceiver(group.SmsReceivers)); err != nil {
-			return fmt.Errorf("setting `sms_receiver`: %+v", err)
-		}
+			if err = d.Set("sms_receiver", flattenMonitorActionGroupSmsReceiver(props.SmsReceivers)); err != nil {
+				return fmt.Errorf("setting `sms_receiver`: %+v", err)
+			}
 
-		if err = d.Set("webhook_receiver", flattenMonitorActionGroupWebHookReceiver(group.WebhookReceivers)); err != nil {
-			return fmt.Errorf("setting `webhook_receiver`: %+v", err)
-		}
+			if err = d.Set("webhook_receiver", flattenMonitorActionGroupWebHookReceiver(props.WebhookReceivers)); err != nil {
+				return fmt.Errorf("setting `webhook_receiver`: %+v", err)
+			}
 
-		if err = d.Set("automation_runbook_receiver", flattenMonitorActionGroupAutomationRunbookReceiver(group.AutomationRunbookReceivers)); err != nil {
-			return fmt.Errorf("setting `automation_runbook_receiver`: %+v", err)
-		}
+			if err = d.Set("automation_runbook_receiver", flattenMonitorActionGroupAutomationRunbookReceiver(props.AutomationRunbookReceivers)); err != nil {
+				return fmt.Errorf("setting `automation_runbook_receiver`: %+v", err)
+			}
 
-		if err = d.Set("voice_receiver", flattenMonitorActionGroupVoiceReceiver(group.VoiceReceivers)); err != nil {
-			return fmt.Errorf("setting `voice_receiver`: %+v", err)
-		}
+			if err = d.Set("voice_receiver", flattenMonitorActionGroupVoiceReceiver(props.VoiceReceivers)); err != nil {
+				return fmt.Errorf("setting `voice_receiver`: %+v", err)
+			}
 
-		if err = d.Set("logic_app_receiver", flattenMonitorActionGroupLogicAppReceiver(group.LogicAppReceivers)); err != nil {
-			return fmt.Errorf("setting `logic_app_receiver`: %+v", err)
-		}
+			if err = d.Set("logic_app_receiver", flattenMonitorActionGroupLogicAppReceiver(props.LogicAppReceivers)); err != nil {
+				return fmt.Errorf("setting `logic_app_receiver`: %+v", err)
+			}
 
-		if err = d.Set("azure_function_receiver", flattenMonitorActionGroupAzureFunctionReceiver(group.AzureFunctionReceivers)); err != nil {
-			return fmt.Errorf("setting `azure_function_receiver`: %+v", err)
-		}
-		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(group.ArmRoleReceivers)); err != nil {
-			return fmt.Errorf("setting `arm_role_receiver`: %+v", err)
-		}
-		if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(resourceGroup, group.EventHubReceivers)); err != nil {
-			return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
+			if err = d.Set("azure_function_receiver", flattenMonitorActionGroupAzureFunctionReceiver(props.AzureFunctionReceivers)); err != nil {
+				return fmt.Errorf("setting `azure_function_receiver`: %+v", err)
+			}
+			if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(props.ArmRoleReceivers)); err != nil {
+				return fmt.Errorf("setting `arm_role_receiver`: %+v", err)
+			}
+			if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(resourceGroup, props.EventHubReceivers)); err != nil {
+				return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
+			}
 		}
 	}
-
 	return nil
 }

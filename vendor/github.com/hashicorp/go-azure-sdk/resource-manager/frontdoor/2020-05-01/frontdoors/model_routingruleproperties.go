@@ -14,7 +14,7 @@ type RoutingRuleProperties struct {
 	FrontendEndpoints                *[]SubResource                                               `json:"frontendEndpoints,omitempty"`
 	PatternsToMatch                  *[]string                                                    `json:"patternsToMatch,omitempty"`
 	ResourceState                    *FrontDoorResourceState                                      `json:"resourceState,omitempty"`
-	RouteConfiguration               RouteConfiguration                                           `json:"routeConfiguration"`
+	RouteConfiguration               *RouteConfiguration                                          `json:"routeConfiguration,omitempty"`
 	RulesEngine                      *SubResource                                                 `json:"rulesEngine,omitempty"`
 	WebApplicationFirewallPolicyLink *RoutingRuleUpdateParametersWebApplicationFirewallPolicyLink `json:"webApplicationFirewallPolicyLink,omitempty"`
 }
@@ -46,7 +46,7 @@ func (s *RoutingRuleProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RouteConfiguration' for 'RoutingRuleProperties': %+v", err)
 		}
-		s.RouteConfiguration = impl
+		s.RouteConfiguration = &impl
 	}
 	return nil
 }

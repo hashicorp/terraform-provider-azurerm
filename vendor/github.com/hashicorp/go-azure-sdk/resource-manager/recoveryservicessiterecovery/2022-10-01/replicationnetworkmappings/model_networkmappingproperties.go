@@ -9,15 +9,15 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type NetworkMappingProperties struct {
-	FabricSpecificSettings      NetworkMappingFabricSpecificSettings `json:"fabricSpecificSettings"`
-	PrimaryFabricFriendlyName   *string                              `json:"primaryFabricFriendlyName,omitempty"`
-	PrimaryNetworkFriendlyName  *string                              `json:"primaryNetworkFriendlyName,omitempty"`
-	PrimaryNetworkId            *string                              `json:"primaryNetworkId,omitempty"`
-	RecoveryFabricArmId         *string                              `json:"recoveryFabricArmId,omitempty"`
-	RecoveryFabricFriendlyName  *string                              `json:"recoveryFabricFriendlyName,omitempty"`
-	RecoveryNetworkFriendlyName *string                              `json:"recoveryNetworkFriendlyName,omitempty"`
-	RecoveryNetworkId           *string                              `json:"recoveryNetworkId,omitempty"`
-	State                       *string                              `json:"state,omitempty"`
+	FabricSpecificSettings      *NetworkMappingFabricSpecificSettings `json:"fabricSpecificSettings,omitempty"`
+	PrimaryFabricFriendlyName   *string                               `json:"primaryFabricFriendlyName,omitempty"`
+	PrimaryNetworkFriendlyName  *string                               `json:"primaryNetworkFriendlyName,omitempty"`
+	PrimaryNetworkId            *string                               `json:"primaryNetworkId,omitempty"`
+	RecoveryFabricArmId         *string                               `json:"recoveryFabricArmId,omitempty"`
+	RecoveryFabricFriendlyName  *string                               `json:"recoveryFabricFriendlyName,omitempty"`
+	RecoveryNetworkFriendlyName *string                               `json:"recoveryNetworkFriendlyName,omitempty"`
+	RecoveryNetworkId           *string                               `json:"recoveryNetworkId,omitempty"`
+	State                       *string                               `json:"state,omitempty"`
 }
 
 var _ json.Unmarshaler = &NetworkMappingProperties{}
@@ -48,7 +48,7 @@ func (s *NetworkMappingProperties) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'FabricSpecificSettings' for 'NetworkMappingProperties': %+v", err)
 		}
-		s.FabricSpecificSettings = impl
+		s.FabricSpecificSettings = &impl
 	}
 	return nil
 }
