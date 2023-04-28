@@ -80,7 +80,7 @@ Some Service Packages may also contain:
 
 * `./migration` - any State Migrations used in Resources.
 * `./sdk` - any Embedded SDK’s used to access the Azure API’s (either Resource Manager or Data Plane).
-* `./resourceids.go` - used to generate Resource ID Formatters, Parsers and Validators, see [Resource ID Generation](resource-id-generation.md) for more information.
+* `./resourceids.go` - used to generate Resource ID Formatters, Parsers and Validators.
 
 —-
 

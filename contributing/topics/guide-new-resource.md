@@ -95,7 +95,7 @@ package resource
 
 In this case, you need to specify the `name` the Resource (in this case `ResourceGroupExample`) and the `id` which is an example of this Resource ID (in this case `/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1`).
 
-> The segments of the Resource ID should be camelCased (e.g. `resourceGroups` rather than `resourcegroups`) per the Azure API Specification - see [the Azure Resource ID reference](reference-azure-resource-ids.md) for more information.
+> The segments of the Resource ID should be camelCased (e.g. `resourceGroups` rather than `resourcegroups`) per the Azure API Specification - see [Azure Resource IDs in the Glossary](reference-glossary.md#azure-resource-ids) for more information.
 
 You can generate the Resource ID Struct, Parser and Validation functions by running `make generate` - which will output the following files:
 
@@ -103,7 +103,7 @@ You can generate the Resource ID Struct, Parser and Validation functions by runn
 * `./internal/service/resource/parse/resource_group_example_test.go` - contains tests for those ^.
 * `./internal/service/resource/validate/resource_group_example_id.go` - contains Terraform validation functions for the Resource ID.
 
-These types can then be used in the Resource we're creating below, but [see this link for more information on how Azure Resource ID's are used in Terraform](reference-azure-resource-ids.md).
+These types can then be used in the Resource we're creating below.
 
 ### Step 4: Scaffold an empty/new Resource
 

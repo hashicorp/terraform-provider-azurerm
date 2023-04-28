@@ -4,7 +4,7 @@ on:
   pull_request:
     types: ["opened", "synchronize"]
     paths:
-      - ".github/workflows/provider-test.yml"
+      - '.github/workflows/provider-test.yaml'
       - 'internal/**.go'
       - 'vendor/github.com/hashicorp/go-azure-sdk/sdk/auth/**'
       - 'vendor/github.com/hashicorp/go-azure-sdk/sdk/environments/**'
