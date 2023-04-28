@@ -103,7 +103,6 @@ func (r StorageMoverAgentTestResource) template(data acceptance.TestData) string
 	randomUUID, _ := uuid.GenerateUUID()
 	return fmt.Sprintf(`
 
-
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -240,6 +239,7 @@ data "azurerm_hybrid_compute_machine" "test" {
     azurerm_storage_mover.test
   ]
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, randomUUID, os.Getenv("ARM_CLIENT_SECRET"))
 }
