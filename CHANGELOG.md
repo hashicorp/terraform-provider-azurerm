@@ -8,6 +8,7 @@ FEATURES:
 
 * **New Resource:** `azurerm_arc_kubernetes_cluster_extension` [GH-21310]
 * **New Resource:** `azurerm_cosmosdb_postgresql_cluster` [GH-21090]
+* **New Resource:** `azurerm_email_communication_service` [GH-21526]
 * **New Resource:** `azurerm_kubernetes_cluster_extension` [GH-21310]
 * **New Resource:** `azurerm_netapp_volume_group_sap_hana` [GH-21290]
 * **New Resource:** `azurerm_storage_mover_project` [GH-21477]
