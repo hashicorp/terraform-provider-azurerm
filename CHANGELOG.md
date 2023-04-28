@@ -1,3 +1,11 @@
+## 3.55.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_virtual_machine` - fixing a regression when parsing the OS Disk ID from the Azure API [GH-21606]
+* `azurerm_virtual_machine` - fixing a regression when parsing the Data Disk ID from the Azure API [GH-21606]
+
+
 ## 3.54.0 (April 27, 2023)
 
 BREAKING CHANGES:
