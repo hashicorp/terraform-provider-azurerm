@@ -12,6 +12,7 @@ FEATURES:
 * **New Resource:** `azurerm_kubernetes_cluster_extension` [GH-21310]
 * **New Resource:** `azurerm_netapp_volume_group_sap_hana` [GH-21290]
 * **New Resource:** `azurerm_storage_mover_project` [GH-21477]
+* **New Resource:** `azurerm_storage_mover_job_definition` [GH-21514]
 
 ENHANCEMENTS:
 
