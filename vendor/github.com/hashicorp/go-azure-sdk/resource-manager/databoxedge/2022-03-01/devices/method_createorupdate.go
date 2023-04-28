@@ -2,12 +2,9 @@ package devices
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
@@ -15,9 +12,9 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CreateOrUpdateOperationResponse struct {
-	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DataBoxEdgeDevice
 }
 
 // CreateOrUpdate ...
@@ -50,24 +47,9 @@ func (c DevicesClient) CreateOrUpdate(ctx context.Context, id DataBoxEdgeDeviceI
 		return
 	}
 
-	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
-	if err != nil {
+	if err = resp.Unmarshal(&result.Model); err != nil {
 		return
 	}
 
 	return
-}
-
-// CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c DevicesClient) CreateOrUpdateThenPoll(ctx context.Context, id DataBoxEdgeDeviceId, input DataBoxEdgeDevice) error {
-	result, err := c.CreateOrUpdate(ctx, id, input)
-	if err != nil {
-		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
-	}
-
-	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after CreateOrUpdate: %+v", err)
-	}
-
-	return nil
 }

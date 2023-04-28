@@ -571,11 +571,11 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
 
-			flattenedIdentity, err := identity.FlattenUserAssignedMap(model.Identity)
+			identity, err := identity.FlattenUserAssignedMap(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
-			if err := d.Set("identity", flattenedIdentity); err != nil {
+			if err := d.Set("identity", identity); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 		}
@@ -742,7 +742,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("identity") {
 		identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
-			return fmt.Errorf("expanding `identity` for Mysql Flexible Server %s (Resource Group %q): %v", id.FlexibleServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("expanding `identity` for %s: %+v", *id, err)
 		}
 		parameters.Identity = identity
 	}
