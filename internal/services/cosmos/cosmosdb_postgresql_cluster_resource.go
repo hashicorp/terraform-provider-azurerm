@@ -16,6 +16,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+var CosmosDbPostgreSQLClusterResourceName = "azurerm_cosmosdb_postgresql_cluster"
+
 type CosmosDbPostgreSQLClusterModel struct {
 	Name                             string              `tfschema:"name"`
 	ResourceGroupName                string              `tfschema:"resource_group_name"`
