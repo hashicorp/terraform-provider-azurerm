@@ -298,8 +298,6 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
-
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
@@ -342,6 +340,22 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+
+			if siteConfigAppSetting := siteConfig.AppSettings; siteConfigAppSetting != nil && len(*siteConfigAppSetting) > 0 {
+				if webAppSlot.AppSettings == nil {
+					webAppSlot.AppSettings = make(map[string]string)
+				}
+				for _, pair := range *siteConfigAppSetting {
+					if pair.Name == nil || pair.Value == nil {
+						continue
+					}
+					if *pair.Name == "DOCKER_REGISTRY_SERVER_URL" ||
+						*pair.Name == "DOCKER_REGISTRY_SERVER_USERNAME" ||
+						*pair.Name == "DOCKER_REGISTRY_SERVER_PASSWORD" {
+						webAppSlot.AppSettings[*pair.Name] = *pair.Value
+					}
+				}
+			}
 
 			appSettings := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
@@ -717,6 +731,9 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") || metadata.ResourceData.HasChanges("site_config.0.application_stack") {
 				if siteConfigAppSetting := existing.SiteConfig.AppSettings; siteConfigAppSetting != nil && len(*siteConfigAppSetting) > 0 {
+					if state.AppSettings == nil {
+						state.AppSettings = make(map[string]string)
+					}
 					for _, pair := range *siteConfigAppSetting {
 						if pair.Name == nil || pair.Value == nil {
 							continue

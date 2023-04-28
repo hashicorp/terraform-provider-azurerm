@@ -960,13 +960,13 @@ func TestAccLinuxWebAppSlot_withDocker(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.docker(data, "mcr.microsoft.com/appsvc/staticsite", "latest"),
+			Config: r.docker(data, "appsvc/staticsite", "latest"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|mcr.microsoft.com/appsvc/staticsite:latest"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_config.0.application_stack.0.registry_username", "site_config.0.application_stack.0.registry_password", "site_config.0.application_stack.0.registry_url"),
 	})
 }
 
@@ -2030,16 +2030,9 @@ resource "azurerm_linux_web_app_slot" "test" {
   name           = "acctestWAS-%d"
   app_service_id = azurerm_linux_web_app.test.id
 
-  app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"          = "https://mcr.microsoft.com"
-    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
-    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-
-  }
-
   site_config {
     application_stack {
+      registry_url     = "https://mcr.microsoft.com"
       docker_image     = "%s"
       docker_image_tag = "%s"
     }

@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
@@ -618,6 +619,9 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 					}
 				}
 				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerUrl, linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+			}
+			if !features.FourPointOhBeta() && linuxAppStack.DockerContainerRegistry == "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
 			}
 		} else {
 			expanded.LinuxFxVersion = pointer.To("")
